@@ -3036,5 +3036,5 @@ components:
   securitySchemes:
       oauth:
         type: openIdConnect
-        openIdConnectUrl: https://130.163.9.216:8443/auth/realms/C-PAT/.well-known/openid-configuration    
+        openIdConnectUrl: https://localhost:8443/auth/realms/C-PAT/.well-known/openid-configuration    
 
