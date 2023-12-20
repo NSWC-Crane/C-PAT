@@ -1,0 +1,25 @@
+{
+  "name": "ptt",
+  "version": "1.0.0",
+  "description": "Poam tracking tool initial test",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tyler Eric Forajter",
+  "license": "ISC",
+  "dependencies": {
+    "@nestjs/passport": "^9.0.1",
+    "async-retry": "^1.3.3",
+    "axios": "^1.4.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.1",
+    "express-jwt": "^8.4.1",
+    "express-openapi-validator": "^4.13.8",
+    "jsonwebtoken": "^9.0.0",
+    "jwks-rsa": "^3.0.1",
+    "mysql2": "^2.3.3",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0"
+  }
+}
