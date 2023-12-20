@@ -13,7 +13,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const app = express();
 const PORT = 8086
-//const HOST = '130.163.10.80'
+
 const HOST = 'localhost'
 var passport = require('passport');
 
