@@ -1,0 +1,52 @@
+<nb-card>
+  <nb-card-header>
+    <div class="row" *ngIf="collection">
+      Selected Collection:
+      <div class="col-md-8">
+        <label>Collection Name: {{collection.collectionName}} Description: {{collection.description}}</label>
+      </div>
+      <hr/>
+      <canvas baseChart id='chartDiv' [chartType]="'bar'" [datasets]="chartData" [options]="backoptions"></canvas>
+      <hr/>
+
+      <div class="row">
+
+        <nb-radio-group style="display: flex; flex-wrap: wrap" layout="row" [(ngModel)]="searchOption">
+          <nb-radio
+          (valueChange)="onSearchChange($event)"
+            *ngFor="let option of searchOptions"
+            [value]="option.value">
+            {{ option.label }}
+          </nb-radio>
+        </nb-radio-group>
+      </div>
+      <br>
+      <div class="row">
+        <label style="float: left">POAM Filter by Status:</label>
+        <nb-select outline status="info" placeholder="Filter Poams: " [(ngModel)]="selectedStatus" name="selectedStatus"
+          (ngModelChange)='onSelectedStatusChange($event)'>
+          <nb-option value="All">All</nb-option>
+          <nb-option value="Draft">Draft</nb-option>
+          <nb-option value="Approved">Approved</nb-option>
+          <nb-option value="Submitted">Submitted</nb-option>
+          <nb-option value="Rejected">Rejected</nb-option>
+          <nb-option value="Closed">Closed</nb-option>
+          <nb-option value="Expired">Expired</nb-option>
+        </nb-select>
+
+        <button nbButton outline status="info"
+        style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;"
+        (click)="addPoam()">Add POAM</button>
+      </div>
+    </div>
+    <hr/>
+    <div class="col-lg-4 col-sm-12">
+
+      <ngx-dropdown-treeview outline status="info" [config]="dropdownConfig" [items]="items" [buttonClass]="buttonClass"
+        (selectedChange)="onSelectedChange($event)">
+      </ngx-dropdown-treeview>
+    </div>
+
+  </nb-card-header>
+
+</nb-card>

@@ -1,0 +1,15 @@
+@use 'themes' as *;
+
+@use '@nebular/theme/styles/globals' as *
+;
+@use '@nebular/auth/styles/globals' as *;
+
+@include nb-install() {
+  @include nb-theme-global();
+  @include nb-auth-global(); // append the install mixin inside of the nb-install
+};
+/* You can add global styles to this file, and also import other style files */
+
+/* Importing Bootstrap SCSS file. */
+@import '~bootstrap/scss/bootstrap';
+

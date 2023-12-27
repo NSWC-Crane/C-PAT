@@ -1,0 +1,4 @@
+// The nb-card-header within the NbAuthComponent displays the back() arrow, the following two lines prevent the header from being displayed
+// removing the back arrow.
+// /deep/ .nb-theme-dark nb-card-header { display: none !important; }
+// /deep/ .nb-theme-corporate nb-card-header { display: none !important; }

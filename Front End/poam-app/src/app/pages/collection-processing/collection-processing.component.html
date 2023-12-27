@@ -1,0 +1,95 @@
+<div *ngIf="(selectedRole == 'admin'); else dontshowcollections">
+  <div class="row">
+    <div class="col-md-10" [nbSpinner]="isLoading" nbSpinnerStatus="success" nbSpinnerSize="medium"
+      nbSpinnerMessage="Loading data, please wait...">
+      <nb-card>
+        <nb-card-body>
+          <h3>Current Collection Structure</h3>
+
+          <table [nbTreeGrid]="dataSource">
+            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+
+            <ng-container [nbTreeGridColumnDef]="customColumn">
+              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
+              <td nbTreeGridCell *nbTreeGridCellDef="let row">
+
+                <nb-tree-grid-row-toggle [expanded]="row.expanded" *ngIf="row.data['collect']">
+                </nb-tree-grid-row-toggle>
+
+                {{row.data[customColumn]}}
+
+              </td>
+            </ng-container>
+
+            <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
+              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
+              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
+            </ng-container>
+          </table>
+
+        </nb-card-body>
+      </nb-card>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-10">
+      <nb-card>
+        <nb-card-body>
+          <label style="width:fit-content" for="collection">Select Collection to Modify/Delete</label>
+
+          <div class="row" *ngIf="allowSelectCollections">
+
+            <div class="col-md-5" style="width: auto;">
+              <nb-select fullWidth style="width: auto" outlineid="collectionid" name="collection"
+                [(ngModel)]="collection.collectionId" (selectedChange)="setCollection($event)" placeholder="collection"
+                required>
+                <nb-option *ngFor="let collection of data" [value]="collection.collectionId">
+                  {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
+                </nb-option>
+              </nb-select>
+            </div>
+            <div class="col-md-5" style="width: auto;">
+              <button nbButton style="float: right;" (click)="addCollection()">Add Collection</button>
+            </div>
+          </div>
+          <div [ngStyle]="hideCollectionEntry">
+            <div *ngIf="collectionApprovers.length > 0">
+              <ngx-collection [collection]="collection" [collections]="collections"
+                [collectionApprovers]="collectionApprovers" [possibleCollectionApprovers]="possibleCollectionApprovers"
+                payload="payload" [poams]="poams" (collectionchange)="resetData();"></ngx-collection>
+            </div>
+            <div *ngIf="collectionApprovers.length < 1">
+              <ngx-collection [collection]="collection" [collections]="collections"
+                [collectionApprovers]="collectionApprovers" [possibleCollectionApprovers]="possibleCollectionApprovers"
+                payload="payload" [poams]="poams" (collectionchange)="resetData();"></ngx-collection>
+            </div>
+
+          </div>
+
+        </nb-card-body>
+      </nb-card>
+    </div>
+  </div>
+</div>
+
+
+
+<ng-template #dialog let-data let-ref="dialogRef">
+  <nb-card>
+    <nb-card-header>Delete Row</nb-card-header>
+    <nb-card-body>Are you sure you want to delete this item?</nb-card-body>
+    <nb-card-footer>
+      <button nbButton status="danger">Delete</button>
+      <button nbButton outline status="primary" style="float: right;" (click)="ref.close()">Cancel</button>
+    </nb-card-footer>
+  </nb-card>
+</ng-template>
+
+<ng-template #dontshowcollections>
+  <h1 style>
+    Collections processing requires may role of admin.
+    <br /><br />
+  </h1>
+</ng-template>
