@@ -1,0 +1,17 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules/
+
+# ports
+/Api/utils/config.js
+/Api/Services/mysql/userService.js
+/Front End/poam-app/src/app/app.module.ts
+/Front End/poam-app/src/app/auth/reset-password/reset-password.service.ts
+/Front End/poam-app/src/app/pages/login/login.service.ts
+/Front End/poam-app/src/environments/environment.local.ts
+/Front End/poam-app/src/environments/environment.prod.ts
+/Front End/poam-app/src/environments/environment.ts
+
+
+/.vs/C-PAT_LIVE/FileContentIndex
