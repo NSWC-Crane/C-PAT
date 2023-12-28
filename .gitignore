@@ -14,5 +14,4 @@ node_modules/
 /Front End/poam-app/src/environments/environment.ts
 
 # Ignore Visual Studio Code FileContentIndex directory
-/.vs/C-PAT_LIVE/FileContentIndex
-/.vs/C-PAT_LIVE/v17/.wsuo
+.vs/
