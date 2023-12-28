@@ -1,3 +1,13 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
 <ng-container>
   <form (ngSubmit)="onSubmit()" #form="ngForm">
     <div class="container">
@@ -5,15 +15,15 @@
         <div class="col-md-10">
           <label style="margin-right: 1%" for="labelname">*Label Name: </label>
           <input nbInput type="text" fullWidth name="labelname" [(ngModel)]="label.labelName" placeholder="name"
-            required>
+                 required>
         </div>
       </div>
-      <br /> 
+      <br />
       <div class="row">
         <div class="col-md-10">
           <label for="description">Description:  </label>
           <input nbInput type="text" fullWidth name="description" [(ngModel)]="label.description"
-            placeholder="Description">
+                 placeholder="Description">
         </div>
       </div>
       <br>
@@ -21,7 +31,7 @@
         <div class="col-md-10">
           <label for="poamcount">POAM Count:  </label>
           <input nbInput type="number" s name="poamcount" [(ngModel)]="label.poamCount"
-            disabled="true" readonly>
+                 disabled="true" readonly>
         </div>
       </div>
       <br>

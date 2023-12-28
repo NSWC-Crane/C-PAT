@@ -8,7 +8,6 @@
 !########################################################################
 */
 
-
 const mysql = require('mysql2/promise');
 const config = require('../../utils/config')
 const fs = require("fs")

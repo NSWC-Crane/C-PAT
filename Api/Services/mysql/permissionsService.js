@@ -8,7 +8,6 @@
 !########################################################################
 */
 
-
 'use strict';
 const config = require('../../utils/config')
 const dbUtils = require('./utils')

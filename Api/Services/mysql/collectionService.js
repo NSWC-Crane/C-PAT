@@ -198,7 +198,7 @@ exports.getCollections = async function getCollections (userNameInput, req, res,
 			connection = await dbUtils.pool.getConnection()
 			let sql = "SELECT * FROM collectionpermissions WHERE userId='"+ userId + "';"
 			let[row2] = await connection.query(sql)
-                        //console.log(row2)
+						//console.log(row2)
 			var numberOfCollections = Object.keys(row2).length
 			// console.log(numberOfCollections)
 			var nonAdminCollections = {
@@ -210,7 +210,7 @@ exports.getCollections = async function getCollections (userNameInput, req, res,
 				let[row3] = await connection.query(sql3)
 				nonAdminCollections.collections.push({ "collectionId" : row3[0].collectionId, "collectionName" : row3[0].collectionName, "description" : row3[0].description, "created" : row3[0].created, "grantCount" : row3[0].grantCount, "assetCount" : row3[0].assetCount, "poamCount" : row3[0].poamCount});
 			}
-                        
+						
 			let response = nonAdminCollections
 			// console.log(response)
 			await connection.release() 
@@ -307,5 +307,5 @@ exports.putCollection = async function putCollection(req, res, next) {
 }
 
 exports.deleteCollection = async function deleteCollection(body, projection, userObject){
-        res.status(201).json({message: "deleteCollection (Service) Method called successfully"})
+		res.status(201).json({message: "deleteCollection (Service) Method called successfully"})
 }
