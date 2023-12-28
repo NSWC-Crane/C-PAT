@@ -4,14 +4,7 @@
 node_modules/
 
 # Ignore specific files and directories within the Api and Front End directories
-/Api/utils/config.js
-/Api/Services/mysql/userService.js
-/Front End/poam-app/src/app/app.module.ts
-/Front End/poam-app/src/app/auth/reset-password/reset-password.service.ts
-/Front End/poam-app/src/app/pages/login/login.service.ts
-/Front End/poam-app/src/environments/environment.local.ts
-/Front End/poam-app/src/environments/environment.prod.ts
-/Front End/poam-app/src/environments/environment.ts
+
 
 # Ignore Visual Studio Code FileContentIndex directory
 .vs/

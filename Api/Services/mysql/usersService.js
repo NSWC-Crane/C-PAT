@@ -24,7 +24,7 @@ exports.getUserObject = async function getUserObject(body, projection, userObjec
 		host: 'localhost',
 		user: 'root',
 		password: 'root',
-		database: 'poamtracking'
+		database: 'PTT_Test'
 	})
 	// console.log("Connection Created")
 
