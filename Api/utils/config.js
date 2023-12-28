@@ -7,6 +7,7 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
+
 const package = require("../package.json")
 
 let config = {

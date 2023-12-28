@@ -1,3 +1,13 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
 <nb-layout>
 
   <nb-layout-header fixed>
@@ -9,7 +19,7 @@
     </div>
 
     <div class="col" style="margin-top: 10px;" [nbSpinner]="isSettingWorkspace" nbSpinnerStatus="success"
-      nbSpinnerSize="medium" nbSpinnerMessage="Loading work space, please wait...">
+         nbSpinnerSize="medium" nbSpinnerMessage="Loading work space, please wait...">
       <!-- color: rgb(251, 244, 244); -->
       <h5 style="margin-left: 30%">
         Current Workspace
@@ -21,8 +31,8 @@
         <p>
           <label style="float: left">Selected Collection</label>
           <nb-select class="appearance-outline size-mediumoutline" status="info" placeholder="Collection"
-            [(ngModel)]="selectedCollection" name="selectedCollection" id="selectedCollection"
-            (ngModelChange)="resetWorkspace($event)" [(selected)]="selectedCollection">
+                     [(ngModel)]="selectedCollection" name="selectedCollection" id="selectedCollection"
+                     (ngModelChange)="resetWorkspace($event)" [(selected)]="selectedCollection">
 
             <nb-option *ngFor="let collection of collections" value={{collection.collectionId}} name=selectedCollection>
               {{collection.collectionName}} - {{ collection.description}}
@@ -36,7 +46,7 @@
       <div class="col">
         <label style="float: left">Theme</label>
         <nb-select outline status="info" placeholder="Select Theme" [(ngModel)]="selectedTheme" name="selectedTheme"
-          (ngModelChange)='onSelectedThemeChange($event)'>
+                   (ngModelChange)='onSelectedThemeChange($event)'>
           <nb-option value="default">Default</nb-option>
           <nb-option value="dark">Dark</nb-option>
           <nb-option value="cosmic">Cosmic</nb-option>
@@ -49,15 +59,17 @@
       <div class="col">
         <label style="float: left">Log Out</label>
         <button nbButton outline status="info"
-          style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="logOut()">Log
-          Out</button>
+                style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="logOut()">
+          Log
+          Out
+        </button>
       </div>
 
     </div>
 
   </nb-layout-header>
-  <nb-layout-header subheader >
-    <div   [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
+  <nb-layout-header subheader>
+    <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
       {{ classification }}
     </div>
     <nb-icon (click)="toggleSidebar()" class="sidebar-toggle" icon="menu-2-outline"></nb-icon>
@@ -73,19 +85,23 @@
     <div class="row">
       <label style="float: left">POAMS:</label>
       <button nbButton outline status="info"
-        style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="addPoam()">Add
-        POAM</button>
+              style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="addPoam()">
+        Add
+        POAM
+      </button>
     </div>
 
     <ngx-dropdown-treeview outline status="info" [config]="dropdownConfig" [items]="poamItems"
-      [buttonClass]="buttonClass" (selectedChange)="onSelectedPoamChange($event)">
+                           [buttonClass]="buttonClass" (selectedChange)="onSelectedPoamChange($event)">
     </ngx-dropdown-treeview>
 
     <div class="row">
       <label style="float: left">Log Out:</label>
       <button nbButton outline status="info"
-        style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="logOut()">Log
-        Out</button>
+              style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="logOut()">
+        Log
+        Out
+      </button>
     </div>
   </nb-sidebar>
 
@@ -100,7 +116,7 @@
   </nb-layout-column>
 
   <nb-layout-footer fixed>
-    <div   [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
+    <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
       {{ classification }}
     </div>
   </nb-layout-footer>

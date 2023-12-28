@@ -1,9 +1,19 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
 <div *ngIf="(selectedRole == 'admin'); else dontshowcollections">
   <div class="row" *ngIf="allowSelectAssets">
     <div class="col-md-10" [nbSpinner]="isLoading"
-    nbSpinnerStatus="success"
-    nbSpinnerSize="medium"
-    nbSpinnerMessage="Loading data, please wait...">
+         nbSpinnerStatus="success"
+         nbSpinnerSize="medium"
+         nbSpinnerMessage="Loading data, please wait...">
       <nb-card>
         <nb-card-body>
           <h3>Assets</h3>
@@ -40,27 +50,27 @@
       <nb-card>
         <nb-card-body>
           <label style="width:fit-content" for="asset">Select Asset to Modify</label>
-  
-          <div class="row" *ngIf="allowSelectAssets" >
-  
-              <div class="col-md-5" style="width: auto;">
-                <nb-select fullWidth style="width: auto" outlineid="assetid" name="asset" [(ngModel)]="asset.assetId"
-                  (selectedChange)="setAsset($event)" placeholder="asset" required>
-                  <nb-option *ngFor="let asset of data" [value]="asset.assetId">
-                    {{ asset.assetName }} - {{ asset.description }} - {{ asset.ipAddress }}
-                  </nb-option>
-                </nb-select>
-              </div>
-              <div class="col-md-5" style="width: auto;">
-                <button nbButton style="float: right;" (click)="addAsset()">Add Asset</button>
-              </div>
+
+          <div class="row" *ngIf="allowSelectAssets">
+
+            <div class="col-md-5" style="width: auto;">
+              <nb-select fullWidth style="width: auto" outlineid="assetid" name="asset" [(ngModel)]="asset.assetId"
+                         (selectedChange)="setAsset($event)" placeholder="asset" required>
+                <nb-option *ngFor="let asset of data" [value]="asset.assetId">
+                  {{ asset.assetName }} - {{ asset.description }} - {{ asset.ipAddress }}
+                </nb-option>
+              </nb-select>
+            </div>
+            <div class="col-md-5" style="width: auto;">
+              <button nbButton style="float: right;" (click)="addAsset()">Add Asset</button>
+            </div>
           </div>
 
-        <div *ngIf="!allowSelectAssets">
+          <div *ngIf="!allowSelectAssets">
 
-          <ngx-asset [asset]="asset"  [assets]="assets" [payload]="payload" (assetchange)="resetData();"></ngx-asset>
-        </div>
-        
+            <ngx-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData();"></ngx-asset>
+          </div>
+
         </nb-card-body>
       </nb-card>
     </div>

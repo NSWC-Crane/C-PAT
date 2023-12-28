@@ -1,57 +1,68 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
 <form (ngSubmit)="onSubmit()" #form="ngForm">
-    <div class="container">
+  <div class="container">
 
-        <div class="row">
-            <label style="margin-right: 1%" for="assetName">*Asset Name: </label>
-            <input nbInput type="text" name="assetName" [(ngModel)]="asset.assetName" placeholder="asset name" required>
-            
-            <label for="description">Description: </label>
-            <input nbInput type="text" fullWidth name="description" [(ngModel)]="asset.description" placeholder="description">
-            
-            <label for="fullyQualifiedDomainName">Fully Qualified Domain Name: </label>
-            <input nbInput type="text" fullWidth name="fullyQualifiedDomainName" [(ngModel)]="asset.fullyQualifiedDomainName" placeholder="fully qualified domain name">
-        </div>
-        <br />
-        <div class="row">
-            <nb-select fullWidth style="width: auto" outlineid="collectionId" name="collectionId" [(ngModel)]="asset.collectionId" 
-             placeholder="{{ tcollectionName }}"  required>
-            <nb-option *ngFor="let collection of collectionList" [value]="collection.collectionId">
-              {{ collection.collectionName }} - {{ collection.description }}
-            </nb-option>
-          </nb-select>
-        </div>
-        <br />
-        
-        <div class="row">
-            <label for="ipAddress">*IP Address: </label>
-            <input nbInput type="text" fullWidth name="ipAddress" [(ngModel)]="asset.ipAddress" placeholder="ip address">
-            
-            <label for="macAddress">*MAC Address: </label>
-            <input nbInput type="text" fullWidth name="macAddress" [(ngModel)]="asset.macAddress" placeholder="mac addres">
-        </div>
-        <div class="row">
-            <div class="container">
-                <div class="row" [nbSpinner]="isLoading"
-                nbSpinnerStatus="success"
-                nbSpinnerSize="medium"
-                nbSpinnerMessage="Updating/loading data, please wait...">>
-                  <div class="col">
-                    <ng2-smart-table [settings]="assetLabelsSettings" [source]="assetLabels" mode="inline"
-                      (createConfirm)="confirmCreate($event)" 
-                      (deleteConfirm)="confirmDelete($event)">
-                    </ng2-smart-table>
-                  </div>
-                </div>
-              </div>
+    <div class="row">
+      <label style="margin-right: 1%" for="assetName">*Asset Name: </label>
+      <input nbInput type="text" name="assetName" [(ngModel)]="asset.assetName" placeholder="asset name" required>
 
-        </div>
-        <br>
-        <div class="row">
-            <div class="container">
+      <label for="description">Description: </label>
+      <input nbInput type="text" fullWidth name="description" [(ngModel)]="asset.description" placeholder="description">
 
-                <button nbButton class="mr-3" [disabled]="!form.valid">Submit</button>
-                <button nbButton type="button" class="mr-3" (click)="resetData()">Cancel</button>
-            </div>
-        </div>
+      <label for="fullyQualifiedDomainName">Fully Qualified Domain Name: </label>
+      <input nbInput type="text" fullWidth name="fullyQualifiedDomainName" [(ngModel)]="asset.fullyQualifiedDomainName" placeholder="fully qualified domain name">
     </div>
+    <br />
+    <div class="row">
+      <nb-select fullWidth style="width: auto" outlineid="collectionId" name="collectionId" [(ngModel)]="asset.collectionId"
+                 placeholder="{{ tcollectionName }}" required>
+        <nb-option *ngFor="let collection of collectionList" [value]="collection.collectionId">
+          {{ collection.collectionName }} - {{ collection.description }}
+        </nb-option>
+      </nb-select>
+    </div>
+    <br />
+
+    <div class="row">
+      <label for="ipAddress">*IP Address: </label>
+      <input nbInput type="text" fullWidth name="ipAddress" [(ngModel)]="asset.ipAddress" placeholder="ip address">
+
+      <label for="macAddress">*MAC Address: </label>
+      <input nbInput type="text" fullWidth name="macAddress" [(ngModel)]="asset.macAddress" placeholder="mac addres">
+    </div>
+    <div class="row">
+      <div class="container">
+        <div class="row" [nbSpinner]="isLoading"
+             nbSpinnerStatus="success"
+             nbSpinnerSize="medium"
+             nbSpinnerMessage="Updating/loading data, please wait...">
+          >
+          <div class="col">
+            <ng2-smart-table [settings]="assetLabelsSettings" [source]="assetLabels" mode="inline"
+                             (createConfirm)="confirmCreate($event)"
+                             (deleteConfirm)="confirmDelete($event)">
+            </ng2-smart-table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <br>
+    <div class="row">
+      <div class="container">
+
+        <button nbButton class="mr-3" [disabled]="!form.valid">Submit</button>
+        <button nbButton type="button" class="mr-3" (click)="resetData()">Cancel</button>
+      </div>
+    </div>
+  </div>
 </form>

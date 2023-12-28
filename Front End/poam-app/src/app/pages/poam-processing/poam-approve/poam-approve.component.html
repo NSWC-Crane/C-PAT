@@ -1,19 +1,33 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
 <ng-template #approveTemplate let-ref="dialogRef">
   <nb-card>
     <nb-card-header>Approve POAM</nb-card-header>
     <nb-card-body>
       <label style="margin-left: 40%;">Comments</label>
       <textarea [(ngModel)]="comments" placehoder="Comments" name='comments' cols="180"
-        rows="10"></textarea>
+                rows="10"></textarea>
       <br>
 
     </nb-card-body>
     <nb-card-footer>
       <!-- <button nbButton (click)="ref.close()">Close Dialog</button> -->
       <button nbButton outline status="info"
-      style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="approveOk(); ref.close();">Approve</button>
+              style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="approveOk(); ref.close();">
+        Approve
+      </button>
       <button nbButton outline status="info"
-      style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="approveReject(); ref.close();">Reject</button>
+              style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="approveReject(); ref.close();">
+        Reject
+      </button>
     </nb-card-footer>
   </nb-card>
 </ng-template>

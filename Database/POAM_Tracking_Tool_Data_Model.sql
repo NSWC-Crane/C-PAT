@@ -44,15 +44,6 @@ CREATE TABLE `asset` (
    KEY `CollectionId` (`collectionId`)
  )
 
-CREATE TABLE `poamapprovers` (
-  `poamId` int NOT NULL,
-  `userId` int NOT NULL,
-  `approved` int NOT NULL DEFAULT '0',
-  `approvedDate` datetime DEFAULT CURRENT_TIMESTAMP,
-  `comments` varchar(2000) DEFAULT NULL,
-  PRIMARY KEY (`poamId`,`userId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 CREATE TABLE `poamtracking`.`poamassets` (
    `poamId` int NOT NULL,
    `assetId` int NOT NULL,

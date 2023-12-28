@@ -1,3 +1,13 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
 <h1 id="title" class="title">Register</h1>
 
 <nb-alert *ngIf="showMessages.error && errors?.length && !submitted" outline="danger" role="alert">
@@ -19,19 +29,19 @@
   <div class="form-control-group">
     <label class="label" for="input-username">Username:</label>
     <input nbInput
-          [(ngModel)]="user.userName"
-          #userName="ngModel"
-          id="input-username"
-          name="userName"
-          pattern="^[a-zA-Z0-9.\-_]+$"
-          placeholder="Username"
-          autofocus
-          fullWidth
-          [status]="email.dirty ? (email.invalid ? 'danger' : 'success') : ''"
-          [required]="getConfigValue('forms.validation.userName.required')"
-          [minlength]="getConfigValue('forms.validation.userName.minLength')"
-          [maxlength]="getConfigValue('forms.validation.userName.maxLength')"
-          [attr.aria-invalid]="userName.invalid && userName.touched ? true : null">
+           [(ngModel)]="user.userName"
+           #userName="ngModel"
+           id="input-username"
+           name="userName"
+           pattern="^[a-zA-Z0-9.\-_]+$"
+           placeholder="Username"
+           autofocus
+           fullWidth
+           [status]="email.dirty ? (email.invalid ? 'danger' : 'success') : ''"
+           [required]="getConfigValue('forms.validation.userName.required')"
+           [minlength]="getConfigValue('forms.validation.userName.minLength')"
+           [maxlength]="getConfigValue('forms.validation.userName.maxLength')"
+           [attr.aria-invalid]="userName.invalid && userName.touched ? true : null">
 
   </div>
 
@@ -124,8 +134,8 @@
 
   <div class="col">
     <ng2-smart-table [settings]="collectionPermissionsSettings" [source]="collectionPermissions" mode="inline"
-      (createConfirm)="confirmCreate($event)" (editConfirm)="confirmEdit($event)"
-      (deleteConfirm)="confirmDelete($event)">
+                     (createConfirm)="confirmCreate($event)" (editConfirm)="confirmEdit($event)"
+                     (deleteConfirm)="confirmDelete($event)">
     </ng2-smart-table>
   </div>
 
@@ -134,13 +144,11 @@
       Agree to <a href="#" target="_blank"><strong>Terms & Condiions</strong></a>
     </nb-checkbox>
   </div>
-<!--  [disabled]="submitted || !form.valid" -->
+  <!--  [disabled]="submitted || !form.valid" -->
   <button nbButton
           fullWidth
           status="success"
-         
-          [class.btn-pulse]="submitted"
-          >
+          [class.btn-pulse]="submitted">
     Register
   </button>
 </form>
