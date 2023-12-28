@@ -9,73 +9,36 @@
 */
 
 
-//const userService = require('/home/tyler.forajter.local/Development/PTT/Services/mysql/usersService.js')
 const userService = require('../Services/mysql/usersService')
-
-module.exports.getUserObject = async function getUserObject(req, res, next) {
-	//userService.createUser()
-
-	res.status(201).json({ message: "getUser Method Called successfully" })
-
-}
 
 
 module.exports.getUsers = async function getUsers(req, res, next) {
 	// res.status(201).json({message: "getUser Method Called successfully"})
 
 	var users = await userService.getUsers(req, res, next)
-	console.log("returning user: ",users)
+	// console.log("returning user: ",users)
 	res.status(201).json(users)
-
-}
-
-
-module.exports.createUser = async function postCreateUser(req, res, next) {
-	//curl command: curl -d '{"name":"","id":"", "email":""}' -H "Content-Type: application/json" -X POST 'localhost:8080/user/'
-	let testUser = {
-		"name": req.body.name,
-		"id": req.body.id,
-		"email": req.body.email
-	}
-
-	console.log("--------------------------------------------------------")
-	var testuser = await userService.postCreateUser(testUser)
-	console.log(testuser)
-	console.log("--------------------------------------------------------")
-
-	res.json(testuser)
-
 }
 
 
 module.exports.getUserByUserID = async function getUserByUserID(req, res, next) {
-	console.log("getUserByUserID: ", req.params.userID)
+	// console.log("getUserByUserID: ", req.params.userID)
 	let userID = req.params.userID
-	console.log(userID)
+	// console.log(userID)
 	var user = await userService.getUserByUserID(userID)
-	console.log(user)
+	// console.log(user)
 	res.status(201).json(user)
 
 }
 
-
 module.exports.updateUser = async function updateUser(req, res, next) {
-	console.log("updateUser call, req.body:", req.body);
+	// console.log("updateUser call, req.body:", req.body);
 	var user = await userService.updateUser(req,res,next); 
 	res.status(201).json(user)
 	//res.status(201).json({ message: "updateUser Method called successfully" })
 
 }
 
-
-
-module.exports.replaceUser = async function replaceUser(req, res, next) {
-
-	console.log("replaceUser call, req.body:", req.body);
-	await userService.replaceUser(req, res, next);
-	//res.status(201).json({message: "replaceUser Method called successfully"})
-
-}
 
 module.exports.deleteUser = async function deleteUser(req, res, next) {
 
@@ -84,8 +47,10 @@ module.exports.deleteUser = async function deleteUser(req, res, next) {
 
 
 	res.status(201).json(deletedUser)
-
-
-
 }
 
+module.exports.loginout = async function loginout(req, res, next) {
+	//console.log("user controller loginout req: ",req.body)
+	var inout = await userService.loginout(req,res,next); 
+	res.status(201).json(inout)
+}
