@@ -520,16 +520,14 @@ paths:
         - oauth:
             - 'c-pat:read'        
       summary: Create a Collection
-      operationId: createCollection
+      operationId: postCollection
       description: ''
-      parameters:
-        - $ref: '#/components/parameters/collectionQuery'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/collectionCreateOrReplace'
+              $ref: '#/components/schemas/collection'
       responses:
         '201':
           description: CollectionProjected response
@@ -671,30 +669,6 @@ paths:
           default: false
       - $ref: '#/components/parameters/benchmarkIdQuery'
       - $ref: '#/components/parameters/assetIdQuery'
-    get:
-      tags:
-        - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return the POAMs for the specified Collection
-      operationId: getPOAMByCollection
-      responses:
-        '200':
-          description: CollectionFinding response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poam_Object'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-                
   '/collection/{collectionId}/poamstats':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
@@ -722,149 +696,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-                
-  '/collections/{collectionId}/grants/{userId}/access':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-      - $ref: '#/components/parameters/userIdPath'
-    get:
-      tags:
-        - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'
-      summary: Return a User with accessLevel 1's  access to the specified Collection. Request must be made by a User with accessLevel >= 3 to the Collection.
-      operationId: getPOAM_AssetsByCollectionUser
-      responses:
-        '200':
-          description: Collection POAM_AssetProjected array response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poam_Object'
-                #  $ref: '#/components/schemas/POAM_AssetProjected'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-    put:
-      tags:
-        - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Set a User with accessLevel 1's access to the specified Collection. Request must be made by a User with accessLevel >= 3 to the Collection.
-      operationId: setPOAM_AssetsByCollectionUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/poam_Object'
-      responses:
-        '200':
-          description: StigAssetProjected array response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poam_Object'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-  '/collections/{collectionId}/labels':
-    get:
-      tags:
-        - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return labels of the specified Collection
-      operationId: getCollectionLabels
-      parameters:
-        - $ref: '#/components/parameters/collectionIdPath'
-      responses:
-        200:
-          description: Labels response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/collectionLabelList'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-    post:
-      tags:
-        - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Create a label in the specified Collection
-      operationId: createCollectionLabel
-      parameters:
-        - $ref: '#/components/parameters/collectionIdPath'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/labelCreate'
-      responses:
-        201:
-          description: Label response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/label'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-
   '/collections/{collectionId}/labels/{labelId}':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
       - $ref: '#/components/parameters/labelIdPath'
-    get:
-      tags:
-        - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return the specified Label of the specified Collection
-      operationId: getCollectionLabelById
-      responses:
-        200:
-          description: Labels response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/label'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
   '/collectionApprovers/{collectionId}':
     parameters:
       - in: path
@@ -2098,56 +1933,6 @@ paths:
         - oauth:
             - 'c-pat:read'
   '/user':
-    get:
-      tags:
-        - User
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return the requestors user information
-      operationId: getUserObject
-      responses:
-        '200':
-          description: User response
-          content:
-            applicaion/json:
-              schema:
-                $ref: '#/components/schemas/user'
-        default:
-          description: unexpected error
-          content:
-            applicaion/json:
-              schema:
-                $ref: '#/components/schemas/error'
-    post:
-      tags:
-        - User
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Create a User
-      operationId: createUser
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/user'
-
-      responses:
-        '201':
-          description: User response
-          content:
-            applicaion/json:
-              schema:
-                $ref: '#/components/schemas/user'
-        default:
-          description: unexpected error
-          content:
-            applicaion/json:
-              schema:
-                $ref: '#/components/schemas/error'
     put:
       tags:
         - User
@@ -2250,6 +2035,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+  '/user/loginout':
+    put:
+      tags:
+        - User
+      security:
+        - oauth:
+            - 'c-pat:read'        
+      summary: writes stdoutput log to indicate login or logout
+      operationId: loginout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user_LoginOut'
+      responses:
+        '200':
+          description: UserProjected response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_Login_Response'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
 
 components:
 
@@ -2809,7 +2623,7 @@ components:
         - lastCollectionAccessedId
         - defaultTheme
         - isAdmin
-      additionalProperties: false
+      additionalProperties: true
       properties:
         userID:
           type: integer
@@ -2834,6 +2648,8 @@ components:
           maxLength: 20
         isAdmin:
           type: integer
+        updateSettingsOnly:
+          type: integer
           
     user_Login:
       required:
@@ -2846,12 +2662,21 @@ components:
           type: string
         password:
           type: string
+          
+    user_LoginOut:
+      required:
+        - inout
+      type: object
+      additionalProperties: false
+      properties:
+        inout:
+          type: string           
 
     user_Login_Response:
       type: object
       additionalProperties: false
       properties:
-        token:
+        message:
           type: string          
           
     user_Token:
