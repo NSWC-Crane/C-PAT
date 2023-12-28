@@ -23,8 +23,8 @@ exports.getUserObject = async function getUserObject(body, projection, userObjec
 	var con = mysql.createConnection({
 		host: 'localhost',
 		user: 'root',
-		password: 'root',
-		database: 'PTT_Test'
+		password: '64977946',
+		database: 'poamtracking'
 	})
 	// console.log("Connection Created")
 

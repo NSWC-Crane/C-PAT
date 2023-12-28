@@ -1,9 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# Ignore the node_modules directory
 node_modules/
 
-# ports
+# Ignore specific files and directories within the Api and Front End directories
 /Api/utils/config.js
 /Api/Services/mysql/userService.js
 /Front End/poam-app/src/app/app.module.ts
@@ -13,5 +13,5 @@ node_modules/
 /Front End/poam-app/src/environments/environment.prod.ts
 /Front End/poam-app/src/environments/environment.ts
 
-
+# Ignore Visual Studio Code FileContentIndex directory
 /.vs/C-PAT_LIVE/FileContentIndex
