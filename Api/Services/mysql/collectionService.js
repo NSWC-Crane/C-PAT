@@ -8,21 +8,11 @@
 !########################################################################
 */
 
-
 'use strict';
 const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
-
-exports.createCollection = async function createCollection(body, projection, userObject){
-        res.status(201).json({message: "createCollection (Service) Method Called successfully"})
-
-
-
-}
-
-
-
+const writeLog = require('../../utils/poam_logger')
 
 exports.getCollection = async function getCollection(userName, collectionId, req, res, next){
 	function collectionObj(collectionId, collectionName, description, created, grantCount, poamCount)  {
@@ -84,7 +74,7 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 		//if user is admin check, if so dump all collections
 		let sql = "SELECT * FROM collection WHERE collectionId="+collectionId + ";"
 		let [row] = await connection.query(sql)
-		console.log("row: ", row[0])
+		// console.log("row: ", row[0])
 		// let response = new collectionObj(row[0].collectionId, row[0].collectionName,row[0].description, row[0].created,row[0].grantCount,row[0].poamCount)
 		let response = {...row[0]}
 		await connection.release()
@@ -101,7 +91,7 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 
 exports.getCollectionPoamStats = async function getCollectionPoamStats( req, res, next){
 
-	console.log("collectionId: ",  req.params.collectionId)
+	// console.log("collectionId: ",  req.params.collectionId)
 	
 	try{
 		let connection
@@ -109,7 +99,7 @@ exports.getCollectionPoamStats = async function getCollectionPoamStats( req, res
 		//if user is admin check, if so dump all collections
 		let sql = "SELECT status, COUNT(*) AS statusCount FROM poam WHERE collectionId = ?  GROUP BY status;"
 		let [rows] = await connection.query(sql, [req.params.collectionId])
-		console.log("rows: ", rows)
+		// console.log("rows: ", rows)
 		// let response = new collectionObj(row[0].collectionId, row[0].collectionName,row[0].description, row[0].created,row[0].grantCount,row[0].poamCount)
 		
 		await connection.release()
@@ -133,76 +123,6 @@ exports.getCollectionPoamStats = async function getCollectionPoamStats( req, res
 	}
 }
 
-
-
-// exports.updateCollection = async function updateCollection(body, projection, userObject){
-//         res.status(201).json({message: "updateCollection (Service) Method called successfully"})
-// }
-
-exports.putCollection = async function putCollection(req, res, next) {
-	console.log("inSide putCollection req.body: ", req.body)
-	if (!req.body.collectionId) {
-		console.info('postPermissions collectionId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				collectionId: 'is required',
-			}
-		});
-	}
-	if (!req.body.collectionName) req.body.collectionName = undefined
-	if (!req.body.description) req.body.description = ""
-	if (!req.body.grantCount) req.body.grantCount = 0;
-	if (!req.body.assetCount) req.body.assetCount = 0;
-	if (!req.body.poamCount) req.body.poamCount = 0;
-
-	try {
-		let connection
-		connection = await dbUtils.pool.getConnection()
-
-		let sql_query = "UPDATE poamtracking.collection SET collectionName=?, description=?, grantCount= ?, assetCount= ?, poamCount= ? WHERE collectionId = " + req.body.collectionId + ";"
-
-		await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.grantCount, req.body.assetCount, req.body.poamCount])
-		await connection.release()
-
-		const message = new Object()
-		message.collectionId = req.body.collectionId
-		message.collectionName = req.body.collectionName
-		message.description = req.body.description
-		message.grantCount = req.body.grantCount
-		message.assetCount = req.body.assetCount
-		message.poamCount = req.body.poamCount
-		return (message)
-	}
-	catch (error) {
-		let errorResponse = { null: "null" }
-		await connection.release()
-		return errorResponse;
-	}
-}
-
-
-
-
-exports.replaceCollection = async function replaceCollection(body, projection, userObject){
-        res.status(201).json({message: "replaceCollection (Service) Method called successfully"})
-
-
-
-}
-
-
-
-
-exports.deleteCollection = async function deleteCollection(body, projection, userObject){
-        res.status(201).json({message: "deleteCollection (Service) Method called successfully"})
-
-
-
-}
-
-
-
 exports.getCollections = async function getCollections (userNameInput, req, res, next){
 	// if "Registrant, then send back all id's and names"
 	if (userNameInput == "Registrant") {
@@ -222,7 +142,7 @@ exports.getCollections = async function getCollections (userNameInput, req, res,
 				"collectionName": row[counter].collectionName});
 			}
 	
-			console.log(user);
+			// console.log(user);
 	
 			await connection.release() 
 			return user;
@@ -253,7 +173,7 @@ exports.getCollections = async function getCollections (userNameInput, req, res,
 		collections: []
 	}
 	if (isAdmin == 1) {
-		console.log("collectionService getCollections() user", userName,"can access these collections:")
+		// console.log("collectionService getCollections() user", userName,"can access these collections:")
 		let connection
 		connection = await dbUtils.pool.getConnection()
 		let sql2 = "SELECT * FROM collection;"
@@ -280,7 +200,7 @@ exports.getCollections = async function getCollections (userNameInput, req, res,
 			let[row2] = await connection.query(sql)
                         //console.log(row2)
 			var numberOfCollections = Object.keys(row2).length
-			console.log(numberOfCollections)
+			// console.log(numberOfCollections)
 			var nonAdminCollections = {
 
 				collections: []
@@ -292,7 +212,7 @@ exports.getCollections = async function getCollections (userNameInput, req, res,
 			}
                         
 			let response = nonAdminCollections
-			console.log(response)
+			// console.log(response)
 			await connection.release() 
 			return response;
 		}
@@ -307,50 +227,85 @@ exports.getCollections = async function getCollections (userNameInput, req, res,
 
 }
 
+exports.postCollection = async function postCollection(req, res, next) {
+	// console.log("inSide postCollection req.body: ", req.body)
 
+	if (!req.body.collectionName) req.body.collectionName = undefined
+	if (!req.body.description) req.body.description = ""
+	if (!req.body.grantCount) req.body.grantCount = 0;
+	if (!req.body.assetCount) req.body.assetCount = 0;
+	if (!req.body.poamCount) req.body.poamCount = 0;
 
+	try {
+		let connection
+		connection = await dbUtils.pool.getConnection()
 
+		let sql_query = `INSERT INTO poamtracking.collection (collectionName, description, grantCount, assetCount, poamCount) VALUES (?, ?, ?, ?, ?) `
+		await connection.query(sql_query, [req.body.collectionName, req.body.description, 0, 0, 0])
+		let sql = "SELECT * FROM poamtracking.collection WHERE collectionId = LAST_INSERT_ID();"
+		let [rowCollection] = await connection.query(sql)
+		await connection.release()
 
-exports.getPOAMByCollection = async function getPOAMByCollection(body, projection, userObject){
-        res.status(201).json({message: "getPOAMByCollection (Service) Method called successfully"})
+		var collection = rowCollection[0]
+
+		writeLog.writeLog(4, "colectionService", 'info', req.userObject.username,  req.userObject.displayName, { event: 'added collection', collectionName: req.body.collectionName, description: req.body.description })
+		return (collection)
+	}
+	catch (error) {
+		let errorResponse = { null: "null" }
+		await connection.release()
+		return errorResponse;
+	}
 }
 
+exports.putCollection = async function putCollection(req, res, next) {
+	// console.log("inSide putCollection req.body: ", req.body)
+	if (!req.body.collectionId) {
+		console.info('postPermissions collectionId not provided.');
+		return next({
+			status: 422,
+			errors: {
+				collectionId: 'is required',
+			}
+		});
+	}
+	if (!req.body.collectionName) req.body.collectionName = undefined
+	if (!req.body.description) req.body.description = ""
+	if (!req.body.grantCount) req.body.grantCount = 0;
+	if (!req.body.assetCount) req.body.assetCount = 0;
+	if (!req.body.poamCount) req.body.poamCount = 0;
 
+	try {
+		let connection
+		connection = await dbUtils.pool.getConnection()
 
-exports.getPOAM_AssetsByCollectionUser = async function getPOAM_AssetsByCollectionUser(body, projection, userObject){
-        res.status(201).json({message: "getPOAM_AssetsByCollectionUser (Service) Method called successfully"})
+		let sql = "SELECT * FROM poamtracking.collection WHERE collectionId = '" + req.body.collectionId + "';"
+		let [currentCollection] = await connection.query(sql)
+
+		let sql_query = "UPDATE poamtracking.collection SET collectionName=?, description=?, grantCount= ?, assetCount= ?, poamCount= ? WHERE collectionId = " + req.body.collectionId + ";"
+
+		await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.grantCount, req.body.assetCount, req.body.poamCount])
+		await connection.release()
+
+		writeLog.writeLog(4, "colectionService", 'info', req.userObject.username,  req.userObject.displayName, { event: 'updated collection', collectionName: req.body.collectionName, description: req.body.description,
+				grantcount: req.body.grantCount, assetCount: req.body.assetCount, poamCount: req.body.poamCount })
+
+		const message = new Object()
+		message.collectionId = req.body.collectionId
+		message.collectionName = req.body.collectionName
+		message.description = req.body.description
+		message.grantCount = req.body.grantCount
+		message.assetCount = req.body.assetCount
+		message.poamCount = req.body.poamCount
+		return (message)
+	}
+	catch (error) {
+		let errorResponse = { null: "null" }
+		await connection.release()
+		return errorResponse;
+	}
 }
 
-
-
-
-
-exports.setPOAM_AssetsByCollectionUser = async function setPOAM_AssetsByCollectionUser(body, projection, userObject){
-        res.status(201).json({message: "setPOAM_AssetsByCollectionUser (Service) Method called successfully"})
-}
-
-
-
-
-
-
-exports.getCollectionLabels = async function getCollectionLabels(body, projection, userObject){
-        res.status(201).json({message: "getCollectionLabels (Service) Method called successfully"})
-}
-
-
-
-
-
-exports.createCollectionLabel = async function createCollectionLabel(body, projection, userObject){
-        res.status(201).json({message: "createCollectionLabel (Service) Method called successfully"})
-}
-
-
-
-
-
-exports.getCollectionLabelById = async function getCollectionLabelById(body, projection, userObject){
-        res.status(201).json({message: "getCollectionLabelById (Service) Method called successfully"})
-
+exports.deleteCollection = async function deleteCollection(body, projection, userObject){
+        res.status(201).json({message: "deleteCollection (Service) Method called successfully"})
 }
