@@ -17,3 +17,11 @@ node_modules/
 /.vs/C-PAT_LIVE/FileContentIndex
 /.vs/C-PAT_LIVE/v17/.wsuo
 /.vs
+/Front End/poam-app/src/environments/environment.local.ts
+/Front End/poam-app/src/environments/environment.prod.ts
+/Front End/poam-app/src/environments/environment.ts
+/Front End/poam-app/src/app/app.module.ts
+/Front End/poam-app/src/app/pages/login/login.service.ts
+/Front End/poam-app/src/app/auth/reset-password/reset-password.service.ts
+/Api/utils/config.js
+/Api/Services/mysql/usersService.js
