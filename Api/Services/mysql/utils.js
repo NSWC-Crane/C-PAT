@@ -46,15 +46,24 @@ function getPoolConfig() {
   }
   return poolConfig
 }
+function getSafePoolConfig(poolConfig) {
+    return {
+        connectionLimit: poolConfig.connectionLimit,
+        timezone: poolConfig.timezone,
+        host: poolConfig.host,
+        port: poolConfig.port,
+        database: poolConfig.database,
+        decimalNumbers: poolConfig.decimalNumbers,
+    };
+}
 
 module.exports.initializeDatabase = async function () {
-  // Create the connection pool
-  const poolConfig = getPoolConfig()
-  // Create a safe copy of the pool config for logging
-  const safePoolConfig = { ...poolConfig };
-  delete safePoolConfig.user;
-  delete safePoolConfig.password;
-  console.log('mysql', 'poolConfig', safePoolConfig)
+    // Create the connection pool
+    const poolConfig = getPoolConfig();
+    // Create a safe pool config for logging
+    const safePoolConfig = getSafePoolConfig(poolConfig);
+    console.log('mysql', 'poolConfig', safePoolConfig);
+
   _this.pool = mysql.createPool(poolConfig)
   // Set common session variables
   _this.pool.on('connection', function (connection) {
