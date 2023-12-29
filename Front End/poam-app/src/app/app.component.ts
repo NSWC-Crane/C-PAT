@@ -245,6 +245,10 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onSelectedThemeChange(theme: any) {
+    if (!this.user) {
+      console.error("User data is not available");
+      return;
+    }
     // console.log("selected Theme: ", theme)
     this.themeService.changeTheme(theme);
     // update token and user
