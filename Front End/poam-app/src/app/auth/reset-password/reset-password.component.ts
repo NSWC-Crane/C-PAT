@@ -92,7 +92,6 @@ export class ResetPasswordComponent implements OnInit {
     }
 
     if (this.confirmPassword) {
-      console.log("UserID: " + JSON.stringify(this.user._id) + ", currentPass: "+ this .currentPassword);
       this.resetPasswordService.verifyPassword({ userId: this.user._id, currentPassword: this.currentPassword}).subscribe(
         data => {
           console.log("Have data: " + JSON.stringify(data));

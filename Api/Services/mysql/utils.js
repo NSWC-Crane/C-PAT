@@ -50,7 +50,11 @@ function getPoolConfig() {
 module.exports.initializeDatabase = async function () {
   // Create the connection pool
   const poolConfig = getPoolConfig()
-  console.log('mysql', 'poolConfig', { ...poolConfig })
+  // Create a safe copy of the pool config for logging
+  const safePoolConfig = { ...poolConfig };
+  delete safePoolConfig.user;
+  delete safePoolConfig.password;
+  console.log('mysql', 'poolConfig', safePoolConfig)
   _this.pool = mysql.createPool(poolConfig)
   // Set common session variables
   _this.pool.on('connection', function (connection) {
