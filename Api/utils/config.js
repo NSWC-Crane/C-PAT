@@ -60,8 +60,8 @@ let config = {
         host: process.env.POAM_DB_HOST || "localhost",
         port: process.env.POAM_DB_PORT || 3306,
         schema: process.env.POAM_DB_SCHEMA || "poamtracking",
-        username: process.env.POAM_DB_USER || "root",
-        password: process.env.POAM_DB_PASSWORD || "root",
+        username: process.env.POAM_DB_USER,
+        password: process.env.POAM_DB_PASSWORD,
         maxConnections: process.env.POAM_DB_MAX_CONNECTIONS || 25,
         tls: {
             ca_file: process.env.POAM_DB_TLS_CA_FILE,

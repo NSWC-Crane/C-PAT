@@ -21,10 +21,10 @@ exports.getUserObject = async function getUserObject(body, projection, userObjec
 
 	// console.log("Require passed")
 	var con = mysql.createConnection({
-		host: 'localhost',
-		user: 'root',
-		password: 'root',
-		database: 'PTT_Test'
+		host: process.env.USERSERVICE_DB_HOST,
+		user: process.env.USERSERVICE_DB_USER,
+		password: process.env.USERSERVICE_DB_PASSWORD,
+		database: process.env.USERSERVICE_DB_DATABASE
 	})
 	// console.log("Connection Created")
 
