@@ -8,17 +8,11 @@
 !########################################################################
 */
 
-@use 'themes' as *;
+const express = require("express");
+const router = express.Router();
+const poamUploadController = require("../Controllers/poamUpload.controller");
+const upload = require("../Middleware/upload");
 
-@use '@nebular/theme/styles/globals' as *
-;
-@use '@nebular/auth/styles/globals' as *;
+router.post('/', upload.single('file'), poamUploadController.uploadPoamFile);
 
-@include nb-install() {
-  @include nb-theme-global();
-  @include nb-auth-global(); // append the install mixin inside of the nb-install
-};
-/* You can add global styles to this file, and also import other style files */
-
-/* Importing Bootstrap SCSS file. */
-@import '../node_modules/bootstrap/scss/bootstrap';
+module.exports = router;

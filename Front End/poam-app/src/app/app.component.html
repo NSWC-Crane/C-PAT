@@ -9,7 +9,7 @@
 -->
 
 <nb-layout>
-
+  <input type="file" #fileInput style="display: none;" (change)="onFileSelect($event)" accept=".xls, .xlsx, .xlsm">
   <nb-layout-header fixed>
     <div class="container">
       <!-- <h2>C-PAT (Crane POAM Automation Tool)</h2> -->
@@ -78,29 +78,16 @@
   <nb-sidebar class="menu-sidebar" responsive start>
     <br>
     <br>
-    <nb-menu [items]="menuItems"></nb-menu>
+    <nb-menu [items]="menuItems" id="menuItems"></nb-menu>
     <!-- <button class="btn btn-success" (click)="testLogin()">Sign In with Redhat</button> -->
     <br>
-    <br>
-    <div class="row">
-      <label style="float: left">POAMS:</label>
-      <button nbButton outline status="info"
-              style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="addPoam()">
-        Add
-        POAM
-      </button>
-    </div>
-
-    <ngx-dropdown-treeview outline status="info" [config]="dropdownConfig" [items]="poamItems"
-                           [buttonClass]="buttonClass" (selectedChange)="onSelectedPoamChange($event)">
-    </ngx-dropdown-treeview>
+    <br />
 
     <div class="row">
       <label style="float: left">Log Out:</label>
       <button nbButton outline status="info"
-              style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="logOut()">
-        Log
-        Out
+              style="border-radius: 5px; float: right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="logOut()">
+        Log Out
       </button>
     </div>
   </nb-sidebar>

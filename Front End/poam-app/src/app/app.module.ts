@@ -35,6 +35,7 @@ import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { KcAuthService } from './kc-auth.service';
 import { RoleProvider } from './auth';
 import { PoamApproveModule } from "./pages/poam-processing/poam-approve/poam-approve.module";
+import { FileUploadService } from './file-upload.service';
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
@@ -71,7 +72,8 @@ function initializeKeycloak(keycloak: KeycloakService) {
         KeycloakService,
         { provide: APP_INITIALIZER, useFactory: initializeKeycloak, multi: true, deps: [KeycloakService] },
         KcAuthService,
-        RoleProvider,
+      RoleProvider,
+      FileUploadService,
     ],
     bootstrap: [AppComponent],
     exports: [
