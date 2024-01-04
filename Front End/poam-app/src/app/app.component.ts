@@ -8,9 +8,9 @@
 !########################################################################
 */
 
-import { Component, EventEmitter, OnDestroy, OnInit, Output, TemplateRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, EventEmitter, OnDestroy, OnInit, Output, TemplateRef } from '@angular/core';
 import { AuthService } from './auth';
-import { NbMenuItem, NbSidebarService, NbThemeService } from '@nebular/theme';
+import { NbMenuItem, NbSidebarService, NbThemeService, NbMenuService } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { CollectionsService } from './pages/collection-processing/collections.service';
 import { UsersService } from './pages/user-processing/users.service';
@@ -23,11 +23,15 @@ import { KeycloakProfile, KeycloakRoles } from 'keycloak-js';
 import { ACCESS_CONTROL_LIST } from './access-control-list';
 import { appMenuItems } from './app-menu';
 import { environment } from '../environments/environment';
+import { FileUploadService } from './file-upload.service';
+import { HttpEventType, HttpResponse } from '@angular/common/http';
+
 
 @Component({
   selector: "ngx-app",
   templateUrl: './app.component.html',
 })
+
 export class AppComponent implements OnInit, OnDestroy {
   @Output() resetRole: EventEmitter<any> = new EventEmitter();
 
@@ -67,6 +71,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly sidebarService: NbSidebarService,
+    private menuService: NbMenuService,
     private themeService: NbThemeService,
     private authService: AuthService,
     private router: Router,
@@ -74,9 +79,16 @@ export class AppComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private poamService: PoamService,
     private readonly keycloak: KeycloakService,
+    private fileUploadService: FileUploadService,
   ) { }
 
   public async ngOnInit() {
+
+    this.menuService.onItemClick().subscribe((event) => {
+      if (event.item.title === 'Import POAM') {
+        this.triggerFileInput();
+      }
+    });
 
     console.log("init app component...Environment: ", environment)
     this.classification = environment.classification;
@@ -343,8 +355,45 @@ export class AppComponent implements OnInit, OnDestroy {
 
   }
 
-  addPoam() {
-    this.router.navigateByUrl("/poam-details/ADDPOAM");
+  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef;
+
+  triggerFileInput() {
+    this.fileInput.nativeElement.click();
+  }
+
+
+  onFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length) {
+      const file = input.files[0];
+      const fileName = file.name;
+      const fileExtension = fileName.slice(((fileName.lastIndexOf(".") - 1) >>> 0) + 2);
+
+      if (!['xlsx', 'xls', 'xlsm'].includes(fileExtension.toLowerCase())) {
+        alert('Wrong file type. Only .xls, .xlsx, and .xlsm files are allowed.');
+        return;
+      }
+
+      this.fileUploadService.upload(file).subscribe(
+        event => {
+          if (event.type === HttpEventType.UploadProgress) {
+            const percentDone = event.loaded && event.total ? Math.round(100 * event.loaded / event.total) : 0;
+            console.log(`File is ${percentDone}% uploaded.`);
+          } else if (event instanceof HttpResponse) {
+            console.log('File is completely uploaded!');
+
+            // Delay for 3 seconds and then refresh the page
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
+          }
+        },
+        error => {
+          console.error('Error during file upload:', error);
+          // TODO: Implement error handling
+        }
+      );
+    }
   }
 
   logOut() {
