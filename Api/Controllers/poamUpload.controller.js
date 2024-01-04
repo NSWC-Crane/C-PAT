@@ -46,8 +46,8 @@ exports.uploadPoamFile = async (req, res) => {
 
     try {
         const rows = await readXlsxFile(req.file.buffer);
-        const headers = rows[5]; // Headers from row 6
-        const dataRows = rows.slice(6); // Data starts from row 7
+        const headers = rows[6]; // Headers from row 7
+        const dataRows = rows.slice(7); // Data starts from row 8
 
         const poamData = dataRows.map(row => {
             const poamEntry = {};
