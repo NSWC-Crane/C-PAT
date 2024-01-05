@@ -38,11 +38,8 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/@nebular/theme/styles/prebuilt/default.css", // Nebular prebuilt theme
-              "src/themes.scss", // Custom theme file
-              "src/styles.scss" // Global styles
+              "node_modules/@nebular/theme/styles/prebuilt/default.css"
             ],
-
             "scripts": []
           },
           "configurations": {
@@ -116,8 +113,5 @@
         }
       }
     }
-  },
-  "cli": {
-    "analytics": false
   }
 }

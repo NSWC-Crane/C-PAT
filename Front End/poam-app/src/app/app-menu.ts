@@ -9,13 +9,12 @@
 */
 
 import { NbMenuItem } from '@nebular/theme';
-import { NbEvaIconsModule } from '@nebular/eva-icons';
 
 export const appMenuItems: NbMenuItem[] = [
     {
       title: 'Home',
       icon: 'home-outline',
-    link: '/consent',
+      link: '/login',
       home: true
     },
     {
@@ -26,8 +25,8 @@ export const appMenuItems: NbMenuItem[] = [
       hidden: true,
     },
     {
-      title: 'Collections',
-      icon: { icon: 'archive-outline', pack: 'eva' },
+      title: 'collections',
+      icon: 'list-outline',
       link: '/collection-processing',
       data: { permission: 'create', resource: 'collection' },
       hidden: true,
@@ -40,23 +39,11 @@ export const appMenuItems: NbMenuItem[] = [
       hidden: true,
     },
     {
-      title: 'POAMs',
+      title: 'poams',
       icon: 'list-outline',
-      data: { permission: 'create', resource: 'poam' },
+      link: '/poam-processing',
+      data: { permission: 'view', resource: 'poam' },
       hidden: true,
-      children: [
-        {
-          title: 'View POAMs',
-          link: '/poam-processing',
-        },
-        {
-          title: 'Add POAM',
-          link: '/poam-details/ADDPOAM'
-        },
-        {
-          title: 'Import POAM',
-        }
-      ]
     },
     {
       title: 'User Processing',
@@ -64,12 +51,5 @@ export const appMenuItems: NbMenuItem[] = [
       link: '/user-processing',
       data: { permission: 'create', resource: 'user' },
       hidden: true,
-    },
-    {
-      title: 'Logout',
-      icon: { icon: 'power-outline', pack: 'eva' },
-      link: '',
-      hidden: false,
-    },
-
+    }
   ];

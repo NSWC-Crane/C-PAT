@@ -15,14 +15,13 @@
 //import { version } from '/package.json';
 
 export const environment = {
-  production: false,
-  environment: 'local',
-  apiEndpoint: 'http://localhost:8086',
-  fileUploadEndpoint: 'http://localhost:8086/api/poamimport',
-  authizeEndpoint: 'http://localhost:8080/realms/C-PAT/protocol/openid-connect/auth',
-  tokeEndpoint: 'http://localhost:8080/realms/C-PAT/protocol/openid-connect/token',
-  redirectUri: 'http://localhost:4200/callback',
-  frontEndEndpoint: 'http://localhost:4200',
+	production: false,
+	environment: 'local',
+	apiEndpoint: 'http://localhost:8086',
+	authizeEndpoint: 'http://localhost:8080/realms/C-PAT/protocol/openid-connect/auth',
+	tokeEndpoint: 'http://localhost:8080/realms/C-PAT/protocol/openid-connect/token',
+	redirectUri: 'http://localhost:4200/callback',
+	frontEndEndpoint: 'http://localhost:4200',
 	// wsEndpoint: 'http://localhost:3000/notifications',
 	// apiEndpoint: process && `http://${process.env.API_URL}:3000/api` || 'http://localhost:3000/api',
 	// wsEndpoint: process && `http://${process.env.API_URL}:3000/notifications` || 'http://localhost:3000/notifications',

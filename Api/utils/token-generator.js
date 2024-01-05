@@ -53,8 +53,8 @@ class TokenGenerator {
 }
 
 module.exports = new TokenGenerator(
-    process.env.JWT_SECRET_KEY,
-    process.env.JWT_SECRET_KEY,
+  'wpm_token',
+  'wpm_token',
   {
     algorithm: 'HS256',
     expiresIn: '2 days',

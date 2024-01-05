@@ -8,9 +8,9 @@
 !########################################################################
 */
 
-import { Component, ViewChild, ElementRef, EventEmitter, OnDestroy, OnInit, Output, TemplateRef } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output, TemplateRef } from '@angular/core';
 import { AuthService } from './auth';
-import { NbMenuItem, NbSidebarService, NbThemeService, NbMenuService, NbActionsModule } from '@nebular/theme';
+import { NbMenuItem, NbSidebarService, NbThemeService } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { CollectionsService } from './pages/collection-processing/collections.service';
 import { UsersService } from './pages/user-processing/users.service';
@@ -23,16 +23,11 @@ import { KeycloakProfile, KeycloakRoles } from 'keycloak-js';
 import { ACCESS_CONTROL_LIST } from './access-control-list';
 import { appMenuItems } from './app-menu';
 import { environment } from '../environments/environment';
-import { FileUploadService } from './file-upload.service';
-import { HttpEventType, HttpResponse } from '@angular/common/http';
-
 
 @Component({
   selector: "ngx-app",
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
 })
-
 export class AppComponent implements OnInit, OnDestroy {
   @Output() resetRole: EventEmitter<any> = new EventEmitter();
 
@@ -72,7 +67,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly sidebarService: NbSidebarService,
-    private menuService: NbMenuService,
     private themeService: NbThemeService,
     private authService: AuthService,
     private router: Router,
@@ -80,19 +74,9 @@ export class AppComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private poamService: PoamService,
     private readonly keycloak: KeycloakService,
-    private fileUploadService: FileUploadService,
   ) { }
 
   public async ngOnInit() {
-
-    this.menuService.onItemClick().subscribe((event) => {
-      if (event.item.title === 'Import POAM') {
-        this.triggerFileInput();
-      }
-      if (event.item.title === 'Logout') {
-        this.logOut();
-      }
-    });
 
     console.log("init app component...Environment: ", environment)
     this.classification = environment.classification;
@@ -125,7 +109,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.subs.sink = forkJoin(
       this.userService.getUsers(),
     ).subscribe(([users]: any) => {
-      console.log('users: ', users)
+      console.log('users: ',users)
       this.users = users.users.users
       // console.log('this.users: ',this.users)
       this.user = this.users.find((e: { userName: string; }) => e.userName === this.userProfile?.username)
@@ -261,10 +245,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onSelectedThemeChange(theme: any) {
-    if (!this.user) {
-      console.error("User data is not available");
-      return;
-    }
     // console.log("selected Theme: ", theme)
     this.themeService.changeTheme(theme);
     // update token and user
@@ -359,52 +339,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
   }
 
-  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef;
-
-  triggerFileInput() {
-    this.fileInput.nativeElement.click();
-  }
-
-
-  onFileSelect(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length) {
-      const file = input.files[0];
-
-      // Ensure you have the user and lastCollectionAccessedId
-      if (!this.user || !this.user.lastCollectionAccessedId) {
-        console.error('User information or lastCollectionAccessedId is not available');
-        return;
-      }
-
-      const lastCollectionAccessedId = this.user.lastCollectionAccessedId.toString();
-
-      this.fileUploadService.upload(file, lastCollectionAccessedId).subscribe(
-        event => {
-          if (event.type === HttpEventType.UploadProgress) {
-            const percentDone = event.loaded && event.total ? Math.round(100 * event.loaded / event.total) : 0;
-            console.log(`File is ${percentDone}% uploaded.`);
-          } else if (event instanceof HttpResponse) {
-            console.log('File is completely uploaded!');
-
-            // Delay for 3 seconds and then refresh the page
-            setTimeout(() => {
-              window.location.reload();
-            }, 3000);
-          }
-        },
-        error => {
-          console.error('Error during file upload:', error);
-          // TODO: Implement error handling
-        }
-      );
-    }
+  addPoam() {
+    this.router.navigateByUrl("/poam-details/ADDPOAM");
   }
 
   logOut() {
+    //console.log("Log Out")
     this.userService.loginOut("logOut").subscribe(data => {
       this.keycloak.logout();
     })
+
   }
 
   changeDetailsView(poam: any) {
@@ -427,30 +371,28 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   authMenuItem(menuItem: NbMenuItem) {
-    // Default to hidden
-    menuItem.hidden = true;
+    //console.log("menuItem.data:" + JSON.stringify(menuItem.data));
+
 
     if (menuItem.data && menuItem.data['permission'] && menuItem.data['resource'] && this.payload.role != "none") {
-      // Check if the user has permission
       if (this.accessChecker(menuItem.data['permission'], menuItem.data['resource'])) {
+        // menuItem.hidden = !granted;
         menuItem.hidden = false;
       }
     } else {
-      // If there is no permission data, do not hide (for items like 'Logout')
-      menuItem.hidden = false;
+      menuItem.hidden = true;
     }
 
-    // Handling children items
     if (!menuItem.hidden && menuItem.children != null) {
       menuItem.children.forEach(item => {
-        item.hidden = true; // Default to hidden for children
         if (item.data && item.data['permission'] && item.data['resource']) {
-          // Check permission for child items
           if (this.accessChecker(item.data['permission'], item.data['resource'])) {
-            item.hidden = false;
+            //menuItem.hidden = !granted;
+            menuItem.hidden = false;
+
           }
         } else {
-          // Inherit visibility from parent
+          // if child item do not config any data.permission and data.resource just inherit parent item's config
           item.hidden = menuItem.hidden;
         }
       });
@@ -488,13 +430,13 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     }
     //console.log("accessChecker acl: ", acl )
-    //console.log("accessChecker acl: ",acl)
+        //console.log("accessChecker acl: ",acl)
     let i = 0;
     switch (permission) {
       case 'create': {
         if (acl.create.length > 0) {
           // console.log("acl create: ",acl.create)
-          for (i = 0; i < acl.create.length; i++) {
+          for (i=0; i < acl.create.length; i++) {
             //console.log("acl create: ",acl.create[i])
             if (acl.create[i] === resource || acl.create[i] === "*") return true;
           }
@@ -504,7 +446,7 @@ export class AppComponent implements OnInit, OnDestroy {
       case 'modify': {
         if (acl.create.length > 0) {
           //console.log("modify: ",acl.modify)
-          for (i = 0; i < acl.modify.length; i++) {
+          for (i=0; i < acl.modify.length; i++) {
             //console.log("acl modify: ",acl.modify[i])
             if (acl.modify[i] === resource || acl.modify[i] === "*") return true;
           }
@@ -514,7 +456,7 @@ export class AppComponent implements OnInit, OnDestroy {
       case 'approve': {
         if (acl.approve.length > 0) {
           //console.log("approve: ",acl.approve)
-          for (i = 0; i < acl.approve.length; i++) {
+          for (i=0; i < acl.approve.length; i++) {
             //console.log("acl approve: ",acl.approve[i])
             if (acl.approve[i] === resource || acl.approve[i] === "*") return true;
           }
@@ -524,7 +466,7 @@ export class AppComponent implements OnInit, OnDestroy {
       case 'view': {
         if (acl.view.length > 0) {
           //console.log("view: ",acl.view)
-          for (i = 0; i < acl.view.length; i++) {
+          for (i=0; i < acl.view.length; i++) {
             //console.log("acl view: ",acl.view[i])
             if (acl.view[i] === resource || acl.view[i] === "*") return true;
           }
@@ -534,7 +476,7 @@ export class AppComponent implements OnInit, OnDestroy {
       case 'delete': {
         if (acl.delete.length > 0) {
           //console.log("modify: ",acl.modify)
-          for (i = 0; i < acl.delete.length; i++) {
+          for (i=0; i < acl.delete.length; i++) {
             //console.log("acl delete: ",acl.delete[i])
             if (acl.delete[i] === resource || acl.delete[i] === "*") return true;
           }
