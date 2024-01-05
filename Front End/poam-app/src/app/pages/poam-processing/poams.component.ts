@@ -170,6 +170,7 @@ export class PoamsComponent implements OnInit {
 
   }
 
+
   addPoam() {
     this.router.navigateByUrl("/poam-details/ADDPOAM");
   }

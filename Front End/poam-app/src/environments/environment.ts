@@ -18,7 +18,6 @@ export const environment = {
 	production: false,
 	environment: 'local',
 	apiEndpoint: 'http://localhost:8086',
-	fileUploadEndpoint: 'http://localhost:8086/api/poamimport',
 	authizeEndpoint: 'http://localhost:8080/realms/C-PAT/protocol/openid-connect/auth',
 	tokeEndpoint: 'http://localhost:8080/realms/C-PAT/protocol/openid-connect/token',
 	redirectUri: 'http://localhost:4200/callback',
