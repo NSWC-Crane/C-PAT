@@ -15,7 +15,7 @@ export const appMenuItems: NbMenuItem[] = [
     {
       title: 'Home',
       icon: 'home-outline',
-      link: '/login',
+    link: '/consent',
       home: true
     },
     {
@@ -65,12 +65,11 @@ export const appMenuItems: NbMenuItem[] = [
       data: { permission: 'create', resource: 'user' },
       hidden: true,
     },
-    //{
-    //  title: 'Logout',
-    //  icon: { icon: 'power-outline', pack: 'eva' },
-    //  link: '/user-processing',
-    //  data: { permission: '', resource: '' },
-    //  hidden: true,
-    //},
+    {
+      title: 'Logout',
+      icon: { icon: 'power-outline', pack: 'eva' },
+      link: '',
+      hidden: false,
+    },
 
   ];

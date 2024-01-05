@@ -10,22 +10,16 @@
 
 <nb-layout>
   <input type="file" #fileInput style="display: none;" (change)="onFileSelect($event)" accept=".xls, .xlsx, .xlsm">
+
   <nb-layout-header fixed>
     <div class="container">
-      <!-- <h2>C-PAT (Crane POAM Automation Tool)</h2> -->
-      <br> <br>
-      <img src="../assets/CPAT-Logo.png" alt="C-PAT (Crane POAM Automation Tool)">
-
+      <img src="../assets/cpat.png" alt="C-PAT (Crane POAM Automation Tool)">
     </div>
 
     <div class="col" style="margin-top: 10px;" [nbSpinner]="isSettingWorkspace" nbSpinnerStatus="success"
          nbSpinnerSize="medium" nbSpinnerMessage="Loading work space, please wait...">
-      <!-- color: rgb(251, 244, 244); -->
-      <h5 style="margin-left: 30%">
-        Current Workspace
-      </h5>
+      <h5 style="margin-left: 30%">Current Workspace</h5>
     </div>
-
     <div class="row">
       <div class="col">
         <p>
@@ -45,29 +39,16 @@
     <div class="row">
       <div class="col">
         <label style="float: left">Theme</label>
-        <nb-select outline status="info" placeholder="Select Theme" [(ngModel)]="selectedTheme" name="selectedTheme"
-                   (ngModelChange)='onSelectedThemeChange($event)'>
-          <nb-option value="default">Default</nb-option>
-          <nb-option value="dark">Dark</nb-option>
-          <nb-option value="cosmic">Cosmic</nb-option>
-          <nb-option value="corporate">Coprorate</nb-option>
-        </nb-select>
+        <label>Change Theme</label>
+        <nb-actions size="small">
+          <nb-action icon="star-outline" (click)="onSelectedThemeChange('cosmic')"></nb-action>
+          <nb-action icon="moon-outline" (click)="onSelectedThemeChange('dark')"></nb-action>
+          <nb-action icon="sun-outline" (click)="onSelectedThemeChange('corporate')"></nb-action>
+        </nb-actions>
       </div>
     </div>
-
-    <div class="row">
-      <div class="col">
-        <label style="float: left">Log Out</label>
-        <button nbButton outline status="info"
-                style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="logOut()">
-          Log
-          Out
-        </button>
-      </div>
-
-    </div>
-
   </nb-layout-header>
+
   <nb-layout-header subheader>
     <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
       {{ classification }}
@@ -75,22 +56,13 @@
     <nb-icon (click)="toggleSidebar()" class="sidebar-toggle" icon="menu-2-outline"></nb-icon>
   </nb-layout-header>
 
-  <nb-sidebar class="menu-sidebar" responsive start>
-    <br>
-    <br>
-    <nb-menu [items]="menuItems" id="menuItems"></nb-menu>
-    <!-- <button class="btn btn-success" (click)="testLogin()">Sign In with Redhat</button> -->
-    <br>
-    <br />
-
-    <div class="row">
-      <label style="float: left">Log Out:</label>
-      <button nbButton outline status="info"
-              style="border-radius: 5px; float: right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="logOut()">
-        Log Out
-      </button>
+  <nb-sidebar class="menu-sidebar" tag="menu-sidebar" responsive start>
+    <div class="menu-content">
+      <nb-menu [items]="menuItems" id="menuItems"></nb-menu>
+      <!-- Insert any other dynamic content here -->
     </div>
   </nb-sidebar>
+
 
   <nb-layout-column>
     <router-outlet>
@@ -109,3 +81,6 @@
   </nb-layout-footer>
 
 </nb-layout>
+
+
+

@@ -6,11 +6,12 @@ import { environment } from '../environments/environment';
   providedIn: 'root'
 })
 export class FileUploadService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  upload(file: File) {
+  upload(file: File, lastCollectionAccessedId: string) {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('lastCollectionAccessedId', lastCollectionAccessedId);
     return this.http.post(environment.fileUploadEndpoint, formData, {
       reportProgress: true,
       observe: 'events'

@@ -6,53 +6,78 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
+        collectionId: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+        },
         vulnerabilitySource: {
             type: DataTypes.STRING(255),
-            allowNull: false
+            defaultValue: ''
+        },
+        aaPackage: {
+            type: DataTypes.STRING(50),
+            defaultValue: ''
         },
         vulnerabilityId: {
             type: DataTypes.STRING(255),
-            allowNull: true
+            defaultValue: ''
         },
         description: {
             type: DataTypes.STRING(255),
-            allowNull: true
+            defaultValue: ''
         },
         rawSeverity: {
-            type: DataTypes.STRING(3),
-            allowNull: false
+            type: DataTypes.STRING(10),
+            defaultValue: ''
         },
         adjSeverity: {
-            type: DataTypes.STRING(6),
-            allowNull: true
+            type: DataTypes.STRING(10),
+            defaultValue: ''
         },
         scheduledCompletionDate: {
-            type: DataTypes.DATE,
-            allowNull: true
+            type: DataTypes.DATEONLY,
+            defaultValue: '1900-01-01'
+        },
+        ownerId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
         },
         mitigations: {
-            type: DataTypes.TEXT,
-            allowNull: true
+            type: DataTypes.TEXT
         },
         requiredResources: {
-            type: DataTypes.TEXT,
-            allowNull: true
+            type: DataTypes.TEXT
         },
         milestones: {
-            type: DataTypes.TEXT,
-            allowNull: true
+            type: DataTypes.TEXT
         },
         residualRisk: {
-            type: DataTypes.TEXT,
-            allowNull: true
+            type: DataTypes.TEXT
         },
         businessImpact: {
-            type: DataTypes.TEXT,
-            allowNull: true
+            type: DataTypes.TEXT
         },
         notes: {
-            type: DataTypes.TEXT,
-            allowNull: true
+            type: DataTypes.TEXT
+        },
+        status: {
+            type: DataTypes.STRING(10),
+            allowNull: false,
+            defaultValue: 'Draft'
+        },
+        poamType: {
+            type: DataTypes.STRING(10),
+            allowNull: false,
+            defaultValue: ''
+        },
+        vulnIdRestricted: {
+            type: DataTypes.STRING(255),
+            defaultValue: ''
+        },
+        submittedDate: {
+            type: DataTypes.DATEONLY,
+            defaultValue: '1900-01-01' 
         },
         poamitemid: {
             type: DataTypes.INTEGER,
@@ -61,48 +86,51 @@ module.exports = (sequelize, DataTypes) => {
         },
         securityControlNumber: {
             type: DataTypes.STRING(25),
-            allowNull: true
+            defaultValue: ''
         },
         officeOrg: {
             type: DataTypes.STRING(100),
-            allowNull: true
+            defaultValue: ''
         },
         emassStatus: {
             type: DataTypes.STRING(15),
-            allowNull: false,
             defaultValue: 'Ongoing'
         },
         predisposingConditions: {
             type: DataTypes.STRING(2000),
-            allowNull: true
+            defaultValue: ''
         },
         severity: {
             type: DataTypes.STRING(15),
-            allowNull: false
+            allowNull: false,
+            defaultValue: ''
         },
         relevanceOfThreat: {
             type: DataTypes.STRING(15),
-            allowNull: false
+            allowNull: false,
+            defaultValue: ''
         },
         threatDescription: {
             type: DataTypes.STRING(255),
-            allowNull: true
+            defaultValue: ''
         },
         likelihood: {
             type: DataTypes.STRING(15),
-            allowNull: false
+            allowNull: false,
+            defaultValue: ''
         },
         impactDescription: {
             type: DataTypes.STRING(2000),
-            allowNull: true
+            defaultValue: ''
         },
         recommendations: {
             type: DataTypes.STRING(2000),
-            allowNull: true
+            defaultValue: ''
         },
         devicesAffected: {
             type: DataTypes.STRING(255),
-            allowNull: false
+            allowNull: false,
+            defaultValue: ''
         },
     }, {
         freezeTableName: true,

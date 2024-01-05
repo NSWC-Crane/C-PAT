@@ -18,12 +18,12 @@ import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-
 import { DoDConsentComponent } from './pages/dod-consent/dod-consent.component';
 import { CoreModule } from '../app/@core/core.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, 
+import { NbActionsModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, 
   NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule} from '@nebular/theme';
 import { LoginComponent } from './pages/login/login.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientModule } from '@angular/common/http';
-import { NbPasswordAuthStrategy, NbAuthModule, NbAuthResult, NbAuthJWTToken,  NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token,  } from '@nebular/auth';
+import { NbPasswordAuthStrategy, NbAuthModule, NbAuthResult, NbAuthJWTToken, NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token,  } from '@nebular/auth';
 import { AuthGuard } from "./auth.guard";
 import { NbSecurityModule } from '@nebular/security';
 import { SharedModule } from './Shared/shared.module';
@@ -86,6 +86,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
         FormsModule,
         BrowserAnimationsModule,
         HttpClientModule,
+        NbActionsModule,
         NbAuthModule,
         NbAlertModule,
         NbCardModule,

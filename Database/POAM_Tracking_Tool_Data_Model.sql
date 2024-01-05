@@ -46,7 +46,7 @@ CREATE TABLE `asset` (
 
 CREATE TABLE `poamtracking`.`poamassets` (
    `poamId` int NOT NULL,
-   `assetId` int NOT NULL,
+   `assetId` varchar(50) NOT NULL,
    PRIMARY KEY (`poamId`,`assetId`),
    KEY `poamAssetsAssetId` (`assetId`) /*!80000 INVISIBLE */,
    KEY `poamAssetPoamId` (`poamId`)
@@ -112,9 +112,9 @@ CREATE TABLE `poam` (
   `aaPackage` varchar(50) DEFAULT '',
   `vulnerabilityId` varchar(255) DEFAULT '',
   `description` varchar(255) DEFAULT '',
-  `rawSeverity` char(10) NOT NULL DEFAULT '',
+  `rawSeverity` varchar(10) DEFAULT '',
   `adjSeverity` char(10) DEFAULT '',
-  `scheduledCompletionDate` datetime DEFAULT '1900-01-01 00:00:00',
+  `scheduledCompletionDate` date DEFAULT '1900-01-01',
   `ownerId` int NOT NULL DEFAULT '0',
   `mitigations` TEXT,
   `requiredResources` TEXT,
@@ -125,8 +125,8 @@ CREATE TABLE `poam` (
   `status` char(10) NOT NULL DEFAULT 'Draft',
   `poamType` char(10) NOT NULL DEFAULT '',
   `vulnIdRestricted` varchar(255) DEFAULT '',
-  `submittedDate` datetime DEFAULT '1900-01-01 00:00:00',
-  `poamitemid` int NOT NULL DEFAULT '0',
+  `submittedDate` date DEFAULT '1900-01-01',
+  `poamitemid` varchar(20) NOT NULL DEFAULT '0',
   `securityControlNumber` varchar(25) DEFAULT '',
   `officeOrg` varchar(100) DEFAULT '',
   `emassStatus` varchar(15) DEFAULT 'Ongoing',
