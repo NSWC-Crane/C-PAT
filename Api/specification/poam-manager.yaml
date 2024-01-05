@@ -17,6 +17,49 @@ info:
     email: tyler.e.forajter.civ@us.navy.mil
   version: '1.0'
 paths:
+  /api/poamimport:
+    post:
+      summary: Upload a POAM file
+      operationId: uploadPoamFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Excel file containing POAM data
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad request - invalid file format or missing file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - poamUpload.controller
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   /assets:
     get:
       summary: Return all assets
@@ -160,7 +203,7 @@ paths:
             - 'c-pat:read'
     put:
       summary: Updates a Asset
-      operationId: putAsset
+      operationId: putAsset 
       requestBody:
         required: true
         content:

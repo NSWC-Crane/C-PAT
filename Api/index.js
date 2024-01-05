@@ -13,15 +13,16 @@ const express = require('express');
 const mysql = require('mysql2');
 const app = express();
 const PORT = 8086
-
 const HOST = 'localhost'
 var passport = require('passport');
-
+const sequelize = require('./utils/sequelize');
 const path = require('path')
 const multer = require('multer')
 const http = require('http')
 const cors = require('cors');
 const authAPI = require('./utils/authAPI')
+const upload = multer({ storage: multer.memoryStorage() });
+const poamUploadRoutes = require('./Routes/poamUpload.routes');
 //const server = http.createServer(app)
 
 const { middleware: openApiMiddleware, resolvers } = require('express-openapi-validator')
@@ -35,17 +36,12 @@ initAuth()
 //process.on('uncaughtException', (err, origin) =>{console.log('CAUGHT')})
 //process.on('unhandledRejection', (reason, promise) => {console.log('CaughtRejection')})
 
-
-
-
-
-
-app.use(cors())
+app.use(cors());
 app.use(express.json({
 	strict: false, //all root to be any JSON value, per https://datatracker.ietf.org/doc/html/rfc7159#section-2
-	limit: parseInt('524288')
-}))  //Handle JSON request body
-
+	limit: parseInt('1048576') //TODO: Set this to a reasonable value. Measured in bytes, so currently 1mb.
+}));  
+app.use('/api/poamimport', poamUploadRoutes);
 
 const apiSpecPath = path.join(__dirname,'./specification/poam-manager.yaml')
 app.use("/", openApiMiddleware ({
