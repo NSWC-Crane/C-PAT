@@ -7,7 +7,7 @@ import { environment } from '../environments/environment';
 })
 export class FileUploadService {
   constructor(private http: HttpClient) { }
-
+  
   upload(file: File, lastCollectionAccessedId: string) {
     const formData = new FormData();
     formData.append('file', file);
@@ -18,3 +18,4 @@ export class FileUploadService {
     });
   }
 }
+

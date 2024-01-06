@@ -1,16 +1,6 @@
-/*
-!#######################################################################
-! C-PATTM SOFTWARE
-! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
-! crane_C_PAT.1_license.txt, which is part of this software package. BY
-! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
-! CONDITIONS OF THE LICENSE.  
-!########################################################################
-*/
-
 import { Component, ViewChild, ElementRef, EventEmitter, OnDestroy, OnInit, Output, TemplateRef } from '@angular/core';
 import { AuthService } from './auth';
-import { NbMenuItem, NbSidebarService, NbThemeService, NbMenuService, NbActionsModule } from '@nebular/theme';
+import { NbMenuItem, NbSidebarService, NbThemeService, NbMenuService } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { CollectionsService } from './pages/collection-processing/collections.service';
 import { UsersService } from './pages/user-processing/users.service';
@@ -30,7 +20,6 @@ import { HttpEventType, HttpResponse } from '@angular/common/http';
 @Component({
   selector: "ngx-app",
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
 })
 
 export class AppComponent implements OnInit, OnDestroy {
@@ -86,9 +75,12 @@ export class AppComponent implements OnInit, OnDestroy {
   public async ngOnInit() {
 
     this.menuService.onItemClick().subscribe((event) => {
+      // Handle other menu item clicks
       if (event.item.title === 'Import POAM') {
         this.triggerFileInput();
       }
+  
+      // Add logout functionality
       if (event.item.title === 'Logout') {
         this.logOut();
       }

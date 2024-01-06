@@ -15,7 +15,7 @@ export const appMenuItems: NbMenuItem[] = [
     {
       title: 'Home',
       icon: 'home-outline',
-    link: '/consent',
+      link: '/consent',
       home: true
     },
     {
@@ -71,5 +71,4 @@ export const appMenuItems: NbMenuItem[] = [
       link: '',
       hidden: false,
     },
-
   ];

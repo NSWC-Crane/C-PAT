@@ -7,18 +7,12 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-.menu-sidebar {
-  display: flex;
-  flex-direction: column;
-}
-.menu-content {
-  flex: 1;
-}
-// Ensure the sidebar toggle is visible and functional
-.sidebar-toggle {
-  padding-right: 1.25rem;
-  text-decoration: none;
-  color: var(--text-hint-color);
-  font-size: 3.5rem;
-}
 
+const express = require("express");
+const router = express.Router();
+const poamUploadController = require("../Controllers/poamUpload.controller");
+const upload = require("../Middleware/upload");
+
+router.post('/', upload.single('file'), poamUploadController.uploadPoamFile);
+
+module.exports = router;

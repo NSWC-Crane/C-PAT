@@ -10,7 +10,7 @@
 
 <nb-layout>
   <input type="file" #fileInput style="display: none;" (change)="onFileSelect($event)" accept=".xls, .xlsx, .xlsm">
-
+  
   <nb-layout-header fixed>
     <div class="container">
       <img src="../assets/cpat.png" alt="C-PAT (Crane POAM Automation Tool)">
@@ -18,69 +18,64 @@
 
     <div class="col" style="margin-top: 10px;" [nbSpinner]="isSettingWorkspace" nbSpinnerStatus="success"
          nbSpinnerSize="medium" nbSpinnerMessage="Loading work space, please wait...">
-      <h5 style="margin-left: 30%">Current Workspace</h5>
-    </div>
-    <div class="row">
-      <div class="col">
-        <p>
-          <label style="float: left">Selected Collection</label>
-          <nb-select class="appearance-outline size-mediumoutline" status="info" placeholder="Collection"
-                     [(ngModel)]="selectedCollection" name="selectedCollection" id="selectedCollection"
-                     (ngModelChange)="resetWorkspace($event)" [(selected)]="selectedCollection">
+         <h5 style="margin-left: 30%">Current Workspace</h5>
+        </div>
+        <div class="row">
+          <div class="col">
+            <p>
+              <label style="float: left">Selected Collection</label>
+              <nb-select class="appearance-outline size-mediumoutline" status="info" placeholder="Collection"
+                         [(ngModel)]="selectedCollection" name="selectedCollection" id="selectedCollection"
+                         (ngModelChange)="resetWorkspace($event)" [(selected)]="selectedCollection">
+    
+                <nb-option *ngFor="let collection of collections" value={{collection.collectionId}} name=selectedCollection>
+                  {{collection.collectionName}} - {{ collection.description}}
+                </nb-option>
+              </nb-select>
+            </p>
+          </div>
+        </div>
+    
+        <div class="row">
+          <div class="col">
+            <label style="float: left">Theme</label>
+            <label>Change Theme</label>
+            <nb-actions size="small">
+              <nb-action icon="star-outline" (click)="onSelectedThemeChange('cosmic')"></nb-action>
+              <nb-action icon="moon-outline" (click)="onSelectedThemeChange('dark')"></nb-action>
+              <nb-action icon="sun-outline" (click)="onSelectedThemeChange('corporate')"></nb-action>
+            </nb-actions>
+          </div>
+        </div>
+      </nb-layout-header>
 
-            <nb-option *ngFor="let collection of collections" value={{collection.collectionId}} name=selectedCollection>
-              {{collection.collectionName}} - {{ collection.description}}
-            </nb-option>
-          </nb-select>
-        </p>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label style="float: left">Theme</label>
-        <label>Change Theme</label>
-        <nb-actions size="small">
-          <nb-action icon="star-outline" (click)="onSelectedThemeChange('cosmic')"></nb-action>
-          <nb-action icon="moon-outline" (click)="onSelectedThemeChange('dark')"></nb-action>
-          <nb-action icon="sun-outline" (click)="onSelectedThemeChange('corporate')"></nb-action>
-        </nb-actions>
-      </div>
-    </div>
-  </nb-layout-header>
-
-  <nb-layout-header subheader>
-    <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
-      {{ classification }}
-    </div>
-    <nb-icon (click)="toggleSidebar()" class="sidebar-toggle" icon="menu-2-outline"></nb-icon>
-  </nb-layout-header>
-
-  <nb-sidebar class="menu-sidebar" tag="menu-sidebar" responsive start>
-    <div class="menu-content">
-      <nb-menu [items]="menuItems" id="menuItems"></nb-menu>
-      <!-- Insert any other dynamic content here -->
-    </div>
-  </nb-sidebar>
-
-
-  <nb-layout-column>
-    <router-outlet>
-      <nb-alert *ngIf="selectCollectionMsg" role="alert">
-        <p class="alert-title"><b>Welcome to C-PAT!</b></p>
-        <h1>Please select a workspace collection.</h1>
-      </nb-alert>
-
-    </router-outlet>
-  </nb-layout-column>
-
-  <nb-layout-footer fixed>
-    <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
-      {{ classification }}
-    </div>
-  </nb-layout-footer>
-
-</nb-layout>
-
-
-
+      <nb-layout-header subheader>
+        <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
+          {{ classification }}
+        </div>
+        <nb-icon (click)="toggleSidebar()" class="sidebar-toggle" icon="menu-2-outline"></nb-icon>
+      </nb-layout-header>
+      <nb-sidebar class="menu-sidebar" tag="menu-sidebar" responsive start>
+        <div class="menu-content">
+          <nb-menu [items]="menuItems" id="menuItems"></nb-menu>
+          <!-- Insert any other dynamic content here -->
+        </div>
+      </nb-sidebar>  
+    
+      <nb-layout-column>
+        <router-outlet>
+          <nb-alert *ngIf="selectCollectionMsg" role="alert">
+            <p class="alert-title"><b>Welcome to C-PAT!</b></p>
+            <h1>Please select a workspace collection.</h1>
+          </nb-alert>
+    
+        </router-outlet>
+      </nb-layout-column>
+    
+      <nb-layout-footer fixed>
+        <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
+          {{ classification }}
+        </div>
+      </nb-layout-footer>
+    
+    </nb-layout>

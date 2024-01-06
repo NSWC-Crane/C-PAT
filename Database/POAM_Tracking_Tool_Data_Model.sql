@@ -113,7 +113,7 @@ CREATE TABLE `poam` (
   `vulnerabilityId` varchar(255) DEFAULT '',
   `description` varchar(255) DEFAULT '',
   `rawSeverity` varchar(10) DEFAULT '',
-  `adjSeverity` char(10) DEFAULT '',
+  `adjSeverity` char(6) DEFAULT '',
   `scheduledCompletionDate` date DEFAULT '1900-01-01',
   `ownerId` int NOT NULL DEFAULT '0',
   `mitigations` TEXT,

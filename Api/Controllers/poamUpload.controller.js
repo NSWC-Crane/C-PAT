@@ -57,7 +57,6 @@ function convertToMySQLDate(excelDate) {
     return convertedDate;
 }
 
-
 exports.uploadPoamFile = async (req, res) => {
     if (!req.file) {
         return res.status(400).send({ message: "Please upload an Excel file!" });
@@ -121,9 +120,8 @@ exports.uploadPoamFile = async (req, res) => {
             const createdBatch = await Poam.bulkCreate(batch, { returning: true });
             createdPoams.push(...createdBatch);
         }
-
-        // Process devicesAffected for each createdPoam...
-        for (const poamEntry of createdPoams) {
+         // Process devicesAffected for each createdPoam...
+         for (const poamEntry of createdPoams) {
             if (!poamEntry || !poamEntry.poamId) {
                 console.error('Invalid poamEntry or missing poamId:', poamEntry);
                 continue;
@@ -132,7 +130,6 @@ exports.uploadPoamFile = async (req, res) => {
             const poamId = poamEntry.poamId;
             const devicesString = poamEntry.devicesAffected && poamEntry.devicesAffected.toString();
             const devices = devicesString ? devicesString.split('\n') : [];
-
             for (const deviceName of devices) {
                 const trimmedDeviceName = deviceName.trim();
                 if (trimmedDeviceName) {
