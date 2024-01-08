@@ -10,12 +10,12 @@
 
 import { Component, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
-import { NbThemeService } from "@nebular/theme";
+import { NbThemeService, NbButtonModule } from "@nebular/theme";
 import { PoamService } from './poams.service';
 import { AuthService } from '../../auth';
 import { forkJoin } from 'rxjs';
 import { NbAuthJWTToken } from '@nebular/auth';
-import { TreeviewItem, TreeviewConfig,TreeviewI18n, DefaultTreeviewI18n } from 'ngx-treeview';
+import { TreeviewItem, TreeviewConfig, TreeviewI18n, DefaultTreeviewI18n } from 'ngx-treeview';
 import { Router } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
@@ -27,16 +27,16 @@ import { UsersService } from '../user-processing/users.service'
   styleUrls: ['./poams.component.scss'],
   providers: [
     {
-       provide: TreeviewI18n , useValue: Object.assign(new DefaultTreeviewI18n(), {
-         getFilterPlaceholder(): string {
-           return 'Enter Filter';
-         },
-         getText(): string {
+      provide: TreeviewI18n, useValue: Object.assign(new DefaultTreeviewI18n(), {
+        getFilterPlaceholder(): string {
+          return 'Enter Filter';
+        },
+        getText(): string {
           return 'Select POAM';
-         }
+        }
       })
     }
-],
+  ],
 })
 export class PoamsComponent implements OnInit {
 
@@ -45,7 +45,6 @@ export class PoamsComponent implements OnInit {
 
   users: any;
   user: any;
-
   poams: any;
   filteredPoams: any;
   collection: any;
@@ -98,7 +97,7 @@ export class PoamsComponent implements OnInit {
     hasFilter: true,
     hasCollapseExpand: true,
     decoupleChildFromParent: false,
-    maxHeight: 400,
+    maxHeight: 500,
     hasDivider: true
   };
 
@@ -123,7 +122,7 @@ export class PoamsComponent implements OnInit {
     private router: Router,
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
-    private treeviewI18nDefault: TreeviewI18n  
+    private treeviewI18nDefault: TreeviewI18n
   ) {
   }
 
@@ -175,27 +174,18 @@ export class PoamsComponent implements OnInit {
   }
 
   async ngOnInit() {
-    //this.viewingfulldetails = false;
-    // this.subs.sink = this.authService.onTokenChange()
-    //   .subscribe((token: NbAuthJWTToken) => {
-    //     //if (token.isValid() && this.router.url === '/pages/collection-processing') {
-    //     if (token.isValid()) {
-    //       //this.isLoading = true;
-    //       this.payload = token.getPayload();
-
-    //       this.data = [];
-    //       console.log("onInit payload: ", this.payload)
-    //       this.getPoamData();
-    //     }
-    //   })
     this.isLoggedIn = await this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       //this.keycloak.addTokenToHeader();
-      console.log("userProfile.email: ",this.userProfile.email,", userProfile.username: ",this.userProfile.username)
+      console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
       this.setPayload();
     }
+  };
 
+  onSelectPoam(poamId: number) {
+    // Handle POAM selection
+    console.log(`Selected POAM ID: ${poamId}`);
   }
 
   setPayload() {
@@ -206,11 +196,11 @@ export class PoamsComponent implements OnInit {
     this.subs.sink = forkJoin(
       this.userService.getUsers(),
     ).subscribe(([users]: any) => {
-      console.log('users: ',users)
+      console.log('users: ', users)
       this.users = users.users.users
       //console.log('this.users: ',this.users)
       this.user = this.users.find((e: { userName: string; }) => e.userName === this.userProfile?.username)
-      console.log('this.user: ',this.user)
+      console.log('this.user: ', this.user)
 
       if (this.user.accountStatus === 'ACTIVE') {
         this.payload = Object.assign(this.user, {
@@ -220,12 +210,12 @@ export class PoamsComponent implements OnInit {
         // this.userService.getUser(this.payload.userId).subscribe((result: any) => {
         //   console.log("getUser(id) returned: ", result)
         //  });
-  
+
         this.subs.sink = forkJoin(
           this.userService.getUserPermissions(this.user.userId)
         ).subscribe(([permissions]: any) => {
           // console.log("permissions: ", permissions)
-  
+
           permissions.permissions.permissions.forEach((element: any) => {
             // console.log("element: ",element)
             let assigendCollections = {
@@ -237,15 +227,15 @@ export class PoamsComponent implements OnInit {
             // console.log("assignedCollections: ", assigendCollections)
             this.payload.collections.push(assigendCollections);
           });
-  
-          console.log("payload: ",this.payload)
+
+          console.log("payload: ", this.payload)
           this.getPoamData();
         })
-        
+
       } else {
         alert('Your account status is not Active, contact your system administrator')
       }
-      
+
     })
   }
 
@@ -312,7 +302,7 @@ export class PoamsComponent implements OnInit {
   sortData() {
     this.items = null;
     let treeArray: any[] = [];
-    var sortedArray: any[]=[];
+    var sortedArray: any[] = [];
 
     if (this.searchOption != '1') {
       sortedArray = this.filteredPoams.sort((n1: any, n2: any) => {
@@ -328,16 +318,16 @@ export class PoamsComponent implements OnInit {
         // console.log("getPoamData() poam: ",poam)
         let treeObj = {}
 
-          treeObj = {
-            text:  poam.vulnerabilityId + ' - ' +  poam.poamId + ' - ' + poam.description,
-            value: poam.poamId,
-            collapsed: true,
-            checked: false,
-            }
+        treeObj = {
+          text: poam.vulnerabilityId + ' - ' + poam.poamId + ' - ' + poam.description,
+          value: poam.poamId,
+          collapsed: true,
+          checked: false,
+        }
 
         treeArray.push(treeObj);
       })
-    } else { 
+    } else {
       sortedArray = this.filteredPoams.sort((n1: any, n2: any) => {
         if (n1.poamId < n2.poamId) {
           return 1;
@@ -351,18 +341,18 @@ export class PoamsComponent implements OnInit {
         // console.log("getPoamData() poam: ",poam)
         let treeObj = {}
 
-          treeObj = {
-            text: poam.poamId + ' - ' + poam.vulnerabilityId + ' - ' + poam.description,
-            value: poam.poamId,
-            collapsed: true,
-            checked: false,
-            }
+        treeObj = {
+          text: poam.poamId + ' - ' + poam.vulnerabilityId + ' - ' + poam.description,
+          value: poam.poamId,
+          collapsed: true,
+          checked: false,
+        }
 
         treeArray.push(treeObj);
       })
     }
 
-    
+
     this.items = this.getItems(treeArray);
   }
 
@@ -397,7 +387,7 @@ export class PoamsComponent implements OnInit {
   }
 
   changeDetailsView(poam: any) {
-   // this.viewingfulldetails = !this.viewingfulldetails
+    // this.viewingfulldetails = !this.viewingfulldetails
     this.detailedPoam = poam
   }
 

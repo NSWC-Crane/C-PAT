@@ -16,7 +16,7 @@ import { AssetProcessingRoutingModule } from './asset-processing.routing';
 import { SharedModule } from '../../Shared/shared.module';
 import { AssetComponent } from './asset/asset.component';
 import { ConfirmationDialogComponent } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
-import { NbCardModule,NbLayoutModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbIconModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule,NbLayoutModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbIconModule } from '@nebular/theme';
 import { Ng2SmartTableModule } from 'ng2-smart-table';
 
 @NgModule({
@@ -28,6 +28,7 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
     CommonModule,
     AssetProcessingRoutingModule,
     FormsModule,
+    NbButtonModule,
     NbCardModule,
     NbIconModule,
     NbLayoutModule,
