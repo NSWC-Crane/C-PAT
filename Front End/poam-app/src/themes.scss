@@ -15,7 +15,7 @@
 @use '@nebular/theme/styles/themes/cosmic';
 @use '@nebular/theme/styles/themes/corporate';
 
-
+/*
 $nb-themes: nb-register-theme((
 
   // add your variables here like:
@@ -224,7 +224,7 @@ $nb-themes: nb-register-theme((
   radio-checked-border-color: color-primary,
   radio-checked-checkmark: color-primary,
 
-), dark, cosmic);
+), cosmic, cosmic);
 
 $nb-themes: nb-register-theme(
   (
@@ -279,3 +279,5 @@ $nb-themes: nb-register-theme((
 
   progress-bar-background: linear-gradient(90deg, #ff9f6f 0%, #ff8b97 100%),
 ), corporate, corporate);
+
+    */

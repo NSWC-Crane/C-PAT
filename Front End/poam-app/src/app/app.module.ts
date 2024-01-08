@@ -18,7 +18,7 @@ import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-
 import { DoDConsentComponent } from './pages/dod-consent/dod-consent.component';
 import { CoreModule } from '../app/@core/core.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbActionsModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule} from '@nebular/theme';
+import { NbActionsModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule} from '@nebular/theme';
 import { LoginComponent } from './pages/login/login.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientModule } from '@angular/common/http';
@@ -88,10 +88,12 @@ function initializeKeycloak(keycloak: KeycloakService) {
         NbActionsModule,
         NbAuthModule,
         NbAlertModule,
+        NbButtonModule,
         NbCardModule,
         NbCheckboxModule,
         NbDialogModule.forChild(),
         NbEvaIconsModule,
+        NbInputModule,
         NbIconModule,
         NbLayoutModule,
         NbSelectModule,
