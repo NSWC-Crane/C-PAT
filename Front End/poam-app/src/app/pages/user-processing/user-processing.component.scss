@@ -13,6 +13,10 @@ button[nbTreeGridRowToggle] {
     border: none;
     padding: 0;
   }
+.scrollable-users {
+  max-height: 60vh;
+  overflow-y: auto;
+}
   
   .search-label {
     display: block;

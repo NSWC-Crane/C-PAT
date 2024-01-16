@@ -9,6 +9,8 @@
 */
 
 import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { SharedService } from '../../Shared/shared.service';
 import { CollectionsService } from './collections.service';
 import { forkJoin, Observable } from 'rxjs';
 import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
@@ -19,6 +21,7 @@ import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Sh
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../user-processing/users.service'
+import { environment } from '../../../environments/environment';
 
 interface TreeNode<T> {
   data: T;
@@ -53,6 +56,10 @@ export class CollectionProcessingComponent implements OnInit {
   users: any;
   user: any;
 
+  availableAssets: any[] = [];
+  stigmanCollections: any;
+  stigmanCollection: any = {};
+  selectedStigmanCollection: string = "";
 
   collections: any;
   collection: any = {};
@@ -76,6 +83,8 @@ export class CollectionProcessingComponent implements OnInit {
   private subs = new SubSink()
 
   constructor(
+    private http: HttpClient,
+    private sharedService: SharedService,
     private collectionService: CollectionsService,
     private dialogService: NbDialogService,
     private readonly keycloak: KeycloakService,
@@ -89,12 +98,64 @@ export class CollectionProcessingComponent implements OnInit {
   }
 
   async ngOnInit() {
+    this.fetchCollections();
     this.isLoggedIn = await this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       //console.log("userProfile.email: ",this.userProfile.email,", userProfile.username: ",this.userProfile.username)
       this.setPayload();
     }
+  }
+
+  fetchCollections() {
+    this.keycloak.getToken().then(token => {
+      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe(data => {
+        this.stigmanCollections = data;
+      });
+    });
+  }
+
+  onStigmanCollectionSelect(collectionId: string) {
+    this.selectedStigmanCollection = collectionId;
+  }
+
+  importCollection() {
+    if (this.selectedStigmanCollection) {
+      this.keycloak.getToken().then(token => {
+        forkJoin({
+          collectionData: this.sharedService.selectedCollectionFromSTIGMAN(this.selectedStigmanCollection, token),
+          assetsData: this.sharedService.getAssetsFromSTIGMAN(this.selectedStigmanCollection, token)
+        }).subscribe({
+          next: (results) => {
+            const payload = {
+              collection: results.collectionData,
+              assets: results.assetsData
+            };
+            this.sendImportRequest(payload);
+          },
+          error: (error) => {
+            console.error('Error fetching collection or assets data:', error);
+          }
+        });
+      });
+    } else {
+      console.error('No collection selected');
+    }
+  }
+
+  private sendImportRequest(data: any) {
+    this.keycloak.getToken().then(token => {
+      const headers = { Authorization: `Bearer ${token}` };
+      this.http.post(environment.stigmanCollectionImportEndpoint, data, { headers })
+        .subscribe({
+          next: (response) => console.log('Import successful', response),
+          error: (error) => console.error('Error during import', error)
+        });
+    });
+  }
+
+  resetSTIGMANData() {
+    this.stigmanCollection = [];
   }
 
   setPayload() {

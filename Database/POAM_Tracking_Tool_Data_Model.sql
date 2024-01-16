@@ -30,14 +30,19 @@ CREATE TABLE `poamtracking`.`user` (
  )
 
 CREATE TABLE `asset` (
-   `assetId` int NOT NULL AUTO_INCREMENT,
-   `assetName` varchar(100) NOT NULL,
-   `fullyQualifiedDomainName` varchar(100) DEFAULT NULL,
-   `collectionId` int NOT NULL,
-   `description` varchar(75) DEFAULT NULL,
-   `ipAddress` varchar(20) NOT NULL,
-   `macAddress` varchar(50) NOT NULL,
-   `nonComputing` tinyint(1) NOT NULL DEFAULT '0',
+  `assetId` INT NOT NULL AUTO_INCREMENT,
+  `assetName` VARCHAR(255) NOT NULL,
+  `fullyQualifiedDomainName` VARCHAR(255) DEFAULT NULL,
+  `collectionId` INT NOT NULL,
+  `description` VARCHAR(75) DEFAULT NULL,
+  `ipAddress` VARCHAR(20) DEFAULT NULL,
+  `macAddress` VARCHAR(50) DEFAULT NULL,
+  `nonComputing` TINYINT(1) DEFAULT '0',
+  `metadata` JSON,
+  `state` ENUM('enabled', 'disabled'),
+  `stateDate` DATETIME,
+  `stateUserId` INT,
+  `isEnabled` TINYINT GENERATED ALWAYS AS (case when `state` = 'enabled' then 1 else NULL end),
    PRIMARY KEY (`assetId`),
    UNIQUE KEY `assetId_UNIQUE` (`assetId`) /*!80000 INVISIBLE */,
    UNIQUE KEY `assetName_UNIQUE` (`assetName`) /*!80000 INVISIBLE */,
@@ -96,13 +101,21 @@ CREATE TABLE `poamapprovers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
   
 CREATE TABLE `poamtracking`.`collection` (
-   `collectionId` int NOT NULL AUTO_INCREMENT,
-   `collectionName` varchar(50) NOT NULL,
-   `description` varchar(75) DEFAULT NULL,
-   `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-   `grantCount` int NOT NULL DEFAULT '0',
-   `assetCount` int NOT NULL DEFAULT '0',
-   `poamCount` int NOT NULL DEFAULT '0',
+  `collectionId` INT NOT NULL AUTO_INCREMENT,
+  `collectionName` VARCHAR(50) NOT NULL,
+  `description` VARCHAR(255) DEFAULT NULL,
+  `created` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `grantCount` INT DEFAULT '0',
+  `assetCount` INT DEFAULT '0',
+  `poamCount` INT DEFAULT '0',
+  `settings` JSON,
+  `metadata` JSON,
+  `state` ENUM('enabled', 'disabled'),
+  `createdUserId` INT,
+  `stateDate` DATETIME,
+  `stateUserId` INT,
+  `isEnabled` TINYINT GENERATED ALWAYS AS (case when `state` = 'enabled' then 1 else NULL end),
+  `isNameUnavailable` TINYINT GENERATED ALWAYS AS (case when ((`state` = 'cloning') or (`state` = 'enabled')) then 1 else NULL end),
    PRIMARY KEY (`collectionId`));
   
 CREATE TABLE `poam` (

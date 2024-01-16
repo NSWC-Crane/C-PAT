@@ -1,72 +1,64 @@
-/*
-!#######################################################################
-! C-PATTM SOFTWARE
-! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
-! crane_C_PAT.1_license.txt, which is part of this software package. BY
-! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
-! CONDITIONS OF THE LICENSE.  
-!########################################################################
-*/
+/* General Styles */
+.add-asset-button {
+  margin-top: 20px;
+}
+.scrollable-assets {
+  max-height: 60vh;
+  overflow-y: auto;
+}
 
-button[nbTreeGridRowToggle] {
-    background: transparent;
-    border: none;
-    padding: 0;
+.search-input {
+  margin-bottom: 1rem;
+}
+
+.nb-column-name {
+  width: 100%;
+}
+
+/* Import Section Styles */
+.import-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  .import-item {
+    margin-right: 10%;
+
+    &:last-child {
+      margin-right: 0;
+    }
   }
-  
-  .search-label {
-    display: block;
+}
+
+/* Media Queries */
+@media screen and (min-width: 400px) {
+  .nb-column-name, .nb-column-size {
+    width: 50%;
   }
-  .search-input {
-    margin-bottom: 1rem;
+}
+
+@media screen and (min-width: 500px) {
+  .nb-column-name, .nb-column-size, .nb-column-kind {
+    width: 33.333%;
   }
-  
+}
+
+@media screen and (min-width: 600px) {
   .nb-column-name {
-    width: 100%;
+    width: 31%;
   }
-  
-  @media screen and (min-width: 400px) {
-    .nb-column-name,
-    .nb-column-size {
-      width: 50%;
-    }
+
+  .nb-column-size, .nb-column-kind, .nb-column-items {
+    width: 23%;
   }
-  
-  @media screen and (min-width: 500px) {
-    .nb-column-name,
-    .nb-column-size,
-    .nb-column-kind {
-      width: 33.333%;
-    }
-  }
-  
-  @media screen and (min-width: 600px) {
-    .nb-column-name {
-      width: 31%;
-    }
-    .nb-column-size,
-    .nb-column-kind,
-    .nb-column-items {
-      width: 23%;
-    }
-  }
-  
+}
+
 ::ng-deep {
-
   body {
-
     min-height: 20rem;
-
   }
 
-
-
-  .nb-tree-grid-header-cell,
-
-  .nb-tree-grid-header-cell button {
-
+  .nb-tree-grid-header-cell, .nb-tree-grid-header-cell button {
     text-transform: capitalize;
-
   }
-
 }

@@ -13,7 +13,7 @@
     <div class="col-md-10" [nbSpinner]="isLoading" nbSpinnerStatus="success" nbSpinnerSize="medium"
          nbSpinnerMessage="Loading data, please wait...">
       <nb-card>
-        <nb-card-body>
+        <nb-card-body class="scrollable-collections">
           <h3>Current Collection Structure</h3>
 
           <table [nbTreeGrid]="dataSource">
@@ -61,19 +61,19 @@
               </nb-select>
             </div>
             <div class="col-md-5" style="width: auto;">
-              <button nbButton style="float: right;" (click)="addCollection()">Add Collection</button>
+              <button nbButton outline status="info" style="float: right;" (click)="addCollection()">Add Collection</button>
             </div>
           </div>
           <div [ngStyle]="hideCollectionEntry">
             <div *ngIf="collectionApprovers.length > 0">
               <ngx-collection [collection]="collection" [collections]="collections"
                               [collectionApprovers]="collectionApprovers" [possibleCollectionApprovers]="possibleCollectionApprovers"
-                              payload="payload" [poams]="poams" (collectionchange)="resetData();"></ngx-collection>
+                              payload="payload" [poams]="poams" (collectionchange)="resetSTIGMANData();"></ngx-collection>
             </div>
             <div *ngIf="collectionApprovers.length < 1">
               <ngx-collection [collection]="collection" [collections]="collections"
                               [collectionApprovers]="collectionApprovers" [possibleCollectionApprovers]="possibleCollectionApprovers"
-                              payload="payload" [poams]="poams" (collectionchange)="resetData();"></ngx-collection>
+                              payload="payload" [poams]="poams" (collectionchange)="resetSTIGMANData();"></ngx-collection>
             </div>
 
           </div>
@@ -84,6 +84,28 @@
   </div>
 </div>
 
+<div class="row">
+  <div class="col-md-10">
+    <nb-card>
+      <nb-card-header>Import Collection</nb-card-header>
+      <nb-card-body>
+        <!-- ... -->
+        <div class="row" *ngIf="allowSelectCollections">
+          <div class="col-md-5" style="width: auto;">
+            <nb-select id="stigmanCollectionSelect" placeholder="Select Collection" [(ngModel)]="selectedStigmanCollection" (selectedChange)="onStigmanCollectionSelect($event)">
+              <nb-option *ngFor="let collection of stigmanCollections" [value]="collection.collectionId">
+                {{ collection.name }}
+              </nb-option>
+            </nb-select>
+          </div>
+          <div class="col-md-5" style="width: auto;">
+            <button nbButton outline status="info" (click)="importCollection()">Import</button>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>
 
 
 <ng-template #dialog let-data let-ref="dialogRef">

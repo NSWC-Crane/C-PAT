@@ -7,7 +7,7 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-
+import { TreeGridModule } from '@syncfusion/ej2-angular-treegrid';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { APP_BASE_HREF } from "@angular/common";
 import { BrowserModule } from '@angular/platform-browser';
@@ -40,17 +40,12 @@ function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
   keycloak.init({
     config: {
-      //url: environment.authizeEndpoint,
-      url: 'http://localhost:8080/',
-      //url: 'http://localhost:8080/realms/C-PAT/protocol/openid-connect/auth'
-       realm: 'C-PAT',
+      url: environment.keycloakUrl,
+       realm: 'RMFTools',
        clientId: 'c-pat'
     },
     initOptions: {
-      //onLoad: 'check-sso',
-      //silentCheckSsoRedirectUri: window.location.origin + '/assets/verificar-sso-html',
-      // redirectUri: 'http://localhost:4200/poam-processing',
-      redirectUri: 'http://localhost:4200/consent',
+      redirectUri: environment.CPATRedirectUri,
       checkLoginIframe: false
     }
   })
@@ -78,7 +73,8 @@ function initializeKeycloak(keycloak: KeycloakService) {
     exports: [
     // PoamDetailsComponent,
     ],
-    imports: [
+  imports: [
+        TreeGridModule,
         AppRoutingModule,
         SharedModule,
         BrowserModule,

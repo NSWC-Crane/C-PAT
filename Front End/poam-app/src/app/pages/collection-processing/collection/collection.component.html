@@ -16,7 +16,7 @@
           <label style="margin-right: 1%" for="collectionName">*Collection Name: </label>
           <input nbInput type="text" name="collectionName" [(ngModel)]="collection.collectionName" placeholder="name"
                  required>
-          <button style="margin-left: 18%;" nbButton type="button" class="mr-3" (click)="exportAll()">Export POAMS</button>
+          <button style="margin-left: 18%;" nbButton outline status="info" type="button" class="mr-3" (click)="exportAll()">Export POAMS</button>
         </div>
       </div>
       <br />
@@ -59,8 +59,8 @@
       <div class="row">
         <div class="container">
 
-          <button nbButton class="mr-3" [disabled]="!form.valid">Submit</button>
-          <button nbButton type="button" class="mr-3" (click)="resetData()">Cancel</button>
+          <button nbButton outline status="info" class="mr-3" [disabled]="!form.valid">Submit</button>
+          <button nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
 
         </div>
       </div>

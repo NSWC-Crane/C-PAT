@@ -28,8 +28,13 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-// Importing and initializing your models
+// Importing and initializing models
+db.Asset = require("../Models/asset.model.js")(sequelize, Sequelize.DataTypes);
+db.Collection = require("../Models/collection.model.js")(sequelize, Sequelize.DataTypes);
 db.Poam = require("../Models/poam.model.js")(sequelize, Sequelize.DataTypes);
 db.poamAsset = require("../Models/poamAsset.model.js")(sequelize, Sequelize.DataTypes);
+
+db.Asset.belongsTo(db.Collection, { foreignKey: 'collectionId' });
+db.Collection.hasMany(db.Asset, { foreignKey: 'collectionId' });
 
 module.exports = db;

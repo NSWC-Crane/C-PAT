@@ -61,10 +61,113 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /api/stigmancollectionimport:
+    post:
+      summary: Import collection and assets
+      operationId: importCollectionAndAssets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collection:
+                  $ref: '#/components/schemas/Collection'
+                assets:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Asset'
+      responses:
+        '200':
+          description: Collection and assets imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad request - invalid data format or missing data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - STIGMANCollection.controller
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /api/stigmanassetimport:
+    post:
+      summary: Import assets
+      operationId: importAssets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assets:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Asset'
+      responses:
+        '200':
+          description: Assets imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad request - invalid data format or missing data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - STIGMANAsset.controller
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   /assets:
     get:
       summary: Return all assets
       operationId: getAssets
+      parameters:
+        - name: page
+          in: query
+          description: Page number of the assets list
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          description: Number of assets per page
+          required: false
+          schema:
+            type: integer
+            default: 20
       responses:
         '200':
           description: Asset array response
@@ -2122,6 +2225,28 @@ paths:
 components:
 
   schemas:
+    Collection:
+      type: object
+      properties:
+        collectionId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+      required:
+        - collectionId
+        - name
+    Asset:
+      type: object
+      properties:
+        assetId:
+          type: string
+        name:
+          type: string
     asset_Object:
       type: object
       required:
@@ -2915,5 +3040,5 @@ components:
   securitySchemes:
       oauth:
         type: openIdConnect
-        openIdConnectUrl: https://localhost:8443/auth/realms/C-PAT/.well-known/openid-configuration    
+        openIdConnectUrl: https://localhost:8080/realms/RMFTools/.well-known/openid-configuration    
 

@@ -14,7 +14,7 @@
                              (selectedChange)="onSelectedChange($event)">
       </ngx-dropdown-treeview>
     </div>
-    <div class="row" style="padding-top: 20px;"*ngIf="collection">
+    <div class="row" style="padding-top: 20px;" *ngIf="collection">
       Selected Collection:
       <div class="col-md-8">
         <label>Collection Name: {{collection.collectionName}} Description: {{collection.description}}</label>
@@ -22,13 +22,9 @@
       <hr />
       <canvas baseChart class="poam-chart" id='chartDiv' [chartType]="'bar'" [datasets]="chartData" [options]="backoptions"></canvas>
       <hr />
-
       <div class="row">
-        <button nbButton outline status="info"
-                style="float:right; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;"
-                (click)="addPoam()">
-          Add POAM
-        </button>
+        <button nbButton fullWidth outline status="info" (click)="addPoam()">Add POAM</button>
+
         <nb-radio-group style="display: flex; flex-wrap: wrap; padding-top: 20px" layout="row" [(ngModel)]="searchOption">
           <nb-radio (valueChange)="onSearchChange($event)"
                     *ngFor="let option of searchOptions"
@@ -38,20 +34,23 @@
         </nb-radio-group>
       </div>
       <br>
-      <div class="row">
-        <label>POAM Filter by Status:</label>
-        <nb-select class="poam-filter" outline status="info" placeholder="Filter Poams: " shape="semi-round" [(ngModel)]="selectedStatus" name="selectedStatus"
-                   (ngModelChange)='onSelectedStatusChange($event)'>
-          <nb-option value="All">All</nb-option>
-          <nb-option value="Draft">Draft</nb-option>
-          <nb-option value="Approved">Approved</nb-option>
-          <nb-option value="Submitted">Submitted</nb-option>
-          <nb-option value="Rejected">Rejected</nb-option>
-          <nb-option value="Closed">Closed</nb-option>
-          <nb-option value="Expired">Expired</nb-option>
-        </nb-select>
-      </div>
+      <!-- TODO: Fix this filter
+    <div class="row">
+      <label>POAM Filter by Status:</label>
+      <nb-select class="poam-filter" outline status="info" placeholder="Filter Poams: " shape="semi-round" [(ngModel)]="selectedStatus" name="selectedStatus"
+                 (ngModelChange)='onSelectedStatusChange($event)'>
+        <nb-option value="All">All</nb-option>
+        <nb-option value="Draft">Draft</nb-option>
+        <nb-option value="Approved">Approved</nb-option>
+        <nb-option value="Submitted">Submitted</nb-option>
+        <nb-option value="Rejected">Rejected</nb-option>
+        <nb-option value="Closed">Closed</nb-option>
+        <nb-option value="Expired">Expired</nb-option>
+      </nb-select>
+    </div>
+                    -->
       <hr />
     </div>
   </nb-card-header>
-</nb-card>
+  </nb-card>
+

@@ -8,10 +8,12 @@
 !########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, HostListener, Input, OnInit } from '@angular/core';
+import { SharedService } from '../../Shared/shared.service';
 import { AssetService } from './assets.service';
 import { forkJoin, Observable } from 'rxjs';
-import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
+import { NbDialogService, NbInputModule, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth';
 import { NbAuthJWTToken, NbAuthToken } from '@nebular/auth';
@@ -19,7 +21,8 @@ import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { UsersService } from '../user-processing/users.service'
+import { UsersService } from '../user-processing/users.service';
+import { environment } from '../../../environments/environment';
 
 interface TreeNode<T> {
   data: T;
@@ -48,6 +51,8 @@ export class AssetProcessingComponent implements OnInit {
   defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'Domain', 'MAC Address', 'Labels'];
   allColumns = [this.customColumn, ...this.defaultColumns];
   dataSource!: NbTreeGridDataSource<any>;
+  sortColumn: string | undefined;
+  sortDirection: NbSortDirection = NbSortDirection.NONE;
 
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
@@ -55,6 +60,10 @@ export class AssetProcessingComponent implements OnInit {
   users: any;
   user: any;
 
+  availableAssets: any[] = [];
+  selectedAssets: string[] = [];
+  collections: any[] = []; // Array to hold collections
+  selectedCollection: string = ''; // Selected collection ID
   assets: any;
   asset: any = {};
   data: any = [];
@@ -78,7 +87,9 @@ export class AssetProcessingComponent implements OnInit {
 
   constructor(
     private assetService: AssetService,
+    private sharedService: SharedService,
     private dialogService: NbDialogService,
+    private http: HttpClient,
     private router: Router,
     private authService: AuthService,
     private readonly keycloak: KeycloakService,
@@ -92,26 +103,72 @@ export class AssetProcessingComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // this.subs.sink = this.authService.onTokenChange()
-    //   .subscribe((token: NbAuthJWTToken) => {
-    //     //if (token.isValid() && this.router.url === '/pages/collection-processing') {
-    //     if (token.isValid()) {
-    //       this.isLoading = true;
-    //       this.payload = token.getPayload();
-
-    //       this.selectedRole = 'admin';
-    //       this.data = [];
-    //       this.getAssetData();
-
-    //     }
-    //   })
     this.isLoggedIn = await this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
-      //console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
+      this.fetchCollections();
       this.setPayload();
+      this.getAssetData();
     }
+  }
 
+  fetchCollections() {
+    this.keycloak.getToken().then(token => {
+      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe(data => {
+        this.collections = data;
+      });
+    });
+  }
+
+  fetchAssetsFromAPI() {
+    this.keycloak.getToken().then(token => {
+      this.sharedService.getAssetsFromSTIGMAN(this.selectedCollection, token).subscribe(data => {
+        this.availableAssets = data;
+      });
+    });
+  }
+
+  onCollectionSelect(collectionId: string) {
+    this.selectedCollection = collectionId;
+    this.fetchAssetsFromAPI();
+  }
+
+  fetchAssetDetails() {
+    this.keycloak.getToken().then(token => {
+      const assetDetailsObservables = this.selectedAssets.map(assetId =>
+        this.sharedService.selectedAssetsFromSTIGMAN(assetId, token)
+      );
+      forkJoin(assetDetailsObservables).subscribe(results => {
+        this.importAssets(results);
+      });
+    });
+  }
+
+  onImportAssetsButtonClick() {
+    if (this.selectedAssets.length > 0) {
+      this.fetchAssetDetails();
+    } else {
+      console.error('No assets selected');
+    }
+  }
+
+
+  importAssets(assetDetails: any[]) {
+    const payload = {
+      assets: assetDetails
+    };
+    this.sendImportRequest(payload);
+  }
+
+  private sendImportRequest(data: any) {
+    this.keycloak.getToken().then(token => {
+      const headers = { Authorization: `Bearer ${token}` };
+      this.http.post(environment.stigmanAssetImportEndpoint, data, { headers })
+        .subscribe({
+          next: (response) => console.log('Import successful', response),
+          error: (error) => console.error('Error during import', error)
+        });
+    });
   }
 
   setPayload() {
@@ -134,7 +191,6 @@ export class AssetProcessingComponent implements OnInit {
       this.subs.sink = forkJoin(
         this.userService.getUserPermissions(this.user.userId)
       ).subscribe(([permissions]: any) => {
-        // console.log("permissions: ", permissions)
 
         permissions.permissions.permissions.forEach((element: any) => {
           // console.log("element: ",element)
@@ -147,29 +203,16 @@ export class AssetProcessingComponent implements OnInit {
           // console.log("assignedCollections: ", assigendCollections)
           this.payload.collections.push(assigendCollections);
         });
-
-        // console.log("payload: ", this.payload)
-
         this.getAssetData();
       })
-
-
     })
   }
 
   getAssetData() {
     this.isLoading = true;
     this.assets = [];
-    // this.assetService.getAssets().subscribe((rData: any) => {
-    //   this.data = rData.assets;
-    //   this.assets = this.data;
-    //   console.log("this.assets: ",this.data)
-    //   this.getAssetsGrid("");
-    //   this.isLoading = false;
-    // });
-    // console.log("payload: ", this.payload)
+
     if (this.payload == undefined) return;
-    //console.log("HIGH  within user.getData() user: ", this.user)
 
     let userName = (this.payload.userName) ? this.payload.userName : "NONE";
     this.subs.sink = forkJoin(
@@ -178,15 +221,10 @@ export class AssetProcessingComponent implements OnInit {
       this.assetService.getCollections(userName),
     )
       .subscribe(([assetData, labels, collections]: any) => {
-
-
         this.data = assetData.assets;
         this.assets = this.data;
         this.labelList = labels.labels;
         this.collectionList = collections.collections;
-        //console.log("labelList: ", this.labelList)
-        // console.log("collectionList: ", this.collectionList)
-
         this.getAssetsGrid("");
         this.isLoading = false;
       });
@@ -230,16 +268,21 @@ export class AssetProcessingComponent implements OnInit {
             'Domain': assetData[i].fullyQualifiedDomainName, 'MAC Address': assetData[i].macAddress
           }, children: myChild
         });
-
-        // console.log("treeViewData: ", mydata)
         this.dataSource = this.dataSourceBuilder.create(mydata);
-
       });
-
     }
-    //if (filter) { collectionData = this.data.filter((collection: { collectionId: string; }) => collection.collectionId === filter); }
+  }
 
+  updateSort(sortRequest: NbSortRequest): void {
+    this.sortColumn = sortRequest.column;
+    this.sortDirection = sortRequest.direction;
+  }
 
+  getSortDirection(column: string): NbSortDirection {
+    if (this.sortColumn === column) {
+      return this.sortDirection;
+    }
+    return NbSortDirection.NONE;
   }
 
   setAsset(assetId: any) {
