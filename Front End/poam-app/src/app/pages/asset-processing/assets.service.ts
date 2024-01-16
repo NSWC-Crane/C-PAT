@@ -10,7 +10,7 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Assets } from './asset.model';
@@ -44,8 +44,8 @@ export class AssetService {
   getAssets() {
     // console.log("Assets Service Call attempted: getAssets()...");
     return this.http
-          .get<any>(`${this.uri}/assets`)
-          .pipe(catchError(this.handleError));
+      .get<any>(`${this.uri}/assets`)
+      .pipe(catchError(this.handleError));
   }
 
   getLabels() {

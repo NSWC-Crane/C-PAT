@@ -20,7 +20,7 @@ import { catchError } from 'rxjs/operators';
 })
 export class ResetPasswordService {
   //private uri = environment.apiEndpoint;
-  private uri = `http://localhost:8080`;
+  private uri = environment.keycloakUrl;
 
   constructor(private http: HttpClient) { }
 

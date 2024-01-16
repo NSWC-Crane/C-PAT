@@ -52,7 +52,7 @@ export class LoginService {
 	getToken(authorization: any) {
 		console.log("LoginService Call attempted: getToken(authorization)...authorization: ", authorization);
 		//this.httpOptions.headers= this.httpOptions.headers.append('Access-Control-Allow-Origin', '*')
-		return this.http.post<any>(`http://localhost:8080/realms/C-PAT/protocol/openid-connect/token`, authorization, this.httpOptions);
+    return this.http.post<any>(environment.tokenReturnUrl, authorization, this.httpOptions);
 		//return 'Nothing';
 	}
 

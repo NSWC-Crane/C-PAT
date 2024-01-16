@@ -10,7 +10,7 @@
 
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CollectionComponent } from './collection.component';
+import { CollectionComponent } from '../../collection-processing/collection/collection.component';
 
 describe('CollectionComponent', () => {
   let component: CollectionComponent;

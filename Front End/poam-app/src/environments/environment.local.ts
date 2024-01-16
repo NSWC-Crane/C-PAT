@@ -11,19 +11,25 @@
 //import { version } from '/package.json';
 
 export const environment = {
-	production: false,
+  production: false,
   environment: 'local',
   apiEndpoint: 'http://localhost:8086',
-  authizeEndpoint: 'http://localhost:8080/realms/C-PAT/protocol/openid-connect/auth',
-  tokeEndpoint: 'http://localhost:8080/realms/C-PAT/protocol/openid-connect/token',
-  frontEndEndpoint: 'http://localhost:4200',
+  fileUploadEndpoint: 'http://localhost:8086/api/poamimport',
+  stigmanCollectionImportEndpoint: 'http://localhost:8086/api/stigmancollectionimport',
+  stigmanAssetImportEndpoint: 'http://localhost:8086/api/stigmanassetimport',
+  getCollectionsFromSTIGMANEndpoint: 'http://localhost:54000/api/collections/',
+  getAvailableAssetsFromSTIGMANEndpoint: 'http://localhost:54000/api/assets?collectionId=',
+  getAssetsFromSTIGMANEndpoint: 'http://localhost:54000/api/assets/',
+  authizeEndpoint: 'http://localhost:8080/realms/RMFTools/protocol/openid-connect/auth',
+  tokeEndpoint: 'http://localhost:8080/realms/RMFTools/protocol/openid-connect/token',
   redirectUri: 'http://localhost:4200/callback',
-  // wsEndpoint: 'http://localhost:3000/notifications',
-	// apiEndpoint: process && `http://${process.env.API_URL}:3000/api` || 'http://localhost:3000/api',
-  // wsEndpoint: process && `http://${process.env.API_URL}:3000/notifications` || 'http://localhost:3000/notifications',
-  // publicVapid: 'BEsUpX1fLAmUM6rtiYgdY9zJrr3oJo8eJzSi6nkA1qxvTR2xeMeImyXsrx-QcoFRediJ_-dnWrF7v9QXp_Ux8UU',
+  frontEndEndpoint: 'http://localhost:4200',
+  keycloakUrl: 'http://localhost:8080',
+  CPATRedirectUri: 'http://localhost:4200/consent',
+  tokenReturnUrl: "http://localhost:8080/realms/RMFTools/protocol/openid-connect/token",
   version: '1.0.0',
-   //
+
+
   // Set classification to on of: 
   //  classification    classificationCode    ClassificatonColorCode
   //  'UNCLASSIFIED'            'U '                '#5cb85c'
@@ -34,4 +40,5 @@ export const environment = {
   classification: 'UNCLASSIFIED',
   classificationCode: 'U',
   classificationColorCode: '#5cb85c'
+
 };
