@@ -2,29 +2,30 @@
   <div class="row">
     <div class="col-md-10">
       <!-- Assets Section -->
-      <nb-card>
-        <nb-card-body class="scrollable-assets">
-          <h3>Assets</h3>
-          <table [nbTreeGrid]="dataSource">
-            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
-            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+        <nb-card>
+          <nb-card-body class="scrollable-assets" (scroll)="onScroll($event)">
+            <h3>Assets</h3>
+            <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Assets">
+            <table [nbTreeGrid]="dataSource">
+              <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+              <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
 
-            <ng-container [nbTreeGridColumnDef]="customColumn">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">
-                <nb-tree-grid-row-toggle [expanded]="row.expanded" *ngIf="row.data['asset']">
-                </nb-tree-grid-row-toggle>
-                {{row.data[customColumn]}}
-              </td>
-            </ng-container>
+              <ng-container [nbTreeGridColumnDef]="customColumn">
+                <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
+                <td nbTreeGridCell *nbTreeGridCellDef="let row">
+                  <nb-tree-grid-row-toggle [expanded]="row.expanded" *ngIf="row.data['asset']">
+                  </nb-tree-grid-row-toggle>
+                  {{row.data[customColumn]}}
+                </td>
+              </ng-container>
 
-            <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
-            </ng-container>
-          </table>
-        </nb-card-body>
-      </nb-card>
+              <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
+                <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
+                <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
+              </ng-container>
+            </table>
+          </nb-card-body>
+        </nb-card>
     </div>
   </div>
 

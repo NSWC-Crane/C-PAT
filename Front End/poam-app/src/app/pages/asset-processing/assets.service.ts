@@ -41,10 +41,13 @@ export class AssetService {
     return throwError('Something bad happened; please try again later.');
   }
 
-  getAssets() {
-    // console.log("Assets Service Call attempted: getAssets()...");
+  getAssets(offset: number, limit: number) {
+    let params = new HttpParams()
+      .set('offset', offset.toString())
+      .set('limit', limit.toString());
+
     return this.http
-      .get<any>(`${this.uri}/assets`)
+      .get<any>(`${this.uri}/assets`, { params })
       .pipe(catchError(this.handleError));
   }
 

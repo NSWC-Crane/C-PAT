@@ -8,5 +8,50 @@
 !########################################################################
 */
 
-// /deep/ .nb-theme-dark nb-card-header { display: block !important; }
-// /deep/ .nb-theme-corporate nb-card-header { display: block !important; }
+.form-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group nb-select {
+  width: 100%;
+}
+
+.status-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.status-group label {
+  margin-right: 10px;
+}
+
+.status-group nb-select {
+  flex-grow: 1;
+}
+
+.status-container {
+  display: flex;
+  justify-content: left;
+  gap: 20px;
+}
+
+hr {
+  background-color: black;
+  border-color: black;
+  color: black;
+  height: 1px;
+  border: 0;
+}

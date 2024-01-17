@@ -23,11 +23,19 @@ import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../user-processing/users.service';
 import { environment } from '../../../environments/environment';
+import { ChangeDetectorRef } from '@angular/core';
+import { Assets } from './asset.model';
 
 interface TreeNode<T> {
   data: T;
   children?: TreeNode<T>[];
   expanded?: boolean;
+}
+
+interface AssetTreeNode {
+  data: Assets;
+  children: AssetTreeNode[];
+  expanded: boolean;
 }
 
 interface FSEntry {
@@ -45,10 +53,12 @@ interface FSEntry {
   styleUrls: ['./asset-processing.component.scss']
 })
 export class AssetProcessingComponent implements OnInit {
-
+  offset = 0;
+  limit = 50;
+  isListFull = false;
 
   customColumn = 'asset';
-  defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'Domain', 'MAC Address', 'Labels'];
+  defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'Domain', 'MAC Address'];
   allColumns = [this.customColumn, ...this.defaultColumns];
   dataSource!: NbTreeGridDataSource<any>;
   sortColumn: string | undefined;
@@ -67,7 +77,6 @@ export class AssetProcessingComponent implements OnInit {
   assets: any;
   asset: any = {};
   data: any = [];
-  labelList: any;
   collectionList: any;
 
   allowSelectAssets = true;
@@ -87,6 +96,7 @@ export class AssetProcessingComponent implements OnInit {
 
   constructor(
     private assetService: AssetService,
+    private cdr: ChangeDetectorRef,
     private sharedService: SharedService,
     private dialogService: NbDialogService,
     private http: HttpClient,
@@ -208,70 +218,72 @@ export class AssetProcessingComponent implements OnInit {
     })
   }
 
-  getAssetData() {
+  getAssetData(loadMore = false) {
+    // If the end of the list is reached, do not load more data
+    if (this.isListFull) {
+      return;
+    }
     this.isLoading = true;
-    this.assets = [];
+
+    // If loading more assets, we don't reset the assets array
+    if (!loadMore) {
+      this.assets = [];
+      this.isListFull = false;
+    }
 
     if (this.payload == undefined) return;
 
-    let userName = (this.payload.userName) ? this.payload.userName : "NONE";
-    this.subs.sink = forkJoin(
-      this.assetService.getAssets(),
-      this.assetService.getLabels(),
-      this.assetService.getCollections(userName),
-    )
-      .subscribe(([assetData, labels, collections]: any) => {
-        this.data = assetData.assets;
-        this.assets = this.data;
-        this.labelList = labels.labels;
-        this.collectionList = collections.collections;
-        this.getAssetsGrid("");
-        this.isLoading = false;
-      });
+    // Fetch only assets with pagination
+    this.subs.sink = this.assetService.getAssets(this.offset, this.limit)
+      .subscribe((assetData: any) => {
+        // Append new assets if loading more, else replace
+        this.assets = loadMore ? [...this.assets, ...assetData.assets] : assetData.assets;
 
+        // Check if the end of the list is reached
+        if (assetData.assets.length < this.limit) {
+          this.isListFull = true;
+        }
+        this.updateDataSource();
+        this.offset += this.limit;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      });
   }
 
-  async getAssetsGrid(filter: string) {
-    let assetData = this.data;
-    // Sconsole.log("assetData: ", assetData)
-    let mydata: any = [];
-    for (let i = 0; i < assetData.length; i++) {
-      await this.assetService.getAssetLabels(+assetData[i].assetId).subscribe((assetLabels: any) => {
-        let myChild: any = [];
-        // console.log("assetLabels: ", assetLabels.assetLabels)
-        // console.log("assetLabels: ", assetLabels.assetLabels.length)
-        let labels = assetLabels.assetLabels;
-        // console.log("labels: ", labels)
-        if (labels.length > 0) {
-          labels.forEach((label: any) => {
-            // console.log("label: ", label)
-            myChild.push({
-              data: {
-                asset: '', 'Asset Name': '', 'Description': '', 'Collection': '', 'IP Address': '',
-                'Domain': '', 'MAC Address': '',
-                'Labels': label.labelName
-              }
-            })
-          });
-        }  // ['Asset Name', 'Description', 'Collection', 'IP Address', 'Domain', 'MAC Address', 'Labels']
+  updateDataSource() {
+    let treeNodes: AssetTreeNode[] = this.assets.map((asset: Assets) => {
+      return {
+        data: {
+          'asset': asset.assetId,
+          'Asset Name': asset.assetName,
+          'Description': asset.description,
+          'Collection': asset.collectionId,
+          'IP Address': asset.ipAddress,
+          'Domain': asset.fullyQualifiedDomainName,
+          'MAC Address': asset.macAddress,
+        },
+        children: [],
+        expanded: true
+      };
+    });
 
-        //console.log("myChild: ", myChild)
-        let myCollection = this.collectionList.find((tl: any) => tl.collectionId === +assetData[i].collectionId)
+    this.dataSource = this.dataSourceBuilder.create(treeNodes);
+  }
 
-        // console.log("myCollection: ",myCollection)
-        // console.log("collectionList: ",this.collectionList)
-        // console.log("assetData[i].collectionId: ",assetData[i].collectionId)
-        mydata.push({
-          data: {
-            asset: assetData[i].assetId, 'Asset Name': assetData[i].assetName, 'Description': assetData[i].description,
-            'Collection': (myCollection && myCollection.collectionName) ? myCollection.collectionName : '', 'IP Address': assetData[i].ipAddress,
-            'Domain': assetData[i].fullyQualifiedDomainName, 'MAC Address': assetData[i].macAddress
-          }, children: myChild
-        });
-        this.dataSource = this.dataSourceBuilder.create(mydata);
-      });
+  onScroll(event: any) {
+    if (this.isListFull) {
+      return;
+    }
+    const threshold = 100;
+    const currentPosition = event.target.scrollTop + event.target.clientHeight;
+    const maximumScrollPosition = event.target.scrollHeight;
+
+    if (currentPosition + threshold >= maximumScrollPosition) {
+      this.getAssetData(true);
     }
   }
+
+
 
   updateSort(sortRequest: NbSortRequest): void {
     this.sortColumn = sortRequest.column;

@@ -13,95 +13,98 @@
     <nb-card>
       <nb-card-header>
         General Information - Poam Id: {{ poam.poamId }}
-        <div class="row">
-          <div class="col-md-8" style="margin: 1%;">
-            <label style="float: left">*Description:</label>
-            <input type="text" style="width: 75%" maxlength="75" nbInput fullWidth placeholder="Description"
-                   [(ngModel)]="poam.description" name='description'>
+        <hr />
+        <div class="form-container">
+          <div class="status-container">
+            <!-- Status -->
+            <div class="status-group">
+              <label for="status">*Status:</label>
+              <nb-select outline status="info" placeholder="Status: " [(ngModel)]="poam.status" name="status">
+                <nb-option value="Draft">Draft</nb-option>
+                <nb-option value="Submitted">Submitted</nb-option>
+                <nb-option value="Approved">Approved</nb-option>
+                <nb-option value="Rejected">Rejected</nb-option>
+                <nb-option value="Closed">Closed</nb-option>
+                <nb-option value="Expired">Expired</nb-option>
+              </nb-select>
+            </div>
+
+            <!-- Poam Type -->
+            <div class="status-group">
+              <label for="poamType">*Poam Type:</label>
+              <nb-select outline status="info" placeholder="Type: " [(ngModel)]="poam.poamType" name="poamType">
+                <nb-option value="Standard">Standard</nb-option>
+                <nb-option value="Restricted">Restricted</nb-option>
+              </nb-select>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div style="margin: 1%; width: 100%">
 
-            <label for="status" style="float: left">*Status:</label>
-            <!-- <input type="text" maxlength="10" nbInput fullWidth placeholder="Status" [(ngModel)]="poam.status"
-              name='status'> -->
-            <nb-select outline status="info" placeholder="Status: " [(ngModel)]="poam.status" name="status">
-              <nb-option value="Draft">Draft</nb-option>
-              <nb-option value="Submitted">Submitted</nb-option>
-              <nb-option value="Approved">Approved</nb-option>
-              <nb-option value="Rejected">Rejected</nb-option>
-              <nb-option value="Closed">Closed</nb-option>
-              <nb-option value="Expired">Expired</nb-option>
-            </nb-select>
-
-            <label style="margin-left: 2%;" for="poamType">*Poam Type:</label>
-            <!-- <input type="text" maxlength="10" nbInput fullWidth placeholder="Poam Type" [(ngModel)]="poam.poamType"
-              name='poamType'> -->
-            <nb-select outline status="info" placeholder="Type: " [(ngModel)]="poam.poamType" name="poamType">
-              <nb-option value="Standard">Standard</nb-option>
-              <nb-option value="Restricted">Restricted</nb-option>
-            </nb-select>
-
-            <label style="margin-left: 2%;" for="aaPackage">*AA Package:</label>
-            <input type="text" style="width: 35%" maxlength="50" nbInput fullWidth placeholder="AA Package"
-                   [(ngModel)]="poam.aaPackage" name='aaPackage'>
+          <!-- Description -->
+          <div class="form-group">
+            <label>*Description:</label>
+            <input type="text" nbInput fullWidth placeholder="Description" [(ngModel)]="poam.description" name='description'>
           </div>
-        </div>
-        <div class="row">
-          <div style="margin: 1%; width: 100%">
 
-            <label for="vulnerabilitySource" style="float: left">*Source:</label>
-            <input type="text" maxlength="6" nbInput fullWidth placeholder="Source"
-                   [(ngModel)]="poam.vulnerabilitySource" name='vulnerabilitySource'>
-
-            <label style="margin-left: 2%;" for="rawSeverity">*Raw Severity:</label>
-            <input type="text" maxlength="3" nbInput fullWidth placeholder="Raw Severity" [(ngModel)]="poam.rawSeverity"
-                   name='rawSeverity'>
-
-            <label style="margin-left: 2%;" for="adjSeverity">Adj Severity:</label>
-            <input type="text" maxlength="6" nbInput fullWidth placeholder="Adj Severity" [(ngModel)]="poam.adjSeverity"
-                   name='adjSeverity'>
+          <!-- AA Package -->
+          <div class="form-group">
+            <label for="aaPackage">*AA Package:</label>
+            <input type="text" nbInput fullWidth placeholder="AA Package" [(ngModel)]="poam.aaPackage" name='aaPackage'>
           </div>
-        </div>
-        <div class="row">
-          <div style="margin: 1%; width: 100%">
 
-            <label for="vulnerabilityId" style="float: left">Vulnerability Id:</label>
-            <input type="text" style="width: 75%" maxlength="255" nbInput fullWidth placeholder="VulnerabilityId"
-                   [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId'>
+          <!-- Source -->
+          <div class="form-group">
+            <label for="vulnerabilitySource">*Source:</label>
+            <input type="text" nbInput fullWidth placeholder="Source" [(ngModel)]="poam.vulnerabilitySource" name='vulnerabilitySource'>
           </div>
-        </div>
-        <div class="row">
-          <div style="margin: 1%; width: 100%">
 
-            <label for="vulnIdRestricted" style="float: left">Vuln Restricted Id:</label>
-            <input type="text" style="width: 75%" maxlength="255" nbInput fullWidth
-                   placeholder="Vulnerability Id Restricted" [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted'>
+          <!-- Raw Severity -->
+          <div class="form-group">
+            <label for="rawSeverity">*Raw Severity:</label>
+            <input type="text" nbInput fullWidth placeholder="Raw Severity" [(ngModel)]="poam.rawSeverity" name='rawSeverity'>
           </div>
-        </div>
-        <div class="row">
-          <div style="margin: 1%; width: 100%">
 
-            <label for="ownerId" style="float: left">*Owner:</label>
-            <!-- <input type="text" nbInput fullWidth placeholder="owner" [(ngModel)]="poam.ownerId" name='ownerId'> -->
-            <nb-select fullWidth style="width: auto" outlineid="ownerId" name="ownerId" [(ngModel)]="poam.ownerId"
-                       placeholder="Owner" required>
+          <!-- Adj Severity -->
+          <div class="form-group">
+            <label for="adjSeverity">Adj Severity:</label>
+            <input type="text" nbInput fullWidth placeholder="Adj Severity" [(ngModel)]="poam.adjSeverity" name='adjSeverity'>
+          </div>
+
+          <!-- Vulnerability Id -->
+          <div class="form-group">
+            <label for="vulnerabilityId">Vulnerability Id:</label>
+            <input type="text" nbInput fullWidth placeholder="VulnerabilityId" [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId'>
+          </div>
+
+          <!-- Vuln Restricted Id -->
+          <div class="form-group">
+            <label for="vulnIdRestricted">Vuln Restricted Id:</label>
+            <input type="text" nbInput fullWidth placeholder="Vulnerability Id Restricted" [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted'>
+          </div>
+
+          <!-- Owner -->
+          <div class="form-group">
+            <label for="ownerId">*Owner:</label>
+            <nb-select maxlength="6" outlineid="ownerId" name="ownerId" [(ngModel)]="poam.ownerId" placeholder="Owner" required>
               <nb-option *ngFor="let user of collectionOwners" [value]="user.userId">
                 {{ user.fullName }} - {{ user.userEmail }}
               </nb-option>
             </nb-select>
+          </div>
 
-            <label for="scheduledCompleteionDate" style="margin-left: 2%;">Scheduled Completion Date:</label>
-            <input type="date" nbInput fullWidth placeholder="Sched Completion Date"
-                   [(ngModel)]="dates.scheduledCompletionDate" name='scheduledCompletinDate'>
+          <!-- Scheduled Completion Date -->
+          <div class="form-group">
+            <label for="scheduledCompletionDate">Scheduled Completion Date:</label>
+            <input type="date" nbInput placeholder="Sched Completion Date" [(ngModel)]="dates.scheduledCompletionDate" name='scheduledCompletionDate'>
+          </div>
 
-            <label for="submittedDate" style="margin-left: 2%;">Submitted Date:</label>
-            <input type="date" nbInput fullWidth placeholder="*submitted Date" [(ngModel)]="dates.submittedDate"
-                   name='submittedDate'>
+          <!-- Submitted Date -->
+          <div class="form-group">
+            <label for="submittedDate">Submitted Date:</label>
+            <input type="date" nbInput placeholder="Submitted Date" [(ngModel)]="dates.submittedDate" name='submittedDate'>
           </div>
         </div>
       </nb-card-header>
+
       <nb-card-body>
         <nb-stepper orientation="horizontal">
           <nb-step label=">Assignees">
@@ -112,7 +115,6 @@
               </ng2-smart-table>
             </div>
             <br>
-            <!-- <button nbButton disabled nbStepperNext>prev</button> -->
             <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label=">Approvers">
@@ -126,7 +128,6 @@
               </ng2-smart-table>
             </div>
             <br>
-
             <br>
             <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
@@ -190,18 +191,13 @@
             <button style="margin-left:20px;" nbButton outline status="info" disabled nbStepperNext>next</button>
           </nb-step>
         </nb-stepper>
-
       </nb-card-body>
       <nb-card-footer>
-
         <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showSubmit" (click)="savePoam(poam)">Save</button>
         <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showSubmit" (click)="submitPoam(poam)">Submit Poam</button>
         <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showClose" (click)="closePoam(poam)">Close Poam</button>
         <button style="margin-left:20px;" nbButton outline status="info" (click)="cancelPoam()">Cancel Edit</button>
-
-
       </nb-card-footer>
     </nb-card>
   </div>
-
 </div>
