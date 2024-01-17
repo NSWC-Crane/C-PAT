@@ -16,7 +16,7 @@ import { CollectionProcessingRoutingModule } from './collection-processing.routi
 import { SharedModule } from '../../Shared/shared.module';
 import { CollectionComponent } from './collection/collection.component';
 import { ConfirmationDialogComponent } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
-import { NbButtonModule, NbCardModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbIconModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule } from '@nebular/theme';
 import { Ng2SmartTableModule } from 'ng2-smart-table';
 import { CsvDataService } from 'src/app/Shared/utils/cvs-data.service';
 
@@ -31,6 +31,8 @@ import { CsvDataService } from 'src/app/Shared/utils/cvs-data.service';
     FormsModule,
     NbButtonModule,
     NbCardModule,
+    NbIconModule,
+    NbInputModule,
     NbSelectModule,
     NbSpinnerModule,
     NbTreeGridModule,

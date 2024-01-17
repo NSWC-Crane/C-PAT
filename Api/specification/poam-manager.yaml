@@ -154,20 +154,20 @@ paths:
       summary: Return all assets
       operationId: getAssets
       parameters:
-        - name: page
-          in: query
-          description: Page number of the assets list
+        - in: query
+          name: offset
           required: false
           schema:
             type: integer
-            default: 1
-        - name: pageSize
-          in: query
-          description: Number of assets per page
+            default: 0
+          description: The number of items to skip before starting to collect the result set
+        - in: query
+          name: limit
           required: false
           schema:
             type: integer
-            default: 20
+            default: 50
+          description: The numbers of items to return
       responses:
         '200':
           description: Asset array response

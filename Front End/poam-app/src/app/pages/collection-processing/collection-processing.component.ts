@@ -13,7 +13,7 @@ import { HttpClient } from '@angular/common/http';
 import { SharedService } from '../../Shared/shared.service';
 import { CollectionsService } from './collections.service';
 import { forkJoin, Observable } from 'rxjs';
-import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
+import { NbSortDirection, NbSortRequest, NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth';
 import { SubSink } from "subsink";
@@ -90,7 +90,8 @@ export class CollectionProcessingComponent implements OnInit {
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
-  }
+
+}
 
   onSubmit() {
     //console.log("Attempting to onSubmit()...");
@@ -234,7 +235,6 @@ export class CollectionProcessingComponent implements OnInit {
         children: myChildren
       };
     })
-    //console.log("treeViewData: ", treeViewData)
     this.dataSource = this.dataSourceBuilder.create(treeViewData);
   }
 

@@ -40,6 +40,7 @@
     "ng2-charts": "^2.4.2",
     "ng2-completer": "^9.0.1",
     "ng2-smart-table": "^1.7.2",
+    "ngx-infinite-scroll": "^14.0.0",
     "ngx-treeview": "^10.0.2",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",

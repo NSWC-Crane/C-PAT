@@ -17,18 +17,6 @@
     <div class="col" style="margin-top: 10px;" [nbSpinner]="isSettingWorkspace" nbSpinnerStatus="success"
          nbSpinnerSize="medium" nbSpinnerMessage="Loading work space, please wait...">
     </div>
-    <div class="row">
-      <div class="col">
-        <label style="float: left">Current Collection:</label>
-        <nb-select class="appearance-outline size-mediumoutline" status="info" placeholder="Collection"
-                   [(ngModel)]="selectedCollection" name="selectedCollection" id="selectedCollection"
-                   (ngModelChange)="resetWorkspace($event)" [(selected)]="selectedCollection">
-          <nb-option *ngFor="let collection of collections" value={{collection.collectionId}} name=selectedCollection>
-            {{collection.collectionName}} - {{ collection.description}}
-          </nb-option>
-        </nb-select>
-      </div>
-    </div>
   </nb-layout-header>
   <nb-layout-header subheader>
     <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
@@ -43,6 +31,15 @@
         <nb-action icon="star-outline" (click)="onSelectedThemeChange('cosmic')"></nb-action>
         <nb-action icon="sun-outline" (click)="onSelectedThemeChange('corporate')"></nb-action>
       </nb-actions>
+    </div>
+    <div class="sidebar-top" style="margin-top:10px; display: flex; justify-content: center; align-items: center;">
+      <nb-select class="appearance-outline size-mediumoutline" placeholder="Select Collection"
+                 [(ngModel)]="selectedCollection" name="selectedCollection" id="selectedCollection"
+                 (ngModelChange)="resetWorkspace($event)" size="small" shape="semi-round">
+        <nb-option *ngFor="let collection of collections" [value]="collection.collectionId">
+          {{collection.collectionName}} - {{ collection.description}}
+        </nb-option>
+      </nb-select>
     </div>
     <div class="menu-content">
       <nb-menu [items]="menuItems" id="menuItems"></nb-menu>

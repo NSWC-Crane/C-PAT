@@ -17,7 +17,7 @@
       <nb-card>
         <nb-card-body>
           <h3>Labels</h3>
-
+          <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Labels">
           <table [nbTreeGrid]="dataSource">
             <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
             <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>

@@ -10,10 +10,12 @@
 
 const assetService = require('../Services/mysql/assetService')
 
-module.exports.getAssets = async function getAssets(req, res, next){
-        //res.status(201).json({message: "getAssets Method called successfully"})
-        var assets = await assetService.getAssets(req,res,next); 
-        res.status(201).json(assets)
+module.exports.getAssets = async function getAssets(req, res, next) {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 50;
+
+    var assets = await assetService.getAssets(offset, limit);
+    res.status(201).json(assets);
 }
 
 module.exports.getAsset = async function getAsset(req, res, next){

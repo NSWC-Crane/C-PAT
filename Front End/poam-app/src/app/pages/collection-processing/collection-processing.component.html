@@ -15,7 +15,7 @@
       <nb-card>
         <nb-card-body class="scrollable-collections">
           <h3>Current Collection Structure</h3>
-
+          <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Collections">
           <table [nbTreeGrid]="dataSource">
             <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
             <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>

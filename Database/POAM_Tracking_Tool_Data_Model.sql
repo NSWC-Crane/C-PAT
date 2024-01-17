@@ -22,7 +22,7 @@ CREATE TABLE `poamtracking`.`user` (
    `password` varchar(255) NOT NULL,
    `accountStatus` varchar(45) NOT NULL DEFAULT 'Pending',
    `fullName` varchar(225) DEFAULT NULL,
-   `defaultTheme` varchar(20) DEFAULT 'default',
+   `defaultTheme` varchar(20) DEFAULT 'dark',
    `isAdmin` int NOT NULL DEFAULT '0',
    PRIMARY KEY (`userId`),
    UNIQUE KEY `userEmail_UNIQUE` (`userEmail`) USING BTREE,
