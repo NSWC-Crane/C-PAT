@@ -15,6 +15,20 @@ import { SubSink } from 'subsink';
 import { forkJoin, Observable } from 'rxjs';
 import { UsersService } from '../users.service'
 
+interface Permission {
+  userId: number;
+  collectionId: number;
+  canOwn: number;
+  canMaintain: number;
+  canApprove: number;
+}
+export interface CollectionsResponse {
+  collections: Array<{
+    collectionId: number;
+    collectionName: string;
+  }>;
+}
+
 @Component({
   selector: 'ngx-user',
   templateUrl: './user.component.html',
@@ -27,12 +41,11 @@ export class UserComponent implements OnInit {
   @Input() payload: any;
   @Output() userchange = new EventEmitter();
   checked: boolean = false;
-
   isLoading: boolean = true;
   collectionList: any;
   collectionPermissions: any[] = [];
   data: any = [];
-
+  editedRows: any[] = [];
   modalWindow: NbWindowRef | undefined
   dialog!: TemplateRef<any>;
 
@@ -61,16 +74,11 @@ export class UserComponent implements OnInit {
     },
     columns: {
       collectionId: {
-        title: '*Collection',
+        title: 'Collections',
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          //console.log("row: ", row);
-          var collection = (row.collectionId != undefined && row.collectionId != null) ? this.collectionList.find((tl: any) => tl.collectionId === row.collectionId) : null;
-          return (collection)
-            ? collection.collectionName
-            : row.collectionId;
-        }
-        ,
+          return row.collectionId
+        },
         editor: {
           type: 'list',
           config: {
@@ -145,69 +153,119 @@ export class UserComponent implements OnInit {
 
   constructor(private dialogService: NbDialogService,
     private userService: UsersService,
-    // private iconLibraries: NbIconLibraries
   ) { }
 
   ngOnInit(): void {
-    console.log("init user: ", this.user)
-    if (this.user.isAdmin == 1) this.checked = true;
-    this.data = this.user;
-    this.getData();
+    this.isLoading = true;
+
+    if (!this.user || !this.user.userId) {
+      this.userService.getCurrentUser().subscribe(
+        currentUser => {
+          this.user = currentUser;
+
+          if (this.user.isAdmin == 1) {
+            this.checked = true;
+          }
+          this.loadCollections();
+          this.getData();
+          this.isLoading = false;
+        },
+        error => {
+          console.error('Error fetching current user', error);
+          this.isLoading = false;
+        }
+      );
+    } else {
+      this.loadUserData(this.user.userId);
+    }
   }
 
-  onSubmit() {
+  private loadUserData(userId: number): void {
+    this.userService.getUser(userId).subscribe(
+      userData => {
+        this.user = userData;
+        this.loadCollections();
+        this.getData();
+        this.isLoading = false;
+      },
+      error => {
+        console.error('Error fetching user data', error);
+        this.isLoading = false;
+      }
+    );
+  }
 
+  private loadCollections(): void {
+    this.userService.getCurrentUser().subscribe(
+      currentUser => {
+        this.userService.getCollections(currentUser.userName).subscribe(
+          (response: CollectionsResponse) => {
+            this.collectionList = [];
+            response.collections.forEach(collection => {
+              this.collectionList.push({
+                title: collection.collectionName,
+                value: collection.collectionId.toString()
+              });
+            });
+            this.updateCollectionSettings();
+          },
+          error => {
+            console.error('Error fetching collections', error);
+          }
+        );
+      },
+      error => {
+        console.error('Error fetching current user for collections', error);
+      }
+    );
+  }
+
+  private updateCollectionSettings(): void {
+    let settings = this.collectionPermissionsSettings;
+    settings.columns.collectionId.editor.config.list = this.collectionList.map((collection: any) => ({
+      title: collection.title,
+      value: collection.value
+    }));
+    this.collectionPermissionsSettings = { ...settings };
+  }
+
+
+  onSubmit() {
     this.isLoading = true;
     this.userService.updateUser(this.user).subscribe(user => {
-      //this.data = permissionData;
-      //console.log("after updatePermission, permissionData: ",permissionData)
-      // event.confirm.resolve();
-      // this.getData();
       this.userchange.emit();
     });
-
-
   }
   ngOnChanges() {
     this.getData();
   }
 
   getData() {
+    if (this.user && Array.isArray(this.user.permissions)) {
+      this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
+        collectionId: permission.collectionId,
+        canOwn: permission.canOwn,
+        canMaintain: permission.canMaintain,
+        canApprove: permission.canApprove
+      }));
+    } else {
+      console.error('User or permissions data is not available');
+    }
 
-    console.log("user.getData() user: ", this.user)
+    if (Array.isArray(this.collectionList)) {
+      let settings = this.collectionPermissionsSettings;
+      settings.columns.collectionId.editor.config.list = this.collectionList.map((collection: any) => ({
+        collectionId: collection.collectionId 
+      })) as any;
 
-    this.subs.sink = forkJoin(
-      this.userService.getCollections(this.user.userName),
-      this.userService.getCollections(this.payload.userName),
-      this.userService.getUserPermissions(this.user.userId)
-    )
-      .subscribe(([collections, availableCollections, permissions]: any) => {
-
-        this.collectionList = collections.collections;
-        if (this.collectionList.length == 0) this.collectionList = availableCollections.collections;
-        this.collectionPermissions = permissions.permissions.permissions;
-        //console.log("collectionList: ", this.collectionList)
-        //console.log("collectionPermissions: ", this.collectionPermissions)
-
-        let settings = this.collectionPermissionsSettings;
-        settings.columns.collectionId.editor.config.list = this.collectionList.map((collection: any) => {
-          //console.log("collection: ",collection)
-          return {
-            title: collection.collectionName,
-            value: collection.collectionId
-          }
-        });
-
-        this.collectionPermissionsSettings = Object.assign({}, settings);
-        this.isLoading = false;
-      });
-
+      this.collectionPermissionsSettings = { ...settings };
+    } else {
+      console.error('Available collection data is not available');
+    }
   }
 
-
+  
   confirmCreate(event: any) {
-
-    // console.log("Attempting to confirmCreate()...");
     if (this.user.userId &&
       event.newData.collectionId &&
       event.newData.canOwn &&
@@ -217,7 +275,6 @@ export class UserComponent implements OnInit {
 
       var collection_index = this.collectionList.findIndex((e: any) => e.collectionId == event.newData.collectionId);
 
-      // can't continue without collection data.   NOTE** collection_index my be 0, if the 1st row is selected!
       if (!collection_index && collection_index != 0) {
         this.invalidData("Unable to resolve collection");
         event.confirm.reject();
@@ -235,7 +292,6 @@ export class UserComponent implements OnInit {
       this.isLoading = true;
       this.userService.postPermission(collectionPermission).subscribe(permissionData => {
         this.isLoading = false;
-        //console.log("after postPermission, permissionData: ",permissionData)
         event.confirm.resolve();
         this.getData();
       })
@@ -256,8 +312,6 @@ export class UserComponent implements OnInit {
 
       var collection_index = this.collectionList.findIndex((e: any) => e.collectionId == event.newData.collectionId);
 
-
-      // can't continue without collection data.   NOTE** collection_index my be 0, if the 1st row is selected!
       if (!collection_index && collection_index != 0) {
         this.invalidData("Unable to resolve collection")
         event.confirm.reject();
@@ -285,6 +339,7 @@ export class UserComponent implements OnInit {
       event.confirm.reject();
     }
   }
+
 
   confirmDelete(event: any) {
     //console.log("Attempting to confirmDelete()...event.data: ",event.data);

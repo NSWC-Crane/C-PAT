@@ -1,15 +1,18 @@
 /*
 !#######################################################################
 ! C-PATTM SOFTWARE
-! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the 
+! Open Source Academic Research License Agreement contained in the file
 ! crane_C_PAT.1_license.txt, which is part of this software package. BY
 ! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
 
+const express = require('express');
+const db = require('../utils/sequelize');
+const router = express.Router();
 const ExcelJS = require('exceljs');
-const { db } = require('../utils/sequelize.js');
 const { poamAsset, Poam } = require('../utils/sequelize.js');
 
 const excelColumnToDbColumnMapping = {
@@ -57,7 +60,7 @@ function convertToMySQLDate(excelDate) {
     return convertedDate;
 }
 
-exports.uploadPoamFile = async (req, res) => {
+module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
     if (!req.file) {
         return res.status(400).send({ message: "Please upload an Excel file!" });
     }
@@ -120,8 +123,8 @@ exports.uploadPoamFile = async (req, res) => {
             const createdBatch = await Poam.bulkCreate(batch, { returning: true });
             createdPoams.push(...createdBatch);
         }
-         // Process devicesAffected for each createdPoam...
-         for (const poamEntry of createdPoams) {
+        // Process devicesAffected for each createdPoam...
+        for (const poamEntry of createdPoams) {
             if (!poamEntry || !poamEntry.poamId) {
                 console.error('Invalid poamEntry or missing poamId:', poamEntry);
                 continue;
@@ -151,4 +154,94 @@ exports.uploadPoamFile = async (req, res) => {
             error: error.message,
         });
     }
-};
+}
+module.exports.importAssets = async function importAssets(req, res) {
+    try {
+        const { assets } = req.body;
+
+        // Handle Assets
+        for (const asset of assets) {
+            const collection = asset.collection || {};
+            const assetData = {
+                assetId: asset.assetId,
+                assetName: asset.name,
+                fullyQualifiedDomainName: asset.fqdn || '',
+                description: asset.description || '',
+                ipAddress: asset.ip || '',
+                macAddress: asset.mac || '',
+                nonComputing: asset.noncomputing ? 1 : 0,
+                collectionId: collection.collectionId || null,
+                metadata: asset.metadata ? JSON.stringify(asset.metadata) : '{}',
+            };
+
+            // Find or create the asset
+            const [assetRecord, assetCreated] = await db.Asset.findOrCreate({
+                where: { assetName: asset.name },
+                defaults: assetData
+            });
+
+            if (!assetCreated) {
+                await assetRecord.update(assetData);
+            }
+        }
+
+        res.status(200).json({ message: 'Assets Imported Successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+module.exports.importCollectionAndAssets = async function importCollectionAndAssets(req, res) {
+    try {
+        const { collection, assets } = req.body;
+
+        // Handle Collection
+        const collectionData = {
+            collectionId: collection.collectionId,
+            collectionName: collection.name,
+            description: collection.description || '',
+            metadata: collection.metadata ? JSON.stringify(collection.metadata) : '{}',
+            settings: collection.settings ? JSON.stringify(collection.settings) : '{}'
+        };
+
+        const [collectionRecord, created] = await db.Collection.findOrCreate({
+            where: { collectionName: collection.name },
+            defaults: collectionData
+        });
+
+        if (!created) {
+            await collectionRecord.update(collectionData);
+        }
+
+        // Handle Assets
+        for (const asset of assets) {
+            const assetData = {
+                assetId: asset.assetId,
+                assetName: asset.name,
+                fullyQualifiedDomainName: asset.fqdn || '',
+                description: asset.description || '',
+                ipAddress: asset.ip || '',
+                macAddress: asset.mac || '',
+                nonComputing: asset.noncomputing ? 1 : 0,
+                collectionId: collectionRecord.collectionId, // Ensure this is correctly assigned
+                metadata: asset.metadata ? JSON.stringify(asset.metadata) : '{}',
+            };
+
+            const [assetRecord, assetCreated] = await db.Asset.findOrCreate({
+                where: { assetName: asset.name }, // Assuming assetName is unique
+                defaults: assetData
+            });
+
+            if (!assetCreated) {
+                await assetRecord.update(assetData);
+            }
+        }
+
+        res.status(200).json({ message: 'Collection and Assets Imported Successfully' });
+    } catch (error) {
+        // Log the error and send a server error response
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}

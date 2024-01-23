@@ -10,11 +10,12 @@
 
 const permissionService = require('../Services/mysql/permissionsService')
 
-module.exports.getPermissions_User = async function getPermissions_User(req, res, next){
-        //res.status(201).json({message: "getPermissions_User Method Called successfully"})
-        var permissions = await permissionService.getPermissions_User(req,res,next); 
-        res.status(201).json(permissions)
-}
+//User permissions are now included in the user object, try getCurrentUser or getUsers instead
+//module.exports.getPermissions_User = async function getPermissions_User(req, res, next){
+//        //res.status(201).json({message: "getPermissions_User Method Called successfully"})
+//        var permissions = await permissionService.getPermissions_User(req,res,next); 
+//        res.status(201).json(permissions)
+//}
 
 module.exports.getPermissions_Collection = async function getPermissions_Collection(req, res, next){
         //res.status(201).json({message: "getPermissions_Collection Method called successfully"})

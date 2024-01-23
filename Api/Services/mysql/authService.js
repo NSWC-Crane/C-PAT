@@ -249,7 +249,7 @@ exports.register = async function register(req, res, next) {
 					stack: new Error().stack,
 				})
 			}
-			// console.log("userID: ", user[0].userId)
+			// console.log("userId: ", user[0].userId)
 			if (req.body.collectionAccessRequest) {
 				let collectionRequest = req.body.collectionAccessRequest;
 				// console.log("collectionRequest: ",collectionRequest)

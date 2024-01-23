@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
 import { NbThemeService, NbButtonModule } from "@nebular/theme";
 import { PoamService } from './poams.service';
@@ -20,6 +20,13 @@ import { Router } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../user-processing/users.service'
+interface Permission {
+  userId: number;
+  collectionId: number;
+  canOwn: number;
+  canMaintain: number;
+  canApprove: number;
+}
 
 @Component({
   selector: 'ngx-poams',
@@ -68,8 +75,8 @@ export class PoamsComponent implements OnInit {
     maintainAspectRatio: false,
     tooltips: {
       callbacks: {
-        label: function (tooltipItem: any) {
-          return tooltipItem.yLabel;
+        label: function (tooltipItem: any, data: any) {
+          return `POAM Status: ${data.datasets[tooltipItem.datasetIndex].label}`;
         }
       }
     },
@@ -116,13 +123,15 @@ export class PoamsComponent implements OnInit {
 
   private subs = new SubSink()
 
-  constructor(private poamService: PoamService,
+  constructor(
+    private poamService: PoamService,
     private theme: NbThemeService,
     private authService: AuthService,
     private router: Router,
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
-    private treeviewI18nDefault: TreeviewI18n
+    private treeviewI18nDefault: TreeviewI18n,
+    private cdr: ChangeDetectorRef
   ) {
   }
 
@@ -136,6 +145,10 @@ export class PoamsComponent implements OnInit {
       itemsArray.push(new TreeviewItem(set))
     });
     return itemsArray;
+  }
+
+  updateChart() {
+    this.cdr.detectChanges();
   }
 
   onSelectedChange(data: any) {
@@ -189,55 +202,39 @@ export class PoamsComponent implements OnInit {
   }
 
   setPayload() {
-    this.users = []
     this.user = null;
     this.payload = null;
 
-    this.subs.sink = forkJoin(
-      this.userService.getUsers(),
-    ).subscribe(([users]: any) => {
-      console.log('users: ', users)
-      this.users = users.users.users
-      //console.log('this.users: ',this.users)
-      this.user = this.users.find((e: { userName: string; }) => e.userName === this.userProfile?.username)
-      console.log('this.user: ', this.user)
+    this.subs.sink = this.userService.getCurrentUser().subscribe(
+      (response: any) => {
+        if (response && response.userId) {
+          this.user = response;
+          console.log('Current user: ', this.user);
 
-      if (this.user.accountStatus === 'ACTIVE') {
-        this.payload = Object.assign(this.user, {
-          collections: []
-        });
+          if (this.user.accountStatus === 'ACTIVE') {
+            this.payload = {
+              ...this.user,
+              collections: this.user.permissions.map((permission: Permission) => ({
+                collectionId: permission.collectionId,
+                canOwn: permission.canOwn,
+                canMaintain: permission.canMaintain,
+                canApprove: permission.canApprove
+              }))
+            };
 
-        // this.userService.getUser(this.payload.userId).subscribe((result: any) => {
-        //   console.log("getUser(id) returned: ", result)
-        //  });
-
-        this.subs.sink = forkJoin(
-          this.userService.getUserPermissions(this.user.userId)
-        ).subscribe(([permissions]: any) => {
-          // console.log("permissions: ", permissions)
-
-          permissions.permissions.permissions.forEach((element: any) => {
-            // console.log("element: ",element)
-            let assigendCollections = {
-              collectionId: element.collectionId,
-              canOwn: element.canOwn,
-              canMaintain: element.canMaintain,
-              canApprove: element.canApprove,
-            }
-            // console.log("assignedCollections: ", assigendCollections)
-            this.payload.collections.push(assigendCollections);
-          });
-
-          console.log("payload: ", this.payload)
-          this.getPoamData();
-        })
-
-      } else {
-        alert('Your account status is not Active, contact your system administrator')
+            console.log("payload: ", this.payload);
+            this.getPoamData();
+          }
+        } else {
+          console.error('User data is not available or user is not active');
+        }
+      },
+      (error) => {
+        console.error('An error occurred:', error);
       }
-
-    })
+    );
   }
+
 
   getPoamData() {
     this.subs.sink = forkJoin(
@@ -288,7 +285,8 @@ export class PoamsComponent implements OnInit {
                     color: chartjs.axisLineColor
                   },
                   ticks: {
-                    fontColor: chartjs.textColor
+                    fontColor: chartjs.textColor,
+                    beginAtZero: true
                   }
                 }
               ]
@@ -376,7 +374,7 @@ export class PoamsComponent implements OnInit {
             this.filteredPoams.push(this.poams[i]);
           }
         }
-        // console.log("this.filteredPoams: ", this.filteredPoams)
+        //console.log("this.filteredPoams: ", this.filteredPoams)
       }
       this.sortData();
     }

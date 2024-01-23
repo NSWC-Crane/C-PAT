@@ -18,140 +18,9 @@ info:
   version: '1.0'
 
 paths:
-  /api/poamimport:
-    post:
-      summary: Upload a POAM file
-      operationId: uploadPoamFile
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                  description: Excel file containing POAM data
-      responses:
-        '200':
-          description: File uploaded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '400':
-          description: Bad request - invalid file format or missing file
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - poamUpload.controller
-      security:
-        - oauth:
-            - 'c-pat:read'
-
-  /api/stigmancollectionimport:
-    post:
-      summary: Import collection and assets
-      operationId: importCollectionAndAssets
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                collection:
-                  $ref: '#/components/schemas/Collection'
-                assets:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Asset'
-      responses:
-        '200':
-          description: Collection and assets imported successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '400':
-          description: Bad request - invalid data format or missing data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - STIGMANCollection.controller
-      security:
-        - oauth:
-            - 'c-pat:read'
-
-  /api/stigmanassetimport:
-    post:
-      summary: Import assets
-      operationId: importAssets
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                assets:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Asset'
-      responses:
-        '200':
-          description: Assets imported successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '400':
-          description: Bad request - invalid data format or missing data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - STIGMANAsset.controller
-      security:
-        - oauth:
-            - 'c-pat:read'
-
   /assets:
     get:
-      summary: Return all assets
+      summary: Return a list of all assets
       operationId: getAssets
       parameters:
         - in: query
@@ -199,7 +68,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return assets by collectionId
+      summary: Return all assets belonging to a specific collection
       operationId: getAssetsByCollection
       responses:
         '200':
@@ -232,7 +101,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return a assetby Id
+      summary: Return details on a specific asset
       operationId: getAsset
       responses:
         '200':
@@ -257,7 +126,7 @@ paths:
         - oauth:
             - 'c-pat:read'        
     delete:
-      summary: Delete a Asset by assetId
+      summary: Delete an Asset by assetId
       operationId: deleteAsset
       responses:
         '200':
@@ -279,7 +148,7 @@ paths:
             - 'c-pat:read'
   /asset:
     post:
-      summary: Add a asset
+      summary: Add an asset
       operationId: postAsset
       requestBody:
         required: true
@@ -568,7 +437,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - auth
+        - Auth
       security:
         - oauth:
             - 'c-pat:read'  
@@ -600,7 +469,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - auth
+        - Auth
       security:
         - oauth:
             - 'c-pat:read'
@@ -632,7 +501,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - auth    
+        - Auth    
       security:
         - oauth:
             - 'c-pat:read'
@@ -664,7 +533,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - auth 
+        - Auth 
       security:
         - oauth:
             - 'c-pat:read'
@@ -816,6 +685,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+
   '/collections/{collectionId}/POAMs':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
@@ -978,6 +848,137 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /api/poamimport:
+    post:
+      summary: Parse and import .xls, .xlsx, or .xlsm eMASS POAM exports
+      operationId: uploadPoamFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: .xls, .xlsx, or .xlsm eMASS POAM export file
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad request - invalid file format or missing file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Import
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /api/stigmancollectionimport:
+    post:
+      summary: Endpoint to receive collection and assets data from STIG Manager
+      operationId: importCollectionAndAssets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collection:
+                  $ref: '#/components/schemas/Collection'
+                assets:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Asset'
+      responses:
+        '200':
+          description: Collection and assets imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad request - invalid data format or missing data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Import
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /api/stigmanassetimport:
+    post:
+      summary: Endpoint to receive asset data from STIG Manager
+      operationId: importAssets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assets:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Asset'
+      responses:
+        '200':
+          description: Assets imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad request - invalid data format or missing data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Import
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   '/labels':
     get:
       summary: Return all labels
@@ -1115,27 +1116,96 @@ paths:
         - oauth:
             - 'c-pat:read'
         
-  '/permissions/user/{userId}':
-    parameters:
-      - in: path
-        name: userId
+  # '/permissions/user/{userId}':
+  #   parameters:
+  #     - in: path
+  #       name: userId
+  #       required: true
+  #       schema:
+  #         type: integer
+  #   get:
+  #     summary: Return all collection Permissionss for a user
+  #     operationId: getPermissions_User
+  #     responses:
+  #       '200':
+  #         description: Collection Permissions array response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/user_Permissions'
+  #       '403':
+  #         $ref: '#/components/responses/forbidden'
+  #       default:
+  #         description: unexpected error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/error'
+  #     tags:
+  #       - Permissions
+  #     security:
+  #       - oauth:
+  #           - 'c-pat:op'
+
+  # '/permissions/user/{userId}/collection/{collectionId}':
+  #   parameters:
+  #     - in: path
+  #       name: userId
+  #       required: true
+  #       schema:
+  #         type: integer
+  #     - in: path
+  #       name: collectionId
+  #       required: true
+  #       schema:
+  #         type: integer          
+  #   get:
+  #     summary: Return unique user collection permission user
+  #     operationId: getPermissions_UserCollection
+  #     responses:
+  #       '200':
+  #         description: Collection Permissions array response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/user_Permissions'
+  #       '403':
+  #         $ref: '#/components/responses/forbidden'
+  #       default:
+  #         description: unexpected error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/error'
+  #     tags:
+  #       - Permissions
+  #     security:
+  #       - oauth:
+  #           - 'c-pat:op'
+            
+  '/permission':
+    post:
+      summary: Add a user collection permission
+      operationId: postPermission
+      requestBody:
         required: true
-        schema:
-          type: integer
-    get:
-      summary: Return all collection Permissionss for a user
-      operationId: getPermissions_User
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/user_Permissions'
       responses:
         '200':
-          description: Collection Permissions array response
+          description: return the added collection permission response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/user_Permissions'
-        '403':
-          $ref: '#/components/responses/forbidden'
         default:
           description: unexpected error
           content:
@@ -1146,8 +1216,38 @@ paths:
         - Permissions
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
             
+    put:
+      summary: Updates user collection permissions
+      operationId: putPermission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/user_Permissions'
+      responses:
+        '200':
+          description: return the updated collection permission response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user_Permissions'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags: 
+        - Permissions
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   '/permissions/collection/{collectionId}':
     parameters:
       - in: path
@@ -1179,107 +1279,8 @@ paths:
         - Permissions
       security:
         - oauth:
-            - 'c-pat:read'
-            
-  '/permissions/user/{userId}/collection/{collectionId}':
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
-      - in: path
-        name: collectionId
-        required: true
-        schema:
-          type: integer          
-    get:
-      summary: Return unique user collection permission user
-      operationId: getPermissions_UserCollection
-      responses:
-        '200':
-          description: Collection Permissions array response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/user_Permissions'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Permissions
-      security:
-        - oauth:
-            - 'c-pat:read'
-            
-  '/permission':
-    post:
-      summary: Add a user collection permission
-      operationId: postPermission
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-                $ref: '#/components/schemas/user_Permissions'
-      responses:
-        '200':
-          description: return the added collection permission response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/user_Permissions'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Permissions
-      security:
-        - oauth:
-            - 'c-pat:read'
-            
-    put:
-      summary: Updates user collection permissions
-      operationId: putPermission
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-                $ref: '#/components/schemas/user_Permissions'
-      responses:
-        '200':
-          description: return the updated collection permission response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/user_Permissions'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags: 
-        - Permissions
-      security:
-        - oauth:
-            - 'c-pat:read'
-            
+            - 'c-pat:op'
+          
   '/permission/{userId}/{collectionId}':
     parameters:
       - in: path
@@ -1312,7 +1313,7 @@ paths:
         - Permissions
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
 
   '/poamApprovers/{poamId}':
     parameters:
@@ -2090,6 +2091,27 @@ paths:
         - oauth:
             - 'c-pat:read'
   '/user':
+    get:
+      tags:
+        - User
+      summary: Return the current users information
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: UserProjected response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/current_user_Response'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      security:
+        - oauth:
+            - 'c-pat:read'
     put:
       tags:
         - User
@@ -2124,7 +2146,7 @@ paths:
         - User
       security:
         - oauth:
-            - 'c-pat:read'        
+            - 'c-pat:op'        
       summary: Return all users for admin processing (assigning collections and permissions)
       operationId: getUsers
       responses:
@@ -2135,7 +2157,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/user_Response'
+                  $ref: '#/components/schemas/current_user_Response'
         default:
           description: unexpected error
           content:
@@ -2143,10 +2165,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
-  '/user/{userID}':
+  '/user/{userId}':
     parameters:
       - in: path
-        name: userID
+        name: userId
         required: true
         schema:
           type: integer
@@ -2155,7 +2177,7 @@ paths:
         - User
       security:
         - oauth:
-            - 'c-pat:read'        
+            - 'c-pat:op'        
       summary: Return a User
       operationId: getUserByUserID
       responses:
@@ -2176,7 +2198,7 @@ paths:
         - User
       security:
         - oauth:
-            - 'c-pat:read'        
+            - 'c-pat:op'        
       summary: Delete a User
       operationId: deleteUser
       responses:
@@ -2683,7 +2705,7 @@ components:
     user:
       type: object
       required:
-        - userID
+        - userId
         - userName
         - email
         - displayName
@@ -2694,7 +2716,7 @@ components:
         - isAdmin
       additionalProperties: true
       properties:
-        userID:
+        userId:
           type: string
           maxLength: 255
           readOnly: true
@@ -2724,10 +2746,10 @@ components:
         isAdmin:
           type: integer
 
-    user_Response:
+    current_user_Response:
       type: object
       required:
-        - userID
+        - userId
         - userName
         - userEmail
         - firstName
@@ -2741,11 +2763,11 @@ components:
         - fullName
         - defaultTheme
         - isAdmin
+        - permissions
       additionalProperties: false
       properties:
-        userID:
-          type: string
-          maxLength: 50
+        userId:
+          type: integer
           readOnly: true
         userName:
           type: string
@@ -2753,6 +2775,7 @@ components:
           readOnly: true
         userEmail:
           type: string
+          maxLength: 100
           readOnly: true
         firstName:
           type: string
@@ -2770,8 +2793,93 @@ components:
           format: date
           # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
         lastCollectionAccessedId:
+          type: integer
+        phoneNumber:
+          type: string
+          maxLength: 15
+        password:
+          type: string
+          maxLength: 255
+        accountStatus:
+          type: string
+          maxLength: 45
+        fullName:
+          type: string
+          maxLength: 225
+        defaultTheme:
+          type: string
+          maxLength: 20
+        isAdmin:
+          type: integer
+        permissions:
+          type: array
+          items:
+            type: object
+            required:
+              - userId
+              - collectionId
+              - canOwn
+              - canMaintain
+              - canApprove
+            properties:
+              userId:
+                type: integer
+              collectionId:
+                type: integer
+              canOwn:
+                type: integer
+              canMaintain:
+                type: integer
+              canApprove:
+                type: integer
+
+    user_Response:
+      type: object
+      required:
+        - userId
+        - userName
+        - userEmail
+        - firstName
+        - lastName
+        - created
+        - lastAccess
+        - lastCollectionAccessedId
+        - phoneNumber
+        - password
+        - accountStatus
+        - fullName
+        - defaultTheme
+        - isAdmin
+      additionalProperties: false
+      properties:
+        userId:
+          type: integer
+          readOnly: true
+        userName:
+          type: string
+          maxLength: 20
+          readOnly: true
+        userEmail:
+          type: string
+          maxLength: 100
+          readOnly: true
+        firstName:
           type: string
           maxLength: 50
+          readOnly: true
+        lastName:
+          type: string
+          maxLength: 50
+        created:
+          type: string
+          format: date
+          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
+        lastAccess:
+          type: string
+          format: date
+          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
+        lastCollectionAccessedId:
+          type: integer
         phoneNumber:
           type: string
           maxLength: 15
@@ -2793,7 +2901,7 @@ components:
     user_Update:
       type: object
       required:
-        - userID
+        - userId
         - userEmail
         - firstName
         - lastName
@@ -2804,7 +2912,7 @@ components:
         - isAdmin
       additionalProperties: true
       properties:
-        userID:
+        userId:
           type: integer
         userEmail:
           type: string
@@ -2860,7 +2968,7 @@ components:
           
     user_Token:
       required:
-        - userID
+        - userId
         - userName
         - userEmail
         - firstName
@@ -2872,7 +2980,7 @@ components:
         - defaultTheme
       additionalProperties: false
       properties:
-        userID:
+        userId:
           type: integer
         userName:
           type: string

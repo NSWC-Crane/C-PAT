@@ -183,7 +183,7 @@ exports.postAsset = async function posAsset(req, res, next) {
         console.log("rowAsset: ", rowAsset[0])
         await connection.release()
 
-        // console.log("userID: ", user[0].userId)
+        // console.log("userId: ", user[0].userId)
         if (req.body.labels) {
             let labels = req.body.labels;
             // console.log("collectionRequest: ",collectionRequest)

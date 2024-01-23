@@ -19,12 +19,23 @@ module.exports.getUsers = async function getUsers(req, res, next) {
 	res.status(201).json(users)
 }
 
+module.exports.getCurrentUser = async function getCurrentUser(req, res) {
+	const result = await userService.getCurrentUser(req);
+
+	if (result.error) {
+		res.status(result.status).json({ message: result.error });
+	} else {
+		res.status(200).json(result.data);
+	}
+}
+
+
 
 module.exports.getUserByUserID = async function getUserByUserID(req, res, next) {
-	// console.log("getUserByUserID: ", req.params.userID)
-	let userID = req.params.userID
-	// console.log(userID)
-	var user = await userService.getUserByUserID(userID)
+	// console.log("getUserByUserID: ", req.params.userId)
+	let userId = req.params.userId
+	// console.log(userId)
+	var user = await userService.getUserByUserID(userId)
 	// console.log(user)
 	res.status(201).json(user)
 
@@ -41,8 +52,8 @@ module.exports.updateUser = async function updateUser(req, res, next) {
 
 module.exports.deleteUser = async function deleteUser(req, res, next) {
 
-	let userID = req.params.userID
-	var deletedUser = await userService.deleteUserByUserID(userID)
+	let userId = req.params.userId
+	var deletedUser = await userService.deleteUserByUserID(userId)
 
 
 	res.status(201).json(deletedUser)

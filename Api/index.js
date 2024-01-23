@@ -11,11 +11,10 @@
 
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
 const app = express();
 const PORT = 8086;
 const HOST = 'localhost';
-var passport = require('passport');
+const passport = require('passport');
 const sequelize = require('./utils/sequelize');
 const path = require('path');
 const multer = require('multer');
@@ -23,9 +22,7 @@ const http = require('http');
 const cors = require('cors');
 const authAPI = require('./utils/authAPI');
 const upload = multer({ storage: multer.memoryStorage() });
-const poamUploadRoutes = require('./Routes/poamUpload.routes');
-const STIGMANCollectionController = require('./Controllers/STIGMANCollection.controller');
-const STIGMANAssetController = require('./Controllers/STIGMANAsset.controller');
+const Import = require('./Controllers/Import');
 
 const { middleware: openApiMiddleware } = require('express-openapi-validator');
 const apiSpecPath = path.join(__dirname, './specification/poam-manager.yaml');
@@ -38,10 +35,13 @@ initAuth();
 
 app.use(cors());
 app.use(express.json({
-    strict: false, // allow root to be any JSON value
-    limit: parseInt('1048576') // TODO: Set to a reasonable value. Measured in bytes (currently 1MB).
+    strict: false,
+    limit: parseInt('10485760') //JSON request body limited to 10MB
 }));
-app.use('/api/poamimport', poamUploadRoutes);
+
+// Define the poamUploadRoutes within index.js
+app.post('/api/poamimport', upload.single('file'), Import.uploadPoamFile);
+
 app.use("/", openApiMiddleware({
     apiSpec: apiSpecPath,
     validateRequests: {
@@ -64,8 +64,8 @@ app.use("/", openApiMiddleware({
     },
 }));
 
-app.post('/api/stigmancollectionimport', STIGMANCollectionController.importCollectionAndAssets);
-app.post('/api/stigmanassetimport', STIGMANAssetController.importAssets);
+app.post('/api/stigmancollectionimport', Import.importCollectionAndAssets);
+app.post('/api/stigmanassetimport', Import.importAssets);
 
 require('./utils/passport');
 

@@ -66,30 +66,7 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
         privileges.canAdmin = privilegeGetter(decoded).includes('admin')
 
         req.userObject.privileges = privileges
-        /* const response = await User.getUserByUsername(req.userObject.username, ['collectionGrants', 'statistics'], false, null)   
-         req.userObject.userId = response?.userId || null
-         req.userObject.collectionGrants = response?.collectionGrants || []
-         req.userObject.statistics = response?.statistics || {}
-         
-         const refreshFields = {}
-         let now = new Date().toUTCString()
-         now = new Date(now).getTime()
-         now = now / 1000 | 0 //https://stackoverflow.com/questions/7487977/using-bitwise-or-0-to-floor-a-number
 
-         if (!response?.statistics?.lastAccess || now - response?.statistics?.lastAccess >= config.settings.lastAccessResolution) {
-             refreshFields.lastAccess = now
-         }
-         if (!response?.statistics?.lastClaims || decoded.jti !== response?.statistics?.lastClaims?.jti) {
-             refreshFields.lastClaims = decoded
-         }
-         if (req.userObject.username && (refreshFields.lastAccess || refreshFields.lastClaims)) {
-             const userId = await User.setUserData(req.userObject, refreshFields)
-             if (userId != req.userObject.userId) {
-                 req.userObject.userId = userId.toString()
-             }
-         }
-
-         */
         if ('elevate' in req.query && (req.query.elevate === 'true' && !req.userObject.privileges.canAdmin)) {
             throw ({ status: 403, message: 'User has insufficient privilege to complete this request.' })
         }
