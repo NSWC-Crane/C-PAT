@@ -64,7 +64,7 @@ exports.login = async function login(req, res, next) {
 	}
 
 	if (!req.body.email) {
-		console.info('Post authServikce login: email or username not provided.');
+		console.info('Post authService login: email or username not provided.');
 		return next({
 			status: 422,
 			errors: {
@@ -73,19 +73,9 @@ exports.login = async function login(req, res, next) {
 		});
 	}
 
-	if (!req.body.password) {
-		console.info('Post authService login: password not provided.');
-		return next({
-			status: 422,
-			errors: {
-				password: 'is required',
-			}
-		});
-	}
-
 	try {
 		let connection
-		let sql = "SELECT * FROM user WHERE userEmail='" + req.body.email + "' and  password='" + req.body.password + "';"
+		let sql = "SELECT * FROM user WHERE userEmail='" + req.body.email + "';"
 		//console.log("authService login sql: ", sql)
 		connection = await dbUtils.pool.getConnection()
 		let [rowUser] = await connection.query(sql)
@@ -107,7 +97,7 @@ exports.login = async function login(req, res, next) {
 						let token = await userService.generateJWT('', '', user);
 						//console.log("token: ", token);
 						// We have a token, let's update lastAccess on user record
-						let sql = "UPDATE user SET lastAccess =  Now() WHERE userEmail='" + req.body.email + "' and  password='" + req.body.password + "';"
+						let sql = "UPDATE user SET lastAccess =  Now() WHERE userEmail='" + req.body.email + "';"
 						connection = await dbUtils.pool.getConnection()
 						await connection.query(sql)					
 						await connection.release()
@@ -157,15 +147,6 @@ exports.register = async function register(req, res, next) {
 
 		console.log('authService register incoming req.body:', req.body);
 		let connection
-		// confirm that user typed same password twice
-		if (req.body.password != req.body.confirmPassword) {
-			console.log('Post node-api register: passwords do not match.');
-			return next({
-				status: 400,
-				message: 'Passwords do not match',
-				stack: new Error().stack,
-			})
-		}
 
 		// check if email already in use
 		if (req.body.email) {
@@ -222,15 +203,21 @@ exports.register = async function register(req, res, next) {
 
 		if (
 			req.body.userName &&
-			req.body.email &&
-			req.body.password
+			req.body.email
 		) {
 			// create new user
-			let sql = "INSERT INTO user (userName, userEmail, password, created, firstName, lastName, phoneNumber," 
+			let sql = "INSERT INTO user (userName, userEmail, created, firstName, lastName, phoneNumber," 
 				+ " lastCollectionAccessedId, accountStatus, fullName, defaultTheme) VALUES (" 
-				+ "'" + req.body.userName + "','" + req.body.email + "', '" + req.body.password + "', CURDATE(), '" 
-				+ req.body.firstName + "', '" + req.body.lastName + "', '" + req.body.phoneNumber + "', 0 , 'PENDING', '" +
-				req.body.firstName + " " + req.body.lastName + "', 'default' );"
+				+ "'" + req.body.userName
+				+ "','" + req.body.email
+				+ "', CURDATE(), '" 
+				+ req.body.firstName
+				+ "', '" + req.body.lastName
+				+ "', '" + req.body.phoneNumber
+				+ "', 0 , 'PENDING', '"
+				+ req.body.firstName
+				+ " " + req.body.lastName
+				+ "', 'default' );"
 
 			connection = await dbUtils.pool.getConnection()
 			await connection.query(sql)

@@ -30,7 +30,6 @@ module.exports.getCurrentUser = async function getCurrentUser(req, res) {
 }
 
 
-
 module.exports.getUserByUserID = async function getUserByUserID(req, res, next) {
 	// console.log("getUserByUserID: ", req.params.userId)
 	let userId = req.params.userId
@@ -45,8 +44,6 @@ module.exports.updateUser = async function updateUser(req, res, next) {
 	// console.log("updateUser call, req.body:", req.body);
 	var user = await userService.updateUser(req,res,next); 
 	res.status(201).json(user)
-	//res.status(201).json({ message: "updateUser Method called successfully" })
-
 }
 
 
@@ -54,7 +51,6 @@ module.exports.deleteUser = async function deleteUser(req, res, next) {
 
 	let userId = req.params.userId
 	var deletedUser = await userService.deleteUserByUserID(userId)
-
 
 	res.status(201).json(deletedUser)
 }

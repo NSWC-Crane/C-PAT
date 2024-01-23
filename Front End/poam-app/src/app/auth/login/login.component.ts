@@ -102,7 +102,7 @@ export class LoginComponent extends NbLoginComponent implements OnInit {
     this.service.register(this.strategy, this.user).subscribe((result: NbAuthResult) => {
       console.log("Register result: ", result);
       this.payload = result.getToken().getPayload();
-      console.log("Register result payload: ", this.payload);
+      // console.log("Register result payload: ", this.payload);
 
       if (result.isSuccess()) {
 

@@ -33,7 +33,7 @@ export class KcAuthService {
   }
 
   resetRole(payload: any) {
-    console.log("resetRole payload: ", payload);
+    // console.log("resetRole payload: ", payload);
   }
 
   onTokenChange(): Observable<NbAuthJWTToken>{

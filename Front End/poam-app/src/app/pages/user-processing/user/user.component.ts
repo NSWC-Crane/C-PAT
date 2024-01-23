@@ -14,6 +14,7 @@ import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../..
 import { SubSink } from 'subsink';
 import { forkJoin, Observable } from 'rxjs';
 import { UsersService } from '../users.service'
+import { CollectionsService } from '../../collection-processing/collections.service'
 
 interface Permission {
   userId: number;
@@ -91,7 +92,7 @@ export class UserComponent implements OnInit {
       canOwn: {
         title: 'Can Own',
         type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) =>{
+        valuePrepareFunction: (_cell: any, row: any) => {
           return (row.canOwn == 1) ? 'True' : 'False'
         },
         editor: {
@@ -109,7 +110,7 @@ export class UserComponent implements OnInit {
       canMaintain: {
         title: 'Can Maintain',
         type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) =>{
+        valuePrepareFunction: (_cell: any, row: any) => {
           //console.log("row: ", row.canMaintain);
           return (row.canMaintain == 1) ? 'True' : 'False'
         },
@@ -128,7 +129,7 @@ export class UserComponent implements OnInit {
       canApprove: {
         title: 'Can Approve',
         type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) =>{
+        valuePrepareFunction: (_cell: any, row: any) => {
           return (row.canApprove == 1) ? 'True' : 'False'
         },
         editor: {
@@ -152,6 +153,7 @@ export class UserComponent implements OnInit {
 
 
   constructor(private dialogService: NbDialogService,
+    private collectionsService: CollectionsService,
     private userService: UsersService,
   ) { }
 
@@ -198,10 +200,10 @@ export class UserComponent implements OnInit {
   private loadCollections(): void {
     this.userService.getCurrentUser().subscribe(
       currentUser => {
-        this.userService.getCollections(currentUser.userName).subscribe(
-          (response: CollectionsResponse) => {
+        this.collectionsService.getCollections(currentUser.userName).subscribe(
+          (response: any) => {
             this.collectionList = [];
-            response.collections.forEach(collection => {
+            response.collections.forEach((collection: { collectionName: any; collectionId: { toString: () => any; }; }) => {
               this.collectionList.push({
                 title: collection.collectionName,
                 value: collection.collectionId.toString()
@@ -241,6 +243,7 @@ export class UserComponent implements OnInit {
   }
 
   getData() {
+
     if (this.user && Array.isArray(this.user.permissions)) {
       this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
         collectionId: permission.collectionId,
@@ -255,7 +258,7 @@ export class UserComponent implements OnInit {
     if (Array.isArray(this.collectionList)) {
       let settings = this.collectionPermissionsSettings;
       settings.columns.collectionId.editor.config.list = this.collectionList.map((collection: any) => ({
-        collectionId: collection.collectionId 
+        collectionId: collection.collectionId
       })) as any;
 
       this.collectionPermissionsSettings = { ...settings };
@@ -264,7 +267,7 @@ export class UserComponent implements OnInit {
     }
   }
 
-  
+
   confirmCreate(event: any) {
     if (this.user.userId &&
       event.newData.collectionId &&
@@ -304,7 +307,7 @@ export class UserComponent implements OnInit {
   }
 
   confirmEdit(event: any) {
-    console.log("Attempting to confirmEdit()...event.newData: ",event.newData);
+    console.log("Attempting to confirmEdit()...event.newData: ", event.newData);
     if (this.user.userId &&
       event.newData.collectionId
     ) {
@@ -354,7 +357,8 @@ export class UserComponent implements OnInit {
     if (!collection_index && collection_index != 0) {
       this.invalidData("Unable to resolve collectiom assinged")
       event.confirm.reject();
-    } else {;
+    } else {
+      ;
 
 
       this.isLoading = true;
@@ -393,14 +397,13 @@ export class UserComponent implements OnInit {
       },
     }).onClose;
 
-    toggleAdmin(checked: boolean) {
-      this.checked = checked;
-      this.user.isAdmin = 0;
-      if (this.checked) this.user.isAdmin=1;
-    }
-    
+  toggleAdmin(checked: boolean) {
+    this.checked = checked;
+    this.user.isAdmin = 0;
+    if (this.checked) this.user.isAdmin = 1;
+  }
+
   ngOnDestroy() {
     this.subs.unsubscribe()
   }
 }
-

@@ -170,7 +170,7 @@ export class AssetComponent implements OnInit {
      // console.log("payload: ", this.payload)
     if (this.payload == undefined) return;
     //console.log("HIGH  within user.getData() user: ", this.user)
-    console.log("payload: ", this.payload)
+    // console.log("payload: ", this.payload)
     let userName = (this.payload.userName) ? this.payload.userName : "NONE";
     this.subs.sink = forkJoin(
       this.assetService.getLabels(),

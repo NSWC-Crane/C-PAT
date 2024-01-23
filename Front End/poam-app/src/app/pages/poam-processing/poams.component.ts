@@ -191,7 +191,7 @@ export class PoamsComponent implements OnInit {
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       //this.keycloak.addTokenToHeader();
-      console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
+      // console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
       this.setPayload();
     }
   };
@@ -209,7 +209,7 @@ export class PoamsComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          console.log('Current user: ', this.user);
+          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
@@ -222,7 +222,7 @@ export class PoamsComponent implements OnInit {
               }))
             };
 
-            console.log("payload: ", this.payload);
+            // console.log("payload: ", this.payload);
             this.getPoamData();
           }
         } else {

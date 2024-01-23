@@ -22,7 +22,7 @@ passport.use(
   new LocalStrategy(
     async (username, password, done) => {
       //console.log("passport.use...");
-    await userService.getUserByNamePassword(username, password, (err, user) => {
+    await userService.getUserByNamePassword(username, (err, user) => {
       console.log("passpport... username, password...", JSON.stringify(user))
       if (err) { 
         console.log('passport.use user.authentication err: ' + JSON.stringify(err));

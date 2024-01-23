@@ -11,7 +11,8 @@
 import { Component, OnInit, Inject, ChangeDetectorRef } from "@angular/core";
 import { NbRegisterComponent, NbAuthService, NB_AUTH_OPTIONS, NbAuthResult } from "@nebular/auth";
 import { Router, ActivatedRoute } from '@angular/router';
-import { UsersService } from '../../pages/user-processing/users.service'
+import { UsersService } from '../../pages/user-processing/users.service';
+import { CollectionsService } from '../../pages/collection-processing/collections.service';
 import { forkJoin } from "rxjs";
 
 @Component({
@@ -90,6 +91,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     cd: ChangeDetectorRef,
     router: Router,
     private route: ActivatedRoute,
+    private collectionService: CollectionsService,
     private userService: UsersService,
   ) {
 
@@ -100,7 +102,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
     this.collectionPermissions = [];
     forkJoin(
-      this.userService.getCollections("Registrant"), 
+      this.collectionService.getCollections("Registrant"), 
     )
       .subscribe(([collections]: any) => {
 

@@ -68,56 +68,6 @@ const mysql = require('mysql2')
 //	}
 //}
 
-exports.getPermissions_Collection = async function getPermissions_Collection(req, res, next) {
-	// res.status(201).json({ message: "getPermissions_Collection (Service) Method called successfully" });
-
-	if (!req.params.collectionId) {
-		console.info('getPermissions_Collection collectionId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				collectionId: 'is required',
-			}
-		});
-	}
-
-	try {
-		let connection
-		connection = await dbUtils.pool.getConnection()
-		let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.phoneNumber, T2.userEmail FROM  poamtracking.collectionpermissions T1 " + 
-			"INNER JOIN poamtracking.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
-		// console.log("getPermissions_User sql: ", sql)
-
-		let [rowPermissions] = await connection.query(sql, req.params.collectionId)
-		console.log("rowPermissions: ", rowPermissions[0])
-		await connection.release()
-
-		var size = Object.keys(rowPermissions).length
-
-		var permissions = {
-			permissions: []
-		}
-
-		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-			permissions.permissions.push({ 
-				...rowPermissions[counter]
-			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
-		}
-
-		//console.log("returning: ",permissions)
-		return { permissions };
-	}
-	catch (error) {
-		let errorResponse = { null: "null" }
-		await connection.release()
-		return errorResponse;
-	}
-}
-
 exports.getPermissions_UserCollection = async function getPermissions_UserCollection(req, res, next) {
 	// res.status(201).json({ message: "getPermissions_UserCollection (Service) Method called successfully" });
 	if (!req.params.userId) {

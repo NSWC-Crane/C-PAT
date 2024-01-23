@@ -12,8 +12,9 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { filter, forkJoin, Observable } from 'rxjs';
-import { PoamService } from '../poams.service';
 import { AuthService } from '../../../auth';
+import { CollectionsService } from '../../collection-processing/collections.service';
+import { PoamService } from '../poams.service';
 import { Router } from '@angular/router';
 import { SubSink } from 'subsink';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
@@ -265,6 +266,7 @@ export class PoamDetailsComponent implements OnInit {
   private subs = new SubSink()
 
   constructor(date: DatePipe,
+    private collectionService: CollectionsService,
     private poamService: PoamService,
     private route: ActivatedRoute,
     private authService: AuthService,
@@ -302,7 +304,7 @@ export class PoamDetailsComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          console.log('Current user: ', this.user);
+          // console.log('Current user: ', this.user);
           if (this.user.accountStatus === 'ACTIVE') {
 
             const mappedPermissions = this.user.permissions.map((permission: Permission) => ({
@@ -353,7 +355,7 @@ export class PoamDetailsComponent implements OnInit {
 
       this.subs.sink = forkJoin(
         this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
-        this.poamService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+        this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
         this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
         this.poamService.getCollectionApprovers(this.payload.lastCollectionAccessedId)
       )
@@ -422,7 +424,7 @@ export class PoamDetailsComponent implements OnInit {
       this.subs.sink = forkJoin(
         this.poamService.getPoam(this.poamId),
         this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
-        this.poamService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+        this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
         this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
         this.poamService.getPoamAssets(this.poamId),
         this.poamService.getPoamAssignees(this.poamId),
