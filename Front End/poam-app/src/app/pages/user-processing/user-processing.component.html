@@ -53,16 +53,15 @@
 
           <div class="row" *ngIf="allowSelectCollections">
 
-            <div class="col-md-5" style="width: auto;">
+            <div *ngIf="user?.userId" class="col-md-5" style="width: auto;">
               <nb-select fullWidth style="width: auto" outlineid="collectionid" name="collection" [(ngModel)]="user.userId"
-                         (selectedChange)="setUser($event)" placeholder="user" required>
+                         (selectedChange)="setUser($event)" placeholder="User" required>
                 <nb-option *ngFor="let user of data" [value]="user.userId">
                   {{ user.firstName }} - {{ user.lastName }} - {{ user.accountStatus }}
                 </nb-option>
               </nb-select>
             </div>
             <div class="col-md-5" style="width: auto;">
-              <!-- <button nbButton style="float: right;" (click)="addCollection()">Add Collection</button> -->
             </div>
           </div>
 

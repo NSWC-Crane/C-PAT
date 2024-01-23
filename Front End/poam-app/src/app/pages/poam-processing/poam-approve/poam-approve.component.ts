@@ -19,6 +19,14 @@ import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../user-processing/users.service';
 import { DatePipe } from '@angular/common';
 
+interface Permission {
+  userId: number;
+  collectionId: number;
+  canOwn: number;
+  canMaintain: number;
+  canApprove: number;
+}
+
 @Component({
   selector: 'ngx-poam-approve',
   templateUrl: './poam-approve.component.html',
@@ -71,46 +79,41 @@ export class PoamApproveComponent implements OnInit {
   }
 
   setPayload() {
-    this.users = []
     this.user = null;
     this.payload = null;
 
-    this.subs.sink = forkJoin(
-      this.userService.getUsers(),
-    ).subscribe(([users]: any) => {
-      console.log('users: ',users)
-      this.users = users.users.users
-      // console.log('this.users: ',this.users)
-      this.user = this.users.find((e: { userName: string; }) => e.userName === this.userProfile?.username)
-      //console.log('this.user: ',this.user)
-      this.payload = Object.assign(this.user, {
-        collections: []
-      });
+    this.subs.sink = this.userService.getCurrentUser().subscribe(
+      (response: any) => {
+        if (response && response.userId) {
+          this.user = response;
+          console.log('Current user: ', this.user);
 
-      this.subs.sink = forkJoin(
-        this.userService.getUserPermissions(this.user.userId)
-      ).subscribe(([permissions]: any) => {
-        console.log("permissions: ", permissions)
+          if (this.user.accountStatus === 'ACTIVE') {
+            const mappedPermissions = this.user.permissions.map((permission: Permission) => ({
+              collectionId: permission.collectionId,
+              canOwn: permission.canOwn,
+              canMaintain: permission.canMaintain,
+              canApprove: permission.canApprove
+            }));
 
-        permissions.permissions.permissions.forEach((element: any) => {
-          // console.log("element: ",element)
-          let assigendCollections = {
-            collectionId: element.collectionId,
-            canOwn: element.canOwn,
-            canMaintain: element.canMaintain,
-            canApprove: element.canApprove,
+            this.payload = {
+              ...this.user,
+              collections: mappedPermissions
+            };
+
+            console.log("Payload with permissions: ", this.payload);
+            this.getData();
+          } else {
+            console.error('User data is not available or user is not active');
           }
-          // console.log("assignedCollections: ", assigendCollections)
-          this.payload.collections.push(assigendCollections);
-        });
-
-        console.log("payload: ",this.payload)
-
-        this.getData();
-      })
-
-      
-    })
+        } else {
+          console.error('No current user data available');
+        }
+      },
+      (error) => {
+        console.error('An error occurred:', error);
+      }
+    );
   }
 
   getData() {

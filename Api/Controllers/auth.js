@@ -35,7 +35,7 @@ module.exports.authRegister = async function authRegister(req, res, next){
 module.exports.changeWorkspace = async function changeWorkspace(req, res, next){
 	console.log("changeWorkspace...req.body: ", req.body)
 	// var userAuth = await authService.login(req,res,next)
-	// //let test = {userID: '1' ,userName: "tyler.forajter", email: 't1@ttt.com'}
+	// //let test = {userId: '1' ,userName: "tyler.forajter", email: 't1@ttt.com'}
 	// console.log("controller login returning userAuth: ",userAuth)
 	// console.log("controller login returning res: ",res.body)
 	// res.status(201).json(userAuth)

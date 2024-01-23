@@ -21,6 +21,13 @@ import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../user-processing/users.service'
+interface Permission {
+  userId: number;
+  collectionId: number;
+  canOwn: number;
+  canMaintain: number;
+  canApprove: number;
+}
 
 @Component({
   selector: 'ngx-poamdetails',
@@ -167,7 +174,7 @@ export class PoamDetailsComponent implements OnInit {
             list: [
               { value: 'Not Reviewed', title: 'Not Reviewed' },
               { value: 'Approved', title: 'Approved' },
-              { value: 'Rejected', title: 'Rejected'}
+              { value: 'Rejected', title: 'Rejected' }
             ],
           },
         },
@@ -179,7 +186,7 @@ export class PoamDetailsComponent implements OnInit {
         editable: false,
         addable: false,
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.approvedDate) ? row.approvedDate.substr(0,10) : '';
+          return (row.approvedDate) ? row.approvedDate.substr(0, 10) : '';
         },
         editor: {
           type: 'list',
@@ -288,68 +295,56 @@ export class PoamDetailsComponent implements OnInit {
   }
 
   setPayload() {
-    this.users = []
     this.user = null;
     this.payload = null;
 
-    this.subs.sink = forkJoin(
-      this.userService.getUsers(),
-    ).subscribe(([users]: any) => {
-      // console.log('users: ', users)
-      this.users = users.users.users
-      // console.log('this.users: ', this.users)
-      this.user = this.users.find((e: { userName: string; }) => e.userName === this.userProfile?.username)
-      // console.log('this.user: ', this.user)
-      this.payload = Object.assign(this.user, {
-        collections: []
-      });
+    this.subs.sink = this.userService.getCurrentUser().subscribe(
+      (response: any) => {
+        if (response && response.userId) {
+          this.user = response;
+          console.log('Current user: ', this.user);
+          if (this.user.accountStatus === 'ACTIVE') {
 
-      this.subs.sink = forkJoin(
-        this.userService.getUserPermissions(this.user.userId)
-      ).subscribe(([permissions]: any) => {
-        // console.log("permissions: ", permissions)
+            const mappedPermissions = this.user.permissions.map((permission: Permission) => ({
+              collectionId: permission.collectionId,
+              canOwn: permission.canOwn,
+              canMaintain: permission.canMaintain,
+              canApprove: permission.canApprove
+            }));
 
-        permissions.permissions.permissions.forEach((element: any) => {
-          // console.log("element: ",element)
-          let assigendCollections = {
-            collectionId: element.collectionId,
-            canOwn: element.canOwn,
-            canMaintain: element.canMaintain,
-            canApprove: element.canApprove,
+            this.payload = {
+              ...this.user,
+              collections: mappedPermissions
+            };
+
+            let selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId);
+            let myRole = '';
+
+            if (!selectedPermissions && !this.user.isAdmin) {
+              myRole = 'none';
+            } else {
+              myRole = (this.user.isAdmin) ? 'admin' :
+                (selectedPermissions?.canOwn) ? 'owner' :
+                  (selectedPermissions?.canMaintain) ? 'maintainer' :
+                    (selectedPermissions?.canApprove) ? 'approver' : 'none';
+            }
+            this.payload.role = myRole;
+            this.showApprove = ['admin', 'owner', 'approver'].includes(this.payload.role);
+            this.showClose = ['admin', 'owner'].includes(this.payload.role);
+            this.showSubmit = ['admin', 'owner', 'maintainer'].includes(this.payload.role);
+
+            this.getData();
           }
-          // console.log("assignedCollections: ", assigendCollections)
-          this.payload.collections.push(assigendCollections);
-        });
-
-        // console.log("resetWorkspace payload.collections: ",this.payload.collections)
-        let selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId)
-        // console.log("resetWorkspace selectedPermission: ",selectedPermissions)
-        let myRole = ''
-
-        if (!selectedPermissions && !this.user.isAdmin) {
-          myRole = 'none'
         } else {
-          myRole = (this.user.isAdmin) ? 'admin' : (selectedPermissions.canOwn) ? 'owner' : (selectedPermissions.canMaintain) ? 'maintainer' : (selectedPermissions.canApprove) ? 'approver' : 'none'
+          console.error('User data is not available or user is not active');
         }
-        this.payload.role = myRole;
-        // console.log("POAM-DETAILS payload.role: ", this.payload.role)
-        if (this.payload.role == 'admin' || this.payload.role == 'owner' || this.payload.role == 'approver') {
-          this.showApprove = true;
-          //alert("Setting showApproveClose")
-        }
-        if (this.payload.role == 'admin' || this.payload.role == 'owner') {
-          this.showClose = true;
-          //alert("Setting showApproveClose")
-        }
-        if (this.payload.role == 'admin' || this.payload.role == 'owner' || this.payload.role == 'maintainer') {
-          this.showSubmit = true;
-          //alert("Setting showSubmit")
-        }
-
-        this.getData();
-      })
-    })
+      },
+      (error) => {
+        console.error('An error occurred:', error);
+      }
+    );
   }
+
 
   getData() {
 
@@ -450,6 +445,7 @@ export class PoamDetailsComponent implements OnInit {
           this.poamApprovers = poamApprovers.poamApprovers;
           console.log("poamApprovers: ", this.poamApprovers)
           this.collectionApprovers = collectionApprovers.collectionApprovers;
+          //console.log("Collection Approvers: " + this.collectionApprovers);
           // console.log("collectionApprovers: ", this.collectionApprovers)
           if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length ==0)) {
             // Set default approvers...

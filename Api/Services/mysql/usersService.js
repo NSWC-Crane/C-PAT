@@ -17,8 +17,6 @@ const auth = require('../../utils/auth');
 const writeLog = require('../../utils/poam_logger')
 
 exports.getUserObject = async function getUserObject(body, projection, userObject) {
-	res.status(201).json({ message: "getUser (Service) Method Called successfully" })
-
 	// console.log("Require passed")
 	var con = mysql.createConnection({
 		host: process.env.USERSERVICE_DB_HOST,
@@ -34,14 +32,13 @@ exports.getUserObject = async function getUserObject(body, projection, userObjec
 		// console.log('Entry added')
 		if (err) throw err;
 	})
-
-
+	res.status(201).json({ message: "getUser (Service) Method Called successfully" })
 }
 
-exports.refresh = async function refresh(userID, body, projection, userOnject) {
+exports.refresh = async function refresh(userId, body, projection, userOnject) {
 
 	let connection
-	let sql = 'SELECT * FROM `user` WHERE `userId`=' + userID
+	let sql = 'SELECT * FROM `user` WHERE `userId`=' + userId
 	connection = await dbUtils.pool.getConnection()
 	let [row] = await connection.query(sql)
 
@@ -49,10 +46,10 @@ exports.refresh = async function refresh(userID, body, projection, userOnject) {
 	return (row[0])
 }
 
-exports.getUserByUserID = async function getUserByUserID(userID, body, projection, userObject) {
+exports.getUserByUserID = async function getUserByUserID(userId, body, projection, userObject) {
 
 	let connection
-	let sql = 'SELECT * FROM `user` WHERE `userId`=' + userID
+	let sql = 'SELECT * FROM `user` WHERE `userId`=' + userId
 	connection = await dbUtils.pool.getConnection()
 	let [row] = await connection.query(sql)
 
@@ -60,49 +57,116 @@ exports.getUserByUserID = async function getUserByUserID(userID, body, projectio
 	return (row[0])
 
 }
+
+exports.getCurrentUser = async function getCurrentUser(req) {
+	if (!req.userObject || !req.userObject.email) {
+		return { error: "User is not authenticated", status: 400 };
+	}
+
+	try {
+		const userEmail = req.userObject.email;
+		let connection = await dbUtils.pool.getConnection();
+		const sqlUser = 'SELECT * FROM `user` WHERE `userEmail` = ?';
+		const [rows] = await connection.query(sqlUser, [userEmail]);
+
+		if (rows.length > 0) {
+			const user = rows[0];
+
+			// Now fetch permissions for this user
+			const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId=?";
+			const [rowPermissions] = await connection.query(sqlPermissions, [user.userId]);
+
+			const permissions = rowPermissions.map(permission => ({
+				userId: permission.userId,
+				collectionId: permission.collectionId,
+				canOwn: permission.canOwn,
+				canMaintain: permission.canMaintain,
+				canApprove: permission.canApprove
+			}));
+
+			const response = {
+				userId: user.userId,
+				userName: user.userName,
+				userEmail: user.userEmail,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				created: user.created,
+				lastAccess: user.lastAccess,
+				lastCollectionAccessedId: user.lastCollectionAccessedId,
+				phoneNumber: user.phoneNumber,
+				password: user.password,
+				accountStatus: user.accountStatus,
+				fullName: user.fullName,
+				defaultTheme: user.defaultTheme,
+				isAdmin: user.isAdmin,
+				permissions: permissions // Adding permissions to the response
+			};
+
+			await connection.release();
+			return { data: response, status: 200 };
+		} else {
+			await connection.release();
+			return { error: "User email not found", status: 404 };
+		}
+	} catch (error) {
+		console.error('Error in getCurrentUser:', error);
+		if (connection) await connection.release();
+		return { error: "Internal Server Error", status: 500 };
+	}
+};
 
 exports.getUsers = async function getUsers(req, res, next) {
+	let connection;
+	try {
+		connection = await dbUtils.pool.getConnection();
+		let sql = "SELECT * FROM poamtracking.user;";
+		let [rows] = await connection.query(sql);
 
-	let connection
-	let sql = "SELECT * FROM poamtracking.user;"
-	connection = await dbUtils.pool.getConnection()
-	let [rows] = await connection.query(sql)
+		var size = Object.keys(rows).length;
+		var users = {
+			users: []
+		};
 
-	await connection.release()
+		for (let counter = 0; counter < size; counter++) {
+			const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId=?";
+			const [rowPermissions] = await connection.query(sqlPermissions, [rows[counter].userId]);
 
-	var size = Object.keys(rows).length
+			const permissions = rowPermissions.map(permission => ({
+				userId: permission.userId,
+				collectionId: permission.collectionId,
+				canOwn: permission.canOwn,
+				canMaintain: permission.canMaintain,
+				canApprove: permission.canApprove
+			}));
 
-	var users = {
-		users: []
+			users.users.push({
+				"userId": rows[counter].userId,
+				"userName": rows[counter].userName,
+				"userEmail": rows[counter].userEmail,
+				"firstName": rows[counter].firstName,
+				"lastName": rows[counter].lastName,
+				"created": rows[counter].created,
+				"lastAccess": rows[counter].lastAccess,
+				"lastCollectionAccessedId": rows[counter].lastCollectionAccessedId,
+				"phoneNumber": rows[counter].phoneNumber,
+				"password": rows[counter].password,
+				"accountStatus": rows[counter].accountStatus,
+				"fullName": rows[counter].fullName,
+				"defaultTheme": rows[counter].defaultTheme,
+				"isAdmin": rows[counter].isAdmin,
+				"permissions": permissions
+			});
+		}
+
+		await connection.release();
+		return { users };
+	} catch (error) {
+		console.error('Error in getUsers:', error);
+		if (connection) await connection.release();
+		return { error: "Internal Server Error", status: 500 };
 	}
-
-	for (let counter = 0; counter < size; counter++) {
-		// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-		users.users.push({
-			"userId": rows[counter].userId,
-			"userName": rows[counter].userName,
-			"userEmail": rows[counter].userEmail,
-			"firstName": rows[counter].firstName,
-			"lastName": rows[counter].lastName,
-			"created": rows[counter].created,
-			"lastAccess": rows[counter].lastAccess,
-			"lastCollectionAccessedId": rows[counter].lastCollectionAccessedId,
-			"phoneNumber": rows[counter].phoneNumber,
-			"password": rows[counter].password,
-			"accountStatus": rows[counter].accountStatus,
-			"fullName": rows[counter].fullName,
-			"defaultTheme": rows[counter].defaultTheme,
-			"isAdmin": rows[counter].isAdmin,
-		});
-		// console.log("After setting permissions size: ", size, ", counter: ",counter);
-		// if (counter + 1 >= size) break;
-	}
-
-	// console.log("getUsers returning: ",users)
-	return { users };
-
 }
+
 
 exports.getUserByNamePassword = async function getUserByNamePassword(username, password, callback) {
 	/**
@@ -164,7 +228,7 @@ exports.updateUser = async function updateUser(req, res, next) {
 	// console.log("usersService updateUser req: ", req)
 	// console.log("usersService updateUser req.userObject: ", req.userObject)
 	//console.log("usersService updateUser req.preferred_username: ", req.preferred_username,", req.name: ", req.name)
-	let userID = req.body.userID;
+	let userId = req.body.userId;
 
 	if (!req.body.userEmail) {
 		console.info('Post usersService updateUser: email not provided.');
@@ -176,8 +240,8 @@ exports.updateUser = async function updateUser(req, res, next) {
 		});
 	}
 
-	if (!req.body.userID) {
-		console.info('Post usersService updateUser: userID not provided.');
+	if (!req.body.userId) {
+		console.info('Post usersService updateUser: userId not provided.');
 		return next({
 			status: 422,
 			errors: {
@@ -193,7 +257,7 @@ exports.updateUser = async function updateUser(req, res, next) {
 
 		//console.log("usersService login sql: ", sql)
 		connection = await dbUtils.pool.getConnection()
-		let sql = "SELECT * from user WHERE userId=" + userID + ";"
+		let sql = "SELECT * from user WHERE userId=" + userId + ";"
 		let [currentUser] = await connection.query(sql)
 
 		sql = "UPDATE user SET firstName = '" + req.body.firstName +
@@ -205,12 +269,12 @@ exports.updateUser = async function updateUser(req, res, next) {
 			"', fullName = '" + req.body.firstName + " " + req.body.lastName +
 			"', defaultTheme = '" + req.body.defaultTheme +
 			"', isAdmin = " + req.body.isAdmin +
-			" WHERE userId=" + userID + ";"
+			" WHERE userId=" + userId + ";"
 
 		await connection.query(sql);
 		//await connection.release()
 
-		sql = "SELECT * from user WHERE userId=" + userID + ";"
+		sql = "SELECT * from user WHERE userId=" + userId + ";"
 		let [rowUser] = await connection.query(sql)
 		await connection.release()
 
@@ -271,21 +335,21 @@ exports.loginout = async function loginout(req, res, next) {
 	return (message);
 }
 
-module.exports.deleteUserByUserID = async function deleteUserByUserID(userID, req, res, next) {
+module.exports.deleteUserByUserID = async function deleteUserByUserID(userId, req, res, next) {
 
 	let connection
-	let sql_query = 'DELETE FROM `user` WHERE `id`=' + userID
+	let sql_query = 'DELETE FROM `user` WHERE `id`=' + userId
 	connection = await dbUtils.pool.getConnection()
 	let [row] = await connection.query(sql_query)
 	await connection.release()
 	// to meet requirement of STIG V222416
-	writeLog.writeLog(3, "usersService", 'log', req.userObject.username, req.userObject.displayName, { event: 'removed account', userId: userID })
+	writeLog.writeLog(3, "usersService", 'log', req.userObject.username, req.userObject.displayName, { event: 'removed account', userId: userId })
 	// to meet requirement of STIG V222420
-	writeLog.writeLog(3, "usersService", 'notification', req.userObject.username, req.userObject.displayName, { event: 'removed account', userId: userID })
+	writeLog.writeLog(3, "usersService", 'notification', req.userObject.username, req.userObject.displayName, { event: 'removed account', userId: userId })
 
 	let messageReturned = new Object()
 	messageReturned.text = "User deleted"
-	// console.log("User with id: " + userID + " deleted")
+	// console.log("User with id: " + userId + " deleted")
 	return (messageReturned)
 }
 

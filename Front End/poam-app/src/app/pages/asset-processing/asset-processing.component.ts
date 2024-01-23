@@ -26,6 +26,13 @@ import { environment } from '../../../environments/environment';
 import { ChangeDetectorRef } from '@angular/core';
 import { Assets } from './asset.model';
 
+interface Permission {
+  userId: number;
+  collectionId: number;
+  canOwn: number;
+  canMaintain: number;
+  canApprove: number;
+}
 interface TreeNode<T> {
   data: T;
   children?: TreeNode<T>[];
@@ -182,40 +189,37 @@ export class AssetProcessingComponent implements OnInit {
   }
 
   setPayload() {
-    this.users = []
     this.user = null;
     this.payload = null;
-    // console.log("setPayload()...");
-    this.subs.sink = forkJoin(
-      this.userService.getUsers(),
-    ).subscribe(([users]: any) => {
-      // console.log('users: ', users)
-      this.users = users.users.users
-      // console.log('this.users: ', this.users)
-      this.user = this.users.find((e: { userName: string; }) => e.userName === this.userProfile?.username)
-      // console.log('this.user: ', this.user)
-      this.payload = Object.assign(this.user, {
-        collections: []
-      });
 
-      this.subs.sink = forkJoin(
-        this.userService.getUserPermissions(this.user.userId)
-      ).subscribe(([permissions]: any) => {
+    this.subs.sink = this.userService.getCurrentUser().subscribe(
+      (response: any) => {
+        if (response && response.userId) {
+          this.user = response;
+          console.log('Current user: ', this.user);
 
-        permissions.permissions.permissions.forEach((element: any) => {
-          // console.log("element: ",element)
-          let assigendCollections = {
-            collectionId: element.collectionId,
-            canOwn: element.canOwn,
-            canMaintain: element.canMaintain,
-            canApprove: element.canApprove,
+          if (this.user.accountStatus === 'ACTIVE') {
+            this.payload = {
+              ...this.user,
+              collections: this.user.permissions.map((permission: Permission) => ({
+                collectionId: permission.collectionId,
+                canOwn: permission.canOwn,
+                canMaintain: permission.canMaintain,
+                canApprove: permission.canApprove
+              }))
+            };
+
+            console.log("payload: ", this.payload);
+            this.getAssetData();
           }
-          // console.log("assignedCollections: ", assigendCollections)
-          this.payload.collections.push(assigendCollections);
-        });
-        this.getAssetData();
-      })
-    })
+        } else {
+          console.error('User data is not available or user is not active');
+        }
+      },
+      (error) => {
+        console.error('An error occurred:', error);
+      }
+    );
   }
 
   getAssetData(loadMore = false) {

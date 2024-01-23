@@ -22,27 +22,27 @@ export const appMenuItems: NbMenuItem[] = [
       title: 'Asset Processing',
       icon: 'hard-drive-outline',
       link: '/asset-processing',
-      data: { permission: 'create', resource: 'asset' },
+      data: { permission: 'view', resource: 'asset' },
       hidden: true,
     },
     {
       title: 'Collections',
       icon: { icon: 'archive-outline', pack: 'eva' },
       link: '/collection-processing',
-      data: { permission: 'create', resource: 'collection' },
+      data: { permission: 'view', resource: 'collection' },
       hidden: true,
     },
     {
       title: 'Label Processing',
       icon: 'pricetags-outline',
       link: '/label-processing',
-      data: { permission: 'create', resource: 'label' },
+      data: { permission: 'view', resource: 'label' },
       hidden: true,
     },
     {
       title: 'POAMs',
       icon: 'list-outline',
-      data: { permission: 'create', resource: 'poam' },
+      data: { permission: 'view', resource: 'poam' },
       hidden: true,
       children: [
         {

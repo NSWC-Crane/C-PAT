@@ -23,6 +23,13 @@ import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../user-processing/users.service'
 import { environment } from '../../../environments/environment';
 
+interface Permission {
+  userId: number;
+  collectionId: number;
+  canOwn: number;
+  canMaintain: number;
+  canApprove: number;
+}
 interface TreeNode<T> {
   data: T;
   children?: TreeNode<T>[];
@@ -160,45 +167,37 @@ export class CollectionProcessingComponent implements OnInit {
   }
 
   setPayload() {
-    this.users = []
     this.user = null;
     this.payload = null;
 
-    this.subs.sink = forkJoin(
-      this.userService.getUsers(),
-    ).subscribe(([users]: any) => {
-      //console.log('users: ',users)
-      this.users = users.users.users
-      //console.log('this.users: ',this.users)
-      this.user = this.users.find((e: { userName: string; }) => e.userName === this.userProfile?.username)
-      //console.log('this.user: ',this.user)
-      this.payload = Object.assign(this.user, {
-        collections: []
-      });
+    this.subs.sink = this.userService.getCurrentUser().subscribe(
+      (response: any) => {
+        if (response && response.userId) {
+          this.user = response;
+          console.log('Current user: ', this.user);
 
-      this.subs.sink = forkJoin(
-        this.userService.getUserPermissions(this.user.userId)
-      ).subscribe(([permissions]: any) => {
-        //console.log("permissions: ", permissions)
+          if (this.user.accountStatus === 'ACTIVE') {
+            this.payload = {
+              ...this.user,
+              collections: this.user.permissions.map((permission: Permission) => ({
+                collectionId: permission.collectionId,
+                canOwn: permission.canOwn,
+                canMaintain: permission.canMaintain,
+                canApprove: permission.canApprove
+              }))
+            };
 
-        permissions.permissions.permissions.forEach((element: any) => {
-          // console.log("element: ",element)
-          let assigendCollections = {
-            collectionId: element.collectionId,
-            canOwn: element.canOwn,
-            canMaintain: element.canMaintain,
-            canApprove: element.canApprove,
+            console.log("payload: ", this.payload);
+            this.getCollectionData(); // Adjusted function name
           }
-          // console.log("assignedCollections: ", assigendCollections)
-          this.payload.collections.push(assigendCollections);
-        });
-
-        //console.log("payload: ",this.payload)
-
-        this.getCollectionData();
-      })
-
-    })
+        } else {
+          console.error('User data is not available or user is not active');
+        }
+      },
+      (error) => {
+        console.error('An error occurred:', error);
+      }
+    );
   }
 
   getCollectionData() {

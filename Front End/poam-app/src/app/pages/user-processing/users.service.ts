@@ -10,10 +10,12 @@
 
 import { EventEmitter, Injectable, Output } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { KeycloakService } from 'keycloak-angular';
+import { from, Observable, throwError } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Users } from './users.model';
+import { CollectionsResponse } from '../user-processing/user/user.component';
 
 @Injectable({
 	providedIn: 'root'
@@ -29,7 +31,9 @@ export class UsersService {
 		})
 	};
 
-	constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient,
+    private keycloakService: KeycloakService) {
+  }
 
 	private handleError(error: HttpErrorResponse) {
 		if (error.error instanceof ErrorEvent) {
@@ -57,7 +61,20 @@ export class UsersService {
 		return this.http
 					.get(`${this.uri}/user/${id}`)
 					.pipe(catchError(this.handleError));
-	}
+  }
+
+  getCurrentUser(): Observable<Users> {
+    return from(this.keycloakService.getToken()).pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        });
+        return this.http.get<Users>(`${this.uri}/user`, { headers: headers });
+      }),
+      catchError(this.handleError)
+    );
+  }
 
 	getUsers() {
 		//console.log("Users Service Call attempted: getUsers()...");
@@ -66,25 +83,20 @@ export class UsersService {
 					.pipe(catchError(this.handleError));
 	}
 
-	getCollections(userName: string) {
-		// console.log("UserService Call attempted: getCollections()...");
-		let params = new HttpParams()
-		//let myName = { userName: userName}
-		params = params.append("userName", userName)
-		return this.http
-					.get(`${this.uri}/collections/`,  { params } )
-					.pipe(catchError(this.handleError));
-	}
+  getCollections(userName: string): Observable<CollectionsResponse> {
+    let params = new HttpParams().set('userName', userName);
+    return this.http.get<CollectionsResponse>(`${this.uri}/collections/`, { params })
+      .pipe(catchError(this.handleError));
+  }
 
 	getUserPermissions(id: any) {
-		//console.log("UsersService Call attempted: getUserPermissions(id)...id: ", id);
 		return this.http
 					.get(`${this.uri}/permissions/user/${id}`)
 					.pipe(catchError(this.handleError));
 	}
 
 	updateUser(userData: any) {
-		let user = { userID: userData.userId,
+		let user = { userId: userData.userId,
 			firstName: userData.firstName,
 			lastName: userData.lastName,
 			userEmail: userData.userEmail,
@@ -109,12 +121,12 @@ export class UsersService {
 					.pipe(catchError(this.handleError));
 	}
 
-	getAUserPermission(userId: any, collectionId: any) {
-		//console.log("UsersService Call attempted: getAUserPermission(userPermission)...userId: ", userId,", collectionId: ", collectionId);
-		return this.http
-					.get<any>(`${this.uri}/permissions/user/${userId}/collection/${collectionId}`, this.httpOptions)
-					.pipe(catchError(this.handleError));
-	}
+	//getAUserPermission(userId: any, collectionId: any) {
+	//	//console.log("UsersService Call attempted: getAUserPermission(userPermission)...userId: ", userId,", collectionId: ", collectionId);
+	//	return this.http
+	//				.get<any>(`${this.uri}/permissions/user/${userId}/collection/${collectionId}`, this.httpOptions)
+	//				.pipe(catchError(this.handleError));
+	//}
 
 	postPermission(userPermission: any) {
 		//console.log("UsersService Call attempted: postPermission(userPermission)...userPermission: ", userPermission);

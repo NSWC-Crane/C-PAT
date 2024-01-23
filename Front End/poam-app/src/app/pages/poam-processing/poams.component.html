@@ -17,10 +17,12 @@
     <div class="row" style="padding-top: 20px;" *ngIf="collection">
       Selected Collection:
       <div class="col-md-8">
-        <label>Collection Name: {{collection.collectionName}} Description: {{collection.description}}</label>
+        <label>{{collection.collectionName}} Description: {{collection.description}}</label>
       </div>
       <hr />
-      <canvas baseChart class="poam-chart" id='chartDiv' [chartType]="'bar'" [datasets]="chartData" [options]="backoptions"></canvas>
+      <div class="canvas" id="canvas">
+        <canvas baseChart class="poam-chart" id='chartDiv' [chartType]="'bar'" [datasets]="chartData" [options]="backoptions"></canvas>
+      </div>
       <hr />
       <div class="row">
         <button nbButton fullWidth outline status="info" (click)="addPoam()">Add POAM</button>
@@ -34,7 +36,7 @@
         </nb-radio-group>
       </div>
       <br>
-      <!-- TODO: Fix this filter
+      <!-- TODO: Fix this filter -->
     <div class="row">
       <label>POAM Filter by Status:</label>
       <nb-select class="poam-filter" outline status="info" placeholder="Filter Poams: " shape="semi-round" [(ngModel)]="selectedStatus" name="selectedStatus"
@@ -48,7 +50,7 @@
         <nb-option value="Expired">Expired</nb-option>
       </nb-select>
     </div>
-                    -->
+                    
       <hr />
     </div>
   </nb-card-header>

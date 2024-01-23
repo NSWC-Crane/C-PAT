@@ -13,59 +13,60 @@ const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
-exports.getPermissions_User = async function getPermissions_User(req, res, next) {
-	//console.log("getPermissions_User (Service) body: ",req.params.userId);
+//User permissions are now included in the user object, try getCurrentUser or getUsers instead
+//exports.getPermissions_User = async function getPermissions_User(req, res, next) {
+//	//console.log("getPermissions_User (Service) body: ",req.params.userId);
 
-	if (!req.params.userId) {
-		console.info('getPermissions_User userId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				userId: 'is required',
-			}
-		});
-	}
+//	if (!req.params.userId) {
+//		console.info('getPermissions_User userId not provided.');
+//		return next({
+//			status: 422,
+//			errors: {
+//				userId: 'is required',
+//			}
+//		});
+//	}
 
-	try {
-		let connection
-		connection = await dbUtils.pool.getConnection()
-		let sql = "SELECT * FROM  poamtracking.collectionpermissions WHERE userId=" + req.params.userId + ";"
-		// console.log("getPermissions_User sql: ", sql)
+//	try {
+//		let connection
+//		connection = await dbUtils.pool.getConnection()
+//		let sql = "SELECT * FROM  poamtracking.collectionpermissions WHERE userId=" + req.params.userId + ";"
+//		// console.log("getPermissions_User sql: ", sql)
 
-		let [rowPermissions] = await connection.query(sql)
-		// console.log("rowPermissions: ", rowPermissions[0])
-		await connection.release()
+//		let [rowPermissions] = await connection.query(sql)
+//		// console.log("rowPermissions: ", rowPermissions[0])
+//		await connection.release()
 
-		var size = Object.keys(rowPermissions).length
+//		var size = Object.keys(rowPermissions).length
 
-		var permissions = {
-			permissions: []
-		}
+//		var permissions = {
+//			permissions: []
+//		}
 
-		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
+//		for (let counter = 0; counter < size; counter++) {
+//			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
 
-			permissions.permissions.push({
-				"userId": rowPermissions[counter].userId,
-				"collectionId": rowPermissions[counter].collectionId,
-				"canOwn": rowPermissions[counter].canOwn,
-				"canMaintain": rowPermissions[counter].canMaintain,
-				"canApprove": rowPermissions[counter].canApprove
-			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
-		}
+//			permissions.permissions.push({
+//				"userId": rowPermissions[counter].userId,
+//				"collectionId": rowPermissions[counter].collectionId,
+//				"canOwn": rowPermissions[counter].canOwn,
+//				"canMaintain": rowPermissions[counter].canMaintain,
+//				"canApprove": rowPermissions[counter].canApprove
+//			});
+//			// console.log("After setting permissions size: ", size, ", counter: ",counter);
+//			// if (counter + 1 >= size) break;
+//		}
 
-		//console.log("returning: ",permissions)
-		return { permissions };
+//		//console.log("returning: ",permissions)
+//		return { permissions };
 
-	}
-	catch (error) {
-		let errorResponse = { null: "null" }
-		await connection.release()
-		return errorResponse;
-	}
-}
+//	}
+//	catch (error) {
+//		let errorResponse = { null: "null" }
+//		await connection.release()
+//		return errorResponse;
+//	}
+//}
 
 exports.getPermissions_Collection = async function getPermissions_Collection(req, res, next) {
 	// res.status(201).json({ message: "getPermissions_Collection (Service) Method called successfully" });

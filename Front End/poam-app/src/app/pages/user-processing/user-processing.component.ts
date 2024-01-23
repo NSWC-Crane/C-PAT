@@ -19,7 +19,13 @@ import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Sh
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 
-
+interface Permission {
+  userId: number;
+  collectionId: number;
+  canOwn: number;
+  canMaintain: number;
+  canApprove: number;
+}
 interface TreeNode<T> {
   data: T;
   children?: TreeNode<T>[];
@@ -44,7 +50,7 @@ export class UserProcessingComponent implements OnInit {
 
 
   customColumn = 'user';
-  defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Phone', 'Collection', 'Can Own', 'Can Maintain', 'Can Approve'];
+  defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Can Own', 'Can Maintain', 'Can Approve'];
   allColumns = [this.customColumn, ...this.defaultColumns];
   dataSource!: NbTreeGridDataSource<any>;
 
@@ -87,71 +93,54 @@ export class UserProcessingComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // this.subs.sink = this.authService.onTokenChange()
-    //   .subscribe((token: NbAuthJWTToken) => {
-    //     //if (token.isValid() && this.router.url === '/pages/collection-processing') {
-    //     if (token.isValid()) {
-    //       this.isLoading = true;
-    //       this.payload = token.getPayload();
-
-    //       this.selectedRole = 'admin';
-    //       this.data = [];
-    //       this.getUserData();
-
-    //     }
-    //   })
-
-      this.isLoggedIn = await this.keycloak.isLoggedIn();
+    this.isLoggedIn = await this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
-        console.log("userProfile.email: ",this.userProfile.email,", userProfile.username: ",this.userProfile.username)
+        console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
         this.setPayload();
       }
   }
 
   setPayload() {
-    this.users = []
-    this.user.userId = 1;
+    this.user = null;
     this.payload = null;
 
-    this.subs.sink = forkJoin(
-      this.userService.getUsers(),
-    ).subscribe(([users]: any) => {
-      // console.log('users: ',users)
-      this.users = users.users.users
-      console.log('ALl users: ',this.users)
-      this.user = null;
-      this.user = this.users.find((e: { userName: string; }) => e.userName === this.userProfile?.username)
-      console.log('this.user: ',this.user)
-      this.payload = Object.assign(this.user, {
-        collections: []
-      });
+    this.subs.sink = this.userService.getCurrentUser().subscribe(
+      (response: any) => {
+        if (response && response.userId) {
+          this.user = response;
+          console.log('Current user: ', this.user);
 
-      this.subs.sink = forkJoin(
-        this.userService.getUserPermissions(this.user.userId)
-      ).subscribe(([permissions]: any) => {
-        console.log("permissions: ", permissions)
+          if (this.user.accountStatus === 'ACTIVE') {
+            this.payload = {
+              ...this.user,
+              collections: this.user.permissions.map((permission: Permission) => ({
+                collectionId: permission.collectionId,
+                canOwn: permission.canOwn,
+                canMaintain: permission.canMaintain,
+                canApprove: permission.canApprove
+              }))
+            };
 
-        permissions.permissions.permissions.forEach((element: any) => {
-          // console.log("element: ",element)
-          let assigendCollections = {
-            collectionId: element.collectionId,
-            canOwn: element.canOwn,
-            canMaintain: element.canMaintain,
-            canApprove: element.canApprove,
+            console.log("payload: ", this.payload);
+
+            // Check if the user is an admin before calling getUserData
+            if (this.user.isAdmin === 1) {
+              this.getUserData();
+            } else {
+              console.log('Access Denied: User is not an admin.');
+            }
           }
-          // console.log("assignedCollections: ", assigendCollections)
-          this.payload.collections.push(assigendCollections);
-        });
-
-        console.log("payload: ",this.payload)
-
-        this.getUserData();
-      })
-
-      
-    })
+        } else {
+          console.error('User data is not available or user is not active');
+        }
+      },
+      (error) => {
+        console.error('An error occurred:', error);
+      }
+    );
   }
+
 
   getUserData() {
     this.isLoading = true;
@@ -159,76 +148,48 @@ export class UserProcessingComponent implements OnInit {
     this.userService.getUsers().subscribe((rData: any) => {
       this.data = rData.users.users;
       this.users = this.data;
-      //console.log("this.data: ",this.data)
       this.getUsersGrid("");
       this.isLoading = false;
     });
 
   }
 
-  async getUsersGrid(filter: string) {
+  getUsersGrid(filter: string) {
     let userData = this.data;
-    console.log("userData: ", userData)
+    console.log("userData: ", userData);
     let mydata: any = [];
+
     for (let i = 0; i < userData.length; i++) {
-      await this.userService.getUserPermissions(userData[i].userId).subscribe((permissions: any) => {
-        let tchild: any = [];
-        console.log("permissions.permissions: ", permissions.permissions.permissions.length)
-        let userPermissions = permissions.permissions.permissions;
-        console.log("userPermissions: ", userPermissions)
-        if (userPermissions.length > 0) {
-          userPermissions.forEach((permission: any) => {
-            console.log("permissions: ", permission)
-            tchild.push({
-              data: {
-                user: '', 'Status': '', 'First Name': '', 'Last Name': '', 'Email': '',
-                'Phone': '', 'Collection': 'waiting on api', 
-                'Can Own': (permission.canOwn == 1) ? 'true' : 'false' , 
-                'Can Maintain': (permission.canMaintain == 1) ? 'true' : 'false', 
-                'Can Approve': (permission.canApprove == 1) ? 'true' : 'false'
-              }
-            })
+      let tchild: any = [];
+      let userPermissions = userData[i].permissions;
+
+      if (userPermissions && userPermissions.length > 0) {
+        userPermissions.forEach((permission: any) => {
+          tchild.push({
+            data: {
+              user: '', 'Status': '', 'First Name': '', 'Last Name': '', 'Email': '',
+              'Phone': '',
+              'Collection': permission.collectionId,
+              'Can Own': permission.canOwn == 1 ? 'True' : 'False',
+              'Can Maintain': permission.canMaintain == 1 ? 'True' : 'False',
+              'Can Approve': permission.canApprove == 1 ? 'True' : 'False'
+            }
           });
-        }
-
-        console.log("tChild: ", tchild)
-        mydata.push({
-          data: {
-            user: userData[i].userId, 'Status': userData[i].accountStatus, 'First Name': userData[i].firstName, 'Last Name': userData[i].lastName,
-            'Email': userData[i].userEmail, 'Phone': userData[i].phoneNumber
-          }, children: tchild
         });
+      }
 
-
-        // var treeViewData: TreeNode<FSEntry>[] = userData.map((user: {
-        //   userId: number | any[]; accountStatus: any; firstName: any;
-        //   lastName: any; userEmail: any; phoneNumber: any;
-        // }) => {
-        //   let children: any = [];
-        //   //children = tchild;
-
-
-
-        //   // children.push({data: { user: '', 'Status': '', 'First Name': '', 'Last Name': '', 'Email': '',
-        //   //   'Phone': '', 'Collection': 'TEST TEST', 'Can Own': 'true', 'Can Maintain': 'false', 'Can Approve': 'true'} })
-
-        //   // return {
-
-        //   //   data: { user: user.userId, 'Status': user.accountStatus, 'First Name': user.firstName, 'Last Name': user.lastName, 
-        //   //     'Email': user.userEmail, 'Phone': user.phoneNumber},
-        //   //   children: children
-        //   // };
-        // })
-        console.log("treeViewData: ", mydata)
-        this.dataSource = this.dataSourceBuilder.create(mydata);
-
+      mydata.push({
+        data: {
+          user: userData[i].userId, 'Status': userData[i].accountStatus, 'First Name': userData[i].firstName, 'Last Name': userData[i].lastName,
+          'Email': userData[i].userEmail, 'Phone': userData[i].phoneNumber
+        }, children: tchild
       });
-
     }
-    //if (filter) { collectionData = this.data.filter((collection: { collectionId: string; }) => collection.collectionId === filter); }
 
-
+    this.dataSource = this.dataSourceBuilder.create(mydata);
   }
+
+
 
   setUser(userId: any) {
     this.user = null;

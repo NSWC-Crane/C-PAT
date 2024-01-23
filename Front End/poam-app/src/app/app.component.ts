@@ -14,8 +14,18 @@ import { ACCESS_CONTROL_LIST } from './access-control-list';
 import { appMenuItems } from './app-menu';
 import { environment } from '../environments/environment';
 import { FileUploadService } from './file-upload.service';
+import { Location } from '@angular/common';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { ChangeDetectorRef } from '@angular/core';
+import { Users } from './pages/user-processing/users.model';
 
+interface Permission {
+  userId: number;
+  collectionId: number;
+  canOwn: number;
+  canMaintain: number;
+  canApprove: number;
+}
 
 @Component({
   selector: "ngx-app",
@@ -24,7 +34,6 @@ import { HttpEventType, HttpResponse } from '@angular/common/http';
 
 export class AppComponent implements OnInit, OnDestroy {
   @Output() resetRole: EventEmitter<any> = new EventEmitter();
-
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
   classificationCode: string = 'U';
@@ -57,9 +66,11 @@ export class AppComponent implements OnInit, OnDestroy {
     hasDivider: true
   };
 
+
   private subs = new SubSink()
 
   constructor(
+    private cdr: ChangeDetectorRef,
     private readonly sidebarService: NbSidebarService,
     private menuService: NbMenuService,
     private themeService: NbThemeService,
@@ -79,7 +90,7 @@ export class AppComponent implements OnInit, OnDestroy {
       if (event.item.title === 'Import POAM') {
         this.triggerFileInput();
       }
-  
+
       // Add logout functionality
       if (event.item.title === 'Logout') {
         this.logOut();
@@ -93,8 +104,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isLoggedIn = await this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
-      //console.log("Poams component userProfile: ",this.userProfile.email)
-      //console.log("Poams component userProfile: ",this.userProfile.username)
       this.setPayload();
     }
 
@@ -110,69 +119,53 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   setPayload() {
-    this.users = []
     this.user = null;
     this.payload = null;
 
-    this.subs.sink = forkJoin(
-      this.userService.getUsers(),
-    ).subscribe(([users]: any) => {
-      console.log('users: ', users)
-      this.users = users.users.users
-      // console.log('this.users: ',this.users)
-      this.user = this.users.find((e: { userName: string; }) => e.userName === this.userProfile?.username)
-      console.log('this.user: ', this.user)
-      if (!this.user || this.user === undefined) {
-        let user = {
-          userName: this.userProfile?.username,
-          firstName: this.userProfile?.firstName,
-          lastName: this.userProfile?.lastName,
-          email: this.userProfile?.email,
-          phoneNumber: '',
-          password: 'same',
-          confirmPassword: 'same',
-        }
+    this.subs.sink = this.userService.getCurrentUser().subscribe(
+      (response: any) => {
+        console.log('Current user: ', response);
+        this.user = response;
 
-        this.user = user;
-
-        this.userService.postUser(user).subscribe(result => {
-          console.log("User name: " + user.userName + " has been added, account status is PENDING")
-        })
-
-
-      } else {
         if (this.user.accountStatus === 'ACTIVE') {
-          this.payload = Object.assign(this.user, {
-            collections: []
+          this.payload = Object.assign({}, this.user, {
+            collections: this.user.permissions.map((permission: Permission) => ({
+              collectionId: permission.collectionId,
+              canOwn: permission.canOwn,
+              canMaintain: permission.canMaintain,
+              canApprove: permission.canApprove
+            }))
           });
-          this.subs.sink = forkJoin(
-            this.userService.getUserPermissions(this.user.userId)
-          ).subscribe(([permissions]: any) => {
-            // console.log("permissions: ", permissions)
 
-            permissions.permissions.permissions.forEach((element: any) => {
-              // console.log("element: ",element)
-              let assigendCollections = {
-                collectionId: element.collectionId,
-                canOwn: element.canOwn,
-                canMaintain: element.canMaintain,
-                canApprove: element.canApprove,
-              }
-              // console.log("assignedCollections: ", assigendCollections)
-              this.payload.collections.push(assigendCollections);
-            });
-
-            console.log("payload: ", this.payload)
-            this.getCollections();
-          })
-
+          console.log("payload: ", this.payload);
+          this.getCollections(); // Proceed with the payload
         } else {
-          alert('Your account status is not Active, contact your system administrator')
+          alert('Your account status is not Active, contact your system administrator');
         }
+      },
+      (error) => {
+        if (error.status === 404 || !this.user) {
+          let newUser = {
+            userName: this.userProfile?.username,
+            firstName: this.userProfile?.firstName,
+            lastName: this.userProfile?.lastName,
+            email: this.userProfile?.email,
+            phoneNumber: this.userProfile?.phoneNumber || "",
+            password: 'same',
+            confirmPassword: 'same',
+          };
 
+          this.userService.postUser(newUser).subscribe(result => {
+            console.log("User name: " + newUser.userName + " has been added, account status is PENDING");
+            this.user = newUser;
+            // Further processing if needed after user creation
+          });
+        } else {
+          // Handle other kinds of errors
+          console.error('An error occurred:', error.message);
+        }
       }
-
-    })
+    );
   }
 
   getCollections() {
@@ -284,7 +277,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   resetWorkspace(selectedCollection: any) {
-    // console.log("resetWorkspace selection: ",selectedCollection)
+    //console.log("resetWorkspace selection: ",selectedCollection)
     this.selectedCollection = selectedCollection;
     this.selectCollectionMsg = false;
 
@@ -297,7 +290,7 @@ export class AppComponent implements OnInit, OnDestroy {
         att.textContent = collection.collectionName + " - " + collection.description
       }
     }
-    // update token and user
+
 
     let userUpdate = {
       userId: this.user.userId,
@@ -345,7 +338,6 @@ export class AppComponent implements OnInit, OnDestroy {
         defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
         isAdmin: this.user.isAdmin
       }
-
       this.authMenuItems();
     });
 
