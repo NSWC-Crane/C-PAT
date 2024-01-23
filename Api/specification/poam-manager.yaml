@@ -657,7 +657,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
-  '/collections/':
+  '/collections/{userName}':
     get:
       tags:
         - Collection
@@ -696,6 +696,7 @@ paths:
           default: false
       - $ref: '#/components/parameters/benchmarkIdQuery'
       - $ref: '#/components/parameters/assetIdQuery'
+  
   '/collection/{collectionId}/poamstats':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
@@ -723,10 +724,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+
   '/collections/{collectionId}/labels/{labelId}':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
       - $ref: '#/components/parameters/labelIdPath'
+  
+  '/collection/permissions/{collectionId}':
+    parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return all permissions for a specific collection
+      operationId: getCollectionPermissions
+      responses:
+        '200':
+          description: Collection Permissions array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user_Permissions'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Collection
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   '/collectionApprovers/{collectionId}':
     parameters:
       - in: path
@@ -1243,39 +1279,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
       tags: 
-        - Permissions
-      security:
-        - oauth:
-            - 'c-pat:op'
-
-  '/permissions/collection/{collectionId}':
-    parameters:
-      - in: path
-        name: collectionId
-        required: true
-        schema:
-          type: integer
-    get:
-      summary: Return all collection Permissions for a collection
-      operationId: getPermissions_Collection
-      responses:
-        '200':
-          description: Collection Permissions array response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/user_Permissions'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
         - Permissions
       security:
         - oauth:
@@ -2664,9 +2667,7 @@ components:
     register:
       required:
         - email
-        - password
         - userName
-        - confirmPassword
         - firstName
         - lastName
         - phoneNumber
@@ -2675,11 +2676,7 @@ components:
       properties:
         email:
           type: string
-        password:
-          type: string
         userName:
-          type: string
-        confirmPassword:
           type: string
         firstName:
           type: string
@@ -2758,7 +2755,6 @@ components:
         - lastAccess
         - lastCollectionAccessedId
         - phoneNumber
-        - password
         - accountStatus
         - fullName
         - defaultTheme
@@ -2797,9 +2793,6 @@ components:
         phoneNumber:
           type: string
           maxLength: 15
-        password:
-          type: string
-          maxLength: 255
         accountStatus:
           type: string
           maxLength: 45
@@ -2845,7 +2838,6 @@ components:
         - lastAccess
         - lastCollectionAccessedId
         - phoneNumber
-        - password
         - accountStatus
         - fullName
         - defaultTheme
@@ -2883,9 +2875,6 @@ components:
         phoneNumber:
           type: string
           maxLength: 15
-        password:
-          type: string
-          maxLength: 255
         accountStatus:
           type: string
           maxLength: 45
@@ -2941,13 +2930,10 @@ components:
     user_Login:
       required:
         - email
-        - password
       type: object
       additionalProperties: false
       properties:
         email:
-          type: string
-        password:
           type: string
           
     user_LoginOut:
@@ -3047,7 +3033,6 @@ components:
         - lastName
         - lastCollectionAccessedId
         - phoneNumber
-        - password
         - accountStatus
         - fullName
         - defaultTheme
@@ -3065,8 +3050,6 @@ components:
         lastCollectionAccessedId:
           type: integer
         phoneNumber:
-          type: string
-        password:
           type: string
         accountStatus:
           type: string
@@ -3138,9 +3121,9 @@ components:
 
     collectionAuth:
       name: userName
-      in: query
+      in: path
       required: true
-      description: Matches against the username
+      description: Returns collections belonging to a specif User
       schema:
         type: string    
         

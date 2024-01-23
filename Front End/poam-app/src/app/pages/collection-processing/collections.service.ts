@@ -30,26 +30,19 @@ export class CollectionsService {
 
 	private handleError(error: HttpErrorResponse) {
 		if (error.error instanceof ErrorEvent) {
-			// A client-side or network error occurred. Handle it accordingly.
+
 			console.error('An error occurred:', error.error.message);
 		} else {
-			// The backend returned an unsuccessful response code.
-			// The response body may contain clues as to what went wrong,
 			console.error(`Backend returned code ${error.status}, ` + `body was: ${error.error}`);
 		}
-		// return an observable with a user-facing error message
-		return throwError('Something bad happened; please try again later.');
+    return throwError(() => error);
 	}
 
-	getCollections(userName: string) {
-		// console.log("Collections Service Call attempted: getCollections()...");
-		let params = new HttpParams()
-		//let myName = { userName: userName}
-		params = params.append("userName", userName)
-		return this.http
-					.get(`${this.uri}/collections/`,  { params } )
-					.pipe(catchError(this.handleError));
-	}
+  getCollections(userName: string) {
+    return this.http
+      .get(`${this.uri}/collections/${userName}`)
+      .pipe(catchError(this.handleError));
+  }
 
 	getCollectionById(id: string) {
 		// console.log("Collectons Service Call attempted: getCollectionById()...Id:" + id);
@@ -82,7 +75,7 @@ export class CollectionsService {
 
 	getUsersForCollection(id: string) {
 		//console.log("getUsersForCollection id: ", id)
-		return this.http.get(`${this.uri}/permissions/collection/${+id}`)
+    return this.http.get(`${this.uri}/collection/permissions/${+id}`)
 			.pipe(catchError(this.handleError));
 	}
 

@@ -27,6 +27,13 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
+            "allowedCommonJsDependencies": [
+              "eva-icons",
+              "base64-js",
+              "js-sha256",
+              "lodash",
+              "chart.js"
+            ],
             "outputPath": "dist/poam-app",
             "index": "src/index.html",
             "main": "src/main.ts",
@@ -38,9 +45,9 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/@nebular/theme/styles/prebuilt/default.css", // Nebular prebuilt theme
-              "src/themes.scss", // Custom theme file
-              "src/styles.scss" // Global styles
+              "node_modules/@nebular/theme/styles/prebuilt/default.css",
+              "src/themes.scss",
+              "src/styles.scss"
             ],
 
             "scripts": []

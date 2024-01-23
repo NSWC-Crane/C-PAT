@@ -71,7 +71,7 @@ export class PoamApproveComponent implements OnInit {
       this.isLoggedIn = await this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
-        console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
+        // console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
         this.setPayload();
       } 
 
@@ -86,7 +86,7 @@ export class PoamApproveComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          console.log('Current user: ', this.user);
+          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             const mappedPermissions = this.user.permissions.map((permission: Permission) => ({
@@ -101,7 +101,7 @@ export class PoamApproveComponent implements OnInit {
               collections: mappedPermissions
             };
 
-            console.log("Payload with permissions: ", this.payload);
+            // console.log("Payload with permissions: ", this.payload);
             this.getData();
           } else {
             console.error('User data is not available or user is not active');

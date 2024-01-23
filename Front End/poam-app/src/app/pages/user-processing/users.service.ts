@@ -15,7 +15,7 @@ import { from, Observable, throwError } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Users } from './users.model';
-import { CollectionsResponse } from '../user-processing/user/user.component';
+
 
 @Injectable({
 	providedIn: 'root'
@@ -50,7 +50,7 @@ export class UsersService {
 
 	loginOut(inOut: string) {
 		let logInOut = { inout: inOut }
-		console.log("Login Service Call attempted: LOGINOUT()...inOut: ", logInOut);
+		// console.log("Login Service Call attempted: LOGINOUT()...inOut: ", logInOut);
 		return this.http
 				.put<any>(`${this.uri}/user/loginout`, logInOut, this.httpOptions)
 				.pipe(catchError(this.handleError));
@@ -83,12 +83,6 @@ export class UsersService {
 					.pipe(catchError(this.handleError));
 	}
 
-  getCollections(userName: string): Observable<CollectionsResponse> {
-    let params = new HttpParams().set('userName', userName);
-    return this.http.get<CollectionsResponse>(`${this.uri}/collections/`, { params })
-      .pipe(catchError(this.handleError));
-  }
-
 	getUserPermissions(id: any) {
 		return this.http
 					.get(`${this.uri}/permissions/user/${id}`)
@@ -107,7 +101,7 @@ export class UsersService {
 			isAdmin: +userData.isAdmin,
 			updateSettingsOnly: (+userData.updateSettingsOnly) ? +userData.updateSettingsOnly : 0
 		}
-		console.log("Collection Service Call attempted: updateUser()...user: ", user);
+		//console.log("Collection Service Call attempted: updateUser()...user: ", user);
 		return this.http
 					.put<Users>(`${this.uri}/user`, user, this.httpOptions)
 					.pipe(catchError(this.handleError));
@@ -158,7 +152,7 @@ export class UsersService {
 				.post<any>(`${this.uri}/auth/changeWorkspace`, data, this.httpOptions);
 	}
 	changeRole(payload: any) {
-		console.log("changeRole payload: ", payload)
+		//console.log("changeRole payload: ", payload)
 		this.resetRole.emit(payload);
 }
 }

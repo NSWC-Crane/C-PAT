@@ -10,6 +10,12 @@
 
 const collectionService = require('../Services/mysql/collectionService')
 
+module.exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next){
+        //res.status(201).json({message: "getCollectionPermissions Method called successfully"})
+		var permissions = await collectionService.getCollectionPermissions(req,res,next);
+        res.status(201).json(permissions)
+}
+
 module.exports.getCollection = async function getCollection(req, res, next){
 		let userName = req.params.userName;
 		let collectionId = req.params.collectionId
@@ -33,7 +39,7 @@ module.exports.getCollectionPoamStats = async function getCollectionPoamStats(re
 module.exports.getCollections = async function getCollections(req, res, next){
 
 
-	let userName = req.query.userName
+	let userName = req.params.userName
 		// console.log("getcollections: ", userName)
 		
 

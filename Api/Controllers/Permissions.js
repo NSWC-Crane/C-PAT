@@ -17,11 +17,6 @@ const permissionService = require('../Services/mysql/permissionsService')
 //        res.status(201).json(permissions)
 //}
 
-module.exports.getPermissions_Collection = async function getPermissions_Collection(req, res, next){
-        //res.status(201).json({message: "getPermissions_Collection Method called successfully"})
-        var permissions = await permissionService.getPermissions_Collection(req,res,next); 
-        res.status(201).json(permissions)
-}
 
 module.exports.getPermissions_UserCollection = async function getPermissions_UserCollection(req, res, next){
         //res.status(201).json({message: "getPermissions_UserCollection Method called successfully"});

@@ -97,7 +97,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     });
 
-    console.log("init app component...Environment: ", environment)
+    //console.log("init app component...Environment: ", environment)
     this.classification = environment.classification;
     this.classificationCode = environment.classificationCode;
     this.classificationColorCode = environment.classificationColorCode;
@@ -124,7 +124,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.subs.sink = this.userService.getCurrentUser().subscribe(
       (response: any) => {
-        console.log('Current user: ', response);
+        //console.log('Current user: ', response);
         this.user = response;
 
         if (this.user.accountStatus === 'ACTIVE') {
@@ -137,8 +137,8 @@ export class AppComponent implements OnInit, OnDestroy {
             }))
           });
 
-          console.log("payload: ", this.payload);
-          this.getCollections(); // Proceed with the payload
+          //console.log("payload: ", this.payload);
+          this.getCollections();
         } else {
           alert('Your account status is not Active, contact your system administrator');
         }
@@ -151,8 +151,6 @@ export class AppComponent implements OnInit, OnDestroy {
             lastName: this.userProfile?.lastName,
             email: this.userProfile?.email,
             phoneNumber: this.userProfile?.phoneNumber || "",
-            password: 'same',
-            confirmPassword: 'same',
           };
 
           this.userService.postUser(newUser).subscribe(result => {
@@ -169,7 +167,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   getCollections() {
-    this.subs.sink = this.collectionService.getCollections(this.payload.userName).subscribe((result: any) => {
+    const userName = this.payload.userName;
+    this.subs.sink = this.collectionService.getCollections(userName).subscribe((result: any) => {
 
       this.collections = result.collections;
       // console.log("getCollections result: ", result);
@@ -319,7 +318,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     this.payload.role = myRole;
-    console.log("resetWorkspace payload: ", this.payload)
+    //console.log("resetWorkspace payload: ", this.payload)
     this.userService.changeRole(this.payload);
 
     this.userService.updateUser(userUpdate).subscribe((result: any) => {
@@ -444,7 +443,6 @@ export class AppComponent implements OnInit, OnDestroy {
   accessChecker(permission?: string, resource?: string): boolean {
     // console.log("accessChecker permission: ", permission, ", resource: ", resource)
     let acl: any = "";
-
     switch (this.payload.role) {
       case 'owner': {
         acl = ACCESS_CONTROL_LIST.accessControl.owner
@@ -456,10 +454,6 @@ export class AppComponent implements OnInit, OnDestroy {
       }
       case 'approver': {
         acl = ACCESS_CONTROL_LIST.accessControl.approver
-        break;
-      }
-      case 'admin': {
-        acl = ACCESS_CONTROL_LIST.accessControl.admin
         break;
       }
       case 'admin': {

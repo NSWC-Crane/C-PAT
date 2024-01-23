@@ -94,12 +94,11 @@ exports.getCurrentUser = async function getCurrentUser(req) {
 				lastAccess: user.lastAccess,
 				lastCollectionAccessedId: user.lastCollectionAccessedId,
 				phoneNumber: user.phoneNumber,
-				password: user.password,
 				accountStatus: user.accountStatus,
 				fullName: user.fullName,
 				defaultTheme: user.defaultTheme,
 				isAdmin: user.isAdmin,
-				permissions: permissions // Adding permissions to the response
+				permissions: permissions
 			};
 
 			await connection.release();
@@ -149,7 +148,6 @@ exports.getUsers = async function getUsers(req, res, next) {
 				"lastAccess": rows[counter].lastAccess,
 				"lastCollectionAccessedId": rows[counter].lastCollectionAccessedId,
 				"phoneNumber": rows[counter].phoneNumber,
-				"password": rows[counter].password,
 				"accountStatus": rows[counter].accountStatus,
 				"fullName": rows[counter].fullName,
 				"defaultTheme": rows[counter].defaultTheme,
@@ -167,8 +165,8 @@ exports.getUsers = async function getUsers(req, res, next) {
 	}
 }
 
-
-exports.getUserByNamePassword = async function getUserByNamePassword(username, password, callback) {
+//Needs to be removed
+exports.getUserByNamePassword = async function getUserByNamePassword(username, callback) {
 	/**
 	 * This User instance will be passed through authentication to the JWT.
 	 */
@@ -190,8 +188,7 @@ exports.getUserByNamePassword = async function getUserByNamePassword(username, p
 	//console.log("auth: ",auth)
 	try {
 		let connection
-		let sql = "SELECT * FROM user WHERE userName='" + username + "' and  password='" + password + "';"
-		//let sql = "SELECT * FROM user WHERE userName='tyler.forajter' and  password='password'"
+		let sql = "SELECT * FROM user WHERE userName='" + username + "';"
 		//console.log("authUserTest sql: ", sql)
 		connection = await dbUtils.pool.getConnection()
 		let [rowUser] = await connection.query(sql)
@@ -360,7 +357,7 @@ module.exports.deleteUserByUserID = async function deleteUserByUserID(userId, re
  * @description Overwrites previous payload with refreshed data, checks permissions, and
  * @returns JWT token.
  */
-module.exports.generateJWT = async function (previousPayload, jwtSignOptions, user) {
+module.exports.generateJWT = async function (previousPayload, jwtSignOptions, user, req) {
 	//const findPermissionsByContract = util.promisify(Permission.findByContract);
 
 	// console.log("incoming user generateJWT...", user)

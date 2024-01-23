@@ -174,7 +174,7 @@ export class CollectionProcessingComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          console.log('Current user: ', this.user);
+          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
@@ -187,8 +187,8 @@ export class CollectionProcessingComponent implements OnInit {
               }))
             };
 
-            console.log("payload: ", this.payload);
-            this.getCollectionData(); // Adjusted function name
+            // console.log("payload: ", this.payload);
+            this.getCollectionData();
           }
         } else {
           console.error('User data is not available or user is not active');

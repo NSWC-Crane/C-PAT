@@ -54,8 +54,6 @@ exports.getLabels = async function getLabels(req, res, next) {
 }
 
 exports.getLabel = async function getLabel(req, res, next) {
-	// res.status(201).json({ message: "getPermissions_Collection (Service) Method called successfully" });
-
 	if (!req.params.labelId) {
 		console.info('getLabel labelId not provided.');
 		return next({

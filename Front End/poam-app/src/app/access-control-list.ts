@@ -13,27 +13,22 @@ import { NbAclOptions } from "@nebular/security";
 export const ACCESS_CONTROL_LIST: any = {
   accessControl: {
     owner: {
-      view: ['*'],
-      create: ['poam','asset','label','collection'],
+      view: ['poam', 'asset', 'label', 'collection'],
+      create: ['poam', 'asset', 'label', 'collection'],
       // delete: ['*'],
     },
     maintainer: {
-      view: ['*'],
-      create: ['poam'],
+      view: ['poam', 'asset', 'label', 'collection'],
+      create: ['poam', 'asset', 'label', 'collection'],
       // delete: ['*'],
     },
     approver: {
-      view: ['poam'],
-      approve: ['poam'],
+      view: ['poam', 'asset', 'label', 'collection'],
+      approve: ['poam', 'asset', 'label', 'collection'],
     },
     admin: {
-      view: ['*'],
-      create: ['*'],
-      // delete: ['*'],
-    },
-    dev: {
-      view: ['*'],
-      create: ['*'],
+      view: ['poam', 'asset', 'label', 'collection', 'user'],
+      create: ['poam', 'asset', 'label', 'collection', 'user'],
       // delete: ['*'],
     }
   }

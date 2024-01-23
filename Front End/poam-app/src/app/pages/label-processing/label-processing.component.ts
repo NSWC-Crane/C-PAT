@@ -112,7 +112,7 @@ export class LabelProcessingComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          console.log('Current user: ', this.user);
+          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
@@ -125,7 +125,7 @@ export class LabelProcessingComponent implements OnInit {
               }))
             };
 
-            console.log("payload: ", this.payload);
+            // console.log("payload: ", this.payload);
             this.getLabelData();
           }
         } else {

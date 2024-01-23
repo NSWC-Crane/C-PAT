@@ -73,11 +73,6 @@ export class PoamService {
 			.pipe(catchError(this.handleError));
 	}
 
-	getUsersForCollection(id: string) {
-		return this.http.get(`${this.uri}/permissions/collection/${id}`)
-			.pipe(catchError(this.handleError));
-	}
-
 	getAssetsForCollection(id: string) {
 		return this.http.get(`${this.uri}/assets/collection/${id}`)
 			.pipe(catchError(this.handleError));

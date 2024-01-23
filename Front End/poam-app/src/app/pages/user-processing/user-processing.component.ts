@@ -96,7 +96,7 @@ export class UserProcessingComponent implements OnInit {
     this.isLoggedIn = await this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
-        console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
+        // console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
         this.setPayload();
       }
   }
@@ -109,7 +109,7 @@ export class UserProcessingComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          console.log('Current user: ', this.user);
+          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
@@ -122,7 +122,7 @@ export class UserProcessingComponent implements OnInit {
               }))
             };
 
-            console.log("payload: ", this.payload);
+            // console.log("payload: ", this.payload);
 
             // Check if the user is an admin before calling getUserData
             if (this.user.isAdmin === 1) {
