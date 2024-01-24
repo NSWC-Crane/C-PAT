@@ -69,7 +69,7 @@
           </div>
 
           <div class="import-item">
-            <nb-select id="assetsSelect" placeholder="Select Assets" [(ngModel)]="selectedAssets" multiple>
+            <nb-select id="assetsSelect" placeholder="Select Assets" [(ngModel)]="selectedAssets" [disabled]="!selectedCollection" multiple>
               <nb-option *ngFor="let asset of availableAssets" [value]="asset.assetId">
                 {{ asset.name }}
               </nb-option>

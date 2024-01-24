@@ -37,7 +37,7 @@
     "jsonwebtoken": "^9.0.0",
     "keycloak-angular": "^14.1.0",
     "keycloak-js": "^21.1.1",
-    "ng2-charts": "^2.4.2",
+    "ng2-charts": "2.4.3",
     "ng2-completer": "^9.0.1",
     "ng2-smart-table": "^1.7.2",
     "ngx-infinite-scroll": "^14.0.0",

@@ -25,7 +25,7 @@ import { NbDialogRef } from '@nebular/theme';
       <nb-card-footer>
         <div style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;">
         <button nbButton style="margin-left: 10%;" outline  status='warning' (click)="cancel()" *ngIf="(options.cancelbutton == 'true');">cancel</button>
-        <button nbButton style="margin-left: 5%;"outline status="options.button.status" (click)="confirm()"> {{ options.button.text }} </button>
+        <button nbButton style="margin-left: 5%;" outline status="warning" (click)="confirm()"> {{ options.button.text }} </button>
         </div>
 
       </nb-card-footer>
@@ -36,6 +36,9 @@ export class ConfirmationDialogComponent {
 
   @Input()
   options!: ConfirmationDialogOptions;
+
+  title: string = '';
+  message: string = '';
 
   constructor(protected dialogRef: NbDialogRef<ConfirmationDialogComponent>) { }
 
