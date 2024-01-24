@@ -1,6 +1,6 @@
 import { Component, ViewChild, ElementRef, EventEmitter, OnDestroy, OnInit, Output, TemplateRef } from '@angular/core';
 import { AuthService } from './auth';
-import { NbMenuItem, NbSidebarService, NbThemeService, NbMenuService } from '@nebular/theme';
+import { NbDialogService, NbMenuItem, NbSidebarService, NbThemeService, NbMenuService } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { CollectionsService } from './pages/collection-processing/collections.service';
 import { UsersService } from './pages/user-processing/users.service';
@@ -17,7 +17,7 @@ import { FileUploadService } from './file-upload.service';
 import { Location } from '@angular/common';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
-import { Users } from './pages/user-processing/users.model';
+import { StatusDialogComponent } from './Shared/components/status-dialog/status-dialog.component';
 
 interface Permission {
   userId: number;
@@ -71,6 +71,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private cdr: ChangeDetectorRef,
+    private dialogService: NbDialogService,
     private readonly sidebarService: NbSidebarService,
     private menuService: NbMenuService,
     private themeService: NbThemeService,
@@ -353,31 +354,37 @@ export class AppComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length) {
       const file = input.files[0];
-
-      // Ensure you have the user and lastCollectionAccessedId
+  
       if (!this.user || !this.user.lastCollectionAccessedId) {
         console.error('User information or lastCollectionAccessedId is not available');
         return;
       }
-
+  
       const lastCollectionAccessedId = this.user.lastCollectionAccessedId.toString();
-
+  
+      // Open the status dialog and keep a reference to it
+      const dialogRef = this.dialogService.open(StatusDialogComponent, {
+        context: {
+          progress: 0, // Initial progress value
+          message: ''
+        }
+      });
+      
       this.fileUploadService.upload(file, lastCollectionAccessedId).subscribe(
         event => {
           if (event.type === HttpEventType.UploadProgress) {
-            const percentDone = event.loaded && event.total ? Math.round(100 * event.loaded / event.total) : 0;
-            console.log(`File is ${percentDone}% uploaded.`);
+            // Calculate the progress percentage
+            const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+            dialogRef.componentRef.instance.progress = progress;
           } else if (event instanceof HttpResponse) {
             console.log('File is completely uploaded!');
-
-            // Delay for 3 seconds and then refresh the page
-            setTimeout(() => {
-              window.location.reload();
-            }, 3000);
+            // Pass the completion status to the dialog
+            dialogRef.componentRef.instance.uploadComplete = true;
           }
         },
         error => {
           console.error('Error during file upload:', error);
+          dialogRef.componentRef.instance.message = 'An error occurred during upload.';
           // TODO: Implement error handling
         }
       );

@@ -115,7 +115,6 @@ export class AssetProcessingComponent implements OnInit {
   }
 
   onSubmit() {
-    // console.log("Attempting to onSubmit()...");
     this.resetData();
   }
 
@@ -131,16 +130,38 @@ export class AssetProcessingComponent implements OnInit {
 
   fetchCollections() {
     this.keycloak.getToken().then(token => {
-      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe(data => {
-        this.collections = data;
+      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe({
+        next: (data) => {
+          if (!data || data.length === 0) {
+            this.showPopup('No collections available to import. Please ensure you have access to view collections in STIG Manager.');
+          } else {
+            this.collections = data;
+          }
+        },
+        error: (error) => {
+          this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
+        }
       });
     });
   }
 
   fetchAssetsFromAPI() {
+    if (!this.selectedCollection || this.selectedCollection === '') {
+      return;
+    }
+  
     this.keycloak.getToken().then(token => {
-      this.sharedService.getAssetsFromSTIGMAN(this.selectedCollection, token).subscribe(data => {
-        this.availableAssets = data;
+      this.sharedService.getAssetsFromSTIGMAN(this.selectedCollection, token).subscribe({
+        next: (data) => {
+          if (!data || data.length === 0) {
+            this.showPopup('No assets found for the selected collection.');
+          } else {
+            this.availableAssets = data;
+          }
+        },
+        error: (error) => {
+          this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
+        }
       });
     });
   }
@@ -185,6 +206,21 @@ export class AssetProcessingComponent implements OnInit {
           next: (response) => console.log('Import successful', response),
           error: (error) => console.error('Error during import', error)
         });
+    });
+  }
+
+  showPopup(message: string) {
+    const dialogOptions: ConfirmationDialogOptions = {
+      header: 'Alert',
+      body: message,
+      button: { text: 'OK', status: 'info' },
+      cancelbutton: 'false'
+    };
+  
+    this.dialogService.open(ConfirmationDialogComponent, {
+      context: {
+        options: dialogOptions
+      }
     });
   }
 

@@ -12,8 +12,9 @@ import { NgModule } from '@angular/core';
 import { AsyncPipe, CommonModule, CurrencyPipe, DatePipe, DecimalPipe, PercentPipe } from '@angular/common';
 import { NotFoundComponent } from '../Shared/components/not-found/not-found.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
-import { NbCardModule, NbWindowModule, NbDialogModule, NbIconModule, NbLayoutModule,NbSidebarModule, NbThemeModule, 
-  NbSelectModule, NbSpinnerModule, NbAlertModule, NbTreeGridModule, NbRadioModule } from '@nebular/theme';
+import { StatusDialogComponent } from './components/status-dialog/status-dialog.component';
+import { NbButtonModule, NbCardModule, NbWindowModule, NbDialogModule, NbIconModule, NbLayoutModule, NbProgressBarModule,
+         NbSidebarModule, NbThemeModule, NbSelectModule, NbSpinnerModule, NbAlertModule, NbTreeGridModule, NbRadioModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { Ng2SmartTableModule } from 'ng2-smart-table';
 
@@ -21,15 +22,19 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
   declarations: [
     NotFoundComponent,
     ConfirmationDialogComponent,
+    StatusDialogComponent
   ],
   imports: [
     CommonModule,
     NbAlertModule,
+    NbButtonModule,
     NbCardModule,
     NbDialogModule,
+    NbDialogModule.forChild(),
     NbEvaIconsModule,
     NbIconModule,
     NbLayoutModule,
+    NbProgressBarModule,
     NbRadioModule,  
     NbSelectModule,
     NbSidebarModule,
@@ -52,5 +57,8 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
     PercentPipe,
     AsyncPipe,
   ],
+  entryComponents: [
+    StatusDialogComponent
+  ]
 })
 export class SharedModule { }

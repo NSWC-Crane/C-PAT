@@ -117,9 +117,33 @@ export class CollectionProcessingComponent implements OnInit {
 
   fetchCollections() {
     this.keycloak.getToken().then(token => {
-      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe(data => {
-        this.stigmanCollections = data;
+      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe({
+        next: (data) => {
+          if (!data || data.length === 0) {
+            this.showPopup('No collections available to import. Please ensure you have access to view collections in STIG Manager.');
+          } else {
+            this.collections = data;
+          }
+        },
+        error: (error) => {
+          this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
+        }
       });
+    });
+  }
+
+  showPopup(message: string) {
+    const dialogOptions: ConfirmationDialogOptions = {
+      header: 'Alert',
+      body: message,
+      button: { text: 'OK', status: 'primary' },
+      cancelbutton: 'false'
+    };
+  
+    this.dialogService.open(ConfirmationDialogComponent, {
+      context: {
+        options: dialogOptions
+      }
     });
   }
 
