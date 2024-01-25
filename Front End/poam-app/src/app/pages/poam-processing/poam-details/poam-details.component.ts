@@ -466,7 +466,6 @@ export class PoamDetailsComponent implements OnInit {
         approver.fullName = collectionApprover.fullName;
         approver.firstName = collectionApprover.firstName;
         approver.lastName = collectionApprover.lastName;
-        approver.phoneNumber = collectionApprover.phoneNumber;
         approver.userEmail = collectionApprover.userEmail;
 
         if (approver) {
@@ -765,7 +764,6 @@ export class PoamDetailsComponent implements OnInit {
       if (user) {
         approver.firstName = user.firstName;
         approver.lastName = user.lastName;
-        approver.phoneNumber = user.phoneNumber;
         approver.fullName = user.fullName;
         approver.userEmail = user.userEmail;
       }

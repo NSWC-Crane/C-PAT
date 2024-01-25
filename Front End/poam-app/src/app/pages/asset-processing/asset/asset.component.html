@@ -24,9 +24,9 @@
     <br />
     <div class="row">
       <nb-select fullWidth style="width: auto" outlineid="collectionId" name="collectionId" [(ngModel)]="asset.collectionId"
-                 placeholder="{{ tcollectionName }}" required>
+      placeholder="{{ tcollectionName }}" required>
         <nb-option *ngFor="let collection of collectionList" [value]="collection.collectionId">
-          {{ collection.collectionName }} - {{ collection.description }}
+          {{ collection.collectionName }}
         </nb-option>
       </nb-select>
     </div>

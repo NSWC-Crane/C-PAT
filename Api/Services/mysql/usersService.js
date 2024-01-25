@@ -93,7 +93,6 @@ exports.getCurrentUser = async function getCurrentUser(req) {
 				created: user.created,
 				lastAccess: user.lastAccess,
 				lastCollectionAccessedId: user.lastCollectionAccessedId,
-				phoneNumber: user.phoneNumber,
 				accountStatus: user.accountStatus,
 				fullName: user.fullName,
 				defaultTheme: user.defaultTheme,
@@ -147,7 +146,6 @@ exports.getUsers = async function getUsers(req, res, next) {
 				"created": rows[counter].created,
 				"lastAccess": rows[counter].lastAccess,
 				"lastCollectionAccessedId": rows[counter].lastCollectionAccessedId,
-				"phoneNumber": rows[counter].phoneNumber,
 				"accountStatus": rows[counter].accountStatus,
 				"fullName": rows[counter].fullName,
 				"defaultTheme": rows[counter].defaultTheme,
@@ -170,7 +168,7 @@ exports.getUserByNamePassword = async function getUserByNamePassword(username, c
 	/**
 	 * This User instance will be passed through authentication to the JWT.
 	 */
-	function loginObj(userId, userName, email, created, lastAccess, firstName, lastName, phoneNumber,
+	function loginObj(userId, userName, email, created, lastAccess, firstName, lastName,
 		lastCollectionAccessedId, defaultTheme) {
 		this.userId = userId
 		this.userName = userName,
@@ -179,7 +177,6 @@ exports.getUserByNamePassword = async function getUserByNamePassword(username, c
 			this.lastAccess = lastAccess,
 			this.firstName = firstName,
 			this.lastName = lastName,
-			this.phoneNumber = phoneNumber,
 			this.lastCollectionAccessedId = lastCollectionAccessedId,
 			this.defaultTheme = defaultTheme,
 			this.isAdmin = isAdmin
@@ -203,7 +200,6 @@ exports.getUserByNamePassword = async function getUserByNamePassword(username, c
 			(rowUser[0].lastAcces) ? rowUser[0].lastAcces : '',
 			rowUser[0].firstName,
 			rowUser[0].lastName,
-			rowUser[0].phoneNumber,
 			rowUser[0].lastCollectionAccessedId,
 			rowUser[0].defaultTheme,
 			rowUser[0].isAdmin
@@ -261,7 +257,6 @@ exports.updateUser = async function updateUser(req, res, next) {
 			"', lastName = '" + req.body.lastName +
 			"', userEmail = '" + req.body.userEmail +
 			"', lastCollectionAccessedId = '" + req.body.lastCollectionAccessedId +
-			"', phoneNumber = '" + req.body.phoneNumber +
 			"', accountStatus = '" + req.body.accountStatus +
 			"', fullName = '" + req.body.firstName + " " + req.body.lastName +
 			"', defaultTheme = '" + req.body.defaultTheme +
@@ -367,7 +362,6 @@ module.exports.generateJWT = async function (previousPayload, jwtSignOptions, us
 		email: user.email,
 		firstName: user.firstName,
 		lastName: user.lastName,
-		phoneNumber: user.phoneNumber,
 		created: user.created,
 		lastAccess: user.lastAccess,
 		lastCollectionAccessedId: user.lastCollectionAccessedId,

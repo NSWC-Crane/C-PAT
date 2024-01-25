@@ -311,7 +311,6 @@ export class CollectionProcessingComponent implements OnInit {
                 approver.fullName = user.fullName;
                 approver.firstName = user.firstName;
                 approver.lastName = user.lastName;
-                approver.phoneNumber = user.phoneNumber;
                 approver.userEmail = user.userEmail;
 
                 if (approver) {

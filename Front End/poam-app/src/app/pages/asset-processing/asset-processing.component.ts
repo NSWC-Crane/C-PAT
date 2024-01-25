@@ -9,7 +9,7 @@
 */
 
 import { HttpClient } from '@angular/common/http';
-import { Component, HostListener, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { SharedService } from '../../Shared/shared.service';
 import { AssetService } from './assets.service';
 import { forkJoin, Observable } from 'rxjs';
@@ -59,7 +59,8 @@ interface FSEntry {
   templateUrl: './asset-processing.component.html',
   styleUrls: ['./asset-processing.component.scss']
 })
-export class AssetProcessingComponent implements OnInit {
+export class AssetProcessingComponent implements OnInit, AfterViewInit {
+  @ViewChild('assetScrollListener', { read: ElementRef }) select!: ElementRef;
   offset = 0;
   limit = 50;
   isListFull = false;
@@ -119,13 +120,29 @@ export class AssetProcessingComponent implements OnInit {
   }
 
   async ngOnInit() {
+    this.fetchCollections();
+    this.getAssetData();
     this.isLoggedIn = await this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
-      this.fetchCollections();
       this.setPayload();
-      this.getAssetData();
     }
+  }
+
+  ngAfterViewInit() {
+    this.select.nativeElement.addEventListener('click', () => {
+      setTimeout(() => {
+        const dropdownPanel = this.getSelectPanel();
+        if (dropdownPanel) {
+          dropdownPanel.addEventListener('scroll', (event) => this.onScroll(event));
+        }
+      }, 0);
+    });
+  }
+
+  getSelectPanel(): HTMLElement | null {
+    const dropdownPanel = document.querySelector('.option-list');
+    return dropdownPanel as HTMLElement;
   }
 
   fetchCollections() {
@@ -259,6 +276,7 @@ export class AssetProcessingComponent implements OnInit {
   }
 
   getAssetData(loadMore = false) {
+    
     // If the end of the list is reached, do not load more data
     if (this.isListFull) {
       return;
@@ -273,11 +291,19 @@ export class AssetProcessingComponent implements OnInit {
 
     if (this.payload == undefined) return;
 
-    // Fetch only assets with pagination
     this.subs.sink = this.assetService.getAssets(this.offset, this.limit)
       .subscribe((assetData: any) => {
         // Append new assets if loading more, else replace
         this.assets = loadMore ? [...this.assets, ...assetData.assets] : assetData.assets;
+
+        this.data = this.assets.map((asset: any) => ({
+          assetId: asset.assetId,
+          assetName: asset.assetName,
+          description: asset.description,
+          collectionId: asset.collectionId,
+          ipAddress: asset.ipAddress,
+          macAddress: asset.macAddress,
+        }));
 
         // Check if the end of the list is reached
         if (assetData.assets.length < this.limit) {
@@ -305,6 +331,7 @@ export class AssetProcessingComponent implements OnInit {
         children: [],
         expanded: true
       };
+      console.log(this.data, this.asset.data, this.data.asset);
     });
 
     this.dataSource = this.dataSourceBuilder.create(treeNodes);
@@ -343,8 +370,8 @@ export class AssetProcessingComponent implements OnInit {
     let selectedData = this.data.filter((asset: { assetId: any; }) => asset.assetId === assetId)
 
     this.asset = selectedData[0];
-    // console.log("asset: ", this.asset);
-    // console.log("assetss: ", this.assets);
+    //console.log("asset: ", this.asset);
+    //console.log("assets: ", this.assets);
     this.allowSelectAssets = false;
   }
 

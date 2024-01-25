@@ -18,7 +18,6 @@ CREATE TABLE `poamtracking`.`user` (
    `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
    `lastAccess` datetime DEFAULT NULL,
    `lastCollectionAccessedId` int NOT NULL DEFAULT '0',
-   `phoneNumber` varchar(15) DEFAULT NULL,
    `accountStatus` varchar(45) NOT NULL DEFAULT 'Pending',
    `fullName` varchar(225) DEFAULT NULL,
    `defaultTheme` varchar(20) DEFAULT 'dark',

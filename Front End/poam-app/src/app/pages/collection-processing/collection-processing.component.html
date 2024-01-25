@@ -46,24 +46,25 @@
   <div class="row">
     <div class="col-md-10">
       <nb-card>
-        <nb-card-body>
-          <label style="width:fit-content" for="collection">Select Collection to Modify/Delete</label>
-
+          <nb-card-header>Select Collection to Modify/Delete</nb-card-header>
+          <nb-card-body>
           <div class="row" *ngIf="allowSelectCollections">
 
             <div class="col-md-5" style="width: auto;">
               <nb-select fullWidth style="width: auto" outlineid="collectionid" name="collection"
-                         [(ngModel)]="collection.collectionId" (selectedChange)="setCollection($event)" placeholder="collection"
+                         [(ngModel)]="collection.collectionId" (selectedChange)="setCollection($event)" placeholder="Select Collection"
                          required>
                 <nb-option *ngFor="let collection of data" [value]="collection.collectionId">
                   {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
                 </nb-option>
               </nb-select>
             </div>
+
             <div class="col-md-5" style="width: auto;">
               <button nbButton outline status="info" style="float: right;" (click)="addCollection()">Add Collection</button>
-            </div>
+            </div>            
           </div>
+          
           <div [ngStyle]="hideCollectionEntry">
             <div *ngIf="collectionApprovers.length > 0">
               <ngx-collection [collection]="collection" [collections]="collections"

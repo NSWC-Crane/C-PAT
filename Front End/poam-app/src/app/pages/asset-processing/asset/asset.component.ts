@@ -18,6 +18,32 @@ import { AuthService } from '../../../auth';
 import { NbAuthJWTToken, NbAuthToken } from '@nebular/auth';
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
 
+interface Label {
+  labelId?: number;
+  labelName?: string;
+  description?: string;
+  poamCount?: number;
+}
+
+interface LabelsResponse {
+  labels: Label[];
+}
+
+interface Collection {
+  data: any;
+  collectionId?: number;
+  collectionName?: string;
+  description?: string;
+  created?: string;
+  grantCount?: number;
+  assetCount?: number;
+  poamCount?: number;
+}
+
+interface CollectionsResponse {
+  collections: Collection[];
+}
+
 @Component({
   selector: 'ngx-asset',
   templateUrl: './asset.component.html',
@@ -97,19 +123,7 @@ export class AssetComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // this.subs.sink = this.authService.onTokenChange()
-    // .subscribe((token: NbAuthJWTToken) => {
-    //   //if (token.isValid() && this.router.url === '/pages/collection-processing') {
-    //     if (token.isValid()) {
-    //     this.isLoading = true;
-    //     this.payload = token.getPayload();
-
-    //     this.data = [];
-    //     this.data = this.asset;
-    //     this.getData();
-
-    //   }
-    // })
+    if (this.payload === undefined) return;
         this.data = [];
         this.data = this.asset;
         this.getData();
@@ -165,46 +179,68 @@ export class AssetComponent implements OnInit {
   }
 
   getData() {
-    if (this.payload == undefined) return;
-    let userName = this.payload.userName ? this.payload.userName : "NONE";
-    this.subs.sink = forkJoin(
-      this.assetService.getLabels(),
-      this.assetService.getCollections(userName),
-    )
-    .subscribe(([labels, collections]: any) => {
+    this.getLabelData();
+    this.getCollectionData();
+    this.isLoading = false;
+  
+    if (this.asset.assetId !== "ADDASSET") {
+      this.getAssetLabels();
+    }
+  }
+  
+  getLabelData() {
+    this.subs.sink = this.assetService.getLabels().subscribe((labels: any) => {
       this.labelList = labels.labels;
+      this.updateLabelEditorConfig();
+    });
+  }
+  
+  getCollectionData() {
+    let userName = this.payload.userName;
+    this.subs.sink = this.assetService.getCollections(userName).subscribe((collections: any) => {
       this.collectionList = collections.collections;
-      this.assetLabels = [];
-  
-      let settings = this.assetLabelsSettings;
-      if (settings.columns['labelId']?.editor?.type === 'list' && settings.columns['labelId'].editor.config) {
-        let editorConfig = settings.columns['labelId'].editor.config as ListEditorSettings;
-        editorConfig.list = this.labelList.map((label: any) => ({
-          title: label.labelName,
-          value: label.labelId
-        }));
-        this.assetLabelsSettings = Object.assign({}, settings);
-      }
-      this.isLoading = false;
-  
-      if (this.asset.assetId != "ADDASSET") {
-        this.subs.sink = this.assetService.getAssetLabels(this.asset.assetId).subscribe((assetLabels: any) => {
-          this.assetLabels = assetLabels.assetLabels;
-          this.collection = this.setCollection(this.asset.collectionId);
-        });
+      if (this.asset.collectionId) {
+        this.setCollection(this.asset.collectionId);
       }
     });
   }
+  
+  getAssetLabels() {
+    this.subs.sink = this.assetService.getAssetLabels(this.asset.assetId).subscribe((assetLabels: any) => {
+      this.assetLabels = assetLabels.assetLabels;
+    });
+  }
+  
+  updateLabelEditorConfig() {
+    let settings = this.assetLabelsSettings;
+    let labelListValues = this.labelList.map((label: any) => ({
+      title: label.labelName,
+      value: label.labelId
+    }));
+  
+    if (settings.columns['labelId']?.editor?.type === 'list' && settings.columns['labelId'].editor.config) {
+      let editorConfig = settings.columns['labelId'].editor.config as ListEditorSettings;
+      editorConfig.list = labelListValues;
+      this.assetLabelsSettings = Object.assign({}, settings);
+    } else {
+      console.error('Editor configuration for labelId is not set or not of type list');
+    }
+  }  
 
   setCollection(collectionId: any) {
     this.collection = null;
-    //console.log("setCollection collectionId: ", collectionId)
-    // console.log("setCollection collectionList: ", this.collectionList)
-    let selectedData = this.collectionList.find((collections: { collectionId: any; }) => collections.collectionId === collectionId)
+    this.tcollectionName = '';
 
-    this.collection = selectedData;
-    this.tcollectionName= this.collection.collectionName;
+    let selectedData = this.collectionList.find((collection: { collectionId: any; }) => collection.collectionId === collectionId);
+  
+    if (selectedData) {
+      this.collection = selectedData;
+      this.tcollectionName = this.collection.collectionName;
+    } else {
+      console.error(`Collection with ID ${collectionId} not found.`);
+    }
   }
+  
 
   confirmCreate(event: any) {
     // console.log("Attempting to confirmCreate()...");

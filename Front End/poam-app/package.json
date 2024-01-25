@@ -36,6 +36,7 @@
     "express": "^4.18.2",
     "express-jwt": "^8.4.1",
     "jquery": "^3.7.1",
+    "jsdom": "^16.7.0",
     "jsonwebtoken": "^9.0.2",
     "keycloak-angular": "^14.1.0",
     "keycloak-js": "^21.1.1",
@@ -52,7 +53,7 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^16.2.12",
-    "@angular/cli": "~16.2.12",
+    "@angular/cli": "^16.2.12",
     "@angular/compiler-cli": "^16.2.12",
     "@schematics/angular": "^16.2.12",
     "@types/jasmine": "^5.1.4",

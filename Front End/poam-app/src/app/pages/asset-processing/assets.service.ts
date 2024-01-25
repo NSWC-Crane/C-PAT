@@ -73,13 +73,11 @@ export class AssetService {
   }
 
   getCollections(userName: string) {
+    const url = `${this.uri}/collections/${userName}`;
     // console.log("Collections Service Call attempted: getCollections()...");
-    let params = new HttpParams()
-    //let myName = { userName: userName}
-    params = params.append("userName", userName)
     return this.http
-          .get(`${this.uri}/collections/`,  { params } )
-          .pipe(catchError(this.handleError));
+      .get(url)
+      .pipe(catchError(this.handleError));
   }
 
   postAssetLabel(assetLabel: any) {

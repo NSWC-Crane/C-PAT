@@ -27,10 +27,6 @@
       <label for="email">*Email: </label>
       <input nbInput type="text" fullWidth name="email" [(ngModel)]="user.userEmail" placeholder="email">
 
-      <label for="phoneNumber" style="padding-top: 15px;">Phone: </label>
-      <!-- <input nbInput type="text" fullWidth name="phoneNumber" [(ngModel)]="user.phoneNumber" disabled="true" readonly> -->
-      <input nbInput type="text" fullWidth name="phoneNumber" [(ngModel)]="user.phoneNumber">
-
       <label for="accountStatus" style="padding-top: 15px;">Status: </label>
       <nb-select outline status="info" placeholder="Select Status" [(ngModel)]="user.accountStatus" name="accountStatus">
         (ngModelChange)='onSelectedThemeChange($event)'>

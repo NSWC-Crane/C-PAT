@@ -69,7 +69,7 @@ exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(req, 
         try {
                 let connection
                 connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT t1.userId, t2.firstName, t2.lastName, t2.fullName, t2.phoneNumber, t2.userEmail, t1.poamId, t3.description " +
+                let sql = "SELECT t1.userId, t2.firstName, t2.lastName, t2.fullName, t2.userEmail, t1.poamId, t3.description " +
                         "FROM  poamtracking.poamassignees t1 " +
                         "INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId " +
                         "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
