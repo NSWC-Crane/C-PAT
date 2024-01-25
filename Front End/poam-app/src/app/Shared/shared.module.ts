@@ -16,13 +16,13 @@ import { StatusDialogComponent } from './components/status-dialog/status-dialog.
 import { NbButtonModule, NbCardModule, NbWindowModule, NbDialogModule, NbIconModule, NbLayoutModule, NbProgressBarModule,
          NbSidebarModule, NbThemeModule, NbSelectModule, NbSpinnerModule, NbAlertModule, NbTreeGridModule, NbRadioModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
-import { Ng2SmartTableModule } from 'ng2-smart-table';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
 
 @NgModule({
   declarations: [
     NotFoundComponent,
     ConfirmationDialogComponent,
-    StatusDialogComponent
+    StatusDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -42,7 +42,7 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
     NbTreeGridModule,
     NbThemeModule,
     NbWindowModule.forChild(),
-    Ng2SmartTableModule, 
+    Angular2SmartTableModule, 
   ],
   exports: [
     NotFoundComponent,
@@ -56,9 +56,6 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
     DecimalPipe,
     PercentPipe,
     AsyncPipe,
-  ],
-  entryComponents: [
-    StatusDialogComponent
   ]
 })
 export class SharedModule { }

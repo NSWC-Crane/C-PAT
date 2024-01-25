@@ -4,7 +4,7 @@ import { NbDialogService, NbMenuItem, NbSidebarService, NbThemeService, NbMenuSe
 import { Router } from '@angular/router';
 import { CollectionsService } from './pages/collection-processing/collections.service';
 import { UsersService } from './pages/user-processing/users.service';
-import { TreeviewConfig, TreeviewItem } from 'ngx-treeview';
+import { TreeviewConfig, TreeviewItem } from '@soy-andrey-semyonov/ngx-treeview';
 import { SubSink } from 'subsink';
 import { PoamService } from '../app/pages/poam-processing/poams.service'
 import { Observable, Subject, forkJoin, takeUntil } from 'rxjs';
@@ -58,6 +58,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public detailedPoam: any;
 
   dropdownConfig: TreeviewConfig = {
+    allowSingleSelection: true,
     hasAllCheckBox: false,
     hasFilter: true,
     hasCollapseExpand: true,

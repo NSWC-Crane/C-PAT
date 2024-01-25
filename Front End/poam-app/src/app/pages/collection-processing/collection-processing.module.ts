@@ -17,7 +17,7 @@ import { SharedModule } from '../../Shared/shared.module';
 import { CollectionComponent } from './collection/collection.component';
 import { ConfirmationDialogComponent } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NbButtonModule, NbCardModule, NbIconModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule } from '@nebular/theme';
-import { Ng2SmartTableModule } from 'ng2-smart-table';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { CsvDataService } from 'src/app/Shared/utils/cvs-data.service';
 
 @NgModule({
@@ -36,13 +36,8 @@ import { CsvDataService } from 'src/app/Shared/utils/cvs-data.service';
     NbSelectModule,
     NbSpinnerModule,
     NbTreeGridModule,
-    Ng2SmartTableModule,
+    Angular2SmartTableModule,
     SharedModule, 
-  ],
-  entryComponents: [
-    ConfirmationDialogComponent,
-    CsvDataService
-
   ]
 })
 export class CollectionProcessingModule { }

@@ -26,7 +26,7 @@ import { NbAuthModule } from "@nebular/auth";
 import { RegisterComponent } from "./register/register.component";
 import { LoginComponent } from './login/login.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
-import { Ng2SmartTableModule } from 'ng2-smart-table';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
 
 @NgModule({
   declarations: [RegisterComponent, LoginComponent, ResetPasswordComponent],
@@ -45,7 +45,7 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
     AuthRoutingModule,
     NbAuthModule,
     NbSpinnerModule,
-    Ng2SmartTableModule,
+    Angular2SmartTableModule,
   ]
 })
 export class AuthModule {}
