@@ -17,7 +17,7 @@ import { SharedModule } from '../../Shared/shared.module';
 import { LabelComponent } from './label/label.component';
 import { ConfirmationDialogComponent } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NbButtonModule, NbCardModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule } from '@nebular/theme';
-import { Ng2SmartTableModule } from 'ng2-smart-table';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
 
 @NgModule({
   declarations: [
@@ -34,15 +34,11 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
     NbSelectModule,
     NbSpinnerModule,
     NbTreeGridModule,
-    Ng2SmartTableModule,
+    Angular2SmartTableModule,
     SharedModule, 
   ],
   exports: [
     // BilletTaskProcessComponent,
-  ],
-  entryComponents: [
-    ConfirmationDialogComponent,
-
   ]
 })
 export class LabelProcessingModule { }

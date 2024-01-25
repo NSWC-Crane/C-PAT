@@ -21,7 +21,13 @@
       </div>
       <hr />
       <div class="canvas" id="canvas">
-        <canvas baseChart class="poam-chart" id='chartDiv' [chartType]="'bar'" [datasets]="chartData" [options]="backoptions"></canvas>
+        <canvas baseChart 
+                class="poam-chart" 
+                id='chartDiv' 
+                [type]="'bar'" 
+                [datasets]="chartData" 
+                [options]="backoptions">
+        </canvas>
       </div>
       <hr />
       <div class="row">

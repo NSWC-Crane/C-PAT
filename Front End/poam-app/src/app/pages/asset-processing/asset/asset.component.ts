@@ -16,6 +16,7 @@ import { forkJoin, Observable } from 'rxjs';
 import { AssetService } from '../assets.service'
 import { AuthService } from '../../../auth';
 import { NbAuthJWTToken, NbAuthToken } from '@nebular/auth';
+import { ListEditorSettings, Settings } from 'angular2-smart-table';
 
 @Component({
   selector: 'ngx-asset',
@@ -40,7 +41,7 @@ export class AssetComponent implements OnInit {
   modalWindow: NbWindowRef | undefined
   dialog!: TemplateRef<any>;
 
-  assetLabelsSettings = {
+  assetLabelsSettings: Settings = {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
@@ -61,7 +62,6 @@ export class AssetComponent implements OnInit {
       add: true,
       edit: false,
       delete: true,
-      create: true,
     },
     columns: {
       labelId: {
@@ -78,11 +78,9 @@ export class AssetComponent implements OnInit {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [],
           },
         },
-        filter: false
       },
     },
     hideSubHeader: false,
@@ -167,44 +165,35 @@ export class AssetComponent implements OnInit {
   }
 
   getData() {
-     // console.log("payload: ", this.payload)
     if (this.payload == undefined) return;
-    //console.log("HIGH  within user.getData() user: ", this.user)
-    // console.log("payload: ", this.payload)
-    let userName = (this.payload.userName) ? this.payload.userName : "NONE";
+    let userName = this.payload.userName ? this.payload.userName : "NONE";
     this.subs.sink = forkJoin(
       this.assetService.getLabels(),
-      this.assetService.getCollections(userName),      
+      this.assetService.getCollections(userName),
     )
-      .subscribe(([labels, collections]: any) => {
-        // console.log("collections: ", collections)
-        this.labelList = labels.labels;
-        this.collectionList = collections.collections;
-        this.assetLabels = [];
-        //console.log("labelList: ", this.labelList)
-        // console.log("collectionList: ", this.collectionList)
-
-        let settings = this.assetLabelsSettings;
-        settings.columns.labelId.editor.config.list = this.labelList.map((label: any) => {
-          // console.log("label: ",label)
-          return {
-            title: label.labelName,
-            value: label.labelId
-          }
-        });
-
+    .subscribe(([labels, collections]: any) => {
+      this.labelList = labels.labels;
+      this.collectionList = collections.collections;
+      this.assetLabels = [];
+  
+      let settings = this.assetLabelsSettings;
+      if (settings.columns['labelId']?.editor?.type === 'list' && settings.columns['labelId'].editor.config) {
+        let editorConfig = settings.columns['labelId'].editor.config as ListEditorSettings;
+        editorConfig.list = this.labelList.map((label: any) => ({
+          title: label.labelName,
+          value: label.labelId
+        }));
         this.assetLabelsSettings = Object.assign({}, settings);
-        this.isLoading = false;
-
-        if (this.asset.assetId != "ADDASSET") {
-          this.subs.sink = this.assetService.getAssetLabels(this.asset.assetId).subscribe((assetLabels: any) => {
-            // console.log("assetLabels: ",assetLabels)
-            this.assetLabels = assetLabels.assetLabels;
-            this.collection = this.setCollection(this.asset.collectionId);
-          })
-        }
-      });
-
+      }
+      this.isLoading = false;
+  
+      if (this.asset.assetId != "ADDASSET") {
+        this.subs.sink = this.assetService.getAssetLabels(this.asset.assetId).subscribe((assetLabels: any) => {
+          this.assetLabels = assetLabels.assetLabels;
+          this.collection = this.setCollection(this.asset.collectionId);
+        });
+      }
+    });
   }
 
   setCollection(collectionId: any) {

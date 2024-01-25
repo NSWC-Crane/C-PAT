@@ -14,6 +14,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { UsersService } from '../../pages/user-processing/users.service';
 import { CollectionsService } from '../../pages/collection-processing/collections.service';
 import { forkJoin } from "rxjs";
+import { Cell, ListEditorSettings, Settings } from "angular2-smart-table";
 
 @Component({
   selector: "ngx-register",
@@ -37,7 +38,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   collectionPermissions: any[] = [];
   data: any = [];
 
-  collectionPermissionsSettings = {
+  collectionPermissionsSettings: Settings = {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
@@ -58,29 +59,22 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
       add: true,
       edit: true,
       delete: true,
-      create: true,
+      position: 'right',
     },
     columns: {
       collectionId: {
         title: '*Collection',
         type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          // if (row.collectionId) console.log("row: ", row);
-          // if (_cell) console.log("cell: ", _cell);
-          var collection = (row.collectionId != undefined && row.collectionId != null) ? this.collectionList.find((tl: any) => tl.collectionId === +row.collectionId) : null;
-          return (collection)
-            ? collection.collectionName
-            : row.collectionId;
-        }
-        ,
+        valuePrepareFunction: (cellValue: any, cell: Cell) => {
+          var collection = this.collectionList.find((tl: any) => tl.collectionId === +cellValue);
+          return (collection) ? collection.collectionName : cellValue;
+        },
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [],
           },
         },
-        filter: false
       }
     },
     hideSubHeader: false,
@@ -116,17 +110,22 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
   setCollectionName() {
     let settings = this.collectionPermissionsSettings;
-    settings.columns.collectionId.editor.config.list = [];
-    this.collectionPermissionsSettings = Object.assign({}, settings);
-    settings.columns.collectionId.editor.config.list = this.collectionList.map((collection: any) => {
-      console.log("collection: ", collection)
-      return {
-        title: collection.collectionName,
-        value: collection.collectionId
-      }
-    });
-
-    this.collectionPermissionsSettings = Object.assign({}, settings);
+    // Use index signature syntax to access 'collectionId'
+    let collectionIdSettings = settings.columns['collectionId'];
+    // Check if 'editor' and 'config' are defined and if 'config' is of type 'ListEditorSettings'
+    if (collectionIdSettings.editor && collectionIdSettings.editor.type === 'list') {
+      let editorConfig = collectionIdSettings.editor.config as ListEditorSettings;
+      editorConfig.list = [];
+      this.collectionPermissionsSettings = Object.assign({}, settings);
+      editorConfig.list = this.collectionList.map((collection: any) => {
+        console.log("collection: ", collection);
+        return {
+          title: collection.collectionName,
+          value: collection.collectionId
+        };
+      });
+      this.collectionPermissionsSettings = Object.assign({}, settings);
+    }
   }
 
   confirmEdit(event: any) {

@@ -9,6 +9,8 @@
 */
 .poam-chart {
   overflow: hidden;
+  height: 50vh;
+  width: 100vw;
 }
 
 hr {
@@ -19,7 +21,4 @@ hr {
   margin: 1em 0;
   padding: 0;
 }
-.canvas {
-    height: 50vh;
-    width: 100vw;
-}
+

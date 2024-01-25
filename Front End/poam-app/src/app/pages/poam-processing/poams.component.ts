@@ -15,11 +15,12 @@ import { PoamService } from './poams.service';
 import { AuthService } from '../../auth';
 import { forkJoin } from 'rxjs';
 import { NbAuthJWTToken } from '@nebular/auth';
-import { TreeviewItem, TreeviewConfig, TreeviewI18n, DefaultTreeviewI18n } from 'ngx-treeview';
+import { TreeviewItem, TreeviewConfig, TreeviewI18n, DefaultTreeviewI18n } from '@soy-andrey-semyonov/ngx-treeview';
 import { Router } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../user-processing/users.service'
+
 interface Permission {
   userId: number;
   collectionId: number;
@@ -91,6 +92,7 @@ export class PoamsComponent implements OnInit {
   items: any;
 
   config: TreeviewConfig = {
+    allowSingleSelection: true,
     hasAllCheckBox: false,
     hasFilter: false,
     hasCollapseExpand: false,
@@ -100,6 +102,7 @@ export class PoamsComponent implements OnInit {
   };
 
   dropdownConfig: TreeviewConfig = {
+    allowSingleSelection: true,
     hasAllCheckBox: false,
     hasFilter: true,
     hasCollapseExpand: true,
@@ -177,9 +180,8 @@ export class PoamsComponent implements OnInit {
         this.chartData.push({ data: [item.statusCount], label: item.status })
       });
 
-      //console.log("chartData: ", this.chartData)
+      console.log("chartData: ", this.chartData)
     }
-
   }
 
   addPoam() {
@@ -267,29 +269,25 @@ export class PoamsComponent implements OnInit {
               }
             },
             scales: {
-              xAxes: [
-                {
-                  gridLines: {
-                    display: true,
-                    color: chartjs.axisLineColor
-                  },
-                  ticks: {
-                    fontColor: chartjs.textColor
-                  }
+              x: {
+                grid: {
+                  display: true,
+                  color: chartjs.axisLineColor
+                },
+                ticks: {
+                  fontColor: chartjs.textColor
                 }
-              ],
-              yAxes: [
-                {
-                  gridLines: {
-                    display: false,
-                    color: chartjs.axisLineColor
-                  },
-                  ticks: {
-                    fontColor: chartjs.textColor,
-                    beginAtZero: true
-                  }
+              },
+              y: {
+                grid: {
+                  display: false,
+                  color: chartjs.axisLineColor
+                },
+                ticks: {
+                  fontColor: chartjs.textColor,
+                  beginAtZero: true
                 }
-              ]
+              }
             },
           };
         });

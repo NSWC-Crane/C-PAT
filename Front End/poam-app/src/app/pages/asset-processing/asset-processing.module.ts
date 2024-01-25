@@ -17,7 +17,7 @@ import { SharedModule } from '../../Shared/shared.module';
 import { AssetComponent } from './asset/asset.component';
 import { ConfirmationDialogComponent } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NbButtonModule, NbInputModule, NbCardModule,NbLayoutModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbIconModule } from '@nebular/theme';
-import { Ng2SmartTableModule } from 'ng2-smart-table';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 
 @NgModule({
@@ -38,16 +38,12 @@ import { InfiniteScrollModule } from 'ngx-infinite-scroll';
     NbSelectModule,
     NbSpinnerModule,
     NbTreeGridModule,
-    Ng2SmartTableModule,
+    Angular2SmartTableModule,
     SharedModule,
    
   ],
   exports: [
     // BilletTaskProcessComponent,
-  ],
-  entryComponents: [
-    ConfirmationDialogComponent,
-
   ]
 })
 export class AssetProcessingModule { }

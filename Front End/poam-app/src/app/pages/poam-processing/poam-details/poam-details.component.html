@@ -110,9 +110,9 @@
           <nb-step label=">Assignees">
             <label style="margin-left: 40%;">Assignees</label>
             <div class="col">
-              <ng2-smart-table [settings]="poamAssigneesSettings" [source]="poamAssignees" mode="inline"
+              <angular2-smart-table [settings]="poamAssigneesSettings" [source]="poamAssignees" mode="inline"
                                (createConfirm)="confirmCreate($event)" (deleteConfirm)="confirmDelete($event)">
-              </ng2-smart-table>
+              </angular2-smart-table>
             </div>
             <br>
             <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
@@ -123,9 +123,9 @@
             <br>
             <label style="margin-left: 40%;">Approvers</label>
             <div class="col">
-              <ng2-smart-table [settings]="poamApproverSettings" [source]="poamApprovers"
+              <angular2-smart-table [settings]="poamApproverSettings" [source]="poamApprovers"
                                (createConfirm)="confirmCreateApprover($event)" (editConfirm)="confirmEditApprover($event)" (deleteConfirm)="confirmDeleteApprover($event)">
-              </ng2-smart-table>
+              </angular2-smart-table>
             </div>
             <br>
             <br>
@@ -135,9 +135,9 @@
           <nb-step label=">Assets">
             <label style="margin-left: 40%;">Assets</label>
             <div class="col">
-              <ng2-smart-table [settings]="poamAssetsSettings" [source]="poamAssets" mode="inline"
+              <angular2-smart-table [settings]="poamAssetsSettings" [source]="poamAssets" mode="inline"
                                (createConfirm)="confirmCreate($event)" (deleteConfirm)="confirmDelete($event)">
-              </ng2-smart-table>
+              </angular2-smart-table>
             </div>
             <br>
             <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>

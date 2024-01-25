@@ -15,6 +15,7 @@ import { SubSink } from 'subsink';
 import { forkJoin, Observable } from 'rxjs';
 import { UsersService } from '../users.service'
 import { CollectionsService } from '../../collection-processing/collections.service'
+import { ListEditorSettings, Settings } from 'angular2-smart-table';
 
 interface Permission {
   userId: number;
@@ -50,7 +51,7 @@ export class UserComponent implements OnInit {
   modalWindow: NbWindowRef | undefined
   dialog!: TemplateRef<any>;
 
-  collectionPermissionsSettings = {
+  collectionPermissionsSettings: Settings = {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
@@ -71,7 +72,6 @@ export class UserComponent implements OnInit {
       add: true,
       edit: true,
       delete: true,
-      create: true,
     },
     columns: {
       collectionId: {
@@ -83,11 +83,9 @@ export class UserComponent implements OnInit {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [],
           },
         },
-        filter: false
       },
       canOwn: {
         title: 'Can Own',
@@ -98,14 +96,12 @@ export class UserComponent implements OnInit {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [
-              { value: 1, title: 'True' },
-              { value: 0, title: 'False' }
+              { value: '1', title: 'True' },
+              { value: '0', title: 'False' }
             ],
           },
         },
-        filter: false,
       },
       canMaintain: {
         title: 'Can Maintain',
@@ -117,14 +113,12 @@ export class UserComponent implements OnInit {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [
-              { value: 1, title: 'True' },
-              { value: 0, title: 'False' }
+              { value: '1', title: 'True' },
+              { value: '0', title: 'False' }
             ],
           },
         },
-        filter: false,
       },
       canApprove: {
         title: 'Can Approve',
@@ -135,14 +129,12 @@ export class UserComponent implements OnInit {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [
-              { value: 1, title: 'True' },
-              { value: 0, title: 'False' }
+              { value: '1', title: 'True' },
+              { value: '0', title: 'False' }
             ],
           },
         },
-        filter: false,
       },
     },
     hideSubHeader: false,
@@ -224,11 +216,20 @@ export class UserComponent implements OnInit {
 
   private updateCollectionSettings(): void {
     let settings = this.collectionPermissionsSettings;
-    settings.columns.collectionId.editor.config.list = this.collectionList.map((collection: any) => ({
-      title: collection.title,
-      value: collection.value
-    }));
-    this.collectionPermissionsSettings = { ...settings };
+    // Use index signature syntax to access 'collectionId'
+    let collectionIdSettings = settings.columns['collectionId'];
+    // Check if 'editor' and 'config' are defined and if 'config' is of type 'ListEditorSettings'
+    if (collectionIdSettings.editor && collectionIdSettings.editor.type === 'list') {
+      let editorConfig = collectionIdSettings.editor.config as ListEditorSettings;
+      editorConfig.list = this.collectionList.map((collection: any) => ({
+        title: collection.title,
+        value: collection.value
+      }));
+      // Use Object.assign to ensure a new object reference is created
+      this.collectionPermissionsSettings = Object.assign({}, settings);
+    } else {
+      console.error('Editor configuration for collectionId is not set or not of type list');
+    }
   }
 
 
@@ -257,11 +258,17 @@ export class UserComponent implements OnInit {
 
     if (Array.isArray(this.collectionList)) {
       let settings = this.collectionPermissionsSettings;
-      settings.columns.collectionId.editor.config.list = this.collectionList.map((collection: any) => ({
-        collectionId: collection.collectionId
-      })) as any;
-
-      this.collectionPermissionsSettings = { ...settings };
+      // Ensure the 'editor' and 'config' properties exist and are of the correct type
+      if (settings.columns['collectionId']?.editor?.type === 'list') {
+        let editorConfig = settings.columns['collectionId'].editor.config as ListEditorSettings;
+        editorConfig.list = this.collectionList.map((collection: any) => ({
+          title: collection.title,
+          value: collection.value
+        }));
+        this.collectionPermissionsSettings = { ...settings };
+      } else {
+        console.error('Editor configuration for collectionId is not set or not of type list');
+      }
     } else {
       console.error('Available collection data is not available');
     }

@@ -22,6 +22,8 @@ import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../user-processing/users.service'
+import { ListEditorSettings, Settings } from 'angular2-smart-table';
+
 interface Permission {
   userId: number;
   collectionId: number;
@@ -45,8 +47,6 @@ export class PoamDetailsComponent implements OnInit {
   users: any;
   user: any;
 
-  // testData:  any[] = [];
-  // testData2: any;
   poam: any;
   poamId: string = "";
   payload: any;
@@ -66,7 +66,7 @@ export class PoamDetailsComponent implements OnInit {
   showSubmit: boolean = false;
   showClose: boolean = false;
 
-  poamAssetsSettings = {
+  poamAssetsSettings: Settings = {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
@@ -87,7 +87,6 @@ export class PoamDetailsComponent implements OnInit {
       add: true,
       edit: false,
       delete: true,
-      create: true,
     },
     columns: {
       assetId: {
@@ -104,17 +103,15 @@ export class PoamDetailsComponent implements OnInit {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [],
           },
         },
-        filter: false
       },
     },
     hideSubHeader: false,
   };
 
-  poamApproverSettings = {
+  poamApproverSettings: Settings = {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
@@ -135,14 +132,13 @@ export class PoamDetailsComponent implements OnInit {
       add: true,
       edit: true,
       delete: true,
-      create: true,
     },
     columns: {
       userId: {
         title: '*Approver',
         type: 'html',
-        editable: false,
-        addable: true,
+        isEditable: false,
+        isAddable: true,
         valuePrepareFunction: (_cell: any, row: any) => {
           //console.log("row: ", row);
           var user = (row.userId != undefined && row.userId != null) ? this.collectionApprovers.find((tl: any) => tl.userId === row.userId) : null;
@@ -154,24 +150,21 @@ export class PoamDetailsComponent implements OnInit {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
-            list: [{ title: "T1", value: 1 }],
+            list: [{ title: "T1", value: '1' }],
           },
         },
-        filter: false
       },
       approved: {
         title: 'Approved',
         type: 'html',
-        editable: (this.showApprove) ? true : false,
-        addable: false,
+        isEditable: (this.showApprove) ? true : false,
+        isAddable: false,
         valuePrepareFunction: (_cell: any, row: any) => {
           return (row.approved) ? row.approved : 'Not Reviewed'
         },
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [
               { value: 'Not Reviewed', title: 'Not Reviewed' },
               { value: 'Approved', title: 'Approved' },
@@ -179,40 +172,36 @@ export class PoamDetailsComponent implements OnInit {
             ],
           },
         },
-        filter: false,
       },
       approvedDate: {
         title: 'Approved Date',
         type: 'html',
-        editable: false,
-        addable: false,
+        isEditable: false,
+        isAddable: false,
         valuePrepareFunction: (_cell: any, row: any) => {
           return (row.approvedDate) ? row.approvedDate.substr(0, 10) : '';
         },
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [],
           },
         },
-        filter: false,
       },
       comments: {
         title: 'Comments',
-        type: 'string',
-        editable: true,
-        addable: true,
+        type: 'text',
+        isEditable: true,
+        isAddable: true,
         valuePrepareFunction: (_cell: any, row: any) => {
           return row.comments
         },
-        filter: false,
       },
     },
     hideSubHeader: false,
   };
 
-  poamAssigneesSettings = {
+  poamAssigneesSettings: Settings = {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
@@ -233,7 +222,6 @@ export class PoamDetailsComponent implements OnInit {
       add: true,
       edit: false,
       delete: true,
-      create: true,
     },
     columns: {
       userId: {
@@ -250,11 +238,9 @@ export class PoamDetailsComponent implements OnInit {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [],
           },
         },
-        filter: false
       },
     },
     hideSubHeader: false,
@@ -507,24 +493,24 @@ export class PoamDetailsComponent implements OnInit {
     // console.log("collectionMaintainers: ", this.collectionMaintainers)
 
     let settings = this.poamAssetsSettings;
-    settings.columns.assetId.editor.config.list = this.assets.map((asset: any) => {
-      // console.log("label: ",label)
-      return {
+    if (settings.columns['assetId']?.editor?.type === 'list') {
+      let editorConfig = settings.columns['assetId'].editor.config as ListEditorSettings;
+      editorConfig.list = this.assets.map((asset: any) => ({
         title: asset.assetName,
         value: asset.assetId
-      }
-    });
+      }));
+    }
 
     this.poamAssetsSettings = Object.assign({}, settings);
 
     let userSettings = this.poamAssigneesSettings;
-    userSettings.columns.userId.editor.config.list = this.collectionUsers.permissions.map((assignee: any) => {
-      // console.log("label: ",label)
-      return {
+    if (userSettings.columns['userId']?.editor?.type === 'list') {
+      let editorConfig = userSettings.columns['userId'].editor.config as ListEditorSettings;
+      editorConfig.list = this.collectionUsers.permissions.map((assignee: any) => ({
         title: assignee.fullName,
         value: assignee.userId
-      }
-    });
+      }));
+    }
 
     this.poamAssigneesSettings = Object.assign({}, userSettings);
   }
@@ -547,8 +533,14 @@ export class PoamDetailsComponent implements OnInit {
       });
     }
 
-    settings.columns.userId.editor.config.list = approverList;
-    settings.columns.approved.editable = (this.showApprove) ? true : false;
+    if (settings.columns['userId']?.editor?.type === 'list') {
+      let editorConfig = settings.columns['userId'].editor.config as ListEditorSettings;
+      editorConfig.list = approverList;
+      // Correctly use 'isEditable' instead of 'editable'
+      settings.columns['userId'].isEditable = this.showApprove;
+      // Trigger change detection if necessary
+      this.poamApproverSettings = Object.assign({}, settings);
+    }
 
     this.poamApproverSettings = Object.assign({}, settings);
 

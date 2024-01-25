@@ -14,8 +14,9 @@ import { forkJoin, Observable } from 'rxjs';
 import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { SubSink } from 'subsink';
-//import { LocalDataSource } from 'ng2-smart-table';
+//import { LocalDataSource } from 'angular2-smart-table';
 import { CsvDataService } from '../../../Shared/utils/cvs-data.service'
+import { ListEditorSettings, Settings } from 'angular2-smart-table';
 
 @Component({
   selector: 'ngx-collection',
@@ -40,7 +41,7 @@ export class CollectionComponent implements OnInit, OnChanges {
   deleteEvent: any;
   showLaborCategorySelect: boolean = false;
 
-  collectionApproverSettings = {
+  collectionApproverSettings: Settings = {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
@@ -61,14 +62,13 @@ export class CollectionComponent implements OnInit, OnChanges {
       add: true,
       edit: true,
       delete: true,
-      create: true,
     },
     columns: {
       userId: {
         title: '*Approver',
         type: 'html',
-        editable: false,
-        addable: true,
+        isEditable: false,
+        isAddable: true,
         valuePrepareFunction: (_cell: any, row: any) => {
           //console.log("row: ", row);
           var user = (row.userId != undefined && row.userId != null) ? this.collectionApprovers.find((tl: any) => tl.userId === row.userId) : null;
@@ -80,11 +80,9 @@ export class CollectionComponent implements OnInit, OnChanges {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
-            list: [{ Title: "T1", value: 1 }],
+            list: [{ title: "T1", value: '1' }],
           },
         },
-        filter: false
       },
       status: {
         title: 'Status',
@@ -95,14 +93,12 @@ export class CollectionComponent implements OnInit, OnChanges {
         editor: {
           type: 'list',
           config: {
-            selectText: 'Select',
             list: [
               { value: 'Active', title: 'Active' },
               { value: 'Inactive', title: 'Inactive' }
             ],
           },
         },
-        filter: false,
       },
     },
     hideSubHeader: false,
@@ -178,28 +174,27 @@ export class CollectionComponent implements OnInit, OnChanges {
   }
 
   setApprovers() {
-
     let settings = this.collectionApproverSettings;
     let approverList: any[] = [];
-
+  
     if (this.collectionApprovers) {
       this.collectionApprovers.forEach((approver: any) => {
         let listValue = {
           title: approver.fullName,
           value: approver.userId
-        }
-        //console.log("approver2: ", approver)
+        };
         approverList.push(listValue);
-
-        //   console.log("approver: ",approver)
       });
     }
-
-    settings.columns.userId.editor.config.list = approverList;
-
-    this.collectionApproverSettings = Object.assign({}, settings);
-
-    // console.log("SetApprovers aprovers: ", this.collectionApprovers)
+  
+    if (settings.columns['userId']?.editor?.type === 'list' && settings.columns['userId'].editor.config) {
+      let editorConfig = settings.columns['userId'].editor.config as ListEditorSettings;
+      editorConfig.list = approverList;
+      // Trigger change detection if necessary
+      this.collectionApproverSettings = Object.assign({}, settings);
+    } else {
+      console.error('Editor configuration for userId is not set or not of type list');
+    }
   }
 
 
