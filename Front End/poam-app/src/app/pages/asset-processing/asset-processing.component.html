@@ -31,24 +31,29 @@
 
   <div class="row">
     <div class="col-md-10">
-      <!-- Modify Assets Section -->
       <nb-card>
-        <nb-card-header>Modify or Add Assets</nb-card-header>
+        <nb-card-header>Select Assets to Modify/Delete</nb-card-header>
         <nb-card-body>
           <div class="row" *ngIf="allowSelectAssets">
-            <div class="col-md-5">
-              <nb-select fullWidth outlineid="assetid" name="asset" [(ngModel)]="asset.assetId"
-                         (selectedChange)="setAsset($event)" placeholder="Select Asset" required>
+
+            <div class="col-md-5" style="width: auto;">
+              <nb-select fullWidth #assetScrollListener style="width: auto" (scroll)="onScroll($event)" outlineid="assetid" name="asset" 
+                        [(ngModel)]="asset.assetId" (selectedChange)="setAsset($event)" placeholder="Select Assets" required>
                 <nb-option *ngFor="let asset of data" [value]="asset.assetId">
-                  {{ asset.assetName }} - {{ asset.description }} - {{ asset.ipAddress }}
+                  {{ asset.assetId }} - {{ asset.assetName }}
                 </nb-option>
               </nb-select>
             </div>
+
+          
+            <div class="col-md-5" style="width: auto;">
+            <button nbButton outline status="info" style="float: right;" (click)="addAsset()">Add Asset</button>
+            </div>
+          </div>
+
             <div *ngIf="!allowSelectAssets">
               <ngx-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData();"></ngx-asset>
             </div>
-          </div>
-          <button nbButton fullWidth outline status="info" class="add-asset-button">Add Asset</button>
         </nb-card-body>
       </nb-card>
     </div>
@@ -58,10 +63,10 @@
     <div class="col-md-10">
       <!-- Import Assets Section -->
       <nb-card class="my-card">
-        <nb-card-header>Import Assets</nb-card-header>
+        <nb-card-header>Import STIG Manager Assets</nb-card-header>
         <nb-card-body class="import-section">
           <div class="import-item">
-            <nb-select id="collectionSelect" placeholder="Select Collection" [(ngModel)]="selectedCollection" (selectedChange)="onCollectionSelect($event)">
+            <nb-select id="collectionSelect" placeholder="Select STIG Manager Collection" [(ngModel)]="selectedCollection" (selectedChange)="onCollectionSelect($event)">
               <nb-option *ngFor="let collection of collections" [value]="collection.collectionId">
                 {{ collection.name }}
               </nb-option>
@@ -69,7 +74,7 @@
           </div>
 
           <div class="import-item">
-            <nb-select id="assetsSelect" placeholder="Select Assets" [(ngModel)]="selectedAssets" [disabled]="!selectedCollection" multiple>
+            <nb-select id="assetsSelect" placeholder="Select STIG Manager Assets" [(ngModel)]="selectedAssets" [disabled]="!selectedCollection" multiple>
               <nb-option *ngFor="let asset of availableAssets" [value]="asset.assetId">
                 {{ asset.name }}
               </nb-option>
@@ -77,7 +82,7 @@
           </div>
 
           <div class="import-item">
-            <button nbButton outline status="info" (click)="onImportAssetsButtonClick()">Import Assets</button>
+            <button nbButton outline status="info" (click)="onImportAssetsButtonClick()">Import</button>
           </div>
         </nb-card-body>
       </nb-card>
@@ -87,7 +92,7 @@
 
 <ng-template #dontshowcollections>
   <h1>
-    Collections processing requires may role of admin.
+    Collections processing may require role of admin.
     <br /><br />
   </h1>
 </ng-template>

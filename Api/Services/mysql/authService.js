@@ -206,14 +206,13 @@ exports.register = async function register(req, res, next) {
 			req.body.email
 		) {
 			// create new user
-			let sql = "INSERT INTO user (userName, userEmail, created, firstName, lastName, phoneNumber," 
+			let sql = "INSERT INTO user (userName, userEmail, created, firstName, lastName," 
 				+ " lastCollectionAccessedId, accountStatus, fullName, defaultTheme) VALUES (" 
 				+ "'" + req.body.userName
 				+ "','" + req.body.email
 				+ "', CURDATE(), '" 
 				+ req.body.firstName
 				+ "', '" + req.body.lastName
-				+ "', '" + req.body.phoneNumber
 				+ "', 0 , 'PENDING', '"
 				+ req.body.firstName
 				+ " " + req.body.lastName

@@ -28,7 +28,7 @@ exports.getCollectionApprovers = async function getCollectionApprovers(req, res,
 		let connection
 		connection = await dbUtils.pool.getConnection()
 		
-		let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.phoneNumber, T2.userEmail FROM  poamtracking.collectionapprovers T1 " + 
+		let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM  poamtracking.collectionapprovers T1 " + 
 		"INNER JOIN poamtracking.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
 		//console.log("getLabels sql: ", sql)
 

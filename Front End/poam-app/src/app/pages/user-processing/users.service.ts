@@ -94,7 +94,6 @@ export class UsersService {
 			firstName: userData.firstName,
 			lastName: userData.lastName,
 			userEmail: userData.userEmail,
-			phoneNumber: userData.phoneNumber,
 			accountStatus: userData.accountStatus,
 			lastCollectionAccessedId: userData.lastCollectionAccessedId,
 			defaultTheme: userData.defaultTheme,

@@ -17,7 +17,6 @@ export interface Users {
   created: string;
   lastAccess: string;
   lastCollectionAccessedId: number;
-  phoneNumber: string;
   password: string;
   accountStatus: string;
   fullName: string;

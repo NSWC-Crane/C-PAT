@@ -28,7 +28,7 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
 	try {
 
 		connection = await dbUtils.pool.getConnection()
-		let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.phoneNumber, T2.userEmail FROM  poamtracking.poamapprovers T1 " +
+		let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM  poamtracking.poamapprovers T1 " +
 			"INNER JOIN poamtracking.user T2 ON t1.userId = t2.userId WHERE poamId = ?;"
 		//console.log("getLabels sql: ", sql)
 
@@ -151,7 +151,7 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
 	try {
 
 		connection = await dbUtils.pool.getConnection()
-		let sql = `SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.phoneNumber, T2.userEmail FROM  poamtracking.poamapprovers T1 ` +
+		let sql = `SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM  poamtracking.poamapprovers T1 ` +
 			`INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId ` +
 			`INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId WHERE T3.collectionId = ? AND T1. userId = ?`
 		//console.log("getLabels sql: ", sql)

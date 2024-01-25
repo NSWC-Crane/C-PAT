@@ -2474,8 +2474,6 @@ components:
           type: string
         lastName:
           type: string
-        phoneNumber:
-          type: string
         userEmail:
           type: string
 
@@ -2562,8 +2560,6 @@ components:
         firstName:
           type: string
         lastName:
-          type: string
-        phoneNumber:
           type: string
         userEmail:
           type: string          
@@ -2670,7 +2666,6 @@ components:
         - userName
         - firstName
         - lastName
-        - phoneNumber
       type: object
       additionalProperties: true
       properties:
@@ -2681,8 +2676,6 @@ components:
         firstName:
           type: string
         lastName:
-          type: string
-        phoneNumber:
           type: string
         collectionAccessRequest:
           type: array
@@ -2754,7 +2747,6 @@ components:
         - created
         - lastAccess
         - lastCollectionAccessedId
-        - phoneNumber
         - accountStatus
         - fullName
         - defaultTheme
@@ -2790,9 +2782,6 @@ components:
           # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
         lastCollectionAccessedId:
           type: integer
-        phoneNumber:
-          type: string
-          maxLength: 15
         accountStatus:
           type: string
           maxLength: 45
@@ -2837,7 +2826,6 @@ components:
         - created
         - lastAccess
         - lastCollectionAccessedId
-        - phoneNumber
         - accountStatus
         - fullName
         - defaultTheme
@@ -2872,9 +2860,6 @@ components:
           # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
         lastCollectionAccessedId:
           type: integer
-        phoneNumber:
-          type: string
-          maxLength: 15
         accountStatus:
           type: string
           maxLength: 45
@@ -2894,7 +2879,6 @@ components:
         - userEmail
         - firstName
         - lastName
-        - phoneNumber
         - accountStatus
         - lastCollectionAccessedId
         - defaultTheme
@@ -2911,9 +2895,6 @@ components:
         lastName:
           type: string
           maxLength: 50
-        phoneNumber:
-          type: string
-          maxLength: 15
         accountStatus:
           type: string
           maxLength: 45
@@ -2960,7 +2941,6 @@ components:
         - firstName
         - lastName
         - lastCollectionAccessedId
-        - phoneNumber
         - accountStatus
         - fullName
         - defaultTheme
@@ -2981,9 +2961,6 @@ components:
           maxLength: 50
         lastCollectionAccessedId:
           type: integer
-        phoneNumber:
-          type: string
-          maxLength: 15
         accountStatus:
           type: string
           maxLength: 45
@@ -3020,8 +2997,6 @@ components:
           type: string
         fullName:
           type: string
-        phoneNumber:
-          type: string
         userEmail:
           type: string
 
@@ -3032,7 +3007,6 @@ components:
         - firstName
         - lastName
         - lastCollectionAccessedId
-        - phoneNumber
         - accountStatus
         - fullName
         - defaultTheme
@@ -3049,8 +3023,6 @@ components:
           type: string
         lastCollectionAccessedId:
           type: integer
-        phoneNumber:
-          type: string
         accountStatus:
           type: string
         fullName:

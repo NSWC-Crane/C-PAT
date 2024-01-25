@@ -168,7 +168,6 @@ export class UserProcessingComponent implements OnInit {
           tchild.push({
             data: {
               user: '', 'Status': '', 'First Name': '', 'Last Name': '', 'Email': '',
-              'Phone': '',
               'Collection': permission.collectionId,
               'Can Own': permission.canOwn == 1 ? 'True' : 'False',
               'Can Maintain': permission.canMaintain == 1 ? 'True' : 'False',
@@ -181,7 +180,7 @@ export class UserProcessingComponent implements OnInit {
       mydata.push({
         data: {
           user: userData[i].userId, 'Status': userData[i].accountStatus, 'First Name': userData[i].firstName, 'Last Name': userData[i].lastName,
-          'Email': userData[i].userEmail, 'Phone': userData[i].phoneNumber
+          'Email': userData[i].userEmail
         }, children: tchild
       });
     }

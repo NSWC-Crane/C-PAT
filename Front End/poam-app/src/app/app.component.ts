@@ -152,7 +152,6 @@ export class AppComponent implements OnInit, OnDestroy {
             firstName: this.userProfile?.firstName,
             lastName: this.userProfile?.lastName,
             email: this.userProfile?.email,
-            phoneNumber: this.userProfile?.phoneNumber || "",
           };
 
           this.userService.postUser(newUser).subscribe(result => {
@@ -262,8 +261,6 @@ export class AppComponent implements OnInit, OnDestroy {
       firstName: this.user.firstName,
       lastName: this.user.lastName,
       lastCollectionAccessedId: this.user.lastCollectionAccessedId,
-      phoneNumber: (this.user.phoneNumber) ? this.user.phoneNumber : '',
-      // password: this.user.password,
       accountStatus: this.user.accountStatus,
       // fullName: (this.user.fullName) ? this.user.fullName : '',
       defaultTheme: theme,
@@ -300,8 +297,6 @@ export class AppComponent implements OnInit, OnDestroy {
       firstName: this.user.firstName,
       lastName: this.user.lastName,
       lastCollectionAccessedId: parseInt(selectedCollection),
-      phoneNumber: (this.user.phoneNumber) ? this.user.phoneNumber : '',
-      // password: this.user.password,
       accountStatus: this.user.accountStatus,
       // fullName: (this.user.fullName) ? this.user.fullName : '',
       defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
@@ -333,7 +328,6 @@ export class AppComponent implements OnInit, OnDestroy {
         firstName: this.user.firstName,
         lastName: this.user.lastName,
         lastCollectionAccessedId: parseInt(selectedCollection),
-        phoneNumber: (this.user.phoneNumber) ? this.user.phoneNumber : '',
         accountStatus: this.user.accountStatus,
         fullName: (this.user.fullName) ? this.user.fullName : '',
         defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
