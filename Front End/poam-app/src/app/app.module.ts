@@ -11,7 +11,7 @@ import { TreeGridModule } from '@syncfusion/ej2-angular-treegrid';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { APP_BASE_HREF } from "@angular/common";
 import { BrowserModule } from '@angular/platform-browser';
-import {  FormsModule  } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';

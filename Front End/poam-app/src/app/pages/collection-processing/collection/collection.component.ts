@@ -101,7 +101,7 @@ export class CollectionComponent implements OnInit, OnChanges {
         },
       },
     },
-    hideSubHeader: false,
+    hideSubHeader: true,
   };
 
   private subs = new SubSink()

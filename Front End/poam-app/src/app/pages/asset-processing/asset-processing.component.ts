@@ -220,8 +220,14 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
       const headers = { Authorization: `Bearer ${token}` };
       this.http.post(environment.stigmanAssetImportEndpoint, data, { headers })
         .subscribe({
-          next: (response) => console.log('Import successful', response),
-          error: (error) => console.error('Error during import', error)
+          next: (response) => {
+            this.showPopup('Import successful');
+          },
+          error: (error) => {
+            console.error('Error during import', error);
+            // Optionally, handle errors with a popup as well
+            this.showPopup('Error during import: ' + error.message);
+          }
         });
     });
   }

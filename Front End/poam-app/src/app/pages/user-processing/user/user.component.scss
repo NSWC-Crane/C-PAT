@@ -7,3 +7,35 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
+
+@import '@nebular/theme/styles/theming';
+@import '@nebular/theme/styles/themes';
+
+@include nb-install-component() {
+    .custom-smart-table {
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid nb-theme('border-basic-color-3');
+      }
+  
+      th, 
+      td {
+        border: 1px solid nb-theme('border-basic-color-3');
+        padding: 0.5rem;
+        text-align: left;
+      }
+  
+      thead {
+        background-color: nb-theme('background-basic-color-2');
+      }
+  
+      tbody tr:nth-child(odd) {
+        background-color: nb-theme('background-basic-color-1');
+      }
+  
+      tbody tr:hover {
+        background-color: nb-theme('background-basic-color-3');
+      }
+    }
+  }

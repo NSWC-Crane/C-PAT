@@ -119,6 +119,7 @@ export class CollectionProcessingComponent implements OnInit {
     this.keycloak.getToken().then(token => {
       this.sharedService.getCollectionsFromSTIGMAN(token).subscribe({
         next: (data) => {
+          this.stigmanCollections = data;
           if (!data || data.length === 0) {
             this.showPopup('No collections available to import. Please ensure you have access to view collections in STIG Manager.');
           } else {
@@ -148,8 +149,10 @@ export class CollectionProcessingComponent implements OnInit {
   }
 
   onStigmanCollectionSelect(collectionId: string) {
+    console.log("Selected Collection ID:", collectionId);
     this.selectedStigmanCollection = collectionId;
   }
+  
 
   importCollection() {
     if (this.selectedStigmanCollection) {
@@ -180,8 +183,15 @@ export class CollectionProcessingComponent implements OnInit {
       const headers = { Authorization: `Bearer ${token}` };
       this.http.post(environment.stigmanCollectionImportEndpoint, data, { headers })
         .subscribe({
-          next: (response) => console.log('Import successful', response),
-          error: (error) => console.error('Error during import', error)
+          next: (response) => {
+            // Replace console.log with showPopup for a successful response
+            this.showPopup('Import successful');
+          },
+          error: (error) => {
+            console.error('Error during import', error);
+            // Optionally, handle errors with a popup as well
+            this.showPopup('Error during import: ' + error.message);
+          }
         });
     });
   }

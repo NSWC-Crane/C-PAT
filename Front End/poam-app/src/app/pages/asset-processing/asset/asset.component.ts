@@ -109,7 +109,7 @@ export class AssetComponent implements OnInit {
         },
       },
     },
-    hideSubHeader: false,
+    hideSubHeader: true,
   };
 
 

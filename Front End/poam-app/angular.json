@@ -39,8 +39,9 @@
               "src/themes.scss",
               "src/styles.scss"
             ],
-
-            "scripts": []
+            "scripts": [
+              "node_modules/jquery/dist/jquery.js"
+            ]
           },
           "configurations": {
             "production": {

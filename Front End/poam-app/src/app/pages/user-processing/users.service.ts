@@ -15,6 +15,7 @@ import { from, Observable, throwError } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Users } from './users.model';
+import { CollectionsResponse } from './user/user.component';
 
 
 @Injectable({
@@ -113,6 +114,10 @@ export class UsersService {
 					.get<any>(`${this.uri}/collection/${collectionId}/user/${userName}`, this.httpOptions)
 					.pipe(catchError(this.handleError));
 	}
+
+	getCollections(userName: string): Observable<CollectionsResponse | null> {
+		return this.http.get<CollectionsResponse>(`${this.uri}/collections/${userName}`);
+	  }
 
 	//getAUserPermission(userId: any, collectionId: any) {
 	//	//console.log("UsersService Call attempted: getAUserPermission(userPermission)...userId: ", userId,", collectionId: ", collectionId);
