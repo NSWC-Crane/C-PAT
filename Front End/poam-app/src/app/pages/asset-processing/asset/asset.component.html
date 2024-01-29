@@ -15,10 +15,10 @@
       <label style="margin-right: 1%" for="assetName">*Asset Name: </label>
       <input nbInput type="text" name="assetName" [(ngModel)]="asset.assetName" placeholder="asset name" required>
 
-      <label for="description">Description: </label>
+      <label id="description">Description: </label>
       <input nbInput type="text" fullWidth name="description" [(ngModel)]="asset.description" placeholder="description">
 
-      <label for="fullyQualifiedDomainName">Fully Qualified Domain Name: </label>
+      <label id="fullyQualifiedDomainName">Fully Qualified Domain Name: </label>
       <input nbInput type="text" fullWidth name="fullyQualifiedDomainName" [(ngModel)]="asset.fullyQualifiedDomainName" placeholder="fully qualified domain name">
     </div>
     <br />
@@ -33,10 +33,10 @@
     <br />
 
     <div class="row">
-      <label for="ipAddress">*IP Address: </label>
+      <label id="ipAddress">*IP Address: </label>
       <input nbInput type="text" fullWidth name="ipAddress" [(ngModel)]="asset.ipAddress" placeholder="ip address">
 
-      <label for="macAddress">*MAC Address: </label>
+      <label id="macAddress">*MAC Address: </label>
       <input nbInput type="text" fullWidth name="macAddress" [(ngModel)]="asset.macAddress" placeholder="mac addres">
     </div>
     <div class="row">
@@ -45,8 +45,8 @@
              nbSpinnerStatus="success"
              nbSpinnerSize="medium"
              nbSpinnerMessage="Updating/loading data, please wait...">
-          >
           <div class="col">
+          <br>
             <angular2-smart-table [settings]="assetLabelsSettings" [source]="assetLabels" mode="inline"
                              (createConfirm)="confirmCreate($event)"
                              (deleteConfirm)="confirmDelete($event)">
@@ -60,8 +60,8 @@
     <div class="row">
       <div class="container">
 
-        <button nbButton class="mr-3" [disabled]="!form.valid">Submit</button>
-        <button nbButton type="button" class="mr-3" (click)="resetData()">Cancel</button>
+        <button nbButton outline status="info" class="mr-3" [disabled]="!form.valid">Submit</button>
+        <button nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
       </div>
     </div>
   </div>

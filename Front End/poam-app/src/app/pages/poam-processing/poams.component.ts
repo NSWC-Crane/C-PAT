@@ -10,7 +10,7 @@
 
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
-import { NbThemeService, NbButtonModule } from "@nebular/theme";
+import { NbThemeService } from "@nebular/theme";
 import { PoamService } from './poams.service';
 import { AuthService } from '../../auth';
 import { forkJoin } from 'rxjs';
@@ -20,6 +20,7 @@ import { Router } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../user-processing/users.service'
+import { ChartConfiguration, ChartData } from 'chart.js';
 
 interface Permission {
   userId: number;
@@ -47,10 +48,10 @@ interface Permission {
   ],
 })
 export class PoamsComponent implements OnInit {
-
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
-
+  public poamStats: any[] = [];
+  public chartData!: ChartData<'bar'>;
   users: any;
   user: any;
   poams: any;
@@ -60,9 +61,7 @@ export class PoamsComponent implements OnInit {
   public detailedPoam: any;
   payload: any;
   members: any;
-  backdata: any;
   data: any;
-  backoptions: any;
   themeSubscription: any;
   selectedStatus: any = "All";
   searchOptions = [
@@ -70,22 +69,6 @@ export class PoamsComponent implements OnInit {
     { value: '2', label: 'Sort by Vulernability' },
   ];
   searchOption: string = '1';
-  chartData: any = [];
-  options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    tooltips: {
-      callbacks: {
-        label: function (tooltipItem: any, data: any) {
-          return `POAM Status: ${data.datasets[tooltipItem.datasetIndex].label}`;
-        }
-      }
-    },
-    title: {
-      display: true,
-      text: "Poams By Status"
-    }
-  };
 
   title = 'angular-ngx-treeview-app';
 
@@ -138,9 +121,16 @@ export class PoamsComponent implements OnInit {
   ) {
   }
 
-  onFilterChange(value: string): void {
-    console.log('filter:', value);
-  }
+  async ngOnInit() {
+    this.isLoggedIn = await this.keycloak.isLoggedIn();
+    if (this.isLoggedIn) {
+      this.userProfile = await this.keycloak.loadUserProfile();
+      //this.keycloak.addTokenToHeader();
+      // console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
+      this.setPayload();
+      this.onSelectedStatusChange();
+    }
+  };
 
   getItems(parentChildObj: any[]) {
     let itemsArray: TreeviewItem[] = [];
@@ -165,38 +155,80 @@ export class PoamsComponent implements OnInit {
       if (item.checked) item.checked = false;
     })
 
-    // console.log("selected poam: ", poam)
-    //this.changeDetailsView(poam)
     this.router.navigateByUrl("/poam-details/" + poamId);
   }
 
-  setGraphData(poamStats: any) {
-    //console.log("poamStats: ", poamStats)
-    this.chartData = [];
-    if (poamStats.length > 0) {
-
-      poamStats.forEach((item: any) => {
-        // console.log("item: ", item)
-        this.chartData.push({ data: [item.statusCount], label: item.status })
-      });
-
-      console.log("chartData: ", this.chartData)
+  getPoamData() {
+    this.subs.sink = forkJoin(
+      this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
+      this.poamService.getCollectionPoamStats(this.payload.lastCollectionAccessedId),
+      this.poamService.getPoamsByCollection(this.payload.lastCollectionAccessedId),
+    ).subscribe(([collection, poamStatsResponse, poams]: any) => {
+      if (!Array.isArray(poamStatsResponse.poamStats)) {
+        console.error('poamStatsResponse.poamStats is not an array', poamStatsResponse.poamStats);
+        return;
+      }
+  
+      this.collection = collection;
+      this.poamStats = poamStatsResponse.poamStats;
+      this.poams = poams.poams;
+      this.filteredPoams = this.poams;
+  
+      this.sortData();
+      this.setGraphData(this.poamStats);
+    });
+  }
+  
+  public barChartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: {
+          display: true,
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: false,
+        },
+      }
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: {
+        }
+      },
+    },
+  };
+  
+  setGraphData(poamStats: any[]) {
+    if (!Array.isArray(poamStats)) {
+      console.error('setGraphData: poamStats is not an array', poamStats);
+      return;
     }
+    this.updateChartData(poamStats);
+  }
+  
+  updateChartData(poamStats: any[]) {
+    const datasets = poamStats.map(item => ({
+      label: item.status,
+      data: [item.statusCount], 
+    }));
+  
+    this.chartData = {
+      labels: [''],
+      datasets: datasets,
+    };
+    this.updateChart();
   }
 
   addPoam() {
     this.router.navigateByUrl("/poam-details/ADDPOAM");
   }
-
-  async ngOnInit() {
-    this.isLoggedIn = await this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
-      //this.keycloak.addTokenToHeader();
-      // console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
-      this.setPayload();
-    }
-  };
 
   onSelectPoam(poamId: number) {
     // Handle POAM selection
@@ -224,7 +256,6 @@ export class PoamsComponent implements OnInit {
               }))
             };
 
-            // console.log("payload: ", this.payload);
             this.getPoamData();
           }
         } else {
@@ -235,64 +266,6 @@ export class PoamsComponent implements OnInit {
         console.error('An error occurred:', error);
       }
     );
-  }
-
-
-  getPoamData() {
-    this.subs.sink = forkJoin(
-      this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
-      this.poamService.getCollectionPoamStats(this.payload.lastCollectionAccessedId),
-      this.poamService.getPoamsByCollection(this.payload.lastCollectionAccessedId),
-    )
-      .subscribe(([collection, poamStats, poams]: any) => {
-        // console.log("collection: ", collection)
-        this.collection = collection;
-
-        this.poams = poams.poams;
-        this.onSelectedStatusChange("All");
-        this.setGraphData(poamStats.poamStats);
-        this.filteredPoams = this.poams;
-        this.sortData();
-
-        this.subs.sink = this.themeSubscription = this.theme.getJsTheme().subscribe((config: any) => {
-          const colors: any = config.variables;
-          const chartjs: any = config.variables; //config.variables.chartjs;
-
-          this.backdata = [];
-
-          this.backoptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            elements: {
-              rectangle: {
-                borderWidth: 2
-              }
-            },
-            scales: {
-              x: {
-                grid: {
-                  display: true,
-                  color: chartjs.axisLineColor
-                },
-                ticks: {
-                  fontColor: chartjs.textColor
-                }
-              },
-              y: {
-                grid: {
-                  display: false,
-                  color: chartjs.axisLineColor
-                },
-                ticks: {
-                  fontColor: chartjs.textColor,
-                  beginAtZero: true
-                }
-              }
-            },
-          };
-        });
-      });
-
   }
 
   sortData() {
@@ -313,14 +286,12 @@ export class PoamsComponent implements OnInit {
       sortedArray.forEach((poam: any) => {
         // console.log("getPoamData() poam: ",poam)
         let treeObj = {}
-
         treeObj = {
           text: poam.vulnerabilityId + ' - ' + poam.poamId + ' - ' + poam.description,
           value: poam.poamId,
           collapsed: true,
           checked: false,
         }
-
         treeArray.push(treeObj);
       })
     } else {
@@ -343,12 +314,9 @@ export class PoamsComponent implements OnInit {
           collapsed: true,
           checked: false,
         }
-
         treeArray.push(treeObj);
       })
     }
-
-
     this.items = this.getItems(treeArray);
   }
 
@@ -358,26 +326,14 @@ export class PoamsComponent implements OnInit {
     this.sortData();
   }
 
-  onSelectedStatusChange(statusFilter: any) {
-    this.filteredPoams = [];
-    if (this.poams) {
-      if (statusFilter === "All") {
-        this.filteredPoams = this.poams
-      } else {
-        //console.log("this.poams: ", this.poams)
-
-        for (let i = 0; i < this.poams.length; i++) {
-          // console.log("this.poams[i].status: ", this.poams[i].status, ", statusFilter: ", statusFilter)
-          if (this.poams[i].status == statusFilter) {
-            this.filteredPoams.push(this.poams[i]);
-          }
-        }
-        //console.log("this.filteredPoams: ", this.filteredPoams)
-      }
-      this.sortData();
+  onSelectedStatusChange() {
+    let filteredPoamStats = this.poamStats;
+    if (this.selectedStatus !== "All") {
+      filteredPoamStats = this.poamStats.filter(item => item.status === this.selectedStatus);
     }
+    this.updateChartData(filteredPoamStats);
   }
-
+  
   ngOnDestroy() {
     this.subs.unsubscribe();
   }
@@ -386,5 +342,4 @@ export class PoamsComponent implements OnInit {
     // this.viewingfulldetails = !this.viewingfulldetails
     this.detailedPoam = poam
   }
-
 }

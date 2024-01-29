@@ -18,7 +18,7 @@
           <div class="status-container">
             <!-- Status -->
             <div class="status-group">
-              <label for="status">*Status:</label>
+              <label id="status">*Status:</label>
               <nb-select outline status="info" placeholder="Status: " [(ngModel)]="poam.status" name="status">
                 <nb-option value="Draft">Draft</nb-option>
                 <nb-option value="Submitted">Submitted</nb-option>
@@ -31,7 +31,7 @@
 
             <!-- Poam Type -->
             <div class="status-group">
-              <label for="poamType">*Poam Type:</label>
+              <label id="poamType">*Poam Type:</label>
               <nb-select outline status="info" placeholder="Type: " [(ngModel)]="poam.poamType" name="poamType">
                 <nb-option value="Standard">Standard</nb-option>
                 <nb-option value="Restricted">Restricted</nb-option>
@@ -47,43 +47,43 @@
 
           <!-- AA Package -->
           <div class="form-group">
-            <label for="aaPackage">*AA Package:</label>
+            <label id="aaPackage">*AA Package:</label>
             <input type="text" nbInput fullWidth placeholder="AA Package" [(ngModel)]="poam.aaPackage" name='aaPackage'>
           </div>
 
           <!-- Source -->
           <div class="form-group">
-            <label for="vulnerabilitySource">*Source:</label>
+            <label id="vulnerabilitySource">*Source:</label>
             <input type="text" nbInput fullWidth placeholder="Source" [(ngModel)]="poam.vulnerabilitySource" name='vulnerabilitySource'>
           </div>
 
           <!-- Raw Severity -->
           <div class="form-group">
-            <label for="rawSeverity">*Raw Severity:</label>
+            <label id="rawSeverity">*Raw Severity:</label>
             <input type="text" nbInput fullWidth placeholder="Raw Severity" [(ngModel)]="poam.rawSeverity" name='rawSeverity'>
           </div>
 
           <!-- Adj Severity -->
           <div class="form-group">
-            <label for="adjSeverity">Adj Severity:</label>
+            <label id="adjSeverity">Adj Severity:</label>
             <input type="text" nbInput fullWidth placeholder="Adj Severity" [(ngModel)]="poam.adjSeverity" name='adjSeverity'>
           </div>
 
           <!-- Vulnerability Id -->
           <div class="form-group">
-            <label for="vulnerabilityId">Vulnerability Id:</label>
+            <label id="vulnerabilityId">Vulnerability Id:</label>
             <input type="text" nbInput fullWidth placeholder="VulnerabilityId" [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId'>
           </div>
 
           <!-- Vuln Restricted Id -->
           <div class="form-group">
-            <label for="vulnIdRestricted">Vuln Restricted Id:</label>
+            <label id="vulnIdRestricted">Vuln Restricted Id:</label>
             <input type="text" nbInput fullWidth placeholder="Vulnerability Id Restricted" [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted'>
           </div>
 
           <!-- Owner -->
           <div class="form-group">
-            <label for="ownerId">*Owner:</label>
+            <label id="ownerId">*Owner:</label>
             <nb-select maxlength="6" outlineid="ownerId" name="ownerId" [(ngModel)]="poam.ownerId" placeholder="Owner" required>
               <nb-option *ngFor="let user of collectionOwners" [value]="user.userId">
                 {{ user.fullName }} - {{ user.userEmail }}
@@ -93,13 +93,13 @@
 
           <!-- Scheduled Completion Date -->
           <div class="form-group">
-            <label for="scheduledCompletionDate">Scheduled Completion Date:</label>
+            <label id="scheduledCompletionDate">Scheduled Completion Date:</label>
             <input type="date" nbInput placeholder="Sched Completion Date" [(ngModel)]="dates.scheduledCompletionDate" name='scheduledCompletionDate'>
           </div>
 
           <!-- Submitted Date -->
           <div class="form-group">
-            <label for="submittedDate">Submitted Date:</label>
+            <label id="submittedDate">Submitted Date:</label>
             <input type="date" nbInput placeholder="Submitted Date" [(ngModel)]="dates.submittedDate" name='submittedDate'>
           </div>
         </div>

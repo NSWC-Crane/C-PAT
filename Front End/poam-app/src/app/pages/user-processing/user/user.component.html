@@ -45,13 +45,14 @@
              nbSpinnerStatus="success"
              nbSpinnerSize="medium"
              nbSpinnerMessage="Updating/loading data, please wait...">
-          >
+
           <div class="col">
-            <angular2-smart-table [settings]="collectionPermissionsSettings"
-                             [source]="collectionPermissions" mode="inline"
-                             (createConfirm)="confirmCreate($event)"
-                             (editConfirm)="confirmEdit($event)"
-                             (deleteConfirm)="confirmDelete($event)">
+            <angular2-smart-table 
+                            [settings]="collectionPermissionsSettings"
+                            [source]="collectionPermissions"
+                            (createConfirm)="confirmCreate($event)"
+                            (editConfirm)="confirmEdit($event)"
+                            (deleteConfirm)="confirmDelete($event)">
             </angular2-smart-table>
           </div>
         </div>

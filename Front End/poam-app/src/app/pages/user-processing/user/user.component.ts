@@ -137,7 +137,7 @@ export class UserComponent implements OnInit {
         },
       },
     },
-    hideSubHeader: false,
+    hideSubHeader: true,
   };
 
 

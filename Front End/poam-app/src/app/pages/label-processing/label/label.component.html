@@ -21,7 +21,7 @@
       <br />
       <div class="row">
         <div class="col-md-10">
-          <label for="description">Description:  </label>
+          <label id="description">Description:  </label>
           <input nbInput type="text" fullWidth name="description" [(ngModel)]="label.description"
                  placeholder="Description">
         </div>
@@ -29,7 +29,7 @@
       <br>
       <div class="row">
         <div class="col-md-10">
-          <label for="poamcount">POAM Count:  </label>
+          <label id="poamcount">POAM Count:  </label>
           <input nbInput type="number" s name="poamcount" [(ngModel)]="label.poamCount"
                  disabled="true" readonly>
         </div>
@@ -38,8 +38,8 @@
       <div class="row">
         <div class="container">
 
-          <button nbButton class="mr-3" [disabled]="!form.valid">Submit</button>
-          <button nbButton type="button" class="mr-3" (click)="resetData()">Cancel</button>
+          <button nbButton outline status="info" class="mr-3" [disabled]="!form.valid">Submit</button>
+          <button nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
 
         </div>
       </div>
