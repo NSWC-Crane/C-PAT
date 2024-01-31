@@ -1,6 +1,6 @@
 {
-  "name": "poam-app",
-  "version": "0.1.1",
+  "name": "cpat-frontend",
+  "version": "0.2.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -38,7 +38,7 @@
     "jquery": "^3.7.1",
     "jsdom": "^16.7.0",
     "jsonwebtoken": "^9.0.2",
-    "keycloak-angular": "^14.1.0",
+    "keycloak-angular": "^14.2.0",
     "keycloak-js": "^21.1.1",
     "ng2-charts": "^5.0.4",
     "ngx-infinite-scroll": "^16.0.0",
@@ -49,6 +49,7 @@
     "socket.io-client": "^4.7.4",
     "subsink": "^1.0.2",
     "tslib": "^2.6.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz",
     "zone.js": "^0.13.3"
   },
   "devDependencies": {

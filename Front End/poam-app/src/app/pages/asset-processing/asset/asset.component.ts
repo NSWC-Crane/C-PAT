@@ -92,13 +92,14 @@ export class AssetComponent implements OnInit {
     columns: {
       labelId: {
         title: '*Label',
+        isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
           //console.log("row: ", row);
-          var label = (row.labelId != undefined && row.labelId != null) ? this.labelList.find((tl: any) => tl.labelId === row.labelId) : null;
+          var label = (row.value != undefined && row.value != null) ? this.labelList.find((tl: any) => tl.labelId === row.value) : null;
           return (label)
             ? label.labelName
-            : row.labelId;
+            : row.value;
         }
         ,
         editor: {
@@ -109,7 +110,7 @@ export class AssetComponent implements OnInit {
         },
       },
     },
-    hideSubHeader: true,
+    hideSubHeader: false,
   };
 
 

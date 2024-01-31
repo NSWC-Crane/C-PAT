@@ -15,7 +15,7 @@ import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { SubSink } from 'subsink';
 //import { LocalDataSource } from 'angular2-smart-table';
-import { CsvDataService } from '../../../Shared/utils/cvs-data.service'
+import { ExcelDataService } from '../../../Shared/utils/excel-data.service'
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
 
 @Component({
@@ -66,15 +66,16 @@ export class CollectionComponent implements OnInit, OnChanges {
     columns: {
       userId: {
         title: '*Approver',
+        isFilterable: false,
         type: 'html',
         isEditable: false,
         isAddable: true,
         valuePrepareFunction: (_cell: any, row: any) => {
-          //console.log("row: ", row);
-          var user = (row.userId != undefined && row.userId != null) ? this.collectionApprovers.find((tl: any) => tl.userId === row.userId) : null;
+          console.log(this.collectionApprovers);
+          var user = (row.value != undefined && row.value != null) ? this.collectionApprovers.find((tl: any) => tl.userId === row.value) : null;
           return (user)
             ? user.fullName
-            : +row.userId;
+            : +row.value;
         }
         ,
         editor: {
@@ -86,9 +87,10 @@ export class CollectionComponent implements OnInit, OnChanges {
       },
       status: {
         title: 'Status',
+        isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return row.status
+          return row.value
         },
         editor: {
           type: 'list',
@@ -101,7 +103,7 @@ export class CollectionComponent implements OnInit, OnChanges {
         },
       },
     },
-    hideSubHeader: true,
+    hideSubHeader: false,
   };
 
   private subs = new SubSink()
@@ -144,7 +146,6 @@ export class CollectionComponent implements OnInit, OnChanges {
           this.invalidData("unexpected error adding billet");
         }
       );
-      // this.collectionchange.emit(this.data._id);
 
     } else {
 
@@ -152,7 +153,7 @@ export class CollectionComponent implements OnInit, OnChanges {
         //console.log("returned data: ", data)
         this.collection = data;
       });
-      this.collectionchange.emit();                       //this will hide the billet and assign-task components
+      this.collectionchange.emit();
     }
   }
 
@@ -307,23 +308,6 @@ export class CollectionComponent implements OnInit, OnChanges {
         })
       }
     })
-  }
-
-  exportAll() {
-    console.log("collection this.poams: ", this.poams)
-    // CsvDataService.exportToCsv('test.csv', this.poams);
-
-    var csv: string = CsvDataService.ConvertToCSV(this.poams);
-
-    // console.log("csv: ", csv)
-    // Once we are done looping, download the .csv by creating a link
-    let link = document.createElement('a')
-    link.id = 'download-csv'
-    link.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
-    link.setAttribute('download', 'POAMS-Export.csv');
-    document.body.appendChild(link)
-    let myDoc = document.querySelector!('#download-csv') as HTMLElement;
-    if (myDoc) myDoc.click()
   }
 
   validData(): boolean {

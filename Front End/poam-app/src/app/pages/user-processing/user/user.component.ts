@@ -76,9 +76,10 @@ export class UserComponent implements OnInit {
     columns: {
       collectionId: {
         title: 'Collections',
+        isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return row.collectionId
+          return row.value
         },
         editor: {
           type: 'list',
@@ -89,9 +90,10 @@ export class UserComponent implements OnInit {
       },
       canOwn: {
         title: 'Can Own',
+        isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.canOwn == 1) ? 'True' : 'False'
+          return (row.value == 1) ? 'True' : 'False'
         },
         editor: {
           type: 'list',
@@ -105,10 +107,11 @@ export class UserComponent implements OnInit {
       },
       canMaintain: {
         title: 'Can Maintain',
+        isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          //console.log("row: ", row.canMaintain);
-          return (row.canMaintain == 1) ? 'True' : 'False'
+          //console.log("row: ", row.value);
+          return (row.value == 1) ? 'True' : 'False'
         },
         editor: {
           type: 'list',
@@ -122,9 +125,10 @@ export class UserComponent implements OnInit {
       },
       canApprove: {
         title: 'Can Approve',
+        isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.canApprove == 1) ? 'True' : 'False'
+          return (row.value == 1) ? 'True' : 'False'
         },
         editor: {
           type: 'list',
@@ -137,7 +141,7 @@ export class UserComponent implements OnInit {
         },
       },
     },
-    hideSubHeader: true,
+    hideSubHeader: false,
   };
 
 
@@ -179,7 +183,6 @@ export class UserComponent implements OnInit {
       userData => {
         this.user = userData;
         this.loadCollections();
-        this.getData();
         this.isLoading = false;
       },
       error => {
@@ -293,7 +296,7 @@ export class UserComponent implements OnInit {
 
       let collectionPermission = {
         userId: +this.user.userId,
-        collectionId: +event.newData.collectionId,
+        collectionId: +parseInt(event.newData.collectionId, 10),
         canOwn: (+event.newData.canOwn) ? true : false,
         canMaintain: (+event.newData.canMaintain) ? true : false,
         canApprove: (+event.newData.canApprove) ? true : false

@@ -90,7 +90,6 @@
     <nb-card>
       <nb-card-header>Import Collection</nb-card-header>
       <nb-card-body>
-        <!-- ... -->
         <div class="row" *ngIf="allowSelectCollections">
           <div class="col-md-5" style="width: auto;">
             <nb-select id="stigmanCollectionSelect" placeholder="Select Collection" [(ngModel)]="selectedStigmanCollection" (selectedChange)="onStigmanCollectionSelect($event)">
@@ -107,6 +106,31 @@
     </nb-card>
   </div>
 </div>
+
+
+
+<div class="row">
+  <div class="col-md-10">
+    <nb-card>
+      <nb-card-header>Export POAMs by Collection</nb-card-header>
+      <nb-card-body>
+        <div class="row" *ngIf="allowSelectCollections">
+          <div class="col-md-5" style="width: auto;">
+            <nb-select [(ngModel)]="exportCollectionId" (selectedChange)="setExportCollection($event)" placeholder="Select Collection" required>
+              <nb-option *ngFor="let collection of data" [value]="collection.collectionId">
+                {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
+              </nb-option>
+            </nb-select>
+        </div>
+        <div class="col-md-5" style="width: auto;">
+            <button style="margin-left:20px;" nbButton outline status="info" type="button" class="export-button" (click)="exportAll()">Export POAMS</button>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>
+
 
 
 <ng-template #dialog let-data let-ref="dialogRef">
