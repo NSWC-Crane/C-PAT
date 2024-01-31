@@ -8,62 +8,36 @@
 !########################################################################
 -->
 
-
-  <form (ngSubmit)="onSubmit()" #form="ngForm">
-    <div class="container">
-      <div class="row">
-        <div class="col my-1">
-          <label style="margin-right: 1%" for="collectionName">*Collection Name: </label>
-          <input nbInput type="text" name="collectionName" [(ngModel)]="collection.collectionName" placeholder="name"
-                 required>
-          <button style="margin-left: 18%;" nbButton outline status="info" type="button" class="mr-3" (click)="exportAll()">Export POAMS</button>
-        </div>
-      </div>
-      <br />
-      <div class="row">
-        <div class="col">
-          <label id="description">Description</label>
-          <input nbInput style="width: 30%" type="text" fullWidth name="description"
-                 [(ngModel)]="collection.description" placeholder="Description">
-
-          <label style="margin-left: 9.5%;" for="grantcount">Grant Count: </label>
-          <input nbInput style="text-align: center; width: 3em;" type="number" fullWidth name="grantcount" [(ngModel)]="collection.grantCount" disabled="true"
-                 readonly>
-        </div>
-        <div class="row">
-          <div class="col">
-            <label id="created">Created</label>
-            <input nbInput type="text" fullWidth name="created" [(ngModel)]="collection.created" placeholder="Created"
-                   disabled="true" readonly>
-
-            <label style="margin-left: 24%;" for="assetcount">Asset Count: </label>
-            <input nbInput style="text-align: center; width: 3em;" type="number" name="assetcount" [(ngModel)]="collection.assetCount" disabled="true"
-                   readonly>
-          </div>
-          <div class="col">
-            <label style="margin-left: 46%;" for="poamcount">POAM Count: </label>
-            <input nbInput style="text-align: center; width: 3em;" type="number" fullWidth name="poamcount" [(ngModel)]="collection.poamCount" disabled="true"
-                   readonly>
-          </div>
-
-        </div>
-
-        <div class="col">
-          <angular2-smart-table id="collectionAprovers" [settings]="collectionApproverSettings" [source]="collectionApprovers" mode="inline"
-                           (createConfirm)="confirmCreate($event)" (editConfirm)="confirmEdit($event)"
-                           (deleteConfirm)="confirmDelete($event)">
-          </angular2-smart-table>
-        </div>
-      </div>
-      <br>
-      <div class="row">
-        <div class="container">
-
-          <button nbButton outline status="info" class="mr-3" [disabled]="!form.valid">Submit</button>
-          <button nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
-
-        </div>
-      </div>
+<form (ngSubmit)="onSubmit()" #form="ngForm">
+  <div class="container">
+    <!-- Form Group -->
+    <div class="form-group">
+      <label for="collectionName">*Collection Name: </label>
+      <input nbInput type="text" name="collectionName" [(ngModel)]="collection.collectionName" placeholder="name" required>
+      <label for="description">Description</label>
+      <input nbInput type="text" name="description" [(ngModel)]="collection.description" placeholder="Description">
+      <label for="grantcount">Grant Count: </label>
+      <input nbInput type="number" name="grantcount" [(ngModel)]="collection.grantCount" disabled readonly>
+      <label for="created">Created</label>
+      <input nbInput type="text" name="created" [(ngModel)]="collection.created" disabled readonly>
+      <label for="assetcount">Asset Count: </label>
+      <input nbInput type="number" name="assetcount" [(ngModel)]="collection.assetCount" disabled readonly>
+      <label for="poamcount">POAM Count: </label>
+      <input nbInput type="number" name="poamcount" [(ngModel)]="collection.poamCount" disabled readonly>
     </div>
-  </form>
 
+    <!-- Smart Table -->
+    <div class="form-group">
+      <angular2-smart-table id="collectionAprovers" [settings]="collectionApproverSettings" [source]="collectionApprovers" mode="inline"
+                     (createConfirm)="confirmCreate($event)" (editConfirm)="confirmEdit($event)"
+                     (deleteConfirm)="confirmDelete($event)">
+      </angular2-smart-table>
+    </div>
+
+    <!-- Buttons -->
+    <div class="buttons">
+      <button nbButton outline status="info" [disabled]="!form.valid">Submit</button>
+      <button style="margin-left:20px;" nbButton outline status="info" type="button" (click)="resetData()">Cancel</button>
+    </div>
+  </div>
+</form>

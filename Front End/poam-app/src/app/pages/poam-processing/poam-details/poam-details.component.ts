@@ -11,7 +11,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { filter, forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { AuthService } from '../../../auth';
 import { CollectionsService } from '../../collection-processing/collections.service';
 import { PoamService } from '../poams.service';
@@ -23,6 +23,7 @@ import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../user-processing/users.service'
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
+import { TextareaEditorComponent } from 'angular2-smart-table/lib/components/cell/cell-editors/textarea-editor.component';
 
 interface Permission {
   userId: number;
@@ -39,7 +40,6 @@ interface Permission {
   providers: [DatePipe]
 })
 export class PoamDetailsComponent implements OnInit {
-
 
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
@@ -91,15 +91,17 @@ export class PoamDetailsComponent implements OnInit {
     columns: {
       assetId: {
         title: '*Asset',
+        isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          //console.log("row: ", row);
-          var asset = (row.assetId != undefined && row.assetId != null) ? this.assets.find((tl: any) => tl.assetId === row.assetId) : null;
-          return (asset)
-            ? asset.assetName
-            : +row.assetId;
-        }
-        ,
+          console.log("row.value: ", row.value, typeof row.value);
+          console.log("this.assets: ", this.assets);
+          var assetId = row.value;
+          var numericAssetId = parseInt(assetId, 10);
+      
+          var asset = this.assets.find((tl: { assetId: number; }) => tl.assetId === numericAssetId);
+          return (asset) ? 'Asset ID: ' + assetId + ' - Asset Name: ' + asset.assetName : 'Asset ID: ' + assetId;
+      },
         editor: {
           type: 'list',
           config: {
@@ -136,17 +138,23 @@ export class PoamDetailsComponent implements OnInit {
     columns: {
       userId: {
         title: '*Approver',
+        isFilterable: false,
         type: 'html',
         isEditable: false,
         isAddable: true,
         valuePrepareFunction: (_cell: any, row: any) => {
-          //console.log("row: ", row);
-          var user = (row.userId != undefined && row.userId != null) ? this.collectionApprovers.find((tl: any) => tl.userId === row.userId) : null;
-          return (user)
-            ? user.fullName
-            : +row.userId;
-        }
-        ,
+          try {
+            var userId = row.value;
+            if (userId === undefined || userId === null) {
+              return '';
+            }
+            var user = this.collectionApprovers.find((tl: any) => tl.userId === userId);
+            return user ? user.fullName : userId.toString();
+          } catch (error) {
+            console.error("Error in valuePrepareFunction: ", error);
+            return userId ? userId.toString() : '';
+          }
+        },
         editor: {
           type: 'list',
           config: {
@@ -156,11 +164,12 @@ export class PoamDetailsComponent implements OnInit {
       },
       approved: {
         title: 'Approved',
+        isFilterable: false,
         type: 'html',
         isEditable: (this.showApprove) ? true : false,
         isAddable: false,
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.approved) ? row.approved : 'Not Reviewed'
+          return (row.value) ? row.value : 'Not Reviewed'
         },
         editor: {
           type: 'list',
@@ -175,11 +184,12 @@ export class PoamDetailsComponent implements OnInit {
       },
       approvedDate: {
         title: 'Approved Date',
+        isFilterable: false,
         type: 'html',
         isEditable: false,
         isAddable: false,
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.approvedDate) ? row.approvedDate.substr(0, 10) : '';
+          return (row.value) ? row.value.substr(0, 10) : '';
         },
         editor: {
           type: 'list',
@@ -190,11 +200,14 @@ export class PoamDetailsComponent implements OnInit {
       },
       comments: {
         title: 'Comments',
-        type: 'text',
+        isFilterable: false,
+        editor: {
+          type: 'textarea'
+        },
         isEditable: true,
         isAddable: true,
         valuePrepareFunction: (_cell: any, row: any) => {
-          return row.comments
+          return row.value
         },
       },
     },
@@ -225,16 +238,22 @@ export class PoamDetailsComponent implements OnInit {
     },
     columns: {
       userId: {
-        title: '*Assignee',
+        title: 'Assignee',
+        isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          //console.log("row: ", row);
-          var user = (row.userId != undefined && row.userId != null) ? this.collectionUsers.permissions.find((tl: any) => tl.userId === row.userId) : null;
-          return (user)
-            ? user.fullName
-            : +row.userId;
-        }
-        ,
+          try {
+            var userId = row.value;
+            if (userId === undefined || userId === null) {
+              return '';
+            }
+            var user = this.collectionUsers.permissions.find((tl: any) => tl.userId === userId);
+            return user ? user.fullName : userId.toString();
+          } catch (error) {
+            console.error("Error in valuePrepareFunction: ", error);
+            return userId ? userId.toString() : '';
+          }
+        },   
         editor: {
           type: 'list',
           config: {
@@ -346,7 +365,6 @@ export class PoamDetailsComponent implements OnInit {
         this.poamService.getCollectionApprovers(this.payload.lastCollectionAccessedId)
       )
         .subscribe(([collection, users, collectionAssets, collectionApprovers]: any) => {
-
           var dateObj = new Date();
           // add 30 days
           dateObj.setDate(dateObj.getDate() + 30)
@@ -384,9 +402,8 @@ export class PoamDetailsComponent implements OnInit {
           this.poamAssignees = [];
           this.collectionApprovers = [];
           this.collectionApprovers = collectionApprovers;
-
           // console.log("collection: ", this.collection)
-          // console.log("collectionUsers: ", this.collectionUsers)
+           console.log("collectionUsers: ", this.collectionUsers)
           // console.log("assets: ", this.assets)
 
           this.collectionOwners = [];
@@ -418,7 +435,6 @@ export class PoamDetailsComponent implements OnInit {
         this.poamService.getPoamApprovers(this.poamId)
       )
         .subscribe(([poam, collection, users, collectionAssets, assets, assignees, collectionApprovers, poamApprovers]: any) => {
-
           this.poam = { ...poam };
           // console.log("this.poam: ", this.poam)
           this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? this.poam.scheduledCompletionDate.substr(0, 10): '';
@@ -431,10 +447,9 @@ export class PoamDetailsComponent implements OnInit {
           this.poamAssets = assets.poamAssets;
           this.poamAssignees = assignees.poamAssignees;
           this.poamApprovers = poamApprovers.poamApprovers;
-          console.log("poamApprovers: ", this.poamApprovers)
           this.collectionApprovers = collectionApprovers.collectionApprovers;
           //console.log("Collection Approvers: " + this.collectionApprovers);
-          // console.log("collectionApprovers: ", this.collectionApprovers)
+          //console.log("collectionApprovers: ", this.collectionApprovers)
           if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length ==0)) {
             // Set default approvers...
             this.addDefaultApprovers();
@@ -449,7 +464,6 @@ export class PoamDetailsComponent implements OnInit {
           this.setApprovers();
         });
     }
-
   }
 
   addDefaultApprovers() {
@@ -851,7 +865,6 @@ export class PoamDetailsComponent implements OnInit {
 
   confirmCreate(data: any) {
     // console.log("confirmCreate data: ", data)
-
     if (this.poam.poamId === "ADDPOAM") {
       // nothing to do, when the poam is submitted, we'll push the array of label id's to so they can be
       // associated properly to the poam
@@ -864,7 +877,6 @@ export class PoamDetailsComponent implements OnInit {
     if (this.poam.poamId &&
       data.newData.userId
     ) {
-
       var user_index = this.poamAssignees.findIndex((e: any) => e.userId == data.newData.userId);
 
       // can't continue without collection data.   NOTE** collection_index my be 0, if the 1st row is selected!
@@ -911,7 +923,7 @@ export class PoamDetailsComponent implements OnInit {
     }
     else {
       console.log("Failed to create entry. Invalid input.");
-      this.invalidData("missing data, unable to insert");
+      this.invalidData("Missing data, unable to insert.");
       data.confirm.reject();
     }
   }

@@ -196,8 +196,6 @@ export class UserProcessingComponent implements OnInit {
     let selectedData = this.data.filter((user: { userId: any; }) => user.userId === userId)
 
     this.user = selectedData[0];
-    console.log("user: ", this.user);
-    console.log("users: ", this.users);
     this.allowSelectCollections = false;
   }
 
