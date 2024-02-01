@@ -13,19 +13,19 @@
 
     <div class="row">
       <label style="margin-right: 1%" for="userName">First Name: </label>
-      <input nbInput type="text" fullWidth name="userName" [(ngModel)]="user.firstName" placeholder="first name" required>
+      <input nbInput type="text" fullWidth name="userName" [(ngModel)]="user.firstName" placeholder="First Name" required>
 
       <label for="lastName" style="padding-top: 15px;">Last Name: </label>
-      <input nbInput type="text" fullWidth name="lastName" [(ngModel)]="user.lastName" placeholder="last name">
+      <input nbInput type="text" fullWidth name="lastName" [(ngModel)]="user.lastName" placeholder="Last Name">
 
       <label for="fullName" style="padding-top: 15px;">Full Name: </label>
-      <input nbInput type="text" fullWidth name="fullName" [(ngModel)]="user.fullName" placeholder="full name">
+      <input nbInput type="text" fullWidth name="fullName" [(ngModel)]="user.fullName" placeholder="Full Name">
     </div>
     <br />
 
     <div class="row">
       <label for="email">*Email: </label>
-      <input nbInput type="text" fullWidth name="email" [(ngModel)]="user.userEmail" placeholder="email">
+      <input nbInput type="text" fullWidth name="email" [(ngModel)]="user.userEmail" placeholder="Email">
 
       <label for="accountStatus" style="padding-top: 15px;">Status: </label>
       <nb-select outline status="info" placeholder="Select Status" [(ngModel)]="user.accountStatus" name="accountStatus">

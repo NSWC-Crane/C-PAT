@@ -27,7 +27,7 @@ CREATE TABLE `poamtracking`.`user` (
    UNIQUE KEY `userName_UNIQUE` (`userName`)
  )
 
-CREATE TABLE `asset` (
+CREATE TABLE `poamtracking`.`asset` (
   `assetId` INT NOT NULL AUTO_INCREMENT,
   `assetName` VARCHAR(255) NOT NULL,
   `fullyQualifiedDomainName` VARCHAR(255) DEFAULT NULL,
@@ -78,18 +78,19 @@ CREATE TABLE `poamtracking`.`label` (
    UNIQUE KEY `labelName_UNIQUE` (`labelName`)
  );
   
-CREATE TABLE `collectionpermissions` (
+CREATE TABLE `poamtracking`.`collectionpermissions` (
    `userId` int NOT NULL,
    `collectionId` int NOT NULL,
    `canOwn` tinyint NOT NULL DEFAULT '0',
    `canMaintain` tinyint NOT NULL DEFAULT '0',
    `canApprove` tinyint NOT NULL DEFAULT '0',
+   `canView` tinyint NOT NULL DEFAULT '1',
    PRIMARY KEY (`userId`,`collectionId`),
    KEY `userId` (`userId`),
    KEY `collectionId` (`collectionId`)
  );
 
-CREATE TABLE `poamapprovers` (
+CREATE TABLE `poamtracking`.`poamapprovers` (
   `poamId` int NOT NULL,
   `userId` int NOT NULL,
   `approved` varchar(12) NOT NULL DEFAULT 'Not Reviewed',
@@ -106,18 +107,18 @@ CREATE TABLE `poamtracking`.`collection` (
   `grantCount` INT DEFAULT '0',
   `assetCount` INT DEFAULT '0',
   `poamCount` INT DEFAULT '0',
-  `settings` JSON,
-  `metadata` JSON,
-  `state` ENUM('enabled', 'disabled'),
-  `createdUserId` INT,
-  `stateDate` DATETIME,
-  `stateUserId` INT,
+  `settings` JSON DEFAULT NULL,
+  `metadata` JSON DEFAULT NULL,
+  `state` ENUM('enabled', 'disabled', 'cloning'),
+  `createdUserId` INT DEFAULT NULL,
+  `stateDate` DATETIME DEFAULT NULL,
+  `stateUserId` INT DEFAULT NULL,
   `isEnabled` TINYINT GENERATED ALWAYS AS (case when `state` = 'enabled' then 1 else NULL end),
   `isNameUnavailable` TINYINT GENERATED ALWAYS AS (case when ((`state` = 'cloning') or (`state` = 'enabled')) then 1 else NULL end),
    PRIMARY KEY (`collectionId`));
   
-CREATE TABLE `poam` (
-`poamId` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `poamtracking`.`poam` (
+  `poamId` int NOT NULL AUTO_INCREMENT,
   `collectionId` int DEFAULT '0',
   `vulnerabilitySource` varchar(255) DEFAULT '',
   `aaPackage` varchar(50) DEFAULT '',
@@ -134,7 +135,7 @@ CREATE TABLE `poam` (
   `businessImpact` TEXT,
   `notes` TEXT,
   `status` char(10) NOT NULL DEFAULT 'Draft',
-  `poamType` char(10) NOT NULL DEFAULT '',
+  `poamType` CHAR(10) NOT NULL DEFAULT 'Standard',
   `vulnIdRestricted` varchar(255) DEFAULT '',
   `submittedDate` date DEFAULT '1900-01-01',
   `poamitemid` varchar(20) NOT NULL DEFAULT '0',
@@ -166,6 +167,106 @@ CREATE TABLE `poamtracking`.`usertokens` (
   `expiration` DATETIME NOT NULL,
   PRIMARY KEY (`userName`));
   
+
   
+  DELIMITER $$
+
+CREATE TRIGGER `after_asset_insert` 
+AFTER INSERT ON `asset` 
+FOR EACH ROW 
+BEGIN
+    UPDATE `collection`
+    SET `assetCount` = `assetCount` + 1
+    WHERE `collectionId` = NEW.`collectionId`;
+END$$
+
+CREATE TRIGGER `after_asset_delete` 
+AFTER DELETE ON `asset` 
+FOR EACH ROW 
+BEGIN
+    UPDATE `collection`
+    SET `assetCount` = `assetCount` - 1
+    WHERE `collectionId` = OLD.`collectionId`;
+END$$
+
+CREATE TRIGGER `after_asset_update` 
+AFTER UPDATE ON `asset` 
+FOR EACH ROW 
+BEGIN
+    IF OLD.`collectionId` != NEW.`collectionId` THEN
+        UPDATE `collection`
+        SET `assetCount` = `assetCount` - 1
+        WHERE `collectionId` = OLD.`collectionId`;
+
+        UPDATE `collection`
+        SET `assetCount` = `assetCount` + 1
+        WHERE `collectionId` = NEW.`collectionId`;
+    END IF;
+END$$
+
+CREATE TRIGGER `after_poamasset_insert`
+AFTER INSERT ON `poamtracking`.`poamassets`
+FOR EACH ROW
+BEGIN
+    UPDATE `label` 
+    JOIN `assetlabels` ON `label`.`labelId` = `assetlabels`.`labelId`
+    SET `label`.`poamCount` = (
+        SELECT COUNT(DISTINCT `pa`.`poamId`)
+        FROM `poamassets` `pa`
+        JOIN `assetlabels` `al` ON `pa`.`assetId` = `al`.`assetId`
+        WHERE `al`.`labelId` = `label`.`labelId`
+    )
+    WHERE `assetlabels`.`assetId` = NEW.`assetId`;
+END$$
+
+CREATE TRIGGER `after_poamasset_delete`
+AFTER DELETE ON `poamtracking`.`poamassets`
+FOR EACH ROW
+BEGIN
+    UPDATE `label` 
+    JOIN `assetlabels` ON `label`.`labelId` = `assetlabels`.`labelId`
+    SET `label`.`poamCount` = (
+        SELECT COUNT(DISTINCT `pa`.`poamId`)
+        FROM `poamassets` `pa`
+        JOIN `assetlabels` `al` ON `pa`.`assetId` = `al`.`assetId`
+        WHERE `al`.`labelId` = `label`.`labelId`
+    )
+    WHERE `assetlabels`.`assetId` = OLD.`assetId`;
+END$$
+
+CREATE TRIGGER `after_poam_insert` 
+AFTER INSERT ON `POAM` 
+FOR EACH ROW 
+BEGIN
+    UPDATE `collection`
+    SET `poamCount` = `poamCount` + 1
+    WHERE `collectionId` = NEW.`collectionId`;
+END$$
+
+CREATE TRIGGER `after_poam_delete` 
+AFTER DELETE ON `POAM` 
+FOR EACH ROW 
+BEGIN
+    UPDATE `collection`
+    SET `poamCount` = `poamCount` - 1
+    WHERE `collectionId` = OLD.`collectionId`;
+END$$
+
+CREATE TRIGGER `after_poam_update` 
+AFTER UPDATE ON `POAM` 
+FOR EACH ROW 
+BEGIN
+    IF OLD.`collectionId` != NEW.`collectionId` THEN
+        UPDATE `collection` c
+        SET c.`poamCount` = c.`poamCount` - 1
+        WHERE c.`collectionId` = OLD.`collectionId`;
+        
+        UPDATE `collection` c
+        SET c.`poamCount` = c.`poamCount` + 1
+        WHERE c.`collectionId` = NEW.`collectionId`;
+    END IF;
+END$$
+
+DELIMITER ;
   
   

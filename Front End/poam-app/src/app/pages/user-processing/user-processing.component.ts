@@ -25,6 +25,7 @@ interface Permission {
   canOwn: number;
   canMaintain: number;
   canApprove: number;
+  canView: number;
 }
 interface TreeNode<T> {
   data: T;
@@ -118,7 +119,8 @@ export class UserProcessingComponent implements OnInit {
                 collectionId: permission.collectionId,
                 canOwn: permission.canOwn,
                 canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove
+                canApprove: permission.canApprove,
+                canView: permission.canView
               }))
             };
 
@@ -171,7 +173,8 @@ export class UserProcessingComponent implements OnInit {
               'Collection': permission.collectionId,
               'Can Own': permission.canOwn == 1 ? 'True' : 'False',
               'Can Maintain': permission.canMaintain == 1 ? 'True' : 'False',
-              'Can Approve': permission.canApprove == 1 ? 'True' : 'False'
+              'Can Approve': permission.canApprove == 1 ? 'True' : 'False',
+              'Can View' : permission.canView == 1 ? 'True' : 'False'
             }
           });
         });

@@ -31,6 +31,7 @@ interface Permission {
   canOwn: number;
   canMaintain: number;
   canApprove: number;
+  canView: number;
 }
 
 @Component({
@@ -316,7 +317,8 @@ export class PoamDetailsComponent implements OnInit {
               collectionId: permission.collectionId,
               canOwn: permission.canOwn,
               canMaintain: permission.canMaintain,
-              canApprove: permission.canApprove
+              canApprove: permission.canApprove,
+              canView: permission.canView
             }));
 
             this.payload = {
@@ -333,7 +335,8 @@ export class PoamDetailsComponent implements OnInit {
               myRole = (this.user.isAdmin) ? 'admin' :
                 (selectedPermissions?.canOwn) ? 'owner' :
                   (selectedPermissions?.canMaintain) ? 'maintainer' :
-                    (selectedPermissions?.canApprove) ? 'approver' : 'none';
+                    (selectedPermissions?.canApprove) ? 'approver' :
+                      (selectedPermissions?.canView) ? 'viewer' : 'none';
             }
             this.payload.role = myRole;
             this.showApprove = ['admin', 'owner', 'approver'].includes(this.payload.role);
@@ -613,19 +616,15 @@ export class PoamDetailsComponent implements OnInit {
           // console.log("returned data: ",data)
           this.poam = data;
           this.getData();
-          this.invalidData("Updated POAM", "Success", "success");
-          //this.assetchange.emit();                       //this will hide the billet and assign-task components
+          this.showConfirmation("Updated POAM", "Success", "Success", true);
         });
       }
     });
-
-    //await this.router.navigateByUrl("/poam-approve/" + +this.poam.poamId);
-    
   }
 
   closePoam(poam: any) {
     if (this.poam.poamId === "ADDPOAM") {
-      this.invalidData("You may not close a POAM until after it has been saved.","Information","warnging");
+      this.showConfirmation("You may not close a POAM until after it has been saved.","Information","warning");
       return;
     }
     this.poam.status = "Closed";
@@ -633,7 +632,6 @@ export class PoamDetailsComponent implements OnInit {
   }
 
   savePoam(poam: any) {
-    //console.log("Attempting to submitPoam()...poam: ",poam);
 
     if (!this.validateData()) return;
 
@@ -669,16 +667,16 @@ export class PoamDetailsComponent implements OnInit {
         res => {
           // console.log("postPoam res: ", res)
           if (res.null || res.null == "null") {
-            this.invalidData("unexpected error adding poam");
+            this.showConfirmation("unexpected error adding poam");
           } else {
-            this.invalidData("Added POAM: " + res.poamId, "Success", "success");
+            this.showConfirmation("Added POAM: " + res.poamId, "Success", "Success", true);
             this.poam.poamId = res.poamId;
             this.poamService.newPoam(this.poam);
           }
 
         }, err => {
 
-          this.invalidData("unexpected error adding poam");
+          this.showConfirmation("unexpected error adding poam");
         }
       );
 
@@ -687,8 +685,8 @@ export class PoamDetailsComponent implements OnInit {
       this.subs.sink = this.poamService.updatePoam(this.poam).subscribe(data => {
         // console.log("returned data: ",data)
         this.poam = data;
-        this.invalidData("Updated POAM", "Success", "success");
-        //this.assetchange.emit();                       //this will hide the billet and assign-task components
+        this.showConfirmation("Updated POAM", "Success", "Success", true);
+        //this.assetchange.emit();
       });
 
     }
@@ -696,7 +694,7 @@ export class PoamDetailsComponent implements OnInit {
 
   submitPoam(poam: any) {
     if (this.poam.poamId === "ADDPOAM") {
-      this.invalidData("You may not submit a POAM until after it has been saved.","Information","warnging");
+      this.showConfirmation("You may not submit a POAM until after it has been saved.","Information","warnging");
       return;
     }
     this.poam.status = "Submitted";
@@ -711,31 +709,31 @@ export class PoamDetailsComponent implements OnInit {
   validateData() {
 
     if (!this.poam.description) {
-      this.invalidData("POAM Description is required");
+      this.showConfirmation("POAM Description is required");
       return false;
     }
     if (!this.poam.status) {
-      this.invalidData("POAM status is required");
+      this.showConfirmation("POAM status is required");
       return false;
     }
     if (!this.poam.poamType) {
-      this.invalidData("POAM type is required");
+      this.showConfirmation("POAM type is required");
       return false;
     }
     if (!this.poam.aaPackage) {
-      this.invalidData("POAM aaPackage is required");
+      this.showConfirmation("POAM aaPackage is required");
       return false;
     }
     if (!this.poam.vulnerabilitySource) {
-      this.invalidData("POAM vulnerability source is required");
+      this.showConfirmation("POAM vulnerability source is required");
       return false;
     }
     if (!this.poam.rawSeverity) {
-      this.invalidData("POAM raw severity is required");
+      this.showConfirmation("POAM raw severity is required");
       return false;
     }
     // if (!this.poam.scheduledCompletionDate) {
-    //   this.invalidData("POAM scheduled completion date is required");
+    //   this.showConfirmation("POAM scheduled completion date is required");
     //   return false;
     // }
     return true;
@@ -755,7 +753,7 @@ export class PoamDetailsComponent implements OnInit {
     }
 
     if (this.poam.status != "Draft") {
-      this.invalidData("you may only modify the approver list if poam status is 'Draft'.");
+      this.showConfirmation("you may only modify the approver list if poam status is 'Draft'.");
       event.confirm.reject();
       return;
     }
@@ -785,7 +783,7 @@ export class PoamDetailsComponent implements OnInit {
       await this.poamService.addPoamApprover(approver).subscribe((res: any) => {
         // console.log("poamDetail confirmCreatePoam res: ", res)
         if (res.null) {
-          this.invalidData("Unable to insert row, potentially a duplicate.");
+          this.showConfirmation("Unable to insert row, potentially a duplicate.");
           event.confirm.reject();
           return;
         } else {
@@ -799,7 +797,7 @@ export class PoamDetailsComponent implements OnInit {
 
     } else {
       console.log("Failed to create entry on poamApprover. Invalid input.");
-      this.invalidData("missing data, unable to insert");
+      this.showConfirmation("missing data, unable to insert");
       event.confirm.reject();
     }
   }
@@ -813,7 +811,7 @@ export class PoamDetailsComponent implements OnInit {
     }
 
     if (this.poam.status != "Draft") {
-      this.invalidData("you may only modify the approver list if poam status is 'Draft'.");
+      this.showConfirmation("you may only modify the approver list if poam status is 'Draft'.");
       event.confirm.reject();
       return;
     }
@@ -838,7 +836,7 @@ export class PoamDetailsComponent implements OnInit {
 
     } else {
       console.log("Failed to create entry. Invalid input.");
-      this.invalidData("missing data, unable to update");
+      this.showConfirmation("missing data, unable to update");
       event.confirm.reject();
     }
   }
@@ -847,7 +845,7 @@ export class PoamDetailsComponent implements OnInit {
     // console.log("poamDetails confirmDeleteApprover event: ", event)
 
     if (this.poam.status != "Draft") {
-      this.invalidData("you may only modify the approver list if poam status is 'Draft'.");
+      this.showConfirmation("you may only modify the approver list if poam status is 'Draft'.");
       event.confirm.reject();
       return;
     }
@@ -881,7 +879,7 @@ export class PoamDetailsComponent implements OnInit {
 
       // can't continue without collection data.   NOTE** collection_index my be 0, if the 1st row is selected!
       if (!user_index && user_index != 0) {
-        this.invalidData("Unable to resolve user");
+        this.showConfirmation("Unable to resolve user");
         data.confirm.reject();
         return;
       }
@@ -904,7 +902,7 @@ export class PoamDetailsComponent implements OnInit {
 
       // can't continue without collection data.   NOTE** collection_index my be 0, if the 1st row is selected!
       if (!asset_index && asset_index != 0) {
-        this.invalidData("Unable to resolve asset");
+        this.showConfirmation("Unable to resolve asset");
         data.confirm.reject();
         return;
       }
@@ -923,7 +921,7 @@ export class PoamDetailsComponent implements OnInit {
     }
     else {
       console.log("Failed to create entry. Invalid input.");
-      this.invalidData("Missing data, unable to insert.");
+      this.showConfirmation("Missing data, unable to insert.");
       data.confirm.reject();
     }
   }
@@ -946,7 +944,7 @@ export class PoamDetailsComponent implements OnInit {
       })
 
       if (!user_index && user_index != 0) {
-        this.invalidData("Unable to resolve user assinged")
+        this.showConfirmation("Unable to resolve user assinged")
         assigneeData.confirm.reject();
       } else {
         ;
@@ -965,7 +963,7 @@ export class PoamDetailsComponent implements OnInit {
       })
 
       if (!asset_index && asset_index != 0) {
-        this.invalidData("Unable to resolve asset assinged")
+        this.showConfirmation("Unable to resolve asset assinged")
         assigneeData.confirm.reject();
       } else {
 
@@ -977,29 +975,30 @@ export class PoamDetailsComponent implements OnInit {
       }
     } else {
       console.log("Failed to delete entry. Invalid input.");
-      this.invalidData("missing data, unable to insert");
+      this.showConfirmation("Missing data, unable to insert.");
       assigneeData.confirm.reject();
     }
   }
 
-  async invalidData(errMsg: string, header?: string, status?: string, cancelBtn?: string) {
-    let options =        new ConfirmationDialogOptions({
-      header: (header) ? header : "Invalid Data",
+  async showConfirmation(errMsg: string, header?: string, status?: string, isSuccessful: boolean = false) {
+    let options = new ConfirmationDialogOptions({
+      header: header ? header : "Notification",
       body: errMsg,
       button: {
-        text: "ok",
-        status: (status) ? status : "Warning",
+        text: "Ok",
+        status: status ? status : "Primary",
       },
-      cancelbutton: (cancelBtn) ? cancelBtn : "false",
+      cancelbutton: "false",
     });
 
-    //console.log("dialog options: ", options)
-    await this.confirm(options).subscribe((res: boolean) => {
-      //console.log("Confirm res: ",res)
-    });
+    const dialogRef = this.confirm(options);
 
-  
-  }
+    dialogRef.subscribe((res: boolean) => {
+      if (res && isSuccessful) {
+        this.router.navigateByUrl('/poam-processing');
+      }
+    });
+}
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> => 
     this.dialogService.open(ConfirmationDialogComponent, {

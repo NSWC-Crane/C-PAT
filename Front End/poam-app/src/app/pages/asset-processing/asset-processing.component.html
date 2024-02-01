@@ -9,21 +9,20 @@
             <table [nbTreeGrid]="dataSource">
               <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
               <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-
+            
               <ng-container [nbTreeGridColumnDef]="customColumn">
                 <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
                 <td nbTreeGridCell *nbTreeGridCellDef="let row">
-                  <nb-tree-grid-row-toggle [expanded]="row.expanded" *ngIf="row.data['asset']">
-                  </nb-tree-grid-row-toggle>
                   {{row.data[customColumn]}}
                 </td>
               </ng-container>
-
+            
               <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
                 <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
                 <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
               </ng-container>
             </table>
+            
           </nb-card-body>
         </nb-card>
     </div>

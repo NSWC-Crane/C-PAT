@@ -21,15 +21,15 @@
 
   <div class="form-group">
      <label for="assetName">*Asset Name: </label>
-     <input nbInput type="text" name="assetName" [(ngModel)]="asset.assetName" placeholder="asset name" required>
+     <input nbInput type="text" name="assetName" [(ngModel)]="asset.assetName" placeholder="Asset Name" required>
      <label for="description">Description: </label>
-     <input nbInput type="text" name="description" [(ngModel)]="asset.description" placeholder="description">
+     <input nbInput type="text" name="description" [(ngModel)]="asset.description" placeholder="Description">
      <label for="fullyQualifiedDomainName">Fully Qualified Domain Name: </label>
-     <input nbInput type="text" name="fullyQualifiedDomainName" [(ngModel)]="asset.fullyQualifiedDomainName" placeholder="fully qualified domain name">
+     <input nbInput type="text" name="fullyQualifiedDomainName" [(ngModel)]="asset.fullyQualifiedDomainName" placeholder="Fully Qualified Domain Name">
      <label for="ipAddress">*IP Address: </label>
-     <input nbInput type="text" name="ipAddress" [(ngModel)]="asset.ipAddress" placeholder="ip address">
+     <input nbInput type="text" name="ipAddress" [(ngModel)]="asset.ipAddress" placeholder="IP Address">
      <label for="macAddress">*MAC Address: </label>
-     <input nbInput type="text" name="macAddress" [(ngModel)]="asset.macAddress" placeholder="mac address">
+     <input nbInput type="text" name="macAddress" [(ngModel)]="asset.macAddress" placeholder="Mac Address">
   </div>
 
   <div class="row" [nbSpinner]="isLoading"

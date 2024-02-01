@@ -12,7 +12,7 @@ import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@an
 import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SubSink } from 'subsink';
-import { forkJoin, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { UsersService } from '../users.service'
 import { CollectionsService } from '../../collection-processing/collections.service'
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
@@ -23,6 +23,7 @@ interface Permission {
   canOwn: number;
   canMaintain: number;
   canApprove: number;
+  canView: number;
 }
 export interface CollectionsResponse {
   collections: Array<{
@@ -125,6 +126,23 @@ export class UserComponent implements OnInit {
       },
       canApprove: {
         title: 'Can Approve',
+        isFilterable: false,
+        type: 'html',
+        valuePrepareFunction: (_cell: any, row: any) => {
+          return (row.value == 1) ? 'True' : 'False'
+        },
+        editor: {
+          type: 'list',
+          config: {
+            list: [
+              { value: '1', title: 'True' },
+              { value: '0', title: 'False' }
+            ],
+          },
+        },
+      },
+      canView: {
+        title: 'Can View',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -253,7 +271,8 @@ export class UserComponent implements OnInit {
         collectionId: permission.collectionId,
         canOwn: permission.canOwn,
         canMaintain: permission.canMaintain,
-        canApprove: permission.canApprove
+        canApprove: permission.canApprove,
+        canView: permission.canView
       }));
     } else {
       console.error('User or permissions data is not available');
@@ -283,7 +302,8 @@ export class UserComponent implements OnInit {
       event.newData.collectionId &&
       event.newData.canOwn &&
       event.newData.canMaintain &&
-      event.newData.canApprove
+      event.newData.canApprove &&
+      event.netData.canView
     ) {
 
       var collection_index = this.collectionList.findIndex((e: any) => e.collectionId == event.newData.collectionId);
@@ -299,7 +319,8 @@ export class UserComponent implements OnInit {
         collectionId: +parseInt(event.newData.collectionId, 10),
         canOwn: (+event.newData.canOwn) ? true : false,
         canMaintain: (+event.newData.canMaintain) ? true : false,
-        canApprove: (+event.newData.canApprove) ? true : false
+        canApprove: (+event.newData.canApprove) ? true : false,
+        canView: (+event.newData.canView) ? true: false
       }
 
       this.isLoading = true;
@@ -336,6 +357,7 @@ export class UserComponent implements OnInit {
         canOwn: (+event.newData.canOwn) ? true : false,
         canMaintain: (+event.newData.canMaintain) ? true : false,
         canApprove: (+event.newData.canApprove) ? true : false,
+        canView: (+event.newData.canView) ? true: false
       }
 
       this.isLoading = true;
@@ -355,31 +377,18 @@ export class UserComponent implements OnInit {
 
 
   confirmDelete(event: any) {
-    //console.log("Attempting to confirmDelete()...event.data: ",event.data);
+    this.isLoading = true;
 
-    let billet = this.data;
-
-    var collection_index = this.collectionPermissions.findIndex((data: any) => {
-      if (event.data.userId === data.userId && event.data.collectionId === data.collectionId) return true;
-      else return false;
-    })
-
-    if (!collection_index && collection_index != 0) {
-      this.invalidData("Unable to resolve collectiom assinged")
-      event.confirm.reject();
-    } else {
-      ;
-
-
-      this.isLoading = true;
-      this.userService.deletePermission(event.data.userId, event.data.collectionId).subscribe(permissionData => {
-        // console.log("after deletePermission, permissionData: ",permissionData);        
+    this.userService.deletePermission(this.user.userId, event.data.collectionId).subscribe(permissionData => {     
         event.confirm.resolve();
         this.getData();
-      });
-
-    }
-  }
+        this.isLoading = false;
+    }, error => {
+        console.error("Error during deletePermission: ", error);
+        this.isLoading = false;
+        event.confirm.reject();
+    });
+}
 
   resetData() {
     this.userchange.emit();

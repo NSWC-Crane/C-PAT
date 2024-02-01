@@ -81,7 +81,8 @@ exports.getCurrentUser = async function getCurrentUser(req) {
 				collectionId: permission.collectionId,
 				canOwn: permission.canOwn,
 				canMaintain: permission.canMaintain,
-				canApprove: permission.canApprove
+				canApprove: permission.canApprove,
+				canView: permission.canView
 			}));
 
 			const response = {
@@ -134,7 +135,8 @@ exports.getUsers = async function getUsers(req, res, next) {
 				collectionId: permission.collectionId,
 				canOwn: permission.canOwn,
 				canMaintain: permission.canMaintain,
-				canApprove: permission.canApprove
+				canApprove: permission.canApprove,
+				canView: permission.canView
 			}));
 
 			users.users.push({
@@ -384,6 +386,7 @@ module.exports.generateJWT = async function (previousPayload, jwtSignOptions, us
 						canOwn: permission.canOwn,
 						canMaintain: permission.canMaintain,
 						canApprove: permission.canApprove,
+						canView: permission.canView
 					}
 					payload.collections.push(assigendCollections);
 				}

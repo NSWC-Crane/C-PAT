@@ -30,6 +30,7 @@ interface Permission {
   canOwn: number;
   canMaintain: number;
   canApprove: number;
+  canView: number;
 }
 interface TreeNode<T> {
   data: T;
@@ -213,10 +214,6 @@ export class CollectionProcessingComponent implements OnInit {
     });
   }
 
-  resetSTIGMANData() {
-    this.stigmanCollection = [];
-  }
-
   setPayload() {
     this.user = null;
     this.payload = null;
@@ -236,6 +233,7 @@ export class CollectionProcessingComponent implements OnInit {
                   canOwn: permission.canOwn,
                   canMaintain: permission.canMaintain,
                   canApprove: permission.canApprove,
+                  canView: permission.canView
                 })
               ),
             };
@@ -414,6 +412,7 @@ export class CollectionProcessingComponent implements OnInit {
 
   resetData() {
     this.collection = [];
+    this.stigmanCollection = [];
     this.getCollectionData();
     this.collection.collectionId = 'COLLECTION';
     this.allowSelectCollections = true;

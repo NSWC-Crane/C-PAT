@@ -9,11 +9,11 @@
 -->
 
 <form (ngSubmit)="onSubmit()" #form="ngForm">
-  <div class="container">
+
     <!-- Form Group -->
     <div class="form-group">
       <label for="collectionName">*Collection Name: </label>
-      <input nbInput type="text" name="collectionName" [(ngModel)]="collection.collectionName" placeholder="name" required>
+      <input nbInput type="text" name="collectionName" [(ngModel)]="collection.collectionName" placeholder="Collection Name" required>
       <label for="description">Description</label>
       <input nbInput type="text" name="description" [(ngModel)]="collection.description" placeholder="Description">
       <label for="grantcount">Grant Count: </label>
@@ -27,17 +27,22 @@
     </div>
 
     <!-- Smart Table -->
-    <div class="form-group">
+    <div class="row" [nbSpinner]="isLoading"
+    nbSpinnerStatus="success"
+    nbSpinnerSize="medium"
+    nbSpinnerMessage="Updating/loading data, please wait...">
+    <div class="col">
+       <br>
       <angular2-smart-table id="collectionAprovers" [settings]="collectionApproverSettings" [source]="collectionApprovers" mode="inline"
                      (createConfirm)="confirmCreate($event)" (editConfirm)="confirmEdit($event)"
                      (deleteConfirm)="confirmDelete($event)">
       </angular2-smart-table>
     </div>
-
+  </div>
+  
     <!-- Buttons -->
     <div class="buttons">
       <button nbButton outline status="info" [disabled]="!form.valid">Submit</button>
       <button style="margin-left:20px;" nbButton outline status="info" type="button" (click)="resetData()">Cancel</button>
     </div>
-  </div>
 </form>

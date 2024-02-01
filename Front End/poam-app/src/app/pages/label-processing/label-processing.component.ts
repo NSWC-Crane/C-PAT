@@ -9,17 +9,16 @@
 */
 
 import { Component, OnInit } from '@angular/core';
-import { LabelService } from './label.service';
-import { forkJoin, Observable } from 'rxjs';
-import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder} from '@nebular/theme';
 import { Router } from '@angular/router';
-import { AuthService } from '../../auth';
-import { NbAuthJWTToken, NbAuthToken } from '@nebular/auth';
-import { SubSink } from "subsink";
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
-import { UsersService } from '../user-processing/users.service';
+import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
+import { Observable } from 'rxjs';
+import { SubSink } from "subsink";
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { AuthService } from '../../auth';
+import { UsersService } from '../user-processing/users.service';
+import { LabelService } from './label.service';
 
 interface Permission {
   userId: number;
@@ -27,6 +26,7 @@ interface Permission {
   canOwn: number;
   canMaintain: number;
   canApprove: number;
+  canView: number;
 }
 interface TreeNode<T> {
   data: T;
@@ -121,7 +121,8 @@ export class LabelProcessingComponent implements OnInit {
                 collectionId: permission.collectionId,
                 canOwn: permission.canOwn,
                 canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove
+                canApprove: permission.canApprove,
+                canView: permission.canView
               }))
             };
 
@@ -143,7 +144,7 @@ export class LabelProcessingComponent implements OnInit {
     this.labels = null;
     this.labelService.getLabels().subscribe((result: any) => {
 
-      this.data = result.labels;
+      this.data = result.labels.sort((a: { labelId: number; }, b: { labelId: number; }) => a.labelId - b.labelId);
       this.labels = this.data;
       console.log("Labels: ",this.data)
       this.getLabelsGrid("");
@@ -154,8 +155,6 @@ export class LabelProcessingComponent implements OnInit {
 
   getLabelsGrid(filter: string) {
     let labelData = this.data;
-  
-    //if (filter) { collectionData = this.data.filter((collection: { collectionId: string; }) => collection.collectionId === filter); }
 
     var treeViewData: TreeNode<FSEntry>[] = labelData.map((label: { labelId: number | any[]; labelName: any; 
         description: any; poamCount: any; }) => {

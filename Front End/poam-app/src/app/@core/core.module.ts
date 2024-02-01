@@ -16,7 +16,7 @@ import { of as observableOf } from 'rxjs';
 
 import { throwIfAlreadyLoaded } from './module-import-guard';
 import { WebsocketService } from './websocket.service';
-import { ACCESS_CONTROL_LIST } from '../access-control-list';
+import { accessControlList } from '../access-control-list';
 import { AUTH_OPTIONS } from '../auth/auth-options';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TOKEN_INTERCEPTOR_FILTER } from '../auth/token-interceptor-filter';
@@ -50,7 +50,7 @@ export class NbSimpleRoleProvider extends NbRoleProvider {
 export const NB_CORE_PROVIDERS = [
   NbAuthModule.forRoot(AUTH_OPTIONS).providers,
 
-  NbSecurityModule.forRoot(ACCESS_CONTROL_LIST).providers,
+  NbSecurityModule.forRoot(accessControlList).providers,
   {
     provide: HTTP_INTERCEPTORS, useClass: NbAuthJWTInterceptor, multi: true
   },

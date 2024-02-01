@@ -21,25 +21,19 @@
           <table [nbTreeGrid]="dataSource">
             <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
             <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-
+          
             <ng-container [nbTreeGridColumnDef]="customColumn">
               <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
               <td nbTreeGridCell *nbTreeGridCellDef="let row">
-
-                <nb-tree-grid-row-toggle [expanded]="row.expanded" *ngIf="row.data['label']">
-                </nb-tree-grid-row-toggle>
-
                 {{row.data[customColumn]}}
-
               </td>
             </ng-container>
-
+          
             <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
               <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
+              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
             </ng-container>
-          </table>
-
+          </table>         
         </nb-card-body>
       </nb-card>
     </div>
@@ -54,7 +48,7 @@
 
             <div class="col-md-5" style="width: auto;">
               <nb-select fullWidth style="width: auto" outlineid="labelid" name="label" [(ngModel)]="label.labelId"
-                         (selectedChange)="setLabel($event)" placeholder="label" required>
+                         (selectedChange)="setLabel($event)" placeholder="Label" required>
                 <nb-option *ngFor="let label of data" [value]="label.labelId">
                   {{ label.labelId }} - {{ label.labelName }} - {{ label.description }}
                 </nb-option>
@@ -66,7 +60,6 @@
           </div>
 
           <div [ngStyle]="hideCollectionEntry">
-
             <ngx-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData();"></ngx-label>
           </div>
 
@@ -91,7 +84,7 @@
 
 <ng-template #dontshowcollections>
   <h1 style>
-    Collections processing requires may  role of admin.
+    Collection processing may require the role of admin.
     <br /><br />
   </h1>
 </ng-template>
