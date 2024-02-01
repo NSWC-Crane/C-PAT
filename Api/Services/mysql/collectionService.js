@@ -277,6 +277,7 @@ exports.getCollectionPoamStats = async function getCollectionPoamStats( req, res
 }
 exports.postCollection = async function postCollection(req, res, next) {
 	// console.log("inSide postCollection req.body: ", req.body)
+	let connection;
 
 	if (!req.body.collectionName) req.body.collectionName = undefined
 	if (!req.body.description) req.body.description = ""
@@ -298,12 +299,14 @@ exports.postCollection = async function postCollection(req, res, next) {
 
 		writeLog.writeLog(4, "colectionService", 'info', req.userObject.username,  req.userObject.displayName, { event: 'added collection', collectionName: req.body.collectionName, description: req.body.description })
 		return (collection)
-	}
-	catch (error) {
-		let errorResponse = { null: "null" }
-		await connection.release()
-		return errorResponse;
-	}
+    } catch (error) {
+        if (connection) {
+            await connection.release();
+        }
+        let errorResponse = { error: "An error occurred while attempting to add a collection." };
+        console.error(error);
+        return errorResponse;
+    }
 }
 
 exports.putCollection = async function putCollection(req, res, next) {

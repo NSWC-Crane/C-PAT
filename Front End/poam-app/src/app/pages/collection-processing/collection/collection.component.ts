@@ -32,6 +32,7 @@ export class CollectionComponent implements OnInit, OnChanges {
   @Input() poams: any;
   @Output() collectionchange = new EventEmitter();
 
+  isLoading: boolean = false;
   modalWindow: NbWindowRef | undefined
   errorMessage: string = '';
 
@@ -132,10 +133,10 @@ export class CollectionComponent implements OnInit, OnChanges {
       poamCount: this.collection.poamCount,
     }
 
-    if (this.collection.collectionId == "ADDCOLLECTION") {
-      this.collection.collectionId = "";
+    if (collection.collectionId == "ADDCOLLECTION") {
+      delete collection.collectionId;
 
-      //console.log("data before: ", this.data)
+      console.log("data before: ", collection)
       this.subs.sink = this.collectionService.addCollection(collection).subscribe(
         data => {
           // this.data = data.data[0];
@@ -143,7 +144,7 @@ export class CollectionComponent implements OnInit, OnChanges {
           this.collectionchange.emit(data.collectionId);
         }, () => {
 
-          this.invalidData("unexpected error adding billet");
+          this.invalidData("Unexpected error while adding Collection.");
         }
       );
 
@@ -202,6 +203,7 @@ export class CollectionComponent implements OnInit, OnChanges {
   resetData() {
     this.collection.collectionId = "COLLECTION";
     this.collectionchange.emit();
+
   }
 
   addCollection() {
@@ -238,8 +240,9 @@ export class CollectionComponent implements OnInit, OnChanges {
         userId: +event.newData.userId,
         status: event.newData.status
       }
-
+      this.isLoading = true;
       await this.collectionService.addCollectionAprover(approver).subscribe((res: any) => {
+        this.isLoading = false;
         console.log("Collection confirmCreate res: ", res)
         if (res.null) {
           this.invalidData("Unable to insert row, potentially a duplicate.");
@@ -276,7 +279,7 @@ export class CollectionComponent implements OnInit, OnChanges {
         userId: +event.newData.userId,
         status: event.newData.status
       }
-
+      this.isLoading = true;
       this.collectionService.putCollectionApprover(approver).subscribe(res => {
         event.confirm.resolve();
       })
@@ -298,6 +301,7 @@ export class CollectionComponent implements OnInit, OnChanges {
         event.confirm.reject();
         return;
       } else {
+        this.isLoading = true;
         await this.collectionService.deleteCollectionApprover(event.data.collectionId, event.data.userId).subscribe((res: any) => {
           //console.log("confirmDelete res to delete: ", res)
           const index = this.collectionApprovers.findIndex(((e: any) => { e.collectionId == event.data.colectiondId && e.userId == event.data.userId }));
@@ -319,7 +323,7 @@ export class CollectionComponent implements OnInit, OnChanges {
     if (this.collection.collectionId == "ADDCOLLECTION") {  // need to make sure this is not a duplicate
       let exists = this.collections.find((e: { collectionName: any; }) => e.collectionName === this.collection.collectionName);
       if (exists) {
-        this.invalidData("Duplicate collection number");
+        this.invalidData("Duplicate collection");
         return false;
       }
     }

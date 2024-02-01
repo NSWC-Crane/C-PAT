@@ -10,7 +10,7 @@ import { PoamService } from '../app/pages/poam-processing/poams.service'
 import { Observable, Subject, forkJoin, takeUntil } from 'rxjs';
 import { KeycloakService } from 'keycloak-angular'
 import { KeycloakProfile, KeycloakRoles } from 'keycloak-js';
-import { ACCESS_CONTROL_LIST } from './access-control-list';
+import { accessControlList } from './access-control-list';
 import { appMenuItems } from './app-menu';
 import { environment } from '../environments/environment';
 import { FileUploadService } from './file-upload.service';
@@ -25,6 +25,7 @@ interface Permission {
   canOwn: number;
   canMaintain: number;
   canApprove: number;
+  canView: number;
 }
 
 @Component({
@@ -135,7 +136,8 @@ export class AppComponent implements OnInit, OnDestroy {
               collectionId: permission.collectionId,
               canOwn: permission.canOwn,
               canMaintain: permission.canMaintain,
-              canApprove: permission.canApprove
+              canApprove: permission.canApprove,
+              canView: permission.canView
             }))
           });
 
@@ -311,11 +313,15 @@ export class AppComponent implements OnInit, OnDestroy {
     if (!selectedPermissions && !this.user.isAdmin) {
       myRole = 'none'
     } else {
-      myRole = (this.user.isAdmin) ? 'admin' : (selectedPermissions.canOwn) ? 'owner' : (selectedPermissions.canMaintain) ? 'maintainer' : (selectedPermissions.canApprove) ? 'approver' : 'none'
+      myRole = (this.user.isAdmin) ? 'admin' :
+      (selectedPermissions.canOwn) ? 'owner' :
+      (selectedPermissions.canMaintain) ? 'maintainer' :
+      (selectedPermissions.canApprove) ? 'approver' :
+      (selectedPermissions.canView) ? 'viewer' :
+      'none'
     }
 
     this.payload.role = myRole;
-    //console.log("resetWorkspace payload: ", this.payload)
     this.userService.changeRole(this.payload);
 
     this.userService.updateUser(userUpdate).subscribe((result: any) => {
@@ -404,7 +410,7 @@ export class AppComponent implements OnInit, OnDestroy {
   authMenuItems() {
     this.menuItems = null;
     this.menuItems = appMenuItems;
-    // console.log("ACL: ", ACCESS_CONTROL_LIST)
+    // console.log("ACL: ", accessControlList)
     this.menuItems.forEach((item: NbMenuItem) => {
       item.hidden = true;
       this.authMenuItem(item);
@@ -442,90 +448,17 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  accessChecker(permission?: string, resource?: string): boolean {
-    // console.log("accessChecker permission: ", permission, ", resource: ", resource)
-    let acl: any = "";
-    switch (this.payload.role) {
-      case 'owner': {
-        acl = ACCESS_CONTROL_LIST.accessControl.owner
-        break;
-      }
-      case 'maintainer': {
-        acl = ACCESS_CONTROL_LIST.accessControl.maintainer
-        break;
-      }
-      case 'approver': {
-        acl = ACCESS_CONTROL_LIST.accessControl.approver
-        break;
-      }
-      case 'admin': {
-        acl = ACCESS_CONTROL_LIST.accessControl.admin
-        break;
-      }
-      default: {
-        return false;
-        break;
-      }
+  accessChecker(permission: string, resource: string): boolean {
+    const rolePermissions = accessControlList.accessControl[this.payload.role] || {};
+  
+    if (!permission) return false;
+  
+    const resourcesWithPermission = rolePermissions[permission];
+  
+    if (resourcesWithPermission && Array.isArray(resourcesWithPermission)) {
+      return resourcesWithPermission.includes(resource) || resourcesWithPermission.includes("*");
     }
-    //console.log("accessChecker acl: ", acl )
-    //console.log("accessChecker acl: ",acl)
-    let i = 0;
-    switch (permission) {
-      case 'create': {
-        if (acl.create.length > 0) {
-          // console.log("acl create: ",acl.create)
-          for (i = 0; i < acl.create.length; i++) {
-            //console.log("acl create: ",acl.create[i])
-            if (acl.create[i] === resource || acl.create[i] === "*") return true;
-          }
-        }
-        break;
-      }
-      case 'modify': {
-        if (acl.create.length > 0) {
-          //console.log("modify: ",acl.modify)
-          for (i = 0; i < acl.modify.length; i++) {
-            //console.log("acl modify: ",acl.modify[i])
-            if (acl.modify[i] === resource || acl.modify[i] === "*") return true;
-          }
-        }
-        break;
-      }
-      case 'approve': {
-        if (acl.approve.length > 0) {
-          //console.log("approve: ",acl.approve)
-          for (i = 0; i < acl.approve.length; i++) {
-            //console.log("acl approve: ",acl.approve[i])
-            if (acl.approve[i] === resource || acl.approve[i] === "*") return true;
-          }
-        }
-        break;
-      }
-      case 'view': {
-        if (acl.view.length > 0) {
-          //console.log("view: ",acl.view)
-          for (i = 0; i < acl.view.length; i++) {
-            //console.log("acl view: ",acl.view[i])
-            if (acl.view[i] === resource || acl.view[i] === "*") return true;
-          }
-        }
-        break;
-      }
-      case 'delete': {
-        if (acl.delete.length > 0) {
-          //console.log("modify: ",acl.modify)
-          for (i = 0; i < acl.delete.length; i++) {
-            //console.log("acl delete: ",acl.delete[i])
-            if (acl.delete[i] === resource || acl.delete[i] === "*") return true;
-          }
-        }
-        break;
-      }
-      default: {
-        return false;
-        break;
-      }
-    }
+  
     return false;
   }
 

@@ -19,7 +19,7 @@
             <!-- Status -->
             <div class="status-group">
               <label id="status">*Status:</label>
-              <nb-select outline status="info" placeholder="Status: " [(ngModel)]="poam.status" name="status">
+              <nb-select outline status="basic" placeholder="Status: " [(ngModel)]="poam.status" name="status">
                 <nb-option value="Draft">Draft</nb-option>
                 <nb-option value="Submitted">Submitted</nb-option>
                 <nb-option value="Approved">Approved</nb-option>
@@ -30,13 +30,17 @@
             </div>
 
             <!-- Poam Type -->
-            <div class="status-group">
+            <div class="status-group" style="margin-left:20px;">
               <label id="poamType">*Poam Type:</label>
-              <nb-select outline status="info" placeholder="Type: " [(ngModel)]="poam.poamType" name="poamType">
+              <nb-select outline status="basic" placeholder="Type: " [(ngModel)]="poam.poamType" name="poamType">
                 <nb-option value="Standard">Standard</nb-option>
                 <nb-option value="Restricted">Restricted</nb-option>
               </nb-select>
             </div>
+
+          <div class="status-group" style="margin-left:20px;">
+            <button nbButton outline status="warning" *ngIf="showClose" (click)="closePoam(poam)">Close Poam</button>
+          </div>
           </div>
 
           <!-- Description -->
@@ -94,7 +98,7 @@
           <!-- Scheduled Completion Date -->
           <div class="form-group">
             <label id="scheduledCompletionDate">Scheduled Completion Date:</label>
-            <input type="date" nbInput placeholder="Sched Completion Date" [(ngModel)]="dates.scheduledCompletionDate" name='scheduledCompletionDate'>
+            <input type="date" nbInput placeholder="Scheduled Completion Date" [(ngModel)]="dates.scheduledCompletionDate" name='scheduledCompletionDate'>
           </div>
 
           <!-- Submitted Date -->
@@ -107,95 +111,75 @@
 
       <nb-card-body>
         <nb-stepper orientation="horizontal">
-          <nb-step label=">Assignees">
-            <label style="margin-left: 40%;">Assignees</label>
+          <nb-step label="Assignees">
             <div class="col">
               <angular2-smart-table [settings]="poamAssigneesSettings" [source]="poamAssignees" mode="inline"
                                (createConfirm)="confirmCreate($event)" (deleteConfirm)="confirmDelete($event)">
               </angular2-smart-table>
             </div>
-            <br>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
-          <nb-step label=">Approvers">
-            <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showApprove" (click)="approvePoam(poam)">Approve</button>
-            <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showApprove" (click)="approvePoamAll(poam)">Approve ALL</button>
-            <br>
-            <label style="margin-left: 40%;">Approvers</label>
+          <nb-step label="Approvers">
+            <!-- <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showApprove" (click)="approvePoam(poam)">Approve</button>
+            <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showApprove" (click)="approvePoamAll(poam)">Approve ALL</button> -->
+
             <div class="col">
               <angular2-smart-table [settings]="poamApproverSettings" [source]="poamApprovers"
                                (createConfirm)="confirmCreateApprover($event)" (editConfirm)="confirmEditApprover($event)" (deleteConfirm)="confirmDeleteApprover($event)">
               </angular2-smart-table>
             </div>
-            <br>
-            <br>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
-          <nb-step label=">Assets">
-            <label style="margin-left: 40%;">Assets</label>
+          <nb-step label="Assets">
             <div class="col">
               <angular2-smart-table [settings]="poamAssetsSettings" [source]="poamAssets" mode="inline"
                                (createConfirm)="confirmCreate($event)" (deleteConfirm)="confirmDelete($event)">
               </angular2-smart-table>
             </div>
-            <br>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
-          <nb-step label=">Mitigations">
-            <label style="margin-left: 40%;">Mitigations</label>
+          <nb-step label="Mitigations">
             <textarea nbInput fullWidth [(ngModel)]="poam.mitigations" placehoder="Milestones" name='mitigations' cols="180"
                       rows="18"></textarea>
-            <br>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label="Required Resources">
-            <label style="margin-left: 40%;">Required Resources</label>
             <textarea nbInput fullWidth [(ngModel)]="poam.requiredResources" placehoder="Required Resources" name='mitigations' cols="180"
                       rows="18"></textarea>
-            <br>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label="Milestones">
-            <label style="margin-left: 40%;">Milestones</label>
             <textarea nbInput fullWidth [(ngModel)]="poam.milestones" placehoder="Milestones" name='milestones' cols="180"
                       rows="18"></textarea>
-            <br>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label="Residual Risk">
-            <label style="margin-left: 40%;">Residual Risk</label>
             <textarea nbInput fullWidth [(ngModel)]="poam.residualRisk" placehoder="Residual Risk" name='residualRisk' cols="180"
                       rows="18"></textarea>
-            <br>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label="Business Impact">
-            <label style="margin-left: 40%;">Business Impact</label>
             <textarea nbInput fullWidth [(ngModel)]="poam.businessImpact" placehoder="Business Impact" name='businessImpact' cols="180"
                       rows="18"></textarea>
-            <br>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label="Notes">
-            <label style="margin-left: 40%;">Notes</label>
             <textarea nbInput fullWidth [(ngModel)]="poam.notes" placehoder="Notes" name='notes' cols="180" rows="18"></textarea>
-            <br>
-            <button style="margin-left:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px;" nbButton outline status="info" disabled nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" disabled nbStepperNext>next</button>
           </nb-step>
         </nb-stepper>
       </nb-card-body>
       <nb-card-footer>
-        <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showSubmit" (click)="savePoam(poam)">Save</button>
         <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showSubmit" (click)="submitPoam(poam)">Submit Poam</button>
-        <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showClose" (click)="closePoam(poam)">Close Poam</button>
+        <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showSubmit" (click)="savePoam(poam)">Save</button>
         <button style="margin-left:20px;" nbButton outline status="info" (click)="cancelPoam()">Cancel Edit</button>
       </nb-card-footer>
     </nb-card>

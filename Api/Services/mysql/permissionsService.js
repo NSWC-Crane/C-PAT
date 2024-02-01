@@ -115,7 +115,8 @@ exports.getPermissions_UserCollection = async function getPermissions_UserCollec
 				"collectionId": rowPermissions[counter].collectionId,
 				"canOwn": rowPermissions[counter].canOwn,
 				"canMaintain": rowPermissions[counter].canMaintain,
-				"canApprove": rowPermissions[counter].canApprove
+				"canApprove": rowPermissions[counter].canApprove,
+				"canView": rowPermissions[counter].canView
 			});
 			// console.log("After setting permissions size: ", size, ", counter: ",counter);
 			// if (counter + 1 >= size) break;
@@ -157,14 +158,15 @@ exports.postPermission = async function postPermission(req, res, next) {
 	if (!req.body.canOwn) req.body.canOwn = 0;
 	if (!req.body.canMaintain) req.body.canMaintain = 0;
 	if (!req.body.canApprove) req.body.canApprove = 0;
+	if (!req.body.canView) req.body.canView = 1;
 
 	try {
 		let connection
 		connection = await dbUtils.pool.getConnection()
 
-		let sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, canOwn, canMaintain, canApprove) values (?, ?, ?, ?, ?)`
+		let sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, canOwn, canMaintain, canApprove, canView) values (?, ?, ?, ?, ?, ?)`
 
-		await connection.query(sql_query, [req.body.userId, req.body.collectionId, req.body.canOwn, req.body.canMaintain, req.body.canApprove])
+		await connection.query(sql_query, [req.body.userId, req.body.collectionId, req.body.canOwn, req.body.canMaintain, req.body.canApprove, req.body.canView])
 		await connection.release()
 
 		const message = new Object()
@@ -173,6 +175,7 @@ exports.postPermission = async function postPermission(req, res, next) {
 		message.canOwn = req.body.canOwn
 		message.canMaintain = req.body.canMaintain
 		message.canApprove = req.body.canApprove
+		message.canView = req.body.canView
 		return(message)
 	}
 	catch (error) {
@@ -208,15 +211,16 @@ exports.putPermission = async function putPermission(req, res, next) {
 		if (!req.body.canOwn) req.body.canOwn = 0;
 		if (!req.body.canMaintain) req.body.canMaintain = 0;
 		if (!req.body.canApprove) req.body.canApprove = 0;
+		if (!req.body.canView) req.body.canView = 1;
 	
 		try {
 			let connection
 			connection = await dbUtils.pool.getConnection()
 	
 			let sql_query = "UPDATE poamtracking.collectionpermissions SET canOwn= ?, canMaintain= ?, " +
-				"canApprove= ? WHERE userId = " + req.body.userId + " AND collectionId = " + req.body.collectionId + ";"
+				"canApprove= ?, canView= ? WHERE userId = " + req.body.userId + " AND collectionId = " + req.body.collectionId + ";"
 	
-			await connection.query(sql_query, [req.body.canOwn, req.body.canMaintain, req.body.canApprove])
+			await connection.query(sql_query, [req.body.canOwn, req.body.canMaintain, req.body.canApprove, req.body.canView])
 			await connection.release()
 	
 			const message = new Object()
@@ -225,6 +229,7 @@ exports.putPermission = async function putPermission(req, res, next) {
 			message.canOwn = req.body.canOwn
 			message.canMaintain = req.body.canMaintain
 			message.canApprove = req.body.canApprove
+			message.canView = req.body.canView
 			return(message)
 		}
 		catch (error) {

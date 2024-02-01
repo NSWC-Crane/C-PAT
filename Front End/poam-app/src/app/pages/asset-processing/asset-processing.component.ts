@@ -32,6 +32,7 @@ interface Permission {
   canOwn: number;
   canMaintain: number;
   canApprove: number;
+  canView: number;
 }
 interface TreeNode<T> {
   data: T;
@@ -264,7 +265,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
                 collectionId: permission.collectionId,
                 canOwn: permission.canOwn,
                 canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove
+                canApprove: permission.canApprove,
+                canView: permission.canView
               }))
             };
 

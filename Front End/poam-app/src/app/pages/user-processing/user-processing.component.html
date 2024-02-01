@@ -35,9 +35,15 @@
             </ng-container>
 
             <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
+              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{ column }}</th>
+              <td nbTreeGridCell *nbTreeGridCellDef="let row">
+                <ng-container *ngIf="row.data[column]">{{ row.data[column] }}</ng-container>
+                <ng-container *ngIf="!row.data[column] && (column === 'Collection' || column === 'Can Own' || column === 'Can Maintain' || column === 'Can Approve')">
+                  <nb-icon icon="chevron-down"></nb-icon>
+                </ng-container>
+              </td>
             </ng-container>
+            
           </table>
 
         </nb-card-body>

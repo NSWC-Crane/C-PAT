@@ -54,7 +54,7 @@ export class CollectionsService {
 	addCollection(collection: any): Observable<Collections> {
 		// console.log("Collections Service Call attempted: addCollection()");
 		return this.http
-			.post<Collections>(`${this.uri}/collections`, { collection }, this.httpOptions);
+			.post<Collections>(`${this.uri}/collection`, collection, this.httpOptions);
 	}
 
 	updateCollection(collection: any) {

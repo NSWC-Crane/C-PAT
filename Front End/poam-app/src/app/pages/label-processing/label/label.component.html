@@ -14,7 +14,7 @@
       <div class="row">
         <div class="col-md-10">
           <label style="margin-right: 1%" for="labelname">*Label Name: </label>
-          <input nbInput type="text" fullWidth name="labelname" [(ngModel)]="label.labelName" placeholder="name"
+          <input nbInput type="text" fullWidth name="labelname" [(ngModel)]="label.labelName" placeholder="Label Name"
                  required>
         </div>
       </div>
@@ -39,7 +39,7 @@
         <div class="container">
 
           <button nbButton outline status="info" class="mr-3" [disabled]="!form.valid">Submit</button>
-          <button nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
+          <button style="margin-left:20px;" nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
 
         </div>
       </div>

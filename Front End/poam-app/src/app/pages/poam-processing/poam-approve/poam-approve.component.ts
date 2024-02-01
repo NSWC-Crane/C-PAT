@@ -25,6 +25,7 @@ interface Permission {
   canOwn: number;
   canMaintain: number;
   canApprove: number;
+  canView: number;
 }
 
 @Component({
@@ -93,7 +94,8 @@ export class PoamApproveComponent implements OnInit {
               collectionId: permission.collectionId,
               canOwn: permission.canOwn,
               canMaintain: permission.canMaintain,
-              canApprove: permission.canApprove
+              canApprove: permission.canApprove,
+              canView: permission.canView
             }));
 
             this.payload = {

@@ -242,7 +242,7 @@ exports.register = async function register(req, res, next) {
 				collectionRequest.forEach(async request => {
 					connection = await dbUtils.pool.getConnection()
 	
-					let sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, canOwn, canMaintain, canApprove) values (?, ?, ?, ?, ?)`
+					let sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, canOwn, canMaintain, canApprove, canView) values (?, ?, ?, ?, ?, ?)`
 			
 					await connection.query(sql_query, [user[0].userId, request.collectionId, false, false, false])
 					await connection.release()				

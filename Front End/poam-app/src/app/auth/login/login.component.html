@@ -35,19 +35,11 @@
            name="email"
            id="input-email"
            pattern=".+@.+\..+"
-           placeholder="Email address"
+           placeholder="Email Address"
            autofocus
            [status]="email.dirty ? (email.invalid  ? 'danger' : 'success') : 'basic'"
            [required]="getConfigValue('forms.validation.email.required')"
            [attr.aria-invalid]="email.invalid && email.touched ? true : null">
-    <!-- <ng-container *ngIf="email.invalid && email.touched">
-      <p class="caption status-danger" *ngIf="email.errors?.required">
-        Email is required!
-      </p>
-      <p class="caption status-danger" *ngIf="email.errors?.pattern">
-        Email should be the real one!
-      </p>
-    </ng-container> -->
   </div>
 
   <div class="form-control-group">
@@ -65,24 +57,12 @@
            [minlength]="getConfigValue('forms.validation.password.minLength')"
            [maxlength]="getConfigValue('forms.validation.password.maxLength')"
            [attr.aria-invalid]="password.invalid && password.touched ? true : null">
-    <!-- <ng-container *ngIf="password.invalid && password.touched ">
-      <p class="caption status-danger" *ngIf="password.errors?.required">
-        Password is required!
-      </p>
-      <p class="caption status-danger" *ngIf="(password.errors?.minlength || password.errors?.maxlength)">
-        Password should contains
-        from {{ getConfigValue('forms.validation.password.minLength') }}
-        to {{ getConfigValue('forms.validation.password.maxLength') }}
-        characters
-      </p>
-    </ng-container> -->
   </div>
 
   <div class="form-control-group accept-group">
     <nb-checkbox name="rememberMe" [(ngModel)]="user.rememberMe" *ngIf="rememberMe">Remember me</nb-checkbox>
     <a class="forgot-password" routerLink="../request-password">Forgot Password?</a>
   </div>
-  <!-- [disabled]="submitted || !form.valid" -->
   <button nbButton
           fullWidth
           status="success"

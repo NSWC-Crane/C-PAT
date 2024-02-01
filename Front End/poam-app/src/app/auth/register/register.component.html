@@ -52,7 +52,7 @@
            #firstName="ngModel"
            id="input-firstname"
            name="firstName"
-           placeholder="First name"
+           placeholder="First Name"
            autofocus
            fullWidth>
   </div>
@@ -64,7 +64,7 @@
            #lastName="ngModel"
            id="input-lastname"
            name="lastName"
-           placeholder="Last name"
+           placeholder="Last Name"
            autofocus
            fullWidth>
   </div>
@@ -77,7 +77,7 @@
            id="input-email"
            name="email"
            pattern=".+@.+..+"
-           placeholder="Email address"
+           placeholder="Email Address"
            fullWidth
            [status]="email.dirty ? (email.invalid  ? 'danger' : 'success') : ''"
            [required]="getConfigValue('forms.validation.email.required')"

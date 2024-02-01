@@ -1075,11 +1075,11 @@ paths:
         - oauth:
             - 'c-pat:read'        
     delete:
-      summary: Delete a collection permission by userId and collectionId
+      summary: Delete a label by labelId
       operationId: deleteLabel
       responses:
         '200':
-          description: Collection Permissionsresponse
+          description: Label delete
           content:
             application/json:
               schema:
@@ -2340,7 +2340,6 @@ components:
       type: object
       required:
         - collectionName
-        - collectionId
         - description
         - grantCount
         - assetCount
@@ -2803,6 +2802,7 @@ components:
               - canOwn
               - canMaintain
               - canApprove
+              - canView
             properties:
               userId:
                 type: integer
@@ -2813,6 +2813,8 @@ components:
               canMaintain:
                 type: integer
               canApprove:
+                type: integer
+              canView:
                 type: integer
 
     user_Response:
@@ -2979,6 +2981,7 @@ components:
         - canOwn
         - canMaintain
         - canApprove
+        - canView
       additionalProperties: true
       properties:
         userId:
@@ -2990,6 +2993,8 @@ components:
         canMaintain:
           type: boolean
         canApprove:
+          type: boolean
+        canView:
           type: boolean
         firstName:
           type: string

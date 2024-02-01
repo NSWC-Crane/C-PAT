@@ -287,45 +287,6 @@ export class AssetComponent implements OnInit {
     }
   }
 
-  // confirmEdit(event: any) {
-  //   //console.log("Attempting to confirmEdit()...event.newData: ",event.newData);
-  //   if (this.asset.assetId &&
-  //     event.newData.labelId
-  //   ) {
-  //     let assetLabel = this.data;
-
-  //     var label_index = this.labelList.findIndex((e: any) => e.labelId == event.newData.labelId);
-
-
-  //     // can't continue without collection data.   NOTE** collection_index my be 0, if the 1st row is selected!
-  //     if (!label_index && label_index != 0) {
-  //       this.invalidData("Unable to resolve label")
-  //       event.confirm.reject();
-  //     }
-
-  //     let assetLabel = {
-  //       userId: this.user.userId,
-  //       collectionId: event.newData.collectionId,
-  //       canOwn: event.newData.canOwn,
-  //       canMaintain: event.newData.canMaintain,
-  //       canApprove: event.newData.canApprove,
-  //     }
-
-  //     this.isLoading = true;
-  //     this.assetService.updatePermission(collectionPermission).subscribe(permissionData => {
-  //       //this.data = permissionData;
-  //       //console.log("after updatePermission, permissionData: ",permissionData)
-  //       event.confirm.resolve();
-  //       this.getData();
-  //     });
-
-  //   } else {
-  //     console.log("Failed to update entry. Invalid input.");
-  //     this.invalidData("missing data, unable to update");
-  //     event.confirm.reject();
-  //   }
-  // }
-
   confirmDelete(event: any) {
     // console.log("Attempting to confirmDelete()...event.data: ",event.data);
     if (this.asset.assetId === "ADDASSET") {
@@ -335,9 +296,6 @@ export class AssetComponent implements OnInit {
       event.confirm.resolve();
       return;
     }
-
-
-    //let asset = this.data;
 
     var label_index = this.assetLabels.findIndex((data: any) => {
       if (event.data.assetId === data.assetId && event.data.labelId === data.labelId) return true;

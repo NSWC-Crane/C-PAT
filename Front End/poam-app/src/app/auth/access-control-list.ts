@@ -10,7 +10,7 @@
 
 import { NbAclOptions } from "@nebular/security";
 
-export const ACCESS_CONTROL_LIST: NbAclOptions = {
+export const accessControlList: NbAclOptions = {
   accessControl: {
     // user: {
     //   create: ['create-task','timekeeping', 'odcform', 'monthly-report'],
@@ -31,6 +31,11 @@ export const ACCESS_CONTROL_LIST: NbAclOptions = {
       delete: ['*'],
     },
     approver: {
+      view: ['*'],
+      create: ['*'],
+      delete: ['*'],
+    },
+    viewer: {
       view: ['*'],
       create: ['*'],
       delete: ['*'],

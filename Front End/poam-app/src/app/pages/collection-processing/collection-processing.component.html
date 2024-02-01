@@ -19,25 +19,19 @@
           <table [nbTreeGrid]="dataSource">
             <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
             <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-
+          
             <ng-container [nbTreeGridColumnDef]="customColumn">
               <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
               <td nbTreeGridCell *nbTreeGridCellDef="let row">
-
-                <nb-tree-grid-row-toggle [expanded]="row.expanded" *ngIf="row.data['collect']">
-                </nb-tree-grid-row-toggle>
-
                 {{row.data[customColumn]}}
-
               </td>
             </ng-container>
-
+          
             <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
               <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
+              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
             </ng-container>
           </table>
-
         </nb-card-body>
       </nb-card>
     </div>
@@ -66,17 +60,11 @@
           </div>
           
           <div [ngStyle]="hideCollectionEntry">
-            <div *ngIf="collectionApprovers.length > 0">
+            <div *ngIf="collectionApprovers">
               <ngx-collection [collection]="collection" [collections]="collections"
                               [collectionApprovers]="collectionApprovers" [possibleCollectionApprovers]="possibleCollectionApprovers"
-                              payload="payload" [poams]="poams" (collectionchange)="resetSTIGMANData();"></ngx-collection>
+                              payload="payload" [poams]="poams" (collectionchange)="resetData();"></ngx-collection>
             </div>
-            <div *ngIf="collectionApprovers.length < 1">
-              <ngx-collection [collection]="collection" [collections]="collections"
-                              [collectionApprovers]="collectionApprovers" [possibleCollectionApprovers]="possibleCollectionApprovers"
-                              payload="payload" [poams]="poams" (collectionchange)="resetSTIGMANData();"></ngx-collection>
-            </div>
-
           </div>
 
         </nb-card-body>
@@ -123,9 +111,10 @@
             </nb-select>
         </div>
         <div class="col-md-5" style="width: auto;">
-            <button style="margin-left:20px;" nbButton outline status="info" type="button" class="export-button" (click)="exportAll()">Export POAMS</button>
+            <button nbButton outline status="info" type="button" class="export-button" (click)="exportAll()">Export POAMS</button>
           </div>
         </div>
+        
       </nb-card-body>
     </nb-card>
   </div>
