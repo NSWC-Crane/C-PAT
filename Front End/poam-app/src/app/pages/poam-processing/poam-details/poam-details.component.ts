@@ -23,7 +23,6 @@ import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../user-processing/users.service'
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
-import { TextareaEditorComponent } from 'angular2-smart-table/lib/components/cell/cell-editors/textarea-editor.component';
 
 interface Permission {
   userId: number;
@@ -47,7 +46,6 @@ export class PoamDetailsComponent implements OnInit {
 
   users: any;
   user: any;
-
   poam: any;
   poamId: string = "";
   payload: any;
@@ -63,9 +61,11 @@ export class PoamDetailsComponent implements OnInit {
   poamAssets: any[] = [];
   poamAssignees: any[] = [];
   //showApproveClose: boolean = false;
+  canModifyOwner: boolean = false;
   showApprove: boolean = false;
   showSubmit: boolean = false;
   showClose: boolean = false;
+  
 
   poamAssetsSettings: Settings = {
     add: {
@@ -95,13 +95,9 @@ export class PoamDetailsComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          console.log("row.value: ", row.value, typeof row.value);
-          console.log("this.assets: ", this.assets);
-          var assetId = row.value;
-          var numericAssetId = parseInt(assetId, 10);
-      
-          var asset = this.assets.find((tl: { assetId: number; }) => tl.assetId === numericAssetId);
-          return (asset) ? 'Asset ID: ' + assetId + ' - Asset Name: ' + asset.assetName : 'Asset ID: ' + assetId;
+          const assetId = parseInt(row.value, 10);
+          const asset = this.assets.find((tl: {assetId: number;}) => tl.assetId === assetId);
+          return asset ? `Asset ID: ${assetId} - Asset Name: ${asset.assetName}` : `Asset ID: ${assetId}`;
       },
         editor: {
           type: 'list',
@@ -239,7 +235,7 @@ export class PoamDetailsComponent implements OnInit {
     },
     columns: {
       userId: {
-        title: 'Assignee',
+        title: 'Members Assigned',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -342,6 +338,7 @@ export class PoamDetailsComponent implements OnInit {
             this.showApprove = ['admin', 'owner', 'approver'].includes(this.payload.role);
             this.showClose = ['admin', 'owner'].includes(this.payload.role);
             this.showSubmit = ['admin', 'owner', 'maintainer'].includes(this.payload.role);
+            this.canModifyOwner = ['admin', 'owner', 'maintainer'].includes(this.payload.role);
 
             this.getData();
           }
@@ -360,11 +357,11 @@ export class PoamDetailsComponent implements OnInit {
 
     if (this.poamId == undefined || !this.poamId) return;
     if (this.poamId === "ADDPOAM") {
-
+      this.canModifyOwner = true;
       this.subs.sink = forkJoin(
         this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
         this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-        this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
+        this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId, 0, 50),
         this.poamService.getCollectionApprovers(this.payload.lastCollectionAccessedId)
       )
         .subscribe(([collection, users, collectionAssets, collectionApprovers]: any) => {
@@ -381,7 +378,7 @@ export class PoamDetailsComponent implements OnInit {
             rawSeverity: "",
             adjSeverity: "Minor",
             scheduledCompletionDate: '',
-            ownerId: this.payload.userId,
+            ownerId: String(this.payload.userId),
             mitigations: "",
             requiredResources: "",
             milestones: "",
@@ -393,21 +390,16 @@ export class PoamDetailsComponent implements OnInit {
             vulnIdRestricted: "",
             submittedDate: ''
           };
-          // console.log("SCD: ", this.poam.scheduledCompletionDate)
-          // console.log("SubmittedDate: ", this.poam.submittedDate)
+
           this.dates.scheduledCompletionDate = this.poam.scheduledCompletionDate;
           this.dates.submittedDate = this.poam.submittedDate;
-
           this.collection = collection;
           this.collectionUsers = users.permissions;
-          this.assets = collectionAssets.assets;
+          this.assets = collectionAssets;
           this.poamAssets = [];
           this.poamAssignees = [];
           this.collectionApprovers = [];
           this.collectionApprovers = collectionApprovers;
-          // console.log("collection: ", this.collection)
-           console.log("collectionUsers: ", this.collectionUsers)
-          // console.log("assets: ", this.assets)
 
           this.collectionOwners = [];
           this.collectionMaintainers = [];
@@ -431,7 +423,7 @@ export class PoamDetailsComponent implements OnInit {
         this.poamService.getPoam(this.poamId),
         this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
         this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-        this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
+        this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId, 0, 50),
         this.poamService.getPoamAssets(this.poamId),
         this.poamService.getPoamAssignees(this.poamId),
         this.poamService.getCollectionApprovers(this.payload.lastCollectionAccessedId),
@@ -446,7 +438,7 @@ export class PoamDetailsComponent implements OnInit {
           // console.log("users: ", users)
           this.collection = collection;
           this.collectionUsers = users.permissions;
-          this.assets = collectionAssets.assets;
+          this.assets = collectionAssets;
           this.poamAssets = assets.poamAssets;
           this.poamAssignees = assignees.poamAssignees;
           this.poamApprovers = poamApprovers.poamApprovers;
@@ -584,10 +576,7 @@ export class PoamDetailsComponent implements OnInit {
     });
 
     await this.confirm(options).subscribe(async (res: boolean) => {
-      console.log("Confirm res: ",res)
-      ///this.confirmed = res;
       if (res) {
-        console.log("approvers: ", this.poamApprovers)
         if (!this.validateData()) return;
 
         this.poamApprovers.forEach(async approver => {
@@ -599,13 +588,10 @@ export class PoamDetailsComponent implements OnInit {
             comments: approver.comments + " - Approved ALL by owner or admin"
           }
           await this.poamService.updatePoamApprover(updApprover).subscribe((res: any) =>{
-            console.log("putPoamApprover res: ",res)
           })
 
         })
-        this.poam.status = "Approved";
-        console.log("this.poam: ", this.poam)
-        
+        this.poam.status = "Approved";      
 
         this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate;
         this.poam.submittedDate = this.dates.submittedDate;
@@ -791,13 +777,11 @@ export class PoamDetailsComponent implements OnInit {
           event.confirm.resolve();  
           this.poamApprovers.push(approver); 
           this.poamApprovers = [...this.poamApprovers];      
-          console.log("poamApprovers after add: ",this.poamApprovers)
         }
       })
 
     } else {
-      console.log("Failed to create entry on poamApprover. Invalid input.");
-      this.showConfirmation("missing data, unable to insert");
+      this.showConfirmation("Failed to create entry on poamApprover. Invalid input.");
       event.confirm.reject();
     }
   }
@@ -835,8 +819,7 @@ export class PoamDetailsComponent implements OnInit {
       })
 
     } else {
-      console.log("Failed to create entry. Invalid input.");
-      this.showConfirmation("missing data, unable to update");
+      this.showConfirmation("Failed to create entry. Invalid input.");
       event.confirm.reject();
     }
   }
@@ -920,8 +903,7 @@ export class PoamDetailsComponent implements OnInit {
       })
     }
     else {
-      console.log("Failed to create entry. Invalid input.");
-      this.showConfirmation("Missing data, unable to insert.");
+      this.showConfirmation("Failed to create entry. Invalid input.");
       data.confirm.reject();
     }
   }
@@ -974,8 +956,7 @@ export class PoamDetailsComponent implements OnInit {
         });
       }
     } else {
-      console.log("Failed to delete entry. Invalid input.");
-      this.showConfirmation("Missing data, unable to insert.");
+      this.showConfirmation("Failed to delete entry. Invalid input.");
       assigneeData.confirm.reject();
     }
   }

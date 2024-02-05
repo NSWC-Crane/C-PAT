@@ -9,7 +9,7 @@
 */
 
 import { EventEmitter, Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { throwError, Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
@@ -73,10 +73,15 @@ export class PoamService {
 			.pipe(catchError(this.handleError));
 	}
 
-	getAssetsForCollection(id: string) {
-		return this.http.get(`${this.uri}/assets/collection/${id}`)
-			.pipe(catchError(this.handleError));
-	}
+	getAssetsForCollection(Id: number, offset: number, limit: number) {
+		let params = new HttpParams()
+		  .set('offset', offset.toString())
+		  .set('limit', limit.toString());
+	
+		return this.http
+		  .get<any>(`${this.uri}/assets/collection/${Id}`, { params })
+		  .pipe(catchError(this.handleError));
+	  }
 
 	getPoamAssets(id: string) {
 		return this.http.get(`${this.uri}/poamAssets/poam/${id}`)

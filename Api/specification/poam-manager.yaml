@@ -20,23 +20,8 @@ info:
 paths:
   /assets:
     get:
-      summary: Return a list of all assets
+      summary: Return all assets
       operationId: getAssets
-      parameters:
-        - in: query
-          name: offset
-          required: false
-          schema:
-            type: integer
-            default: 0
-          description: The number of items to skip before starting to collect the result set
-        - in: query
-          name: limit
-          required: false
-          schema:
-            type: integer
-            default: 50
-          description: The numbers of items to return
       responses:
         '200':
           description: Asset array response
@@ -58,7 +43,7 @@ paths:
         - Asset
       security:
         - oauth:
-            - 'c-pat:read'       
+            - 'c-pat:op'      
 
   /assets/collection/{collectionId}:
     parameters:
@@ -67,6 +52,20 @@ paths:
         required: true
         schema:
           type: integer
+      - in: query
+        name: offset
+        required: false
+        schema:
+          type: integer
+          default: 0
+        description: The number of items to skip before starting to collect the result set
+      - in: query
+        name: limit
+        required: false
+        schema:
+          type: integer
+          default: 50
+        description: The numbers of items to return
     get:
       summary: Return all assets belonging to a specific collection
       operationId: getAssetsByCollection

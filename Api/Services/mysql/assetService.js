@@ -13,79 +13,79 @@ const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
-exports.getAssets = async function getAssets(offset = 0, limit = 50) {
+exports.getAssets = async function getAssets(req, res, next) {
     console.log("getAssets (Service) ...");
 
     try {
-        let connection = await dbUtils.pool.getConnection();
-        let sql = `SELECT * FROM poamtracking.asset ORDER BY assetName LIMIT ?, ?;`;
+            let connection
+            connection = await dbUtils.pool.getConnection()
+            let sql = "SELECT * FROM  poamtracking.asset ORDER BY assetName;"
+            //console.log("getLabels sql: ", sql)
 
-        let [rowAssets] = await connection.query(sql, [offset, limit]);
+            let [rowAssets] = await connection.query(sql)
+            console.log("rowAssets: ", rowAssets[0])
+            await connection.release()
+
+            var size = Object.keys(rowAssets).length
+
+            var assets = []
+
+            for (let counter = 0; counter < size; counter++) {
+                    // console.log("Before setting permissions size: ", size, ", counter: ",counter);
+
+                    assets.push({
+                            "assetId": rowAssets[counter].assetId,
+                            "assetName": rowAssets[counter].assetName,
+                            "description": rowAssets[counter].description,
+                            "fullyQualifiedDomainName": rowAssets[counter].fullyqualifiedDomainName,
+                            "collectionId": rowAssets[counter].collectionId,
+                            "ipAddress": rowAssets[counter].ipAddress,
+                            "macAddress": rowAssets[counter].macAddress,
+                    });
+            }
+
+            return { assets };
+
+    }
+    catch (error) {
+            let errorResponse = { null: "null" }
+            //await connection.release()
+            return errorResponse;
+    }
+}
+
+exports.getAssetsByCollection = async function getAssetsByCollection(collectionId, offset = 0, limit = 50) {
+    console.log("getAssetsByCollection (Service) ...", collectionId, offset, limit);
+    let connection;
+    try {
+        if (!collectionId) {
+            console.info('getAssetsByCollection collectionId not provided.');
+            throw new Error('Collection ID is required');
+        }
+
+        connection = await dbUtils.pool.getConnection();
+        const sql = "SELECT * FROM poamtracking.asset WHERE collectionId = ? ORDER BY assetName LIMIT ?, ?;";
+        let [rowAssets] = await connection.query(sql, [collectionId, offset, limit]);
         console.log("rowAssets: ", rowAssets);
-        await connection.release();
 
         var assets = rowAssets.map(row => ({
             "assetId": row.assetId,
             "assetName": row.assetName,
             "description": row.description,
-            "fullyQualifiedDomainName": row.fullyqualifiedDomainName,
+            "fullyQualifiedDomainName": row.fullyQualifiedDomainName,
             "collectionId": row.collectionId,
             "ipAddress": row.ipAddress,
             "macAddress": row.macAddress,
         }));
 
         return { assets };
+    } catch (error) {
+        console.error("Error in getAssetsByCollection: ", error);
+        throw error; // Or return a specific error object/format if preferred
+    } finally {
+        if (connection) await connection.release();
     }
-    catch (error) {
-        console.log("error: ", error);
-        let errorResponse = { null: "null" };
-        return errorResponse;
-    }
-}
-
-exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
-    console.log("getAssetsByCollection (Service) ...");
-    if (!req.params.collectionId) {
-        console.info('getAssetsByCollection collectionId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                collectionId: 'is required',
-            }
-        });
-    }
-
-    try {
-        let connection
-        connection = await dbUtils.pool.getConnection()
-        let sql = "SELECT * FROM  poamtracking.asset WHERE collectionId = ? ORDER BY assetName;"
-        //console.log("getLabels sql: ", sql)
-
-        let [rowAssets] = await connection.query(sql, req.params.collectionId)
-        console.log("rowAssets: ", rowAssets[0])
-        await connection.release()
-
-        var size = Object.keys(rowAssets).length
-
-        var assets = []
-
-        for (let counter = 0; counter < size; counter++) {
-            // console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-            assets.push({
-                ...rowAssets[counter]
-            });
-        }
-
-        return { assets };
-
-    }
-    catch (error) {
-        let errorResponse = { null: "null" }
-        //await connection.release()
-        return errorResponse;
-    }
-}
+};
 
 exports.getAsset = async function getAsset(req, res, next) {
     // res.status(201).json({ message: "getAsset (Service) Method called successfully" });
