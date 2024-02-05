@@ -11,24 +11,32 @@
 const assetService = require('../Services/mysql/assetService')
 
 module.exports.getAssets = async function getAssets(req, res, next) {
-    const offset = parseInt(req.query.offset) || 0;
-    const limit = parseInt(req.query.limit) || 50;
-
-    var assets = await assetService.getAssets(offset, limit);
-    res.status(201).json(assets);
+    var assets = await assetService.getAssets(req, res, next);
+    res.status(200).json(assets);
 }
 
 module.exports.getAsset = async function getAsset(req, res, next){
-        //res.status(201).json({message: "getAsset Method called successfully"});
         var asset = await assetService.getAsset(req,res,next); 
         res.status(201).json(asset)
 }
 
-module.exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next){
-        //res.status(201).json({message: "getAssetsByCollection Method called successfully"})
-        var assets = await assetService.getAssetsByCollection(req,res,next); 
-        res.status(201).json(assets)
-}
+module.exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
+        try {
+            const { collectionId } = req.params;
+            const offset = parseInt(req.query.offset) || 0;
+            const limit = parseInt(req.query.limit) || 50;
+    
+            var response = await assetService.getAssetsByCollection(collectionId, offset, limit); 
+            // Assuming the service returns { assets: [] }, extract the array:
+            var assets = response.assets;
+            
+            res.status(200).json(assets);
+        } catch (error) {
+            console.error("Error in getAssetsByCollection:", error);
+            next(error);
+        }
+    }
+    
 
 module.exports.postAsset = async function postAsset(req, res, next){
         // res.status(201).json({message: "post:Asset Method called successfully"});

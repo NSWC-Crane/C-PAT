@@ -16,7 +16,6 @@ import { forkJoin, Observable } from 'rxjs';
 import { NbDialogService, NbInputModule, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth';
-import { NbAuthJWTToken, NbAuthToken } from '@nebular/auth';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { KeycloakService } from 'keycloak-angular';
@@ -256,7 +255,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
@@ -270,7 +268,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
               }))
             };
 
-            // console.log("payload: ", this.payload);
             this.getAssetData();
           }
         } else {
@@ -299,29 +296,35 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
 
     if (this.payload == undefined) return;
 
-    this.subs.sink = this.assetService.getAssets(this.offset, this.limit)
-      .subscribe((assetData: any) => {
-        // Append new assets if loading more, else replace
-        this.assets = loadMore ? [...this.assets, ...assetData.assets] : assetData.assets;
-
-        this.data = this.assets.map((asset: any) => ({
-          assetId: asset.assetId,
-          assetName: asset.assetName,
-          description: asset.description,
-          collectionId: asset.collectionId,
-          ipAddress: asset.ipAddress,
-          macAddress: asset.macAddress,
-        }));
-
-        // Check if the end of the list is reached
-        if (assetData.assets.length < this.limit) {
-          this.isListFull = true;
-        }
-        this.updateDataSource();
-        this.offset += this.limit;
+    this.subs.sink = this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId, this.offset, this.limit)
+    .subscribe((assetData: any) => {
+      console.log(assetData);
+      if (!Array.isArray(assetData)) {
+        console.error('Unexpected response format:', assetData);
         this.isLoading = false;
-        this.cdr.detectChanges();
-      });
+        return;
+      }
+      this.assets = loadMore ? [...this.assets, ...assetData] : assetData;
+  
+      this.data = this.assets.map((asset: any) => ({
+        assetId: asset.assetId,
+        assetName: asset.assetName,
+        description: asset.description,
+        collectionId: asset.collectionId,
+        ipAddress: asset.ipAddress,
+        macAddress: asset.macAddress,
+      }));
+  
+      if (assetData.length < this.limit) {
+        this.isListFull = true;
+      }
+      this.updateDataSource();
+      this.offset += this.limit;
+      this.isLoading = false;
+    }, error => {
+      console.error('Failed to fetch assets by collection', error);
+      this.isLoading = false;
+    });
   }
 
   updateDataSource() {

@@ -86,7 +86,7 @@
           </div>
 
           <!-- Owner -->
-          <div class="form-group">
+          <div class="form-group" *ngIf="canModifyOwner">
             <label id="ownerId">*Owner:</label>
             <nb-select maxlength="6" outlineid="ownerId" name="ownerId" [(ngModel)]="poam.ownerId" placeholder="Owner" required>
               <nb-option *ngFor="let user of collectionOwners" [value]="user.userId">

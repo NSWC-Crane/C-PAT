@@ -267,6 +267,39 @@ BEGIN
     END IF;
 END$$
 
+CREATE TRIGGER after_collectionpermissions_insert
+AFTER INSERT ON collectionpermissions
+FOR EACH ROW
+BEGIN
+    UPDATE collection c
+    SET c.grantCount = (SELECT COUNT(*) FROM collectionpermissions WHERE collectionId = NEW.collectionId)
+    WHERE c.collectionId = NEW.collectionId;
+END$$
+
+CREATE TRIGGER after_collectionpermissions_delete
+AFTER DELETE ON collectionpermissions
+FOR EACH ROW
+BEGIN
+    UPDATE collection c
+    SET c.grantCount = (SELECT COUNT(*) FROM collectionpermissions WHERE collectionId = OLD.collectionId)
+    WHERE c.collectionId = OLD.collectionId;
+END$$
+
+CREATE TRIGGER `after_collectionpermissions_update` 
+AFTER UPDATE ON `collectionpermissions` 
+FOR EACH ROW 
+BEGIN
+    IF OLD.`collectionId` != NEW.`collectionId` THEN
+        UPDATE `collection` c
+        SET c.`grantCount` = c.`grantCount` - 1
+        WHERE c.`collectionId` = OLD.`collectionId`;
+        
+        UPDATE `collection` c
+        SET c.`grantCount` = c.`grantCount` + 1
+        WHERE c.`collectionId` = NEW.`collectionId`;
+    END IF;
+END$$
+
 DELIMITER ;
   
   
