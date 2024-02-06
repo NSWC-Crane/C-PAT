@@ -124,7 +124,7 @@
             <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showApprove" (click)="approvePoamAll(poam)">Approve ALL</button> -->
 
             <div class="col">
-              <angular2-smart-table [settings]="poamApproverSettings" [source]="poamApprovers"
+              <angular2-smart-table [settings]="poamApproverSettings" [source]="poamApprovers" mode="inline"
                                (createConfirm)="confirmCreateApprover($event)" (editConfirm)="confirmEditApprover($event)" (deleteConfirm)="confirmDeleteApprover($event)">
               </angular2-smart-table>
             </div>

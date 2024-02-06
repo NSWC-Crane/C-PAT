@@ -55,7 +55,7 @@ export class PoamDetailsComponent implements OnInit {
   collectionOwners: any;
   collectionMaintainers: any;
   collection: any;
-  collectionApprovers: any[] = [];
+  collectionApprovers: any;
   poamApprovers: any[] = [];
   assets: any;
   poamAssets: any[] = [];
@@ -78,7 +78,6 @@ export class PoamDetailsComponent implements OnInit {
       editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
       saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
       cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i class="nb-close"></i>',
-      confirmSave: true
     },
     delete: {
       deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
@@ -121,7 +120,6 @@ export class PoamDetailsComponent implements OnInit {
       editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
       saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
       cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i class="nb-close"></i>',
-      confirmSave: true
     },
     delete: {
       deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
@@ -145,7 +143,7 @@ export class PoamDetailsComponent implements OnInit {
             if (userId === undefined || userId === null) {
               return '';
             }
-            var user = this.collectionApprovers.find((tl: any) => tl.userId === userId);
+            var user = this.collectionApprovers.collectionApprovers.find((tl: any) => tl.userId === userId);
             return user ? user.fullName : userId.toString();
           } catch (error) {
             console.error("Error in valuePrepareFunction: ", error);
@@ -155,7 +153,7 @@ export class PoamDetailsComponent implements OnInit {
         editor: {
           type: 'list',
           config: {
-            list: [{ title: "T1", value: '1' }],
+            list: [],
           },
         },
       },
@@ -222,7 +220,6 @@ export class PoamDetailsComponent implements OnInit {
       editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
       saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
       cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i class="nb-close"></i>',
-      confirmSave: true
     },
     delete: {
       deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
@@ -378,7 +375,7 @@ export class PoamDetailsComponent implements OnInit {
             rawSeverity: "",
             adjSeverity: "Minor",
             scheduledCompletionDate: '',
-            ownerId: String(this.payload.userId),
+            ownerId: this.payload.userId,
             mitigations: "",
             requiredResources: "",
             milestones: "",
@@ -414,8 +411,7 @@ export class PoamDetailsComponent implements OnInit {
           // console.log("collectionOwners: ", this.collectionOwners)
           // console.log("collectionMaintainers: ", this.collectionMaintainers)
 
-          this.setAssetsAssignees();
-          this.setApprovers();
+          this.setChartSelectionData();
         });
 
     } else {
@@ -455,8 +451,7 @@ export class PoamDetailsComponent implements OnInit {
           // console.log("poamAssets: ", this.poamAssets)
           // console.log("poamAssignees: ", this.poamAssignees)
 
-          this.setAssetsAssignees();
-          this.setApprovers();
+          this.setChartSelectionData();
         });
     }
   }
@@ -486,80 +481,69 @@ export class PoamDetailsComponent implements OnInit {
     })
   }
 
-  setAssetsAssignees() {
+  setChartSelectionData() {
+    // Reset or initialize collections
     this.collectionOwners = [];
     this.collectionMaintainers = [];
-
+  
+    // Populate owners and maintainers based on permissions
     if (this.collectionUsers.permissions) {
       this.collectionUsers.permissions.forEach((user: any) => {
-        //console.log("user: ", user)
         if (user.canOwn) this.collectionOwners.push({ ...user });
         if (user.canMaintain || user.canOwn) this.collectionMaintainers.push({ ...user });
-      })
-    }
-    // console.log("collectionOwners: ", this.collectionOwners)
-    // console.log("collectionMaintainers: ", this.collectionMaintainers)
-
-    let settings = this.poamAssetsSettings;
-    if (settings.columns['assetId']?.editor?.type === 'list') {
-      let editorConfig = settings.columns['assetId'].editor.config as ListEditorSettings;
-      editorConfig.list = this.assets.map((asset: any) => ({
-        title: asset.assetName,
-        value: asset.assetId
-      }));
-    }
-
-    this.poamAssetsSettings = Object.assign({}, settings);
-
-    let userSettings = this.poamAssigneesSettings;
-    if (userSettings.columns['userId']?.editor?.type === 'list') {
-      let editorConfig = userSettings.columns['userId'].editor.config as ListEditorSettings;
-      editorConfig.list = this.collectionUsers.permissions.map((assignee: any) => ({
-        title: assignee.fullName,
-        value: assignee.userId
-      }));
-    }
-
-    this.poamAssigneesSettings = Object.assign({}, userSettings);
-  }
-
-  setApprovers() {
-
-    let settings = this.poamApproverSettings;
-    let approverList: any[] = [];
-
-    if (this.collectionApprovers && this.collectionApprovers.length > 0) {
-      this.collectionApprovers.forEach((approver: any) => {
-        let listValue = {
-          title: approver.fullName,
-          value: approver.userId
-        }
-        //console.log("approver2: ", approver)
-        approverList.push(listValue);
-
-        //   console.log("approver: ",approver)
       });
     }
+  
+    // Set Asset Selection Data
+    let assetSettings = this.poamAssetsSettings;
+    if (assetSettings.columns['assetId']?.editor?.type === 'list') {
+      let assetEditorConfig = assetSettings.columns['assetId'].editor.config as ListEditorSettings;
+      const assetPlaceholder = { title: 'Select an Asset...', value: '' };
+      assetEditorConfig.list = [
+        assetPlaceholder,
+        ...this.assets.map((asset: any) => ({
+          title: asset.assetName,
+          value: asset.assetId,
+        }))
+      ];
+    }
+    this.poamAssetsSettings = Object.assign({}, assetSettings);
+  
+    // Set Assignees Selection Data
+    let assigneeSettings = this.poamAssigneesSettings;
+    if (assigneeSettings.columns['userId']?.editor?.type === 'list') {
+      let assigneeEditorConfig = assigneeSettings.columns['userId'].editor.config as ListEditorSettings;
+      const assigneePlaceholder = { title: 'Select a Team Member...', value: '' };
+      assigneeEditorConfig.list = [
+        assigneePlaceholder,
+        ...this.collectionUsers.permissions.map((assignee: any) => ({
+          title: assignee.fullName,
+          value: assignee.userId
+        }))
+      ];
+    }
+    this.poamAssigneesSettings = Object.assign({}, assigneeSettings);
+  
+// Set Approvers Selection Data
+let approverSettings = this.poamApproverSettings;
+if (approverSettings.columns['userId']?.editor?.type === 'list') {
+  let approverEditorConfig = approverSettings.columns['userId'].editor.config as ListEditorSettings;
+  const approverPlaceholder = { title: 'Select an Approver...', value: '' };
 
-    if (settings.columns['userId']?.editor?.type === 'list') {
-      let editorConfig = settings.columns['userId'].editor.config as ListEditorSettings;
-      editorConfig.list = approverList;
-      // Correctly use 'isEditable' instead of 'editable'
-      settings.columns['userId'].isEditable = this.showApprove;
-      // Trigger change detection if necessary
-      this.poamApproverSettings = Object.assign({}, settings);
+  approverEditorConfig.list = [
+    approverPlaceholder,
+    ...this.collectionApprovers.collectionApprovers.map((approver: any) => ({
+    title: approver.fullName,
+    value: approver.userId,
+     }))
+      ];
     }
 
-    this.poamApproverSettings = Object.assign({}, settings);
-
-    // console.log("SetApprovers collectionApprovers: ", this.collectionApprovers)
-    // console.log("SetApprovers approverList: ", approverList)
-  }
-
+    this.poamApproverSettings = Object.assign({}, approverSettings);
+}
+  
   async approvePoam(poam: any) {
-    //this.router.navigateByUrl("");
-    await this.router.navigateByUrl("/poam-approve/" + +this.poam.poamId);
-    
+    await this.router.navigateByUrl("/poam-approve/" + this.poam.poamId);
   }
 
   async approvePoamAll(poam: any) {
@@ -729,63 +713,6 @@ export class PoamDetailsComponent implements OnInit {
     this.router.navigateByUrl("/poam-processing");
   }
 
-  async confirmCreateApprover(event: any) {
-    // console.log("poamDetails confirmCreateApprover data: ", event)
-
-    if (this.poam.poamId === "ADDPOAM") {
-      // 
-      event.confirm.reject();
-      return;
-    }
-
-    if (this.poam.status != "Draft") {
-      this.showConfirmation("you may only modify the approver list if poam status is 'Draft'.");
-      event.confirm.reject();
-      return;
-    }
-
-    if (this.poam.poamId &&
-      event.newData.userId 
-    ) {
-      // console.log("poamDetails confirmCreate poam.colectionId: ",this.poam.collectionId,", userId: ", event.newData.userId);
-      // console.log("poamDetails confirmCreate collectionApprovers: ",this.collectionApprovers)
-      let user = await this.collectionApprovers.find((tl: any) => tl.collectionId == this.poam.collectionId && tl.userId ==  event.newData.userId)
-
-      let approver: any = {
-        poamId: +this.poam.poamId,
-        userId: +event.newData.userId,
-        status: event.newData.status,
-        approved: 'Not Reviewed',
-        comments: event.newData.comments
-      }
-      // console.log("user: ", usert)
-      if (user) {
-        approver.firstName = user.firstName;
-        approver.lastName = user.lastName;
-        approver.fullName = user.fullName;
-        approver.userEmail = user.userEmail;
-      }
-
-      await this.poamService.addPoamApprover(approver).subscribe((res: any) => {
-        // console.log("poamDetail confirmCreatePoam res: ", res)
-        if (res.null) {
-          this.showConfirmation("Unable to insert row, potentially a duplicate.");
-          event.confirm.reject();
-          return;
-        } else {
-          
-          event.confirm.resolve();  
-          this.poamApprovers.push(approver); 
-          this.poamApprovers = [...this.poamApprovers];      
-        }
-      })
-
-    } else {
-      this.showConfirmation("Failed to create entry on poamApprover. Invalid input.");
-      event.confirm.reject();
-    }
-  }
-
   confirmEditApprover(event: any) {
     // console.log("poamDetails confirmEditApprover event: ", event)
     if (this.poam.poamId === "ADDPOAM") {
@@ -826,6 +753,10 @@ export class PoamDetailsComponent implements OnInit {
 
   async confirmDeleteApprover(event: any) {
     // console.log("poamDetails confirmDeleteApprover event: ", event)
+    if (this.poam.poamId === "ADDPOAM") {
+      event.confirm.resolve();
+      return;
+    }
 
     if (this.poam.status != "Draft") {
       this.showConfirmation("you may only modify the approver list if poam status is 'Draft'.");
@@ -833,7 +764,7 @@ export class PoamDetailsComponent implements OnInit {
       return;
     }
 
-    await this.poamService.deletePoamApprover(event.data.poamId, event.data.userId).subscribe((res: any) => {
+    this.poamService.deletePoamApprover(event.data.poamId, event.data.userId).subscribe((res: any) => {
       // console.log("confirmDelete res to delete: ", res)
       const index = this.poamApprovers.findIndex(((e: any) => {e.poamId == event.data.poamId && e.userId == event.data.userId}));
       if (index > -1) {
@@ -842,6 +773,62 @@ export class PoamDetailsComponent implements OnInit {
       event.confirm.resolve();
       // console.log("poamApprovers after delete: ",this.poamApprovers)
     })
+  }
+
+  async confirmCreateApprover(event: any) {
+    // console.log("poamDetails confirmCreateApprover data: ", event)
+
+    if (this.poam.poamId === "ADDPOAM") {
+      event.confirm.resolve();
+      return;
+    }
+
+    if (this.poam.status != "Draft") {
+      this.showConfirmation("you may only modify the approver list if poam status is 'Draft'.");
+      event.confirm.reject();
+      return;
+    }
+
+    if (this.poam.poamId &&
+      event.newData.userId 
+    ) {
+      // console.log("poamDetails confirmCreate poam.colectionId: ",this.poam.collectionId,", userId: ", event.newData.userId);
+      // console.log("poamDetails confirmCreate collectionApprovers: ",this.collectionApprovers)
+      let user = await this.collectionApprovers.collectionApprovers.find((tl: any) => tl.collectionId == this.poam.collectionId && tl.userId ==  event.newData.userId)
+
+      let approver: any = {
+        poamId: +this.poam.poamId,
+        userId: +event.newData.userId,
+        status: event.newData.status,
+        approved: 'Not Reviewed',
+        comments: event.newData.comments
+      }
+      // console.log("user: ", usert)
+      if (user) {
+        approver.firstName = user.firstName;
+        approver.lastName = user.lastName;
+        approver.fullName = user.fullName;
+        approver.userEmail = user.userEmail;
+      }
+
+      await this.poamService.addPoamApprover(approver).subscribe((res: any) => {
+        // console.log("poamDetail confirmCreatePoam res: ", res)
+        if (res.null) {
+          this.showConfirmation("Unable to insert row, potentially a duplicate.");
+          event.confirm.reject();
+          return;
+        } else {
+          
+          event.confirm.resolve();  
+          this.poamApprovers.push(approver); 
+          this.poamApprovers = [...this.poamApprovers];      
+        }
+      })
+
+    } else {
+      this.showConfirmation("Failed to create entry on poamApprover. Invalid input.");
+      event.confirm.reject();
+    }
   }
 
   confirmCreate(data: any) {
