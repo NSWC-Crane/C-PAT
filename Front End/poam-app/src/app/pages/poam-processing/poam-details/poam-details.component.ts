@@ -143,7 +143,7 @@ export class PoamDetailsComponent implements OnInit {
             if (userId === undefined || userId === null) {
               return '';
             }
-            var user = this.collectionApprovers.collectionApprovers.find((tl: any) => tl.userId === userId);
+            var user = this.collectionApprovers.collectionApprovers.find((tl: any) => tl.userId === parseInt(userId, 10));
             return user ? user.fullName : userId.toString();
           } catch (error) {
             console.error("Error in valuePrepareFunction: ", error);
@@ -202,7 +202,7 @@ export class PoamDetailsComponent implements OnInit {
         isEditable: true,
         isAddable: true,
         valuePrepareFunction: (_cell: any, row: any) => {
-          return row.value
+          return (row.value) ? row.value : ' '
         },
       },
     },
@@ -397,7 +397,6 @@ export class PoamDetailsComponent implements OnInit {
           this.poamAssignees = [];
           this.collectionApprovers = [];
           this.collectionApprovers = collectionApprovers;
-
           this.collectionOwners = [];
           this.collectionMaintainers = [];
           if (this.collectionUsers.permissions) {
@@ -438,7 +437,7 @@ export class PoamDetailsComponent implements OnInit {
           this.poamAssets = assets.poamAssets;
           this.poamAssignees = assignees.poamAssignees;
           this.poamApprovers = poamApprovers.poamApprovers;
-          this.collectionApprovers = collectionApprovers.collectionApprovers;
+          this.collectionApprovers = collectionApprovers;
           //console.log("Collection Approvers: " + this.collectionApprovers);
           //console.log("collectionApprovers: ", this.collectionApprovers)
           if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length ==0)) {

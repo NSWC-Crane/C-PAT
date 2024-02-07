@@ -10,35 +10,7 @@
 
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { AuthService } from './auth';
-import { tap } from 'rxjs/operators';
 import { KeycloakAuthGuard, KeycloakService } from 'keycloak-angular';
-
-// @Injectable()
-// export class AuthGuard implements CanActivate {
-
-//   constructor(
-//     private authService: AuthService,
-//     private router: Router
-//   ) {}
-
-//   canActivate() {
-//     console.log("Can activate...")
-//     return this.authService.isAuthenticated()
-//       .pipe(
-//         tap(authenticated => {
-//           if (!authenticated) {
-//             console.log("Can activate navigating to login NOT authenticated")
-//             this.router.navigate(['login']);
-//           } else {
-            
-//             //authenticated = !authenticated;
-//             console.log("authenticated: ", authenticated)
-//           }
-//         }),
-//       );
-//   }
-// }
 
 @Injectable({
   providedIn: 'root'
