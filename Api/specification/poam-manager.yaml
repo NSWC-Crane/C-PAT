@@ -1261,7 +1261,7 @@ paths:
         content:
           application/json:
             schema:
-                $ref: '#/components/schemas/user_Permissions'
+                $ref: '#/components/schemas/update_user_Permissions'
       responses:
         '200':
           description: return the updated collection permission response
@@ -1270,7 +1270,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/user_Permissions'
+                  $ref: '#/components/schemas/update_user_Permissions'
         default:
           description: unexpected error
           content:
@@ -2986,6 +2986,41 @@ components:
         userId:
           type: integer
         collectionId:
+          type: integer
+        canOwn:
+          type: boolean
+        canMaintain:
+          type: boolean
+        canApprove:
+          type: boolean
+        canView:
+          type: boolean
+        firstName:
+          type: string
+        lastName:
+          type: string
+        fullName:
+          type: string
+        userEmail:
+          type: string
+
+    update_user_Permissions:
+      type: object
+      required:
+        - userId
+        - oldCollectionId
+        - newCollectionId
+        - canOwn
+        - canMaintain
+        - canApprove
+        - canView
+      additionalProperties: true
+      properties:
+        userId:
+          type: integer
+        oldCollectionId:
+          type: integer
+        newCollectionId:
           type: integer
         canOwn:
           type: boolean

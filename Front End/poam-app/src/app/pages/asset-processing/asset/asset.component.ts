@@ -214,19 +214,21 @@ export class AssetComponent implements OnInit {
   
   updateLabelEditorConfig() {
     let settings = this.assetLabelsSettings;
-    let labelListValues = this.labelList.map((label: any) => ({
-      title: label.labelName,
-      value: label.labelId
-    }));
-  
     if (settings.columns['labelId']?.editor?.type === 'list' && settings.columns['labelId'].editor.config) {
       let editorConfig = settings.columns['labelId'].editor.config as ListEditorSettings;
-      editorConfig.list = labelListValues;
-      this.assetLabelsSettings = Object.assign({}, settings);
-    } else {
-      console.error('Editor configuration for labelId is not set or not of type list');
+      const labelPlaceholder = { title: 'Select a Label...', value: '' };
+      editorConfig.list = [
+        labelPlaceholder,
+        ...this.labelList.map((label: any) => ({
+          title: label.labelName,
+          value: label.labelId
+        }))
+      ];
     }
+    this.assetLabelsSettings = Object.assign({}, settings);
   }  
+
+
 
   setCollection(collectionId: any) {
     this.collection = null;

@@ -17,6 +17,8 @@ import { SubSink } from 'subsink';
 //import { LocalDataSource } from 'angular2-smart-table';
 import { ExcelDataService } from '../../../Shared/utils/excel-data.service'
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
+import { isNullOrUndef } from 'chart.js/dist/helpers/helpers.core';
+import { UsersService } from '../../user-processing/users.service';
 
 @Component({
   selector: 'ngx-collection',
@@ -108,8 +110,10 @@ export class CollectionComponent implements OnInit, OnChanges {
   };
 
   private subs = new SubSink()
+  user: any;
 
   constructor(private collectionService: CollectionsService,
+    private userService: UsersService,
     private dialogService: NbDialogService,
   ) {
   }
@@ -176,27 +180,32 @@ export class CollectionComponent implements OnInit, OnChanges {
   }
 
   setApprovers() {
-    let settings = this.collectionApproverSettings;
-    let approverList: any[] = [];
-  
-    if (this.collectionApprovers) {
-      this.collectionApprovers.forEach((approver: any) => {
-        let listValue = {
-          title: approver.fullName,
-          value: approver.userId
-        };
-        approverList.push(listValue);
+
+    if (this.collectionApprovers)
+    {
+      this.collectionApprovers = [];
+      this.userService.getCurrentUser().subscribe((user: any) => {
+        this.user = user;
+        this.collectionService.getCollectionApprovers(this.user.lastCollectionAccessedId).subscribe((response: any) => {
+          this.collectionApprovers = response.collectionApprovers;
       });
+    });
     }
-  
-    if (settings.columns['userId']?.editor?.type === 'list' && settings.columns['userId'].editor.config) {
-      let editorConfig = settings.columns['userId'].editor.config as ListEditorSettings;
-      editorConfig.list = approverList;
-      // Trigger change detection if necessary
-      this.collectionApproverSettings = Object.assign({}, settings);
-    } else {
-      console.error('Editor configuration for userId is not set or not of type list');
+
+    let settings = this.collectionApproverSettings;
+if (settings.columns['userId']?.editor?.type === 'list') {
+  let editorConfig = settings.columns['userId'].editor.config as ListEditorSettings;
+  const approverPlaceholder = { title: 'Select an Approver...', value: '' };
+
+  editorConfig.list = [
+    approverPlaceholder,
+    ...this.collectionApprovers.map((approver: any) => ({
+    title: approver.fullName,
+    value: approver.userId,
+     }))
+      ];
     }
+    this.collectionApproverSettings = Object.assign({}, settings);
   }
 
 

@@ -7,6 +7,7 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
+
 import { TreeGridModule } from '@syncfusion/ej2-angular-treegrid';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { APP_BASE_HREF } from "@angular/common";
@@ -15,14 +16,13 @@ import { FormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';
-import { DoDConsentComponent } from './pages/dod-consent/dod-consent.component';
 import { CoreModule } from '../app/@core/core.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NbActionsModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule, NbAccordionModule} from '@nebular/theme';
 import { LoginComponent } from './pages/login/login.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientModule } from '@angular/common/http';
-import { NbPasswordAuthStrategy, NbAuthModule, NbAuthResult, NbAuthJWTToken, NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token,  } from '@nebular/auth';
+import { NbAuthModule, NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token,  } from '@nebular/auth';
 import { AuthGuard } from "./auth.guard";
 import { NbSecurityModule } from '@nebular/security';
 import { SharedModule } from './Shared/shared.module';
@@ -57,21 +57,19 @@ function initializeKeycloak(keycloak: KeycloakService) {
         AppComponent,
         LoginComponent,
         PoamDetailsComponent,
-        //DoDConsentComponent
     ],
     providers: [AuthGuard,
         KeycloakService,
         { provide: APP_BASE_HREF, useValue: "/" },
-        //{ provide: APP_INITIALIZER, useFactory: initializeKeycloak, multi: true, deps: [KeycloakService]},
         KeycloakService,
         { provide: APP_INITIALIZER, useFactory: initializeKeycloak, multi: true, deps: [KeycloakService] },
+        AuthGuard,
         KcAuthService,
       RoleProvider,
       FileUploadService,
     ],
     bootstrap: [AppComponent],
     exports: [
-    // PoamDetailsComponent,
     ],
   imports: [
         TreeGridModule,

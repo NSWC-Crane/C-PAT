@@ -100,6 +100,7 @@ export class UserComponent implements OnInit {
           type: 'list',
           config: {
             list: [
+              { value: '', title: 'Select a Permission...' },
               { value: '1', title: 'True' },
               { value: '0', title: 'False' }
             ],
@@ -118,6 +119,7 @@ export class UserComponent implements OnInit {
           type: 'list',
           config: {
             list: [
+              { value: '', title: 'Select a Permission...' },
               { value: '1', title: 'True' },
               { value: '0', title: 'False' }
             ],
@@ -135,6 +137,7 @@ export class UserComponent implements OnInit {
           type: 'list',
           config: {
             list: [
+              { value: '', title: 'Select a Permission...' },
               { value: '1', title: 'True' },
               { value: '0', title: 'False' }
             ],
@@ -152,6 +155,7 @@ export class UserComponent implements OnInit {
           type: 'list',
           config: {
             list: [
+              { value: '', title: 'Select a Permission...' },
               { value: '1', title: 'True' },
               { value: '0', title: 'False' }
             ],
@@ -242,16 +246,17 @@ export class UserComponent implements OnInit {
     // Check if 'editor' and 'config' are defined and if 'config' is of type 'ListEditorSettings'
     if (collectionIdSettings.editor && collectionIdSettings.editor.type === 'list') {
       let editorConfig = collectionIdSettings.editor.config as ListEditorSettings;
-      editorConfig.list = this.collectionList.map((collection: any) => ({
-        title: collection.title,
-        value: collection.value
-      }));
-      // Use Object.assign to ensure a new object reference is created
-      this.collectionPermissionsSettings = Object.assign({}, settings);
-    } else {
-      console.error('Editor configuration for collectionId is not set or not of type list');
+      const collectionPlaceholder = { title: 'Select a Collection...', value: '' };
+      editorConfig.list = [
+        collectionPlaceholder,
+        ...this.collectionList.map((collection: any) => ({
+          title: collection.title,
+          value: collection.value
+        }))
+      ];
     }
-  }
+      this.collectionPermissionsSettings = Object.assign({}, settings);
+  } 
 
 
   onSubmit() {
@@ -280,19 +285,21 @@ export class UserComponent implements OnInit {
 
     if (Array.isArray(this.collectionList)) {
       let settings = this.collectionPermissionsSettings;
-      // Ensure the 'editor' and 'config' properties exist and are of the correct type
-      if (settings.columns['collectionId']?.editor?.type === 'list') {
-        let editorConfig = settings.columns['collectionId'].editor.config as ListEditorSettings;
-        editorConfig.list = this.collectionList.map((collection: any) => ({
-          title: collection.title,
-          value: collection.value
-        }));
-        this.collectionPermissionsSettings = { ...settings };
-      } else {
-        console.error('Editor configuration for collectionId is not set or not of type list');
+      // Use index signature syntax to access 'collectionId'
+      let collectionIdSettings = settings.columns['collectionId'];
+      // Check if 'editor' and 'config' are defined and if 'config' is of type 'ListEditorSettings'
+      if (collectionIdSettings.editor && collectionIdSettings.editor.type === 'list') {
+        let editorConfig = collectionIdSettings.editor.config as ListEditorSettings;
+        const collectionPlaceholder = { title: 'Select a Collection...', value: '' };
+        editorConfig.list = [
+          collectionPlaceholder,
+          ...this.collectionList.map((collection: any) => ({
+            title: collection.title,
+            value: collection.value
+          }))
+        ];
       }
-    } else {
-      console.error('Available collection data is not available');
+        this.collectionPermissionsSettings = Object.assign({}, settings);
     }
   }
 
@@ -303,7 +310,7 @@ export class UserComponent implements OnInit {
       event.newData.canOwn &&
       event.newData.canMaintain &&
       event.newData.canApprove &&
-      event.netData.canView
+      event.newData.canView
     ) {
 
       var collection_index = this.collectionList.findIndex((e: any) => e.collectionId == event.newData.collectionId);
@@ -315,8 +322,8 @@ export class UserComponent implements OnInit {
       }
 
       let collectionPermission = {
-        userId: +this.user.userId,
-        collectionId: +parseInt(event.newData.collectionId, 10),
+        userId: this.user.userId,
+        collectionId: parseInt(event.newData.collectionId, 10),
         canOwn: (+event.newData.canOwn) ? true : false,
         canMaintain: (+event.newData.canMaintain) ? true : false,
         canApprove: (+event.newData.canApprove) ? true : false,
@@ -332,7 +339,7 @@ export class UserComponent implements OnInit {
 
     } else {
       console.log("Failed to create entry. Invalid input.");
-      this.invalidData("missing data, unable to insert");
+      this.invalidData("Missing data, unable to insert.");
       event.confirm.reject();
     }
   }
@@ -342,7 +349,6 @@ export class UserComponent implements OnInit {
     if (this.user.userId &&
       event.newData.collectionId
     ) {
-      let permission = this.data;
 
       var collection_index = this.collectionList.findIndex((e: any) => e.collectionId == event.newData.collectionId);
 
@@ -353,7 +359,8 @@ export class UserComponent implements OnInit {
 
       let collectionPermission = {
         userId: this.user.userId,
-        collectionId: event.newData.collectionId,
+        oldCollectionId: parseInt(event.data.collectionId, 10),
+        newCollectionId: parseInt(event.newData.collectionId, 10),
         canOwn: (+event.newData.canOwn) ? true : false,
         canMaintain: (+event.newData.canMaintain) ? true : false,
         canApprove: (+event.newData.canApprove) ? true : false,
@@ -362,15 +369,14 @@ export class UserComponent implements OnInit {
 
       this.isLoading = true;
       this.userService.updatePermission(collectionPermission).subscribe(permissionData => {
-        //this.data = permissionData;
-        //console.log("after updatePermission, permissionData: ",permissionData)
+        this.isLoading = false;
         event.confirm.resolve();
         this.getData();
       });
 
     } else {
       console.log("Failed to update entry. Invalid input.");
-      this.invalidData("missing data, unable to update");
+      this.invalidData("Missing data, unable to update.");
       event.confirm.reject();
     }
   }

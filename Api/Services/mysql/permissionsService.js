@@ -133,59 +133,6 @@ exports.getPermissions_UserCollection = async function getPermissions_UserCollec
 }
 
 exports.postPermission = async function postPermission(req, res, next) {
-	// res.status(201).json({ message: "postPermission (Service) Method called successfully" });
-	// console.log("postPermission req.body: ", req.body)
-	if (!req.body.userId) {
-		console.info('postPermissions userId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				userId: 'is required',
-			}
-		});
-	}
-
-	if (!req.body.collectionId) {
-		console.info('postPermissions collectionId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				collectionId: 'is required',
-			}
-		});
-	}
-
-	if (!req.body.canOwn) req.body.canOwn = 0;
-	if (!req.body.canMaintain) req.body.canMaintain = 0;
-	if (!req.body.canApprove) req.body.canApprove = 0;
-	if (!req.body.canView) req.body.canView = 1;
-
-	try {
-		let connection
-		connection = await dbUtils.pool.getConnection()
-
-		let sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, canOwn, canMaintain, canApprove, canView) values (?, ?, ?, ?, ?, ?)`
-
-		await connection.query(sql_query, [req.body.userId, req.body.collectionId, req.body.canOwn, req.body.canMaintain, req.body.canApprove, req.body.canView])
-		await connection.release()
-
-		const message = new Object()
-		message.userId = req.body.userId
-		message.collectionId = req.body.collectionId
-		message.canOwn = req.body.canOwn
-		message.canMaintain = req.body.canMaintain
-		message.canApprove = req.body.canApprove
-		message.canView = req.body.canView
-		return(message)
-	}
-	catch (error) {
-		let errorResponse = { null: "null" }
-		await connection.release()
-		return errorResponse;
-	}
-}
-
-exports.putPermission = async function putPermission(req, res, next) {
 	// res.status(201).json({ message: "putPermission (Service) Method called successfully" });
 		// console.log("postPermission req.body: ", req.body)
 		if (!req.body.userId) {
@@ -199,11 +146,11 @@ exports.putPermission = async function putPermission(req, res, next) {
 		}
 	
 		if (!req.body.collectionId) {
-			console.info('postPermissions collectionId not provided.');
+			console.info('postPermission collectionId not provided.');
 			return next({
 				status: 422,
 				errors: {
-					collectionId: 'is required',
+					oldCollectionId: 'is required',
 				}
 			});
 		}
@@ -237,6 +184,59 @@ exports.putPermission = async function putPermission(req, res, next) {
 			await connection.release()
 			return errorResponse;
 		}
+}
+
+exports.putPermission = async function putPermission(req, res, next) {
+		// res.status(201).json({ message: "postPermission (Service) Method called successfully" });
+	// console.log("postPermission req.body: ", req.body)
+	if (!req.body.userId) {
+		console.info('postPermissions userId not provided.');
+		return next({
+			status: 422,
+			errors: {
+				userId: 'is required',
+			}
+		});
+	}
+
+	if (!req.body.oldCollectionId) {
+		console.info('putPermissions oldCollectionId not provided.');
+		return next({
+			status: 422,
+			errors: {
+				collectionId: 'is required',
+			}
+		});
+	}
+
+	if (!req.body.canOwn) req.body.canOwn = 0;
+	if (!req.body.canMaintain) req.body.canMaintain = 0;
+	if (!req.body.canApprove) req.body.canApprove = 0;
+	if (!req.body.canView) req.body.canView = 1;
+
+	try {
+		let connection
+		connection = await dbUtils.pool.getConnection()
+
+		let sql_query = "UPDATE poamtracking.collectionpermissions SET collectionId= ?, canOwn= ?, canMaintain= ?, canApprove= ?, canView= ? WHERE userId = ? AND collectionId = ?;"
+		await connection.query(sql_query, [req.body.newCollectionId, req.body.canOwn, req.body.canMaintain, req.body.canApprove, req.body.canView, req.body.userId, req.body.oldCollectionId])
+		
+		await connection.release()
+
+		const message = new Object()
+		message.userId = req.body.userId
+		message.collectionId = req.body.collectionId
+		message.canOwn = req.body.canOwn
+		message.canMaintain = req.body.canMaintain
+		message.canApprove = req.body.canApprove
+		message.canView = req.body.canView
+		return(message)
+	}
+	catch (error) {
+		let errorResponse = { null: "null" }
+		await connection.release()
+		return errorResponse;
+	}
 }
 
 exports.deletePermission = async function deletePermission(req, res, next) {
