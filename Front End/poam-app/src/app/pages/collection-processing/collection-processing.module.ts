@@ -15,10 +15,8 @@ import { CollectionProcessingComponent } from './collection-processing.component
 import { CollectionProcessingRoutingModule } from './collection-processing.routing';
 import { SharedModule } from '../../Shared/shared.module';
 import { CollectionComponent } from './collection/collection.component';
-import { ConfirmationDialogComponent } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
-import { NbButtonModule, NbCardModule, NbIconModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbIconModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbTableModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
-import { ExcelDataService } from 'src/app/Shared/utils/excel-data.service';
 
 @NgModule({
   declarations: [
@@ -35,6 +33,7 @@ import { ExcelDataService } from 'src/app/Shared/utils/excel-data.service';
     NbInputModule,
     NbSelectModule,
     NbSpinnerModule,
+    NbTableModule,
     NbTreeGridModule,
     Angular2SmartTableModule,
     SharedModule, 

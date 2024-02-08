@@ -27,7 +27,6 @@ import { AuthGuard } from "./auth.guard";
 import { NbSecurityModule } from '@nebular/security';
 import { SharedModule } from './Shared/shared.module';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
-import { TreeviewModule } from '@soy-andrey-semyonov/ngx-treeview';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { environment } from 'src/environments/environment';
 import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
@@ -98,7 +97,6 @@ function initializeKeycloak(keycloak: KeycloakService) {
         NbStepperModule,
         NbMenuModule.forRoot(),
         NgbModule,
-        TreeviewModule.forRoot(),
         NbThemeModule.forRoot({ name: 'default' }),
         Angular2SmartTableModule,
         KeycloakAngularModule,

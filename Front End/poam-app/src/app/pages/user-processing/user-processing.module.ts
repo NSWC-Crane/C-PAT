@@ -16,7 +16,7 @@ import { UserProcessingRoutingModule } from './user-processing.routing';
 import { SharedModule } from '../../Shared/shared.module';
 import { UserComponent } from './user/user.component';
 import { ConfirmationDialogComponent } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
-import { NbButtonModule, NbInputModule, NbToggleModule, NbCardModule,NbLayoutModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbIconModule, NbCheckboxModule } from '@nebular/theme';
+import { NbButtonModule, NbInputModule, NbToggleModule, NbCardModule,NbLayoutModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbIconModule, NbCheckboxModule, NbTableModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 
 @NgModule({
@@ -36,6 +36,7 @@ import { Angular2SmartTableModule } from 'angular2-smart-table';
     NbLayoutModule,
     NbSelectModule,
     NbSpinnerModule,
+    NbTableModule,
     NbToggleModule,
     NbTreeGridModule,
     Angular2SmartTableModule,

@@ -14,8 +14,6 @@ import { NbThemeService } from "@nebular/theme";
 import { PoamService } from './poams.service';
 import { AuthService } from '../../auth';
 import { forkJoin } from 'rxjs';
-import { NbAuthJWTToken } from '@nebular/auth';
-import { TreeviewItem, TreeviewConfig, TreeviewI18n, DefaultTreeviewI18n } from '@soy-andrey-semyonov/ngx-treeview';
 import { Router } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
@@ -35,18 +33,6 @@ interface Permission {
   selector: 'ngx-poams',
   templateUrl: './poams.component.html',
   styleUrls: ['./poams.component.scss'],
-  providers: [
-    {
-      provide: TreeviewI18n, useValue: Object.assign(new DefaultTreeviewI18n(), {
-        getFilterPlaceholder(): string {
-          return 'Enter Filter';
-        },
-        getText(): string {
-          return 'Select POAM';
-        }
-      })
-    }
-  ],
 })
 export class PoamsComponent implements OnInit {
   public isLoggedIn = false;
@@ -64,36 +50,10 @@ export class PoamsComponent implements OnInit {
   members: any;
   data: any;
   themeSubscription: any;
+  selectedPoamId: any;
   selectedStatus: any = "All";
-  searchOptions = [
-    { value: '1', label: 'Sort by Poam' },
-    { value: '2', label: 'Sort by Vulernability' },
-  ];
-  searchOption: string = '1';
-
-  title = 'angular-ngx-treeview-app';
 
   items: any;
-
-  config: TreeviewConfig = {
-    allowSingleSelection: true,
-    hasAllCheckBox: false,
-    hasFilter: false,
-    hasCollapseExpand: false,
-    decoupleChildFromParent: true,
-    maxHeight: 500,
-    hasDivider: false,
-  };
-
-  dropdownConfig: TreeviewConfig = {
-    allowSingleSelection: true,
-    hasAllCheckBox: false,
-    hasFilter: true,
-    hasCollapseExpand: true,
-    decoupleChildFromParent: false,
-    maxHeight: 500,
-    hasDivider: true
-  };
 
   values: number[] | undefined;
   buttonClasses = [
@@ -117,7 +77,6 @@ export class PoamsComponent implements OnInit {
     private router: Router,
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
-    private treeviewI18nDefault: TreeviewI18n,
     private cdr: ChangeDetectorRef
   ) {
   }
@@ -126,20 +85,11 @@ export class PoamsComponent implements OnInit {
     this.isLoggedIn = await this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
-      //this.keycloak.addTokenToHeader();
-      // console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
       this.setPayload();
       this.onSelectedStatusChange();
     }
   };
 
-  getItems(parentChildObj: any[]) {
-    let itemsArray: TreeviewItem[] = [];
-    parentChildObj.forEach(set => {
-      itemsArray.push(new TreeviewItem(set))
-    });
-    return itemsArray;
-  }
 
   updateChart() {
     this.cdr.detectChanges();
@@ -232,8 +182,13 @@ export class PoamsComponent implements OnInit {
   }
 
   onSelectPoam(poamId: number) {
-    // Handle POAM selection
-    console.log(`Selected POAM ID: ${poamId}`);
+    const selectedPoam = this.poams.find((poam: any) => poam.id === poamId);
+
+    if (selectedPoam) {
+        this.router.navigateByUrl(`/poam-details/${selectedPoam.id}`);
+    } else {
+        console.error('POAM not found'); 
+    }
   }
 
   setPayload() {
@@ -244,7 +199,6 @@ export class PoamsComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
@@ -271,62 +225,24 @@ export class PoamsComponent implements OnInit {
   }
 
   sortData() {
-    this.items = null;
-    let treeArray: any[] = [];
-    var sortedArray: any[] = [];
+    if (this.filteredPoams) { 
+        this.filteredPoams.sort((n1: any, n2: any) => {
+            if (n1.poamId < n2.poamId) {
+                return -1;
+            } else if (n1.poamId > n2.poamId) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
 
-    if (this.searchOption != '1') {
-      sortedArray = this.filteredPoams.sort((n1: any, n2: any) => {
-        if (n1.vulnerabilityId < n2.vulnerabilityId) {
-          return 1;
-        }
-        if (n1.vulnerabilityId > n2.vulnerabilityId) {
-          return -1;
-        }
-        return 0;
-      });
-      sortedArray.forEach((poam: any) => {
-        // console.log("getPoamData() poam: ",poam)
-        let treeObj = {}
-        treeObj = {
-          text: poam.vulnerabilityId + ' - ' + poam.poamId + ' - ' + poam.description,
-          value: poam.poamId,
-          collapsed: true,
-          checked: false,
-        }
-        treeArray.push(treeObj);
-      })
-    } else {
-      sortedArray = this.filteredPoams.sort((n1: any, n2: any) => {
-        if (n1.poamId < n2.poamId) {
-          return 1;
-        }
-        if (n1.poamId > n2.poamId) {
-          return -1;
-        }
-        return 0;
-      });
-      sortedArray.forEach((poam: any) => {
-        // console.log("getPoamData() poam: ",poam)
-        let treeObj = {}
-
-        treeObj = {
-          text: poam.poamId + ' - ' + poam.vulnerabilityId + ' - ' + poam.description,
-          value: poam.poamId,
-          collapsed: true,
-          checked: false,
-        }
-        treeArray.push(treeObj);
-      })
+        this.poams = this.filteredPoams.map((poam: any) => ({
+            id: poam.poamId,
+            vulnerabilityId: poam.vulnerabilityId,
+            description: poam.description
+        }));
     }
-    this.items = this.getItems(treeArray);
-  }
-
-  onSearchChange(event: any) {
-    //console.log("this.searchOption: ", this.searchOption,", event: ",event)
-    this.searchOption = event;
-    this.sortData();
-  }
+}
 
   onSelectedStatusChange() {
     let filteredPoamStats = this.poamStats;
@@ -341,7 +257,6 @@ export class PoamsComponent implements OnInit {
   }
 
   changeDetailsView(poam: any) {
-    // this.viewingfulldetails = !this.viewingfulldetails
     this.detailedPoam = poam
   }
 }

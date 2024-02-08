@@ -19,6 +19,35 @@ export const appMenuItems: NbMenuItem[] = [
       home: true
     },
     {
+      title: 'POAMs',
+      icon: 'menu-outline',
+      data: { permission: 'view', resource: 'poam' },
+      hidden: true,
+      children: [
+        {
+          title: 'View POAMs',
+          icon: 'list-outline',
+          link: '/poam-processing',
+        },
+        {
+          title: 'Add POAM',
+          icon: 'file-add-outline',
+          link: '/poam-details/ADDPOAM'
+        },
+        {
+          title: 'Import POAM',
+          icon: 'upload-outline',
+        }
+      ]
+    },
+    {
+      title: 'User Processing',
+      icon: 'people-outline',
+      link: '/user-processing',
+      data: { permission: 'create', resource: 'user' },
+      hidden: true,
+    },
+    {
       title: 'Asset Processing',
       icon: 'hard-drive-outline',
       link: '/asset-processing',
@@ -37,32 +66,6 @@ export const appMenuItems: NbMenuItem[] = [
       icon: 'pricetags-outline',
       link: '/label-processing',
       data: { permission: 'view', resource: 'label' },
-      hidden: true,
-    },
-    {
-      title: 'POAMs',
-      icon: 'list-outline',
-      data: { permission: 'view', resource: 'poam' },
-      hidden: true,
-      children: [
-        {
-          title: 'View POAMs',
-          link: '/poam-processing',
-        },
-        {
-          title: 'Add POAM',
-          link: '/poam-details/ADDPOAM'
-        },
-        {
-          title: 'Import POAM',
-        }
-      ]
-    },
-    {
-      title: 'User Processing',
-      icon: 'people-outline',
-      link: '/user-processing',
-      data: { permission: 'create', resource: 'user' },
       hidden: true,
     },
     {

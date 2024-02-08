@@ -31,15 +31,15 @@
   <div class="row">
     <div class="col-md-10">
       <nb-card>
-        <nb-card-header>Select Assets to Modify/Delete</nb-card-header>
+        <nb-card-header>Manage Assets</nb-card-header>
         <nb-card-body>
           <div class="row" *ngIf="allowSelectAssets">
 
             <div class="col-md-5" style="width: auto;">
               <nb-select fullWidth #assetScrollListener style="width: auto" (scroll)="onScroll($event)" outlineid="assetid" name="asset" 
-                        [(ngModel)]="asset.assetId" (selectedChange)="setAsset($event)" placeholder="Select Assets" required>
+                        [(ngModel)]="asset.assetId" (selectedChange)="setAsset($event)" placeholder="Select Asset to Modify" required>
                 <nb-option *ngFor="let asset of data" [value]="asset.assetId">
-                  {{ asset.assetId }} - {{ asset.assetName }}
+                  {{ asset?.assetId }} - {{ asset?.assetName }}
                 </nb-option>
               </nb-select>
             </div>

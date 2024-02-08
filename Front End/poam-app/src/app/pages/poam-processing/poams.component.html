@@ -9,56 +9,54 @@
 -->
 <nb-card>
   <nb-card-header>
-    <div class="dropdown-container">
-      <ngx-dropdown-treeview class="dropdown-treeview" outline status="info" [config]="dropdownConfig" [items]="items" [buttonClass]="buttonClass"
-                             (selectedChange)="onSelectedChange($event)">
-      </ngx-dropdown-treeview>
-    </div>
-    <div class="row" style="padding-top: 20px;" *ngIf="collection">
-      Selected Collection:
-      <div class="col-md-8">
-        <label>{{collection.collectionName}}</label>
+     <div class="row"> 
+      <div class="col">
+        <nb-form-field>
+        <nb-icon nbPrefix icon="list-outline"></nb-icon>
+        <nb-select fullWidth status="info" placeholder="Select POAM" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
+          <nb-option *ngFor="let poam of poams" [value]="poam.id">
+              POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
+          </nb-option>
+        </nb-select>
+    </nb-form-field>
       </div>
-      <hr />
-      <div class="canvas" id="canvas">
-        <canvas class="poam-chart" 
-                baseChart 
-                id='poam-chart' 
-                [type]="'bar'" 
-                [data]="chartData" 
-                [options]="barChartOptions">
-        </canvas>
-      </div>
-      <hr />
-      <div class="row">
-        <button nbButton fullWidth outline status="info" (click)="addPoam()">Add POAM</button>
-
-        <!-- <nb-radio-group style="display: flex; flex-wrap: wrap; padding-top: 20px" layout="row" [(ngModel)]="searchOption">
-          <nb-radio (valueChange)="onSearchChange($event)"
-                    *ngFor="let option of searchOptions"
-                    [value]="option.value">
-            {{ option.label }}
-          </nb-radio>
-        </nb-radio-group> -->
-      </div>
-      <!-- TODO: Fix this filter -->
-    <div class="row" style="padding-top: 20px;">
-      <label>Filter by POAM Status:</label>
-      <nb-select class="poam-filter" outline status="info" placeholder="Filter Poams: " shape="semi-round"
-      [(ngModel)]="selectedStatus" name="selectedStatus"
-      (ngModelChange)='onSelectedStatusChange()'>
-<nb-option value="All">All</nb-option>
-<nb-option value="Draft">Draft</nb-option>
-<nb-option value="Approved">Approved</nb-option>
-        <nb-option value="Submitted">Submitted</nb-option>
-        <nb-option value="Rejected">Rejected</nb-option>
-        <nb-option value="Closed">Closed</nb-option>
-        <nb-option value="Expired">Expired</nb-option>
-      </nb-select>
-    </div>
-                    
-      <hr />
-    </div>
-  </nb-card-header>
-  </nb-card>
-
+     </div>
+ 
+     <div class="row" style="padding-top: 20px;" *ngIf="collection">
+         Selected Collection:
+         <div class="col-md-8">
+             <label>{{collection.collectionName}}</label>
+         </div>
+         <hr />
+         <div class="canvas" id="canvas">
+             <canvas class="poam-chart" 
+                     baseChart 
+                     id='poam-chart' 
+                     [type]="'bar'" 
+                     [data]="chartData" 
+                     [options]="barChartOptions">
+             </canvas>
+         </div>
+         <hr />
+         <div class="row">
+             <button nbButton fullWidth outline status="info" (click)="addPoam()">Add POAM</button>
+         </div>
+         
+         <div class="row" style="padding-top: 20px;">
+             <label>Filter by POAM Status:</label>
+             <nb-select class="poam-filter" outline status="info" placeholder="Filter Poams: "
+             [(ngModel)]="selectedStatus" name="selectedStatus"
+             (ngModelChange)='onSelectedStatusChange()'>
+                 <nb-option value="All">All</nb-option>
+                 <nb-option value="Draft">Draft</nb-option>
+                 <nb-option value="Approved">Approved</nb-option>
+                 <nb-option value="Submitted">Submitted</nb-option>
+                 <nb-option value="Rejected">Rejected</nb-option>
+                 <nb-option value="Closed">Closed</nb-option>
+                 <nb-option value="Expired">Expired</nb-option>
+             </nb-select>
+         </div>
+         <hr />
+     </div>
+ </nb-card-header>
+ </nb-card>

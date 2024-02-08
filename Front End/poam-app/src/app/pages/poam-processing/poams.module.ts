@@ -12,11 +12,10 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PoamsComponent } from './poams.component';
 import { PoamsRoutingModule } from './poams.routing';
-import { NbCardModule, NbInputModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule } from '@nebular/theme';
+import { NbCardModule, NbIconModule, NbInputModule, NbFormFieldModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { NgChartsModule } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
-import { TreeviewModule } from '@soy-andrey-semyonov/ngx-treeview';
 
 @NgModule({
     declarations: [
@@ -27,6 +26,8 @@ import { TreeviewModule } from '@soy-andrey-semyonov/ngx-treeview';
     ],
     imports: [
         CommonModule,
+        NbFormFieldModule,
+        NbIconModule,
         NbInputModule,
         NgChartsModule,
         FormsModule,
@@ -37,7 +38,6 @@ import { TreeviewModule } from '@soy-andrey-semyonov/ngx-treeview';
         Angular2SmartTableModule,
         NbRadioModule,
         NbSelectModule,
-        TreeviewModule,
     ]
 })
 export class PoamsModule { }

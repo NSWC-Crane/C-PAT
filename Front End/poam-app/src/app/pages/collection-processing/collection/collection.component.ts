@@ -74,7 +74,6 @@ export class CollectionComponent implements OnInit, OnChanges {
         isEditable: false,
         isAddable: true,
         valuePrepareFunction: (_cell: any, row: any) => {
-          console.log(this.collectionApprovers);
           var user = (row.value != undefined && row.value != null) ? this.collectionApprovers.find((tl: any) => tl.userId === row.value) : null;
           return (user)
             ? user.fullName
