@@ -16,7 +16,6 @@ import { NbButtonModule, NbCardModule, NbInputModule, NbThemeModule, NbSelectMod
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { NgChartsModule } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
-import { TreeviewModule } from '@soy-andrey-semyonov/ngx-treeview';
 
 @NgModule({
     declarations: [
@@ -36,7 +35,6 @@ import { TreeviewModule } from '@soy-andrey-semyonov/ngx-treeview';
         NbThemeModule,
         Angular2SmartTableModule,
         NbSelectModule,
-        TreeviewModule,
     ]
 })
 export class PoamApproveModule { }

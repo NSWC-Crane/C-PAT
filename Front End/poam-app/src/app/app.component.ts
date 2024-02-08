@@ -4,17 +4,15 @@ import { NbDialogService, NbMenuItem, NbSidebarService, NbThemeService, NbMenuSe
 import { Router } from '@angular/router';
 import { CollectionsService } from './pages/collection-processing/collections.service';
 import { UsersService } from './pages/user-processing/users.service';
-import { TreeviewConfig, TreeviewItem } from '@soy-andrey-semyonov/ngx-treeview';
 import { SubSink } from 'subsink';
 import { PoamService } from '../app/pages/poam-processing/poams.service'
-import { Observable, Subject, forkJoin, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 import { KeycloakService } from 'keycloak-angular'
-import { KeycloakProfile, KeycloakRoles } from 'keycloak-js';
+import { KeycloakProfile } from 'keycloak-js';
 import { accessControlList } from './access-control-list';
 import { appMenuItems } from './app-menu';
 import { environment } from '../environments/environment';
 import { FileUploadService } from './file-upload.service';
-import { Location } from '@angular/common';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
 import { StatusDialogComponent } from './Shared/components/status-dialog/status-dialog.component';
@@ -57,17 +55,6 @@ export class AppComponent implements OnInit, OnDestroy {
   poamItems: any;
   viewingfulldetails: boolean = false;
   public detailedPoam: any;
-
-  dropdownConfig: TreeviewConfig = {
-    allowSingleSelection: true,
-    hasAllCheckBox: false,
-    hasFilter: true,
-    hasCollapseExpand: true,
-    decoupleChildFromParent: false,
-    maxHeight: 400,
-    hasDivider: true
-  };
-
 
   private subs = new SubSink()
 
@@ -211,11 +198,8 @@ export class AppComponent implements OnInit, OnDestroy {
             collapsed: true,
             checked: false,
           }
-
           treeArray.push(treeObj);
-
         })
-        this.poamItems = this.getItems(treeArray);
       })
     }
 
@@ -224,14 +208,6 @@ export class AppComponent implements OnInit, OnDestroy {
   toggleSidebar(): boolean {
     this.sidebarService.toggle();
     return false;
-  }
-
-  getItems(parentChildObj: any[]) {
-    let itemsArray: TreeviewItem[] = [];
-    parentChildObj.forEach(set => {
-      itemsArray.push(new TreeviewItem(set))
-    });
-    return itemsArray;
   }
 
   onSelectedPoamChange(data: any) {

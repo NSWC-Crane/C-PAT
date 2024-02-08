@@ -15,8 +15,7 @@ import { AssetProcessingComponent } from './asset-processing.component';
 import { AssetProcessingRoutingModule } from './asset-processing.routing';
 import { SharedModule } from '../../Shared/shared.module';
 import { AssetComponent } from './asset/asset.component';
-import { ConfirmationDialogComponent } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
-import { NbButtonModule, NbInputModule, NbCardModule,NbLayoutModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbIconModule } from '@nebular/theme';
+import { NbButtonModule, NbInputModule, NbCardModule,NbLayoutModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbIconModule, NbTableModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 
@@ -31,6 +30,7 @@ import { InfiniteScrollModule } from 'ngx-infinite-scroll';
     AssetProcessingRoutingModule,
     FormsModule,
     NbButtonModule,
+    NbTableModule,
     NbCardModule,
     NbInputModule,
     NbIconModule,
@@ -43,7 +43,6 @@ import { InfiniteScrollModule } from 'ngx-infinite-scroll';
    
   ],
   exports: [
-    // BilletTaskProcessComponent,
   ]
 })
 export class AssetProcessingModule { }

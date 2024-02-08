@@ -15,8 +15,7 @@ import { LabelProcessingComponent } from './label-processing.component';
 import { LabelProcessingRoutingModule } from './label-processing.routing';
 import { SharedModule } from '../../Shared/shared.module';
 import { LabelComponent } from './label/label.component';
-import { ConfirmationDialogComponent } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
-import { NbButtonModule, NbCardModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbTableModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 
 @NgModule({
@@ -33,12 +32,12 @@ import { Angular2SmartTableModule } from 'angular2-smart-table';
     NbInputModule,
     NbSelectModule,
     NbSpinnerModule,
+    NbTableModule,
     NbTreeGridModule,
     Angular2SmartTableModule,
     SharedModule, 
   ],
   exports: [
-    // BilletTaskProcessComponent,
   ]
 })
 export class LabelProcessingModule { }
