@@ -13,7 +13,7 @@
       <div class="col">
         <nb-form-field>
         <nb-icon nbPrefix icon="list-outline"></nb-icon>
-        <nb-select fullWidth status="info" placeholder="Select POAM" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
+        <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
           <nb-option *ngFor="let poam of poams" [value]="poam.id">
               POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
           </nb-option>

@@ -253,8 +253,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   resetWorkspace(selectedCollection: any) {
-    //console.log("resetWorkspace selection: ",selectedCollection)
-    this.selectedCollection = selectedCollection;
+    this.selectedCollection = selectedCollection; 
     this.selectCollectionMsg = false;
 
     let collection = this.collections.find((x: { collectionId: any; }) => x.collectionId == this.selectedCollection)
@@ -317,7 +316,9 @@ export class AppComponent implements OnInit, OnDestroy {
       }
       this.authMenuItems();
     });
-
+    if (this.user.lastCollectionAccessedId !== selectedCollection) {
+      window.location.reload();
+  }
   }
 
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef;

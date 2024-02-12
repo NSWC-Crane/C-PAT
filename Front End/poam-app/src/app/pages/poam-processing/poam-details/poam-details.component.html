@@ -46,7 +46,7 @@
           <!-- Description -->
           <div class="form-group">
             <label>*Description:</label>
-            <input type="text" nbInput fullWidth placeholder="Description" [(ngModel)]="poam.description" name='description'>
+            <textarea nbInput fullWidth placeholder="Description" [(ngModel)]="poam.description" name='description'></textarea>
           </div>
 
           <!-- AA Package -->
@@ -64,13 +64,21 @@
           <!-- Raw Severity -->
           <div class="form-group">
             <label id="rawSeverity">*Raw Severity:</label>
-            <input type="text" nbInput fullWidth placeholder="Raw Severity" [(ngModel)]="poam.rawSeverity" name='rawSeverity'>
+            <nb-select placeholder="Raw Severity" [(ngModel)]="poam.rawSeverity" name='rawSeverity'>
+              <nb-option value="Cat I - Critical/High">Cat I - Critical/High</nb-option>
+              <nb-option value="CAT II - Medium">CAT II - Medium</nb-option>
+              <nb-option value="CAT III - Low">CAT III - Low</nb-option>
+            </nb-select>
           </div>
 
           <!-- Adj Severity -->
           <div class="form-group">
             <label id="adjSeverity">Adj Severity:</label>
-            <input type="text" nbInput fullWidth placeholder="Adj Severity" [(ngModel)]="poam.adjSeverity" name='adjSeverity'>
+            <nb-select placeholder="Adj Severity" [(ngModel)]="poam.adjSeverity" name='adjSeverity'>
+              <nb-option value="Cat I - Critical/High">Cat I - Critical/High</nb-option>
+              <nb-option value="CAT II - Medium">CAT II - Medium</nb-option>
+              <nb-option value="CAT III - Low">CAT III - Low</nb-option>
+            </nb-select>
           </div>
 
           <!-- Vulnerability Id -->
@@ -142,36 +150,45 @@
           </nb-step>
           <nb-step label="Mitigations">
             <textarea nbInput fullWidth [(ngModel)]="poam.mitigations" placehoder="Milestones" name='mitigations' cols="180"
-                      rows="18"></textarea>
+                      rows="16"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label="Required Resources">
             <textarea nbInput fullWidth [(ngModel)]="poam.requiredResources" placehoder="Required Resources" name='mitigations' cols="180"
-                      rows="18"></textarea>
+                      rows="16"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label="Milestones">
             <textarea nbInput fullWidth [(ngModel)]="poam.milestones" placehoder="Milestones" name='milestones' cols="180"
-                      rows="18"></textarea>
+                      rows="16"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label="Residual Risk">
             <textarea nbInput fullWidth [(ngModel)]="poam.residualRisk" placehoder="Residual Risk" name='residualRisk' cols="180"
-                      rows="18"></textarea>
+                      rows="16"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
           <nb-step label="Business Impact">
-            <textarea nbInput fullWidth [(ngModel)]="poam.businessImpact" placehoder="Business Impact" name='businessImpact' cols="180"
-                      rows="18"></textarea>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
+            <nb-select fullWidth placeholder="Business Impact" [(ngModel)]="poam.businessImpactRating" name='businessImpactRating'>
+              <nb-option value="Very Low">Very Low</nb-option>
+              <nb-option value="Low">Low</nb-option>
+              <nb-option value="Moderate">Moderate</nb-option>
+              <nb-option value="High">High</nb-option>
+              <nb-option value="Very High">Very High</nb-option>
+            </nb-select>
+            <textarea *ngIf="poam.businessImpactRating === 'Moderate' || poam.businessImpactRating === 'High' || poam.businessImpactRating === 'Very High'"
+            style="margin-top: 20px;" nbInput fullWidth [(ngModel)]="poam.businessImpactDescription" 
+            placeholder="Business Impact Description" name='businessImpactDescription' cols="180" rows="16"></textarea>
+  
+  <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+  <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
+</nb-step>
           <nb-step label="Notes">
-            <textarea nbInput fullWidth [(ngModel)]="poam.notes" placehoder="Notes" name='notes' cols="180" rows="18"></textarea>
+            <textarea nbInput fullWidth [(ngModel)]="poam.notes" placehoder="Notes" name='notes' cols="180" rows="16"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" disabled nbStepperNext>next</button>
           </nb-step>

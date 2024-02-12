@@ -30,7 +30,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/asset_Object'
+                  $ref: '#/components/schemas/AssetResponse'
         '403':
           $ref: '#/components/responses/forbidden'
         default:
@@ -77,7 +77,43 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/asset_Object'
+                  $ref: '#/components/schemas/AssetResponse'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Asset
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /asset/name/{assetName}:
+    parameters:
+      - in: path
+        name: assetName
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Return details on a specific asset
+      operationId: getAssetByName
+      responses:
+        '200':
+          description: Asset array response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asset:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssetObject'
         '403':
           $ref: '#/components/responses/forbidden'
         default:
@@ -108,9 +144,12 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/asset_Object'
+                type: object
+                properties:
+                  asset:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssetObject'
         '403':
           $ref: '#/components/responses/forbidden'
         default:
@@ -133,7 +172,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/asset_Object'
+                $ref: '#/components/schemas/AssetObject'
         default:
           description: unexpected error
           content:
@@ -154,14 +193,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/asset_Object'
+              $ref: '#/components/schemas/AssetObject'
       responses:
         '200':
           description: return the added asset response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/asset_Object'
+                $ref: '#/components/schemas/AssetObject'
         default:
           description: unexpected error
           content:
@@ -181,14 +220,14 @@ paths:
         content:
           application/json:
             schema:
-                $ref: '#/components/schemas/asset_Object'
+                $ref: '#/components/schemas/AssetObject'
       responses:
         '200':
           description: return the updated asset response
           content:
             application/json:
               schema:
-                  $ref: '#/components/schemas/asset_Object'
+                  $ref: '#/components/schemas/AssetObject'
         default:
           description: unexpected error
           content:
@@ -340,7 +379,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/asset_Object'
+                $ref: '#/components/schemas/AssetObject'
         default:
           description: unexpected error
           content:
@@ -2271,38 +2310,56 @@ components:
           type: string
         name:
           type: string
-    asset_Object:
+    AssetResponse:
+      type: object
+      properties:
+        asset:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetObject'
+    AssetObject:
       type: object
       required:
         - assetId
         - assetName
         - collectionId
-        - ipAddress
-        - macAddress
-      additionalProperties: true
       properties:
         assetId:
           type: integer
         assetName:
           type: string
-        collectionId:
-          type: integer
-        ipAddress:
-          type: string
-        description:
-          type: string
         fullyQualifiedDomainName:
           type: string
+          nullable: true
+        collectionId:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        ipAddress:
+          type: string
+          nullable: true
         macAddress:
           type: string
-        labels:
-          type: array
-          items:
-            type: object
-            properties:
-              labelId:
-                type: integer 
-          
+          nullable: true
+        nonComputing:
+          type: integer
+          nullable: true
+        metadata:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        stateDate:
+          type: string
+          nullable: true
+        stateUserId:
+          type: integer
+          nullable: true
+        isEnabled:
+          type: integer
+          nullable: true 
     assetLabel_Object:
       type: object
       required:
@@ -2629,7 +2686,9 @@ components:
           type: string
         residualRisk:
           type: string
-        businessImpact:
+        businessImpactRating:
+          type: string
+        businessImpactDescription:
           type: string
         notes:
           type: string
@@ -3142,5 +3201,5 @@ components:
   securitySchemes:
       oauth:
         type: openIdConnect
-        openIdConnectUrl: https://localhost:8080/realms/RMFTools/.well-known/openid-configuration    
+        openIdConnectUrl: https://localhost:2020/realms/RMFTools/.well-known/openid-configuration    
 

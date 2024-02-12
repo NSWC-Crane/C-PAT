@@ -41,10 +41,10 @@ export const appMenuItems: NbMenuItem[] = [
       ]
     },
     {
-      title: 'User Processing',
-      icon: 'people-outline',
-      link: '/user-processing',
-      data: { permission: 'create', resource: 'user' },
+      title: 'Collections',
+      icon: { icon: 'archive-outline', pack: 'eva' },
+      link: '/collection-processing',
+      data: { permission: 'view', resource: 'collection' },
       hidden: true,
     },
     {
@@ -55,17 +55,17 @@ export const appMenuItems: NbMenuItem[] = [
       hidden: true,
     },
     {
-      title: 'Collections',
-      icon: { icon: 'archive-outline', pack: 'eva' },
-      link: '/collection-processing',
-      data: { permission: 'view', resource: 'collection' },
-      hidden: true,
-    },
-    {
       title: 'Label Processing',
       icon: 'pricetags-outline',
       link: '/label-processing',
       data: { permission: 'view', resource: 'label' },
+      hidden: true,
+    },
+    {
+      title: 'User Processing',
+      icon: 'people-outline',
+      link: '/user-processing',
+      data: { permission: 'create', resource: 'user' },
       hidden: true,
     },
     {
