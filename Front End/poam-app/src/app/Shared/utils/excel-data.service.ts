@@ -25,7 +25,8 @@ interface Poam {
   requiredResources: string;
   milestones: string;
   residualRisk: string;
-  businessImpact: string;
+  businessImpactRating: string;
+  businessImpactDescription: string;
   notes: string;
   status: string;
   poamType: string;
@@ -40,7 +41,6 @@ interface Poam {
   environmentOfThreat: string;
   threatDescription: string;
   likelihood: string;
-  impactDescription: string;
   recommendations: string;
   devicesAffected: string;
 }
@@ -67,7 +67,8 @@ export class ExcelDataService {
       { wch: 16 }, // requiredResources
       { wch: 20 }, // milestones
       { wch: 15 }, // residualRisk
-      { wch: 15 }, // businessImpact
+      { wch: 15 }, // businessImpactRating
+      { wch: 15 }, // businessImpactDescription
       { wch: 30 }, // notes
       { wch: 10 }, // status
       { wch: 15 }, // poamType

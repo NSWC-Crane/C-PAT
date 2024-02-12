@@ -20,13 +20,13 @@ export const environment = {
   getCollectionsFromSTIGMANEndpoint: 'http://localhost:54000/api/collections/',
   getAvailableAssetsFromSTIGMANEndpoint: 'http://localhost:54000/api/assets?collectionId=',
   getAssetsFromSTIGMANEndpoint: 'http://localhost:54000/api/assets/',
-  authizeEndpoint: 'http://localhost:8080/realms/RMFTools/protocol/openid-connect/auth',
-  tokeEndpoint: 'http://localhost:8080/realms/RMFTools/protocol/openid-connect/token',
+  authizeEndpoint: 'http://localhost:2020/realms/RMFTools/protocol/openid-connect/auth',
+  tokeEndpoint: 'http://localhost:2020/realms/RMFTools/protocol/openid-connect/token',
   redirectUri: 'http://localhost:4200/callback',
   frontEndEndpoint: 'http://localhost:4200',
-  keycloakUrl: 'http://localhost:8080',
+  keycloakUrl: 'http://localhost:2020',
   CPATRedirectUri: 'http://localhost:4200/consent',
-  tokenReturnUrl: "http://localhost:8080/realms/RMFTools/protocol/openid-connect/token",
+  tokenReturnUrl: "http://localhost:2020/realms/RMFTools/protocol/openid-connect/token",
   version: '1.0.0',
 
 

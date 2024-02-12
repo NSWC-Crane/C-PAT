@@ -35,8 +35,8 @@ const excelColumnToDbColumnMapping = {
     "Relevance of Threat": "relevanceOfThreat",
     "Threat Description": "threatDescription",
     "Likelihood": "likelihood",
-    "Impact": "businessImpact",
-    "Impact Description": "impactDescription",
+    "Impact": "businessImpactRating",
+    "Impact Description": "businessImpactDescription",
     "Residual Risk Level": "residualRisk",
     "Recommendations": "recommendations",
     "Resulting Residual Risk after Proposed Mitigations": "adjSeverity"
@@ -92,13 +92,27 @@ module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
                 let isEmptyRow = true;
 
                 row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                    colNumber--; // Adjust for zero-based indexing
+                    colNumber--;
                     const dbColumn = headers[colNumber] ? excelColumnToDbColumnMapping[headers[colNumber]] : null;
 
                     if (dbColumn) {
-                        const cellValue = cell.text && cell.text.trim();
+                        let cellValue = cell.text && cell.text.trim();
                         if (dbColumn === 'scheduledCompletionDate' && cellValue) {
                             poamEntry[dbColumn] = convertToMySQLDate(cellValue);
+                        } else if (dbColumn === 'rawSeverity') {
+                            switch (cellValue) {
+                                case 'I':
+                                    poamEntry[dbColumn] = "Cat I - Critical/High";
+                                    break;
+                                case 'II':
+                                    poamEntry[dbColumn] = "CAT II - Medium";
+                                    break;
+                                case 'III':
+                                    poamEntry[dbColumn] = "CAT III - Low";
+                                    break;
+                                default:
+                                    poamEntry[dbColumn] = cellValue;
+                            }
                         } else {
                             poamEntry[dbColumn] = cellValue;
                         }
@@ -123,7 +137,6 @@ module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
             const createdBatch = await Poam.bulkCreate(batch, { returning: true });
             createdPoams.push(...createdBatch);
         }
-        // Process devicesAffected for each createdPoam...
         for (const poamEntry of createdPoams) {
             if (!poamEntry || !poamEntry.poamId) {
                 console.error('Invalid poamEntry or missing poamId:', poamEntry);
@@ -133,15 +146,30 @@ module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
             const poamId = poamEntry.poamId;
             const devicesString = poamEntry.devicesAffected && poamEntry.devicesAffected.toString();
             const devices = devicesString ? devicesString.split('\n') : [];
+
             for (const deviceName of devices) {
                 const trimmedDeviceName = deviceName.trim();
                 if (trimmedDeviceName) {
-                    const existingAsset = await poamAsset.findOne({ where: { assetId: trimmedDeviceName } });
+                    const existingAsset = await db.Asset.findOne({
+                        attributes: ['assetId', 'assetName'],
+                        where: { assetName: trimmedDeviceName }
+                    });
+
+                    let assetId;
                     if (existingAsset) {
-                        await existingAsset.update({ poamId });
+                        assetId = existingAsset.assetId;
                     } else {
-                        await poamAsset.create({ assetId: trimmedDeviceName, poamId });
+                        const newAsset = await db.Asset.create({
+                            assetName: trimmedDeviceName,
+                            collectionId: lastCollectionAccessedId,
+                        });
+                        assetId = newAsset.assetId;
                     }
+
+                    await db.poamAsset.create({
+                        assetId: assetId,
+                        poamId: poamId
+                    });
                 }
             }
         }
@@ -154,7 +182,7 @@ module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
             error: error.message,
         });
     }
-}
+};
 module.exports.importAssets = async function importAssets(req, res) {
     try {
         const { assets } = req.body;
@@ -229,7 +257,7 @@ module.exports.importCollectionAndAssets = async function importCollectionAndAss
             };
 
             const [assetRecord, assetCreated] = await db.Asset.findOrCreate({
-                where: { assetName: asset.name }, // Assuming assetName is unique
+                where: { assetName: asset.name },
                 defaults: assetData
             });
 

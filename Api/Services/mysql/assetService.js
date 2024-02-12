@@ -88,10 +88,7 @@ exports.getAssetsByCollection = async function getAssetsByCollection(collectionI
 };
 
 exports.getAsset = async function getAsset(req, res, next) {
-    // res.status(201).json({ message: "getAsset (Service) Method called successfully" });
-
     if (!req.params.assetId) {
-        console.info('getLabel labelId not provided.');
         return next({
             status: 422,
             errors: {
@@ -100,26 +97,90 @@ exports.getAsset = async function getAsset(req, res, next) {
         });
     }
 
+    let connection;
     try {
-        let connection
-        connection = await dbUtils.pool.getConnection()
-        let sql = "SELECT * FROM  poamtracking.asset WHERE assetId=" + req.params.assetId + ";"
-        // console.log("getAsset sql: ", sql)
+        connection = await dbUtils.pool.getConnection();
 
-        let [rowAsset] = await connection.query(sql)
-        console.log("rowAsset: ", rowAsset[0])
-        await connection.release()
+        const sql = "SELECT * FROM  poamtracking.asset WHERE assetId = ?"; 
+        return connection.execute(sql, [req.params.assetId]) 
+            .then(([rowAssets]) => {
+                if (rowAssets.length === 0) { 
+                    const customError = new Error(`Asset with ID ${req.params.assetId} was not found`);
+                    customError.status = 404; 
+                    throw customError; 
+                }
 
-        var asset = [rowAsset[0]]
+                const response = {
+            asset: rowAssets.map(asset => ({
+                assetId: asset.assetId,
+                assetName: asset.assetName,
+                collectionId: asset.collectionId,
+                ipAddress: asset.ipAddress || "",
+                description: asset.description || "",
+                fullyQualifiedDomainName: asset.fullyQualifiedDomainName || "",
+                macAddress: asset.macAddress || ""
+            }))
+        };
+        
+        return response;
 
-        return { asset };
+            })  
+            .finally(() => {
+                 if (connection) connection.release(); 
+            }); 
+
+    } catch (error) {
+        if (connection) connection.release(); 
+        throw error;
     }
-    catch (error) {
-        let errorResponse = { null: "null" }
-        //await connection.release()
-        return errorResponse;
+};
+
+exports.getAssetByName = async function getAssetByName(req, res, next) {
+    if (!req.params.assetName) {
+        return next({
+            status: 422,
+            errors: {
+                assetName: 'is required',
+            }
+        });
     }
-}
+
+    let connection;
+    try {
+        connection = await dbUtils.pool.getConnection();
+
+        const sql = "SELECT * FROM poamtracking.asset WHERE assetName = ?";
+        return connection.execute(sql, [req.params.assetName]) 
+            .then(([rowAssets]) => {
+                if (rowAssets.length === 0) { 
+                    const customError = new Error(`Asset with name ${req.params.assetName} was not found`);
+                    customError.status = 404; 
+                    throw customError; 
+                }
+
+                const response = {
+                    asset: rowAssets.map(asset => ({
+                        assetId: asset.assetId,
+                        assetName: asset.assetName,
+                        collectionId: asset.collectionId,
+                        ipAddress: asset.ipAddress || "",
+                        description: asset.description || "",
+                        fullyQualifiedDomainName: asset.fullyQualifiedDomainName || "",
+                        macAddress: asset.macAddress || ""
+                    })) 
+                };
+
+                return response; 
+            }) 
+            .finally(() => {
+                if (connection) connection.release(); 
+            }); 
+
+    } catch (error) {
+        if (connection) connection.release(); 
+        next(error); 
+    }
+};
 
 exports.postAsset = async function posAsset(req, res, next) {
     // res.status(201).json({ message: "postAsset (Service) Method called successfully" });

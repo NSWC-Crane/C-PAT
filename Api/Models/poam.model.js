@@ -55,7 +55,11 @@ module.exports = (sequelize, DataTypes) => {
         residualRisk: {
             type: DataTypes.TEXT
         },
-        businessImpact: {
+        businessImpactRating: {
+            type: DataTypes.STRING(25),
+            defaultValue: ''
+        },
+        businessImpactDescription: {
             type: DataTypes.TEXT
         },
         notes: {
@@ -117,10 +121,6 @@ module.exports = (sequelize, DataTypes) => {
         likelihood: {
             type: DataTypes.STRING(15),
             allowNull: false,
-            defaultValue: ''
-        },
-        impactDescription: {
-            type: DataTypes.STRING(2000),
             defaultValue: ''
         },
         recommendations: {

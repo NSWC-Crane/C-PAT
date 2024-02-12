@@ -15,10 +15,31 @@ module.exports.getAssets = async function getAssets(req, res, next) {
     res.status(200).json(assets);
 }
 
-module.exports.getAsset = async function getAsset(req, res, next){
-        var asset = await assetService.getAsset(req,res,next); 
-        res.status(201).json(asset)
-}
+module.exports.getAsset = async function getAsset(req, res, next) {
+        try {
+            var asset = await assetService.getAsset(req, res, next);
+            res.status(201).json(asset);
+        } catch (error) {
+            if (error.status === 404) {
+                res.status(404).json({ error: error.message });
+            } else {
+                next(error);
+            }
+        }
+    };
+
+module.exports.getAssetByName = async function getAssetByName(req, res, next){
+        try {
+                var asset = await assetService.getAssetByName(req, res, next);
+                res.status(201).json(asset);
+            } catch (error) {
+                if (error.status === 404) {
+                    res.status(404).json({ error: error.message });
+                } else {
+                    next(error);
+                }
+            }
+        };
 
 module.exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
         try {
