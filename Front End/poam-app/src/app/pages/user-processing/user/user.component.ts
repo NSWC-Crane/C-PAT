@@ -70,6 +70,7 @@ export class UserComponent implements OnInit {
       confirmDelete: true,
     },
     actions: {
+      columnTitle: '',
       add: true,
       edit: true,
       delete: true,

@@ -226,15 +226,15 @@ exports.postPoam = async function postPoam(req, res, next) {
                 req.body.scheduledCompletionDate = (req.body.scheduledCompletionDate == '') ? null : req.body.scheduledCompletionDate;
 
                 let sql_query = `INSERT INTO poamtracking.poam (collectionId, vulnerabilitySource,
-                        aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, 
+                        aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, extensionTimeAllowed,
                         scheduledCompletionDate, ownerId, mitigations, requiredResources, milestones,
                         residualRisk, businessImpactRating, businessImpactDescription, notes, status, poamType, vulnIdRestricted,
                         submittedDate) 
-                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
                 await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource,
-                  req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
-                  req.body.adjSeverity, req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations,
+                  req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
+                  req.body.extensionTimeAllowed, req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations,
                   req.body.requiredResources, req.body.milestones, req.body.residualRisk, req.body.businessImpactRating, 
                   req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.poamType, req.body.vulnIdRestricted, 
                   req.body.submittedDate])
@@ -348,15 +348,15 @@ exports.putPoam = async function putPoam(req, res, next) {
                 connection = await dbUtils.pool.getConnection()
 
                 let sql_query = `UPDATE poamtracking.poam SET collectionId = ?, vulnerabilitySource = ?,
-                        aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?, 
+                        aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?, extensionTimeAllowed = ?,
                         scheduledCompletionDate = ?, ownerId = ?, mitigations = ?, requiredResources = ?, milestones = ?,
-                        residualRisk = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?, poamType = ?, vulnIdRestricted = ?,
-                        submittedDate = ? WHERE poamId = ?`
+                        residualRisk = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?, poamType = ?,
+                        vulnIdRestricted = ?, submittedDate = ? WHERE poamId = ?`
 
                 await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource,
                   req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
-                  req.body.adjSeverity, req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations,
-                  req.body.requiredResources, req.body.milestones, req.body.residualRisk, req.body.businessImpactRating,
+                  req.body.adjSeverity, req.body.extensionTimeAllowed, req.body.scheduledCompletionDate, req.body.ownerId,
+                  req.body.mitigations, req.body.requiredResources, req.body.milestones, req.body.residualRisk, req.body.businessImpactRating,
                   req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.poamType, req.body.vulnIdRestricted, 
                   req.body.submittedDate, req.body.poamId])
 

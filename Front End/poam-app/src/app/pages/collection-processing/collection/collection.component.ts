@@ -62,6 +62,7 @@ export class CollectionComponent implements OnInit, OnChanges {
       confirmDelete: true,
     },
     actions: {
+      columnTitle: '',
       add: true,
       edit: true,
       delete: true,
