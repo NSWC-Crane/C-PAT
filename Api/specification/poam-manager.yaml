@@ -2672,10 +2672,10 @@ components:
           type: string
         adjSeverity:
           type: string
+        extensionTimeAllowed:
+          type: integer
         scheduledCompletionDate:
           type: string
-          #format: date
-          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])?$'
         ownerId:
           type: integer
         mitigations:

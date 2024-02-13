@@ -12,7 +12,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PoamsComponent } from './poams.component';
 import { PoamsRoutingModule } from './poams.routing';
-import { NbCardModule, NbIconModule, NbInputModule, NbFormFieldModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule } from '@nebular/theme';
+import { NbCardModule, NbIconModule, NbInputModule, NbFormFieldModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule, NbDatepickerModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { NgChartsModule } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +26,7 @@ import { FormsModule } from '@angular/forms';
     ],
     imports: [
         CommonModule,
+        NbDatepickerModule,
         NbFormFieldModule,
         NbIconModule,
         NbInputModule,

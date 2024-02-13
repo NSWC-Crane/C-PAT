@@ -19,6 +19,7 @@ interface Poam {
   description: string;
   rawSeverity: string;
   adjSeverity: string;
+  extensionTimeAllowed: number;
   scheduledCompletionDate: Date | string;
   ownerId: number;
   mitigations: string;
@@ -61,6 +62,7 @@ export class ExcelDataService {
       { wch: 30 }, // description
       { wch: 10 }, // rawSeverity
       { wch: 10 }, // adjSeverity
+      { wch: 10 }, // extensionTimeAllowed
       { wch: 22 }, // scheduledCompletionDate
       { wch: 10 }, // ownerId
       { wch: 30 }, // mitigations

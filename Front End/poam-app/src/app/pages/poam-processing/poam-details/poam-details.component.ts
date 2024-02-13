@@ -84,6 +84,7 @@ export class PoamDetailsComponent implements OnInit {
       confirmDelete: true,
     },
     actions: {
+      columnTitle: '',
       add: true,
       edit: false,
       delete: true,
@@ -126,6 +127,7 @@ export class PoamDetailsComponent implements OnInit {
       confirmDelete: true,
     },
     actions: {
+      columnTitle: '',
       add: true,
       edit: true,
       delete: true,
@@ -226,6 +228,7 @@ export class PoamDetailsComponent implements OnInit {
       confirmDelete: true,
     },
     actions: {
+      columnTitle: '',
       add: true,
       edit: false,
       delete: true,
@@ -351,7 +354,6 @@ export class PoamDetailsComponent implements OnInit {
 
 
   getData() {
-
     if (this.poamId == undefined || !this.poamId) return;
     if (this.poamId === "ADDPOAM") {
       this.canModifyOwner = true;
@@ -362,18 +364,16 @@ export class PoamDetailsComponent implements OnInit {
         this.poamService.getCollectionApprovers(this.payload.lastCollectionAccessedId)
       )
         .subscribe(([collection, users, collectionAssets, collectionApprovers]: any) => {
-          var dateObj = new Date();
-          // add 30 days
-          dateObj.setDate(dateObj.getDate() + 30)
           this.poam = {
             poamId: "ADDPOAM",
             collectionId: this.payload.lastCollectionAccessedId,
-            vulnerabilitySource: "STIG",
+            vulnerabilitySource: "",
             aaPackage: "",
             vulnerabilityId: "",
             description: "",
             rawSeverity: "",
-            adjSeverity: "Minor",
+            adjSeverity: "",
+            extensionTimeAllowed: "",
             scheduledCompletionDate: '',
             ownerId: this.payload.userId,
             mitigations: "",
@@ -386,7 +386,7 @@ export class PoamDetailsComponent implements OnInit {
             status: "Draft",
             poamType: "Standard",
             vulnIdRestricted: "",
-            submittedDate: ''
+            submittedDate: new Date().toISOString().slice(0, 10)
           };
 
           this.dates.scheduledCompletionDate = this.poam.scheduledCompletionDate;
@@ -402,15 +402,10 @@ export class PoamDetailsComponent implements OnInit {
           this.collectionMaintainers = [];
           if (this.collectionUsers.permissions) {
             this.collectionUsers.permissions.forEach((user: any) => {
-              // console.log("user: ", user)
               if (user.canOwn) this.collectionOwners.push({ ...user });
               if (user.canMaintain || user.canOwn) this.collectionMaintainers.push({ ...user });
             })
           }
-
-          // console.log("collectionOwners: ", this.collectionOwners)
-          // console.log("collectionMaintainers: ", this.collectionMaintainers)
-
           this.setChartSelectionData();
         });
 
@@ -427,11 +422,8 @@ export class PoamDetailsComponent implements OnInit {
       )
         .subscribe(([poam, collection, users, collectionAssets, assets, assignees, collectionApprovers, poamApprovers]: any) => {
           this.poam = { ...poam };
-          // console.log("this.poam: ", this.poam)
-          this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? this.poam.scheduledCompletionDate.substr(0, 10): '';
+          this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? this.poam.scheduledCompletionDate.substr(0, 10) : '';
           this.dates.submittedDate = (this.poam.submittedDate) ? this.poam.submittedDate.substr(0, 10) : '';
-
-          // console.log("users: ", users)
           this.collection = collection;
           this.collectionUsers = users.permissions;
           this.assets = collectionAssets;
@@ -439,18 +431,10 @@ export class PoamDetailsComponent implements OnInit {
           this.poamAssignees = assignees.poamAssignees;
           this.poamApprovers = poamApprovers.poamApprovers;
           this.collectionApprovers = collectionApprovers;
-          //console.log("Collection Approvers: " + this.collectionApprovers);
-          //console.log("collectionApprovers: ", this.collectionApprovers)
+
           if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length ==0)) {
-            // Set default approvers...
             this.addDefaultApprovers();
           }
-          // console.log("collection: ", this.collection)
-          // console.log("collectionUsers: ", this.collectionUsers)
-          // console.log("assets: ", this.assets)
-          // console.log("poamAssets: ", this.poamAssets)
-          // console.log("poamAssignees: ", this.poamAssignees)
-
           this.setChartSelectionData();
         });
     }
@@ -482,11 +466,9 @@ export class PoamDetailsComponent implements OnInit {
   }
 
   setChartSelectionData() {
-    // Reset or initialize collections
     this.collectionOwners = [];
     this.collectionMaintainers = [];
   
-    // Populate owners and maintainers based on permissions
     if (this.collectionUsers.permissions) {
       this.collectionUsers.permissions.forEach((user: any) => {
         if (user.canOwn) this.collectionOwners.push({ ...user });
@@ -494,7 +476,6 @@ export class PoamDetailsComponent implements OnInit {
       });
     }
   
-    // Set Asset Selection Data
     let assetSettings = this.poamAssetsSettings;
     if (assetSettings.columns['assetId']?.editor?.type === 'list') {
       let assetEditorConfig = assetSettings.columns['assetId'].editor.config as ListEditorSettings;
@@ -509,7 +490,6 @@ export class PoamDetailsComponent implements OnInit {
     }
     this.poamAssetsSettings = Object.assign({}, assetSettings);
   
-    // Set Assignees Selection Data
     let assigneeSettings = this.poamAssigneesSettings;
     if (assigneeSettings.columns['userId']?.editor?.type === 'list') {
       let assigneeEditorConfig = assigneeSettings.columns['userId'].editor.config as ListEditorSettings;
@@ -524,7 +504,6 @@ export class PoamDetailsComponent implements OnInit {
     }
     this.poamAssigneesSettings = Object.assign({}, assigneeSettings);
   
-// Set Approvers Selection Data
 let approverSettings = this.poamApproverSettings;
 if (approverSettings.columns['userId']?.editor?.type === 'list') {
   let approverEditorConfig = approverSettings.columns['userId'].editor.config as ListEditorSettings;
@@ -540,16 +519,31 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
     }
 
     this.poamApproverSettings = Object.assign({}, approverSettings);
-}
+  }
+
+  onRawSeverityChange(selectedSeverity: string) {
+    switch (selectedSeverity) {
+      case 'Cat I - Critical/High':
+        this.poam.extensionTimeAllowed = 30;
+        break;
+      case 'CAT II - Medium':
+        this.poam.extensionTimeAllowed = 180;
+        break;
+      case 'CAT III - Low':
+        this.poam.extensionTimeAllowed = 365;
+        break;
+      default:
+        this.poam.extensionTimeAllowed = 0;
+    }
+  }
   
   async approvePoam(poam: any) {
     await this.router.navigateByUrl("/poam-approve/" + this.poam.poamId);
   }
 
   async approvePoamAll(poam: any) {
-    //this.router.navigateByUrl("");
 
-    let options =        new ConfirmationDialogOptions({
+    let options = new ConfirmationDialogOptions({
       header: "Warning",
       body: "You are about to mark all approvers on this POAM as having approved, are you sure?",
       button: {
@@ -607,7 +601,6 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
 
     this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate;
     this.poam.submittedDate = this.dates.submittedDate;
-
     this.poam.requiredResources = (this.poam.requiredResources) ? this.poam.requiredResources : ""
     this.poam.vulnIdRestricted = (this.poam.vulnIdRestricted) ? this.poam.vulnIdRestricted : ""
 
@@ -616,9 +609,6 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
 
       let assignees: any[] = [];
       let assets: any[] = [];
-      // console.log("poamAssets: ", this.poamAssets)
-      // console.log("poamAssignees: ", this.poamAssignees)
-      // pass in assignees
       if (this.poamAssignees) {
         this.poamAssignees.forEach((user: any) => {
           assignees.push({ userId: +user.userId })
@@ -651,12 +641,9 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
       );
 
     } else {
-      // console.log("updating this.poam: ",this.poam)
       this.subs.sink = this.poamService.updatePoam(this.poam).subscribe(data => {
-        // console.log("returned data: ",data)
         this.poam = data;
         this.showConfirmation("Updated POAM", "Success", "Success", true);
-        //this.assetchange.emit();
       });
 
     }
@@ -683,11 +670,11 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
       return false;
     }
     if (!this.poam.status) {
-      this.showConfirmation("POAM status is required");
+      this.showConfirmation("POAM Status is required");
       return false;
     }
     if (!this.poam.poamType) {
-      this.showConfirmation("POAM type is required");
+      this.showConfirmation("POAM Type is required");
       return false;
     }
     if (!this.poam.aaPackage) {
@@ -695,17 +682,17 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
       return false;
     }
     if (!this.poam.vulnerabilitySource) {
-      this.showConfirmation("POAM vulnerability source is required");
+      this.showConfirmation("POAM Vulnerability Source is required");
       return false;
     }
     if (!this.poam.rawSeverity) {
-      this.showConfirmation("POAM raw severity is required");
+      this.showConfirmation("POAM Raw Severity is required");
       return false;
     }
-    // if (!this.poam.scheduledCompletionDate) {
-    //   this.showConfirmation("POAM scheduled completion date is required");
-    //   return false;
-    // }
+    if (!this.poam.ownerId) {
+      this.showConfirmation("POAM Owner ID is required");
+      return false;
+    }
     return true;
   }
 
@@ -836,7 +823,7 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
     if (this.poam.poamId === "ADDPOAM") {
       // nothing to do, when the poam is submitted, we'll push the array of label id's to so they can be
       // associated properly to the poam
-      //this.poamAssets.push( {poamId: 0, userId: +data.newData.assetId})
+
       data.confirm.resolve();
       return;
     }

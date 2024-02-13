@@ -34,6 +34,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(10),
             defaultValue: ''
         },
+        extensionTimeAllowed: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+        },
         scheduledCompletionDate: {
             type: DataTypes.DATEONLY,
             defaultValue: '1900-01-01'

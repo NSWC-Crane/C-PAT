@@ -125,7 +125,8 @@ CREATE TABLE `poamtracking`.`poam` (
   `vulnerabilityId` varchar(255) DEFAULT '',
   `description` varchar(255) DEFAULT '',
   `rawSeverity` varchar(25) DEFAULT '',
-  `adjSeverity` char(10) DEFAULT '',
+  `adjSeverity` varchar(25) DEFAULT '',
+  `extensionTimeAllowed` INT NULL DEFAULT '0',
   `scheduledCompletionDate` date DEFAULT '1900-01-01',
   `ownerId` int NOT NULL DEFAULT '0',
   `mitigations` TEXT,
@@ -169,8 +170,26 @@ CREATE TABLE `poamtracking`.`usertokens` (
   
 
   
-  DELIMITER $$
+DELIMITER $$
+CREATE PROCEDURE daily_poam_status_update()
+BEGIN
+    UPDATE poam 
+    SET status = 'Expired'
+    WHERE
+        status IN ('Submitted', 'Rejected') AND
+        scheduledCompletionDate + INTERVAL extensionTimeAllowed DAY < CURDATE() AND
+        poamId > 0;
+END $$
 
+DELIMITER $$
+CREATE EVENT poam_expiration_check
+ON SCHEDULE EVERY 1 DAY 
+STARTS DATE_ADD(CURDATE(), INTERVAL 1 DAY) + INTERVAL 0 HOUR
+DO
+CALL daily_poam_status_update();
+END $$
+
+DELIMITER $$
 CREATE TRIGGER `after_asset_insert` 
 AFTER INSERT ON `asset` 
 FOR EACH ROW 
@@ -178,8 +197,10 @@ BEGIN
     UPDATE `collection`
     SET `assetCount` = `assetCount` + 1
     WHERE `collectionId` = NEW.`collectionId`;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER `after_asset_delete` 
 AFTER DELETE ON `asset` 
 FOR EACH ROW 
@@ -187,8 +208,10 @@ BEGIN
     UPDATE `collection`
     SET `assetCount` = `assetCount` - 1
     WHERE `collectionId` = OLD.`collectionId`;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER `after_asset_update` 
 AFTER UPDATE ON `asset` 
 FOR EACH ROW 
@@ -202,8 +225,10 @@ BEGIN
         SET `assetCount` = `assetCount` + 1
         WHERE `collectionId` = NEW.`collectionId`;
     END IF;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER `after_poamasset_insert`
 AFTER INSERT ON `poamtracking`.`poamassets`
 FOR EACH ROW
@@ -217,8 +242,10 @@ BEGIN
         WHERE `al`.`labelId` = `label`.`labelId`
     )
     WHERE `assetlabels`.`assetId` = NEW.`assetId`;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER `after_poamasset_delete`
 AFTER DELETE ON `poamtracking`.`poamassets`
 FOR EACH ROW
@@ -232,8 +259,10 @@ BEGIN
         WHERE `al`.`labelId` = `label`.`labelId`
     )
     WHERE `assetlabels`.`assetId` = OLD.`assetId`;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER `after_poam_insert` 
 AFTER INSERT ON `POAM` 
 FOR EACH ROW 
@@ -241,8 +270,10 @@ BEGIN
     UPDATE `collection`
     SET `poamCount` = `poamCount` + 1
     WHERE `collectionId` = NEW.`collectionId`;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER `after_poam_delete` 
 AFTER DELETE ON `POAM` 
 FOR EACH ROW 
@@ -250,8 +281,10 @@ BEGIN
     UPDATE `collection`
     SET `poamCount` = `poamCount` - 1
     WHERE `collectionId` = OLD.`collectionId`;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER `after_poam_update` 
 AFTER UPDATE ON `POAM` 
 FOR EACH ROW 
@@ -265,8 +298,10 @@ BEGIN
         SET c.`poamCount` = c.`poamCount` + 1
         WHERE c.`collectionId` = NEW.`collectionId`;
     END IF;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER after_collectionpermissions_insert
 AFTER INSERT ON collectionpermissions
 FOR EACH ROW
@@ -274,8 +309,10 @@ BEGIN
     UPDATE collection c
     SET c.grantCount = (SELECT COUNT(*) FROM collectionpermissions WHERE collectionId = NEW.collectionId)
     WHERE c.collectionId = NEW.collectionId;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER after_collectionpermissions_delete
 AFTER DELETE ON collectionpermissions
 FOR EACH ROW
@@ -283,8 +320,10 @@ BEGIN
     UPDATE collection c
     SET c.grantCount = (SELECT COUNT(*) FROM collectionpermissions WHERE collectionId = OLD.collectionId)
     WHERE c.collectionId = OLD.collectionId;
-END$$
+END $$
+DELIMITER ;
 
+DELIMITER $$
 CREATE TRIGGER `after_collectionpermissions_update` 
 AFTER UPDATE ON `collectionpermissions` 
 FOR EACH ROW 
@@ -298,8 +337,5 @@ BEGIN
         SET c.`grantCount` = c.`grantCount` + 1
         WHERE c.`collectionId` = NEW.`collectionId`;
     END IF;
-END$$
-
+END $$
 DELIMITER ;
-  
-  

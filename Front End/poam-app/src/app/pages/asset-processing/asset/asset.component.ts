@@ -85,6 +85,7 @@ export class AssetComponent implements OnInit {
       confirmDelete: true,
     },
     actions: {
+      columnTitle: '',
       add: true,
       edit: false,
       delete: true,
