@@ -1931,6 +1931,104 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /poamExtension:
+    put:
+      summary: Add or update POAM extension
+      operationId: putPoamExtension
+      tags:
+        - PoamExtension
+      security:
+        - oauth:
+          - 'c-pat:read' 
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/poamExtensionObject'
+      responses:
+        '200':
+          description: POAM extension updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamExtensionObject'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
+  /poamExtension/{poamId}:
+    get:
+      summary: Return POAM extension by POAM ID
+      operationId: getPoamExtension
+      tags:
+        - PoamExtension
+      security:
+        - oauth:
+          - 'c-pat:read'
+      parameters:
+        - in: path
+          name: poamId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the POAM
+      responses:
+        '200':
+          description: POAM extension details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamExtensionObject'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    delete:
+      summary: Delete POAM extension by POAM ID
+      operationId: deletePoamExtension
+      tags:
+        - PoamExtension
+      security:
+        - oauth:
+          - 'c-pat:read' 
+      parameters:
+        - in: path
+          name: poamId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the POAM
+      responses:
+        '200':
+          description: Success message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                    example: "POAM extension deleted successfully"
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
   '/poams':
     get:
       summary: Return all poams
@@ -2550,7 +2648,6 @@ components:
         poamCount:
           type: integer 
 
-
     label:
       type: object
       required:
@@ -2608,8 +2705,6 @@ components:
           type: string
         approvedDate:
           type: string
-          #format: date
-          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
         comments:
           type: string
         firstName:
@@ -2641,7 +2736,22 @@ components:
         poamId:
           type: integer
         assetId:
-          type: integer      
+          type: integer
+
+    poamExtensionObject:
+      type: object
+      required:
+        - poamId
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        extensionTimeAllowed:
+          type: integer
+        extensionJustification:
+          type: string
+        extensionMilestones:
+          type: string
       
     poam_Object:
       type: object
@@ -2662,6 +2772,8 @@ components:
           type: integer
         vulnerabilitySource:
           type: string
+        iavmNumber:
+          type: string
         aaPackage:
           type: string
         vulnerabilityId:
@@ -2672,8 +2784,6 @@ components:
           type: string
         adjSeverity:
           type: string
-        extensionTimeAllowed:
-          type: integer
         scheduledCompletionDate:
           type: string
         ownerId:
@@ -2700,8 +2810,6 @@ components:
           type: string
         submittedDate:
           type: string
-          #format: date
-          #pattern: '(^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}$|^$)'
         assets:
           type: array
           items:

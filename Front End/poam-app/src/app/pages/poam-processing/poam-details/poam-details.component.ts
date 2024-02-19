@@ -60,11 +60,16 @@ export class PoamDetailsComponent implements OnInit {
   assets: any;
   poamAssets: any[] = [];
   poamAssignees: any[] = [];
-  //showApproveClose: boolean = false;
   canModifyOwner: boolean = false;
   showApprove: boolean = false;
   showSubmit: boolean = false;
   showClose: boolean = false;
+  vulnerabilitySources: string[] = [
+    "Nessus",
+    "STIG",
+    "RMF Controls",
+    "EXORD",
+  ];
   
 
   poamAssetsSettings: Settings = {
@@ -368,12 +373,12 @@ export class PoamDetailsComponent implements OnInit {
             poamId: "ADDPOAM",
             collectionId: this.payload.lastCollectionAccessedId,
             vulnerabilitySource: "",
+            iavmNumber: "",
             aaPackage: "",
             vulnerabilityId: "",
             description: "",
             rawSeverity: "",
             adjSeverity: "",
-            extensionTimeAllowed: "",
             scheduledCompletionDate: '',
             ownerId: this.payload.userId,
             mitigations: "",
@@ -520,22 +525,6 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
 
     this.poamApproverSettings = Object.assign({}, approverSettings);
   }
-
-  onRawSeverityChange(selectedSeverity: string) {
-    switch (selectedSeverity) {
-      case 'Cat I - Critical/High':
-        this.poam.extensionTimeAllowed = 30;
-        break;
-      case 'CAT II - Medium':
-        this.poam.extensionTimeAllowed = 180;
-        break;
-      case 'CAT III - Low':
-        this.poam.extensionTimeAllowed = 365;
-        break;
-      default:
-        this.poam.extensionTimeAllowed = 0;
-    }
-  }
   
   async approvePoam(poam: any) {
     await this.router.navigateByUrl("/poam-approve/" + this.poam.poamId);
@@ -584,6 +573,14 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
         });
       }
     });
+  }
+
+  extendPoam(poamId: any) {
+    if (this.poam.poamId === "ADDPOAM") {
+      this.showConfirmation("You may not extend POAM until after it has been saved.", "Information", "warning");
+      return;
+    }
+    this.router.navigate(['/poam-extend', this.poam.poamId]);
   }
 
   closePoam(poam: any) {

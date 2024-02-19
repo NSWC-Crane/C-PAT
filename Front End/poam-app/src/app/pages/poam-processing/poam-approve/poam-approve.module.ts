@@ -12,7 +12,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PoamApproveComponent } from './poam-approve.component';
 import { PoamApproveRoutingModule } from './poam-approve.routing';
-import { NbButtonModule, NbCardModule, NbInputModule, NbThemeModule, NbSelectModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbInputModule, NbThemeModule, NbSelectModule, NbAutocompleteModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { NgChartsModule } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
@@ -25,7 +25,8 @@ import { FormsModule } from '@angular/forms';
         PoamApproveComponent,
     ],
     imports: [
-        CommonModule,
+      CommonModule,
+      NbAutocompleteModule,
         NbButtonModule,
         NbInputModule,
         NgChartsModule,
