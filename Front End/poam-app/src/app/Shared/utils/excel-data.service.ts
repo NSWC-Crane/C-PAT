@@ -14,20 +14,18 @@ interface Poam {
   poamId: number;
   collectionId: number;
   vulnerabilitySource: string;
+  iavmNumber: string;
   aaPackage: string;
   vulnerabilityId: string;
   description: string;
   rawSeverity: string;
   adjSeverity: string;
-  extensionTimeAllowed: number;
   scheduledCompletionDate: Date | string;
   ownerId: number;
   mitigations: string;
   requiredResources: string;
   milestones: string;
   residualRisk: string;
-  businessImpactRating: string;
-  businessImpactDescription: string;
   notes: string;
   status: string;
   poamType: string;
@@ -44,6 +42,11 @@ interface Poam {
   likelihood: string;
   recommendations: string;
   devicesAffected: string;
+  businessImpactRating: string;
+  businessImpactDescription: string;
+  extensionTimeAllowed: number;
+  extensionJustification: string;
+  extensionMilestones: string;
 }
 
 export class ExcelDataService {
@@ -57,20 +60,18 @@ export class ExcelDataService {
       { wch: 10 }, // poamId
       { wch: 10 }, // collectionId
       { wch: 20 }, // vulnerabilitySource
+      { wch: 20 }, // iavmNumber
       { wch: 20 }, // aaPackage
       { wch: 20 }, // vulnerabilityId
       { wch: 30 }, // description
       { wch: 10 }, // rawSeverity
       { wch: 10 }, // adjSeverity
-      { wch: 10 }, // extensionTimeAllowed
       { wch: 22 }, // scheduledCompletionDate
       { wch: 10 }, // ownerId
       { wch: 30 }, // mitigations
       { wch: 16 }, // requiredResources
       { wch: 20 }, // milestones
       { wch: 15 }, // residualRisk
-      { wch: 15 }, // businessImpactRating
-      { wch: 15 }, // businessImpactDescription
       { wch: 30 }, // notes
       { wch: 10 }, // status
       { wch: 15 }, // poamType
@@ -88,6 +89,11 @@ export class ExcelDataService {
       { wch: 30 }, // impactDescription
       { wch: 30 }, // recommendations
       { wch: 15 }, // devicesAffected
+      { wch: 15 }, // businessImpactRating
+      { wch: 30 }, // businessImpactDescription
+      { wch: 10 }, // extensionTimeAllowed
+      { wch: 30 }, // extensionJustification
+      { wch: 30 }, // extensionMilestones
     ];
     worksheet['!cols'] = columnWidths;
 

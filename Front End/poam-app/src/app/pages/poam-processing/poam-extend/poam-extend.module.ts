@@ -10,36 +10,34 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PoamsComponent } from './poams.component';
-import { PoamsRoutingModule } from './poams.routing';
-import { NbCardModule, NbIconModule, NbInputModule, NbFormFieldModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule, NbDatepickerModule, NbAutocompleteModule } from '@nebular/theme';
+import { PoamExtendComponent } from './poam-extend.component';
+import { PoamExtendRoutingModule } from './poam-extend.routing';
+import { NbButtonModule, NbCardModule, NbInputModule, NbThemeModule, NbSelectModule, NbAutocompleteModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { NgChartsModule } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
+import { AddDaysPipe } from '../../../add-days.pipe';
 
 @NgModule({
-    declarations: [
-        PoamsComponent,
+  declarations: [
+        AddDaysPipe,
+        PoamExtendComponent,
     ],
     exports: [
-        PoamsComponent,
+        PoamExtendComponent,
     ],
     imports: [
-      CommonModule,
-      NbAutocompleteModule,
-      NbDatepickerModule,
-      NbFormFieldModule,
-      NbIconModule,
-      NbInputModule,
-      NgChartsModule,
-      FormsModule,
-      PoamsRoutingModule,
-      NbCardModule,
-      NbThemeModule,
-      NbButtonModule,
-      Angular2SmartTableModule,
-      NbRadioModule,
-      NbSelectModule,
+        CommonModule,
+        NbButtonModule,
+        NbInputModule,
+        NgChartsModule,
+        FormsModule,
+        PoamExtendRoutingModule,
+        NbCardModule,
+        NbThemeModule,
+        NbAutocompleteModule,
+        Angular2SmartTableModule,
+        NbSelectModule,
     ]
 })
-export class PoamsModule { }
+export class PoamExtendModule { }

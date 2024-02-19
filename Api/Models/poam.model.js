@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(255),
             defaultValue: ''
         },
+        iavmNumber: {
+            type: DataTypes.STRING(50),
+            defaultValue: ''
+        },
         aaPackage: {
             type: DataTypes.STRING(50),
             defaultValue: ''
@@ -34,10 +38,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(10),
             defaultValue: ''
         },
-        extensionTimeAllowed: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
-        },
         scheduledCompletionDate: {
             type: DataTypes.DATEONLY,
             defaultValue: '1900-01-01'
@@ -57,13 +57,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT
         },
         residualRisk: {
-            type: DataTypes.TEXT
-        },
-        businessImpactRating: {
-            type: DataTypes.STRING(25),
-            defaultValue: ''
-        },
-        businessImpactDescription: {
             type: DataTypes.TEXT
         },
         notes: {
@@ -135,6 +128,23 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(255),
             allowNull: false,
             defaultValue: ''
+        },
+        businessImpactRating: {
+            type: DataTypes.STRING(25),
+            defaultValue: ''
+        },
+        businessImpactDescription: {
+            type: DataTypes.TEXT
+        },
+        extensionTimeAllowed: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+        },
+        extensionJustification: {
+            type: DataTypes.TEXT
+        },
+        extensionMilestones: {
+            type: DataTypes.TEXT
         },
     }, {
         freezeTableName: true,
