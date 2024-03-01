@@ -10,12 +10,12 @@
 
 openapi: 3.0.1
 info:
-  title: POAM API
+  title: C-PAT API
   description: An API for managing POAMs.
   contact:
-    name: Tyler Forajter & Luke Henry
-    email: tyler.e.forajter.civ@us.navy.mil
-  version: '1.0'
+    name: Christian Rodriguez
+    email: christian.a.rodriguez8.ctr@us.navy.mil
+  version: '1.1'
 
 paths:
   /assets:
@@ -2771,6 +2771,8 @@ components:
         collectionId:
           type: integer
         vulnerabilitySource:
+          type: string
+        stigTitle:
           type: string
         iavmNumber:
           type: string

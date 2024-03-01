@@ -23,6 +23,7 @@ import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../user-processing/users.service'
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
+import { SharedService } from '../../../Shared/shared.service';
 
 interface Permission {
   userId: number;
@@ -64,8 +65,9 @@ export class PoamDetailsComponent implements OnInit {
   showApprove: boolean = false;
   showSubmit: boolean = false;
   showClose: boolean = false;
+  stigmanSTIGs: any;
   vulnerabilitySources: string[] = [
-    "Nessus",
+    "Assured Compliance Assessment Solution (ACAS) Nessus Scanner",
     "STIG",
     "RMF Controls",
     "EXORD",
@@ -277,6 +279,7 @@ export class PoamDetailsComponent implements OnInit {
     private poamService: PoamService,
     private route: ActivatedRoute,
     private authService: AuthService,
+    private sharedService: SharedService,
     private router: Router,
     private dialogService: NbDialogService,
     private datePipe: DatePipe,
@@ -373,6 +376,7 @@ export class PoamDetailsComponent implements OnInit {
             poamId: "ADDPOAM",
             collectionId: this.payload.lastCollectionAccessedId,
             vulnerabilitySource: "",
+            stigTitle: "",
             iavmNumber: "",
             aaPackage: "",
             vulnerabilityId: "",
@@ -413,6 +417,16 @@ export class PoamDetailsComponent implements OnInit {
           }
           this.setChartSelectionData();
         });
+      this.keycloak.getToken().then((token) => {
+        this.sharedService.getSTIGsFromSTIGMAN(token).subscribe({
+          next: (data) => {
+            this.stigmanSTIGs = data.map((stig: any) => stig.title);
+            if (!data || data.length === 0) {
+              console.log("Unable to retreive list of current STIGs from STIGMAN.");
+            }
+          },
+        });
+      });
 
     } else {
       this.subs.sink = forkJoin(
@@ -442,6 +456,16 @@ export class PoamDetailsComponent implements OnInit {
           }
           this.setChartSelectionData();
         });
+      this.keycloak.getToken().then((token) => {
+        this.sharedService.getSTIGsFromSTIGMAN(token).subscribe({
+          next: (data) => {
+            this.stigmanSTIGs = data.map((stig: any) => stig.title);
+            if (!data || data.length === 0) {
+              console.log("No STIGs retreived from STIGMAN");
+            }
+          },
+        });
+      });
     }
   }
 
