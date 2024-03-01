@@ -17,6 +17,7 @@ export const environment = {
   fileUploadEndpoint: 'http://localhost:8086/api/poamimport',
   stigmanCollectionImportEndpoint: 'http://localhost:8086/api/stigmancollectionimport',
   stigmanAssetImportEndpoint: 'http://localhost:8086/api/stigmanassetimport',
+  getSTIGsFromSTIGMANEndpoint: 'http://localhost:54000/api/stigs/',
   getCollectionsFromSTIGMANEndpoint: 'http://localhost:54000/api/collections/',
   getAvailableAssetsFromSTIGMANEndpoint: 'http://localhost:54000/api/assets?collectionId=',
   getAssetsFromSTIGMANEndpoint: 'http://localhost:54000/api/assets/',

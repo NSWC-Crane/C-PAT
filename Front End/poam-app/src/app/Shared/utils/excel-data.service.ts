@@ -14,6 +14,7 @@ interface Poam {
   poamId: number;
   collectionId: number;
   vulnerabilitySource: string;
+  stigTitle: string;
   iavmNumber: string;
   aaPackage: string;
   vulnerabilityId: string;
@@ -60,6 +61,7 @@ export class ExcelDataService {
       { wch: 10 }, // poamId
       { wch: 10 }, // collectionId
       { wch: 20 }, // vulnerabilitySource
+      { wch: 20 }, // stigTitle
       { wch: 20 }, // iavmNumber
       { wch: 20 }, // aaPackage
       { wch: 20 }, // vulnerabilityId

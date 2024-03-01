@@ -80,8 +80,18 @@
             </nb-autocomplete>
           </div>
 
+          <!-- STIG Title -->
+          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
+            <label id="stigTitle">STIG Title: </label>
+            <nb-select fullWidth placeholder="Select STIG..." [(ngModel)]="poam.stigTitle" name='stigTitle'>
+              <nb-option *ngFor="let title of stigmanSTIGs" [value]="title">
+                {{ title }}
+              </nb-option>
+            </nb-select>
+          </div>
+
           <!-- IAVM # -->
-          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Nessus' || poam.vulnerabilitySource === 'EXORD'">
+          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
             <label id="iavmNumber">IAVM #: </label>
             <input type="text" nbInput fullWidth placeholder="IAVM #..." [(ngModel)]="poam.iavmNumber" name='iavmNumber'>
           </div>

@@ -121,6 +121,7 @@ CREATE TABLE `poamtracking`.`poam` (
   `poamId` int NOT NULL AUTO_INCREMENT,
   `collectionId` int DEFAULT '0',
   `vulnerabilitySource` varchar(255) DEFAULT '',
+  `stigTitle` varchar(255) DEFAULT '',
   `iavmNumber` varchar(25) DEFAULT '',
   `aaPackage` varchar(50) DEFAULT '',
   `vulnerabilityId` varchar(255) DEFAULT '',

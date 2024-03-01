@@ -16,6 +16,16 @@ export class SharedService {
     };
   }
 
+  getSTIGsFromSTIGMAN(token: string): Observable<any[]> {
+    const headers = this.getHeaders(token);
+    return from(axios.get<any[]>(environment.getSTIGsFromSTIGMANEndpoint, { headers })
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Unable to connect to STIG Manager', error);
+        throw error;
+      }));
+  }
+
   getCollectionsFromSTIGMAN(token: string): Observable<any[]> {
     const headers = this.getHeaders(token);
     return from(axios.get<any[]>(environment.getCollectionsFromSTIGMANEndpoint, { headers })

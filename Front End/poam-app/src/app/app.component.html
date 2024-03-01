@@ -37,7 +37,7 @@
                  [(ngModel)]="selectedCollection" name="selectedCollection" id="selectedCollection"
                  (ngModelChange)="resetWorkspace($event)" size="small" shape="semi-round">
         <nb-option *ngFor="let collection of collections" [value]="collection.collectionId">
-          {{collection.collectionName}} - {{ collection.description}}
+          {{collection.collectionName}}
         </nb-option>
       </nb-select>
     </div>

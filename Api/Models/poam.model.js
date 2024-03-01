@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(255),
             defaultValue: ''
         },
+        stigTitle: {
+            type: DataTypes.STRING(255),
+            defaultValue: ''
+        },
         iavmNumber: {
             type: DataTypes.STRING(50),
             defaultValue: ''

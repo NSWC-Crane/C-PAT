@@ -262,7 +262,7 @@ export class AppComponent implements OnInit, OnDestroy {
       if (stWorkspace) {
         var att = stWorkspace.getElementsByTagName("BUTTON")[0];
         // console.log("collection: ",collection)
-        att.textContent = collection.collectionName + " - " + collection.description
+        att.textContent = "Collection - " + collection.collectionName
       }
     }
 

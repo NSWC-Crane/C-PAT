@@ -225,13 +225,13 @@ exports.postPoam = async function postPoam(req, res, next) {
                 req.body.submittedDate = (req.body.submittedDate == '') ? null : req.body.submittedDate;
                 req.body.scheduledCompletionDate = (req.body.scheduledCompletionDate == '') ? null : req.body.scheduledCompletionDate;
 
-            let sql_query = `INSERT INTO poamtracking.poam (collectionId, vulnerabilitySource, iavmNumber,
+            let sql_query = `INSERT INTO poamtracking.poam (collectionId, vulnerabilitySource, stigTitle, iavmNumber,
                         aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, scheduledCompletionDate,
                         ownerId, mitigations, requiredResources, milestones, residualRisk, businessImpactRating, businessImpactDescription,
                         notes, status, poamType, vulnIdRestricted, submittedDate) 
-                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-                  await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.iavmNumber,
+                  await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.iavmNumber,
                   req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
                   req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations, req.body.requiredResources, req.body.milestones,
                   req.body.residualRisk, req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status,
@@ -345,14 +345,14 @@ exports.putPoam = async function putPoam(req, res, next) {
                 let connection
                 connection = await dbUtils.pool.getConnection()
 
-            let sql_query = `UPDATE poamtracking.poam SET collectionId = ?, vulnerabilitySource = ?, iavmNumber = ?,
-                        aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
-                        scheduledCompletionDate = ?, ownerId = ?, mitigations = ?, requiredResources = ?, milestones = ?,
-                        residualRisk = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?, poamType = ?,
-                        vulnIdRestricted = ?, submittedDate = ?  WHERE poamId = ?`
+            let sql_query = `UPDATE poamtracking.poam SET collectionId = ?, vulnerabilitySource = ?, stigTitle = ?,
+                            iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
+                            scheduledCompletionDate = ?, ownerId = ?, mitigations = ?, requiredResources = ?, milestones = ?,
+                            residualRisk = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?, poamType = ?,
+                            vulnIdRestricted = ?, submittedDate = ?  WHERE poamId = ?`
 
-                  await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.iavmNumber,
-                  req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
+            await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle,
+                  req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
                   req.body.adjSeverity, req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations,
                   req.body.requiredResources, req.body.milestones, req.body.residualRisk, req.body.businessImpactRating,
                   req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.poamType, req.body.vulnIdRestricted, 

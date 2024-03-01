@@ -202,12 +202,10 @@ export class CollectionProcessingComponent implements OnInit {
         .post(environment.stigmanCollectionImportEndpoint, data, { headers })
         .subscribe({
           next: (response) => {
-            // Replace console.log with showPopup for a successful response
             this.showPopup('Import successful');
           },
           error: (error) => {
             console.error('Error during import', error);
-            // Optionally, handle errors with a popup as well
             this.showPopup('Error during import: ' + error.message);
           },
         });
