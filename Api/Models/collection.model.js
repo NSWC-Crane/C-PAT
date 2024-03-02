@@ -37,6 +37,9 @@ module.exports = (sequelize, DataTypes) => {
         state: {
             type: DataTypes.ENUM('enabled', 'disabled'),
         },
+        collectionOrigin: {
+            type: DataTypes.STRING(15),
+        },
         createdUserId: {
             type: DataTypes.INTEGER,
         },

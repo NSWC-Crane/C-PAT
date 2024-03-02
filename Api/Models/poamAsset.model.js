@@ -10,6 +10,9 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             primaryKey: true
         },
+        assetOrigin: {
+            type: DataTypes.STRING(15),
+        },
     }, {
         freezeTableName: true,
         timestamps: false,
