@@ -977,11 +977,11 @@ paths:
               type: object
               properties:
                 collection:
-                  $ref: '#/components/schemas/Collection'
+                  $ref: '#/components/schemas/STIGMANCollection'
                 assets:
                   type: array
                   items:
-                    $ref: '#/components/schemas/Asset'
+                    $ref: '#/components/schemas/STIGMANAsset'
       responses:
         '200':
           description: Collection and assets imported successfully
@@ -1024,7 +1024,7 @@ paths:
                 assets:
                   type: array
                   items:
-                    $ref: '#/components/schemas/Asset'
+                    $ref: '#/components/schemas/STIGMANAsset'
       responses:
         '200':
           description: Assets imported successfully
@@ -2386,7 +2386,7 @@ paths:
 components:
 
   schemas:
-    Collection:
+    STIGMANCollection:
       type: object
       properties:
         collectionId:
@@ -2399,9 +2399,8 @@ components:
         metadata:
           type: object
       required:
-        - collectionId
         - name
-    Asset:
+    STIGMANAsset:
       type: object
       properties:
         assetId:
@@ -2418,7 +2417,6 @@ components:
     AssetObject:
       type: object
       required:
-        - assetId
         - assetName
         - collectionId
       properties:
@@ -2447,6 +2445,9 @@ components:
           type: string
           nullable: true
         state:
+          type: string
+          nullable: true
+        assetOrigin:
           type: string
           nullable: true
         stateDate:
@@ -2494,29 +2495,51 @@ components:
       type: object
       required:
         - collectionName
-        - description
-        - grantCount
-        - assetCount
-        - poamCount
-
       additionalProperties: true
       properties:
-        collectionName:
-          type: string
         collectionId:
           type: integer
+        collectionName:
+          type: string
         description:
           type: string
+          nullable: true
         created:
           type: string
-          format: date
-          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'          
+          format: date   
         grantCount:
           type: integer
         assetCount:
           type: integer
         poamCount:
           type: integer
+        settings:
+          type: string
+          nullable: true
+        metadata:
+          type: string
+          nullable: true
+        state:
+          type: string
+        collectionOrigin:
+          type: string
+          nullable: true
+        createdUserId:
+          type: string
+          nullable: true
+        stateDate:
+          type: string
+          format: date
+          nullable: true
+        stateUserId:
+          type: string
+          nullable: true
+        isEnabled:
+          type: integer
+          nullable: true
+        isNameUnavailable:
+          type: integer
+          nullable: true
 
     collectionUpdate:
       type: object

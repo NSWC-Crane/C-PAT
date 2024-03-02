@@ -162,6 +162,7 @@ module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
                         const newAsset = await db.Asset.create({
                             assetName: trimmedDeviceName,
                             collectionId: lastCollectionAccessedId,
+                            assetOrigin: 'eMASS'
                         });
                         assetId = newAsset.assetId;
                     }
@@ -183,15 +184,15 @@ module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
         });
     }
 };
+
 module.exports.importAssets = async function importAssets(req, res) {
     try {
         const { assets } = req.body;
 
-        // Handle Assets
         for (const asset of assets) {
             const collection = asset.collection || {};
+
             const assetData = {
-                assetId: asset.assetId,
                 assetName: asset.name,
                 fullyQualifiedDomainName: asset.fqdn || '',
                 description: asset.description || '',
@@ -199,16 +200,17 @@ module.exports.importAssets = async function importAssets(req, res) {
                 macAddress: asset.mac || '',
                 nonComputing: asset.noncomputing ? 1 : 0,
                 collectionId: collection.collectionId || null,
-                metadata: asset.metadata ? JSON.stringify(asset.metadata) : '{}',
+                metadata: JSON.stringify(asset.metadata || {}),
+                assetOrigin: 'STIG Manager'
             };
 
-            // Find or create the asset
             const [assetRecord, assetCreated] = await db.Asset.findOrCreate({
                 where: { assetName: asset.name },
                 defaults: assetData
             });
 
             if (!assetCreated) {
+                console.log("update was called! ");
                 await assetRecord.update(assetData);
             }
         }
@@ -226,11 +228,11 @@ module.exports.importCollectionAndAssets = async function importCollectionAndAss
 
         // Handle Collection
         const collectionData = {
-            collectionId: collection.collectionId,
             collectionName: collection.name,
             description: collection.description || '',
             metadata: collection.metadata ? JSON.stringify(collection.metadata) : '{}',
-            settings: collection.settings ? JSON.stringify(collection.settings) : '{}'
+            settings: collection.settings ? JSON.stringify(collection.settings) : '{}',
+            collectionOrigin: 'STIG Manager'
         };
 
         const [collectionRecord, created] = await db.Collection.findOrCreate({
@@ -245,15 +247,15 @@ module.exports.importCollectionAndAssets = async function importCollectionAndAss
         // Handle Assets
         for (const asset of assets) {
             const assetData = {
-                assetId: asset.assetId,
                 assetName: asset.name,
                 fullyQualifiedDomainName: asset.fqdn || '',
                 description: asset.description || '',
                 ipAddress: asset.ip || '',
                 macAddress: asset.mac || '',
                 nonComputing: asset.noncomputing ? 1 : 0,
-                collectionId: collectionRecord.collectionId, // Ensure this is correctly assigned
+                collectionId: collectionRecord.collectionId,
                 metadata: asset.metadata ? JSON.stringify(asset.metadata) : '{}',
+                assetOrigin: 'STIG Manager'
             };
 
             const [assetRecord, assetCreated] = await db.Asset.findOrCreate({

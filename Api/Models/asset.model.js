@@ -36,6 +36,9 @@ module.exports = (sequelize, DataTypes) => {
         state: {
             type: DataTypes.ENUM('enabled', 'disabled'),
         },
+        assetOrigin: {
+            type: DataTypes.STRING(15),
+        },
         stateDate: {
             type: DataTypes.DATE,
         },
