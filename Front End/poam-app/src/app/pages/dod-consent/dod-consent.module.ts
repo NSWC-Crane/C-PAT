@@ -14,7 +14,6 @@ import { DoDConsentComponent } from './dod-consent.component';
 import { DodConsentRoutingModule } from './dod-consent.routing';
 import { NbButtonModule, NbCardModule, NbThemeModule, NbSelectModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
-import { NgChartsModule } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
 
 @NgModule({
@@ -26,7 +25,6 @@ import { FormsModule } from '@angular/forms';
     ],
     imports: [
         CommonModule,
-        NgChartsModule,
         FormsModule,
         DodConsentRoutingModule,
         NbButtonModule,

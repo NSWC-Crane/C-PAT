@@ -14,7 +14,6 @@ import { PoamApproveComponent } from './poam-approve.component';
 import { PoamApproveRoutingModule } from './poam-approve.routing';
 import { NbButtonModule, NbCardModule, NbInputModule, NbThemeModule, NbSelectModule, NbAutocompleteModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
-import { NgChartsModule } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
 
 @NgModule({
@@ -29,7 +28,6 @@ import { FormsModule } from '@angular/forms';
       NbAutocompleteModule,
         NbButtonModule,
         NbInputModule,
-        NgChartsModule,
         FormsModule,
         PoamApproveRoutingModule,
         NbCardModule,

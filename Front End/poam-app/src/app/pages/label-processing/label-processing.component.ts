@@ -48,7 +48,6 @@ interface FSEntry {
   styleUrls: ['./label-processing.component.scss']
 })
 export class LabelProcessingComponent implements OnInit {
-
   customColumn = 'label';
   defaultColumns = [ 'Name', 'Description', 'POAM Count' ];
   allColumns = [ this.customColumn, ...this.defaultColumns ];
