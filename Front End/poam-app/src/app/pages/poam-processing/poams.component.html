@@ -22,20 +22,21 @@
       </div>
      </div>
  
-     <div class="row" style="padding-top: 20px;" *ngIf="collection">
+     <div class="row" style="padding-top: 20px;">
          Selected Collection:
          <div class="col-md-8">
-             <label>{{collection.collectionName}}</label>
+             <label>{{collection?.collectionName}}</label>
          </div>
          <hr />
          <div class="canvas" id="canvas">
-             <canvas class="poam-chart" 
-                     baseChart 
-                     id='poam-chart' 
-                     [type]="'bar'" 
-                     [data]="chartData" 
-                     [options]="barChartOptions">
-             </canvas>
+           <!--<canvas class="poam-chart"
+          baseChart
+          id='poam-chart'
+          [type]="'bar'"
+          [data]="chartData"
+          [options]="barChartOptions">
+          </canvas>-->
+           <canvas #poamChart class="poam-chart"></canvas>
          </div>
          <hr />
          <div class="row">

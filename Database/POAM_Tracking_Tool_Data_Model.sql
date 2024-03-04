@@ -99,6 +99,15 @@ CREATE TABLE `poamtracking`.`poamapprovers` (
   `comments` varchar(2000) DEFAULT NULL,
   PRIMARY KEY (`poamId`,`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `poamtracking`.`poammilestones` (
+  `milestoneId` INT NOT NULL AUTO_INCREMENT,
+  `poamId` int NOT NULL,
+  `milestoneTitle` varchar(255) DEFAULT NULL,
+  `milestoneDate` datetime DEFAULT NULL,
+  `milestoneComments` varchar(2000) DEFAULT NULL,
+  PRIMARY KEY (`milestoneId`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
   
 CREATE TABLE `poamtracking`.`collection` (
   `collectionId` INT NOT NULL AUTO_INCREMENT,

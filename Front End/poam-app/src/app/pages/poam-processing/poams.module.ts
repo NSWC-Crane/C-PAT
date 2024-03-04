@@ -14,8 +14,9 @@ import { PoamsComponent } from './poams.component';
 import { PoamsRoutingModule } from './poams.routing';
 import { NbCardModule, NbIconModule, NbInputModule, NbFormFieldModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule, NbDatepickerModule, NbAutocompleteModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
-import { NgChartsModule } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { AppComponent } from '../../app.component';
 
 @NgModule({
     declarations: [
@@ -31,7 +32,6 @@ import { FormsModule } from '@angular/forms';
       NbFormFieldModule,
       NbIconModule,
       NbInputModule,
-      NgChartsModule,
       FormsModule,
       PoamsRoutingModule,
       NbCardModule,
@@ -40,6 +40,10 @@ import { FormsModule } from '@angular/forms';
       Angular2SmartTableModule,
       NbRadioModule,
       NbSelectModule,
-    ]
+  ],
+  providers: [
+    provideCharts(withDefaultRegisterables()),
+  ],
+  bootstrap: [AppComponent],
 })
 export class PoamsModule { }

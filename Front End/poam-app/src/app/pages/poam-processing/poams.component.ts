@@ -8,17 +8,17 @@
 !########################################################################
 */
 
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { SubSink } from 'subsink';
-import { NbThemeService } from "@nebular/theme";
+import { NbThemeService } from '@nebular/theme';
 import { PoamService } from './poams.service';
 import { AuthService } from '../../auth';
 import { forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { UsersService } from '../user-processing/users.service'
-import { ChartConfiguration, ChartData } from 'chart.js';
+import { UsersService } from '../user-processing/users.service';
+import { Chart, registerables, ChartData } from 'chart.js';
 
 interface Permission {
   userId: number;
@@ -34,27 +34,40 @@ interface Permission {
   templateUrl: './poams.component.html',
   styleUrls: ['./poams.component.scss'],
 })
+
 export class PoamsComponent implements OnInit {
+  @ViewChild('poamChart') poamChart!: ElementRef<HTMLCanvasElement>;
+  private subs = new SubSink();
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
   public poamStats: any[] = [];
-  public chartData!: ChartData<'bar'>;
+  public detailedPoam: any;
+  public selectedStatus: any = 'All';
+  chart!: Chart;
+  chartData: ChartData<'bar'> = {
+    labels: [''],
+    datasets: [],
+  };
+  barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: true } },
+      y: { beginAtZero: true, grid: { display: false } },
+    },
+  };
+  poams: any[] = [];
   users: any;
   user: any;
-  poams: any;
   filteredPoams: any;
-  collection: any;
   viewingfulldetails: boolean = false;
-  public detailedPoam: any;
+  collection: any;
   payload: any;
   members: any;
   data: any;
   themeSubscription: any;
   selectedPoamId: any;
-  selectedStatus: any = "All";
-
   items: any;
-
   values: number[] | undefined;
   buttonClasses = [
     'btn-outline-primary',
@@ -64,11 +77,9 @@ export class PoamsComponent implements OnInit {
     'btn-outline-warning',
     'btn-outline-info',
     'btn-outline-light',
-    'btn-outline-dark'
+    'btn-outline-dark',
   ];
   buttonClass = this.buttonClasses[0];
-
-  private subs = new SubSink()
 
   constructor(
     private poamService: PoamService,
@@ -79,6 +90,7 @@ export class PoamsComponent implements OnInit {
     private userService: UsersService,
     private cdr: ChangeDetectorRef
   ) {
+    Chart.register(...registerables);
   }
 
   async ngOnInit() {
@@ -88,106 +100,29 @@ export class PoamsComponent implements OnInit {
       this.setPayload();
       this.onSelectedStatusChange();
     }
-  };
+  }
 
+  ngAfterViewInit(): void {
+    this.initializeChart();
+  }
 
-  updateChart() {
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
+
+  private initializeChart(): void {
     this.cdr.detectChanges();
-  }
-
-  onSelectedChange(data: any) {
-    // console.log("onSelectedChange data: ", data)
-    if (data.length === 0 || !data) return;
-    let poamId = data[0];
-    // console.log("onSelectedChange poamId: ", data)
-    let poam = this.poams.find((e: { poamId: any; }) => e.poamId === poamId)
-
-    this.items.forEach((item: { checked: boolean; }) => {
-      if (item.checked) item.checked = false;
-    })
-
-    this.router.navigateByUrl("/poam-details/" + poamId);
-  }
-
-  getPoamData() {
-    this.subs.sink = forkJoin(
-      this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
-      this.poamService.getCollectionPoamStats(this.payload.lastCollectionAccessedId),
-      this.poamService.getPoamsByCollection(this.payload.lastCollectionAccessedId),
-    ).subscribe(([collection, poamStatsResponse, poams]: any) => {
-      if (!Array.isArray(poamStatsResponse.poamStats)) {
-        console.error('poamStatsResponse.poamStats is not an array', poamStatsResponse.poamStats);
-        return;
+    if (this.poamChart?.nativeElement) {
+      this.chart = new Chart(this.poamChart.nativeElement, {
+        type: 'bar',
+        data: this.chartData,
+        options: this.barChartOptions,
+      });
+      if (this.poamStats) {
+        this.setGraphData(this.poamStats);
       }
-  
-      this.collection = collection;
-      this.poamStats = poamStatsResponse.poamStats;
-      this.poams = poams.poams;
-      this.filteredPoams = this.poams;
-  
-      this.sortData();
-      this.setGraphData(this.poamStats);
-    });
-  }
-  
-  public barChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        grid: {
-          display: true,
-        },
-      },
-      y: {
-        beginAtZero: true,
-        grid: {
-          display: false,
-        },
-      }
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: 'bottom',
-        labels: {
-        }
-      },
-    },
-  };
-  
-  setGraphData(poamStats: any[]) {
-    if (!Array.isArray(poamStats)) {
-      console.error('setGraphData: poamStats is not an array', poamStats);
-      return;
-    }
-    this.updateChartData(poamStats);
-  }
-  
-  updateChartData(poamStats: any[]) {
-    const datasets = poamStats.map(item => ({
-      label: item.status,
-      data: [item.statusCount], 
-    }));
-  
-    this.chartData = {
-      labels: [''],
-      datasets: datasets,
-    };
-    this.updateChart();
-  }
-
-  addPoam() {
-    this.router.navigateByUrl("/poam-details/ADDPOAM");
-  }
-
-  onSelectPoam(poamId: number) {
-    const selectedPoam = this.poams.find((poam: any) => poam.id === poamId);
-
-    if (selectedPoam) {
-        this.router.navigateByUrl(`/poam-details/${selectedPoam.id}`);
     } else {
-        console.error('POAM not found'); 
+      console.error('Unable to initialize chart: Element not available.');
     }
   }
 
@@ -203,13 +138,15 @@ export class PoamsComponent implements OnInit {
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
               ...this.user,
-              collections: this.user.permissions.map((permission: Permission) => ({
-                collectionId: permission.collectionId,
-                canOwn: permission.canOwn,
-                canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove,
-                canView: permission.canView
-              }))
+              collections: this.user.permissions.map(
+                (permission: Permission) => ({
+                  collectionId: permission.collectionId,
+                  canOwn: permission.canOwn,
+                  canMaintain: permission.canMaintain,
+                  canApprove: permission.canApprove,
+                  canView: permission.canView,
+                })
+              ),
             };
 
             this.getPoamData();
@@ -224,39 +161,95 @@ export class PoamsComponent implements OnInit {
     );
   }
 
+  getPoamData() {
+    this.subs.sink = forkJoin(
+      this.poamService.getCollection(
+        this.payload.lastCollectionAccessedId,
+        this.payload.userName
+      ),
+      this.poamService.getCollectionPoamStats(
+        this.payload.lastCollectionAccessedId
+      ),
+      this.poamService.getPoamsByCollection(
+        this.payload.lastCollectionAccessedId
+      )
+    ).subscribe(([collection, poamStatsResponse, poams]: any) => {
+      if (!Array.isArray(poamStatsResponse.poamStats)) {
+        console.error(
+          'poamStatsResponse.poamStats is not an array',
+          poamStatsResponse.poamStats
+        );
+        return;
+      }
+
+      this.collection = collection;
+      this.poamStats = poamStatsResponse.poamStats;
+      this.poams = poams.poams;
+      this.filteredPoams = this.poams;
+
+      this.sortData();
+      this.setGraphData(this.poamStats);
+    });
+  }
+
+  setGraphData(poamStats: any[]) {
+    this.updateChartData(poamStats);
+  }
+
+  updateChartData(poamStats: any[]): void {
+    if (!this.chart) {
+      console.warn('Attempted to update chart data before initialization.');
+      return;
+    }
+
+    const datasets = poamStats.map((item) => ({
+      label: item.status,
+      data: [item.statusCount]
+    }));
+
+    this.chart.data.datasets = datasets;
+    this.chart.update();
+  }
+
   sortData() {
-    if (this.filteredPoams) { 
-        this.filteredPoams.sort((n1: any, n2: any) => {
-            if (n1.poamId < n2.poamId) {
-                return -1;
-            } else if (n1.poamId > n2.poamId) {
-                return 1;
-            } else {
-                return 0;
-            }
-        });
+    if (this.filteredPoams) {
+      this.filteredPoams.sort((n1: any, n2: any) => {
+        if (n1.poamId < n2.poamId) {
+          return -1;
+        } else if (n1.poamId > n2.poamId) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
 
-        this.poams = this.filteredPoams.map((poam: any) => ({
-            id: poam.poamId,
-            vulnerabilityId: poam.vulnerabilityId,
-            description: poam.description
-        }));
+      this.poams = this.filteredPoams.map((poam: any) => ({
+        id: poam.poamId,
+        vulnerabilityId: poam.vulnerabilityId,
+        description: poam.description,
+      }));
     }
-}
+  }
 
-  onSelectedStatusChange() {
-    let filteredPoamStats = this.poamStats;
-    if (this.selectedStatus !== "All") {
-      filteredPoamStats = this.poamStats.filter(item => item.status === this.selectedStatus);
+  addPoam() {
+    this.router.navigateByUrl('/poam-details/ADDPOAM');
+  }
+
+  onSelectPoam(poamId: number) {
+    const selectedPoam = this.poams.find((poam: any) => poam.id === poamId);
+
+    if (selectedPoam) {
+      this.router.navigateByUrl(`/poam-details/${selectedPoam.id}`);
+    } else {
+      console.error('POAM not found');
     }
+  }
+
+  onSelectedStatusChange(): void {
+    let filteredPoamStats =
+      this.selectedStatus !== 'All'
+        ? this.poamStats.filter((item) => item.status === this.selectedStatus)
+        : this.poamStats;
     this.updateChartData(filteredPoamStats);
-  }
-  
-  ngOnDestroy() {
-    this.subs.unsubscribe();
-  }
-
-  changeDetailsView(poam: any) {
-    this.detailedPoam = poam
   }
 }
