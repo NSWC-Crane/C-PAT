@@ -16,6 +16,7 @@ import { Observable } from 'rxjs';
 import { UsersService } from '../users.service'
 import { CollectionsService } from '../../collection-processing/collections.service'
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
+import { SmartTableSelectComponent } from '../../../Shared/components/smart-table/smart-table-select.component';
 
 interface Permission {
   userId: number;
@@ -95,13 +96,13 @@ export class UserComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value == 1) ? 'True' : 'False'
+          return (row.value)
         },
         editor: {
-          type: 'list',
+          type: 'custom',
+          component: SmartTableSelectComponent,
           config: {
             list: [
-              { value: '', title: 'Select a Permission...' },
               { value: '1', title: 'True' },
               { value: '0', title: 'False' }
             ],
@@ -113,14 +114,13 @@ export class UserComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          //console.log("row: ", row.value);
-          return (row.value == 1) ? 'True' : 'False'
+          return (row.value)
         },
         editor: {
-          type: 'list',
+          type: 'custom',
+          component: SmartTableSelectComponent,
           config: {
             list: [
-              { value: '', title: 'Select a Permission...' },
               { value: '1', title: 'True' },
               { value: '0', title: 'False' }
             ],
@@ -132,13 +132,13 @@ export class UserComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value == 1) ? 'True' : 'False'
+          return (row.value)
         },
         editor: {
-          type: 'list',
+          type: 'custom',
+          component: SmartTableSelectComponent,
           config: {
             list: [
-              { value: '', title: 'Select a Permission...' },
               { value: '1', title: 'True' },
               { value: '0', title: 'False' }
             ],
@@ -150,13 +150,13 @@ export class UserComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value == 1) ? 'True' : 'False'
+          return (row.value)
         },
         editor: {
-          type: 'list',
+          type: 'custom',
+          component: SmartTableSelectComponent,
           config: {
             list: [
-              { value: '', title: 'Select a Permission...' },
               { value: '1', title: 'True' },
               { value: '0', title: 'False' }
             ],
@@ -241,22 +241,22 @@ export class UserComponent implements OnInit {
   }
 
   private updateCollectionSettings(): void {
-    let settings = this.collectionPermissionsSettings;
-    // Use index signature syntax to access 'collectionId'
-    let collectionIdSettings = settings.columns['collectionId'];
-    // Check if 'editor' and 'config' are defined and if 'config' is of type 'ListEditorSettings'
-    if (collectionIdSettings.editor && collectionIdSettings.editor.type === 'list') {
-      let editorConfig = collectionIdSettings.editor.config as ListEditorSettings;
-      const collectionPlaceholder = { title: 'Select a Collection...', value: '' };
-      editorConfig.list = [
-        collectionPlaceholder,
-        ...this.collectionList.map((collection: any) => ({
-          title: collection.title,
-          value: collection.value
-        }))
-      ];
-    }
-      this.collectionPermissionsSettings = Object.assign({}, settings);
+    let collectionSettings = this.collectionPermissionsSettings;
+    const collectionPermissionsList = [
+      ...this.collectionList.map((collection: any) => ({
+        title: collection.title,
+        value: collection.value
+      }))
+    ];
+
+    collectionSettings.columns['collectionId'].editor = {
+      type: 'custom',
+      component: SmartTableSelectComponent,
+      config: {
+        list: collectionPermissionsList,
+      },
+    };
+    this.collectionPermissionsSettings = Object.assign({}, collectionSettings);
   } 
 
 
@@ -273,6 +273,7 @@ export class UserComponent implements OnInit {
   getData() {
 
     if (this.user && Array.isArray(this.user.permissions)) {
+      console.log("this.user.permissions: ", this.user.permissions);
       this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
         collectionId: permission.collectionId,
         canOwn: permission.canOwn,
@@ -325,10 +326,10 @@ export class UserComponent implements OnInit {
       let collectionPermission = {
         userId: this.user.userId,
         collectionId: parseInt(event.newData.collectionId, 10),
-        canOwn: (+event.newData.canOwn) ? true : false,
-        canMaintain: (+event.newData.canMaintain) ? true : false,
-        canApprove: (+event.newData.canApprove) ? true : false,
-        canView: (+event.newData.canView) ? true: false
+        canOwn: parseInt(event.newData.canOwn, 10),
+        canMaintain: parseInt(event.newData.canMaintain, 10),
+        canApprove: parseInt(event.newData.canApprove, 10),
+        canView: parseInt(event.newData.canView, 10),
       }
 
       this.isLoading = true;
@@ -362,10 +363,10 @@ export class UserComponent implements OnInit {
         userId: this.user.userId,
         oldCollectionId: parseInt(event.data.collectionId, 10),
         newCollectionId: parseInt(event.newData.collectionId, 10),
-        canOwn: (+event.newData.canOwn) ? true : false,
-        canMaintain: (+event.newData.canMaintain) ? true : false,
-        canApprove: (+event.newData.canApprove) ? true : false,
-        canView: (+event.newData.canView) ? true: false
+        canOwn: parseInt(event.newData.canOwn, 10),
+        canMaintain: parseInt(event.newData.canMaintain, 10),
+        canApprove: parseInt(event.newData.canApprove, 10),
+        canView: parseInt(event.newData.canView, 10),
       }
 
       this.isLoading = true;

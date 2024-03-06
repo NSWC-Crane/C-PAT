@@ -33,6 +33,7 @@ db.Asset = require("../Models/asset.model.js")(sequelize, Sequelize.DataTypes);
 db.Collection = require("../Models/collection.model.js")(sequelize, Sequelize.DataTypes);
 db.Poam = require("../Models/poam.model.js")(sequelize, Sequelize.DataTypes);
 db.poamAsset = require("../Models/poamAsset.model.js")(sequelize, Sequelize.DataTypes);
+db.poamMilestone = require("../Models/poamMilestone.model.js")(sequelize, Sequelize.DataTypes);
 
 db.Asset.belongsTo(db.Collection, { foreignKey: 'collectionId' });
 db.Collection.hasMany(db.Asset, { foreignKey: 'collectionId' });

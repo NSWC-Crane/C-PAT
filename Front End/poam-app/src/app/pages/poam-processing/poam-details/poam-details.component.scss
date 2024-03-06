@@ -7,6 +7,7 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
+
 @import '@nebular/theme/styles/theming';
 @import '@nebular/theme/styles/themes';
 
@@ -24,59 +25,22 @@
     text-align: left;
   }
   
-  ::ng-deep angular2-smart-table thead {
-    background-color: nb-theme(background-basic-color-2);
+  ::ng-deep angular2-smart-table thead tr:nth-child(3) {
+    background-color: nb-theme(background-basic-color-1);
   }
-  
-  ::ng-deep angular2-smart-table tbody tr:nth-child(odd) {
-    background-color: nb-theme(background-basic-color-2);
-  }
-  
+
   ::ng-deep angular2-smart-table tbody tr:hover {
-    background-color: nb-theme(background-basic-color-3);
-  }
-
-  :host ::ng-deep angular2-smart-table input[type="text"] {
-    color: nb-theme(text-basic-color);
-    font-weight: bold;
-    padding: nb-theme(padding);
-    border: 1px solid nb-theme(border-basic-color-1);
-    border-radius: nb-theme(border-radius);
-    background-color: nb-theme(background-basic-color-3);
-
-    &:focus {
-      background-color: nb-theme(background-basic-color-1);
-      box-shadow: 0 0 0 0.2rem rgba(nb-theme(primary-light-color), 0.25);
-    }
-  }
-
-  :host ::ng-deep angular2-smart-table .form-control {
-    color: nb-theme(text-basic-color);
-    font-weight: bold;
-    padding: nb-theme(padding);
-    border: 1px solid nb-theme(border-basic-color-3);
-    border-radius: nb-theme(border-radius);
     background-color: nb-theme(background-basic-color-1);
-
-    &:focus {
-      background-color: nb-theme(background-basic-color-1);
-      box-shadow: 0 0 0 0.2rem rgba(nb-theme(primary-light-color), 0.25);
-    }
   }
 
-  :host ::ng-deep angular2-smart-table textarea[name="comments"] {
-    color: nb-theme(text-basic-color);
-    font-weight: bold;
-    padding: nb-theme(padding);
-    border: 1px solid nb-theme(border-basic-color-3);
-    border-radius: nb-theme(border-radius);
-    background-color: nb-theme(background-basic-color-1);
-  
-    &:focus {
-      background-color: nb-theme(background-basic-color-1);
-      box-shadow: 0 0 0 0.2rem rgba(nb-theme(primary-light-color), 0.25);
-    }
+  ::ng-deep angular2-smart-table thead tr {
+    background-color: nb-theme(background-basic-color-2);
   }
+
+  ::ng-deep angular2-smart-table tbody tr {
+    background-color: nb-theme(background-basic-color-2);
+  }
+
 
 .form-container {
   display: flex;

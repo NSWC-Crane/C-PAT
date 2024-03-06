@@ -13,7 +13,8 @@ const express = require('express');
 const db = require('../utils/sequelize');
 const router = express.Router();
 const ExcelJS = require('exceljs');
-const { poamAsset, Poam } = require('../utils/sequelize.js');
+const { Poam } = require('../utils/sequelize.js');
+const { parse, format } = require('date-fns');
 
 const excelColumnToDbColumnMapping = {
     "POA&M Item ID": "poamitemid",
@@ -24,6 +25,7 @@ const excelColumnToDbColumnMapping = {
     "Resources Required": "requiredResources",
     "Scheduled Completion Date": "scheduledCompletionDate",
     "Milestone with Completion Dates": "milestones",
+    "Milestone Changes": "milestoneChanges",
     "Source Identifying Vulnerability ": "vulnerabilitySource",
     "Status": "emassStatus",
     "Comments": "notes",
@@ -42,22 +44,30 @@ const excelColumnToDbColumnMapping = {
     "Resulting Residual Risk after Proposed Mitigations": "adjSeverity"
 };
 
-function convertToMySQLDate(excelDate) {
-    if (!excelDate || typeof excelDate !== 'string' || !/^\d{2}\/\d{2}\/\d{4}$/.test(excelDate)) {
-        console.log(`Invalid date format: ${excelDate}`);
-        return null;
+async function processMilestones(poamId, milestone) {
+    const dateRegex = /(\d{2}\/\d{2}\/\d{4})$/;
+    const match = milestone.match(dateRegex);
+
+    if (match) {
+        const milestoneDateStr = match[1];
+        const milestoneText = milestone.replace(dateRegex, '').trim();
+
+        const milestoneDate = parse(milestoneDateStr, "MM/dd/yyyy", new Date());
+
+        const formattedMilestoneDate = format(milestoneDate, "yyyy-MM-dd");
+
+        await db.poamMilestone.create({
+            poamId: poamId,
+            milestoneDate: formattedMilestoneDate,
+            milestoneComments: milestoneText
+        });
+    } else {
+        console.warn(`No date found in milestone: adding milestone.`);
+        await db.poamMilestone.create({
+            poamId: poamId,
+            milestoneComments: milestone
+        });
     }
-
-    const [month, day, year] = excelDate.split('/');
-    const convertedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    const date = new Date(convertedDate);
-
-    if (isNaN(date.getTime())) {
-        console.log(`Invalid date conversion: ${excelDate} to ${convertedDate}`);
-        return null;
-    }
-
-    return convertedDate;
 }
 
 module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
@@ -97,22 +107,25 @@ module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
 
                     if (dbColumn) {
                         let cellValue = cell.text && cell.text.trim();
-                        if (dbColumn === 'scheduledCompletionDate' && cellValue) {
-                            poamEntry[dbColumn] = convertToMySQLDate(cellValue);
-                        } else if (dbColumn === 'rawSeverity') {
-                            switch (cellValue) {
-                                case 'I':
-                                    poamEntry[dbColumn] = "Cat I - Critical/High";
-                                    break;
-                                case 'II':
-                                    poamEntry[dbColumn] = "CAT II - Medium";
-                                    break;
-                                case 'III':
-                                    poamEntry[dbColumn] = "CAT III - Low";
-                                    break;
-                                default:
-                                    poamEntry[dbColumn] = cellValue;
+                        if (dbColumn === 'vulnerabilitySource') {
+                            if (cellValue.includes("Security Technical Implementation Guide")) {
+                                poamEntry.stigTitle = cellValue;
+                                poamEntry.vulnerabilitySource = "STIG";
+                            } else {
+                                poamEntry[dbColumn] = cellValue;
                             }
+                        } else if (dbColumn === 'scheduledCompletionDate' && cellValue) {
+                            if (cell.value instanceof Date) {
+                                poamEntry[dbColumn] = format(cell.value, "yyyy-MM-dd");
+                            } else if (typeof cellValue === 'string' && cellValue.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                                const dateParts = cellValue.split('/').map(part => parseInt(part, 10));
+                                const dateObject = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+                                poamEntry[dbColumn] = format(dateObject, "yyyy-MM-dd");
+                            } else {
+                                console.log(`Unhandled date format: ${cellValue}`);
+                            }
+                        } else if (dbColumn === 'rawSeverity' || dbColumn === 'adjSeverity') {
+                            poamEntry[dbColumn] = mapValueToCategory(cellValue, dbColumn);
                         } else {
                             poamEntry[dbColumn] = cellValue;
                         }
@@ -144,6 +157,15 @@ module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
             }
 
             const poamId = poamEntry.poamId;
+
+                if (poamEntry.milestones) {
+                    await processMilestones(poamId, poamEntry.milestones);
+                }
+
+                if (poamEntry.milestoneChanges) {
+                    await processMilestones(poamId, poamEntry.milestoneChanges);
+                }
+
             const devicesString = poamEntry.devicesAffected && poamEntry.devicesAffected.toString();
             const devices = devicesString ? devicesString.split('\n') : [];
 
@@ -184,6 +206,25 @@ module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
         });
     }
 };
+
+function mapValueToCategory(cellValue, dbColumn) {
+    const severityMapping = {
+        rawSeverity: {
+            'I': "Cat I - Critical/High",
+            'II': "CAT II - Medium",
+            'III': "CAT III - Low"
+        },
+        adjSeverity: {
+            'Very High': "Cat I - Critical/High",
+            'High': "Cat I - Critical/High",
+            'Moderate': "CAT II - Medium",
+            'Low': "CAT III - Low",
+            'Very Low': "CAT III - Low"
+        }
+    };
+
+    return severityMapping[dbColumn][cellValue] || cellValue;
+}
 
 module.exports.importAssets = async function importAssets(req, res) {
     try {

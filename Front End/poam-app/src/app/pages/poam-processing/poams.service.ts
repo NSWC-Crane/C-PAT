@@ -165,4 +165,24 @@ export class PoamService {
   deletePoamExtension(poamId: string) {
     return this.http.delete<any>(`${this.uri}/poamExtension/${poamId}`, this.httpOptions);
   }
+
+  getPoamMilestones(poamId: string) {
+	return this.http.get<any>(`${this.uri}/poamMilestones/${poamId}`)
+		.pipe(catchError(this.handleError));
+}
+
+	addPoamMilestone(poamId: string, milestone: any) {
+	return this.http
+		.post<any>(`${this.uri}/poamMilestones/${poamId}`, milestone, this.httpOptions);
+}
+
+	updatePoamMilestone(poamId: string, milestoneId: string, milestone: any) {
+    return this.http
+        .put<any>(`${this.uri}/poamMilestones/${poamId}/${milestoneId}`, milestone, this.httpOptions);
+}
+
+deletePoamMilestone(poamId: string, milestoneId: string) {
+    return this.http
+        .delete<any>(`${this.uri}/poamMilestones/${poamId}/${milestoneId}`);
+}
 }

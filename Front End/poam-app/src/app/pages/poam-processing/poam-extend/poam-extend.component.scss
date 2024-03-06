@@ -8,9 +8,37 @@
 !########################################################################
 */
 
-.col {
-  width: 60vw;
-  margin: 0 auto;
+@import '@nebular/theme/styles/theming';
+@import '@nebular/theme/styles/themes';
+
+::ng-deep angular2-smart-table table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid nb-theme(border-basic-color-3);
+}
+
+::ng-deep angular2-smart-table table, 
+::ng-deep angular2-smart-table th, 
+::ng-deep angular2-smart-table td {
+  border: 1px solid nb-theme(border-basic-color-3);
+  padding: 0.5rem;
+  text-align: left;
+}
+
+::ng-deep angular2-smart-table thead tr:nth-child(3) {
+  background-color: nb-theme(background-basic-color-1);
+}
+
+::ng-deep angular2-smart-table tbody tr:hover {
+  background-color: nb-theme(background-basic-color-1);
+}
+
+::ng-deep angular2-smart-table thead tr {
+  background-color: nb-theme(background-basic-color-2);
+}
+
+::ng-deep angular2-smart-table tbody tr {
+  background-color: nb-theme(background-basic-color-2);
 }
 
 .form-container {
@@ -19,12 +47,17 @@
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 2%;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 1%;
+}
+
+.milestoneSmartTable label {
+  display: block;
+  margin-bottom: 1%;
 }
 
 .form-group input,
@@ -36,11 +69,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 15px;
+  margin-bottom: 2%;
 }
 
 .status-group label {
-  margin-right: 10px;
+  margin-right: 1%;
 }
 
 .status-group nb-select {
@@ -50,7 +83,7 @@
 .status-container {
   display: flex;
   justify-content: left;
-  gap: 20px;
+  gap: 2%;
 }
 
 hr {

@@ -48,12 +48,26 @@ export class PoamsComponent implements OnInit {
     labels: [''],
     datasets: [],
   };
+  public selectedPosition: any = 'bottom';
   barChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
       x: { grid: { display: true } },
       y: { beginAtZero: true, grid: { display: false } },
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: this.selectedPosition,
+        labels: {
+          font: {
+            size: 13,
+            family: 'sans-serif',
+            weight: 600,
+          }
+        }
+      },
     },
   };
   poams: any[] = [];

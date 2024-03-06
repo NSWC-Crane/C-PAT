@@ -82,12 +82,20 @@
 
           <!-- STIG Title -->
           <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
-            <label id="stigTitle">STIG Title: </label>
-            <nb-select fullWidth placeholder="Select STIG..." [(ngModel)]="poam.stigTitle" name='stigTitle'>
+            <label for="stigTitle">STIG Title:</label>
+            <input nbInput
+                   fullWidth
+                   type="text"
+                   placeholder="Select STIG..."
+                   [(ngModel)]="poam.stigTitle"
+                   [nbAutocomplete]="autoStigTitle"
+                   name="stigTitle">
+
+            <nb-autocomplete #autoStigTitle>
               <nb-option *ngFor="let title of stigmanSTIGs" [value]="title">
                 {{ title }}
               </nb-option>
-            </nb-select>
+            </nb-autocomplete>
           </div>
 
           <!-- IAVM # -->
@@ -200,7 +208,7 @@
 
           <!-- Mitigations -->
           <nb-step label="Mitigations">
-            <textarea nbInput fullWidth [(ngModel)]="poam.mitigations" placehoder="Milestones" name='mitigations' cols="180"
+            <textarea nbInput fullWidth [(ngModel)]="poam.mitigations" placehoder="Mitigations" name='mitigations' cols="180"
                       rows="16"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
@@ -216,8 +224,11 @@
 
           <!-- Milestones -->
           <nb-step label="Milestones">
-            <textarea nbInput fullWidth [(ngModel)]="poam.milestones" placehoder="Milestones" name='milestones' cols="180"
-                      rows="16"></textarea>
+            <div class="col">
+            <angular2-smart-table [settings]="poamMilestoneSettings" [source]="poamMilestones" mode="inline"
+            (createConfirm)="confirmCreateMilestone($event)" (editConfirm)="confirmEditMilestone($event)" (deleteConfirm)="confirmDeleteMilestone($event)">
+            </angular2-smart-table>
+            </div>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
