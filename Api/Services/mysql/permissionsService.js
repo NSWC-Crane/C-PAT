@@ -164,10 +164,8 @@ exports.postPermission = async function postPermission(req, res, next) {
 			let connection
 			connection = await dbUtils.pool.getConnection()
 	
-			let sql_query = "UPDATE poamtracking.collectionpermissions SET canOwn= ?, canMaintain= ?, " +
-				"canApprove= ?, canView= ? WHERE userId = " + req.body.userId + " AND collectionId = " + req.body.collectionId + ";"
-	
-			await connection.query(sql_query, [req.body.canOwn, req.body.canMaintain, req.body.canApprove, req.body.canView])
+			let sql_query = "INSERT INTO poamtracking.collectionpermissions (canOwn, canMaintain, canApprove, canView, userId, collectionId) VALUES (?, ?, ?, ?, ?, ?);";
+			await connection.query(sql_query, [req.body.canOwn, req.body.canMaintain, req.body.canApprove, req.body.canView, req.body.userId, req.body.collectionId]);
 			await connection.release()
 	
 			const message = new Object()

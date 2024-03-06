@@ -15,7 +15,7 @@ exports.getPoamExtension = async function (poamId) {
     let connection;
     try {
         connection = await dbUtils.pool.getConnection();
-        let sql = "SELECT poamId, extensionTimeAllowed, extensionJustification, extensionMilestones, scheduledCompletionDate FROM poamtracking.poam WHERE poamId = ?";
+        let sql = "SELECT poamId, extensionTimeAllowed, extensionJustification, scheduledCompletionDate FROM poamtracking.poam WHERE poamId = ?";
         let [poamExtensions] = await connection.query(sql, [poamId]);
 
         return poamExtensions;
@@ -30,15 +30,15 @@ exports.getPoamExtension = async function (poamId) {
 
 exports.putPoamExtension = async function (extensionData) {
     let connection = await dbUtils.pool.getConnection();
-    let sql = "UPDATE poamtracking.poam SET extensionTimeAllowed = ?, extensionJustification = ?, extensionMilestones = ? WHERE poamId = ?";
-    await connection.query(sql, [extensionData.extensionTimeAllowed, extensionData.extensionJustification, extensionData.extensionMilestones, extensionData.poamId]);
+    let sql = "UPDATE poamtracking.poam SET extensionTimeAllowed = ?, extensionJustification = ? WHERE poamId = ?";
+    await connection.query(sql, [extensionData.extensionTimeAllowed, extensionData.extensionJustification, extensionData.poamId]);
     await connection.release();
     return extensionData;
 };
 
 exports.deletePoamExtension = async function ({ poamId }) {
     let connection = await dbUtils.pool.getConnection();
-    let sql = "UPDATE poamtracking.poam SET extensionTimeAllowed = '', extensionJustification = '', extensionMilestones = '' WHERE poamId = ?";
+    let sql = "UPDATE poamtracking.poam SET extensionTimeAllowed = '', extensionJustification = '' WHERE poamId = ?";
     await connection.query(sql, [poamId]);
     await connection.release();
 };

@@ -1,3 +1,4 @@
+
 module.exports = (sequelize, DataTypes) => {
     const Poam = sequelize.define("poam", {
         poamId: {
@@ -5,6 +6,12 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             primaryKey: true,
             autoIncrement: true
+        },
+        milestones: {
+            type: DataTypes.VIRTUAL,
+        },
+        "milestoneChanges": {
+            type: DataTypes.VIRTUAL,
         },
         collectionId: {
             type: DataTypes.INTEGER,
@@ -55,9 +62,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT
         },
         requiredResources: {
-            type: DataTypes.TEXT
-        },
-        milestones: {
             type: DataTypes.TEXT
         },
         residualRisk: {
@@ -145,9 +149,6 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: 0
         },
         extensionJustification: {
-            type: DataTypes.TEXT
-        },
-        extensionMilestones: {
             type: DataTypes.TEXT
         },
     }, {

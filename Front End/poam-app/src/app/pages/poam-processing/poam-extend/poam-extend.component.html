@@ -9,10 +9,10 @@
 -->
 
 <ng-template #extendTemplate let-ref="dialogRef">
-    <div class="col" *ngIf="poam">
-      <nb-card>
-        <nb-card-header>Extend POAM</nb-card-header>
-        <nb-card-body>
+  <div class="container" *ngIf="poam">
+        <nb-card style="width: 60vw; height: auto; max-height: 80vh;">
+          <nb-card-header>Extend POAM</nb-card-header>
+          <nb-card-body>
 
           <!-- Extension Time Allowed -->
           <div class="form-group">
@@ -53,10 +53,14 @@
           </div>
 
           <!-- New Milestones to Achieve Completion -->
-          <div class="form-group">
+          <div class="milestoneSmartTable">
             <label for="newMilestones">New Milestones to Achieve Completion:</label>
-            <textarea fullWidth nbInput placeholder="New Milestones" [(ngModel)]="poam.extensionMilestones" name="extensionMilestones" rows="6"></textarea>
           </div>
+          <div class="milestoneSmartTable">
+            <angular2-smart-table [settings]="poamMilestoneSettings" [source]="poamMilestones" mode="inline"
+            (createConfirm)="confirmCreateMilestone($event)" (editConfirm)="confirmEditMilestone($event)" (deleteConfirm)="confirmDeleteMilestone($event)">
+            </angular2-smart-table>
+            </div>
         </nb-card-body>
 
         <!-- Buttons -->
@@ -64,6 +68,6 @@
           <button nbButton outline status="info" (click)="submitPoamExtension()">Save</button>
           <button nbButton outline status="warning" style="margin-left: 20px;" (click)="cancelExtension()">Cancel</button>
         </nb-card-footer>
-      </nb-card>
-    </div>
+        </nb-card>
+      </div>
 </ng-template>

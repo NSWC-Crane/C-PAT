@@ -104,7 +104,7 @@ CREATE TABLE `poamtracking`.`poammilestones` (
   `milestoneId` INT NOT NULL AUTO_INCREMENT,
   `poamId` int NOT NULL,
   `milestoneTitle` varchar(255) DEFAULT NULL,
-  `milestoneDate` datetime DEFAULT NULL,
+  `milestoneDate` date DEFAULT NULL,
   `milestoneComments` varchar(2000) DEFAULT NULL,
   PRIMARY KEY (`milestoneId`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -143,7 +143,6 @@ CREATE TABLE `poamtracking`.`poam` (
   `ownerId` int NOT NULL DEFAULT '0',
   `mitigations` TEXT,
   `requiredResources` TEXT,
-  `milestones` TEXT,
   `residualRisk` TEXT,
   `notes` TEXT,
   `status` char(10) NOT NULL DEFAULT 'Draft',
@@ -165,7 +164,6 @@ CREATE TABLE `poamtracking`.`poam` (
   `businessImpactDescription` varchar(2000) DEFAULT '',
   `extensionTimeAllowed` INT NULL DEFAULT '0',
   `extensionJustification` varchar(2000) DEFAULT '',
-  `extensionMilestones` varchar(2000) DEFAULT '',
   PRIMARY KEY (`poamId`),
   UNIQUE KEY `poamID_UNIQUE` (`poamId`) /*!80000 INVISIBLE */,
   KEY `collectionId` (`collectionId`) /*!80000 INVISIBLE */,

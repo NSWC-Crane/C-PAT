@@ -25,7 +25,6 @@ interface Poam {
   ownerId: number;
   mitigations: string;
   requiredResources: string;
-  milestones: string;
   residualRisk: string;
   notes: string;
   status: string;
@@ -47,7 +46,6 @@ interface Poam {
   businessImpactDescription: string;
   extensionTimeAllowed: number;
   extensionJustification: string;
-  extensionMilestones: string;
 }
 
 export class ExcelDataService {
@@ -72,7 +70,6 @@ export class ExcelDataService {
       { wch: 10 }, // ownerId
       { wch: 30 }, // mitigations
       { wch: 16 }, // requiredResources
-      { wch: 20 }, // milestones
       { wch: 15 }, // residualRisk
       { wch: 30 }, // notes
       { wch: 10 }, // status
@@ -95,7 +92,6 @@ export class ExcelDataService {
       { wch: 30 }, // businessImpactDescription
       { wch: 10 }, // extensionTimeAllowed
       { wch: 30 }, // extensionJustification
-      { wch: 30 }, // extensionMilestones
     ];
     worksheet['!cols'] = columnWidths;
 

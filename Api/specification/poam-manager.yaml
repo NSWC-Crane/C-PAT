@@ -2029,6 +2029,140 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
+  /poamMilestones/{poamId}:
+    get:
+      summary: Get all milestones for a specific POAM
+      operationId: getPoamMilestones
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the POAM
+      responses:
+        '200':
+          description: Successfully retrieved milestones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoamMilestonesResponse'
+        '422':
+          description: Validation error, e.g., missing poamId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamMilestones
+      security:
+        - oauth:
+            - 'c-pat:read'
+    post:
+      summary: Add a new milestone to a POAM
+      description: Creates a new milestone. The milestoneId is auto-generated upon creation.
+      operationId: postPoamMilestones
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoamMilestoneRequest'
+      responses:
+        '201':
+          description: Successfully created a new milestone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoamMilestone'
+        '422':
+          description: Validation error, e.g., missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamMilestones
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /poamMilestones/{poamId}/{milestoneId}:
+    put:
+      summary: Update a specific milestone
+      description: Updates the milestone identified by milestoneId for a given POAM.
+      operationId: putPoamMilestones
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the POAM to which the milestone belongs.
+        - in: path
+          name: milestoneId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the milestone to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoamMilestoneUpdateRequest'
+      responses:
+        '200':
+          description: Successfully updated the milestone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoamMilestone'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamMilestones
+      security:
+        - oauth:
+            - 'c-pat:read'
+    delete:
+      summary: Delete a specific milestone
+      description: Deletes the milestone identified by milestoneId for a given POAM.
+      operationId: deletePoamMilestones
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: milestoneId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Successfully deleted the milestone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoamMilestone'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamMilestones
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   '/poams':
     get:
       summary: Return all poams
@@ -2773,8 +2907,6 @@ components:
           type: integer
         extensionJustification:
           type: string
-        extensionMilestones:
-          type: string
       
     poam_Object:
       type: object
@@ -2817,8 +2949,6 @@ components:
           type: string
         requiredResources:
           type: string
-        milestones:
-          type: string
         residualRisk:
           type: string
         businessImpactRating:
@@ -2849,6 +2979,52 @@ components:
             properties:
               userId:
                 type: integer
+
+    PoamMilestonesResponse:
+      type: object
+      properties:
+        poamMilestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoamMilestone'
+
+    PoamMilestone:
+      type: object
+      properties:
+        milestoneId:
+          type: integer
+        poamId:
+          type: integer
+        milestoneTitle:
+          type: string
+        milestoneDate:
+          type: string
+          format: date
+        milestoneComments:
+          type: string
+
+    PoamMilestoneRequest:
+      type: object
+      properties:
+        poamId:
+          type: integer
+        milestoneTitle:
+          type: string
+        milestoneDate:
+          type: string
+        milestoneComments:
+          type: string
+
+    PoamMilestoneUpdateRequest:
+      type: object
+      properties:
+        milestoneTitle:
+          type: string
+        milestoneDate:
+          type: string
+        milestoneComments:
+          type: string
+      description: Schema for updating a milestone. All fields are optional, allowing partial updates.
 
     register:
       required:
@@ -3180,13 +3356,13 @@ components:
         collectionId:
           type: integer
         canOwn:
-          type: boolean
+          type: integer
         canMaintain:
-          type: boolean
+          type: integer
         canApprove:
-          type: boolean
+          type: integer
         canView:
-          type: boolean
+          type: integer
         firstName:
           type: string
         lastName:
@@ -3215,13 +3391,13 @@ components:
         newCollectionId:
           type: integer
         canOwn:
-          type: boolean
+          type: integer
         canMaintain:
-          type: boolean
+          type: integer
         canApprove:
-          type: boolean
+          type: integer
         canView:
-          type: boolean
+          type: integer
         firstName:
           type: string
         lastName:

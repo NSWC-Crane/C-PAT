@@ -17,6 +17,7 @@ import { AssetService } from '../assets.service'
 import { AuthService } from '../../../auth';
 import { NbAuthJWTToken, NbAuthToken } from '@nebular/auth';
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
+import { SmartTableSelectComponent } from '../../../Shared/components/smart-table/smart-table-select.component';
 
 interface Label {
   labelId?: number;
@@ -95,16 +96,13 @@ export class AssetComponent implements OnInit {
         title: '*Label',
         isFilterable: false,
         type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          //console.log("row: ", row);
-          var label = (row.value != undefined && row.value != null) ? this.labelList.find((tl: any) => tl.labelId === row.value) : null;
-          return (label)
-            ? label.labelName
-            : row.value;
-        }
-        ,
+        valuePrepareFunction: (labelId: any, row: any) => {
+          const label = this.labelList.find((label: Label) => label.labelId === labelId);
+          return label ? label.labelName : 'Label not found';
+        },
         editor: {
-          type: 'list',
+          type: 'custom',
+          component: SmartTableSelectComponent,
           config: {
             list: [],
           },
@@ -214,20 +212,24 @@ export class AssetComponent implements OnInit {
   }
   
   updateLabelEditorConfig() {
-    let settings = this.assetLabelsSettings;
-    if (settings.columns['labelId']?.editor?.type === 'list' && settings.columns['labelId'].editor.config) {
-      let editorConfig = settings.columns['labelId'].editor.config as ListEditorSettings;
-      const labelPlaceholder = { title: 'Select a Label...', value: '' };
-      editorConfig.list = [
-        labelPlaceholder,
-        ...this.labelList.map((label: any) => ({
-          title: label.labelName,
-          value: label.labelId
-        }))
-      ];
-    }
-    this.assetLabelsSettings = Object.assign({}, settings);
-  }  
+    let labelSettings = this.assetLabelsSettings;
+
+    const labelOptionsList = [
+      ...this.labelList.map((label: any) => ({
+        title: label.labelName,
+        value: label.labelId
+      }))
+    ];
+
+    labelSettings.columns['labelId'].editor = {
+      type: 'custom',
+      component: SmartTableSelectComponent,
+      config: {
+        list: labelOptionsList,
+      },
+    };
+this.assetLabelsSettings = Object.assign({}, labelSettings);
+ }
 
 
 

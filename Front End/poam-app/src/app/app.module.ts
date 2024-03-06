@@ -36,6 +36,7 @@ import { PoamApproveModule } from "./pages/poam-processing/poam-approve/poam-app
 import { PoamExtendModule } from "./pages/poam-processing/poam-extend/poam-extend.module";
 import { FileUploadService } from './file-upload.service';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { NbDateFnsDateModule } from '@nebular/date-fns';
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>

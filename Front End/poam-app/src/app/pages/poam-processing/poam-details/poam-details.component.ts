@@ -22,8 +22,13 @@ import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../user-processing/users.service'
-import { ListEditorSettings, Settings } from 'angular2-smart-table';
+import { Settings } from 'angular2-smart-table';
 import { SharedService } from '../../../Shared/shared.service';
+import { SmartTableDatepickerComponent } from 'src/app/Shared/components/smart-table/smart-table-datepicker.component';
+import { SmartTableInputComponent } from 'src/app/Shared/components/smart-table/smart-table-input.component';
+import { SmartTableTextareaComponent } from 'src/app/Shared/components/smart-table/smart-table-textarea.component';
+import { SmartTableInputDisabledComponent } from 'src/app/Shared/components/smart-table/smart-table-inputDisabled.component';
+import { SmartTableSelectComponent } from 'src/app/Shared/components/smart-table/smart-table-select.component';
 
 interface Permission {
   userId: number;
@@ -58,6 +63,7 @@ export class PoamDetailsComponent implements OnInit {
   collection: any;
   collectionApprovers: any;
   poamApprovers: any[] = [];
+  poamMilestones: any[] = [];
   assets: any;
   poamAssets: any[] = [];
   poamAssignees: any[] = [];
@@ -128,6 +134,7 @@ export class PoamDetailsComponent implements OnInit {
       editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
       saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
       cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i class="nb-close"></i>',
+      confirmSave: true,
     },
     delete: {
       deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
@@ -170,21 +177,14 @@ export class PoamDetailsComponent implements OnInit {
         title: 'Approved',
         isFilterable: false,
         type: 'html',
-        isEditable: (this.showApprove) ? true : false,
         isAddable: false,
         valuePrepareFunction: (_cell: any, row: any) => {
           return (row.value) ? row.value : 'Not Reviewed'
         },
         editor: {
-          type: 'list',
-          config: {
-            list: [
-              { value: 'Not Reviewed', title: 'Not Reviewed' },
-              { value: 'Approved', title: 'Approved' },
-              { value: 'Rejected', title: 'Rejected' }
-            ],
+          type: 'custom',
+          component: SmartTableInputDisabledComponent,
           },
-        },
       },
       approvedDate: {
         title: 'Approved Date',
@@ -193,20 +193,19 @@ export class PoamDetailsComponent implements OnInit {
         isEditable: false,
         isAddable: false,
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value.substr(0, 10) : '';
+          return (row.value) ? row.value.substr(0, 10) : 'Not Reviewed';
         },
         editor: {
-          type: 'list',
-          config: {
-            list: [],
-          },
+          type: 'custom',
+          component: SmartTableInputDisabledComponent,
         },
       },
       comments: {
         title: 'Comments',
         isFilterable: false,
         editor: {
-          type: 'textarea'
+          type: 'custom',
+          component: SmartTableTextareaComponent,
         },
         isEditable: true,
         isAddable: true,
@@ -263,6 +262,74 @@ export class PoamDetailsComponent implements OnInit {
           config: {
             list: [],
           },
+        },
+      },
+    },
+    hideSubHeader: false,
+  };
+
+  poamMilestoneSettings: Settings = {
+    add: {
+      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',
+      createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
+      confirmCreate: true,
+    },
+    edit: {
+      editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
+      saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
+      confirmSave: true,
+    },
+    delete: {
+      deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
+      confirmDelete: true,
+    },
+    actions: {
+      columnTitle: '',
+      add: true,
+      edit: true,
+      delete: true,
+    },
+    columns: {
+      milestoneTitle: {
+        title: 'Milestone Title',
+        isFilterable: false,
+        editor: {
+          type: 'custom',
+          component: SmartTableInputComponent,
+        },
+        isEditable: true,
+        isAddable: true,
+        valuePrepareFunction: (_cell: any, row: any) => {
+          return (row.value) ? row.value : ' '
+        },
+      },
+      milestoneDate: {
+        title: 'Milestone Date',
+        isFilterable: false,
+        type: 'text',
+        isEditable: true,
+        isAddable: true,
+        valuePrepareFunction: (_cell: any, row: any) => {
+          return (row.value) ? row.value.substr(0, 10) : '';
+        },
+        editor: {
+          type: 'custom',
+          component: SmartTableDatepickerComponent,
+        },
+      },
+      milestoneComments: {
+        title: 'Milestone Comments',
+        isFilterable: false,
+        editor: {
+          type: 'custom',
+          component: SmartTableTextareaComponent,
+        },
+        isEditable: true,
+        isAddable: true,
+        valuePrepareFunction: (_cell: any, row: any) => {
+          return (row.value) ? row.value : ' '
         },
       },
     },
@@ -347,7 +414,7 @@ export class PoamDetailsComponent implements OnInit {
             this.showClose = ['admin', 'owner'].includes(this.payload.role);
             this.showSubmit = ['admin', 'owner', 'maintainer'].includes(this.payload.role);
             this.canModifyOwner = ['admin', 'owner', 'maintainer'].includes(this.payload.role);
-
+            this.updateTableSettings();
             this.getData();
           }
         } else {
@@ -387,7 +454,6 @@ export class PoamDetailsComponent implements OnInit {
             ownerId: this.payload.userId,
             mitigations: "",
             requiredResources: "",
-            milestones: "",
             residualRisk: "",
             businessImpactRating: "",
             businessImpactDescription: "",
@@ -437,9 +503,10 @@ export class PoamDetailsComponent implements OnInit {
         this.poamService.getPoamAssets(this.poamId),
         this.poamService.getPoamAssignees(this.poamId),
         this.poamService.getCollectionApprovers(this.payload.lastCollectionAccessedId),
-        this.poamService.getPoamApprovers(this.poamId)
+        this.poamService.getPoamApprovers(this.poamId),
+        this.poamService.getPoamMilestones(this.poamId)
       )
-        .subscribe(([poam, collection, users, collectionAssets, assets, assignees, collectionApprovers, poamApprovers]: any) => {
+        .subscribe(([poam, collection, users, collectionAssets, assets, assignees, collectionApprovers, poamApprovers, poamMilestones]: any) => {
           this.poam = { ...poam };
           this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? this.poam.scheduledCompletionDate.substr(0, 10) : '';
           this.dates.submittedDate = (this.poam.submittedDate) ? this.poam.submittedDate.substr(0, 10) : '';
@@ -449,6 +516,7 @@ export class PoamDetailsComponent implements OnInit {
           this.poamAssets = assets.poamAssets;
           this.poamAssignees = assignees.poamAssignees;
           this.poamApprovers = poamApprovers.poamApprovers;
+          this.poamMilestones = poamMilestones.poamMilestones;
           this.collectionApprovers = collectionApprovers;
 
           if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length ==0)) {
@@ -494,6 +562,34 @@ export class PoamDetailsComponent implements OnInit {
     })
   }
 
+  updateTableSettings(){
+
+    if (this.showApprove)
+    {
+      this.poamApproverSettings.columns['approved'] = {
+        title: 'Approved',
+        isFilterable: false,
+        isEditable: true,
+        type: 'html',
+        isAddable: false,
+        valuePrepareFunction: (_cell: any, row: any) => {
+          return (row.value) ? row.value : 'Not Reviewed'
+        },
+        editor: {
+          type: 'custom',
+          component: SmartTableSelectComponent,
+          config: {
+            list: [
+              { value: 'Not Reviewed', title: 'Not Reviewed' },
+              { value: 'Approved', title: 'Approved' },
+              { value: 'Rejected', title: 'Rejected' }
+            ],
+          },
+        },
+      }
+    }
+  }
+
   setChartSelectionData() {
     this.collectionOwners = [];
     this.collectionMaintainers = [];
@@ -506,47 +602,53 @@ export class PoamDetailsComponent implements OnInit {
     }
   
     let assetSettings = this.poamAssetsSettings;
-    if (assetSettings.columns['assetId']?.editor?.type === 'list') {
-      let assetEditorConfig = assetSettings.columns['assetId'].editor.config as ListEditorSettings;
-      const assetPlaceholder = { title: 'Select an Asset...', value: '' };
-      assetEditorConfig.list = [
-        assetPlaceholder,
-        ...this.assets.map((asset: any) => ({
-          title: asset.assetName,
-          value: asset.assetId,
-        }))
-      ];
-    }
+    const assetList = [
+      ...this.assets.map((asset: any) => ({
+        title: asset.assetName,
+        value: asset.assetId.toString(),
+      }))
+    ];
+    
+    assetSettings.columns['assetId'].editor = {
+      type: 'custom',
+      component: SmartTableSelectComponent,
+      config: {
+        list: assetList,
+      },
+    };    
     this.poamAssetsSettings = Object.assign({}, assetSettings);
+    
   
     let assigneeSettings = this.poamAssigneesSettings;
-    if (assigneeSettings.columns['userId']?.editor?.type === 'list') {
-      let assigneeEditorConfig = assigneeSettings.columns['userId'].editor.config as ListEditorSettings;
-      const assigneePlaceholder = { title: 'Select a Team Member...', value: '' };
-      assigneeEditorConfig.list = [
-        assigneePlaceholder,
-        ...this.collectionUsers.permissions.map((assignee: any) => ({
-          title: assignee.fullName,
-          value: assignee.userId
-        }))
-      ];
-    }
+    const assigneeList = [
+      ...this.collectionUsers.permissions.map((assignee: any) => ({
+        title: assignee.fullName,
+        value: assignee.userId.toString(),
+      }))
+    ];    
+    assigneeSettings.columns['userId'].editor = {
+      type: 'custom',
+      component: SmartTableSelectComponent,
+      config: {
+        list: assigneeList,
+      },
+    };    
     this.poamAssigneesSettings = Object.assign({}, assigneeSettings);
   
 let approverSettings = this.poamApproverSettings;
-if (approverSettings.columns['userId']?.editor?.type === 'list') {
-  let approverEditorConfig = approverSettings.columns['userId'].editor.config as ListEditorSettings;
-  const approverPlaceholder = { title: 'Select an Approver...', value: '' };
-
-  approverEditorConfig.list = [
-    approverPlaceholder,
+  const approverList = [
     ...this.collectionApprovers.collectionApprovers.map((approver: any) => ({
     title: approver.fullName,
-    value: approver.userId,
+    value: approver.userId.toString(),
      }))
       ];
-    }
-
+      approverSettings.columns['userId'].editor = {
+        type: 'custom',
+        component: SmartTableSelectComponent,
+        config: {
+          list: approverList,
+        },
+      };    
     this.poamApproverSettings = Object.assign({}, approverSettings);
   }
   
@@ -719,6 +821,92 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
 
   cancelPoam() {
     this.router.navigateByUrl("/poam-processing");
+  }
+
+  confirmEditMilestone(event: any) {
+    if (this.poam.poamId === "ADDPOAM" || this.poam.status !== "Draft") {
+      this.showConfirmation("Milestones can only be modified if the POAM status is 'Draft'.");
+      event.confirm.reject();
+      return;
+    }
+    console.log("event.newData: ", event.newData);
+    const milestoneUpdate = {
+      ...(event.newData.milestoneTitle && { milestoneTitle: event.newData.milestoneTitle }),
+      ...(event.newData.milestoneDate && { milestoneDate: event.newData.milestoneDate }),
+      ...(event.newData.milestoneComments && { milestoneComments: event.newData.milestoneComments }),
+    };
+  
+    this.poamService.updatePoamMilestone(this.poam.poamId, event.data.milestoneId, milestoneUpdate).subscribe(() => {
+      event.confirm.resolve();
+      this.getData();
+    }, error => {
+      this.showConfirmation("Failed to update the milestone. Please try again.");
+      console.error(error);
+      event.confirm.reject();
+    });
+  }
+
+  async confirmDeleteMilestone(event: any) {
+    if (this.poam.poamId === "ADDPOAM") {
+      event.confirm.resolve();
+      return;
+    }
+
+    if (this.poam.status != "Draft") {
+      this.showConfirmation("You may only modify the milestone list if POAM status is 'Draft'.");
+      event.confirm.reject();
+      return;
+    }
+
+    this.poamService.deletePoamMilestone(this.poam.poamId, event.data.milestoneId).subscribe((res: any) => {
+      const index = this.poamMilestones.findIndex((e: any) => e.poamId == event.data.poamId && e.milestoneId == event.data.milestoneId);
+
+      if (index > -1) {
+        this.poamMilestones.splice(index, 1);
+      }
+      event.confirm.resolve();
+    })
+  }
+
+  async confirmCreateMilestone(event: any) {
+    // console.log("poamDetails confirmCreateApprover data: ", event)
+
+    if (this.poam.poamId === "ADDPOAM") {
+      event.confirm.resolve();
+      return;
+    }
+
+    if (this.poam.status != "Draft") {
+      this.showConfirmation("you may only modify the milestone list if poam status is 'Draft'.");
+      event.confirm.reject();
+      return;
+    }
+
+    if (this.poam.poamId) {
+      let milestone: any = {
+        milestoneTitle: event.newData.milestoneTitle,
+        milestoneDate: (event.newData.milestoneDate != 'Not Reviewed') ?  this.datePipe.transform(new Date(), 'yyyy-MM-dd') : '',
+        milestoneComments: event.newData.milestoneComments
+      }
+
+      await this.poamService.addPoamMilestone(this.poam.poamId, milestone).subscribe((res: any) => {
+        // console.log("poamDetail confirmCreatePoam res: ", res)
+        if (res.null) {
+          this.showConfirmation("Unable to insert row, potentially a duplicate.");
+          event.confirm.reject();
+          return;
+        } else {
+          
+          event.confirm.resolve();  
+          this.poamMilestones.push(milestone); 
+          this.poamMilestones = [...this.poamMilestones];      
+        }
+      })
+
+    } else {
+      this.showConfirmation("Failed to create POAM milestone entry. Invalid input.");
+      event.confirm.reject();
+    }
   }
 
   confirmEditApprover(event: any) {
@@ -974,7 +1162,7 @@ if (approverSettings.columns['userId']?.editor?.type === 'list') {
         this.router.navigateByUrl('/poam-processing');
       }
     });
-}
+ }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> => 
     this.dialogService.open(ConfirmationDialogComponent, {
