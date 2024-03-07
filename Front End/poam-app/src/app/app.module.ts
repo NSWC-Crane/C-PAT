@@ -19,7 +19,6 @@ import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-
 import { CoreModule } from '../app/@core/core.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NbActionsModule, NbAutocompleteModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule, NbAccordionModule, NbDatepickerModule} from '@nebular/theme';
-import { LoginComponent } from './pages/login/login.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientModule } from '@angular/common/http';
 import { NbAuthModule, NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token,  } from '@nebular/auth';
@@ -57,7 +56,6 @@ function initializeKeycloak(keycloak: KeycloakService) {
 @NgModule({
     declarations: [
         AppComponent,
-        LoginComponent,
         PoamDetailsComponent,
     ],
     providers: [AuthGuard,

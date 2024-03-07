@@ -53,7 +53,7 @@
           <!-- Description -->
           <div class="form-group">
             <label>Description of the POAM: <span class="text-danger">*</span></label>
-            <textarea nbInput fullWidth placeholder="Description..." [(ngModel)]="poam.description" name='description'></textarea>
+            <textarea nbInput fullWidth placeholder="Description..." rows="8" [(ngModel)]="poam.description" name='description' maxlength="2000"></textarea>
           </div>
 
           <!-- AA Package -->
@@ -209,7 +209,7 @@
           <!-- Mitigations -->
           <nb-step label="Mitigations">
             <textarea nbInput fullWidth [(ngModel)]="poam.mitigations" placehoder="Mitigations" name='mitigations' cols="180"
-                      rows="16"></textarea>
+                      rows="16" maxlength="2000"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
@@ -217,7 +217,7 @@
           <!-- Required Resources -->
           <nb-step label="Required Resources">
             <textarea nbInput fullWidth [(ngModel)]="poam.requiredResources" placehoder="Required Resources" name='mitigations' cols="180"
-                      rows="16"></textarea>
+                      rows="16" maxlength="2000"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
@@ -236,7 +236,7 @@
           <!-- Residual Risk -->
           <nb-step label="Residual Risk">
             <textarea nbInput fullWidth [(ngModel)]="poam.residualRisk" placehoder="Residual Risk" name='residualRisk' cols="180"
-                      rows="16"></textarea>
+                      rows="16" maxlength="2000"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
@@ -260,7 +260,7 @@
 
           <!-- Notes -->
           <nb-step label="Notes">
-            <textarea nbInput fullWidth [(ngModel)]="poam.notes" placehoder="Notes" name='notes' cols="180" rows="16"></textarea>
+            <textarea nbInput fullWidth [(ngModel)]="poam.notes" placehoder="Notes" name='notes' cols="180" rows="16" maxlength="2000"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" disabled nbStepperNext>next</button>
           </nb-step>

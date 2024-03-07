@@ -146,10 +146,8 @@ export class AppComponent implements OnInit, OnDestroy {
           this.userService.postUser(newUser).subscribe(result => {
             console.log("User name: " + newUser.userName + " has been added, account status is PENDING");
             this.user = newUser;
-            // Further processing if needed after user creation
           });
         } else {
-          // Handle other kinds of errors
           console.error('An error occurred:', error.message);
         }
       }

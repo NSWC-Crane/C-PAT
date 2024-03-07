@@ -10,11 +10,10 @@
 
 import { PASSWORD_AUTH_OPTIONS } from "./password-strategy-options";
 import { NbAuthOptions, NbPasswordAuthStrategy, defaultAuthOptions } from "@nebular/auth";
-import { deepExtend } from "@nebular/auth/helpers";
 
 export const AUTH_OPTIONS: NbAuthOptions = {
   strategies: [
-    NbPasswordAuthStrategy.setup(PASSWORD_AUTH_OPTIONS) // try just entering [Strategy, options]
+    NbPasswordAuthStrategy.setup(PASSWORD_AUTH_OPTIONS)
   ],
   forms: {
     login: {

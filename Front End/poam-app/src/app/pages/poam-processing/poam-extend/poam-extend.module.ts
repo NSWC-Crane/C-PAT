@@ -15,11 +15,9 @@ import { PoamExtendRoutingModule } from './poam-extend.routing';
 import { NbButtonModule, NbCardModule, NbInputModule, NbThemeModule, NbSelectModule, NbAutocompleteModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { FormsModule } from '@angular/forms';
-import { AddDaysPipe } from '../../../add-days.pipe';
 
 @NgModule({
   declarations: [
-        AddDaysPipe,
         PoamExtendComponent,
     ],
     exports: [

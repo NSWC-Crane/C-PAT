@@ -19,10 +19,11 @@ import { UsersService } from '../../user-processing/users.service';
 import { DatePipe } from '@angular/common';
 import { SmartTableTextareaComponent } from 'src/app/Shared/components/smart-table/smart-table-textarea.component';
 import { SmartTableDatepickerComponent } from 'src/app/Shared/components/smart-table/smart-table-datepicker.component';
-import { SmartTableInputComponent } from 'src/app/Shared/components/smart-table/smart-table-input.component';
 import { Settings } from 'angular2-smart-table';
 import { Observable, forkJoin } from 'rxjs';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SmartTableSelectComponent } from '../../../Shared/components/smart-table/smart-table-select.component';
+import { addDays, format, isAfter, parseISO } from 'date-fns';
 
 
 @Component({
@@ -52,7 +53,8 @@ export class PoamExtendComponent implements OnInit {
     "Unanticipated Risks",
   ];
   public extensionJustificationPlaceholder: string = "Select from the available options, modify a provided option, or provide a custom justification";
-
+  completionDate: any;
+  completionDateWithExtension: any;
   poamMilestoneSettings: Settings = {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',
@@ -77,35 +79,9 @@ export class PoamExtendComponent implements OnInit {
       delete: true,
     },
     columns: {
-      milestoneTitle: {
-        title: 'Milestone Title',
-        isFilterable: false,
-        editor: {
-          type: 'custom',
-          component: SmartTableInputComponent,
-        },
-        isEditable: true,
-        isAddable: true,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value : ' '
-        },
-      },
-      milestoneDate: {
-        title: 'Milestone Date',
-        isFilterable: false,
-        type: 'text',
-        isEditable: true,
-        isAddable: true,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value.substr(0, 10) : '';
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableDatepickerComponent,
-        },
-      },
       milestoneComments: {
         title: 'Milestone Comments',
+        width: '60%',
         isFilterable: false,
         editor: {
           type: 'custom',
@@ -114,7 +90,41 @@ export class PoamExtendComponent implements OnInit {
         isEditable: true,
         isAddable: true,
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value : ' '
+          return (row.value);
+        },
+      },
+      milestoneDate: {
+        title: 'Milestone Date',
+        width: '20%',
+        isFilterable: false,
+        type: 'text',
+        isEditable: true,
+        isAddable: true,
+        valuePrepareFunction: (_cell: any, row: any) => {
+          return (row.value) ? row.value : '';
+        },
+        editor: {
+          type: 'custom',
+          component: SmartTableDatepickerComponent,
+        },
+      },
+      milestoneStatus: {
+        title: 'Milestone Status',
+        width: '20%',
+        isFilterable: false,
+        type: 'html',
+        valuePrepareFunction: (_cell: any, row: any) => {
+          return (row.value) ? row.value : 'Pending'
+        },
+        editor: {
+          type: 'custom',
+          component: SmartTableSelectComponent,
+          config: {
+            list: [
+              { value: 'Pending', title: 'Pending' },
+              { value: 'Complete', title: 'Complete' }
+            ],
+          },
         },
       },
     },
@@ -165,6 +175,11 @@ export class PoamExtendComponent implements OnInit {
             scheduledCompletionDate: extensionData.scheduledCompletionDate
           };
           this.extensionJustification = this.poam.extensionJustification;
+          this.completionDate = this.poam.scheduledCompletionDate.substr(0, 10).replaceAll('-', '/');
+          this.completionDateWithExtension = format(
+            addDays(this.completionDate, this.poam.extensionTimeAllowed),
+            'EEE MMM dd yyyy'
+          );
         } else {
           this.poam = {
             extensionTimeAllowed: 0,
@@ -172,6 +187,7 @@ export class PoamExtendComponent implements OnInit {
             scheduledCompletionDate: ''
           };
           this.extensionJustification = '';
+          this.completionDateWithExtension = this.poam.scheduledCompletionDate.substr(0, 10).replaceAll('-', '/');
         }
         this.poamMilestones = milestones.poamMilestones;
       },
@@ -181,17 +197,97 @@ export class PoamExtendComponent implements OnInit {
     });
   }
 
-  confirmEditMilestone(event: any) {
-    if (this.poam.poamId === "ADDPOAM" || this.poam.status !== "Draft") {
-      this.showConfirmation("Milestones can only be modified if the POAM status is 'Draft'.");
+  computeDeadlineWithExtension(event: any) {
+
+    if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
+      this.completionDate = this.poam.scheduledCompletionDate.substr(0, 10).replaceAll('-', '/');
+      this.completionDateWithExtension = format(this.completionDate, 'EEE MMM dd yyyy');
+    }
+    else {
+      this.completionDate = this.poam.scheduledCompletionDate.substr(0, 10).replaceAll('-', '/');
+      this.completionDateWithExtension = format(
+        addDays(this.completionDate, this.poam.extensionTimeAllowed),
+        'EEE MMM dd yyyy'
+      );
+    }
+  }
+
+  async confirmCreateMilestone(event: any) {
+    if (this.poamId === "ADDPOAM") {
+      this.showConfirmation("The POAM must be created or saved before creating extension milestones.");
       event.confirm.reject();
       return;
     }
-    console.log("event.newData: ", event.newData);
+
+    const scheduledCompletionDate = parseISO(this.poam.scheduledCompletionDate);
+    const milestoneDate = event.newData.milestoneDate;
+
+    if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
+      if (isAfter(milestoneDate, scheduledCompletionDate)) {
+        this.showConfirmation("The Milestone date can not exceed the POAM scheduled completion date.");
+        event.confirm.reject();
+        return;
+      }
+    } else {
+      const maxAllowedDate = addDays(scheduledCompletionDate, this.poam.extensionTimeAllowed);
+
+      if (isAfter(milestoneDate, maxAllowedDate)) {
+        this.showConfirmation("The Milestone date can not exceed the POAM scheduled completion date and the allowed extension time.");
+        event.confirm.reject();
+        return;
+      }
+    }
+
+    if (this.poam.poamId) {
+      let milestone: any = {
+        milestoneDate: format(event.newData.milestoneDate, "yyyy-MM-dd"),
+        milestoneComments: (event.newData.milestoneComments) ? event.newData.milestoneComments : ' ',
+        milestoneStatus: (event.newData.milestoneStatus) ? event.newData.milestoneStatus : 'Pending',
+      }
+
+      await this.poamService.addPoamMilestone(this.poam.poamId, milestone).subscribe((res: any) => {
+        if (res.null) {
+          this.showConfirmation("Unable to insert row, potentially a duplicate.");
+          event.confirm.reject();
+          return;
+        } else {
+
+          event.confirm.resolve();
+          this.poamMilestones.push(milestone);
+          this.poamMilestones = [...this.poamMilestones];
+        }
+      })
+
+    } else {
+      this.showConfirmation("Failed to create POAM milestone entry. Invalid input.");
+      event.confirm.reject();
+    }
+  }
+
+  confirmEditMilestone(event: any) {
+    const scheduledCompletionDate = parseISO(this.poam.scheduledCompletionDate);
+    const milestoneDate = event.newData.milestoneDate;
+
+    if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
+      if (isAfter(milestoneDate, scheduledCompletionDate)) {
+        this.showConfirmation("The Milestone date can not exceed the POAM scheduled completion date.");
+        event.confirm.reject();
+        return;
+      }
+    } else {
+      const maxAllowedDate = addDays(scheduledCompletionDate, this.poam.extensionTimeAllowed);
+
+      if (isAfter(milestoneDate, maxAllowedDate)) {
+        this.showConfirmation("The Milestone date can not exceed the POAM scheduled completion date and the allowed extension time.");
+        event.confirm.reject();
+        return;
+      }
+    }
+
     const milestoneUpdate = {
-      ...(event.newData.milestoneTitle && { milestoneTitle: event.newData.milestoneTitle }),
-      ...(event.newData.milestoneDate && { milestoneDate: event.newData.milestoneDate }),
-      ...(event.newData.milestoneComments && { milestoneComments: event.newData.milestoneComments }),
+      ...(event.newData.milestoneDate && { milestoneDate: format(event.newData.milestoneDate, "yyyy-MM-dd") }),
+      ...(event.newData.milestoneComments && { milestoneComments: (event.newData.milestoneComments) ? event.newData.milestoneComments : ' ' }),
+      ...(event.newData.milestoneStatus && { milestoneStatus: (event.newData.milestoneStatus) ? event.newData.milestoneStatus : 'Pending' }),
     };
   
     this.poamService.updatePoamMilestone(this.poam.poamId, event.data.milestoneId, milestoneUpdate).subscribe(() => {
@@ -226,46 +322,6 @@ export class PoamExtendComponent implements OnInit {
     })
   }
 
-  async confirmCreateMilestone(event: any) {
-    // console.log("poamDetails confirmCreateApprover data: ", event)
-
-    if (this.poam.poamId === "ADDPOAM") {
-      event.confirm.resolve();
-      return;
-    }
-
-    if (this.poam.status != "Draft") {
-      this.showConfirmation("you may only modify the milestone list if poam status is 'Draft'.");
-      event.confirm.reject();
-      return;
-    }
-
-    if (this.poam.poamId) {
-      let milestone: any = {
-        milestoneTitle: event.newData.milestoneTitle,
-        milestoneDate: (event.newData.milestoneDate != 'Not Reviewed') ?  this.datePipe.transform(new Date(), 'yyyy-MM-dd') : '',
-        milestoneComments: event.newData.milestoneComments
-      }
-
-      await this.poamService.addPoamMilestone(this.poam.poamId, milestone).subscribe((res: any) => {
-        // console.log("poamDetail confirmCreatePoam res: ", res)
-        if (res.null) {
-          this.showConfirmation("Unable to insert row, potentially a duplicate.");
-          event.confirm.reject();
-          return;
-        } else {
-          
-          event.confirm.resolve();  
-          this.poamMilestones.push(milestone); 
-          this.poamMilestones = [...this.poamMilestones];      
-        }
-      })
-
-    } else {
-      this.showConfirmation("Failed to create POAM milestone entry. Invalid input.");
-      event.confirm.reject();
-    }
-  }
   async showConfirmation(errMsg: string, header?: string, status?: string, isSuccessful: boolean = false) {
     let options = new ConfirmationDialogOptions({
       header: header ? header : "Notification",

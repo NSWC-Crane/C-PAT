@@ -17,6 +17,12 @@
   border: 1px solid nb-theme(border-basic-color-3);
 }
 
+::ng-deep angular2-smart-table-pager .angular2-smart-page-item .angular2-smart-page-link {
+  background-color: nb-theme(background-basic-color-2);
+  color: nb-theme(text-basic-color);
+  border: 1px solid nb-theme(border-basic-color-3);
+}
+
 ::ng-deep angular2-smart-table table, 
 ::ng-deep angular2-smart-table th, 
 ::ng-deep angular2-smart-table td {

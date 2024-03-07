@@ -15,14 +15,10 @@ import { PoamApproveComponent } from './pages/poam-processing/poam-approve/poam-
 import { PoamExtendComponent } from './pages/poam-processing/poam-extend/poam-extend.component';
 import { AuthGuard } from './auth.guard'
 import { AppComponent } from './app.component';
-import { LoginComponent } from './pages/login/login.component';
-import { LoginCallbackComponent } from './pages/login/loginCallback.component';
 
 
 const routes: Routes = [
   { path: '', canActivate: [AuthGuard], component: AppComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'callback', component: LoginCallbackComponent },
   { path: 'consent',  loadChildren: () => import('./pages/dod-consent/dod-consent.module').then(m => m.DoDConsentModule) },
   { path: 'approve', loadChildren: () => import('./pages/poam-processing/poam-approve/poam-approve.module').then(m => m.PoamApproveModule) },
   { path: 'extend', loadChildren: () => import('./pages/poam-processing/poam-extend/poam-extend.module').then(m => m.PoamExtendModule) },

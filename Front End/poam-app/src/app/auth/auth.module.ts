@@ -23,13 +23,9 @@ import {
 } from "@nebular/theme";
 import { AuthRoutingModule } from "./auth.routing";
 import { NbAuthModule } from "@nebular/auth";
-import { RegisterComponent } from "./register/register.component";
-import { LoginComponent } from './login/login.component';
-import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 
 @NgModule({
-  declarations: [RegisterComponent, LoginComponent, ResetPasswordComponent],
   
   imports: [
     CommonModule,
