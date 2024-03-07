@@ -2995,12 +2995,12 @@ components:
           type: integer
         poamId:
           type: integer
-        milestoneTitle:
-          type: string
         milestoneDate:
           type: string
           format: date
         milestoneComments:
+          type: string
+        milestoneStatus:
           type: string
 
     PoamMilestoneRequest:
@@ -3008,21 +3008,21 @@ components:
       properties:
         poamId:
           type: integer
-        milestoneTitle:
-          type: string
         milestoneDate:
           type: string
         milestoneComments:
+          type: string
+        milestoneStatus:
           type: string
 
     PoamMilestoneUpdateRequest:
       type: object
       properties:
-        milestoneTitle:
-          type: string
         milestoneDate:
           type: string
         milestoneComments:
+          type: string
+        milestoneStatus:
           type: string
       description: Schema for updating a milestone. All fields are optional, allowing partial updates.
 

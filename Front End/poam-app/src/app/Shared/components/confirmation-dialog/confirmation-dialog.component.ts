@@ -15,11 +15,11 @@ import { NbDialogRef } from '@nebular/theme';
   selector: 'confirmation-dialog',
   styleUrls: ['./confirmation-dialog.component.scss'],
   template: `
-    <nb-card>
-      <nb-card-header>
+    <nb-card style="width: auto; max-width: 40vw; height: auto; max-height: 20vh;">
+      <nb-card-header style="text-align: center;">
         <h3> {{ options.header }} </h3>
       </nb-card-header>
-      <nb-card-body>
+      <nb-card-body style="text-align: center;">
         <p> {{ options.body }} </p>
       </nb-card-body>
       <nb-card-footer>

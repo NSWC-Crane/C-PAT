@@ -67,20 +67,20 @@ exports.postPoamMilestone = async function postPoamMilestone(req, res, next) {
     });
   }
 
-  if (!req.body.milestoneTitle) req.body.milestoneTitle = null;
   if (!req.body.milestoneDate) req.body.milestoneDate = null;
   if (!req.body.milestoneComments) req.body.milestoneComments = null;
+  if (!req.body.milestoneStatus) req.body.milestoneStatus = null;
   let connection;
   try {
     connection = await dbUtils.pool.getConnection();
 
-    let sql_query = `INSERT INTO poamtracking.poamMilestones (poamId, milestoneTitle, milestoneDate, milestoneComments) values (?, ?, ?, ?)`;
+    let sql_query = `INSERT INTO poamtracking.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneStatus) values (?, ?, ?, ?)`;
 
     await connection.query(sql_query, [
       req.params.poamId,
-      req.body.milestoneTitle,
       req.body.milestoneDate,
       req.body.milestoneComments,
+      req.body.milestoneStatus,
     ]);
 
     let sql =
@@ -134,19 +134,19 @@ exports.putPoamMilestone = async function putPoamMilestone(req, res, next) {
     });
   }
 
-  if (!req.body.milestoneTitle) req.body.milestoneTitle = null;
   if (!req.body.milestoneDate) req.body.milestoneDate = null;
   if (!req.body.milestoneComments) req.body.milestoneComments = null;
+  if (!req.body.milestoneStatus) req.body.milestoneStatus = null;
   let connection;
   try {
     connection = await dbUtils.pool.getConnection();
 
-    let sql_query = `UPDATE poamtracking.poammilestones SET milestoneTitle= ?, milestoneDate = ?, milestoneComments = ? WHERE poamId = ? AND milestoneId = ?`;
+      let sql_query = `UPDATE poamtracking.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneStatus = ? WHERE poamId = ? AND milestoneId = ?`;
 
     await connection.query(sql_query, [
-      req.body.milestoneTitle,
       req.body.milestoneDate,
       req.body.milestoneComments,
+      req.body.milestoneStatus,
       req.params.poamId,
       req.params.milestoneId,
     ]);
@@ -192,7 +192,7 @@ exports.deletePoamMilestone = async function deletePoamMilestone(
     return next({
       status: 422,
       errors: {
-        milestoneTitle: "is required",
+          milestoneId: "is required",
       },
     });
   }

@@ -55,7 +55,7 @@ export class UserComponent implements OnInit {
 
   collectionPermissionsSettings: Settings = {
     add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
+      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
       cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i icon="nb-close"></i>',
       confirmCreate: true,
@@ -79,6 +79,7 @@ export class UserComponent implements OnInit {
     columns: {
       collectionId: {
         title: 'Collections',
+        width: '19%',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -93,6 +94,7 @@ export class UserComponent implements OnInit {
       },
       canOwn: {
         title: 'Can Own',
+        width: '19%',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -111,6 +113,7 @@ export class UserComponent implements OnInit {
       },
       canMaintain: {
         title: 'Can Maintain',
+        width: '19%',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -129,6 +132,7 @@ export class UserComponent implements OnInit {
       },
       canApprove: {
         title: 'Can Approve',
+        width: '19%',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -147,6 +151,7 @@ export class UserComponent implements OnInit {
       },
       canView: {
         title: 'Can View',
+        width: '19%',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -184,9 +189,6 @@ export class UserComponent implements OnInit {
         currentUser => {
           this.user = currentUser;
 
-          if (this.user.isAdmin == 1) {
-            this.checked = true;
-          }
           this.loadCollections();
           this.getData();
           this.isLoading = false;
@@ -207,6 +209,9 @@ export class UserComponent implements OnInit {
         this.user = userData;
         this.loadCollections();
         this.isLoading = false;
+        if (this.user.isAdmin == 1) {
+          this.checked = true;
+        }
       },
       error => {
         console.error('Error fetching user data', error);

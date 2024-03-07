@@ -25,10 +25,10 @@ import { UsersService } from '../../user-processing/users.service'
 import { Settings } from 'angular2-smart-table';
 import { SharedService } from '../../../Shared/shared.service';
 import { SmartTableDatepickerComponent } from 'src/app/Shared/components/smart-table/smart-table-datepicker.component';
-import { SmartTableInputComponent } from 'src/app/Shared/components/smart-table/smart-table-input.component';
 import { SmartTableTextareaComponent } from 'src/app/Shared/components/smart-table/smart-table-textarea.component';
 import { SmartTableInputDisabledComponent } from 'src/app/Shared/components/smart-table/smart-table-inputDisabled.component';
 import { SmartTableSelectComponent } from 'src/app/Shared/components/smart-table/smart-table-select.component';
+import { addDays, format, isAfter, parseISO } from 'date-fns';
 
 interface Permission {
   userId: number;
@@ -82,7 +82,7 @@ export class PoamDetailsComponent implements OnInit {
 
   poamAssetsSettings: Settings = {
     add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
+      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
       cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i icon="nb-close"></i>',
       confirmCreate: true,
@@ -104,7 +104,8 @@ export class PoamDetailsComponent implements OnInit {
     },
     columns: {
       assetId: {
-        title: '*Asset',
+        title: 'Asset',
+        width: '100%',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -125,7 +126,7 @@ export class PoamDetailsComponent implements OnInit {
 
   poamApproverSettings: Settings = {
     add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
+      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
       cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i icon="nb-close"></i>',
       confirmCreate: true,
@@ -148,7 +149,8 @@ export class PoamDetailsComponent implements OnInit {
     },
     columns: {
       userId: {
-        title: '*Approver',
+        title: 'Approver',
+        width: '20%',
         isFilterable: false,
         type: 'html',
         isEditable: false,
@@ -175,6 +177,7 @@ export class PoamDetailsComponent implements OnInit {
       },
       approved: {
         title: 'Approved',
+        width: '20%',
         isFilterable: false,
         type: 'html',
         isAddable: false,
@@ -188,6 +191,7 @@ export class PoamDetailsComponent implements OnInit {
       },
       approvedDate: {
         title: 'Approved Date',
+        width: '20%',
         isFilterable: false,
         type: 'html',
         isEditable: false,
@@ -202,6 +206,7 @@ export class PoamDetailsComponent implements OnInit {
       },
       comments: {
         title: 'Comments',
+        width: '40%',
         isFilterable: false,
         editor: {
           type: 'custom',
@@ -219,7 +224,7 @@ export class PoamDetailsComponent implements OnInit {
 
   poamAssigneesSettings: Settings = {
     add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >', //'<i class="nb-plus"></i>',
+      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
       cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i icon="nb-close"></i>',
       confirmCreate: true,
@@ -242,6 +247,7 @@ export class PoamDetailsComponent implements OnInit {
     columns: {
       userId: {
         title: 'Members Assigned',
+        width: '100%',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -292,12 +298,13 @@ export class PoamDetailsComponent implements OnInit {
       delete: true,
     },
     columns: {
-      milestoneTitle: {
-        title: 'Milestone Title',
+      milestoneComments: {
+        title: 'Milestone Comments',
+        width: '60%',
         isFilterable: false,
         editor: {
           type: 'custom',
-          component: SmartTableInputComponent,
+          component: SmartTableTextareaComponent,
         },
         isEditable: true,
         isAddable: true,
@@ -307,6 +314,7 @@ export class PoamDetailsComponent implements OnInit {
       },
       milestoneDate: {
         title: 'Milestone Date',
+        width: '20%',
         isFilterable: false,
         type: 'text',
         isEditable: true,
@@ -319,17 +327,23 @@ export class PoamDetailsComponent implements OnInit {
           component: SmartTableDatepickerComponent,
         },
       },
-      milestoneComments: {
-        title: 'Milestone Comments',
+      milestoneStatus: {
+        title: 'Milestone Status',
+        width: '20%',
         isFilterable: false,
+        type: 'html',
+        valuePrepareFunction: (_cell: any, row: any) => {
+          return (row.value) ? row.value : 'Pending'
+        },
         editor: {
           type: 'custom',
-          component: SmartTableTextareaComponent,
-        },
-        isEditable: true,
-        isAddable: true,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value : ' '
+          component: SmartTableSelectComponent,
+          config: {
+            list: [
+              { value: 'Pending', title: 'Pending' },
+              { value: 'Complete', title: 'Complete' }
+            ],
+          },
         },
       },
     },
@@ -508,8 +522,8 @@ export class PoamDetailsComponent implements OnInit {
       )
         .subscribe(([poam, collection, users, collectionAssets, assets, assignees, collectionApprovers, poamApprovers, poamMilestones]: any) => {
           this.poam = { ...poam };
-          this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? this.poam.scheduledCompletionDate.substr(0, 10) : '';
-          this.dates.submittedDate = (this.poam.submittedDate) ? this.poam.submittedDate.substr(0, 10) : '';
+          this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? parseISO(this.poam.scheduledCompletionDate.substr(0, 10)) : '';
+          this.dates.submittedDate = (this.poam.submittedDate) ? parseISO(this.poam.submittedDate.substr(0, 10)) : '';
           this.collection = collection;
           this.collectionUsers = users.permissions;
           this.assets = collectionAssets;
@@ -568,6 +582,7 @@ export class PoamDetailsComponent implements OnInit {
     {
       this.poamApproverSettings.columns['approved'] = {
         title: 'Approved',
+        width: '20%',
         isFilterable: false,
         isEditable: true,
         type: 'html',
@@ -823,17 +838,93 @@ let approverSettings = this.poamApproverSettings;
     this.router.navigateByUrl("/poam-processing");
   }
 
+  async confirmCreateMilestone(event: any) {
+    if (this.poam.poamId === "ADDPOAM") {
+      event.confirm.resolve();
+      return;
+    }
+
+    if (this.poam.status != "Draft") {
+      this.showConfirmation("You may only modify the milestone list if poam status is 'Draft'.");
+      event.confirm.reject();
+      return;
+    }
+
+    const scheduledCompletionDate = parseISO(this.poam.scheduledCompletionDate);
+    const milestoneDate = event.newData.milestoneDate;
+
+    if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
+      if (isAfter(milestoneDate, scheduledCompletionDate)) {
+        this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date.");
+        event.confirm.reject();
+        return;
+      }
+    } else {
+      const maxAllowedDate = addDays(scheduledCompletionDate, this.poam.extensionTimeAllowed);
+
+      if (isAfter(milestoneDate, maxAllowedDate)) {
+        this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.");
+        event.confirm.reject();
+        return;
+      }
+    }
+
+    if (this.poam.poamId) {
+      let milestone: any = {
+        milestoneDate: format(event.newData.milestoneDate, "yyyy-MM-dd"),
+        milestoneComments: (event.newData.milestoneComments) ? event.newData.milestoneComments : ' ',
+        milestoneStatus: (event.newData.milestoneStatus) ? event.newData.milestoneStatus : 'Pending',
+      }
+
+      await this.poamService.addPoamMilestone(this.poam.poamId, milestone).subscribe((res: any) => {
+        if (res.null) {
+          this.showConfirmation("Unable to insert row, potentially a duplicate.");
+          event.confirm.reject();
+          return;
+        } else {
+
+          event.confirm.resolve();
+          this.poamMilestones.push(milestone);
+          this.poamMilestones = [...this.poamMilestones];
+        }
+      })
+
+    } else {
+      this.showConfirmation("Failed to create POAM milestone entry. Invalid input.");
+      event.confirm.reject();
+    }
+  }
+
   confirmEditMilestone(event: any) {
     if (this.poam.poamId === "ADDPOAM" || this.poam.status !== "Draft") {
       this.showConfirmation("Milestones can only be modified if the POAM status is 'Draft'.");
       event.confirm.reject();
       return;
     }
-    console.log("event.newData: ", event.newData);
+
+    const scheduledCompletionDate = parseISO(this.poam.scheduledCompletionDate);
+    const milestoneDate = event.newData.milestoneDate;
+
+    if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
+      if (isAfter(milestoneDate, scheduledCompletionDate)) {
+        this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date.");
+        event.confirm.reject();
+        return;
+      }
+    } else {
+      const maxAllowedDate = addDays(scheduledCompletionDate, this.poam.extensionTimeAllowed);
+
+      if (isAfter(milestoneDate, maxAllowedDate)) {
+        this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.");
+        event.confirm.reject();
+        return;
+      }
+    }
+
     const milestoneUpdate = {
-      ...(event.newData.milestoneTitle && { milestoneTitle: event.newData.milestoneTitle }),
-      ...(event.newData.milestoneDate && { milestoneDate: event.newData.milestoneDate }),
-      ...(event.newData.milestoneComments && { milestoneComments: event.newData.milestoneComments }),
+      ...(event.newData.milestoneDate && { milestoneDate: format(event.newData.milestoneDate, "yyyy-MM-dd") }),
+      ...(event.newData.milestoneComments && { milestoneComments: (event.newData.milestoneComments) ? event.newData.milestoneComments : ' ' }),
+      ...(event.newData.milestoneStatus && { milestoneStatus: (event.newData.milestoneStatus) ? event.newData.milestoneStatus : 'Pending' }),
     };
   
     this.poamService.updatePoamMilestone(this.poam.poamId, event.data.milestoneId, milestoneUpdate).subscribe(() => {
@@ -866,47 +957,6 @@ let approverSettings = this.poamApproverSettings;
       }
       event.confirm.resolve();
     })
-  }
-
-  async confirmCreateMilestone(event: any) {
-    // console.log("poamDetails confirmCreateApprover data: ", event)
-
-    if (this.poam.poamId === "ADDPOAM") {
-      event.confirm.resolve();
-      return;
-    }
-
-    if (this.poam.status != "Draft") {
-      this.showConfirmation("you may only modify the milestone list if poam status is 'Draft'.");
-      event.confirm.reject();
-      return;
-    }
-
-    if (this.poam.poamId) {
-      let milestone: any = {
-        milestoneTitle: event.newData.milestoneTitle,
-        milestoneDate: (event.newData.milestoneDate != 'Not Reviewed') ?  this.datePipe.transform(new Date(), 'yyyy-MM-dd') : '',
-        milestoneComments: event.newData.milestoneComments
-      }
-
-      await this.poamService.addPoamMilestone(this.poam.poamId, milestone).subscribe((res: any) => {
-        // console.log("poamDetail confirmCreatePoam res: ", res)
-        if (res.null) {
-          this.showConfirmation("Unable to insert row, potentially a duplicate.");
-          event.confirm.reject();
-          return;
-        } else {
-          
-          event.confirm.resolve();  
-          this.poamMilestones.push(milestone); 
-          this.poamMilestones = [...this.poamMilestones];      
-        }
-      })
-
-    } else {
-      this.showConfirmation("Failed to create POAM milestone entry. Invalid input.");
-      event.confirm.reject();
-    }
   }
 
   confirmEditApprover(event: any) {
@@ -948,7 +998,6 @@ let approverSettings = this.poamApproverSettings;
   }
 
   async confirmDeleteApprover(event: any) {
-    // console.log("poamDetails confirmDeleteApprover event: ", event)
     if (this.poam.poamId === "ADDPOAM") {
       event.confirm.resolve();
       return;
@@ -961,18 +1010,15 @@ let approverSettings = this.poamApproverSettings;
     }
 
     this.poamService.deletePoamApprover(event.data.poamId, event.data.userId).subscribe((res: any) => {
-      // console.log("confirmDelete res to delete: ", res)
       const index = this.poamApprovers.findIndex(((e: any) => {e.poamId == event.data.poamId && e.userId == event.data.userId}));
       if (index > -1) {
         this.poamApprovers.splice(index, 1);
       }
       event.confirm.resolve();
-      // console.log("poamApprovers after delete: ",this.poamApprovers)
     })
   }
 
   async confirmCreateApprover(event: any) {
-    // console.log("poamDetails confirmCreateApprover data: ", event)
 
     if (this.poam.poamId === "ADDPOAM") {
       event.confirm.resolve();
@@ -988,8 +1034,6 @@ let approverSettings = this.poamApproverSettings;
     if (this.poam.poamId &&
       event.newData.userId 
     ) {
-      // console.log("poamDetails confirmCreate poam.colectionId: ",this.poam.collectionId,", userId: ", event.newData.userId);
-      // console.log("poamDetails confirmCreate collectionApprovers: ",this.collectionApprovers)
       let user = await this.collectionApprovers.collectionApprovers.find((tl: any) => tl.collectionId == this.poam.collectionId && tl.userId ==  event.newData.userId)
 
       let approver: any = {

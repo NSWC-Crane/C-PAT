@@ -10,11 +10,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        milestoneTitle: {
-            type: DataTypes.STRING(255),
-            allowNull: true,
-            defaultValue: ''
-        },
         milestoneDate: {
             type: DataTypes.DATEONLY,
             allowNull: true,
@@ -23,6 +18,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(2000),
             allowNull: true,
             defaultValue: ''
+        },
+        milestoneStatus: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+            defaultValue: 'Pending'
         },
     }, {
         freezeTableName: true,

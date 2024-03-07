@@ -18,8 +18,8 @@ CREATE TABLE `poamtracking`.`user` (
    `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
    `lastAccess` datetime DEFAULT NULL,
    `lastCollectionAccessedId` int NOT NULL DEFAULT '0',
-   `accountStatus` varchar(45) NOT NULL DEFAULT 'Pending',
-   `fullName` varchar(225) DEFAULT NULL,
+   `accountStatus` varchar(25) NOT NULL DEFAULT 'Pending',
+   `fullName` varchar(100) DEFAULT NULL,
    `defaultTheme` varchar(20) DEFAULT 'dark',
    `isAdmin` int NOT NULL DEFAULT '0',
    PRIMARY KEY (`userId`),
@@ -32,8 +32,8 @@ CREATE TABLE `poamtracking`.`asset` (
   `assetName` VARCHAR(255) NOT NULL,
   `fullyQualifiedDomainName` VARCHAR(255) DEFAULT NULL,
   `collectionId` INT NOT NULL,
-  `description` VARCHAR(75) DEFAULT NULL,
-  `ipAddress` VARCHAR(20) DEFAULT NULL,
+  `description` VARCHAR(255) DEFAULT NULL,
+  `ipAddress` VARCHAR(50) DEFAULT NULL,
   `macAddress` VARCHAR(50) DEFAULT NULL,
   `nonComputing` TINYINT(1) DEFAULT '0',
   `metadata` JSON,
@@ -50,7 +50,7 @@ CREATE TABLE `poamtracking`.`asset` (
 
 CREATE TABLE `poamtracking`.`poamassets` (
    `poamId` int NOT NULL,
-   `assetId` varchar(50) NOT NULL,
+   `assetId` int NOT NULL,
    PRIMARY KEY (`poamId`,`assetId`),
    KEY `poamAssetsAssetId` (`assetId`) /*!80000 INVISIBLE */,
    KEY `poamAssetPoamId` (`poamId`)
@@ -72,8 +72,8 @@ CREATE TABLE `poamtracking`.`assetlabels` (
 
 CREATE TABLE `poamtracking`.`label` (
    `labelId` int NOT NULL AUTO_INCREMENT,
-   `description` varchar(75) DEFAULT NULL,
-   `labelName` varchar(30) NOT NULL,
+   `description` varchar(255) DEFAULT NULL,
+   `labelName` varchar(50) NOT NULL,
    `poamCount` int NOT NULL DEFAULT '0',
    PRIMARY KEY (`labelId`),
    UNIQUE KEY `labelName_UNIQUE` (`labelName`)
@@ -103,9 +103,9 @@ CREATE TABLE `poamtracking`.`poamapprovers` (
 CREATE TABLE `poamtracking`.`poammilestones` (
   `milestoneId` INT NOT NULL AUTO_INCREMENT,
   `poamId` int NOT NULL,
-  `milestoneTitle` varchar(255) DEFAULT NULL,
   `milestoneDate` date DEFAULT NULL,
-  `milestoneComments` varchar(2000) DEFAULT NULL,
+  `milestoneComments` varchar(2000) DEFAULT '',
+  `milestoneStatus` varchar(10) DEFAULT 'Pending',
   PRIMARY KEY (`milestoneId`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
   
@@ -136,7 +136,7 @@ CREATE TABLE `poamtracking`.`poam` (
   `iavmNumber` varchar(25) DEFAULT '',
   `aaPackage` varchar(50) DEFAULT '',
   `vulnerabilityId` varchar(255) DEFAULT '',
-  `description` varchar(255) DEFAULT '',
+  `description` varchar(2000) DEFAULT '',
   `rawSeverity` varchar(25) DEFAULT '',
   `adjSeverity` varchar(25) DEFAULT '',
   `scheduledCompletionDate` date DEFAULT '1900-01-01',

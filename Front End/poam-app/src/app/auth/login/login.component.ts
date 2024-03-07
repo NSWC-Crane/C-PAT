@@ -10,7 +10,7 @@
 
 import { Component, OnInit, ChangeDetectorRef, Inject } from '@angular/core';
 import { NbLoginComponent, NbAuthService, NB_AUTH_OPTIONS, NbAuthResult } from '@nebular/auth';
-import { Router, ActivatedRoute, Data } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { _fixedSizeVirtualScrollStrategyFactory } from '@angular/cdk/scrolling';
 import { environment } from 'src/environments/environment';
 import { LoginService } from './login.service';
@@ -18,7 +18,6 @@ import { LoginService } from './login.service';
 @Component({
   selector: 'ngx-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent extends NbLoginComponent implements OnInit {
 
@@ -41,8 +40,6 @@ export class LoginComponent extends NbLoginComponent implements OnInit {
     console.log(this.errors)
   }
   ngOnInit() {
-
-    //this.login();
   }
 
   override login(): void {
@@ -69,7 +66,6 @@ export class LoginComponent extends NbLoginComponent implements OnInit {
   
         if (result.isSuccess()) {
   
-          //console.log("authenticated result: ", result);
           this.payload = result.getToken().getPayload();
 
           const redirect = result.getRedirect();

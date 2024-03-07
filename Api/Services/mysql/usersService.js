@@ -400,6 +400,9 @@ module.exports.generateJWT = async function (previousPayload, jwtSignOptions, us
 	} else if (this.lastCollectionAccessedId) {
 		payload.lastCollectionAccessedId = this.lastCollectionAccessedId;
 	}
+	else if (user.accountStataus === 'Pending') {
+		console.log("User account is pending, not setting payload...");
+	}
 	else {
 		// console.log("No lastCollectionAccessedId, not setting payload.lastCollectionAccessedId at all...")
 		writeLog.writeLog(4, "usersService", 'info', req.userObject.username, req.userObject.displayName, { event: 'No lastCollectionAccessedId, not setting payload.lastCollectionAccessedId at all...' })
