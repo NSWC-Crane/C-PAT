@@ -12,7 +12,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PoamsComponent } from './poams.component';
 import { PoamsRoutingModule } from './poams.routing';
-import { NbCardModule, NbIconModule, NbInputModule, NbFormFieldModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule, NbDatepickerModule, NbAutocompleteModule } from '@nebular/theme';
+import { NbCardModule, NbIconModule, NbInputModule, NbFormFieldModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule, NbDatepickerModule, NbAutocompleteModule, NbTabsetModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { FormsModule } from '@angular/forms';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
@@ -36,6 +36,7 @@ import { AppComponent } from '../../app.component';
       PoamsRoutingModule,
       NbCardModule,
       NbThemeModule,
+      NbTabsetModule,
       NbButtonModule,
       Angular2SmartTableModule,
       NbRadioModule,

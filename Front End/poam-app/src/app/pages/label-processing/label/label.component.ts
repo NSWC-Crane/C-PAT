@@ -10,11 +10,10 @@
 
 import { Component, OnInit, TemplateRef, Input, EventEmitter, Output } from '@angular/core';
 import { LabelService } from '../label.service';
-import { forkJoin, Observable } from 'rxjs';
-import { NbDialogService,  NbWindowRef, NbWindowModule, NbWindowService } from '@nebular/theme';
+import { Observable } from 'rxjs';
+import { NbDialogService,  NbWindowRef } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth';
-import { NbAuthToken, NbAuthJWTToken } from '@nebular/auth';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { SubSink } from 'subsink';
 

@@ -30,6 +30,17 @@ import { SmartTableInputDisabledComponent } from 'src/app/Shared/components/smar
 import { SmartTableSelectComponent } from 'src/app/Shared/components/smart-table/smart-table-select.component';
 import { addDays, format, isAfter, parseISO } from 'date-fns';
 
+interface Label {
+  labelId?: number;
+  labelName?: string;
+  description?: string;
+  poamCount?: number;
+}
+
+interface LabelsResponse {
+  labels: Label[];
+}
+
 interface Permission {
   userId: number;
   collectionId: number;
@@ -50,6 +61,9 @@ export class PoamDetailsComponent implements OnInit {
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
 
+  labelList: any;
+
+  poamLabels: any[] = [];
   users: any;
   user: any;
   poam: any;
@@ -350,6 +364,51 @@ export class PoamDetailsComponent implements OnInit {
     hideSubHeader: false,
   };
 
+  poamLabelsSettings: Settings = {
+    add: {
+      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',
+      createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
+      confirmCreate: true,
+    },
+    edit: {
+      editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
+      saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
+      confirmSave: true
+    },
+    delete: {
+      deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
+      confirmDelete: true,
+    },
+    actions: {
+      columnTitle: '',
+      add: true,
+      edit: false,
+      delete: true,
+    },
+    columns: {
+      labelId: {
+        title: 'Label',
+        width: '100%',
+        isFilterable: false,
+        type: 'html',
+        valuePrepareFunction: (cell, row) => {
+          const label = this.poamLabels.find(l => l.labelId === cell);
+          return label ? `${label.labelName}` : `Label ID: ${cell}`;
+        },
+        editor: {
+          type: 'custom',
+          component: SmartTableSelectComponent,
+          config: {
+            list: [],
+          },
+        },
+      },
+    },
+    hideSubHeader: false,
+  };
+
   modalWindow: NbWindowRef | undefined
   dialog!: TemplateRef<any>;
 
@@ -443,6 +502,7 @@ export class PoamDetailsComponent implements OnInit {
 
 
   getData() {
+    this.getLabelData();
     if (this.poamId == undefined || !this.poamId) return;
     if (this.poamId === "ADDPOAM") {
       this.canModifyOwner = true;
@@ -537,6 +597,7 @@ export class PoamDetailsComponent implements OnInit {
             this.addDefaultApprovers();
           }
           this.setChartSelectionData();
+          this.getPoamLabels();
         });
       this.keycloak.getToken().then((token) => {
         this.sharedService.getSTIGsFromSTIGMAN(token).subscribe({
@@ -550,6 +611,39 @@ export class PoamDetailsComponent implements OnInit {
       });
     }
   }
+
+  getLabelData() {
+    this.subs.sink = this.poamService.getLabels(this.payload.lastCollectionAccessedId).subscribe((labels: any) => {
+      this.labelList = labels.labels;
+      this.updateLabelEditorConfig();
+    });
+  }
+
+  getPoamLabels() {
+    this.subs.sink = this.poamService.getPoamLabels(this.poamId).subscribe((poamLabels: any) => {
+      this.poamLabels = poamLabels.poamLabels;
+    });
+  }
+
+  updateLabelEditorConfig() {
+    let labelSettings = this.poamLabelsSettings;
+
+    const labelOptionsList = [
+      ...this.labelList.map((label: any) => ({
+        title: label.labelName,
+        value: label.labelId
+      }))
+    ];
+
+    labelSettings.columns['labelId'].editor = {
+      type: 'custom',
+      component: SmartTableSelectComponent,
+      config: {
+        list: labelOptionsList,
+      },
+    };
+this.poamLabelsSettings = Object.assign({}, labelSettings);
+ }
 
   addDefaultApprovers() {
     this.collectionApprovers.forEach(async (collectionApprover: any) => {
@@ -737,8 +831,8 @@ let approverSettings = this.poamApproverSettings;
 
     if (!this.validateData()) return;
 
-    this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate;
-    this.poam.submittedDate = this.dates.submittedDate;
+    this.poam.scheduledCompletionDate = format(this.dates.scheduledCompletionDate, "yyyy-MM-dd");
+    this.poam.submittedDate = format(this.dates.submittedDate, "yyyy-MM-dd");
     this.poam.requiredResources = (this.poam.requiredResources) ? this.poam.requiredResources : ""
     this.poam.vulnIdRestricted = (this.poam.vulnIdRestricted) ? this.poam.vulnIdRestricted : ""
 
@@ -793,10 +887,8 @@ let approverSettings = this.poamApproverSettings;
       return;
     }
     this.poam.status = "Submitted";
-    var dateObj = new Date();
-    dateObj.setDate(dateObj.getDate() + 30); 
-    this.dates.submittedDate = this.datePipe.transform(new Date(), 'yyyy-MM-dd')
-    this.dates.scheduledCompletionDate =  this.datePipe.transform(dateObj, 'yyyy-MM-dd')
+    this.poam.scheduledCompletionDate = format(this.dates.scheduledCompletionDate, "yyyy-MM-dd");
+    this.poam.submittedDate = format(this.dates.submittedDate, "yyyy-MM-dd");
     this.savePoam(this.poam);
 
   }
@@ -1071,12 +1163,66 @@ let approverSettings = this.poamApproverSettings;
     }
   }
 
-  confirmCreate(data: any) {
-    // console.log("confirmCreate data: ", data)
+  confirmCreateLabel(event: any) {
     if (this.poam.poamId === "ADDPOAM") {
-      // nothing to do, when the poam is submitted, we'll push the array of label id's to so they can be
-      // associated properly to the poam
+      this.showConfirmation("You may not assign a label until after the POAM has been saved.", "Information", "warning");
+      event.confirm.reject();
+      return;
+    }
 
+    if (this.poam.poamId &&
+      event.newData.labelId 
+    ) {
+
+      var label_index = this.labelList.findIndex((e: any) => e.labelId == event.newData.labelId);
+      if (!label_index && label_index != 0) {
+        this.showConfirmation("Unable to resolve assigned label.");
+        event.confirm.reject();
+        return;
+      }
+
+      let poamLabel = {
+        poamId: +this.poam.poamId,
+        labelId: +event.newData.labelId
+      }
+
+      this.poamService.postPoamLabel(poamLabel).subscribe(poamLabelData => {
+        event.confirm.resolve();
+        this.getData();
+      })
+
+    } else {
+      console.log("Failed to create entry. Invalid input.");
+      this.showConfirmation("Missing data, unable to insert label.");
+      event.confirm.reject();
+    }
+  }
+
+  confirmDeleteLabel(event: any) {
+    if (this.poam.poamId === "ADDPOAM") {
+      event.confirm.resolve();
+      return;
+    }
+
+    var label_index = this.poamLabels.findIndex((data: any) => {
+      if (event.data.poamId === data.poamId && event.data.labelId === data.labelId) return true;
+      else return false;
+    })
+
+    if (!label_index && label_index != 0) {
+      this.showConfirmation("Unable to resolve assigned label.");
+      event.confirm.reject();
+    } else {;
+
+      this.poamService.deletePoamLabel(+event.data.poamId, +event.data.labelId).subscribe(poamLabelData => {       
+        event.confirm.resolve();
+        this.getData();
+      });
+    }
+  }
+
+  confirmCreate(data: any) {
+    if (this.poam.poamId === "ADDPOAM") {
       data.confirm.resolve();
       return;
     }

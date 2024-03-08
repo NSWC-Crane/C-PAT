@@ -14,7 +14,6 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 exports.getAssetLabels = async function getAssetLabels(req, res, next) {
-        //console.log("getAssetLabels (Service) ...");
 
         try {
                 let connection
@@ -23,10 +22,6 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
                         "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
                         "INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId " +
                         "ORDER BY t3.labelName"
-                // SELECT t1.assetId, assetName, t1.labelId, labelName FROM  assetlabels t1 
-                // INNER JOIN asset t2 ON t1.assetId = t2.assetId 
-                // INNER JOIN label t3 ON t1.labelId = t3.labelId
-                //console.log("getLabels sql: ", sql)
 
                 let [rowAssetLabels] = await connection.query(sql)
                 console.log("rowAssets: ", rowAssetLabels[0])
@@ -37,7 +32,6 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
                 var assetLabels = []
 
                 for (let counter = 0; counter < size; counter++) {
-                        // console.log("Before setting permissions size: ", size, ", counter: ",counter);
 
                         assetLabels.push({
                                 "assetId": rowAssetLabels[counter].assetId,
@@ -326,10 +320,8 @@ exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
                 connection = await dbUtils.pool.getConnection()
                 let sql = "DELETE FROM  poamtracking.assetlabels WHERE assetId=" + req.params.assetId +
                         " AND labelId = " + req.params.labelId + ";"
-                //console.log("deleteLabel sql: ", sql)
 
                 await connection.query(sql)
-                // console.log("rowPermissions: ", rowPermissions[0])
                 await connection.release()
 
                 var assetLabel = []

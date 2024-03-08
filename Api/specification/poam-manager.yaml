@@ -734,8 +734,8 @@ paths:
           default: false
       - $ref: '#/components/parameters/benchmarkIdQuery'
       - $ref: '#/components/parameters/assetIdQuery'
-  
-  '/collection/{collectionId}/poamstats':
+
+  '/collection/{collectionId}/poamlabel':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
     get:
@@ -744,16 +744,100 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'        
-      summary: Return POAM stats for a Collection
-      description: Return POAM stats for a Collection
-      operationId: getCollectionPoamStats
+      summary: Return POAM labels and label count by Collection
+      description: Return POAM labels and label count by Collection
+      operationId: getCollectionPoamLabel
       responses:
         '200':
-          description: Collection response
+          description: poamLabel response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/collection'
+                $ref: '#/components/schemas/poamLabel'
+        '204':
+          description: No Content
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  
+  '/collection/{collectionId}/poamstatus':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      tags:
+        - Collection
+      security:
+        - oauth:
+            - 'c-pat:read'        
+      summary: Return POAM status and status count by Collection
+      description: Return POAM status and status count by Collection
+      operationId: getCollectionPoamStatus
+      responses:
+        '200':
+          description: poamStatus response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamStatus'
+        '204':
+          description: No Content
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
+  '/collection/{collectionId}/poamseverity':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      tags:
+        - Collection
+      security:
+        - oauth:
+            - 'c-pat:read'        
+      summary: Return POAM severity and severity count by Collection
+      description: Return POAM severity and severity count by Collection
+      operationId: getCollectionPoamSeverity
+      responses:
+        '200':
+          description: poamSeverity response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamSeverity'
+        '204':
+          description: No Content
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
+  '/collection/{collectionId}/poamEstimatedCompletion':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      tags:
+        - Collection
+      security:
+        - oauth:
+            - 'c-pat:read'        
+      summary: By collection, return a count of POAMs estimated to be completed in 30, 60, 90, 180, and 365 days.
+      description: By collection, return a count of POAMs estimated to be completed in 30, 60, 90, 180, and 365 days.
+      operationId: getCollectionPoamEstimatedCompletion
+      responses:
+        '200':
+          description: poamEstimatedCompletion response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamEstimatedCompletion'
         '204':
           description: No Content
         default:
@@ -2029,6 +2113,220 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
+  /poamLabels/{collectionId}:
+    get:
+      summary: Return all poams with labels for a specific collection
+      operationId: getPoamLabels
+      parameters:
+        - in: path
+          name: collectionId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Poam array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamLabel_Object'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamLabel
+      security:
+        - oauth:
+            - 'c-pat:read'
+            
+  /poamLabels/poam/{poamId}:
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return label associated with a POAM by poamId
+      operationId: getPoamLabelByPoam
+      responses:
+        '200':
+          description: Poam array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamLabel_Object'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamLabel
+      security:
+        - oauth:
+            - 'c-pat:read'
+    
+  /poamLabels/label/{labelId}:
+    parameters:
+      - in: path
+        name: labelId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return a poam label by labelId
+      operationId: getPoamLabelByLabel
+      responses:
+        '200':
+          description: Poam array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamLabel_Object'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamLabel
+      security:
+        - oauth:
+            - 'c-pat:read'
+            
+  /poamLabel/poam/{poamId}/label/{labelId}:
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: labelId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return a poam label by poamId and labelId
+      operationId: getPoamLabel
+      responses:
+        '200':
+          description: Poam array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamLabel_Object'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamLabel
+      security:
+        - oauth:
+            - 'c-pat:read'
+    delete:
+      summary: Delete a Poam Label by poamId
+      operationId: deletePoamLabel
+      responses:
+        '200':
+          description: null poam response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamLabel_Object'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'  
+      tags:
+        - PoamLabel
+      security:
+        - oauth:
+            - 'c-pat:read'
+            
+  /poamLabel:
+    post:
+      summary: Add a poam label
+      operationId: postPoamLabel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/poamLabel_Object'
+      responses:
+        '200':
+          description: return the added poam response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamLabel_Object'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamLabel
+      security:
+        - oauth:
+            - 'c-pat:read'
+    put:
+      summary: Updates a PoamLabel
+      operationId: putPoamLabel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/poamLabel_Object'
+      responses:
+        '200':
+          description: return the updated poam response
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/poamLabel_Object'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamLabel
+      security:
+        - oauth:
+            - 'c-pat:read'    
+
   /poamMilestones/{poamId}:
     get:
       summary: Get all milestones for a specific POAM
@@ -2062,6 +2360,13 @@ paths:
       summary: Add a new milestone to a POAM
       description: Creates a new milestone. The milestoneId is auto-generated upon creation.
       operationId: postPoamMilestones
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the POAM
       requestBody:
         required: true
         content:
@@ -2593,6 +2898,7 @@ components:
         isEnabled:
           type: integer
           nullable: true 
+
     assetLabel_Object:
       type: object
       required:
@@ -2980,6 +3286,18 @@ components:
               userId:
                 type: integer
 
+    poamLabel_Object:
+      type: object
+      required:
+        - poamId
+        - labelId
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        labelId:
+          type: integer
+
     PoamMilestonesResponse:
       type: object
       properties:
@@ -3025,6 +3343,38 @@ components:
         milestoneStatus:
           type: string
       description: Schema for updating a milestone. All fields are optional, allowing partial updates.
+
+    poamStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        statusCount:
+          type: integer
+
+    poamLabel:
+      type: object
+      properties:
+        label:
+          type: string
+        labelCount:
+          type: integer
+
+    poamSeverity:
+      type: object
+      properties:
+        severity:
+          type: string
+        severityCount:
+          type: integer
+
+    poamEstimatedCompletion:
+      type: object
+      properties:
+        estimatedCompletion:
+          type: string
+        estimatedCompletionCount:
+          type: integer
 
     register:
       required:

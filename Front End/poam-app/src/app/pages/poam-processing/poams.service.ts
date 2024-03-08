@@ -10,7 +10,7 @@
 
 import { EventEmitter, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { throwError, Observable } from 'rxjs';
+import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
@@ -48,10 +48,25 @@ export class PoamService {
 			.pipe(catchError(this.handleError));
 	}
 
-	getCollectionPoamStats(id: string) {
-		return this.http.get(`${this.uri}/collection/${id}/poamstats`, this.httpOptions)
+	getCollectionPoamStatus(id: string) {
+		return this.http.get(`${this.uri}/collection/${id}/poamstatus`, this.httpOptions)
 			.pipe(catchError(this.handleError));
-	}
+  }
+
+  getCollectionPoamLabel(id: string) {
+	return this.http.get(`${this.uri}/collection/${id}/poamlabel`, this.httpOptions)
+		.pipe(catchError(this.handleError));
+}
+
+  getCollectionPoamSeverity(id: string) {
+    return this.http.get(`${this.uri}/collection/${id}/poamseverity`, this.httpOptions)
+      .pipe(catchError(this.handleError));
+  }
+
+  getCollectionPoamEstimatedCompletion(id: string) {
+    return this.http.get(`${this.uri}/collection/${id}/poamEstimatedCompletion`, this.httpOptions)
+      .pipe(catchError(this.handleError));
+  }
 
 	getPoams() {
 		return this.http.get(`${this.uri}/poams`)
@@ -184,5 +199,27 @@ export class PoamService {
 deletePoamMilestone(poamId: string, milestoneId: string) {
     return this.http
         .delete<any>(`${this.uri}/poamMilestones/${poamId}/${milestoneId}`);
-}
+  }
+
+  getLabels(collectionId: string) {
+    return this.http
+      .get(`${this.uri}/labels/${collectionId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getPoamLabels(id: any) {
+    return this.http
+      .get(`${this.uri}/poamLabels/poam/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  postPoamLabel(poamLabel: any) {
+    return this.http
+      .post<any>(`${this.uri}/poamLabel`, poamLabel, this.httpOptions);
+  }
+
+  deletePoamLabel(poamId: any, labelId: any) {
+    return this.http
+      .delete<any>(`${this.uri}/poamLabel/poam/${poamId}/label/${labelId}`, this.httpOptions);
+  }
 }

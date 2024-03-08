@@ -12,8 +12,8 @@
   <input type="file" #fileInput style="display: none;" (change)="onFileSelect($event)" accept=".xls, .xlsx, .xlsm">
   <nb-layout-header fixed>
     <div class="container">
-      <img src="../assets/cpat.png" alt="C-PAT (Crane POAM Automation Tool)">
-    </div>
+      <img src="../assets/cpat.png" alt="C-PAT (Crane POAM Automation Tool)" (click)="reloadPage()" style="cursor: pointer;">
+</div>
     <div class="col" style="margin-top: 10px;" [nbSpinner]="isSettingWorkspace" nbSpinnerStatus="success"
          nbSpinnerSize="medium" nbSpinnerMessage="Loading work space, please wait...">
     </div>
