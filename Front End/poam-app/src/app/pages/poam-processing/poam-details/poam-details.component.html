@@ -172,6 +172,7 @@
       <nb-card-body>
         <nb-stepper orientation="horizontal">
 
+
           <!-- Assignees -->
           <nb-step label="Assignees">
             <div class="col">
@@ -262,8 +263,21 @@
           <nb-step label="Notes">
             <textarea nbInput fullWidth [(ngModel)]="poam.notes" placehoder="Notes" name='notes' cols="180" rows="16" maxlength="2000"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" disabled nbStepperNext>next</button>
+            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
+
+          <!-- Labels -->
+          <nb-step label="POAM Labels">
+           <div class="col">
+            <angular2-smart-table [settings]="poamLabelsSettings" [source]="poamLabels" mode="inline"
+            (createConfirm)="confirmCreateLabel($event)"
+            (deleteConfirm)="confirmDeleteLabel($event)">
+            </angular2-smart-table>
+           </div>
+           <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+           <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" disabled nbStepperNext>next</button>
+         </nb-step>
+
         </nb-stepper>
       </nb-card-body>
 

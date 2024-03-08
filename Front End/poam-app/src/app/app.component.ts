@@ -437,6 +437,10 @@ export class AppComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  reloadPage(): void {
+    window.location.reload();
+  }
+
   private destroy$ = new Subject<void>();
 
   ngOnDestroy() {

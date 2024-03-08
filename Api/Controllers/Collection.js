@@ -26,14 +26,32 @@ module.exports.getCollection = async function getCollection(req, res, next){
 		res.status(201).json(getCollection)
 }
 
-module.exports.getCollectionPoamStats = async function getCollectionPoamStats(req, res, next){
-		//let collectionId = req.params.collectionId
-		//console.log(userName)
-		// console.log("getCollectionPoamStats")
+module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(req, res, next){
 
-		var getCollection = await collectionService.getCollectionPoamStats(req, res, next)
+		var getCollection = await collectionService.getCollectionPoamStatus(req, res, next)
 
 		res.status(201).json(getCollection)
+}
+
+module.exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res, next){
+
+	var getCollection = await collectionService.getCollectionPoamLabel(req, res, next)
+
+	res.status(201).json(getCollection)
+}
+
+module.exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(req, res, next) {
+
+	var getCollection = await collectionService.getCollectionPoamSeverity(req, res, next)
+
+	res.status(201).json(getCollection)
+}
+
+module.exports.getCollectionPoamEstimatedCompletion = async function getCollectionPoamEstimatedCompletion(req, res, next) {
+
+	var getCollection = await collectionService.getCollectionPoamEstimatedCompletion(req, res, next)
+
+	res.status(201).json(getCollection)
 }
 
 module.exports.getCollections = async function getCollections(req, res, next){

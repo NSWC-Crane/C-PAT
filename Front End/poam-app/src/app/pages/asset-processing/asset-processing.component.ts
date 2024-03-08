@@ -13,7 +13,7 @@ import { AfterViewInit, Component, ViewChild, ElementRef, OnInit } from '@angula
 import { SharedService } from '../../Shared/shared.service';
 import { AssetService } from './assets.service';
 import { forkJoin, Observable } from 'rxjs';
-import { NbDialogService, NbInputModule, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
+import { NbDialogService, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth';
 import { SubSink } from "subsink";

@@ -70,6 +70,12 @@ CREATE TABLE `poamtracking`.`assetlabels` (
    PRIMARY KEY (`assetId`,`labelId`)
  )
 
+ CREATE TABLE `poamtracking`.`poamlabels` (
+   `poamId` int NOT NULL,
+   `labelId` int NOT NULL,
+   PRIMARY KEY (`poamId`,`labelId`)
+ )
+
 CREATE TABLE `poamtracking`.`label` (
    `labelId` int NOT NULL AUTO_INCREMENT,
    `description` varchar(255) DEFAULT NULL,

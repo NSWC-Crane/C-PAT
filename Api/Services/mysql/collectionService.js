@@ -242,39 +242,140 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 
 }
 
-exports.getCollectionPoamStats = async function getCollectionPoamStats( req, res, next){
-
-	// console.log("collectionId: ",  req.params.collectionId)
+exports.getCollectionPoamStatus = async function getCollectionPoamStatus( req, res, next){
 	
 	try{
 		let connection
 		connection = await dbUtils.pool.getConnection()
-		//if user is admin check, if so dump all collections
 		let sql = "SELECT status, COUNT(*) AS statusCount FROM poam WHERE collectionId = ?  GROUP BY status;"
 		let [rows] = await connection.query(sql, [req.params.collectionId])
-		// console.log("rows: ", rows)
-		// let response = new collectionObj(row[0].collectionId, row[0].collectionName,row[0].description, row[0].created,row[0].grantCount,row[0].poamCount)
 		
 		await connection.release()
 		var size = Object.keys(rows).length
 
-		var poamStats = []
+		var poamStatus = []
 
 		for (let counter = 0; counter < size; counter++) {
-				// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-				poamStats.push({
+				poamStatus.push({
 						...rows[counter]
 				});
 		}
 
-		return {poamStats: poamStats} ;	 
+		return {poamStatus: poamStatus} ;	 
 	}
 	catch(error)
 	{
 		return {"null" : "Undefined collection"}
 	}
 }
+
+exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res, next) {
+    let connection;
+    try {
+        connection = await dbUtils.pool.getConnection();
+        let sql = `
+            SELECT l.labelName, COUNT(pl.labelId) AS labelCount
+            FROM poamtracking.poamlabels pl
+            INNER JOIN poamtracking.poam p ON pl.poamId = p.poamId
+            INNER JOIN poamtracking.label l ON pl.labelId = l.labelId
+            WHERE p.collectionId = ?
+            GROUP BY l.labelName;
+        `;
+        let [rows] = await connection.query(sql, [req.params.collectionId]);
+
+        let poamLabel = rows.map(row => ({
+            label: row.labelName,
+            labelCount: row.labelCount
+        }));
+
+        return { poamLabel }; 
+    } catch (error) {
+        console.error("Error fetching POAM label counts: ", error);
+        throw new Error("Unable to fetch POAM label counts");
+    } finally {
+        if (connection) await connection.release();
+    }
+}
+
+
+exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(req, res, next) {
+
+	try {
+		let connection
+		connection = await dbUtils.pool.getConnection()
+		let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam WHERE collectionId = ?  GROUP BY rawSeverity;"
+		let [rows] = await connection.query(sql, [req.params.collectionId])
+
+		await connection.release()
+		var size = Object.keys(rows).length
+
+		var poamSeverity = []
+
+		for (let counter = 0; counter < size; counter++) {
+			poamSeverity.push({
+				severity: rows[counter].rawSeverity,
+				severityCount: rows[counter].severityCount
+			});
+		}
+
+		return { poamSeverity: poamSeverity };
+	}
+	catch (error) {
+		return { "null": "Undefined collection" }
+	}
+}
+
+exports.getCollectionPoamEstimatedCompletion = async function getCollectionPoamEstimatedCompletion(req, res, next) {
+	try {
+		let connection = await dbUtils.pool.getConnection();
+		let sql = `
+            SELECT
+                scheduledCompletionDate,
+                extensionTimeAllowed,
+                DATEDIFF(
+                    DATE_ADD(scheduledCompletionDate, INTERVAL IFNULL(extensionTimeAllowed, 0) DAY),
+                    CURDATE()
+                ) AS daysUntilCompletion
+            FROM poam
+            WHERE collectionId = ?
+        `;
+
+		let [rows] = await connection.query(sql, [req.params.collectionId]);
+		await connection.release();
+
+		let buckets = {
+			"OVERDUE": 0,
+			"< 30 Days": 0,
+			"30-60 Days": 0,
+			"60-90 Days": 0,
+			"90-180 Days": 0,
+			"180-365 Days": 0,
+			"> 365 Days": 0,
+		};
+
+		rows.forEach(row => {
+			let days = row.daysUntilCompletion;
+			if (days <= 0) buckets["OVERDUE"]++;
+			else if (days <= 30) buckets["< 30 Days"]++;
+			else if (days <= 60) buckets["30-60 Days"]++;
+			else if (days <= 90) buckets["60-90 Days"]++;
+			else if (days <= 180) buckets["90-180 Days"]++;
+			else if (days <= 365) buckets["180-365 Days"]++;
+			else if (days > 365) buckets["> 365 Days"]++;
+		});
+
+		let poamEstimatedCompletion = Object.keys(buckets).map(key => ({
+			estimatedCompletion: key,
+			estimatedCompletionCount: buckets[key],
+		}));
+
+		return { poamEstimatedCompletion };
+	} catch (error) {
+		console.error("Error fetching POAM estimated completion data:", error);
+		return { "error": "Failed to fetch POAM estimated completion data" };
+	}
+}
+
 exports.postCollection = async function postCollection(req, res, next) {
 	// console.log("inSide postCollection req.body: ", req.body)
 	let connection;

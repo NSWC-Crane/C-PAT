@@ -12,11 +12,10 @@ import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@an
 import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SubSink } from 'subsink';
-import { forkJoin, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AssetService } from '../assets.service'
 import { AuthService } from '../../../auth';
-import { NbAuthJWTToken, NbAuthToken } from '@nebular/auth';
-import { ListEditorSettings, Settings } from 'angular2-smart-table';
+import { Settings } from 'angular2-smart-table';
 import { SmartTableSelectComponent } from '../../../Shared/components/smart-table/smart-table-select.component';
 
 interface Label {
