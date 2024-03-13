@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import axios from 'axios';
-import { from, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, from, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SharedService {
-
+  private _selectedCollection = new BehaviorSubject<any>(null);
+  public readonly selectedCollection = this._selectedCollection.asObservable();
   constructor() { }
 
   private getHeaders(token: string) {
@@ -14,6 +15,10 @@ export class SharedService {
       'accept': 'application/json',
       'Authorization': `Bearer ${token}`
     };
+  }
+
+  public setSelectedCollection(collection: any) {
+    this._selectedCollection.next(collection);
   }
 
   getSTIGsFromSTIGMAN(token: string): Observable<any[]> {
@@ -38,7 +43,7 @@ export class SharedService {
 
   selectedCollectionFromSTIGMAN(collectionId: string, token: string): Observable<any[]> {
     const headers = this.getHeaders(token);
-    const endpoint = environment.getCollectionsFromSTIGMANEndpoint + collectionId;
+    const endpoint = environment.getCollectionsFromSTIGMANEndpoint + collectionId + "?projection=labels";
     return from(axios.get<any[]>(endpoint, { headers })
       .then(response => response.data)
       .catch(error => {

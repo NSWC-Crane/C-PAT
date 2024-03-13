@@ -94,8 +94,6 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
 
 		let sql_query = `INSERT INTO poamtracking.poamapprovers (poamId, userId, approved, approvedDate, comments) values (?, ?, ?, ?, ?)`
 
-		//await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.poamCount])
-		//await connection.release()
 		await connection.query(sql_query, [req.body.poamId, req.body.userId, req.body.approved, req.body.approvedDate, req.body.comments])
 		await connection.release()
 

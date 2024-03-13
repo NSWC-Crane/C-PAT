@@ -11,7 +11,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, Subscription } from 'rxjs';
 import { AuthService } from '../../../auth';
 import { CollectionsService } from '../../collection-processing/collections.service';
 import { PoamService } from '../poams.service';
@@ -34,7 +34,6 @@ interface Label {
   labelId?: number;
   labelName?: string;
   description?: string;
-  poamCount?: number;
 }
 
 interface LabelsResponse {
@@ -92,6 +91,8 @@ export class PoamDetailsComponent implements OnInit {
     "RMF Controls",
     "EXORD",
   ];
+  selectedCollection: any;
+  private subscriptions = new Subscription();
   
 
   poamAssetsSettings: Settings = {
@@ -432,18 +433,19 @@ export class PoamDetailsComponent implements OnInit {
   ngOnInit() {
 
     this.route.params.subscribe(async params => {
-      // console.log("params: ", params)
       this.poamId = params['poamId'];
 
       this.isLoggedIn = await this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
-        // console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
         this.setPayload();
       }
-
     });
-
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
   }
 
   setPayload() {
@@ -613,7 +615,7 @@ export class PoamDetailsComponent implements OnInit {
   }
 
   getLabelData() {
-    this.subs.sink = this.poamService.getLabels(this.payload.lastCollectionAccessedId).subscribe((labels: any) => {
+    this.subs.sink = this.poamService.getLabels(this.selectedCollection).subscribe((labels: any) => {
       this.labelList = labels.labels;
       this.updateLabelEditorConfig();
     });
@@ -1366,6 +1368,7 @@ let approverSettings = this.poamApproverSettings;
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 }

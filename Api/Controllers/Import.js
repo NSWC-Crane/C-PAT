@@ -285,6 +285,22 @@ module.exports.importCollectionAndAssets = async function importCollectionAndAss
             await collectionRecord.update(collectionData);
         }
 
+        if (collection.labels && Array.isArray(collection.labels)) {
+            for (const label of collection.labels) {
+                const labelData = {
+                    collectionId: collectionRecord.collectionId,
+                    labelName: label.name,
+                    description: label.description,
+                    stigmanLabelId: label.labelId,
+                };
+
+                await db.Label.findOrCreate({
+                    where: { stigmanLabelId: label.labelId, collectionId: collectionRecord.collectionId },
+                    defaults: labelData
+                });
+            }
+        }
+
         // Handle Assets
         for (const asset of assets) {
             const assetData = {
@@ -307,11 +323,31 @@ module.exports.importCollectionAndAssets = async function importCollectionAndAss
             if (!assetCreated) {
                 await assetRecord.update(assetData);
             }
+            if (asset.labelIds && Array.isArray(asset.labelIds)) {
+                for (const labelId of asset.labelIds) {
+                    const labelRecord = await db.Label.findOne({
+                        where: { stigmanLabelId: labelId, collectionId: collectionRecord.collectionId },
+                    });
+
+                    if (labelRecord) {
+                        await db.AssetLabels.findOrCreate({
+                            where: {
+                                assetId: assetRecord.assetId,
+                                labelId: labelRecord.labelId
+                            },
+                            defaults: {
+                                assetId: assetRecord.assetId,
+                                labelId: labelRecord.labelId,
+                                collectionId: collectionRecord.collectionId
+                            }
+                        });
+                    }
+                }
+            }
         }
 
-        res.status(200).json({ message: 'Collection and Assets Imported Successfully' });
+        res.status(200).json({ message: 'Collection, Assets, and Labels Imported Successfully' });
     } catch (error) {
-        // Log the error and send a server error response
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
     }

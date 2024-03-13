@@ -12,31 +12,26 @@ const labelService = require('../Services/mysql/labelService')
 
 
 module.exports.getLabels = async function getLabels(req, res, next){
-        // res.status(201).json({message: "getLabels Method called successfully"})
         var labels = await labelService.getLabels(req,res,next); 
         res.status(201).json(labels)
 }
 
 module.exports.getLabel = async function getLabel(req, res, next){
-        // res.status(201).json({message: "getLabel Method called successfully"});
         var label = await labelService.getLabel(req,res,next); 
         res.status(201).json(label)
 }
 
 module.exports.postLabel = async function postLabel(req, res, next){
-        //res.status(201).json({message: "post:Label Method called successfully"});
         var label = await labelService.postLabel(req,res,next); 
         res.status(201).json(label)
 }
 
 module.exports.putLabel = async function putLabel(req, res, next){
-        // res.status(201).json({message: "putLabel Method called successfully"});
         var label = await labelService.putLabel(req,res,next); 
         res.status(201).json(label)
 }
 
 module.exports.deleteLabel= async function deleteLabel(req, res, next){
-        // res.status(201).json({message: "deleteLabel Method called successfully"});
         var label = await labelService.deleteLabel(req,res,next); 
         res.status(201).json(label)
 }

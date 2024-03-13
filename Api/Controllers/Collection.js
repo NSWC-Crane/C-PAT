@@ -26,6 +26,13 @@ module.exports.getCollection = async function getCollection(req, res, next){
 		res.status(201).json(getCollection)
 }
 
+module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res, next) {
+
+	var getCollection = await collectionService.getCollectionAssetLabel(req, res, next)
+
+	res.status(201).json(getCollection)
+}
+
 module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(req, res, next){
 
 		var getCollection = await collectionService.getCollectionPoamStatus(req, res, next)

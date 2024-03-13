@@ -45,6 +45,5 @@ import { AppComponent } from '../../app.component';
   providers: [
     provideCharts(withDefaultRegisterables()),
   ],
-  bootstrap: [AppComponent],
 })
 export class PoamsModule { }

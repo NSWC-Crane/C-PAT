@@ -13,12 +13,13 @@ import { Router } from '@angular/router';
 import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { AuthService } from '../../auth';
 import { UsersService } from '../user-processing/users.service';
 import { LabelService } from './label.service';
+import { SharedService } from '../../Shared/shared.service';
 
 interface Permission {
   userId: number;
@@ -38,8 +39,6 @@ interface FSEntry {
   labelId?: string;
   labelName?: string;
   description?: string;
-  poamCount?: string;
-
 }
 
 @Component({
@@ -49,7 +48,7 @@ interface FSEntry {
 })
 export class LabelProcessingComponent implements OnInit {
   customColumn = 'label';
-  defaultColumns = [ 'Name', 'Description', 'POAM Count' ];
+  defaultColumns = [ 'Name', 'Description' ];
   allColumns = [ this.customColumn, ...this.defaultColumns ];
   dataSource!: NbTreeGridDataSource<any>;
 
@@ -57,18 +56,16 @@ export class LabelProcessingComponent implements OnInit {
   user: any;
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
-
   labels: any;
   label: any={};
   data: any= [];
-
   allowSelectLabels = true;
   isLoading = true;
-
   selected: any
   selectedRole: string = 'admin';
   payload: any;
-
+  selectedCollection: any;
+  private subscriptions = new Subscription();
   get hideCollectionEntry() {
     return (this.label.labelId && this.label.labelId != "LABEL")
       ? { display: 'block' }
@@ -84,11 +81,11 @@ export class LabelProcessingComponent implements OnInit {
     private authService: AuthService,
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
+    private sharedService: SharedService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
      }
 
   onSubmit() {
-    console.log("Attempting to onSubmit()...");
     this.resetData();
   }
 
@@ -96,11 +93,13 @@ export class LabelProcessingComponent implements OnInit {
       this.isLoggedIn = await this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
-        console.log("Poams component userProfile: ",this.userProfile.email)
-        console.log("Poams component userProfile: ",this.userProfile.username)
         this.setPayload();
       }
-  
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
   }
 
   setPayload() {
@@ -141,11 +140,10 @@ export class LabelProcessingComponent implements OnInit {
   getLabelData() {
     this.isLoading = true;
     this.labels = null;
-    this.labelService.getLabels().subscribe((result: any) => {
+    this.labelService.getLabels(this.selectedCollection).subscribe((result: any) => {
 
       this.data = result.labels.sort((a: { labelId: number; }, b: { labelId: number; }) => a.labelId - b.labelId);
       this.labels = this.data;
-      console.log("Labels: ",this.data)
       this.getLabelsGrid("");
       this.isLoading = false;
     });
@@ -156,17 +154,15 @@ export class LabelProcessingComponent implements OnInit {
     let labelData = this.data;
 
     var treeViewData: TreeNode<FSEntry>[] = labelData.map((label: { labelId: number | any[]; labelName: any; 
-        description: any; poamCount: any; }) => {
+        description: any;}) => {
       let myChildren: never[] = [];
 
       return {
 
-        data: { label: label.labelId, 'Name': label.labelName, 'Description': label.description, 
-          'POAM Count': label.poamCount},
+        data: { label: label.labelId, 'Name': label.labelName, 'Description': label.description},
         children: myChildren
       };
     })
-    console.log("treeViewData: ", treeViewData)
     this.dataSource = this.dataSourceBuilder.create(treeViewData);
   }
 
@@ -176,8 +172,6 @@ export class LabelProcessingComponent implements OnInit {
     let selectedData = this.data.filter((label: { labelId: any; }) => label.labelId === labelId)
 
     this.label = selectedData[0];
-    console.log("label: ",this.label);
-    console.log("labels: ",this.labels);
     this.allowSelectLabels = false;
   }
 
@@ -192,12 +186,12 @@ export class LabelProcessingComponent implements OnInit {
     this.label.labelId = "ADDLABEL";
     this.label.labelName = "";
     this.label.description = ""
-    this.label.poamCount = 0;
     this.allowSelectLabels = false;
   }
 
   ngOnDestroy() {
-    this.subs.unsubscribe()
+    this.subs.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>

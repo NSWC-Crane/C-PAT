@@ -242,6 +242,34 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 
 }
 
+exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res, next) {
+	let connection;
+	try {
+		connection = await dbUtils.pool.getConnection();
+		let sql = `
+            SELECT l.labelName, COUNT(pl.labelId) AS labelCount
+            FROM poamtracking.assetlabels pl
+            INNER JOIN poamtracking.asset p ON pl.assetId = p.assetId
+            INNER JOIN poamtracking.label l ON pl.labelId = l.labelId
+            WHERE p.collectionId = ?
+            GROUP BY l.labelName;
+        `;
+		let [rows] = await connection.query(sql, [req.params.collectionId]);
+
+		let assetLabel = rows.map(row => ({
+			label: row.labelName,
+			labelCount: row.labelCount
+		}));
+
+		return { assetLabel };
+	} catch (error) {
+		console.error("Error fetching asset label counts: ", error);
+		throw new Error("Unable to fetch asset label counts");
+	} finally {
+		if (connection) await connection.release();
+	}
+}
+
 exports.getCollectionPoamStatus = async function getCollectionPoamStatus( req, res, next){
 	
 	try{

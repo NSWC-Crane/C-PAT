@@ -207,6 +207,11 @@ deletePoamMilestone(poamId: string, milestoneId: string) {
       .pipe(catchError(this.handleError));
   }
 
+  postLabel(label: any) {
+    return this.http
+      .post<any>(`${this.uri}/label`, label, this.httpOptions);
+  }
+
   getPoamLabels(id: any) {
     return this.http
       .get(`${this.uri}/poamLabels/poam/${id}`)

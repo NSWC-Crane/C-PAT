@@ -20,10 +20,11 @@ import { DatePipe } from '@angular/common';
 import { SmartTableTextareaComponent } from 'src/app/Shared/components/smart-table/smart-table-textarea.component';
 import { SmartTableDatepickerComponent } from 'src/app/Shared/components/smart-table/smart-table-datepicker.component';
 import { Settings } from 'angular2-smart-table';
-import { Observable, forkJoin } from 'rxjs';
+import { Observable, Subscription, forkJoin } from 'rxjs';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SmartTableSelectComponent } from '../../../Shared/components/smart-table/smart-table-select.component';
 import { addDays, format, isAfter, parseISO } from 'date-fns';
+import { SharedService } from '../../../Shared/shared.service';
 
 
 @Component({
@@ -52,6 +53,9 @@ export class PoamExtendComponent implements OnInit {
     "Procurement Required",
     "Unanticipated Risks",
   ];
+  selectedCollection: any;
+  private subscriptions = new Subscription();
+
   public extensionJustificationPlaceholder: string = "Select from the available options, modify a provided option, or provide a custom justification";
   completionDate: any;
   completionDateWithExtension: any;
@@ -130,6 +134,7 @@ export class PoamExtendComponent implements OnInit {
     },
     hideSubHeader: false,
   };
+    labelList: any;
   
   constructor(
     private router: Router,
@@ -139,7 +144,8 @@ export class PoamExtendComponent implements OnInit {
     private route: ActivatedRoute,
     private poamService: PoamService,
     private userService: UsersService,
-    private  datepipe: DatePipe
+    private datepipe: DatePipe,
+    private sharedService: SharedService,
   ) { }
 
   @ViewChild('extendTemplate') extendTemplate!: TemplateRef<any>;
@@ -154,6 +160,11 @@ export class PoamExtendComponent implements OnInit {
         this.getData();
       }
     });
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
   }
 
   getData() {
@@ -369,9 +380,12 @@ export class PoamExtendComponent implements OnInit {
       extensionJustification: this.extensionJustification,
     };
 
+    if (this.poam.extensionTimeAllowed > 0) {
+      this.findOrCreateExtendedLabel();
+    }
+
     try {
       const updatedExtension = await this.poamService.putPoamExtension(extensionData).toPromise();
-      console.log('POAM extension updated successfully:', updatedExtension);
       if (this.modalWindow) {
         this.modalWindow.close();
       }
@@ -381,7 +395,33 @@ export class PoamExtendComponent implements OnInit {
     }
   }
 
+  findOrCreateExtendedLabel() {
+    this.subs.sink = this.poamService.getLabels(this.selectedCollection).subscribe((labels: any) => {
+      this.labelList = labels.labels;
+      const extendedLabel = this.labelList.find((label: any) => label.labelName === "Extended");
+
+      if (extendedLabel) {
+        let extendedPoamLabel = {
+          poamId: +this.poamId,
+          labelId: +extendedLabel.labelId,
+        };
+        this.poamService.postPoamLabel(extendedPoamLabel).subscribe(poamLabelData => {
+        })
+      } else {
+        let extendLabel = {
+          collectionId: this.selectedCollection,
+          labelName: "Extended",
+          description: "POAM has been extended",
+        };
+        this.subs.sink = this.poamService.postLabel(extendLabel).subscribe(response => {
+          this.findOrCreateExtendedLabel();
+        });
+      }
+    });
+  }
+
   ngOnDestroy() {
     this.subs.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 }

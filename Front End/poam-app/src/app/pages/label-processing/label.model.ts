@@ -13,5 +13,4 @@ export interface Label {
     labelId?: number;
     labelName?: string;
     description?: string;
-    poamCount?: number;
   }

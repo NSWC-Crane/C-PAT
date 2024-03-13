@@ -53,9 +53,9 @@ export class AssetService {
       .pipe(catchError(this.handleError));
   }
 
-  getLabels() {
+  getLabels(collectionId: string) {
     return this.http
-          .get(`${this.uri}/labels`)
+      .get(`${this.uri}/labels/${collectionId}`)
           .pipe(catchError(this.handleError));
   }
 
@@ -75,6 +75,11 @@ export class AssetService {
     const url = `${this.uri}/collections/${userName}`;
     return this.http
       .get(url)
+      .pipe(catchError(this.handleError));
+  }
+
+  getCollectionAssetLabel(id: string) {
+    return this.http.get(`${this.uri}/collection/${id}/assetlabel`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 

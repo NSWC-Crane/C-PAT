@@ -99,8 +99,6 @@ exports.postCollectionApprover = async function postCollectionApprover(req, res,
 
 		let sql_query = `INSERT INTO poamtracking.collectionapprovers (collectionId, userId, status) values (?, ?, ?)`
 
-		//await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.poamCount])
-		//await connection.release()
 		await connection.query(sql_query, [req.body.collectionId, req.body.userId, req.body.status]);
 		await connection.release();
 
