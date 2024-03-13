@@ -14,48 +14,8 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 exports.getLabels = async function getLabels(req, res, next) {
-	console.log("getLabels (Service) ...");
-
-	try {
-		let connection
-		connection = await dbUtils.pool.getConnection()
-		let sql = "SELECT * FROM  poamtracking.label ORDER BY labelName;"
-		//console.log("getLabels sql: ", sql)
-
-		let [rowLabels] = await connection.query(sql)
-		console.log("rowLabels: ", rowLabels[0])
-		await connection.release()
-
-		var size = Object.keys(rowLabels).length
-
-		var labels = []
-
-		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-			labels.push({
-				"labelId": rowLabels[counter].labelId,
-				"labelName": rowLabels[counter].labelName,
-				"description": rowLabels[counter].description,
-				"poamCount": rowLabels[counter].poamCount
-			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
-		}
-
-		return { labels };
-
-	}
-	catch (error) {
-		let errorResponse = { null: "null" }
-		//await connection.release()
-		return errorResponse;
-	}
-}
-
-exports.getLabel = async function getLabel(req, res, next) {
-	if (!req.params.labelId) {
-		console.info('getLabel labelId not provided.');
+	if (!req.params.collectionId) {
+		console.info('getLabel collectionId not provided.');
 		return next({
 			status: 422,
 			errors: {
@@ -67,10 +27,59 @@ exports.getLabel = async function getLabel(req, res, next) {
 	try {
 		let connection
 		connection = await dbUtils.pool.getConnection()
-		let sql = "SELECT * FROM  poamtracking.label WHERE labelId=" + req.params.labelId + ";"
-		// console.log("getLabel sql: ", sql)
+		let sql = "SELECT * FROM poamtracking.label WHERE collectionId = ? ORDER BY labelName;";
+		let [rowLabels] = await connection.query(sql, [req.params.collectionId]);
 
-		let [rowLabel] = await connection.query(sql)
+		console.log("rowLabels: ", rowLabels[0])
+		await connection.release()
+
+		var size = Object.keys(rowLabels).length
+
+		var labels = []
+
+		for (let counter = 0; counter < size; counter++) {
+
+			labels.push({
+				"labelId": rowLabels[counter].labelId,
+				"labelName": rowLabels[counter].labelName,
+				"description": rowLabels[counter].description,
+			});
+		}
+
+		return { labels };
+
+	}
+	catch (error) {
+		let errorResponse = { null: "null" }
+		return errorResponse;
+	}
+}
+
+exports.getLabel = async function getLabel(req, res, next) {
+	if (!req.params.labelId) {
+		console.info('getLabel labelId not provided.');
+		return next({
+			status: 422,
+			errors: {
+				labelId: 'is required',
+			}
+		});
+	} else if (!req.params.collectionId) {
+		console.info('getLabel collectionId not provided.');
+		return next({
+			status: 422,
+			errors: {
+				collectionId: 'is required',
+			}
+		});
+	}
+
+	try {
+		let connection
+		connection = await dbUtils.pool.getConnection()
+		let sql = "SELECT * FROM poamtracking.label WHERE labelId = ? AND collectionId = ?";
+		let [rowLabel] = await connection.query(sql, [req.params.labelId, req.params.collectionId]);
+
 		console.log("rowLabel: ", rowLabel[0])
 		await connection.release()
 
@@ -80,16 +89,20 @@ exports.getLabel = async function getLabel(req, res, next) {
 	}
 	catch (error) {
 		let errorResponse = { null: "null" }
-		//await connection.release()
 		return errorResponse;
 	}
 }
 
 exports.postLabel = async function postLabel(req, res, next) {
-	// res.status(201).json({ message: "postPermission (Service) Method called successfully" });
-	// console.log("postPermission req.body: ", req.body)
-
-	if (!req.body.labelName) {
+	if (!req.params.collectionId) {
+		console.info('getLabel collectionId not provided.');
+		return next({
+			status: 422,
+			errors: {
+				collectionId: 'is required',
+			}
+		});
+	} else if (!req.body.labelName) {
 		console.info('postLabel labelName not provided.');
 		return next({
 			status: 422,
@@ -99,21 +112,18 @@ exports.postLabel = async function postLabel(req, res, next) {
 		});
 	}
 
-	if (!req.body.poamCount) req.body.poamCount = 0;
-
 	try {
 		let connection
 		connection = await dbUtils.pool.getConnection()
 
-		let sql_query = `INSERT INTO poamtracking.label (labelName, description, poamCount) values (?, ?, ?)`
+		let sql_query = `INSERT INTO poamtracking.label (labelName, description, collectionId) VALUES (?, ?, ?)`;
+		await connection.query(sql_query, [req.body.labelName, req.body.description, req.params.collectionId]);
 
-		//await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.poamCount])
-		//await connection.release()
-		await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.poamCount])
 		await connection.release()
 
-		let sql = "SELECT * FROM poamtracking.label WHERE labelName = '" + req.body.labelName + "';"
-		let [rowLabel] = await connection.query(sql)
+		let sql = "SELECT * FROM poamtracking.label WHERE labelName = ? AND collectionId = ?";
+		let [rowLabel] = await connection.query(sql, [req.body.labelName, req.params.collectionId]);
+
 		console.log("rowLabel: ", rowLabel[0])
 		await connection.release()		
 
@@ -121,7 +131,6 @@ exports.postLabel = async function postLabel(req, res, next) {
 		message.labelId = rowLabel[0].labelId
 		message.labelName = rowLabel[0].labelName
 		message.description = rowLabel[0].description
-		message.poamCount = rowLabel[0].poamCount
 		return(message)
 	}
 	catch (error) {
@@ -132,46 +141,47 @@ exports.postLabel = async function postLabel(req, res, next) {
 }
 
 exports.putLabel = async function putLabel(req, res, next) {
-	// res.status(201).json({ message: "putPermission (Service) Method called successfully" });
-		// console.log("postPermission req.body: ", req.body)
-		if (!req.body.labelId) {
-			console.info('putLabel labelId not provided.');
-			return next({
-				status: 422,
-				errors: {
-					labelId: 'is required',
-				}
-			});
-		}
-	
-		if (!req.body.labelName) {
-			console.info('putLabels labelName not provided.');
-			return next({
-				status: 422,
-				errors: {
-					labelName: 'is required',
-				}
-			});
-		}
-	
-		if (!req.body.description) req.body.description = "";
-		if (!req.body.poamCount) req.body.poamCount = 0;
+	if (!req.params.collectionId) {
+		console.info('getLabel collectionId not provided.');
+		return next({
+			status: 422,
+			errors: {
+				collectionId: 'is required',
+			}
+		});
+	} else if (!req.body.labelId) {
+		console.info('putLabel labelId not provided.');
+		return next({
+			status: 422,
+			errors: {
+				labelId: 'is required',
+			}
+		});
+	} else if (!req.body.labelName) {
+		console.info('putLabels labelName not provided.');
+		return next({
+			status: 422,
+			errors: {
+				labelName: 'is required',
+			}
+		});
+	} else if (!req.body.description) {
+		req.body.description = "";
+	}
 	
 		try {
 			let connection
 			connection = await dbUtils.pool.getConnection()
 	
-			let sql_query = "UPDATE poamtracking.label SET labelName= ?, description= ?, " +
-				"poamCount= ? WHERE labelId = " + req.body.labelId + ";"
-	
-			await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.poamCount])
+			let sql_query = "UPDATE poamtracking.label SET labelName = ?, description = ? WHERE labelId = ? AND collectionId = ?";
+			await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.labelId, req.params.collectionId]);
+
 			await connection.release()
 	
 			const message = new Object()
 			message.labelId = req.body.labelId
 			message.labelName = req.body.labelName
 			message.description = req.body.description
-			message.poamCount = req.body.poamCount
 			return(message)
 		}
 		catch (error) {
@@ -182,13 +192,20 @@ exports.putLabel = async function putLabel(req, res, next) {
 }
 
 exports.deleteLabel = async function deleteLabel(req, res, next) {
-	// res.status(201).json({ message: "deletePermission (Service) Method called successfully" });
 	if (!req.params.labelId) {
-		console.info('deleteLabel labelId not provided.');
+		console.info('getLabel labelId not provided.');
 		return next({
 			status: 422,
 			errors: {
 				labelId: 'is required',
+			}
+		});
+	} else if (!req.params.collectionId) {
+		console.info('getLabel collectionId not provided.');
+		return next({
+			status: 422,
+			errors: {
+				collectionId: 'is required',
 			}
 		});
 	}
@@ -196,11 +213,9 @@ exports.deleteLabel = async function deleteLabel(req, res, next) {
 	try {
 		let connection
 		connection = await dbUtils.pool.getConnection()
-		let sql = "DELETE FROM  poamtracking.label WHERE labelId=" + req.params.labelId + ";"
-		//console.log("deleteLabel sql: ", sql)
+		let sql = "DELETE FROM poamtracking.label WHERE labelId = ? AND collectionId = ?";
+		await connection.query(sql, [req.params.labelId, req.params.collectionId]);
 
-		await connection.query(sql)
-		// console.log("rowPermissions: ", rowPermissions[0])
 		await connection.release()
 
 		var label = []

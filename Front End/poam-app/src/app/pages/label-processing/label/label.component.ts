@@ -10,12 +10,13 @@
 
 import { Component, OnInit, TemplateRef, Input, EventEmitter, Output } from '@angular/core';
 import { LabelService } from '../label.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { NbDialogService,  NbWindowRef } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { SubSink } from 'subsink';
+import { SharedService } from '../../../Shared/shared.service';
 
 
 @Component({
@@ -31,19 +32,18 @@ export class LabelComponent implements OnInit {
 
   modalWindow: NbWindowRef | undefined
   errorMessage: string = '';
-
   data: any= [];
-
   deleteEvent: any;
   showLaborCategorySelect: boolean = false;
-
+  selectedCollection: any;
+  private subscriptions = new Subscription();
   private subs = new SubSink()
 
   constructor(private labelService: LabelService,
     private dialogService: NbDialogService,
     private router: Router,
     private authService: AuthService,
-    //private windowService: NbWindowService
+    private sharedService: SharedService,
     ) {
      }
 
@@ -52,55 +52,52 @@ export class LabelComponent implements OnInit {
     this.dialogService.open(dialog)
   }
 
+  ngOnInit() {
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
+  }
+
   onSubmit() {
-    console.log("Attempting to onSubmit()...");
 
     if (!this.validData()) return;
 
     let label = {
       labelId: (this.label.labelId == "ADDLABEL") ? 0 : this.label.labelId,
-      labelName:this.label.labelName,
+      collectionId: this.selectedCollection,
+      labelName: this.label.labelName,
       description: this.label.description,
-      poamCount: this.label.poamCount
     }
-    console.log("this.label: ", this.label)
 
     if (this.label.labelId == "ADDLABEL") {
       this.label.labelId = "";
 
-      this.subs.sink = this.labelService.addLabel(label).subscribe(
+      this.subs.sink = this.labelService.addLabel(this.selectedCollection, label).subscribe(
         data => {
           this.labelchange.emit(data.labelId);
-      }, err => {
+        }, err => {
 
           this.invalidData("unexpected error adding label");
         }
-        );
+      );
 
     } else {
-    
-      this.subs.sink = this.labelService.updateLabel(label).subscribe(data => {
-        //console.log("returned data: ",data)
-        this.label = data;        
-        this.labelchange.emit();                       //this will hide the billet and assign-task components
+
+      this.subs.sink = this.labelService.updateLabel(this.selectedCollection, label).subscribe(data => {
+        this.label = data;
+        this.labelchange.emit();
       });
-      
+
     }
   }
 
   deleteLabel() {
-    console.log("Attempting to deleteCollection()...");
-    this.resetData();
-  }
-
-  ngOnInit() {
-
-    // this.subs.sink = this.authService.getToken().subscribe((token: any) => {
-    //   this.payload = token.getPayload();
-    //   console.log("this.payload: ", this.payload)
-    //   console.log("this.router.url: ", this.router.url)
-    // });
-
+    //Temporarily removing this feature.
+    //this.subs.sink = this.labelService.deleteLabel(this.selectedCollection, this.label.labelId).subscribe((data: any) => {
+    //});
+    //this.labelchange.emit();
   }
 
   setLabelData() {
@@ -132,7 +129,7 @@ export class LabelComponent implements OnInit {
       return false;
     }
 
-    if (this.label.labelId == "ADDLABEL") {  // need to make sure this is not a duplicate
+    if (this.label.labelId == "ADDLABEL") {
       let exists = this.labels.find((e: { labelName: any; }) => e.labelName === this.label.labelName);
       if (exists) {
         this.invalidData("Duplicate collection number");
@@ -158,6 +155,7 @@ export class LabelComponent implements OnInit {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 }

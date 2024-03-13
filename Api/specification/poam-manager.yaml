@@ -240,9 +240,15 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /assetLabels:
+  /assetLabels/{collectionId}:
+    parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
     get:
-      summary: Return all assets
+      summary: Return all assets with labels for a specific collection
       operationId: getAssetLabels
       responses:
         '200':
@@ -734,6 +740,34 @@ paths:
           default: false
       - $ref: '#/components/parameters/benchmarkIdQuery'
       - $ref: '#/components/parameters/assetIdQuery'
+  
+  '/collection/{collectionId}/assetlabel':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      tags:
+        - Collection
+      security:
+        - oauth:
+            - 'c-pat:read'        
+      summary: Return asset labels and label count by Collection
+      description: Return asset labels and label count by Collection
+      operationId: getCollectionAssetLabel
+      responses:
+        '200':
+          description: assetLabel response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/assetLabel'
+        '204':
+          description: No Content
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
 
   '/collection/{collectionId}/poamlabel':
     parameters:
@@ -1137,10 +1171,16 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/labels':
+  '/labels/{collectionId}':
     get:
-      summary: Return all labels
+      summary: Return all labels for a collection
       operationId: getLabels
+      parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
       responses:
         '200':
           description: Collection Labels array response
@@ -1164,15 +1204,20 @@ paths:
         - oauth:
             - 'c-pat:read'
             
-  '/label/{labelId}':
+  '/label/{collectionId}/{labelId}':
     parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
       - in: path
         name: labelId
         required: true
         schema:
           type: integer
     get:
-      summary: Return a label by Id
+      summary: Return a label by labelId
       operationId: getLabel
       responses:
         '200':
@@ -1218,7 +1263,13 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/label':
+  '/label/{collectionId}':
+    parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
     post:
       summary: Add a label
       operationId: postLabel
@@ -1273,77 +1324,6 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-        
-  # '/permissions/user/{userId}':
-  #   parameters:
-  #     - in: path
-  #       name: userId
-  #       required: true
-  #       schema:
-  #         type: integer
-  #   get:
-  #     summary: Return all collection Permissionss for a user
-  #     operationId: getPermissions_User
-  #     responses:
-  #       '200':
-  #         description: Collection Permissions array response
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: array
-  #               items:
-  #                 $ref: '#/components/schemas/user_Permissions'
-  #       '403':
-  #         $ref: '#/components/responses/forbidden'
-  #       default:
-  #         description: unexpected error
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/error'
-  #     tags:
-  #       - Permissions
-  #     security:
-  #       - oauth:
-  #           - 'c-pat:op'
-
-  # '/permissions/user/{userId}/collection/{collectionId}':
-  #   parameters:
-  #     - in: path
-  #       name: userId
-  #       required: true
-  #       schema:
-  #         type: integer
-  #     - in: path
-  #       name: collectionId
-  #       required: true
-  #       schema:
-  #         type: integer          
-  #   get:
-  #     summary: Return unique user collection permission user
-  #     operationId: getPermissions_UserCollection
-  #     responses:
-  #       '200':
-  #         description: Collection Permissions array response
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: array
-  #               items:
-  #                 $ref: '#/components/schemas/user_Permissions'
-  #       '403':
-  #         $ref: '#/components/responses/forbidden'
-  #       default:
-  #         description: unexpected error
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/error'
-  #     tags:
-  #       - Permissions
-  #     security:
-  #       - oauth:
-  #           - 'c-pat:op'
             
   '/permission':
     post:
@@ -2903,10 +2883,13 @@ components:
       type: object
       required:
         - assetId
+        - collectionId
         - labelId
       additionalProperties: true
       properties:
         assetId:
+          type: integer
+        collectionId:
           type: integer
         labelId:
           type: integer
@@ -3096,20 +3079,18 @@ components:
     label_Object:
       type: object
       required:
-        - labelId
         - labelName
-        - description
-        - poamCount
-      additionalProperties: false
+        - collectionId
+      additionalProperties: true
       properties:
         labelId:
+          type: integer
+        collectionId:
           type: integer
         labelName:
           type: string
         description:
           type: string
-        poamCount:
-          type: integer 
 
     label:
       type: object
@@ -3295,6 +3276,8 @@ components:
       properties:
         poamId:
           type: integer
+        collectionId:
+          type: integer
         labelId:
           type: integer
 
@@ -3343,6 +3326,14 @@ components:
         milestoneStatus:
           type: string
       description: Schema for updating a milestone. All fields are optional, allowing partial updates.
+
+    assetLabel:
+      type: object
+      properties:
+        label:
+          type: string
+        labelCount:
+          type: integer
 
     poamStatus:
       type: object

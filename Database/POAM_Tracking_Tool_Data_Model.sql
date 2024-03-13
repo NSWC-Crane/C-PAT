@@ -66,6 +66,7 @@ CREATE TABLE `poamtracking`.`poamassignees` (
   
 CREATE TABLE `poamtracking`.`assetlabels` (
    `assetId` int NOT NULL,
+   `collectionId` int NOT NULL,
    `labelId` int NOT NULL,
    PRIMARY KEY (`assetId`,`labelId`)
  )
@@ -78,9 +79,10 @@ CREATE TABLE `poamtracking`.`assetlabels` (
 
 CREATE TABLE `poamtracking`.`label` (
    `labelId` int NOT NULL AUTO_INCREMENT,
+   `collectionId` int NOT NULL,
    `description` varchar(255) DEFAULT NULL,
    `labelName` varchar(50) NOT NULL,
-   `poamCount` int NOT NULL DEFAULT '0',
+   `stigmanLabelId` varchar(36) DEFAULT NULL,
    PRIMARY KEY (`labelId`),
    UNIQUE KEY `labelName_UNIQUE` (`labelName`)
  );
@@ -244,40 +246,6 @@ BEGIN
         SET `assetCount` = `assetCount` + 1
         WHERE `collectionId` = NEW.`collectionId`;
     END IF;
-END $$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER `after_poamasset_insert`
-AFTER INSERT ON `poamtracking`.`poamassets`
-FOR EACH ROW
-BEGIN
-    UPDATE `label` 
-    JOIN `assetlabels` ON `label`.`labelId` = `assetlabels`.`labelId`
-    SET `label`.`poamCount` = (
-        SELECT COUNT(DISTINCT `pa`.`poamId`)
-        FROM `poamassets` `pa`
-        JOIN `assetlabels` `al` ON `pa`.`assetId` = `al`.`assetId`
-        WHERE `al`.`labelId` = `label`.`labelId`
-    )
-    WHERE `assetlabels`.`assetId` = NEW.`assetId`;
-END $$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER `after_poamasset_delete`
-AFTER DELETE ON `poamtracking`.`poamassets`
-FOR EACH ROW
-BEGIN
-    UPDATE `label` 
-    JOIN `assetlabels` ON `label`.`labelId` = `assetlabels`.`labelId`
-    SET `label`.`poamCount` = (
-        SELECT COUNT(DISTINCT `pa`.`poamId`)
-        FROM `poamassets` `pa`
-        JOIN `assetlabels` `al` ON `pa`.`assetId` = `al`.`assetId`
-        WHERE `al`.`labelId` = `label`.`labelId`
-    )
-    WHERE `assetlabels`.`assetId` = OLD.`assetId`;
 END $$
 DELIMITER ;
 

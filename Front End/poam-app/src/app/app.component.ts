@@ -16,6 +16,7 @@ import { FileUploadService } from './file-upload.service';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
 import { StatusDialogComponent } from './Shared/components/status-dialog/status-dialog.component';
+import { SharedService } from './Shared/shared.service';
 
 interface Permission {
   userId: number;
@@ -66,6 +67,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private themeService: NbThemeService,
     private authService: AuthService,
     private router: Router,
+    private sharedService: SharedService,
     private collectionService: CollectionsService,
     private userService: UsersService,
     private poamService: PoamService,
@@ -169,7 +171,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
       if (this.selectedCollection) {
         this.resetWorkspace(this.selectedCollection);
-
       }
 
       if ((!this.payload.lastCollectionAccessedId) || this.payload.lastCollectionAccessedId == undefined) {
@@ -253,13 +254,13 @@ export class AppComponent implements OnInit, OnDestroy {
   resetWorkspace(selectedCollection: any) {
     this.selectedCollection = selectedCollection; 
     this.selectCollectionMsg = false;
+    this.sharedService.setSelectedCollection(parseInt(this.selectedCollection, 10));
 
     let collection = this.collections.find((x: { collectionId: any; }) => x.collectionId == this.selectedCollection)
     if (collection) {
       var stWorkspace = <HTMLInputElement>document.getElementById('selectedCollection');
       if (stWorkspace) {
         var att = stWorkspace.getElementsByTagName("BUTTON")[0];
-        // console.log("collection: ",collection)
         att.textContent = "Collection - " + collection.collectionName
       }
     }
@@ -278,9 +279,7 @@ export class AppComponent implements OnInit, OnDestroy {
       isAdmin: this.user.isAdmin,
       updateSettingsOnly: 1
     }
-    // console.log("resetWorkspace payload.collections: ",this.payload.collections)
     let selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == selectedCollection)
-    // console.log("resetWorkspace selectedPermission: ",selectedPermissions)
     let myRole = ''
 
     if (!selectedPermissions && !this.user.isAdmin) {

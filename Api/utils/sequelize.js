@@ -30,7 +30,9 @@ db.sequelize = sequelize;
 
 // Importing and initializing models
 db.Asset = require("../Models/asset.model.js")(sequelize, Sequelize.DataTypes);
+db.AssetLabels = require("../Models/assetLabels.model.js")(sequelize, Sequelize.DataTypes);
 db.Collection = require("../Models/collection.model.js")(sequelize, Sequelize.DataTypes);
+db.Label = require("../Models/label.model.js")(sequelize, Sequelize.DataTypes);
 db.Poam = require("../Models/poam.model.js")(sequelize, Sequelize.DataTypes);
 db.poamAsset = require("../Models/poamAsset.model.js")(sequelize, Sequelize.DataTypes);
 db.poamMilestone = require("../Models/poamMilestone.model.js")(sequelize, Sequelize.DataTypes);

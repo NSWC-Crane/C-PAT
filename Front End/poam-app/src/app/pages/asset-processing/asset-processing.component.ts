@@ -24,6 +24,7 @@ import { UsersService } from '../user-processing/users.service';
 import { environment } from '../../../environments/environment';
 import { ChangeDetectorRef } from '@angular/core';
 import { Assets } from './asset.model';
+import { Chart, registerables, ChartData } from 'chart.js';
 
 interface Permission {
   userId: number;
@@ -60,11 +61,41 @@ interface FSEntry {
   styleUrls: ['./asset-processing.component.scss']
 })
 export class AssetProcessingComponent implements OnInit, AfterViewInit {
+  @ViewChild('assetLabelsChart') assetLabelsChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('assetScrollListener', { read: ElementRef }) select!: ElementRef;
   offset = 0;
   limit = 50;
   isListFull = false;
 
+  public assetLabel: any[] = [];
+  public selectedLabel: any = 'All';
+  assetLabelChart!: Chart;
+  assetLabelChartData: ChartData<'bar'> = {
+    labels: [''],
+    datasets: [],
+  };
+  public selectedPosition: any = 'bottom';
+  barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: true } },
+      y: { beginAtZero: true, grid: { display: false } },
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: this.selectedPosition,
+        labels: {
+          font: {
+            size: 13,
+            family: 'sans-serif',
+            weight: 600,
+          }
+        }
+      },
+    },
+  };
   customColumn = 'asset';
   defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'Domain', 'MAC Address'];
   allColumns = [this.customColumn, ...this.defaultColumns];
@@ -80,8 +111,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
 
   availableAssets: any[] = [];
   selectedAssets: string[] = [];
-  collections: any[] = []; // Array to hold collections
-  selectedCollection: string = ''; // Selected collection ID
+  collections: any[] = [];
+  selectedCollection: string = '';
   assets: any;
   asset: any = {};
   data: any = [];
@@ -113,7 +144,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
-  }
+  Chart.register(...registerables);
+}
 
   onSubmit() {
     this.resetData();
@@ -138,11 +170,30 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
         }
       }, 0);
     });
+    this.initializeChart();
+    this.cdr.detectChanges();
   }
 
   getSelectPanel(): HTMLElement | null {
     const dropdownPanel = document.querySelector('.option-list');
     return dropdownPanel as HTMLElement;
+  }
+
+  private initializeChart(): void {
+    this.cdr.detectChanges();
+    if (this.assetLabelsChart?.nativeElement) {
+      this.assetLabelChart = new Chart(this.assetLabelsChart.nativeElement, {
+        type: 'bar',
+        data: this.assetLabelChartData,
+        options: this.barChartOptions,
+      });
+      if (this.assetLabel) {
+        this.updateLabelChartData(this.assetLabel);
+      }
+    } else {
+      console.error('Unable to initialize chart: Element not available.');
+    }
+
   }
 
   fetchCollections() {
@@ -296,16 +347,33 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
 
     if (this.payload == undefined) return;
 
-    this.subs.sink = this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId, this.offset, this.limit)
-    .subscribe((assetData: any) => {
-      console.log(assetData);
+    this.subs.sink = forkJoin(
+      this.assetService.getAssetsByCollection(
+        this.user.lastCollectionAccessedId,
+        this.offset,
+        this.limit
+    ),
+      this.assetService.getCollectionAssetLabel(
+        this.payload.lastCollectionAccessedId
+      )
+    ).subscribe(([assetData, assetLabelResponse]: any) => {
       if (!Array.isArray(assetData)) {
-        console.error('Unexpected response format:', assetData);
+        console.error('Unexpected response format:', assetData
+        );
         this.isLoading = false;
-        return;
       }
+      else if (!Array.isArray(assetLabelResponse.assetLabel)) {
+        console.log("assetLabelResponse: ", assetLabelResponse);
+        console.error(
+          'assetLabelResponse.assetLabel is not an array',
+          assetLabelResponse.assetLabel
+        );
+      return;
+    }
       this.assets = loadMore ? [...this.assets, ...assetData] : assetData;
-  
+      this.assetLabel = assetLabelResponse.assetLabel;
+      this.setLabelChartData(this.assetLabel);
+
       this.data = this.assets.map((asset: any) => ({
         assetId: asset.assetId,
         assetName: asset.assetName,
@@ -326,6 +394,24 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
       this.isLoading = false;
     });
   }
+
+  setLabelChartData(assetLabel: any[]) {
+    this.updateLabelChartData(assetLabel);
+  }
+
+  updateLabelChartData(assetLabel: any[]): void {
+    if (!this.assetLabelChart) {
+      console.warn("Asset Label chart is not initialized.");
+      return;
+    }
+    const datasets = assetLabel.map((item) => ({
+      label: item.label,
+      data: [item.labelCount]
+    }));
+    this.assetLabelChart.data.datasets = datasets;
+    this.assetLabelChart.update();
+  }
+
 
   updateDataSource() {
     let treeNodes: AssetTreeNode[] = this.assets.map((asset: Assets) => {
@@ -381,8 +467,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     let selectedData = this.data.filter((asset: { assetId: any; }) => asset.assetId === assetId)
 
     this.asset = selectedData[0];
-    //console.log("asset: ", this.asset);
-    //console.log("assets: ", this.assets);
     this.allowSelectAssets = false;
   }
 

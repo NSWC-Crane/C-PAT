@@ -12,17 +12,17 @@ import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@an
 import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SubSink } from 'subsink';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { AssetService } from '../assets.service'
 import { AuthService } from '../../../auth';
 import { Settings } from 'angular2-smart-table';
 import { SmartTableSelectComponent } from '../../../Shared/components/smart-table/smart-table-select.component';
+import { SharedService } from '../../../Shared/shared.service';
 
 interface Label {
   labelId?: number;
   labelName?: string;
   description?: string;
-  poamCount?: number;
 }
 
 interface LabelsResponse {
@@ -37,7 +37,6 @@ interface Collection {
   created?: string;
   grantCount?: number;
   assetCount?: number;
-  poamCount?: number;
 }
 
 interface CollectionsResponse {
@@ -63,9 +62,10 @@ export class AssetComponent implements OnInit {
   assetLabels: any[] = [];
   data: any = [];
   tcollectionName: string = "";
-
   modalWindow: NbWindowRef | undefined
   dialog!: TemplateRef<any>;
+  selectedCollection: any;
+  private subscriptions = new Subscription();
 
   assetLabelsSettings: Settings = {
     add: {
@@ -119,14 +119,21 @@ export class AssetComponent implements OnInit {
   constructor(private dialogService: NbDialogService,
     private assetService: AssetService,
     private authService: AuthService,
-    // private iconLibraries: NbIconLibraries
+    private sharedService: SharedService,
   ) { }
 
   ngOnInit(): void {
     if (this.payload === undefined) return;
-        this.data = [];
-        this.data = this.asset;
-        this.getData();
+    else {
+      this.data = [];
+      this.data = this.asset;
+      this.getData();
+    }
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
   }
 
   onSubmit() {
@@ -189,7 +196,7 @@ export class AssetComponent implements OnInit {
   }
   
   getLabelData() {
-    this.subs.sink = this.assetService.getLabels().subscribe((labels: any) => {
+    this.subs.sink = this.assetService.getLabels(this.selectedCollection).subscribe((labels: any) => {
       this.labelList = labels.labels;
       this.updateLabelEditorConfig();
     });
@@ -249,12 +256,8 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
   
 
   confirmCreate(event: any) {
-    // console.log("Attempting to confirmCreate()...");
 
     if (this.asset.assetId === "ADDASSET") {
-      // nothing to do, when the asset is submitted, we'll push the array of label id's to so they can be
-      // associated properly to the asset
-
       event.confirm.resolve();
       return;
     }
@@ -274,7 +277,8 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
 
       let assetLabel = {
         assetId: +this.asset.assetId,
-        labelId: +event.newData.labelId
+        collectionId: this.selectedCollection,
+        labelId: +event.newData.labelId,
       }
 
       this.isLoading = true;
@@ -350,7 +354,8 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
     }).onClose;
 
   ngOnDestroy() {
-    this.subs.unsubscribe()
+    this.subs.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 }
 
