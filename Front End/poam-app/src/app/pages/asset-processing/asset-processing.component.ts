@@ -25,6 +25,7 @@ import { environment } from '../../../environments/environment';
 import { ChangeDetectorRef } from '@angular/core';
 import { Assets } from './asset.model';
 import { Chart, registerables, ChartData } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 interface Permission {
   userId: number;
@@ -80,9 +81,23 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     maintainAspectRatio: false,
     scales: {
       x: { grid: { display: true } },
-      y: { beginAtZero: true, grid: { display: false } },
+      y: {
+        beginAtZero: true,
+        grace: '5%',
+        grid: {
+          display: false
+        },
+        ticks: {
+          font: {
+            weight: 600,
+          },
+        }
+      },
     },
     plugins: {
+      title: {
+        display: false,
+      },
       legend: {
         display: true,
         position: this.selectedPosition,
@@ -180,11 +195,15 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
   }
 
   private initializeChart(): void {
+    Chart.defaults.set('plugins.datalabels', {
+      display: false,
+    });
     this.cdr.detectChanges();
     if (this.assetLabelsChart?.nativeElement) {
       this.assetLabelChart = new Chart(this.assetLabelsChart.nativeElement, {
         type: 'bar',
         data: this.assetLabelChartData,
+        plugins: [ChartDataLabels],
         options: this.barChartOptions,
       });
       if (this.assetLabel) {
@@ -406,7 +425,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     }
     const datasets = assetLabel.map((item) => ({
       label: item.label,
-      data: [item.labelCount]
+      data: [item.labelCount],
+      datalabels: {},
     }));
     this.assetLabelChart.data.datasets = datasets;
     this.assetLabelChart.update();
@@ -445,6 +465,66 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     if (currentPosition + threshold >= maximumScrollPosition) {
       this.getAssetData(true);
     }
+  }
+
+  exportChart(chartInstance: Chart, chartName: string) {
+    const exportDatalabelsOptions = {
+      backgroundColor: function (context: any) {
+        const datasetBackgroundColor = context.chart.data.datasets[context.datasetIndex].backgroundColor;
+        return Array.isArray(datasetBackgroundColor)
+          ? datasetBackgroundColor[context.dataIndex]
+          : datasetBackgroundColor;
+      },
+      borderRadius: 4,
+      color: 'white',
+      display: true,
+      font: {
+        weight: 'bold'
+      },
+      align: 'end',
+      anchor: 'end',
+      padding: 6
+    };
+
+    chartInstance.data.datasets.forEach(dataset => {
+      if (dataset.datalabels) {
+        Object.assign(dataset.datalabels, exportDatalabelsOptions);
+      }
+    });
+    chartInstance.options.plugins!.title = {
+      display: true,
+      text: `${chartName}`,
+      position: 'bottom'
+    };
+    chartInstance.update();
+
+    setTimeout(() => {
+      const canvas = chartInstance.canvas;
+      const dataURL = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `${chartName}_Export.png`;
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setTimeout(() => {
+        const disappearDatalabelsOptions = {
+          display: false
+        };
+
+        chartInstance.data.datasets.forEach(dataset => {
+          if (dataset.datalabels) {
+            Object.assign(dataset.datalabels, disappearDatalabelsOptions);
+          }
+        });
+        chartInstance.options.plugins!.title = {
+          display: false,
+        };
+        chartInstance.update();
+      }, 500);
+
+    }, 150);
   }
 
 

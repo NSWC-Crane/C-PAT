@@ -188,7 +188,7 @@ CREATE TABLE `poamtracking`.`usertokens` (
   `token` VARCHAR(255) NOT NULL,
   `expiration` DATETIME NOT NULL,
   PRIMARY KEY (`userName`));
-  
+
 
   
 DELIMITER $$

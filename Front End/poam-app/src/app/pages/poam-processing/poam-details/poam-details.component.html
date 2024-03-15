@@ -98,13 +98,8 @@
             </nb-autocomplete>
           </div>
 
-          <!-- IAVM # -->
-          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
-            <label id="iavmNumber">IAVM #: </label>
-            <input type="text" nbInput fullWidth placeholder="IAVM #..." [(ngModel)]="poam.iavmNumber" name='iavmNumber'>
-          </div>
 
-          <!-- Vulnerability Id -->
+          <!-- Source Identifying Control Vulnerability - ID # -->
           <div class="form-group">
             <label id="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
             <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId'>
@@ -114,6 +109,25 @@
           <div class="form-group">
             <label id="vulnIdRestricted">Vulnerability Restricted - ID #: </label>
             <input type="text" nbInput fullWidth placeholder="Vulnerability Restricted ID..." [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted'>
+          </div>
+
+          <!-- IAVM # -->
+          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
+            <label id="iavmNumber">IAVM #: </label>
+            <input type="text" nbInput fullWidth placeholder="IAVM #..." [(ngModel)]="poam.iavmNumber" name='iavmNumber'>
+          </div>
+
+          <!-- Scan Result -->
+          <div class="form-group" *ngIf="(poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD') && poam.scanResults && poam.scanResults.trim().length > 0">
+            <label id="scanResults">Scan Results: </label>
+            <textarea nbInput fullWidth [(ngModel)]="poam.scanResults" name='scanResults' cols="180"
+                      rows="16" maxlength="2000"></textarea>
+          </div>
+
+          <!-- ACAS Import Button -->
+          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
+            <label id="acasImport">Import Scan Results: </label>
+            <button nbButton outline status="basic" style="min-width: 20rem;" (click)="importScanResultss()">Import</button>
           </div>
 
           <!-- Raw Severity -->

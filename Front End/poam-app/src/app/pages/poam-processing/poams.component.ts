@@ -20,6 +20,7 @@ import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../user-processing/users.service';
 import { Chart, registerables, ChartData } from 'chart.js';
 import { addDays, differenceInCalendarDays } from 'date-fns';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 interface Permission {
   userId: number;
@@ -80,9 +81,25 @@ estimatedCompletionChartData: ChartData<'bar'> = {
     maintainAspectRatio: false,
     scales: {
       x: { grid: { display: true } },
-      y: { beginAtZero: true, grid: { display: false } },
+      y: {
+        beginAtZero: true,
+        grace: '5%',
+        grid: {
+          display: false
+        },
+        ticks: {
+          font: {
+            size: 13,
+            family: 'sans-serif',
+            weight: 600,
+          },
+        }
+      },
     },
     plugins: {
+      title: {
+        display: false,
+      },
       legend: {
         display: true,
         position: this.selectedPosition,
@@ -92,7 +109,7 @@ estimatedCompletionChartData: ChartData<'bar'> = {
             family: 'sans-serif',
             weight: 600,
           }
-        }
+        },
       },
     },
   };
@@ -155,11 +172,15 @@ estimatedCompletionChartData: ChartData<'bar'> = {
   }
 
   private initializeChart(): void {
+    Chart.defaults.set('plugins.datalabels', {
+      display: false,
+    });
     this.cdr.detectChanges();
     if (this.poamStatusChart?.nativeElement) {
       this.statusChart = new Chart(this.poamStatusChart.nativeElement, {
         type: 'bar',
         data: this.statusChartData,
+        plugins: [ChartDataLabels],
         options: this.barChartOptions,
       });
       if (this.poamStatus) {
@@ -173,6 +194,7 @@ estimatedCompletionChartData: ChartData<'bar'> = {
       this.labelChart = new Chart(this.poamLabelChart.nativeElement, {
         type: 'bar',
         data: this.labelChartData,
+        plugins: [ChartDataLabels],
         options: this.barChartOptions,
       });
       if (this.poamLabel) {
@@ -186,6 +208,7 @@ estimatedCompletionChartData: ChartData<'bar'> = {
       this.severityChart = new Chart(this.poamSeverityChart.nativeElement, {
         type: 'bar',
         data: this.severityChartData,
+        plugins: [ChartDataLabels],
         options: this.barChartOptions,
       });    
       if (this.poamSeverity) {
@@ -199,6 +222,7 @@ estimatedCompletionChartData: ChartData<'bar'> = {
       this.estimatedCompletionChart = new Chart(this.poamEstimatedCompletionChart.nativeElement, {
         type: 'bar',
         data: this.estimatedCompletionChartData,
+        plugins: [ChartDataLabels],
         options: this.barChartOptions,
       });
       if (this.poamEstimatedCompletion) {
@@ -332,7 +356,8 @@ estimatedCompletionChartData: ChartData<'bar'> = {
     }
       const datasets = poamStatus.map((item) => ({
         label: item.status,
-        data: [item.statusCount]
+        data: [item.statusCount],
+        datalabels: {},
       }));
       this.statusChart.data.datasets = datasets;
       this.statusChart.update();
@@ -346,7 +371,8 @@ estimatedCompletionChartData: ChartData<'bar'> = {
     }
       const datasets = poamLabel.map((item) => ({
         label: item.label,
-        data: [item.labelCount]
+        data: [item.labelCount],
+        datalabels: {},
       }));
       this.labelChart.data.datasets = datasets;
       this.labelChart.update();
@@ -360,7 +386,8 @@ estimatedCompletionChartData: ChartData<'bar'> = {
     }
       const datasets = poamSeverity.map((item) => ({
         label: item.severity,
-        data: [item.severityCount]
+        data: [item.severityCount],
+        datalabels: {},
       }));
 
       this.severityChart.data.datasets = datasets;
@@ -374,7 +401,8 @@ estimatedCompletionChartData: ChartData<'bar'> = {
     }
       const datasets = poamEstimatedCompletion.map((item) => ({
         label: item.estimatedCompletion,
-        data: [item.estimatedCompletionCount]
+        data: [item.estimatedCompletionCount],
+        datalabels: {},
       }));
 
       this.estimatedCompletionChart.data.datasets = datasets;
@@ -505,4 +533,73 @@ estimatedCompletionChartData: ChartData<'bar'> = {
 
     this.updateEstimatedCompletionChartData(filteredPoamEstimatedCompletion);
   };
+
+  exportChart(chartInstance: Chart, chartName: string) {
+    const exportDatalabelsOptions = {
+      backgroundColor: function (context: any) {
+        const datasetBackgroundColor = context.chart.data.datasets[context.datasetIndex].backgroundColor;
+        return Array.isArray(datasetBackgroundColor)
+          ? datasetBackgroundColor[context.dataIndex]
+          : datasetBackgroundColor;
+      },
+      borderRadius: 4,
+      color: 'white',
+      display: true,
+      font: {
+        weight: 'bold'
+      },
+      align: 'end',
+      anchor: 'end',
+      padding: 6
+    };
+
+    chartInstance.data.datasets.forEach(dataset => {
+      if (dataset.datalabels) {
+        Object.assign(dataset.datalabels, exportDatalabelsOptions);
+      }
+    });
+
+    chartInstance.options.plugins!.title = {
+      display: true,
+      position: 'bottom',
+      text: `${chartName}`,
+      font: {
+        size: 16,
+        family: 'sans-serif',
+        weight: 600,
+      },
+    };
+    chartInstance.update();
+
+    setTimeout(() => {
+      const canvas = chartInstance.canvas;
+      const dataURL = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `${chartName}_Export.png`;
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setTimeout(() => {
+        const disappearDatalabelsOptions = {
+          display: false
+        };
+
+        chartInstance.data.datasets.forEach(dataset => {
+          if (dataset.datalabels) {
+            Object.assign(dataset.datalabels, disappearDatalabelsOptions);
+          }
+        });
+        chartInstance.options.plugins!.title = {
+          display: false,
+        };
+        chartInstance.update();
+      }, 500);
+
+    }, 150);
+  }
+
+
 }
+

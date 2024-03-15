@@ -3252,6 +3252,8 @@ components:
           type: string
         submittedDate:
           type: string
+        scanResults:
+          type: string
         assets:
           type: array
           items:

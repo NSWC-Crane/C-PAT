@@ -15,8 +15,16 @@
 }
 
 .canvas {
+  position: relative;
   max-height: 50vh;
   max-width: 100vw;
+}
+
+.export-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-right: 0;
 }
 
 .add-asset-button {

@@ -27,6 +27,9 @@
              </div>
            </div>
            <div class="canvas" id="canvas" style="margin-top: 20px;">
+             <button nbButton ghost class="export-button" (click)="exportChart(statusChart, 'C-PAT POAM Status Chart')">
+               <nb-icon icon="download-outline"></nb-icon>
+             </button>
              <canvas #poamStatusChart class="poam-status-chart"></canvas>
            </div>
            <hr />
@@ -66,6 +69,9 @@
              </div>
            </div>
            <div class="canvas" id="canvas" style="margin-top: 20px;">
+             <button nbButton ghost class="export-button" (click)="exportChart(severityChart, 'C-PAT POAM Severity Chart')">
+               <nb-icon icon="download-outline"></nb-icon>
+             </button>
              <canvas #poamSeverityChart class="poam-severity-chart"></canvas>
            </div>
            <hr />
@@ -102,6 +108,9 @@
              </div>
            </div>
            <div class="canvas" id="canvas" style="margin-top: 20px;">
+             <button nbButton ghost class="export-button" (click)="exportChart(estimatedCompletionChart, 'C-PAT POAM Estimated Completion Chart')">
+               <nb-icon icon="download-outline"></nb-icon>
+             </button>
              <canvas #poamEstimatedCompletionChart class="poam-estimatedcompletion-chart"></canvas>
            </div>
            <hr />
@@ -141,6 +150,9 @@
                       </div>
                     </div>
                     <div class="canvas" id="canvas" style="margin-top: 20px;">
+                      <button nbButton ghost class="export-button" (click)="exportChart(labelChart, 'C-PAT POAM Label Chart')">
+                        <nb-icon icon="download-outline"></nb-icon>
+                      </button>
                       <canvas #poamLabelChart class="poam-label-chart"></canvas>
                     </div>
                     <hr />

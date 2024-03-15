@@ -228,14 +228,14 @@ exports.postPoam = async function postPoam(req, res, next) {
             let sql_query = `INSERT INTO poamtracking.poam (collectionId, vulnerabilitySource, stigTitle, iavmNumber,
                         aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, scheduledCompletionDate,
                         ownerId, mitigations, requiredResources, residualRisk, businessImpactRating, businessImpactDescription,
-                        notes, status, poamType, vulnIdRestricted, submittedDate) 
-                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                        notes, status, poamType, vulnIdRestricted, submittedDate, scanResults) 
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
                   await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.iavmNumber,
                   req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
                   req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations, req.body.requiredResources, req.body.residualRisk,
                   req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status,
-                  req.body.poamType, req.body.vulnIdRestricted, req.body.submittedDate])
+                      req.body.poamType, req.body.vulnIdRestricted, req.body.submittedDate, req.body.scanResults])
 
                 let sql = "SELECT * FROM poamtracking.poam WHERE poamId = LAST_INSERT_ID();"
                 let [rowPoam] = await connection.query(sql)
@@ -349,14 +349,14 @@ exports.putPoam = async function putPoam(req, res, next) {
                             iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
                             scheduledCompletionDate = ?, ownerId = ?, mitigations = ?, requiredResources = ?, residualRisk = ?,
                             businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?, poamType = ?,
-                            vulnIdRestricted = ?, submittedDate = ?  WHERE poamId = ?`
+                            vulnIdRestricted = ?, submittedDate = ?, scanResults = ?  WHERE poamId = ?`
 
             await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle,
                   req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
                   req.body.adjSeverity, req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations,
                   req.body.requiredResources, req.body.residualRisk, req.body.businessImpactRating,
                   req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.poamType, req.body.vulnIdRestricted, 
-                  req.body.submittedDate, req.body.poamId])
+                  req.body.submittedDate, req.body.scanResults, req.body.poamId])
 
                 let sql = "SELECT * FROM poamtracking.poam WHERE poamId = ?"
                 let [rowPoam] = await connection.query(sql, [req.body.poamId])

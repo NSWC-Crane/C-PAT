@@ -537,7 +537,8 @@ export class PoamDetailsComponent implements OnInit {
             status: "Draft",
             poamType: "Standard",
             vulnIdRestricted: "",
-            submittedDate: new Date().toISOString().slice(0, 10)
+            submittedDate: new Date().toISOString().slice(0, 10),
+            scanResultss: "",
           };
 
           this.dates.scheduledCompletionDate = this.poam.scheduledCompletionDate;
@@ -803,7 +804,6 @@ let approverSettings = this.poamApproverSettings;
         this.poam.requiredResources = (this.poam.requiredResources) ? this.poam.requiredResources : ""
         this.poam.vulnIdRestricted = (this.poam.vulnIdRestricted) ? this.poam.vulnIdRestricted : ""
         this.subs.sink = this.poamService.updatePoam(this.poam).subscribe(data => {
-          // console.log("returned data: ",data)
           this.poam = data;
           this.getData();
           this.showConfirmation("Updated POAM", "Success", "Success", true);
@@ -849,17 +849,14 @@ let approverSettings = this.poamApproverSettings;
         });
       }
       this.poam.assignees = assignees;
-      // pass in assets
       if (this.poamAssets) {
         this.poamAssets.forEach((asset: any) => {
           assets.push({ assetId: +asset.assetId })
         });
       }
       this.poam.assets = assets;
-      // console.log("adding this.poam: ", this.poam)
       this.subs.sink = this.poamService.postPoam(this.poam).subscribe(
         res => {
-          // console.log("postPoam res: ", res)
           if (res.null || res.null == "null") {
             this.showConfirmation("unexpected error adding poam");
           } else {
@@ -1054,9 +1051,8 @@ let approverSettings = this.poamApproverSettings;
   }
 
   confirmEditApprover(event: any) {
-    // console.log("poamDetails confirmEditApprover event: ", event)
     if (this.poam.poamId === "ADDPOAM") {
-      // nothing to do, when the poam is added, we'll the approvers is automatically loaded, the first time it is borughtup in edit mode after the id hasbeen assigned.
+      // nothing to do, when the poam is added, the approvers are automatically loaded, the first time it is brought up in edit mode after the id has been assigned.
       event.confirm.reject();
       return;
     }
@@ -1137,7 +1133,6 @@ let approverSettings = this.poamApproverSettings;
         approved: 'Not Reviewed',
         comments: event.newData.comments
       }
-      // console.log("user: ", usert)
       if (user) {
         approver.firstName = user.firstName;
         approver.lastName = user.lastName;
@@ -1146,7 +1141,6 @@ let approverSettings = this.poamApproverSettings;
       }
 
       await this.poamService.addPoamApprover(approver).subscribe((res: any) => {
-        // console.log("poamDetail confirmCreatePoam res: ", res)
         if (res.null) {
           this.showConfirmation("Unable to insert row, potentially a duplicate.");
           event.confirm.reject();
@@ -1354,7 +1348,7 @@ let approverSettings = this.poamApproverSettings;
         this.router.navigateByUrl('/poam-processing');
       }
     });
- }
+  }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> => 
     this.dialogService.open(ConfirmationDialogComponent, {
@@ -1365,6 +1359,35 @@ let approverSettings = this.poamApproverSettings;
       },
     }).onClose;
 
+  importScanResultss(): void {
+    const fields = 'id,name,description,status,initiator,owner,ownerGroup,repository,scan,job,details,importStatus,importStart,importFinish,importDuration,downloadAvailable,downloadFormat,dataFormat,resultType,resultSource,running,errorDetails,importErrorDetails,totalIPs,scannedIPs,startTime,finishTime,scanDuration,completedIPs,completedChecks,totalChecks,agentScanUUID,agentScanContainerUUID,progress';
+    if (this.poam && this.poam.iavmNumber) {
+      this.poamService.getTenableScanResultss(this.poam.iavmNumber, fields)
+        .subscribe({
+          next: (data: any) => {
+            const plainText = this.parseJsonToPlainText(data);
+            this.poam.scanResults = plainText;
+          },
+          error: (error: any) => {
+            this.showConfirmation('API key is not properly configured, please contact your C-PAT administrator.');
+          }
+        });
+    } else {
+      console.error('IAVM Number is not available.');
+    }
+  }
+
+  parseJsonToPlainText(data: any, indent: string = ''): string {
+    let plainText = '';
+    Object.keys(data).forEach(key => {
+      if (typeof data[key] === 'object' && data[key] !== null) {
+        plainText += `${indent}${key}:\n${this.parseJsonToPlainText(data[key], indent + '  ')}`;
+      } else {
+        plainText += `${indent}${key}: ${data[key]}\n`;
+      }
+    });
+    return plainText;
+  }
 
   ngOnDestroy() {
     this.subs.unsubscribe();
