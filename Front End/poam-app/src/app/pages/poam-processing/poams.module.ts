@@ -17,6 +17,7 @@ import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { FormsModule } from '@angular/forms';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { AppComponent } from '../../app.component';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
 
 @NgModule({
     declarations: [
@@ -31,6 +32,7 @@ import { AppComponent } from '../../app.component';
       NbDatepickerModule,
       NbFormFieldModule,
       NbIconModule,
+      NbEvaIconsModule,
       NbInputModule,
       FormsModule,
       PoamsRoutingModule,

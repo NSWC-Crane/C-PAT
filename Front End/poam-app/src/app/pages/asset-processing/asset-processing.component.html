@@ -31,6 +31,9 @@
 
             <nb-tab tabTitle="Asset Chart">
               <div class="canvas" id="canvas" style="margin-top: 20px;">
+                <button nbButton ghost class="export-button" (click)="exportChart(assetLabelChart, 'C-PAT Asset Label Chart')">
+                  <nb-icon icon="download-outline"></nb-icon>
+                </button>
                 <canvas #assetLabelsChart class="asset-label-chart"></canvas>
               </div>
               <hr />

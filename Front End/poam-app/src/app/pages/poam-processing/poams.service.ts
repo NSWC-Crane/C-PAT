@@ -227,4 +227,20 @@ deletePoamMilestone(poamId: string, milestoneId: string) {
     return this.http
       .delete<any>(`${this.uri}/poamLabel/poam/${poamId}/label/${labelId}`, this.httpOptions);
   }
+
+  getTenableScanResultss(iavmNumber: string, fields?: string) {
+    const tenableAccessKey = environment.tenableAccessKey;
+    const tenableSecretKey = environment.tenableSecretKey;
+    const endpoint = `${environment.getScanResultssFromTenableEndpoint}${iavmNumber}`;
+    const url = fields ? `${endpoint}?fields=${fields}` : endpoint;
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'X-ApiKeys': `accessKey=${tenableAccessKey}; secretKey=${tenableSecretKey}`
+    });
+
+    return this.http.get(url, { headers }).pipe(
+      catchError(this.handleError)
+    );
+  }
 }
