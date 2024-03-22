@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import axios from 'axios';
 import { BehaviorSubject, from, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -8,7 +9,7 @@ import { environment } from '../../environments/environment';
 export class SharedService {
   private _selectedCollection = new BehaviorSubject<any>(null);
   public readonly selectedCollection = this._selectedCollection.asObservable();
-  constructor() { }
+  constructor(private http: HttpClient) { }
 
   private getHeaders(token: string) {
     return {
@@ -16,6 +17,12 @@ export class SharedService {
       'Authorization': `Bearer ${token}`
     };
   }
+
+  httpOptions = {
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json'
+    })
+  };
 
   public setSelectedCollection(collection: any) {
     this._selectedCollection.next(collection);
@@ -92,5 +99,37 @@ private handleError(error: any) {
         console.error('Unable to connect to STIG Manager', error);
         throw error;
       }));
+  }
+
+  getTenableScanResults(scanId: string, fields?: string) {
+    const tenableAccessKey = environment.tenableAccessKey;
+    const tenableSecretKey = environment.tenableSecretKey;
+    const endpoint = `${environment.getScanResultsFromTenableEndpoint}/${scanId}`;
+    const url = fields ? `${endpoint}?fields=${fields}` : endpoint;
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'X-ApiKeys': `accessKey=${tenableAccessKey}; secretKey=${tenableSecretKey}`
+    });
+
+    return this.http.get(url, { headers }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getTenableScans(fields?: string) {
+    const tenableAccessKey = environment.tenableAccessKey;
+    const tenableSecretKey = environment.tenableSecretKey;
+    const endpoint = `${environment.getScanResultsFromTenableEndpoint}/`;
+    const url = fields ? `${endpoint}?fields=${fields}` : endpoint;
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'X-ApiKeys': `accessKey=${tenableAccessKey}; secretKey=${tenableSecretKey}`
+    });
+
+    return this.http.get(url, { headers }).pipe(
+      catchError(this.handleError)
+    );
   }
 }

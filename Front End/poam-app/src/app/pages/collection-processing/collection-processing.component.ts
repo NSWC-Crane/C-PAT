@@ -9,19 +9,14 @@
 */
 
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { SharedService } from '../../Shared/shared.service';
 import { CollectionsService } from './collections.service';
 import { forkJoin, Observable } from 'rxjs';
-import { NbSortDirection, NbSortRequest, NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
-import { Router } from '@angular/router';
-import { AuthService } from '../../auth';
+import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../user-processing/users.service'
-import { environment } from '../../../environments/environment';
 import { ExcelDataService } from '../../Shared/utils/excel-data.service'
 
 interface Permission {
@@ -70,10 +65,6 @@ export class CollectionProcessingComponent implements OnInit {
   user: any;
 
   availableAssets: any[] = [];
-  stigmanCollections: any;
-  stigmanCollection: any = {};
-  selectedStigmanCollection: string = '';
-
   exportCollectionId: any;
   poams: any[] = [];
 
@@ -99,8 +90,6 @@ export class CollectionProcessingComponent implements OnInit {
   private subs = new SubSink();
 
   constructor(
-    private http: HttpClient,
-    private sharedService: SharedService,
     private collectionService: CollectionsService,
     private dialogService: NbDialogService,
     private readonly keycloak: KeycloakService,
@@ -109,40 +98,15 @@ export class CollectionProcessingComponent implements OnInit {
   ) {}
 
   onSubmit() {
-    //console.log("Attempting to onSubmit()...");
     this.resetData();
   }
 
   async ngOnInit() {
-    this.fetchCollections();
     this.isLoggedIn = await this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
-      //console.log("userProfile.email: ",this.userProfile.email,", userProfile.username: ",this.userProfile.username)
       this.setPayload();
     }
-  }
-
-  fetchCollections() {
-    this.keycloak.getToken().then((token) => {
-      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe({
-        next: (data) => {
-          this.stigmanCollections = data;
-          if (!data || data.length === 0) {
-            this.showPopup(
-              'No collections available to import. Please ensure you have access to view collections in STIG Manager.'
-            );
-          } else {
-            this.collections = data;
-          }
-        },
-        error: (error) => {
-          this.showPopup(
-            'You are not connected to STIG Manager or the connection is not properly configured.'
-          );
-        },
-      });
-    });
   }
 
   showPopup(message: string) {
@@ -157,58 +121,6 @@ export class CollectionProcessingComponent implements OnInit {
       context: {
         options: dialogOptions,
       },
-    });
-  }
-
-  onStigmanCollectionSelect(collectionId: string) {
-    console.log('Selected Collection ID:', collectionId);
-    this.selectedStigmanCollection = collectionId;
-  }
-
-  importCollection() {
-    if (this.selectedStigmanCollection) {
-      this.keycloak.getToken().then((token) => {
-        forkJoin({
-          collectionData: this.sharedService.selectedCollectionFromSTIGMAN(
-            this.selectedStigmanCollection,
-            token
-          ),
-          assetsData: this.sharedService.getAssetsFromSTIGMAN(
-            this.selectedStigmanCollection,
-            token
-          ),
-        }).subscribe({
-          next: (results) => {
-            const payload = {
-              collection: results.collectionData,
-              assets: results.assetsData,
-            };
-            this.sendImportRequest(payload);
-          },
-          error: (error) => {
-            console.error('Error fetching collection or assets data:', error);
-          },
-        });
-      });
-    } else {
-      console.error('No collection selected');
-    }
-  }
-
-  private sendImportRequest(data: any) {
-    this.keycloak.getToken().then((token) => {
-      const headers = { Authorization: `Bearer ${token}` };
-      this.http
-        .post(environment.stigmanCollectionImportEndpoint, data, { headers })
-        .subscribe({
-          next: (response) => {
-            this.showPopup('Import successful');
-          },
-          error: (error) => {
-            console.error('Error during import', error);
-            this.showPopup('Error during import: ' + error.message);
-          },
-        });
     });
   }
 
@@ -410,7 +322,6 @@ export class CollectionProcessingComponent implements OnInit {
 
   resetData() {
     this.collection = [];
-    this.stigmanCollection = [];
     this.getCollectionData();
     this.collection.collectionId = 'COLLECTION';
     this.allowSelectCollections = true;

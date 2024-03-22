@@ -93,7 +93,6 @@ export class PoamDetailsComponent implements OnInit {
   ];
   selectedCollection: any;
   private subscriptions = new Subscription();
-  
 
   poamAssetsSettings: Settings = {
     add: {
@@ -538,9 +537,7 @@ export class PoamDetailsComponent implements OnInit {
             poamType: "Standard",
             vulnIdRestricted: "",
             submittedDate: new Date().toISOString().slice(0, 10),
-            scanResultss: "",
           };
-
           this.dates.scheduledCompletionDate = this.poam.scheduledCompletionDate;
           this.dates.submittedDate = this.poam.submittedDate;
           this.collection = collection;
@@ -570,7 +567,6 @@ export class PoamDetailsComponent implements OnInit {
           },
         });
       });
-
     } else {
       this.subs.sink = forkJoin(
         this.poamService.getPoam(this.poamId),
@@ -1358,36 +1354,6 @@ let approverSettings = this.poamApproverSettings;
         options: dialogOptions,
       },
     }).onClose;
-
-  importScanResultss(): void {
-    const fields = 'id,name,description,status,initiator,owner,ownerGroup,repository,scan,job,details,importStatus,importStart,importFinish,importDuration,downloadAvailable,downloadFormat,dataFormat,resultType,resultSource,running,errorDetails,importErrorDetails,totalIPs,scannedIPs,startTime,finishTime,scanDuration,completedIPs,completedChecks,totalChecks,agentScanUUID,agentScanContainerUUID,progress';
-    if (this.poam && this.poam.iavmNumber) {
-      this.poamService.getTenableScanResultss(this.poam.iavmNumber, fields)
-        .subscribe({
-          next: (data: any) => {
-            const plainText = this.parseJsonToPlainText(data);
-            this.poam.scanResults = plainText;
-          },
-          error: (error: any) => {
-            this.showConfirmation('API key is not properly configured, please contact your C-PAT administrator.');
-          }
-        });
-    } else {
-      console.error('IAVM Number is not available.');
-    }
-  }
-
-  parseJsonToPlainText(data: any, indent: string = ''): string {
-    let plainText = '';
-    Object.keys(data).forEach(key => {
-      if (typeof data[key] === 'object' && data[key] !== null) {
-        plainText += `${indent}${key}:\n${this.parseJsonToPlainText(data[key], indent + '  ')}`;
-      } else {
-        plainText += `${indent}${key}: ${data[key]}\n`;
-      }
-    });
-    return plainText;
-  }
 
   ngOnDestroy() {
     this.subs.unsubscribe();

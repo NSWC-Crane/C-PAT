@@ -150,11 +150,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         extensionJustification: {
             type: DataTypes.TEXT
-        },
-        scanResults: {
-            type: DataTypes.TEXT,
-            allowNull: true,
-        },
+        }
     }, {
         freezeTableName: true,
         timestamps: false,

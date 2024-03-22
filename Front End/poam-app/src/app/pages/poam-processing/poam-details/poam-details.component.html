@@ -117,19 +117,6 @@
             <input type="text" nbInput fullWidth placeholder="IAVM #..." [(ngModel)]="poam.iavmNumber" name='iavmNumber'>
           </div>
 
-          <!-- Scan Result -->
-          <div class="form-group" *ngIf="(poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD') && poam.scanResults && poam.scanResults.trim().length > 0">
-            <label id="scanResults">Scan Results: </label>
-            <textarea nbInput fullWidth [(ngModel)]="poam.scanResults" name='scanResults' cols="180"
-                      rows="16" maxlength="2000"></textarea>
-          </div>
-
-          <!-- ACAS Import Button -->
-          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
-            <label id="acasImport">Import Scan Results: </label>
-            <button nbButton outline status="basic" style="min-width: 20rem;" (click)="importScanResultss()">Import</button>
-          </div>
-
           <!-- Raw Severity -->
           <div class="form-group">
             <label id="rawSeverity">Raw Severity Value: <span class="text-danger">*</span></label>

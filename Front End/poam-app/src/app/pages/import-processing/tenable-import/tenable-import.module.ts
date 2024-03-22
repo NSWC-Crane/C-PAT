@@ -11,40 +11,31 @@
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { UserProcessingComponent } from './user-processing.component';
-import { UserProcessingRoutingModule } from './user-processing.routing';
-import { SharedModule } from '../../Shared/shared.module';
-import { UserComponent } from './user/user.component';
-import { NbButtonModule, NbInputModule, NbToggleModule, NbCardModule,NbLayoutModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbIconModule, NbCheckboxModule, NbTableModule, NbFormFieldModule } from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
+import { TenableImportComponent } from './tenable-import.component';
+import { SharedModule } from '../../../Shared/shared.module';
+import { NbButtonModule, NbInputModule, NbCardModule, NbLayoutModule, NbSpinnerModule, NbSelectModule, NbIconModule, NbTooltipModule } from '@nebular/theme';
+import { TenableImportRoutingModule } from './tenable-import.routing';
 
 @NgModule({
   declarations: [
-    UserProcessingComponent,
-    UserComponent,
+    TenableImportComponent,
   ],
   imports: [
     CommonModule,
-    UserProcessingRoutingModule,
+    TenableImportRoutingModule,
     FormsModule,
     NbButtonModule,
     NbCardModule,
-    NbCheckboxModule,
-    NbIconModule,
     NbInputModule,
-    NbFormFieldModule,
+    NbIconModule,
     NbLayoutModule,
     NbSelectModule,
     NbSpinnerModule,
-    NbTableModule,
-    NbToggleModule,
-    NbTreeGridModule,
-    Angular2SmartTableModule,
+    NbTooltipModule,
     SharedModule,
    
   ],
-  exports: [
-    // BilletTaskProcessComponent,
-  ]
+  providers: [
+  ],
 })
-export class UserProcessingModule { }
+export class TenableImportModule { }

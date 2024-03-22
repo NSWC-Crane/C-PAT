@@ -17,7 +17,7 @@ export const environment = {
   fileUploadEndpoint: 'http://localhost:8086/api/poamimport',
   stigmanCollectionImportEndpoint: 'http://localhost:8086/api/stigmancollectionimport',
   stigmanAssetImportEndpoint: 'http://localhost:8086/api/stigmanassetimport',
-  getScanResultssFromTenableEndpoint: 'http://0.0.0.0:9000/scanResults/', //placeholder
+  getScanResultsFromTenableEndpoint: 'http://0.0.0.0:9000/scanResults/', //placeholder
   tenableAccessKey: 'placeholder',
   tenableSecretKey: 'placeholder',
   getSTIGsFromSTIGMANEndpoint: 'http://localhost:54000/api/stigs/',

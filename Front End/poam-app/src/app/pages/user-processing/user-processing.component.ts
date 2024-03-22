@@ -158,7 +158,6 @@ export class UserProcessingComponent implements OnInit {
 
   getUsersGrid(filter: string) {
     let userData = this.data;
-    console.log("userData: ", userData);
     let mydata: any = [];
 
     for (let i = 0; i < userData.length; i++) {

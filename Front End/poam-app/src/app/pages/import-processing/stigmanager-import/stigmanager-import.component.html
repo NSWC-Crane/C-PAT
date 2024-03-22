@@ -1,0 +1,52 @@
+      <!-- Import STIG Manager Collection Section -->
+<div class="row">
+  <div class="col-md-10">
+    <nb-card>
+      <nb-card-header>Import Collection</nb-card-header>
+      <nb-card-body>
+        <div class="row">
+          <div class="col-md-5" style="width: auto;">
+            <nb-select id="stigmanCollectionSelect" placeholder="Select Collection" [(ngModel)]="selectedStigmanCollection" (selectedChange)="onSTIGManagerCollectionSelect($event)">
+              <nb-option *ngFor="let collection of stigmanCollections" [value]="collection.collectionId">
+                {{ collection.name }}
+              </nb-option>
+            </nb-select>
+          </div>
+          <div class="col-md-5" style="width: auto;">
+            <button nbButton outline status="info" (click)="importSTIGManagerCollection()">Import</button>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-10">
+    <!-- Import STIG Manager Assets Section -->
+    <nb-card class="my-card">
+      <nb-card-header>Import STIG Manager Assets</nb-card-header>
+      <nb-card-body class="import-section">
+        <div class="import-item">
+          <nb-select id="collectionSelect" placeholder="Select STIG Manager Collection" [(ngModel)]="selectedCollection" (selectedChange)="onCollectionSelect($event)">
+            <nb-option *ngFor="let collection of collections" [value]="collection.collectionId">
+              {{ collection.name }}
+            </nb-option>
+          </nb-select>
+        </div>
+
+        <div class="import-item">
+          <nb-select id="assetsSelect" placeholder="Select STIG Manager Assets" [(ngModel)]="selectedAssets" [disabled]="!selectedCollection" multiple>
+            <nb-option *ngFor="let asset of availableAssets" [value]="asset.assetId">
+              {{ asset.name }}
+            </nb-option>
+          </nb-select>
+        </div>
+
+        <div class="import-item">
+          <button nbButton outline nbTooltip="Assets imported from STIG Manager will be imported into their coresponding STIG Manager collection." nbTooltipPlacement="top" nbTooltipStatus="basic" status="info" (click)="onImportAssetsButtonClick()">Import</button>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>

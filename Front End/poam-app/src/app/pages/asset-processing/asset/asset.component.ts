@@ -127,13 +127,8 @@ export class AssetComponent implements OnInit {
     else {
       this.data = [];
       this.data = this.asset;
-      this.getData();
     }
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
-        this.selectedCollection = collectionId;
-      })
-    );
+    this.getData();
   }
 
   onSubmit() {
@@ -186,8 +181,15 @@ export class AssetComponent implements OnInit {
   }
 
   getData() {
-    this.getLabelData();
     this.getCollectionData();
+    if (!this.selectedCollection) {
+      this.subscriptions.add(
+        this.sharedService.selectedCollection.subscribe(collectionId => {
+          this.selectedCollection = collectionId;
+        })
+      );
+    }
+    this.getLabelData();
     this.isLoading = false;
   
     if (this.asset.assetId !== "ADDASSET") {

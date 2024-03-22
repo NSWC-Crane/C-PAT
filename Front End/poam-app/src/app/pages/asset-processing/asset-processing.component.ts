@@ -8,20 +8,15 @@
 !########################################################################
 */
 
-import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, ViewChild, ElementRef, OnInit } from '@angular/core';
-import { SharedService } from '../../Shared/shared.service';
 import { AssetService } from './assets.service';
 import { forkJoin, Observable } from 'rxjs';
 import { NbDialogService, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
-import { Router } from '@angular/router';
-import { AuthService } from '../../auth';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../user-processing/users.service';
-import { environment } from '../../../environments/environment';
 import { ChangeDetectorRef } from '@angular/core';
 import { Assets } from './asset.model';
 import { Chart, registerables, ChartData } from 'chart.js';
@@ -151,11 +146,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
   constructor(
     private assetService: AssetService,
     private cdr: ChangeDetectorRef,
-    private sharedService: SharedService,
     private dialogService: NbDialogService,
-    private http: HttpClient,
-    private router: Router,
-    private authService: AuthService,
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
@@ -167,7 +158,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit() {
-    this.fetchCollections();
     this.getAssetData();
     this.isLoggedIn = await this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
@@ -215,92 +205,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
 
   }
 
-  fetchCollections() {
-    this.keycloak.getToken().then(token => {
-      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe({
-        next: (data) => {
-          if (!data || data.length === 0) {
-            this.showPopup('No collections available to import. Please ensure you have access to view collections in STIG Manager.');
-          } else {
-            this.collections = data;
-          }
-        },
-        error: (error) => {
-          this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
-        }
-      });
-    });
-  }
-
-  fetchAssetsFromAPI() {
-    if (!this.selectedCollection || this.selectedCollection === '') {
-      return;
-    }
-  
-    this.keycloak.getToken().then(token => {
-      this.sharedService.getAssetsFromSTIGMAN(this.selectedCollection, token).subscribe({
-        next: (data) => {
-          if (!data || data.length === 0) {
-            this.showPopup('No assets found for the selected collection.');
-          } else {
-            this.availableAssets = data;
-          }
-        },
-        error: (error) => {
-          this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
-        }
-      });
-    });
-  }
-
-  onCollectionSelect(collectionId: string) {
-    this.selectedCollection = collectionId;
-    this.fetchAssetsFromAPI();
-  }
-
-  fetchAssetDetails() {
-    this.keycloak.getToken().then(token => {
-      const assetDetailsObservables = this.selectedAssets.map(assetId =>
-        this.sharedService.selectedAssetsFromSTIGMAN(assetId, token)
-      );
-      forkJoin(assetDetailsObservables).subscribe(results => {
-        this.importAssets(results);
-      });
-    });
-  }
-
-  onImportAssetsButtonClick() {
-    if (this.selectedAssets.length > 0) {
-      this.fetchAssetDetails();
-    } else {
-      console.error('No assets selected');
-    }
-  }
-
-
-  importAssets(assetDetails: any[]) {
-    const payload = {
-      assets: assetDetails
-    };
-    this.sendImportRequest(payload);
-  }
-
-  private sendImportRequest(data: any) {
-    this.keycloak.getToken().then(token => {
-      const headers = { Authorization: `Bearer ${token}` };
-      this.http.post(environment.stigmanAssetImportEndpoint, data, { headers })
-        .subscribe({
-          next: (response) => {
-            this.showPopup('Import successful');
-          },
-          error: (error) => {
-            console.error('Error during import', error);
-            // Optionally, handle errors with a popup as well
-            this.showPopup('Error during import: ' + error.message);
-          }
-        });
-    });
-  }
 
   showPopup(message: string) {
     const dialogOptions: ConfirmationDialogOptions = {
@@ -351,14 +255,11 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
   }
 
   getAssetData(loadMore = false) {
-    
-    // If the end of the list is reached, do not load more data
     if (this.isListFull) {
       return;
     }
     this.isLoading = true;
 
-    // If loading more assets, we don't reset the assets array
     if (!loadMore) {
       this.assets = [];
       this.isListFull = false;
@@ -543,9 +444,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
 
   setAsset(assetId: any) {
     this.asset = null;
-
     let selectedData = this.data.filter((asset: { assetId: any; }) => asset.assetId === assetId)
-
     this.asset = selectedData[0];
     this.allowSelectAssets = false;
   }

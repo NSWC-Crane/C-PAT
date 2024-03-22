@@ -9,7 +9,6 @@
 */
 
 import { NbMenuItem } from '@nebular/theme';
-import { NbEvaIconsModule } from '@nebular/eva-icons';
 
 export const appMenuItems: NbMenuItem[] = [
     {
@@ -17,12 +16,13 @@ export const appMenuItems: NbMenuItem[] = [
       icon: 'home-outline',
       link: '/consent',
       home: true
-    },
+  },
     {
       title: 'POAMs',
       icon: 'menu-outline',
       data: { permission: 'view', resource: 'poam' },
       hidden: true,
+      expanded: true,
       children: [
         {
           title: 'View POAMs',
@@ -33,13 +33,31 @@ export const appMenuItems: NbMenuItem[] = [
           title: 'Add POAM',
           icon: 'file-add-outline',
           link: '/poam-details/ADDPOAM'
-        },
-        {
-          title: 'Import POAM',
-          icon: 'upload-outline',
         }
       ]
-    },
+  },
+  {
+    title: 'Importing',
+    icon: 'menu-outline',
+    data: { permission: 'create', resource: 'import' },
+    hidden: true,
+    children: [
+      {
+        title: 'STIG Manager',
+        icon: 'swap-outline',
+        link: 'stigmanager-import',
+      },
+      {
+        title: 'Tenable',
+        icon: 'swap-outline',
+        link: 'tenable-import'
+      },
+      {
+        title: 'eMASS Excel Import',
+        icon: 'upload-outline',
+      }
+    ]
+  },
     {
       title: 'Collections',
       icon: { icon: 'archive-outline', pack: 'eva' },
