@@ -53,7 +53,7 @@ export class AssetService {
       .pipe(catchError(this.handleError));
   }
 
-  getLabels(collectionId: string) {
+  getLabels(collectionId: any) {
     return this.http
       .get(`${this.uri}/labels/${collectionId}`)
           .pipe(catchError(this.handleError));

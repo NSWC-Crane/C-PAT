@@ -29,9 +29,9 @@ const routes: Routes = [
   { path: 'poam-details/:poamId', canActivate: [AuthGuard], component: PoamDetailsComponent},
   { path: 'poam-approve/:poamId', canActivate: [AuthGuard], component: PoamApproveComponent },
   { path: 'poam-extend/:poamId', canActivate: [AuthGuard], component: PoamExtendComponent },
+  { path: 'stigmanager-import', canActivate: [AuthGuard], loadChildren: () => import('./pages/import-processing/stigmanager-import/stigmanager-import.module').then(m => m.STIGManagerImportModule) },
+  { path: 'tenable-import', canActivate: [AuthGuard], loadChildren: () => import('./pages/import-processing/tenable-import/tenable-import.module').then(m => m.TenableImportModule) },
   { path: 'user-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/user-processing/user-processing.module').then(m => m.UserProcessingModule) },
-
-
   {path: '**', redirectTo: 'poam-processing'},
 ];
 

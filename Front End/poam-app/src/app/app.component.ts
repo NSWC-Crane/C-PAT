@@ -78,12 +78,10 @@ export class AppComponent implements OnInit, OnDestroy {
   public async ngOnInit() {
 
     this.menuService.onItemClick().subscribe((event) => {
-      // Handle other menu item clicks
-      if (event.item.title === 'Import POAM') {
+      if (event.item.title === 'eMASS Excel Import') {
         this.triggerFileInput();
       }
 
-      // Add logout functionality
       if (event.item.title === 'Logout') {
         this.logOut();
       }

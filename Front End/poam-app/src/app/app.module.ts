@@ -34,7 +34,7 @@ import { RoleProvider } from './auth';
 import { PoamApproveModule } from "./pages/poam-processing/poam-approve/poam-approve.module";
 import { PoamExtendModule } from "./pages/poam-processing/poam-extend/poam-extend.module";
 import { FileUploadService } from './file-upload.service';
-import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>

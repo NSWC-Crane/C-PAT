@@ -47,12 +47,15 @@
           <div class="row" *ngIf="allowSelectLabels">
 
             <div class="col-md-5" style="width: auto;">
-              <nb-select fullWidth style="width: auto" outlineid="labelid" name="label" [(ngModel)]="label.labelId"
-                         (selectedChange)="setLabel($event)" placeholder="Label" required>
-                <nb-option *ngFor="let label of data" [value]="label.labelId">
-                  {{ label.labelId }} - {{ label.labelName }} - {{ label.description }}
-                </nb-option>
-              </nb-select>
+              <nb-form-field>
+                <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
+                <nb-select fullWidth style="width: auto" outlineid="labelid" name="label" [(ngModel)]="label.labelId"
+                           (selectedChange)="setLabel($event)" placeholder="Select Label to Modify..." required>
+                  <nb-option *ngFor="let label of data" [value]="label.labelId">
+                    {{ label.labelId }} - {{ label.labelName }} - {{ label.description }}
+                  </nb-option>
+                </nb-select>
+              </nb-form-field>
             </div>
             <div class="col-md-5" style="width: auto;">
               <button nbButton outline status="info" style="float: right;" (click)="addLabel()">Add Label</button>

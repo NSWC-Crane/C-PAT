@@ -15,7 +15,7 @@ import { LabelProcessingComponent } from './label-processing.component';
 import { LabelProcessingRoutingModule } from './label-processing.routing';
 import { SharedModule } from '../../Shared/shared.module';
 import { LabelComponent } from './label/label.component';
-import { NbButtonModule, NbCardModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbTableModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbTableModule, NbFormFieldModule, NbIconModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 
 @NgModule({
@@ -29,7 +29,9 @@ import { Angular2SmartTableModule } from 'angular2-smart-table';
     FormsModule,
     NbButtonModule,
     NbCardModule,
+    NbIconModule,
     NbInputModule,
+    NbFormFieldModule,
     NbSelectModule,
     NbSpinnerModule,
     NbTableModule,

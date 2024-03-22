@@ -52,12 +52,15 @@
           <div class="row" *ngIf="allowSelectAssets">
 
             <div class="col-md-5" style="width: auto;">
-              <nb-select fullWidth #assetScrollListener style="width: auto" (scroll)="onScroll($event)" outlineid="assetid" name="asset" 
-                        [(ngModel)]="asset.assetId" (selectedChange)="setAsset($event)" placeholder="Select Asset to Modify" required>
-                <nb-option *ngFor="let asset of data" [value]="asset.assetId">
-                  {{ asset?.assetId }} - {{ asset?.assetName }}
-                </nb-option>
-              </nb-select>
+              <nb-form-field>
+                <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
+                <nb-select fullWidth #assetScrollListener style="width: auto" (scroll)="onScroll($event)" outlineid="assetid" name="asset"
+                           [(ngModel)]="asset.assetId" (selectedChange)="setAsset($event)" placeholder="Select Asset to Modify" required>
+                  <nb-option *ngFor="let asset of data" [value]="asset.assetId">
+                    {{ asset?.assetId }} - {{ asset?.assetName }}
+                  </nb-option>
+                </nb-select>
+              </nb-form-field>
             </div>
 
           
@@ -73,37 +76,6 @@
       </nb-card>
     </div>
   </div>
-
-  <div class="row">
-    <div class="col-md-10">
-      <!-- Import Assets Section -->
-      <nb-card class="my-card">
-        <nb-card-header>Import STIG Manager Assets</nb-card-header>
-        <nb-card-body class="import-section">
-          <div class="import-item">
-            <nb-select id="collectionSelect" placeholder="Select STIG Manager Collection" [(ngModel)]="selectedCollection" (selectedChange)="onCollectionSelect($event)">
-              <nb-option *ngFor="let collection of collections" [value]="collection.collectionId">
-                {{ collection.name }}
-              </nb-option>
-            </nb-select>
-          </div>
-
-          <div class="import-item">
-            <nb-select id="assetsSelect" placeholder="Select STIG Manager Assets" [(ngModel)]="selectedAssets" [disabled]="!selectedCollection" multiple>
-              <nb-option *ngFor="let asset of availableAssets" [value]="asset.assetId">
-                {{ asset.name }}
-              </nb-option>
-            </nb-select>
-          </div>
-
-          <div class="import-item">
-            <button nbButton outline nbTooltip="Assets imported from STIG Manager will be imported into their coresponding STIG Manager collection." nbTooltipPlacement="top" nbTooltipStatus="basic" status="info" (click)="onImportAssetsButtonClick()">Import</button>
-          </div>
-        </nb-card-body>
-      </nb-card>
-    </div>
-  </div>
-
 
 <ng-template #dialog let-data let-ref="dialogRef">
   <nb-card>
