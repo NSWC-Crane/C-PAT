@@ -78,10 +78,10 @@ exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, n
                 let sql = "SELECT t1.assetId, assetName, t1.labelId, labelName FROM  poamtracking.assetlabels t1 " +
                         "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
                         "INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId " +
-                        "WHERE t1.assetId = " + req.params.assetId + " ORDER BY t3.labelName"
+                        "WHERE t1.assetId = ? ORDER BY t3.labelName"
                 //console.log("getAssetLabelsByAsset sql: ", sql)
 
-                let [rowAssetLabels] = await connection.query(sql)
+                let [rowAssetLabels] = await connection.query(sql, [req.params.assetId]); 
                 console.log("rowAssets: ", rowAssetLabels[0])
                 await connection.release()
 
@@ -128,10 +128,9 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, n
                 let sql = "SELECT t1.assetId, assetName, t1.labelId, labelName FROM  poamtracking.assetlabels t1 " +
                         "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
                         "INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId " +
-                        "WHERE t1.labelId = " + req.params.labelId + " ORDER BY t3.labelName"
-                //console.log("getAssetLabelsByAsset sql: ", sql)
+                        "WHERE t1.labelId = ? ORDER BY t3.labelName";
 
-                let [rowAssetLabels] = await connection.query(sql)
+                let [rowAssetLabels] = await connection.query(sql, [req.params.labelId]); 
                 console.log("rowAssets: ", rowAssetLabels[0])
                 await connection.release()
 
@@ -140,7 +139,6 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, n
                 var assetLabels = []
 
                 for (let counter = 0; counter < size; counter++) {
-                        // console.log("Before setting permissions size: ", size, ", counter: ",counter);
 
                         assetLabels.push({
                                 "assetId": rowAssetLabels[counter].assetId,
@@ -186,14 +184,12 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
         try {
                 let connection
                 connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT t1.assetId, assetName, t1.labelId, labelName FROM  poamtracking.assetlabels t1 " +
-                        "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
-                        "INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId " +
-                        "WHERE t1.assetId = " + req.params.assetId + " AND t1.labelId = " + req.params.labelId +
-                        " ORDER BY t3.labelName"
-                //console.log("getAssetLabelsByAsset sql: ", sql)
+            let sql = "SELECT t1.assetId, assetName, t1.labelId, labelName FROM poamtracking.assetlabels t1 " +
+                "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
+                "INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId " +
+                "WHERE t1.assetId = ? AND t1.labelId = ? ORDER BY t3.labelName";
 
-                let [rowAssetLabel] = await connection.query(sql)
+            let [rowAssetLabel] = await connection.query(sql, [req.params.assetId, req.params.labelId]); 
                 console.log("rowAssets: ", rowAssetLabel[0])
                 await connection.release()
 

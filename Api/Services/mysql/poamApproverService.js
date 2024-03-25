@@ -30,11 +30,8 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
 		connection = await dbUtils.pool.getConnection()
 		let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM  poamtracking.poamapprovers T1 " +
 			"INNER JOIN poamtracking.user T2 ON t1.userId = t2.userId WHERE poamId = ?;"
-		//console.log("getLabels sql: ", sql)
 
 		let [rows] = await connection.query(sql, req.params.poamId)
-
-		//console.log("rows: ", rows[0])
 		await connection.release()
 
 		var size = Object.keys(rows).length
@@ -42,13 +39,9 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
 		var poamApprovers = []
 
 		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
 			poamApprovers.push({
 				...rows[counter]
 			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
 		}
 
 		return { poamApprovers };
@@ -56,7 +49,6 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
 	}
 	catch (error) {
 		let errorResponse = { null: "null" }
-		//await connection.release()
 		return errorResponse;
 	}
 }
@@ -97,9 +89,8 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
 		await connection.query(sql_query, [req.body.poamId, req.body.userId, req.body.approved, req.body.approvedDate, req.body.comments])
 		await connection.release()
 
-		let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = " + req.body.poamId + " AND userId = " + req.body.userId + ";"
-		let [row] = await connection.query(sql)
-		//console.log("row: ", row[0])
+		let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
+		let [row] = await connection.query(sql, [req.body.poamId, req.body.userId])
 		await connection.release()
 
 
@@ -108,8 +99,6 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
 		var poamApprover = []
 
 		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
 			poamApprover.push({
 				...row[counter]
 			});
@@ -152,7 +141,6 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
 		let sql = `SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM  poamtracking.poamapprovers T1 ` +
 			`INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId ` +
 			`INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId WHERE T3.collectionId = ? AND T1. userId = ?`
-		//console.log("getLabels sql: ", sql)
 
 		let [rows] = await connection.query(sql, [req.params.collectionId, req.params.userId])
 
@@ -164,13 +152,9 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
 		var poamApprovers = []
 
 		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
 			poamApprovers.push({
 				...rows[counter]
 			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
 		}
 
 		return { poamApprovers };
@@ -179,14 +163,11 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
 	catch (error) {
 		console.log("error: ", error)
 		let errorResponse = { null: "null" }
-		//await connection.release()
 		return errorResponse;
 	}
 }
 
 exports.putPoamApprover = async function putPoamApprover(req, res, next) {
-	// res.status(201).json({ message: "putPermission (Service) Method called successfully" });
-	// console.log("putPoamApprover req.body: ", req.body)
 	if (!req.body.poamId) {
 		console.info('putPoamApprover poamId not provided.');
 		return next({
@@ -215,16 +196,14 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
 
 		connection = await dbUtils.pool.getConnection()
 
-		let sql_query = "UPDATE poamtracking.poamapprovers SET approved= ?, approvedDate = ?, comments = ? WHERE poamId = " + req.body.poamId + " AND userId = " + req.body.userId + ";"
+		let sql_query = "UPDATE poamtracking.poamapprovers SET approved= ?, approvedDate = ?, comments = ? WHERE poamId = ? AND userId = ?";
 
-		await connection.query(sql_query, [req.body.approved, req.body.approvedDate, req.body.comments])
+		await connection.query(sql_query, [req.body.approved, req.body.approvedDate, req.body.comments, req.body.poamId, req.body.userId])
 
 		if (req.body.approved === 'Rejected') {
-			// If one approver rejects, we must reject the POAM
 			sql_query = "UPDATE poamtracking.poam SET status = ? WHERE poamId = ?;"
 			await connection.query(sql_query, ["Rejected", req.body.poamId])
 		} else {
-			// if all approvers Approved, then we approve the POAM
 			sql_query = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND approved != 'Approved';"
 			let [rows] = await connection.query(sql_query, [req.body.poamId])
 			if (Object.keys(rows).length == 0) {
@@ -233,7 +212,6 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
 			}
 		}
 
-		// return the updated row
 		sql_query = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?;"
 		let [rows] = await connection.query(sql_query, [req.body.poamId, req.body.userId])
 
@@ -282,13 +260,10 @@ exports.deletePoamAprover = async function deletePoamApprover(req, res, next) {
 	try {
 
 		connection = await dbUtils.pool.getConnection()
-		let sql = "DELETE FROM  poamtracking.poamapprovers WHERE poamId=" + req.params.poamId + " AND userId = " + req.params.userId + ";"
-		//console.log("deleteLabel sql: ", sql)
+		let sql = "DELETE FROM  poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
 
-		await connection.query(sql)
-		// console.log("rowPermissions: ", rowPermissions[0])
+		await connection.query(sql, [req.params.poamId, req.params.userId, req.params.userId]);
 		await connection.release()
-
 
 		var poamApprover = { delete: 'Success' }
 

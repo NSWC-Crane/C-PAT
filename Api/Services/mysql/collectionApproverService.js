@@ -30,10 +30,8 @@ exports.getCollectionApprovers = async function getCollectionApprovers(req, res,
 		
 		let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM  poamtracking.collectionapprovers T1 " + 
 		"INNER JOIN poamtracking.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
-		//console.log("getLabels sql: ", sql)
 
 		let [rows] = await connection.query(sql, req.params.collectionId)
-		//console.log("rows: ", rows)
 		await connection.release()
 
 		var size = Object.keys(rows).length
@@ -41,13 +39,9 @@ exports.getCollectionApprovers = async function getCollectionApprovers(req, res,
 		var collectionApprovers = []
 
 		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
 			collectionApprovers.push({
 				...rows[counter]
 			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
 		}
 
 		return { collectionApprovers };
@@ -55,15 +49,11 @@ exports.getCollectionApprovers = async function getCollectionApprovers(req, res,
 	}
 	catch (error) {
 		let errorResponse = { null: "null" }
-		//await connection.release()
 		return errorResponse;
 	}
 }
 
 exports.postCollectionApprover = async function postCollectionApprover(req, res, next) {
-	// res.status(201).json({ message: "postPermission (Service) Method called successfully" });
-	//console.log("postCollectionApprover req.body: ", req.body)
-
 	if (!req.body.collectionId) {
 		console.info('postCollectionApprover collectionId not provided.');
 		return next({
@@ -103,8 +93,8 @@ exports.postCollectionApprover = async function postCollectionApprover(req, res,
 		await connection.release();
 
 		connection = await dbUtils.pool.getConnection();
-		let sql = "SELECT * FROM poamtracking.collectionapprovers WHERE collectionId = " + req.body.collectionId + " AND userId = " + req.body.userId + ";"
-		let row = await connection.query(sql);
+		let sql = "SELECT * FROM poamtracking.collectionapprovers WHERE collectionId = ? AND userId = ?";
+		let row = await connection.query(sql, [req.body.collectionId, req.body.userId]);
 
 		await connection.release();
 		//console.log("row: ", row[0]);
@@ -114,8 +104,6 @@ exports.postCollectionApprover = async function postCollectionApprover(req, res,
 		var collectionApprover = []
 
 		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
 			collectionApprover.push({
 				...row[counter]
 			});
@@ -133,8 +121,6 @@ exports.postCollectionApprover = async function postCollectionApprover(req, res,
 	}
 
 exports.putCollectionApprover = async function putCollectionApprover(req, res, next) {
-	// res.status(201).json({ message: "putPermission (Service) Method called successfully" });
-	// console.log("postPermission req.body: ", req.body)
 	if (!req.body.collectionId) {
 		console.info('putCollectionApprover collectionId not provided.');
 		return next({
@@ -168,14 +154,14 @@ exports.putCollectionApprover = async function putCollectionApprover(req, res, n
 
 		connection = await dbUtils.pool.getConnection()
 
-		let sql_query = "UPDATE poamtracking.collectionapprovers SET status= ? WHERE collectionId = " + req.body.collectionId + " AND userId = " + req.body.userId + ";"
+		let sql_query = "UPDATE poamtracking.collectionapprovers SET status= ? WHERE collectionId = ? AND userId = ?";
 
-		await connection.query(sql_query, [req.body.status])
+		await connection.query(sql_query, [req.body.status, req.body.collectionId, req.body.userId])
 		await connection.release()
 
 		connection = await dbUtils.pool.getConnection();
-		let sql = "SELECT * FROM poamtracking.collectionapprovers WHERE collectionId = " + req.body.collectionId + " AND userId = " + req.body.userId + ";"
-		let row = await connection.query(sql);
+		let sql = "SELECT * FROM poamtracking.collectionapprovers WHERE collectionId = ? AND userId = ?";
+		let row = await connection.query(sql, [req.body.collectionId, req.body.userId]);
 
 		await connection.release();
 
@@ -185,8 +171,6 @@ exports.putCollectionApprover = async function putCollectionApprover(req, res, n
 		var collectionApprover = []
 
 		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
 			collectionApprover.push({
 				...row[counter]
 			});
@@ -204,7 +188,6 @@ exports.putCollectionApprover = async function putCollectionApprover(req, res, n
 	}
 
 	exports.deleteCollectionAprover = async function deleteCollectionApprover(req, res, next) {
-		// res.status(201).json({ message: "deleteColectionApprover (Service) Method called successfully" });
 		if (!req.params.collectionId) {
 			console.info('deleteCollectionApprover collectionId not provided.');
 			return next({
@@ -227,11 +210,9 @@ exports.putCollectionApprover = async function putCollectionApprover(req, res, n
 		try {
 			
 			connection = await dbUtils.pool.getConnection()
-			let sql = "DELETE FROM  poamtracking.collectionapprovers WHERE collectionId=" + req.params.collectionId + " AND userId = " + req.params.userId + ";"
-			//console.log("deleteLabel sql: ", sql)
+			let sql = "DELETE FROM  poamtracking.collectionapprovers WHERE collectionId = ? AND userId = ?";
 
-			await connection.query(sql)
-			// console.log("rowPermissions: ", rowPermissions[0])
+			await connection.query(sql, [req.params.collectionId, req.params.userId])
 			await connection.release()
 
 			var collectionApprover = {delete: 'Success'}

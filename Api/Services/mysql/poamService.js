@@ -30,8 +30,6 @@ exports.getPoams = async function getPoams(req, res, next) {
                 var poams = []
 
                 for (let counter = 0; counter < size; counter++) {
-                        // console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
                         poams.push({
                                 ...rowPoams[counter]
                         });
@@ -42,14 +40,11 @@ exports.getPoams = async function getPoams(req, res, next) {
         }
         catch (error) {
                 let errorResponse = { null: "null" }
-                //await connection.release()
                 return errorResponse;
         }
 }
 
 exports.getPoam = async function getPoam(req, res, next) {
-        // res.status(201).json({ message: "getPoam Method Called successfully" })
-
         if (!req.params.poamId) {
                 console.info('getPoam poamId not provided.');
                 return next({
@@ -63,11 +58,8 @@ exports.getPoam = async function getPoam(req, res, next) {
         try {
                 let connection
                 connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT * FROM  poamtracking.poam WHERE poamId=" + req.params.poamId + ";"
-                // console.log("getAsset sql: ", sql)
-
-                let [rowPoam] = await connection.query(sql)
-                //console.log("rowAsset: ", rowPoam[0])
+            let sql = "SELECT * FROM  poamtracking.poam WHERE poamId = ?";
+            let [rowPoam] = await connection.query(sql, [req.params.poamId]);
                 await connection.release()
 
                 var poam = rowPoam[0]
@@ -76,14 +68,11 @@ exports.getPoam = async function getPoam(req, res, next) {
         }
         catch (error) {
                 let errorResponse = { null: "null" }
-                //await connection.release()
                 return errorResponse;
         }
 }
 
 exports.getPoamsByCollectionid = async function getPoamsByCollectionId(req, res, next) {
-        // res.status(201).json({ message: "getPoamByCollectionId Method Called successfully" })
-
         if (!req.params.collectionId) {
                 console.info('getPoamByCollectionId  collectionId not provided.');
                 return next({
@@ -97,10 +86,9 @@ exports.getPoamsByCollectionid = async function getPoamsByCollectionId(req, res,
         try {
                 let connection
                 connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT * FROM poamtracking.poam WHERE collectionId = " + req.params.collectionId + " ORDER BY poamId DESC;"
+            let sql = "SELECT * FROM poamtracking.poam WHERE collectionId = ? ORDER BY poamId DESC";
 
-                let [rowPoams] = await connection.query(sql)
-                // console.log("rowPoams: ", rowPoams[0])
+            let [rowPoams] = await connection.query(sql, [req.params.collectionId]);
                 await connection.release()
 
                 var size = Object.keys(rowPoams).length
@@ -118,14 +106,11 @@ exports.getPoamsByCollectionid = async function getPoamsByCollectionId(req, res,
         }
         catch (error) {
                 let errorResponse = { null: "null" }
-                //await connection.release()
                 return errorResponse;
         }
 }
 
 exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, next) {
-        // res.status(201).json({ message: "getPoamByOwnerId Method Called successfully" })
-
         if (!req.params.ownerId) {
                 console.info('getPoamByOwnerId  ownerId not provided.');
                 return next({
@@ -139,10 +124,9 @@ exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, next) {
         try {
                 let connection
                 connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT * FROM poamtracking.poam WHERE ownerId = " + req.params.ownerId + " ORDER BY poamId DESC;"
+            let sql = "SELECT * FROM poamtracking.poam WHERE ownerId = ? ORDER BY poamId DESC";
 
-                let [rowPoams] = await connection.query(sql)
-                // console.log("rowPoams: ", rowPoams[0])
+            let [rowPoams] = await connection.query(sql, [req.params.ownerId]);
                 await connection.release()
 
                 var size = Object.keys(rowPoams).length
@@ -160,13 +144,11 @@ exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, next) {
         }
         catch (error) {
                 let errorResponse = { null: "null" }
-                //await connection.release()
                 return errorResponse;
         }
 }
 
 exports.postPoam = async function postPoam(req, res, next) {
-        // res.status(201).json({ message: "postPoam (Service) Method called successfully" });
         console.log("postPoam() req.body: ", req.body)
         if (!req.body.collectionId) {
                 console.info('postPoam collectionId not provided.');
@@ -239,7 +221,6 @@ exports.postPoam = async function postPoam(req, res, next) {
 
                 let sql = "SELECT * FROM poamtracking.poam WHERE poamId = LAST_INSERT_ID();"
                 let [rowPoam] = await connection.query(sql)
-                //console.log("rowPoam: ", rowPoam[0])
                 await connection.release()
 
                 var poam = rowPoam[0]
@@ -273,13 +254,11 @@ exports.postPoam = async function postPoam(req, res, next) {
         catch (error) {
                 console.log("error: ", error)
                 let errorResponse = { null: "null" }
-                //await connection.release()
                 return errorResponse;
         }
 }
 
 exports.putPoam = async function putPoam(req, res, next) {
-        //res.status(201).json({ message: "putPoam (poamService) Method called successfully" });
         if (!req.body.poamId) {
                 console.info('postPoam poamId not provided.');
                 return next({
@@ -360,7 +339,6 @@ exports.putPoam = async function putPoam(req, res, next) {
 
                 let sql = "SELECT * FROM poamtracking.poam WHERE poamId = ?"
                 let [rowPoam] = await connection.query(sql, [req.body.poamId])
-                //console.log("putPoam rowPoam: ", rowPoam[0])
                 await connection.release()
 
                 var poam = rowPoam[0]
@@ -370,14 +348,11 @@ exports.putPoam = async function putPoam(req, res, next) {
         catch (error) {
                 console.log("error: ", error)
                 let errorResponse = { null: "null" }
-                //await connection.release()
                 return errorResponse;
         }
 }
 
 exports.deletePoam = async function deletePoam(req, res, next) {
-        //res.status(201).json({ message: "deletePoam Method Called successfully" })
-
         if (!req.params.poamId) {
                 console.info('deletePoam poamId not provided.');
                 return next({
@@ -392,8 +367,6 @@ exports.deletePoam = async function deletePoam(req, res, next) {
                 let connection
                 connection = await dbUtils.pool.getConnection()
                 let sql = "DELETE FROM  poamtracking.poam WHERE poamId = ?;"
-                //console.log("deleteLabel sql: ", sql)
-
                 await connection.query(sql, [req.params.poamId])
                 await connection.release()
 

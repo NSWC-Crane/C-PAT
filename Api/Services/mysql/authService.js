@@ -18,12 +18,6 @@ var refreshPayload = require('../../utils/refresh_payload');
 const { json } = require('express');
 
 exports.changeWorkspace = async function changeWorkspace (req, res, next) {
-	// if (!req.body.collections) {
-	//   console.info( 'Post node-api change-workspace: collections not provided.');
-	//   return res.status(422).json({
-	// 	message: 'No collections found'
-	//   });
-	// }
 	console.log("authService changeWorkspace req.body: ", req.body)
 	if (!req.body.token) {
 	  console.info( 'Post node-api change-workspace: token not provided.');
@@ -75,10 +69,9 @@ exports.login = async function login(req, res, next) {
 
 	try {
 		let connection
-		let sql = "SELECT * FROM user WHERE userEmail='" + req.body.email + "';"
-		//console.log("authService login sql: ", sql)
-		connection = await dbUtils.pool.getConnection()
-		let [rowUser] = await connection.query(sql)
+		let sql = "SELECT * FROM user WHERE userEmail = ?";
+		connection = await dbUtils.pool.getConnection();
+		let [rowUser] = await connection.query(sql, [req.body.email]);
 	
 		await connection.release()
 
@@ -95,11 +88,9 @@ exports.login = async function login(req, res, next) {
 					if (user) {
 						console.log('login successful!', 'user:', user);
 						let token = await userService.generateJWT('', '', user);
-						//console.log("token: ", token);
-						// We have a token, let's update lastAccess on user record
-						let sql = "UPDATE user SET lastAccess =  Now() WHERE userEmail='" + req.body.email + "';"
+						let sql = "UPDATE user SET lastAccess =  Now() WHERE userEmail = ?";
 						connection = await dbUtils.pool.getConnection()
-						await connection.query(sql)					
+						await connection.query(sql, [req.body.email]);					
 						await connection.release()
 						
 						return res.status(200).json({
@@ -148,13 +139,10 @@ exports.register = async function register(req, res, next) {
 		console.log('authService register incoming req.body:', req.body);
 		let connection
 
-		// check if email already in use
 		if (req.body.email) {
-
-			//let connection
-			let sql = "SELECT * FROM user WHERE userEmail='" + req.body.email + "'"
+			let sql = "SELECT * FROM user WHERE userEmail = ?";
 			connection = await dbUtils.pool.getConnection()
-			let [rowUser] = await connection.query(sql)
+			let [rowUser] = await connection.query(sql, [req.body.email]);
 
 			//console.log("email check: ",rowUser[0])
 			await connection.release()
@@ -178,10 +166,10 @@ exports.register = async function register(req, res, next) {
 		// check if username already exists
 		if (req.body.userName) {
 			
-			let sql = "SELECT * FROM user WHERE userName='" + req.body.userName + "'"
+			let sql = "SELECT * FROM user WHERE userName = ?";
 			connection = await dbUtils.pool.getConnection()
 			
-			let [rowUser] = await connection.query(sql)
+			let [rowUser] = await connection.query(sql, [req.body.userName]);
 			await connection.release()
 			//console.log("name check: ",rowUser[0])
 			if (rowUser[0] != undefined) {
@@ -206,25 +194,22 @@ exports.register = async function register(req, res, next) {
 			req.body.email
 		) {
 			// create new user
-			let sql = "INSERT INTO user (userName, userEmail, created, firstName, lastName," 
-				+ " lastCollectionAccessedId, accountStatus, fullName, defaultTheme) VALUES (" 
-				+ "'" + req.body.userName
-				+ "','" + req.body.email
-				+ "', CURDATE(), '" 
-				+ req.body.firstName
-				+ "', '" + req.body.lastName
-				+ "', 0 , 'PENDING', '"
-				+ req.body.firstName
-				+ " " + req.body.lastName
-				+ "', 'default' );"
+			let sql = "INSERT INTO user (userName, userEmail, created, firstName, lastName, " +
+				"lastCollectionAccessedId, accountStatus, fullName, defaultTheme) VALUES (?, ?, CURDATE(), ?, ?, 0 , 'PENDING', ?, 'default' )";
 
-			connection = await dbUtils.pool.getConnection()
-			await connection.query(sql)
-			await connection.release()		
+			connection = await dbUtils.pool.getConnection();
+			await connection.query(sql, [
+				req.body.userName,
+				req.body.email,
+				req.body.firstName,
+				req.body.lastName,
+				req.body.firstName + " " + req.body.lastName
+			]);
+			await connection.release();	
 			
-			sql = "SELECT * FROM user WHERE userName='" + req.body.userName + "'"
+			sql = "SELECT * FROM user WHERE userName = ?";
 			connection = await dbUtils.pool.getConnection()			
-			let [user] = await connection.query(sql)
+			let [user] = await connection.query(sql, [req.body.userName]);
 			await connection.release()	
 
 			if (!user) {
