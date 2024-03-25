@@ -17,19 +17,15 @@ const auth = require('../../utils/auth');
 const writeLog = require('../../utils/poam_logger')
 
 exports.getUserObject = async function getUserObject(body, projection, userObject) {
-	// console.log("Require passed")
 	var con = mysql.createConnection({
 		host: process.env.USERSERVICE_DB_HOST,
 		user: process.env.USERSERVICE_DB_USER,
 		password: process.env.USERSERVICE_DB_PASSWORD,
 		database: process.env.USERSERVICE_DB_DATABASE
 	})
-	// console.log("Connection Created")
-
 	con.connect(function (err) {
 		if (err) throw err;
 		con.query("INSERT into user(name, id, email)values('Boo', 004, 'spooky4u@navy.gov')")
-		// console.log('Entry added')
 		if (err) throw err;
 	})
 	res.status(201).json({ message: "getUser (Service) Method Called successfully" })
@@ -38,9 +34,9 @@ exports.getUserObject = async function getUserObject(body, projection, userObjec
 exports.refresh = async function refresh(userId, body, projection, userOnject) {
 
 	let connection
-	let sql = 'SELECT * FROM `user` WHERE `userId`=' + userId
-	connection = await dbUtils.pool.getConnection()
-	let [row] = await connection.query(sql)
+	let sql = "SELECT * FROM user WHERE userId = ?";
+	connection = await dbUtils.pool.getConnection();
+	let [row] = await connection.query(sql, [userId]);
 
 	await connection.release()
 	return (row[0])
@@ -49,9 +45,9 @@ exports.refresh = async function refresh(userId, body, projection, userOnject) {
 exports.getUserByUserID = async function getUserByUserID(userId, body, projection, userObject) {
 
 	let connection
-	let sql = 'SELECT * FROM `user` WHERE `userId`=' + userId
+	let sql = "SELECT * FROM user WHERE userId = ?";
 	connection = await dbUtils.pool.getConnection()
-	let [row] = await connection.query(sql)
+	let [row] = await connection.query(sql, [userId]);
 
 	await connection.release()
 	return (row[0])
@@ -66,14 +62,13 @@ exports.getCurrentUser = async function getCurrentUser(req) {
 	try {
 		const userEmail = req.userObject.email;
 		let connection = await dbUtils.pool.getConnection();
-		const sqlUser = 'SELECT * FROM `user` WHERE `userEmail` = ?';
+		const sqlUser = "SELECT * FROM user WHERE userEmail = ?";
 		const [rows] = await connection.query(sqlUser, [userEmail]);
 
 		if (rows.length > 0) {
 			const user = rows[0];
 
-			// Now fetch permissions for this user
-			const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId=?";
+			const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId = ?";
 			const [rowPermissions] = await connection.query(sqlPermissions, [user.userId]);
 
 			const permissions = rowPermissions.map(permission => ({
@@ -127,7 +122,7 @@ exports.getUsers = async function getUsers(req, res, next) {
 		};
 
 		for (let counter = 0; counter < size; counter++) {
-			const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId=?";
+			const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId = ?";
 			const [rowPermissions] = await connection.query(sqlPermissions, [rows[counter].userId]);
 
 			const permissions = rowPermissions.map(permission => ({
@@ -167,9 +162,6 @@ exports.getUsers = async function getUsers(req, res, next) {
 
 //Needs to be removed
 exports.getUserByNamePassword = async function getUserByNamePassword(username, callback) {
-	/**
-	 * This User instance will be passed through authentication to the JWT.
-	 */
 	function loginObj(userId, userName, email, created, lastAccess, firstName, lastName,
 		lastCollectionAccessedId, defaultTheme) {
 		this.userId = userId
@@ -184,17 +176,13 @@ exports.getUserByNamePassword = async function getUserByNamePassword(username, c
 			this.isAdmin = isAdmin
 	}
 
-	//console.log("auth: ",auth)
 	try {
 		let connection
-		let sql = "SELECT * FROM user WHERE userName='" + username + "';"
-		//console.log("authUserTest sql: ", sql)
+		let sql = "SELECT * FROM user WHERE userName = ?";
 		connection = await dbUtils.pool.getConnection()
-		let [rowUser] = await connection.query(sql)
+		let [rowUser] = await connection.query(sql, [username]);
 
 		let dt = new Date();
-		//console.log(dt)
-		//console.log("User: " + rowUser[0].userName + " logged in at " + dt)
 		let response = new loginObj(rowUser[0].userId,
 			rowUser[0].userName,
 			rowUser[0].userEmail,
@@ -207,7 +195,6 @@ exports.getUserByNamePassword = async function getUserByNamePassword(username, c
 			rowUser[0].isAdmin
 		);
 		await connection.release()
-		// console.log("getUserByNamePassword callback: ", response)
 		return callback(null, response);
 
 	}
@@ -219,10 +206,6 @@ exports.getUserByNamePassword = async function getUserByNamePassword(username, c
 };
 
 exports.updateUser = async function updateUser(req, res, next) {
-	// res.status(201).json({message: "updateUser (Service) Method called successfully"})
-	// console.log("usersService updateUser req: ", req)
-	// console.log("usersService updateUser req.userObject: ", req.userObject)
-	//console.log("usersService updateUser req.preferred_username: ", req.preferred_username,", req.name: ", req.name)
 	let userId = req.body.userId;
 
 	if (!req.body.userEmail) {
@@ -250,26 +233,27 @@ exports.updateUser = async function updateUser(req, res, next) {
 	try {
 		let connection
 
-		//console.log("usersService login sql: ", sql)
 		connection = await dbUtils.pool.getConnection()
-		let sql = "SELECT * from user WHERE userId=" + userId + ";"
-		let [currentUser] = await connection.query(sql)
+		let sql = "SELECT * from user WHERE userId = ?"
+		let [currentUser] = await connection.query(sql, [userId]);
 
-		sql = "UPDATE user SET firstName = '" + req.body.firstName +
-			"', lastName = '" + req.body.lastName +
-			"', userEmail = '" + req.body.userEmail +
-			"', lastCollectionAccessedId = '" + req.body.lastCollectionAccessedId +
-			"', accountStatus = '" + req.body.accountStatus +
-			"', fullName = '" + req.body.firstName + " " + req.body.lastName +
-			"', defaultTheme = '" + req.body.defaultTheme +
-			"', isAdmin = " + req.body.isAdmin +
-			" WHERE userId=" + userId + ";"
+		let fullName = `${req.body.firstName} ${req.body.lastName}`;
+		sql = "UPDATE user SET firstName = ?, lastName = ?, userEmail = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, defaultTheme = ?, isAdmin = ? WHERE userId = ?";
 
-		await connection.query(sql);
-		//await connection.release()
-
-		sql = "SELECT * from user WHERE userId=" + userId + ";"
-		let [rowUser] = await connection.query(sql)
+		await connection.query(sql,
+			[
+				req.body.firstName,
+				req.body.lastName,
+				req.body.userEmail,
+				req.body.lastCollectionAccessedId,
+				req.body.accountStatus,
+				fullName,
+				req.body.defaultTheme,
+				req.body.isAdmin,
+				userId,
+			]);
+		sql = "SELECT * from user WHERE userId = ?"
+		let [rowUser] = await connection.query(sql, [userId]);
 		await connection.release()
 
 		if (rowUser[0] != undefined) {
@@ -291,11 +275,7 @@ exports.updateUser = async function updateUser(req, res, next) {
 					writeLog.writeLog(3, "usersService", 'notification', req.userObject.username, req.userObject.displayName, { event: 'disabled account', userId: rowUser[0].userId, userName: rowUser[0].userName, userEmail: rowUser[0].userEmail })
 				}
 			}
-
-
-			// console.log("usersService updateUser returning: ", rowUser[0]);
 			res.status(201).json(rowUser[0])
-
 		} else {
 			return next({
 				status: 422,
@@ -316,7 +296,6 @@ exports.updateUser = async function updateUser(req, res, next) {
 
 exports.loginout = async function loginout(req, res, next) {
 
-	//console.log("loginout req.inOut: ", req.body.inout)
 	let message = { message: ""}
 	if (req.body.inout == 'logIn') {
 		writeLog.writeLog(4, "usersService", 'info', req.userObject.username, req.userObject.displayName, { event: 'logged in'})
@@ -325,7 +304,6 @@ exports.loginout = async function loginout(req, res, next) {
 		writeLog.writeLog(4, "usersService", 'info', req.userObject.username, req.userObject.displayName, { event: 'logged out' })
 		message.message = "Logout Success"
 	}
-	//console.log("returning : ",message)
 	return (message);
 }
 
@@ -355,9 +333,6 @@ module.exports.deleteUserByUserID = async function deleteUserByUserID(userId, re
  * @returns JWT token.
  */
 module.exports.generateJWT = async function (previousPayload, jwtSignOptions, user, req) {
-	//const findPermissionsByContract = util.promisify(Permission.findByContract);
-
-	// console.log("incoming user generateJWT...", user)
 	let payload = Object.assign({}, previousPayload, {
 		userId: user.userId,
 		userName: user.userName,
@@ -374,9 +349,7 @@ module.exports.generateJWT = async function (previousPayload, jwtSignOptions, us
 
 	if (payload.collections) {
 		try {
-			// console.log("payload: ", payload);
-			const permissions = "" //await findPermissionsByUser(payload.user_id);
-			// console.log("permissions: " + JSON.stringify(permissions));
+			const permissions = ""
 			if (!permissions) { console.log("deleting payload.collection..."); delete payload.collections; }
 			else {
 
@@ -392,9 +365,8 @@ module.exports.generateJWT = async function (previousPayload, jwtSignOptions, us
 				}
 			}
 		} catch (err) {
-			console.log("ERROR: collections is missing from payload.")
-			console.log(err)
-			// return err;
+			console.log("ERROR: collections is missing from payload.");
+			console.log(err);
 			throw err
 		}
 	} else if (this.lastCollectionAccessedId) {
@@ -404,10 +376,7 @@ module.exports.generateJWT = async function (previousPayload, jwtSignOptions, us
 		console.log("User account is pending, not setting payload...");
 	}
 	else {
-		// console.log("No lastCollectionAccessedId, not setting payload.lastCollectionAccessedId at all...")
 		writeLog.writeLog(4, "usersService", 'info', req.userObject.username, req.userObject.displayName, { event: 'No lastCollectionAccessedId, not setting payload.lastCollectionAccessedId at all...' })
 	}
-	// console.log("payload for token: ",payload)
 	return tokenGenerator.sign(payload, jwtSignOptions);
 }
-

@@ -15,8 +15,6 @@ const mysql = require('mysql2')
 const writeLog = require('../../utils/poam_logger')
 
 exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
-	// res.status(201).json({ message: "getCollectionPermissions (Service) Method called successfully" });
-
 	if (!req.params.collectionId) {
 		console.info('getCollectionPermissions collectionId not provided.');
 		return next({
@@ -32,7 +30,6 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
 		connection = await dbUtils.pool.getConnection()
 		let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM  poamtracking.collectionpermissions T1 " +
 			"INNER JOIN poamtracking.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
-		// console.log("getPermissions_User sql: ", sql)
 
 		let [rowPermissions] = await connection.query(sql, req.params.collectionId)
 		console.log("rowPermissions: ", rowPermissions[0])
@@ -45,16 +42,11 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
 		}
 
 		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
 			permissions.permissions.push({
 				...rowPermissions[counter]
 			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
 		}
 
-		//console.log("returning: ",permissions)
 		return { permissions };
 	}
 	catch (error) {
@@ -64,7 +56,6 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
 	}
 }
 exports.getCollections = async function getCollections(userNameInput, req, res, next) {
-	// if "Registrant, then send back all id's and names"
 	if (userNameInput == "Registrant") {
 		try {
 			let connection
@@ -84,8 +75,6 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
 				});
 			}
 
-			// console.log(user);
-
 			await connection.release()
 			return user;
 		} catch (error) {
@@ -101,8 +90,8 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
 		let connection
 		connection = await dbUtils.pool.getConnection()
 		//if user is admin check, if so dump all collections
-		let sql = `SELECT * FROM user WHERE userName='${userNameInput}';`;
-		let [row] = await connection.query(sql);
+		let sql = "SELECT * FROM user WHERE userName = ?";
+		let [row] = await connection.query(sql, [userNameInput]);
 		userId = row[0].userId;
 		isAdmin = row[0].isAdmin;
 		userName = row[0].userName;
@@ -114,12 +103,10 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
 		collections: []
 	}
 	if (isAdmin == 1) {
-		// console.log("collectionService getCollections() user", userName,"can access these collections:")
 		let connection
 		connection = await dbUtils.pool.getConnection()
 		let sql2 = "SELECT * FROM collection;"
 		let [row2] = await connection.query(sql2)
-		// console.log(row2.foreach.collectionName)
 		var size = Object.keys(row2).length
 
 		for (let counter = 0; counter < size; counter++) {
@@ -137,23 +124,20 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
 		try {
 			let connection
 			connection = await dbUtils.pool.getConnection()
-			let sql = "SELECT * FROM collectionpermissions WHERE userId='" + userId + "';"
-			let [row2] = await connection.query(sql)
-			//console.log(row2)
+			let sql = "SELECT * FROM collectionpermissions WHERE userId = ?";
+			let [row2] = await connection.query(sql, [userId])
 			var numberOfCollections = Object.keys(row2).length
-			// console.log(numberOfCollections)
 			var nonAdminCollections = {
 
 				collections: []
 			}
 			for (let counter = 0; counter < numberOfCollections; counter++) {
-				let sql3 = "SELECT * FROM collection WHERE collectionId='" + row2[counter].collectionId + "';"
-				let [row3] = await connection.query(sql3)
+				let sql3 = "SELECT * FROM collection WHERE collectionId = ?";
+				let [row3] = await connection.query(sql3, [row2[counter].collectionId])
 				nonAdminCollections.collections.push({ "collectionId": row3[0].collectionId, "collectionName": row3[0].collectionName, "description": row3[0].description, "created": row3[0].created, "grantCount": row3[0].grantCount, "assetCount": row3[0].assetCount, "poamCount": row3[0].poamCount });
 			}
 
 			let response = nonAdminCollections
-			// console.log(response)
 			await connection.release()
 			return response;
 		}
@@ -176,21 +160,19 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 		this.grantCount = grantCount
 		this.poamCount = poamCount
 	}
-
-	// console.log("UserName: ", userName, ", collectionId: ", collectionId)
 	
 	try{
 		let connection
 		connection = await dbUtils.pool.getConnection()
 		//if user is admin check, if so dump all collections
-		let sql = "SELECT * FROM user WHERE userName='"+userName + "';"
-		let[row] = await connection.query(sql)
+		let sql = "SELECT * FROM user WHERE userName = ?";
+		let [row] = await connection.query(sql, [userName]);
 		let userId = row[0].userId
 		let isAdmin = row[0].isAdmin 
 		 
 		try{
-		let sql = "SELECT * FROM collectionpermissions WHERE userId='"+userId + "' AND collectionId='"+collectionId +"';"
-		let[row] = await connection.query(sql)
+			let sql = "SELECT * FROM collectionpermissions WHERE userId = ? AND collectionId = ?";
+			let [row] = await connection.query(sql, [userId, collectionId]);
 		let userName = row[0].userName
 
 
@@ -200,21 +182,11 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 			try{
 			
 			if (!isAdmin) throw error("Not Authorized")
-			// let sql = "SELECT * FROM adminpermissions WHERE userId='"+userId + "';"
-			// let[row] = await connection.query(sql)
-			// if(row[0].userId)
-			// {
-			// 	let isAdmin = true
-			// }
-
 			}
-			catch(error){
-				
+			catch(error){				
 				return {"null" : "User does not have access to this collection."}
-
 			}
 		}
-
 	}
 	catch(error)
 	{
@@ -225,10 +197,8 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 		let connection
 		connection = await dbUtils.pool.getConnection()
 		//if user is admin check, if so dump all collections
-		let sql = "SELECT * FROM collection WHERE collectionId="+collectionId + ";"
-		let [row] = await connection.query(sql)
-		// console.log("row: ", row[0])
-		// let response = new collectionObj(row[0].collectionId, row[0].collectionName,row[0].description, row[0].created,row[0].grantCount,row[0].poamCount)
+		let sql = "SELECT * FROM collection WHERE collectionId = ?";
+		let [row] = await connection.query(sql, [collectionId])
 		let response = {...row[0]}
 		await connection.release()
 		return response
@@ -236,10 +206,6 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 	catch(error){
 		return {"null" : "Invalid Collection ID"}
 	}
-
-
-
-
 }
 
 exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res, next) {
@@ -405,7 +371,6 @@ exports.getCollectionPoamEstimatedCompletion = async function getCollectionPoamE
 }
 
 exports.postCollection = async function postCollection(req, res, next) {
-	// console.log("inSide postCollection req.body: ", req.body)
 	let connection;
 
 	if (!req.body.collectionName) req.body.collectionName = undefined
@@ -439,7 +404,6 @@ exports.postCollection = async function postCollection(req, res, next) {
 }
 
 exports.putCollection = async function putCollection(req, res, next) {
-	// console.log("inSide putCollection req.body: ", req.body)
 	if (!req.body.collectionId) {
 		console.info('postPermissions collectionId not provided.');
 		return next({
@@ -459,12 +423,12 @@ exports.putCollection = async function putCollection(req, res, next) {
 		let connection
 		connection = await dbUtils.pool.getConnection()
 
-		let sql = "SELECT * FROM poamtracking.collection WHERE collectionId = '" + req.body.collectionId + "';"
-		let [currentCollection] = await connection.query(sql)
+		let sql = "SELECT * FROM poamtracking.collection WHERE collectionId = ?";
+		let [currentCollection] = await connection.query(sql, [req.body.collectionId]);
 
-		let sql_query = "UPDATE poamtracking.collection SET collectionName=?, description=?, grantCount= ?, assetCount= ?, poamCount= ? WHERE collectionId = " + req.body.collectionId + ";"
+		let sql_query = "UPDATE poamtracking.collection SET collectionName=?, description=?, grantCount= ?, assetCount= ?, poamCount= ? WHERE collectionId = ?";
 
-		await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.grantCount, req.body.assetCount, req.body.poamCount])
+		await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.grantCount, req.body.assetCount, req.body.poamCount, req.body.collectionId])
 		await connection.release()
 
 		writeLog.writeLog(4, "colectionService", 'info', req.userObject.username,  req.userObject.displayName, { event: 'updated collection', collectionName: req.body.collectionName, description: req.body.description,

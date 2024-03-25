@@ -93,12 +93,8 @@ exports.getPermissions_UserCollection = async function getPermissions_UserCollec
 	try {
 		let connection
 		connection = await dbUtils.pool.getConnection()
-		let sql = "SELECT * FROM  poamtracking.collectionpermissions WHERE userId=" + req.params.userId +
-			" AND collectionId=" + req.params.collectionId + ";"
-		// console.log("getPermissions_User sql: ", sql)
-
-		let [rowPermissions] = await connection.query(sql)
-		// console.log("rowPermissions: ", rowPermissions[0])
+		let sql = "SELECT * FROM  poamtracking.collectionpermissions WHERE userId = ? AND collectionId = ?";
+		let [rowPermissions] = await connection.query(sql, [req.params.userId, req.params.collectionId])
 		await connection.release()
 
 		var size = Object.keys(rowPermissions).length
@@ -108,8 +104,6 @@ exports.getPermissions_UserCollection = async function getPermissions_UserCollec
 		}
 
 		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
 			permissions.permissions.push({
 				"userId": rowPermissions[counter].userId,
 				"collectionId": rowPermissions[counter].collectionId,
@@ -118,11 +112,7 @@ exports.getPermissions_UserCollection = async function getPermissions_UserCollec
 				"canApprove": rowPermissions[counter].canApprove,
 				"canView": rowPermissions[counter].canView
 			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
 		}
-
-		//console.log("returning: ",permissions)
 		return { permissions };
 	}
 	catch (error) {
@@ -262,12 +252,10 @@ exports.deletePermission = async function deletePermission(req, res, next) {
 	try {
 		let connection
 		connection = await dbUtils.pool.getConnection()
-		let sql = "DELETE FROM  poamtracking.collectionpermissions WHERE userId=" + req.params.userId +
-			" AND collectionId=" + req.params.collectionId + ";"
+		let sql = "DELETE FROM  poamtracking.collectionpermissions WHERE userId = ?	AND collectionId = ?";
 		console.log("deletePermissions sql: ", sql)
 
-		await connection.query(sql)
-		// console.log("rowPermissions: ", rowPermissions[0])
+		await connection.query(sql, [req.params.userId, req.params.collectionId]);
 		await connection.release()
 
 		var permissions = {

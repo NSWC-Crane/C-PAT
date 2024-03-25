@@ -23,10 +23,6 @@ exports.getPoamAssets = async function getPoamAssets(req, res, next) {
                         "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
                         "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
                         "ORDER BY t3.description"
-                // SELECT t1.assetId, assetName, t1.labelId, labelName FROM  assetlabels t1 
-                // INNER JOIN asset t2 ON t1.assetId = t2.assetId 
-                // INNER JOIN label t3 ON t1.labelId = t3.labelId
-                //console.log("getLabels sql: ", sql)
 
                 let [rowPoamAssets] = await connection.query(sql)
                 console.log("rowPoamAssets: ", rowPoamAssets[0])
@@ -37,8 +33,6 @@ exports.getPoamAssets = async function getPoamAssets(req, res, next) {
                 var poamAssets = []
 
                 for (let counter = 0; counter < size; counter++) {
-                        // console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
                         poamAssets.push({
                                 "assetId": rowPoamAssets[counter].assetId,
                                 "assetName": rowPoamAssets[counter].assetName,
@@ -72,14 +66,14 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
         try {
                 let connection
                 connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT t1.assetId, assetName, t1.poamId, t3.description " + 
-                        "FROM  poamtracking.poamassets t1 " +
-                        "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
-                        "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
-                        "WHERE t1.poamId = " + req.params.poamId + " ORDER BY t3.description"
-                console.log("getAssetLabelsByAsset sql: ", sql)
+            let sql = "SELECT t1.assetId, assetName, t1.poamId, t3.description " +
+                "FROM  poamtracking.poamassets t1 " +
+                "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
+                "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
+                "WHERE t1.poamId = ? ORDER BY t3.description";
+            console.log("getAssetLabelsByAsset sql: ", sql)
 
-                let [rowPoamAssets] = await connection.query(sql)
+            let [rowPoamAssets] = await connection.query(sql, [req.params.poamId]);
                 console.log("rowPoamAssets: ", rowPoamAssets[0])
                 await connection.release()
 
@@ -88,8 +82,6 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
                 var poamAssets = []
 
                 for (let counter = 0; counter < size; counter++) {
-                        // console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
                         poamAssets.push({
                                 "assetId": rowPoamAssets[counter].assetId,
                                 "assetName": rowPoamAssets[counter].assetName,
@@ -126,10 +118,9 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res,
                 let sql = "SELECT t1.assetId, t2.assetName, t1.poamId, t3.description FROM  poamtracking.poamassets t1 " +
                         "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
                         "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
-                        "WHERE t1.assetId = " + req.params.assetId + " ORDER BY t3.description"
-                //console.log("getAssetLabelsByAsset sql: ", sql)
+                        "WHERE t1.assetId = ? ORDER BY t3.description"
 
-                let [rowPoamAssets] = await connection.query(sql)
+            let [rowPoamAssets] = await connection.query(sql, [req.params.assetId]);
                 console.log("rowPoamAssets: ", rowPoamAssets[0])
                 await connection.release()
 
@@ -138,8 +129,6 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res,
                 var poamAssets = []
 
                 for (let counter = 0; counter < size; counter++) {
-                        // console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
                         poamAssets.push({
                                 "assetId": rowPoamAssets[counter].assetId,
                                 "assetName": rowPoamAssets[counter].assetName,
@@ -184,14 +173,12 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
         try {
                 let connection
                 connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT t1.assetId, assetName, t1.labelId, labelName FROM  poamtracking.assetlabels t1 " +
-                        "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
-                        "INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId " +
-                        "WHERE t1.assetId = " + req.params.assetId + " AND t1.labelId = " + req.params.labelId +
-                        " ORDER BY t3.labelName"
-                //console.log("getAssetLabelsByAsset sql: ", sql)
+            let sql = "SELECT t1.assetId, assetName, t1.labelId, labelName FROM  poamtracking.assetlabels t1 " +
+                "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
+                "INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId " +
+                "WHERE t1.assetId = ? AND t1.labelId = ? ORDER BY t3.labelName";
 
-                let [rowAssetLabel] = await connection.query(sql)
+            let [rowAssetLabel] = await connection.query(sql, [req.params.assetId, req.params.labelId]);
                 console.log("rowAssets: ", rowAssetLabel[0])
                 await connection.release()
 
@@ -201,14 +188,11 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
         }
         catch (error) {
                 let errorResponse = { null: "null" }
-                //await connection.release()
                 return errorResponse;
         }
 }
 
 exports.postPoamAsset = async function postPoamAsset(req, res, next) {
-        // res.status(201).json({ message: "postPoamAsset (Service) Method called successfully" });
-
         if (!req.body.assetId) {
                 console.info('postPoamAsset assetId not provided.');
                 return next({
@@ -234,18 +218,16 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
                 let connection
                 connection = await dbUtils.pool.getConnection()
 
-                let sql_query = `INSERT INTO poamtracking.poamassets (assetId, poamId) 
-                        values (?, ?)`
+            let sql_query = `INSERT INTO poamtracking.poamassets (assetId, poamId) values (?, ?)`;
 
-                await connection.query(sql_query, [req.body.assetId, req.body.poamId])
+            await connection.query(sql_query, [req.body.assetId, req.body.poamId]);
                 await connection.release()
 
-                let sql = "SELECT t1.assetId, t2.assetName, t1.poamId, t3.description FROM  poamtracking.poamassets t1 " +
-                        "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
-                        "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
-                        "WHERE t1.poamId = " + req.body.poamId + " AND t1.assetId = " + req.body.assetId +
-                        " ORDER BY t3.description"
-                let [rowPoamAsset] = await connection.query(sql)
+            let sql = "SELECT t1.assetId, t2.assetName, t1.poamId, t3.description FROM  poamtracking.poamassets t1 " +
+                "INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId " +
+                "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
+                "WHERE t1.poamId = ? AND t1.assetId = ? ORDER BY t3.description";
+            let [rowPoamAsset] = await connection.query(sql, [req.body.poamId, req.body.assetId]);
                 console.log("rowPoamAsset: ", rowPoamAsset[0])
                 await connection.release()
 
@@ -256,14 +238,11 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
         catch (error) {
                 console.log("error: ", error)
                 let errorResponse = { null: "null" }
-                //await connection.release()
                 return errorResponse;
         }
 }
 
 exports.putPoamAsset = async function putPoamAsset(req, res, next) {
-        // res.status(201).json({ message: "putPoamAsset (Service) Method called successfully" });
-
         if (!req.body.assetId) {
                 console.info('putPoamAsset assetId not provided.');
                 return next({
@@ -325,13 +304,10 @@ exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
         try {
                 let connection
                 connection = await dbUtils.pool.getConnection()
-                let sql = "DELETE FROM  poamtracking.poamassets WHERE assetId=" + req.params.assetId +
-                        " AND poamId = " + req.params.poamId + ";"
-                //console.log("deleteLabel sql: ", sql)
+            let sql = "DELETE FROM  poamtracking.poamassets WHERE assetId = ? AND poamId = ?";
 
-                await connection.query(sql)
-                // console.log("rowPermissions: ", rowPermissions[0])
-                await connection.release()
+            await connection.query(sql, [req.params.assetId, req.params.poamId])
+            await connection.release();
 
                 var poamAsset = []
 

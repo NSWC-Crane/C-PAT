@@ -19,7 +19,6 @@ let _this = this
 
 let initAttempt = 0
 module.exports.testConnection = async function () {
- // logger.writeDebug('mysql', 'preflight', { attempt: ++initAttempt })
   let [result] = await _this.pool.query('SELECT VERSION() as version')
   return result[0].version
 }
@@ -97,19 +96,4 @@ module.exports.initializeDatabase = async function () {
       console.log('mysql', 'preflight', { success: false, message: error.message })
     }
   })
-  
-  //if ( semverLt(detectedMySqlVersion, minMySqlVersion) ) 
-  // if(detectedMySqlVersion != minMySqlVersion){
-  //   console.log('mysql', 'preflight', { success: false, message: `MySQL release ${detectedMySqlVersion} is too old. Update to release ${minMySqlVersion} or later.` })
-  //   process.exit(1)
-  // } 
-  // else {
-  //   console.log('mysql', 'preflight', { 
-  //     success: true,
-  //     version: detectedMySqlVersion
-  //     })
-
-  // }
-
-
 }

@@ -183,8 +183,6 @@ exports.getAssetByName = async function getAssetByName(req, res, next) {
 };
 
 exports.postAsset = async function posAsset(req, res, next) {
-    // res.status(201).json({ message: "postAsset (Service) Method called successfully" });
-    // console.log("postAsset req.body: ", req.body)
 
     if (!req.body.assetName) {
         console.info('postAsset assetName not provided.');
@@ -215,16 +213,6 @@ exports.postAsset = async function posAsset(req, res, next) {
             }
         });
     }
-
-    // if (!req.body.nonComputing) {
-    //         console.info('postAsset nonComputing not provided.');
-    //         return next({
-    //                 status: 422,
-    //                 errors: {
-    //                         nonComputing: 'is required',
-    //                 }
-    //         });
-    // }
 
     try {
         let connection
@@ -259,16 +247,6 @@ exports.postAsset = async function posAsset(req, res, next) {
         }
 
         var assetLabel = rowAsset[0]
-
-        // const message = new Object()
-        // message.assetId = rowAsset[0].assetId
-        // message.assetName = rowAsset[0].assetName
-        // message.fullyQualifiedDomainName = rowAsset[0].fullyQualifiedDomainName
-        // message.collectionId = rowAsset[0].collectionId
-        // message.description = rowAsset[0].description
-        // message.ipAddress = rowAsset[0].ipAddress
-        // message.macAddress = rowAsset[0].macAddress
-        // message.nonComputing = rowAsset[0].nonComputing
 
         return (assetLabel)
     }
