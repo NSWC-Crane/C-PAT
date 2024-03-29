@@ -15,269 +15,54 @@
 @use '@nebular/theme/styles/themes/cosmic';
 @use '@nebular/theme/styles/themes/corporate';
 
-/*
+
 $nb-themes: nb-register-theme((
+), dark, dark);
 
-  // add your variables here like:
+$nb-themes: nb-register-theme((
+), cosmic, cosmic);
 
-  // color-primary-100: #f2f6ff,
-  // color-primary-200: #d9e4ff,
-  // color-primary-300: #a6c1ff,
-  // color-primary-400: #598bff,
-  // color-primary-500: #3366ff,
-  // color-primary-600: #274bdb,
-  // color-primary-700: #1a34b8,
-  // color-primary-800: #102694,
-  // color-primary-900: #091c7a,
-
+$nb-themes: nb-register-theme((
 ), default, default);
 
 $nb-themes: nb-register-theme((
- // app wise variables for each theme
-  sidebar-header-gap: 2rem,
-  sidebar-header-height: initial,
-  layout-content-width: 1400px,
-
-  font-main: Roboto,
-  font-secondary: Exo,
-
-  switcher-background: #404040,
-  switcher-background-percentage: 50%,
-  drops-icon-line-gradient: -webkit-linear-gradient(#5f5f5f, #666),
-
-  list-item-border-width: 1px,
-
-  slide-out-container-width: 30%,
-  slide-out-background: linear-gradient(270deg, #242424 0%, #5f5f5f 100%),
-  slide-out-shadow-color: 0 4px 14px 0 #5f5f5f,
-  slide-out-shadow-color-rtl: 0 4px 14px 0 #5f5f5f,
-
-  chart-panel-summary-box-shadow: none,
-  chart-panel-summary-background-color: #5f5f5f,
-  chart-panel-summary-border-color: #ebeff1,
-  chart-panel-summary-border-width: 1px,
-
-  progress-bar-background: linear-gradient(90deg, #666 0%, #5f5f5f 100%),
-  
-  shadow: 0 1px 2px 0 #000000,
-  color-fg: #888,
-  color-bg: #333333,
-  layout-bg: #242424,
-  
-  radius: 0.5rem,
- 
-  color-bg-active: #484848,
-  color-fg-heading: #ffffff,
-  color-fg-text: #ffffff,
-  color-fg-highlight: #01b362,//#5f5f5f,
-
-  color-gray: rgba(81, 113, 165, 0.15),
-  color-neutral: transparent,
-  color-white: #ffffff,
-  color-disabled: rgba(255, 255, 255, 0.4),
-
-  color-primary: #654edb,
-  color-success: #01b362,
-  color-info: #005aa8,
-  color-warning: #ce8200,
-  color-danger: #ee1d24,
-
-  link-color: #00f9a6,
-  link-color-hover: #14ffbe,
-
-  separator: #666,
-
-  card-header-font-weight: font-weight-bolder,
-
-  scrollbar-fg: #01b362,
-  scrollbar-bg: #484848,
-
-  radial-gradient: radial-gradient(circle at 50% 50%, #666, #5f5f5f),
-  linear-gradient: linear-gradient(to right, #484848, #666),
-
-  sidebar-fg: color-secondary,
-  sidebar-bg: color-bg,
-
-  header-fg: color-white,
-  header-bg: color-bg,
-
-  footer-fg: color-fg,
-  footer-bg: color-bg,
-
-  actions-fg: color-fg,
-  actions-bg: color-bg,
-
-  user-fg: color-bg,
-  user-bg: color-fg,
-  user-fg-highlight: color-fg-highlight,
-
-  popover-border: color-primary,
-  popover-shadow: shadow,
-
-  context-menu-active-bg: color-primary,
-  context-menu-border: color-primary,
-
-  footer-height: header-height,
-
-  sidebar-width: 16.25rem,
-  sidebar-width-compact: 3.45rem,
-
-  menu-fg: color-fg,
-  menu-bg: color-bg,
-  menu-active-fg: color-white,
-  menu-group-fg: color-white,
-  menu-font-weight: font-weight-normal,
-  menu-active-font-weight: font-weight-bolder,
-  menu-submenu-bg: layout-bg,
-  menu-submenu-fg: color-fg,
-  menu-submenu-active-fg: color-fg-heading,
-  menu-submenu-active-bg: rgba(200, 200, 200, 0.25),
-  menu-submenu-active-border-color: color-fg-highlight,
-  menu-submenu-active-shadow: 0 2px 12px 0 rgba(200, 200, 200, 0.25),
-  menu-item-padding: 0.25rem 0.75rem,
-  menu-item-separator: transparent,
-
-  btn-hero-shadow: 0 4px 10px 0 rgba(66, 65, 65, 0.5),
-  btn-hero-text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3),
-  btn-hero-bevel-size: 0 3px 0 0,
-  btn-hero-glow-size: 0 2px 8px 0,
-  btn-hero-primary-glow-size: btn-hero-glow-size,
-  btn-hero-success-glow-size: btn-hero-glow-size,
-  btn-hero-warning-glow-size: btn-hero-glow-size,
-  btn-hero-info-glow-size: btn-hero-glow-size,
-  btn-hero-danger-glow-size: btn-hero-glow-size,
-  btn-hero-secondary-glow-size: btn-hero-glow-size,
-  btn-secondary-border: color-primary,
-  btn-outline-fg: color-fg-heading,
-  btn-outline-hover-fg: color-fg-heading,
-  btn-outline-focus-fg: color-fg-heading,
-  btn-group-bg: #6e6c6c,
-  btn-group-separator: #616060,
-
-  form-control-bg: #424242,
-  form-control-focus-bg: separator,
-  form-control-border-color: separator,
-  form-control-selected-border-color: color-primary,
-
-  checkbox-bg: transparent,
-  checkbox-size: 1.25rem,
-  checkbox-border-size: 2px,
-  checkbox-border-color: color-fg,
-  checkbox-checkmark: transparent,
-
-  checkbox-checked-bg: transparent,
-  checkbox-checked-size: 1.25rem,
-  checkbox-checked-border-size: 2px,
-  checkbox-checked-border-color: color-success,
-  checkbox-checked-checkmark: color-fg-heading,
-
-  checkbox-disabled-bg: transparent,
-  checkbox-disabled-size: 1.25rem,
-  checkbox-disabled-border-size: 2px,
-  checkbox-disabled-border-color: color-fg-heading,
-  checkbox-disabled-checkmark: color-fg-heading,
-
-  search-bg: linear-gradient(to right, #333, #121212),
-
-  smart-table-header-font-weight: font-weight-normal,
-  smart-table-header-bg: color-bg-active,
-  smart-table-bg-even: #484848,
-  smart-table-bg-active: color-bg-active,
-
-  smart-table-paging-border-color: color-primary,
-  smart-table-paging-border-width: 2px,
-  smart-table-paging-fg-active: color-fg-heading,
-  smart-table-paging-bg-active: color-primary,
-  smart-table-paging-hover: rgba(0, 0, 0, 0.2),
-
-  badge-fg-text: color-white,
-  badge-primary-bg-color: color-primary,
-  badge-success-bg-color: color-success,
-  badge-info-bg-color: color-info,
-  badge-warning-bg-color: color-warning,
-  badge-danger-bg-color: color-danger,
-
-  spinner-bg: rgba(122, 120, 120, 0.9),
-  stepper-accent-color: color-success,
-
-  tabs-selected-second-color: color-success,
-  tabs-selected-degrees: 20deg,
-
-  calendar-active-item-bg: color-primary,
-  calendar-selected-item-bg: color-primary,
-  calendar-range-bg-in-range: #666,
-  calendar-today-item-bg: #5f5f5f,
-
-  select-option-disabled-bg: #484848,
-
-  toastr-color-fg: color-white,
-  toastr-padding: 1.25rem,
-  toastr-border: 0,
-  toastr-default-background: #bcc3cc,
-
-  tooltip-fg: color-bg,
-  tooltip-status-fg: color-white,
-
-  datepicker-border: color-primary,
-  datepicker-shadow: shadow,
-
-  radio-checked-border-color: color-primary,
-  radio-checked-checkmark: color-primary,
-
-), cosmic, cosmic);
-
-$nb-themes: nb-register-theme(
-  (
-    // some styles we changed
-    color-primary-100: #faf7ff,
-    color-primary-200:  #ece3ff,
-    color-primary-300: #d5bfff,
-    color-primary-400: #b18aff,
-    color-primary-500: #a16eff,
-    color-primary-600:  #7b51db,
-    color-primary-700: #5a37b8,
-    color-primary-800: #3e2494,
-    color-primary-900: #29157a
-
-  ),
-  cosmic,
-  cosmic
-);
-
-$nb-themes: nb-register-theme((
-  // app wise variables for each theme
-  sidebar-header-gap: 2rem,
-  sidebar-header-height: initial,
-  layout-content-width: 1400px,
-  
-  color-primary: #654edb,
-  color-success: #01b362,
-  color-info: #005aa8,
-  color-warning: #ce8200,
-  color-danger: #ee1d24,
-
-  font-main: Roboto,
-  font-secondary: Exo,
-
-  switcher-background: #2b2d34,
-  switcher-background-percentage: 14%,
-  drops-icon-line-gadient: -webkit-linear-gradient(#e9e8eb, #a7a2be),
-
-  list-item-border-width: 1px,
-
-  slide-out-container-width: 30%,
-  slide-out-background: 	linear-gradient(270deg, #f7fafb 0%, #ecf2f5 100%),
-  slide-out-shadow-color: 0 4px 14px 0 #a2d2c8,
-  slide-out-shadow-color-rtl: 0 4px 14px 0 #a2d2c8,
-
-  chart-panel-summary-box-shadow: none,
-  chart-panel-summary-background-color: #f7fafb,
-  chart-panel-summary-border-color: #ebeff1,
-  chart-panel-summary-border-width: 1px,
-
-  ecommerce-card-border-width: 1px,
-
-  progress-bar-background: linear-gradient(90deg, #ff9f6f 0%, #ff8b97 100%),
 ), corporate, corporate);
 
-    */
+//$cosmic-dark-theme: (
+//color-primary-100: #4a4a66,
+//color-primary-200: #42425e,
+//color-primary-300: #3a3a56,
+//color-primary-400: #32324e,
+//color-primary-500: #2a2a46,
+//color-primary-600: #22223e,
+//color-primary-700: #1a1a36,
+//color-primary-800: #12122e,
+//color-primary-900: #0a0a26,
+//color-primary-transparent-100: rgba(42, 42, 70, 0.08),
+//color-primary-transparent-200: rgba(42, 42, 70, 0.16),
+//color-primary-transparent-300: rgba(42, 42, 70, 0.24),
+//color-primary-transparent-400: rgba(42, 42, 70, 0.32),
+//color-primary-transparent-500: rgba(42, 42, 70, 0.4),
+//color-primary-transparent-600: rgba(42, 42, 70, 0.48),
+//background-basic-color-1: #1e1e2f,
+//background-basic-color-2: #232338,
+//background-basic-color-3: #28283c,
+//background-basic-color-4: #2d2d41,
+//border-basic-color-1: #2d2d41,
+//border-basic-color-2: #28283c,
+//border-basic-color-3: #232338,
+//border-basic-color-4: #1e1e2f,
+//border-basic-color-5: #1a1a26,
+//text-basic-color: #e4e4e6,
+//text-alternate-color: #ffffff,
+//text-control-color: #ffffff,
+//text-disabled-color: rgba(228, 228, 230, 0.48),
+//text-hint-color: #a1a1a6,
+//text-primary-color: #5a5a77,
+//text-primary-focus-color: #52526f,
+//text-primary-hover-color: #4a4a66,
+//text-primary-active-color: #42425e,
+//text-primary-disabled-color: #3a3a56,
+//);
+
+//$nb-themes: nb-register-theme($cosmic-dark-theme, cosmic-dark, cosmic);

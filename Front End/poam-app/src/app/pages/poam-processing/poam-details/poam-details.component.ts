@@ -11,8 +11,8 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { forkJoin, Observable, Subscription } from 'rxjs';
-import { AuthService } from '../../../auth';
+import { forkJoin, Observable, of, Subscription } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { CollectionsService } from '../../collection-processing/collections.service';
 import { PoamService } from '../poams.service';
 import { Router } from '@angular/router';
@@ -75,6 +75,7 @@ export class PoamDetailsComponent implements OnInit {
   collectionMaintainers: any;
   collection: any;
   collectionApprovers: any;
+  collectionBasicList: any[] = [];
   poamApprovers: any[] = [];
   poamMilestones: any[] = [];
   assets: any;
@@ -84,7 +85,14 @@ export class PoamDetailsComponent implements OnInit {
   showApprove: boolean = false;
   showSubmit: boolean = false;
   showClose: boolean = false;
+  showCheckData: boolean = false;
+  stigmanCollections: any[] = [];
   stigmanSTIGs: any;
+  selectedStig: any = null;
+  selectedStigTitle: string = '';
+  selectedStigBenchmarkId: string = '';
+  assetList: any[] = [];
+  stateData: any;
   vulnerabilitySources: string[] = [
     "Assured Compliance Assessment Solution (ACAS) Nessus Scanner",
     "STIG",
@@ -414,11 +422,10 @@ export class PoamDetailsComponent implements OnInit {
 
   private subs = new SubSink()
 
-  constructor(date: DatePipe,
+  constructor(
     private collectionService: CollectionsService,
     private poamService: PoamService,
     private route: ActivatedRoute,
-    private authService: AuthService,
     private sharedService: SharedService,
     private router: Router,
     private dialogService: NbDialogService,
@@ -430,10 +437,9 @@ export class PoamDetailsComponent implements OnInit {
   onDeleteConfirm() { }
 
   ngOnInit() {
-
     this.route.params.subscribe(async params => {
+      this.stateData = history.state;
       this.poamId = params['poamId'];
-
       this.isLoggedIn = await this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
@@ -455,7 +461,6 @@ export class PoamDetailsComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          // console.log('Current user: ', this.user);
           if (this.user.accountStatus === 'ACTIVE') {
 
             const mappedPermissions = this.user.permissions.map((permission: Permission) => ({
@@ -506,67 +511,7 @@ export class PoamDetailsComponent implements OnInit {
     this.getLabelData();
     if (this.poamId == undefined || !this.poamId) return;
     if (this.poamId === "ADDPOAM") {
-      this.canModifyOwner = true;
-      this.subs.sink = forkJoin(
-        this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
-        this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-        this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId, 0, 50),
-        this.poamService.getCollectionApprovers(this.payload.lastCollectionAccessedId)
-      )
-        .subscribe(([collection, users, collectionAssets, collectionApprovers]: any) => {
-          this.poam = {
-            poamId: "ADDPOAM",
-            collectionId: this.payload.lastCollectionAccessedId,
-            vulnerabilitySource: "",
-            stigTitle: "",
-            iavmNumber: "",
-            aaPackage: "",
-            vulnerabilityId: "",
-            description: "",
-            rawSeverity: "",
-            adjSeverity: "",
-            scheduledCompletionDate: '',
-            ownerId: this.payload.userId,
-            mitigations: "",
-            requiredResources: "",
-            residualRisk: "",
-            businessImpactRating: "",
-            businessImpactDescription: "",
-            notes: "",
-            status: "Draft",
-            poamType: "Standard",
-            vulnIdRestricted: "",
-            submittedDate: new Date().toISOString().slice(0, 10),
-          };
-          this.dates.scheduledCompletionDate = this.poam.scheduledCompletionDate;
-          this.dates.submittedDate = this.poam.submittedDate;
-          this.collection = collection;
-          this.collectionUsers = users.permissions;
-          this.assets = collectionAssets;
-          this.poamAssets = [];
-          this.poamAssignees = [];
-          this.collectionApprovers = [];
-          this.collectionApprovers = collectionApprovers;
-          this.collectionOwners = [];
-          this.collectionMaintainers = [];
-          if (this.collectionUsers.permissions) {
-            this.collectionUsers.permissions.forEach((user: any) => {
-              if (user.canOwn) this.collectionOwners.push({ ...user });
-              if (user.canMaintain || user.canOwn) this.collectionMaintainers.push({ ...user });
-            })
-          }
-          this.setChartSelectionData();
-        });
-      this.keycloak.getToken().then((token) => {
-        this.sharedService.getSTIGsFromSTIGMAN(token).subscribe({
-          next: (data) => {
-            this.stigmanSTIGs = data.map((stig: any) => stig.title);
-            if (!data || data.length === 0) {
-              console.log("Unable to retreive list of current STIGs from STIGMAN.");
-            }
-          },
-        });
-      });
+      this.createNewPoam();
     } else {
       this.subs.sink = forkJoin(
         this.poamService.getPoam(this.poamId),
@@ -582,18 +527,25 @@ export class PoamDetailsComponent implements OnInit {
         .subscribe(([poam, collection, users, collectionAssets, assets, assignees, collectionApprovers, poamApprovers, poamMilestones]: any) => {
           this.poam = { ...poam };
           this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? parseISO(this.poam.scheduledCompletionDate.substr(0, 10)) : '';
+          this.dates.iavComplyByDate = (this.poam.iavComplyByDate) ? parseISO(this.poam.iavComplyByDate.substr(0, 10)) : '';
           this.dates.submittedDate = (this.poam.submittedDate) ? parseISO(this.poam.submittedDate.substr(0, 10)) : '';
           this.collection = collection;
           this.collectionUsers = users.permissions;
           this.assets = collectionAssets;
-          this.poamAssets = assets.poamAssets;
           this.poamAssignees = assignees.poamAssignees;
           this.poamApprovers = poamApprovers.poamApprovers;
           this.poamMilestones = poamMilestones.poamMilestones;
           this.collectionApprovers = collectionApprovers;
-
-          if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length ==0)) {
+          this.selectedStigTitle = this.poam.stigTitle;
+          this.selectedStigBenchmarkId = this.poam.stigBenchmarkId;
+          if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length == 0)) {
             this.addDefaultApprovers();
+          }
+          if (this.stateData.vulnerabilitySource && this.stateData.benchmarkId) {
+            this.poamAssets = [];
+            this.validateStigManagerCollection();
+          } else {
+            this.poamAssets = assets.poamAssets;
           }
           this.setChartSelectionData();
           this.getPoamLabels();
@@ -601,14 +553,107 @@ export class PoamDetailsComponent implements OnInit {
       this.keycloak.getToken().then((token) => {
         this.sharedService.getSTIGsFromSTIGMAN(token).subscribe({
           next: (data) => {
-            this.stigmanSTIGs = data.map((stig: any) => stig.title);
+            this.stigmanSTIGs = data.map((stig: any) => ({
+              title: stig.title,
+              benchmarkId: stig.benchmarkId
+            }));
+
             if (!data || data.length === 0) {
-              console.log("No STIGs retreived from STIGMAN");
+              console.log("Unable to retrieve list of current STIGs from STIGMAN.");
             }
           },
         });
       });
     }
+  }
+
+  createNewPoam() {
+    this.canModifyOwner = true;
+
+    this.subs.sink = forkJoin(
+      this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
+      this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+      this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId, 0, 50),
+      this.poamService.getCollectionApprovers(this.payload.lastCollectionAccessedId)
+    ).subscribe(([collection, users, collectionAssets, collectionApprovers]: any) => {
+      this.poam = {
+        poamId: "ADDPOAM",
+        collectionId: this.payload.lastCollectionAccessedId,
+        vulnerabilitySource: this.stateData.vulnerabilitySource || "",
+        iavmNumber: "",
+        aaPackage: "",
+        vulnerabilityId: this.stateData.vulnerabilityId || "",
+        description: "",
+        rawSeverity: this.stateData.severity || "",
+        adjSeverity: "",
+        iavComplyByDate: '',
+        scheduledCompletionDate: '',
+        ownerId: this.payload.userId,
+        mitigations: "",
+        requiredResources: "",
+        residualRisk: "",
+        businessImpactRating: "",
+        businessImpactDescription: "",
+        notes: "",
+        status: "Draft",
+        poamType: "Standard",
+        vulnIdRestricted: "",
+        submittedDate: new Date().toISOString().slice(0, 10),
+      };
+
+      this.dates.scheduledCompletionDate = this.poam.scheduledCompletionDate;
+      this.dates.iavComplyByDate = this.poam.iavComplyByDate;
+      this.dates.submittedDate = this.poam.submittedDate;
+
+      this.collection = collection;
+      this.collectionUsers = users.permissions;
+      this.assets = collectionAssets;
+      this.poamAssets = [];
+      this.poamAssignees = [];
+      this.collectionApprovers = [];
+      this.collectionApprovers = collectionApprovers;
+      this.collectionOwners = [];
+      this.collectionMaintainers = [];
+
+      if (this.collectionUsers.permissions) {
+        this.collectionUsers.permissions.forEach((user: any) => {
+          if (user.canOwn) this.collectionOwners.push({ ...user });
+          if (user.canMaintain || user.canOwn) this.collectionMaintainers.push({ ...user });
+        });
+      }
+      this.setChartSelectionData();
+
+      this.keycloak.getToken().then((token) => {
+        this.sharedService.getSTIGsFromSTIGMAN(token).subscribe({
+          next: (data) => {
+            this.stigmanSTIGs = data.map((stig: any) => ({
+              title: stig.title,
+              benchmarkId: stig.benchmarkId
+            }));
+
+            if (!data || data.length === 0) {
+              console.log("Unable to retrieve list of current STIGs from STIGMAN.");
+            }
+
+            if (this.stateData.vulnerabilitySource && this.stateData.benchmarkId) {
+              this.poam.vulnerabilitySource = this.stateData.vulnerabilitySource;
+              this.poam.vulnerabilityId = this.stateData.vulnerabilityId;
+              this.poam.rawSeverity = this.stateData.severity;
+              this.poam.stigCheckData = this.stateData.ruleData;
+              const benchmarkId = this.stateData.benchmarkId;
+              const selectedStig = this.stigmanSTIGs.find((stig: any) => stig.benchmarkId === benchmarkId);
+              this.validateStigManagerCollection();
+              if (selectedStig) {
+                this.onStigSelected(selectedStig);
+              }
+              else {
+                this.poam.stigBenchmarkId = benchmarkId;
+              }
+            }
+          },
+        });
+      });
+    });
   }
 
   getLabelData() {
@@ -794,6 +839,7 @@ let approverSettings = this.poamApproverSettings;
         })
         this.poam.status = "Approved";      
 
+        this.dates.iavComplyByDate = this.poam.iavComplyByDate;
         this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate;
         this.poam.submittedDate = this.dates.submittedDate;
     
@@ -826,17 +872,20 @@ let approverSettings = this.poamApproverSettings;
   }
 
   savePoam(poam: any) {
-
     if (!this.validateData()) return;
-
     this.poam.scheduledCompletionDate = format(this.dates.scheduledCompletionDate, "yyyy-MM-dd");
     this.poam.submittedDate = format(this.dates.submittedDate, "yyyy-MM-dd");
     this.poam.requiredResources = (this.poam.requiredResources) ? this.poam.requiredResources : ""
     this.poam.vulnIdRestricted = (this.poam.vulnIdRestricted) ? this.poam.vulnIdRestricted : ""
 
+    if (this.poam.iavComplyByDate && this.poam.iavComplyByDate !== '') {
+      this.poam.iavComplyByDate = format(this.dates.iavComplyByDate, "yyyy-MM-dd");
+    } else {
+      this.poam.iavComplyByDate = null;
+    }
+
     if (this.poam.poamId === "ADDPOAM") {
       this.poam.poamId = 0;
-
       let assignees: any[] = [];
       let assets: any[] = [];
       if (this.poamAssignees) {
@@ -862,18 +911,120 @@ let approverSettings = this.poamApproverSettings;
           }
 
         }, err => {
-
           this.showConfirmation("unexpected error adding poam");
         }
       );
 
     } else {
+      let assets: any[] = [];
+      if (this.stateData && this.stateData.vulnerabilityId) {
+        this.poamAssets.forEach((asset: any) => {
+          assets.push({ assetId: +asset.assetId });
+        });
+        this.poam.assets = assets;
+      }
+
       this.subs.sink = this.poamService.updatePoam(this.poam).subscribe(data => {
         this.poam = data;
         this.showConfirmation("Updated POAM", "Success", "Success", true);
       });
-
     }
+  }
+
+  onStigSelected(stig: any) {
+    this.selectedStig = stig;
+    this.selectedStigTitle = stig.title;
+    this.selectedStigBenchmarkId = stig.benchmarkId;
+    this.poam.stigTitle = stig.title;
+    this.poam.stigBenchmarkId = stig.benchmarkId;
+  }
+
+  validateStigManagerCollection() {
+    this.keycloak.getToken().then((token) => {
+      forkJoin([
+        this.sharedService.getCollectionsFromSTIGMAN(token).pipe(
+          catchError(err => {
+            console.error('Failed to fetch from STIGMAN:', err);
+            return [];
+          })
+        ),
+        this.collectionService.getCollectionBasicList().pipe(
+          catchError(err => {
+            console.error('Failed to fetch basic collection list:', err);
+            return [];
+          })
+        )
+      ]).subscribe({
+        next: ([stigmanData, basicListData]) => {
+          this.stigmanCollections = stigmanData.map(collection => ({
+            collectionId: collection.collectionId,
+            name: collection.name
+          }));
+          this.collectionBasicList = basicListData.map(collection => ({
+            collectionId: collection.collectionId,
+            name: collection.collectionName
+          }));
+
+          const stigmanCollection = this.stigmanCollections.find(collection => String(collection.collectionId) === String(this.selectedCollection));
+          const basicListCollection = this.collectionBasicList.find(collection => String(collection.collectionId) === String(this.selectedCollection));
+
+          if (!stigmanCollection || !basicListCollection) {
+            this.showConfirmation('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are creating the POAM in the correct collection.');
+            return;
+          }
+
+          if (stigmanCollection.name === basicListCollection.name) {
+            this.updateAssetSettings(token);
+          } else {
+            console.warn('Unable to match STIG Manager collection for Asset association.');
+          }
+        },
+        error: (err) => {
+          console.error('An error occurred:', err);
+        }
+      });
+    });
+  }
+
+  updateAssetSettings(token: string) {
+    this.sharedService.getAffectedAssetsFromSTIGMAN(token, this.selectedCollection).pipe(
+      map(data => data.filter(entry => entry.groupId === this.poam.vulnerabilityId)),
+      switchMap(filteredData => {
+        if (filteredData.length > 0) {
+          this.assetList = filteredData[0].assets.map((assets: { name: any; assetId: string; }) => ({
+            assetName: assets.name,
+            assetId: parseInt(assets.assetId, 10),
+          }));
+
+          if (this.poamId !== "ADDPOAM" && this.stateData.vulnerabilitySource === 'STIG') {
+            return this.poamService.deletePoamAssetByPoamId(+this.poamId).pipe(
+              tap(() => {
+                console.log('Outdated assets successfully removed.');
+              }),
+              catchError((error) => {
+                console.error('Failed to remove outdated assets:', error);
+                return of(null);
+              }),
+              map(() => filteredData)
+            );
+          } else {
+            return of(filteredData);
+          }
+        } else {
+          return of([]);
+        }
+      })
+    ).subscribe(
+      (filteredData) => {
+        if (filteredData.length > 0) {
+          this.poamAssets = this.assetList;
+          this.showConfirmation("Asset list updated with STIG Manager findings.");
+        } else {
+          this.showConfirmation(`No assets found for Vulnerability ID ${this.poam.vulnerabilityId}.`);
+        }
+      },
+      (err) => console.error('Failed to fetch affected assets from STIGMAN:', err)
+    );
   }
 
   submitPoam(poam: any) {
@@ -882,6 +1033,7 @@ let approverSettings = this.poamApproverSettings;
       return;
     }
     this.poam.status = "Submitted";
+    this.poam.iavComplyByDate = format(this.dates.iavComplyByDate, "yyyy-MM-dd");
     this.poam.scheduledCompletionDate = format(this.dates.scheduledCompletionDate, "yyyy-MM-dd");
     this.poam.submittedDate = format(this.dates.submittedDate, "yyyy-MM-dd");
     this.savePoam(this.poam);
@@ -918,11 +1070,23 @@ let approverSettings = this.poamApproverSettings;
       this.showConfirmation("POAM Owner ID is required");
       return false;
     }
+    if (!this.dates.scheduledCompletionDate) {
+      this.showConfirmation("Scheduled Completion Date is required");
+      return false;
+    }
+    if (this.isIavmNumberValid(this.poam.iavmNumber) && !this.dates.iavComplyByDate) {
+      this.showConfirmation("IAV Comply By Date is required if an IAVM Number is provided.");
+      return false;
+    }
     return true;
   }
 
   cancelPoam() {
     this.router.navigateByUrl("/poam-processing");
+  }
+
+  isIavmNumberValid(iavmNumber: string): boolean {
+    return /^\d{4}-[A-Za-z]-\d{4}$/.test(iavmNumber);
   }
 
   async confirmCreateMilestone(event: any) {
@@ -1219,7 +1383,6 @@ let approverSettings = this.poamApproverSettings;
       return;
     }
 
-
     if (this.poam.poamId &&
       data.newData.userId
     ) {
@@ -1274,18 +1437,12 @@ let approverSettings = this.poamApproverSettings;
   }
 
   confirmDelete(assigneeData: any) {
-    // console.log("confirmDelete data: ", assigneeData)
-    if (this.poam.poamId === "ADDPOAM") {
-      // nothing to do, when the poam is submitted, we'll push the array of user id's to so they can be
-      // associated properly to the asset
-
+    if (this.poam.poamId === "ADDPOAM") { 
       assigneeData.confirm.resolve();
       return;
     }
     if (this.poam.poamId && assigneeData.data.userId) {
       var user_index = this.poamAssignees.findIndex((data: any) => {
-        // console.log("poamAssignees data: ", data)
-
         if (assigneeData.data.poamId === data.poamId && assigneeData.data.userId === data.userId) return true;
         else return false;
       })
@@ -1294,9 +1451,6 @@ let approverSettings = this.poamApproverSettings;
         this.showConfirmation("Unable to resolve user assinged")
         assigneeData.confirm.reject();
       } else {
-        ;
-        // console.log("confirmDelete BEFORE delete data: ", assigneeData.data)
-        // this.isLoading = true;
         this.poamService.deletePoamAssignee(+assigneeData.data.poamId, +assigneeData.data.userId).subscribe(poamAssigneeData => {
           assigneeData.confirm.resolve();
           this.getData();
@@ -1312,9 +1466,10 @@ let approverSettings = this.poamApproverSettings;
       if (!asset_index && asset_index != 0) {
         this.showConfirmation("Unable to resolve asset assinged")
         assigneeData.confirm.reject();
+      } else if (this.stateData.vulnerabilitySource && this.stateData.benchmarkId) {
+        this.poamAssets = this.poamAssets.filter((asset: any) => asset.assetId !== assigneeData.data.assetId);
+        assigneeData.confirm.resolve();
       } else {
-
-        // this.isLoading = true;
         this.poamService.deletePoamAsset(+assigneeData.data.poamId, +assigneeData.data.assetId).subscribe(poamAssetData => {
           assigneeData.confirm.resolve();
           this.getData();
@@ -1359,5 +1514,4 @@ let approverSettings = this.poamApproverSettings;
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
   }
-
 }

@@ -32,6 +32,11 @@ module.exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, ne
         res.status(201).json(poams);
 }
 
+module.exports.getPoamsByVulnerabilityId = async function getPoamsByVulnerabilityId(req, res, next) {
+    var poams = await poamService.getPoamsByVulnerabilityId(req, res, next);
+    res.status(201).json(poams);
+}
+
 module.exports.postPoam = async function postPoam(req, res, next){
         var poam = await poamService.postPoam(req,res,next); 
         res.status(201).json(poam);

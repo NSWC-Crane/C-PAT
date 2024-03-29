@@ -8,44 +8,81 @@
 !########################################################################
 */
 
-
-
-.nb-column-name {
+.grid-nb-card {
+    border: none;
+}
+.grid {
+  overflow: auto;
   width: 100%;
+}
+
+.nb-column-Asset-Count,
+.nb-column-Severity,
+.nb-column-Benchmark-ID {
+  text-align: center !important;
+}
+
+.update-POAM-button {
+  margin: auto;
+  display: flex;
+  justify-content: center;
 }
 
 .import-section {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-
-  .import-item {
-    margin-right: 8vw;
-
-    &:last-child {
-      margin-right: 0;
-    }
-  }
 }
 
-@media screen and (min-width: 400px) {
-  .nb-column-name, .nb-column-size {
-    width: 50%;
-  }
+.import-section .import-item {
+  margin-right: 8vw;
 }
 
-@media screen and (min-width: 500px) {
-  .nb-column-name, .nb-column-size, .nb-column-kind {
-    width: 33.333%;
-  }
+.import-section .import-item:last-child {
+  margin-right: 0;
 }
 
-@media screen and (min-width: 600px) {
-  .nb-column-name {
-    width: 31%;
-  }
+.search-input {
+  margin-bottom: 1rem;
+}
 
-  .nb-column-size, .nb-column-kind, .nb-column-items {
-    width: 23%;
-  }
+::ng-deep .severity-cell.cat-i {
+  color: #d74400;
+  font-weight: bold;
+}
+
+::ng-deep .severity-cell.cat-ii {
+  color: #36c;
+  font-weight: bold;
+}
+
+::ng-deep .severity-cell.cat-iii {
+  color: darkgreen;
+  font-weight: bold;
+}
+
+.findings-chart {
+  height: 400px;
+  width: 100%;
+}
+
+.canvas {
+  position: relative;
+  max-height: 400px;
+}
+
+.export-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-right: 0;
+}
+
+::ng-deep nb-tree-grid-header-cell,
+::ng-deep nb-tree-grid-cell {
+  text-align: center;
+}
+
+.filter-container {
+  margin-top: 20px;
 }

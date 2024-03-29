@@ -148,8 +148,45 @@ exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, next) {
         }
 }
 
+exports.getPoamsByVulnerabilityId = async function getPoamsByVulnerabilityId(req, res, next) {
+    if (!req.params.vulnerabilityId) {
+        console.info('getPoamsByVulnerabilityId; vulnerabilityId not provided.');
+        return next({
+            status: 422,
+            errors: {
+                ownerId: 'is required',
+            }
+        });
+    }
+
+    try {
+        let connection
+        connection = await dbUtils.pool.getConnection()
+        let sql = "SELECT * FROM poamtracking.poam WHERE vulnerabilityId = ? ORDER BY poamId DESC";
+
+        let [rowPoams] = await connection.query(sql, [req.params.vulnerabilityId]);
+        await connection.release()
+
+        var size = Object.keys(rowPoams).length
+
+        var poams = []
+
+        for (let counter = 0; counter < size; counter++) {
+            poams.push({
+                ...rowPoams[counter]
+            });
+        }
+
+        return { poams };
+
+    }
+    catch (error) {
+        let errorResponse = { null: "null" }
+        return errorResponse;
+    }
+}
+
 exports.postPoam = async function postPoam(req, res, next) {
-        console.log("postPoam() req.body: ", req.body)
         if (!req.body.collectionId) {
                 console.info('postPoam collectionId not provided.');
                 return next({
@@ -206,17 +243,18 @@ exports.postPoam = async function postPoam(req, res, next) {
 
                 req.body.submittedDate = (req.body.submittedDate == '') ? null : req.body.submittedDate;
                 req.body.scheduledCompletionDate = (req.body.scheduledCompletionDate == '') ? null : req.body.scheduledCompletionDate;
+                req.body.iavComplyByDate = (req.body.iavComplyByDate == '') ? null : req.body.iavComplyByDate;
 
-            let sql_query = `INSERT INTO poamtracking.poam (collectionId, vulnerabilitySource, stigTitle, iavmNumber,
-                        aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, scheduledCompletionDate,
+            let sql_query = `INSERT INTO poamtracking.poam (collectionId, vulnerabilitySource, stigTitle, stigBenchmarkId, stigCheckData,
+                        iavmNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate, scheduledCompletionDate,
                         ownerId, mitigations, requiredResources, residualRisk, businessImpactRating, businessImpactDescription,
                         notes, status, poamType, vulnIdRestricted, submittedDate) 
-                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-                  await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.iavmNumber,
-                  req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
-                  req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations, req.body.requiredResources, req.body.residualRisk,
-                  req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status,
+            await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
+                      req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity, req.body.iavComplyByDate,
+                      req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations, req.body.requiredResources, req.body.residualRisk,
+                      req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status,
                       req.body.poamType, req.body.vulnIdRestricted, req.body.submittedDate])
 
                 let sql = "SELECT * FROM poamtracking.poam WHERE poamId = LAST_INSERT_ID();"
@@ -320,20 +358,21 @@ exports.putPoam = async function putPoam(req, res, next) {
         }
         req.body.submittedDate = (req.body.submittedDate == '') ? null : req.body.submittedDate;
         req.body.scheduledCompletionDate = (req.body.scheduledCompletionDate == '') ? null : req.body.scheduledCompletionDate;
+        req.body.iavComplyByDate = (req.body.iavComplyByDate == '') ? null : req.body.iavComplyByDate;
         try {
                 let connection
                 connection = await dbUtils.pool.getConnection()
 
-            let sql_query = `UPDATE poamtracking.poam SET collectionId = ?, vulnerabilitySource = ?, stigTitle = ?,
+            let sql_query = `UPDATE poamtracking.poam SET collectionId = ?, vulnerabilitySource = ?, stigTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
                             iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
-                            scheduledCompletionDate = ?, ownerId = ?, mitigations = ?, requiredResources = ?, residualRisk = ?,
-                            businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?, poamType = ?,
+                            iavComplyByDate = ?, scheduledCompletionDate = ?, ownerId = ?, mitigations = ?, requiredResources = ?,
+                            residualRisk = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?, poamType = ?,
                             vulnIdRestricted = ?, submittedDate = ?  WHERE poamId = ?`
 
-            await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle,
-                  req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
-                  req.body.adjSeverity, req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations,
-                  req.body.requiredResources, req.body.residualRisk, req.body.businessImpactRating,
+            await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId,
+                  req.body.stigCheckData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
+                  req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.ownerId,
+                  req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.businessImpactRating,
                   req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.poamType, req.body.vulnIdRestricted, 
                   req.body.submittedDate, req.body.poamId])
 
@@ -341,7 +380,19 @@ exports.putPoam = async function putPoam(req, res, next) {
                 let [rowPoam] = await connection.query(sql, [req.body.poamId])
                 await connection.release()
 
-                var poam = rowPoam[0]
+            var poam = rowPoam[0]
+
+            if (req.body.assets) {
+                let assets = req.body.assets;
+                assets.forEach(async asset => {
+                    connection = await dbUtils.pool.getConnection()
+
+                    let sql_query = `INSERT INTO poamtracking.poamassets (poamId, assetId) values (?, ?)`
+
+                    await connection.query(sql_query, [rowPoam[0].poamId, asset.assetId])
+                    await connection.release()
+                });
+            }
 
                 return (poam)
         }
@@ -353,30 +404,44 @@ exports.putPoam = async function putPoam(req, res, next) {
 }
 
 exports.deletePoam = async function deletePoam(req, res, next) {
-        if (!req.params.poamId) {
-                console.info('deletePoam poamId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                poamId: 'is required',
-                        }
-                });
-        }
+    if (!req.params.poamId) {
+        console.info('deletePoam: poamId not provided.');
+        return next({
+            status: 422,
+            errors: {
+                poamId: 'is required',
+            }
+        });
+    }
 
-        try {
-                let connection
-                connection = await dbUtils.pool.getConnection()
-                let sql = "DELETE FROM  poamtracking.poam WHERE poamId = ?;"
-                await connection.query(sql, [req.params.poamId])
-                await connection.release()
+    let connection;
+    try {
+        connection = await dbUtils.pool.getConnection();
+        await connection.beginTransaction();
 
-                var poam = []
+        let sqlDeleteAssets = "DELETE FROM poamtracking.poamassets WHERE poamId = ?;";
+        await connection.query(sqlDeleteAssets, [req.params.poamId]);
 
-                return { poam };
+        let sqlDeletePoam = "DELETE FROM poamtracking.poam WHERE poamId = ?;";
+        await connection.query(sqlDeletePoam, [req.params.poamId]);
+
+        await connection.commit();
+
+        await connection.release();
+
+        var poam = [];
+        return { poam };
+    } catch (error) {
+        console.error('deletePoam error:', error);
+        if (connection) {
+            try {
+                await connection.rollback();
+                await connection.release();
+            } catch (rollbackError) {
+                console.error('Rollback error:', rollbackError);
+            }
         }
-        catch (error) {
-                let errorResponse = { null: "null" }
-                await connection.release()
-                return errorResponse;
-        }
+        let errorResponse = { error: "An error occurred during deletion." };
+        return errorResponse;
+    }
 }

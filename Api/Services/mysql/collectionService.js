@@ -208,6 +208,19 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 	}
 }
 
+exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
+		try {
+			const connection = await dbUtils.pool.getConnection();
+			const sql = "SELECT collectionId, collectionName FROM collection";
+			const [rows] = await connection.query(sql);
+		await connection.release();
+
+		return rows;
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
+};
 exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res, next) {
 	let connection;
 	try {

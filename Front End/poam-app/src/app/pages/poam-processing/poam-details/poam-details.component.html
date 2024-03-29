@@ -50,6 +50,12 @@
             </div>
           </div>
 
+          <!-- View STIG Manager Check Data -->
+          <div ngif="poam.stigCheckData && poam.stigCheckData.length > 1"class="form-group">
+            <nb-toggle [(ngModel)]="showCheckData">View STIG Manager Check Data</nb-toggle>
+            <textarea *ngIf="showCheckData" nbInput fullWidth style="font-weight: normal;" [(ngModel)]="poam.stigCheckData" placeholder="STIG Manager Check Data" name="stigCheckData" cols="180" rows="16" maxlength="4000"></textarea>
+          </div>
+
           <!-- Description -->
           <div class="form-group">
             <label>Description of the POAM: <span class="text-danger">*</span></label>
@@ -82,27 +88,39 @@
 
           <!-- STIG Title -->
           <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
-            <label for="stigTitle">STIG Title:</label>
+            <label for="stigInput">STIG Title:</label>
             <input nbInput
                    fullWidth
                    type="text"
                    placeholder="Select STIG..."
-                   [(ngModel)]="poam.stigTitle"
+                   [value]="selectedStigTitle"
                    [nbAutocomplete]="autoStigTitle"
-                   name="stigTitle">
+                   name="stigInput">
 
-            <nb-autocomplete #autoStigTitle>
-              <nb-option *ngFor="let title of stigmanSTIGs" [value]="title">
-                {{ title }}
+            <nb-autocomplete #autoStigTitle (selectedChange)="onStigSelected($event)">
+              <nb-option *ngFor="let stig of stigmanSTIGs" [value]="stig">
+                {{ stig.title }}
               </nb-option>
             </nb-autocomplete>
           </div>
 
-
-          <!-- Source Identifying Control Vulnerability - ID # -->
-          <div class="form-group">
+          <!-- Source Identifying Control Vulnerability - ID # for ACAS/EXORD-->
+          <div class="form-group" *ngIf="poam.vulnerabilitySource != 'STIG'">
             <label id="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
-            <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId'>
+            <nb-form-field>
+              <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId'>
+            </nb-form-field>
+          </div>
+
+          <!-- Source Identifying Control Vulnerability - ID # for STIG-->
+          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
+            <label id="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
+            <nb-form-field>
+              <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId'>
+              <button nbSuffix nbButton ghost (click)="validateStigManagerCollection()" nbTooltip="Update POAM Asset list with STIG Manager findings for the provided Vulnerability ID." nbTooltipPlacement="top" nbTooltipStatus="basic" [disabled]="!poam.vulnerabilityId">
+                <nb-icon icon="download-outline"></nb-icon>
+              </button>
+            </nb-form-field>
           </div>
 
           <!-- Vuln Restricted Id -->
@@ -113,8 +131,22 @@
 
           <!-- IAVM # -->
           <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
-            <label id="iavmNumber">IAVM #: </label>
-            <input type="text" nbInput fullWidth placeholder="IAVM #..." [(ngModel)]="poam.iavmNumber" name='iavmNumber'>
+            <label for="iavmNumber">IAVM #: </label>
+            <nb-form-field>
+              <input type="text" nbInput fullWidth placeholder="IAVM #..." [(ngModel)]="poam.iavmNumber" name='iavmNumber'>
+              <a href="https://vram.navy.mil/standalone_pages/iav_display?notice_number={{poam.iavmNumber}}" target="_blank" nbTooltip="View IAV Release Details" nbTooltipPlacement="top" nbTooltipStatus="basic" nbSuffix nbButton ghost [disabled]="!poam.iavmNumber"><nb-icon icon="link-2-outline"></nb-icon></a>
+            </nb-form-field>
+          </div>
+
+          <!-- IAV Comply By Date -->
+          <div class="form-group" *ngIf="poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)">
+            <label for="iavComplyByDate">IAV Comply By Date: <span class="text-danger">*</span></label>
+            <input nbInput
+                   placeholder="IAV Comply By Date..."
+                   [nbDatepicker]="iavComplyByDatePicker"
+                   [(ngModel)]="dates.iavComplyByDate"
+                   name="iavComplyByDate">
+            <nb-datepicker #iavComplyByDatePicker></nb-datepicker>
           </div>
 
           <!-- Raw Severity -->
@@ -149,7 +181,7 @@
 
           <!-- Scheduled Completion Date -->
           <div class="form-group">
-            <label for="scheduledCompletionDate">Scheduled Completion Date: </label>
+            <label for="scheduledCompletionDate">Scheduled Completion Date: <span class="text-danger">*</span></label>
             <input nbInput
                    placeholder="Scheduled Completion Date..."
                    [nbDatepicker]="scheduledCompletionDatePicker"
@@ -168,7 +200,7 @@
             <nb-datepicker #submittedDatePicker></nb-datepicker>
           </div>
         </div>
-      </nb-card-header>
+</nb-card-header>
 
       <nb-card-body>
         <nb-stepper orientation="horizontal">
@@ -262,7 +294,7 @@
 
           <!-- Notes -->
           <nb-step label="Notes">
-            <textarea nbInput fullWidth [(ngModel)]="poam.notes" placehoder="Notes" name='notes' cols="180" rows="16" maxlength="2000"></textarea>
+            <textarea nbInput fullWidth style="font-weight: normal;" [(ngModel)]="poam.notes" placehoder="Notes" name='notes' cols="180" rows="16" maxlength="4000"></textarea>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
             <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
           </nb-step>
