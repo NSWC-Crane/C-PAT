@@ -98,7 +98,7 @@ export class UserComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value)
+          return (row.value == 1) ? 'True' : 'False'
         },
         editor: {
           type: 'custom',
@@ -117,7 +117,7 @@ export class UserComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value)
+          return (row.value == 1) ? 'True' : 'False'
         },
         editor: {
           type: 'custom',
@@ -136,7 +136,7 @@ export class UserComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value)
+          return (row.value == 1) ? 'True' : 'False'
         },
         editor: {
           type: 'custom',
@@ -155,7 +155,7 @@ export class UserComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value)
+          return (row.value == 1) ? 'True' : 'False'
         },
         editor: {
           type: 'custom',

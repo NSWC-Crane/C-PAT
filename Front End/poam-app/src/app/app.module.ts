@@ -18,7 +18,7 @@ import { AppComponent } from './app.component';
 import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';
 import { CoreModule } from '../app/@core/core.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbActionsModule, NbAutocompleteModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule, NbAccordionModule, NbDatepickerModule} from '@nebular/theme';
+import { NbActionsModule, NbAutocompleteModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule, NbAccordionModule, NbDatepickerModule, NbTooltipModule, NbFormFieldModule, NbToggleModule} from '@nebular/theme';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientModule } from '@angular/common/http';
 import { NbAuthModule, NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token,  } from '@nebular/auth';
@@ -35,6 +35,8 @@ import { PoamApproveModule } from "./pages/poam-processing/poam-approve/poam-app
 import { PoamExtendModule } from "./pages/poam-processing/poam-extend/poam-extend.module";
 import { FileUploadService } from './file-upload.service';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { STIGManagerImportModule } from './pages/import-processing/stigmanager-import/stigmanager-import.module';
+import { TenableImportModule } from './pages/import-processing/tenable-import/tenable-import.module';
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
@@ -84,11 +86,13 @@ function initializeKeycloak(keycloak: KeycloakService) {
         NbAlertModule,
         NbAutocompleteModule,
         NbButtonModule,
-        NbCardModule,
+    NbCardModule,
+    NbToggleModule,
         NbCheckboxModule,
         NbDatepickerModule.forRoot(),
         NbDialogModule.forChild(),
         NbEvaIconsModule,
+        NbFormFieldModule,
         NbInputModule,
         NbIconModule,
         NbLayoutModule,
@@ -97,6 +101,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
         NbSecurityModule.forRoot(),
         NbSidebarModule.forRoot(),
         NbStepperModule,
+        NbTooltipModule,
         NbMenuModule.forRoot(),
         NgbModule,
         NbThemeModule.forRoot({ name: 'default' }),
@@ -127,7 +132,9 @@ function initializeKeycloak(keycloak: KeycloakService) {
         }),
         CoreModule,
         PoamApproveModule,
-        PoamExtendModule
+    PoamExtendModule,
+    STIGManagerImportModule,
+    TenableImportModule,
     ]
 })
 export class AppModule { }

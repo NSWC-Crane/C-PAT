@@ -100,6 +100,34 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
         }
 }
 
+exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res, next) {
+    if (!req.params.poamId) {
+        console.info('deletePoamAssetByPoamId poamId not provided.');
+        return next({
+            status: 422,
+            errors: {
+                poamId: 'is required',
+            }
+        });
+    }
+    try {
+        let connection
+        connection = await dbUtils.pool.getConnection()
+        let sql = "DELETE FROM poamtracking.poamassets WHERE poamId = ?";
+        await connection.query(sql, [req.params.poamId])
+        await connection.release();
+
+        var poamAsset = []
+
+        return { poamAsset };
+    }
+    catch (error) {
+        let errorResponse = { null: "null" }
+        await connection.release()
+        return errorResponse;
+    }
+}
+
 exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res, next) {
         //console.log("getPoamAssets (Service) ...");
         if (!req.params.assetId) {

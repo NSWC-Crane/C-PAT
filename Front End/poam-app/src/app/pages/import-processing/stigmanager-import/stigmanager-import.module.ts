@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { STIGManagerImportComponent } from './stigmanager-import.component';
 import { SharedModule } from '../../../Shared/shared.module';
-import { NbButtonModule, NbInputModule, NbCardModule, NbLayoutModule, NbSpinnerModule, NbSelectModule, NbIconModule, NbTooltipModule } from '@nebular/theme';
+import { NbButtonModule, NbInputModule, NbCardModule, NbLayoutModule, NbSpinnerModule, NbSelectModule, NbIconModule, NbTooltipModule, NbTreeGridModule, NbTabsetModule } from '@nebular/theme';
 import { STIGManagerImportRoutingModule } from './stigmanager-import.routing';
 
 @NgModule({
@@ -31,7 +31,9 @@ import { STIGManagerImportRoutingModule } from './stigmanager-import.routing';
     NbLayoutModule,
     NbSelectModule,
     NbSpinnerModule,
+    NbTabsetModule,
     NbTooltipModule,
+    NbTreeGridModule,
     SharedModule,
    
   ],

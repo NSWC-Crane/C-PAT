@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SharedService {
+  private uri = environment.apiEndpoint;
   private _selectedCollection = new BehaviorSubject<any>(null);
   public readonly selectedCollection = this._selectedCollection.asObservable();
   constructor(private http: HttpClient) { }
@@ -28,9 +29,19 @@ export class SharedService {
     this._selectedCollection.next(collection);
   }
 
+  getPoamsByVulnerabilityId(vulnerabilityId: string) {
+    return this.http.get(`${this.uri}/vulnerability/poam/${vulnerabilityId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getExistingVulnerabilityPoams() {
+    return this.http.get(`${this.uri}/vulnerability/existingPoams`)
+      .pipe(catchError(this.handleError));
+  }
+
   getSTIGsFromSTIGMAN(token: string): Observable<any[]> {
     const headers = this.getHeaders(token);
-    return from(axios.get<any[]>(environment.getSTIGsFromSTIGMANEndpoint, { headers })
+    return from(axios.get<any[]>(environment.STIGMANEndpoint + "api/stigs/", { headers })
       .then(response => response.data)
       .catch(error => {
         console.error('Unable to connect to STIG Manager', error);
@@ -40,7 +51,7 @@ export class SharedService {
 
   getCollectionsFromSTIGMAN(token: string): Observable<any[]> {
     const headers = this.getHeaders(token);
-    return from(axios.get<any[]>(environment.getCollectionsFromSTIGMANEndpoint, { headers })
+    return from(axios.get<any[]>(environment.STIGMANEndpoint + "api/collections/", { headers })
       .then(response => response.data)
       .catch(error => {
         console.error('Unable to connect to STIG Manager', error);
@@ -50,7 +61,7 @@ export class SharedService {
 
   selectedCollectionFromSTIGMAN(collectionId: string, token: string): Observable<any[]> {
     const headers = this.getHeaders(token);
-    const endpoint = environment.getCollectionsFromSTIGMANEndpoint + collectionId + "?projection=labels";
+    const endpoint = `${environment.STIGMANEndpoint}api/collections/${collectionId}?projection=labels`;
     return from(axios.get<any[]>(endpoint, { headers })
       .then(response => response.data)
       .catch(error => {
@@ -61,7 +72,7 @@ export class SharedService {
 
 getAssetsFromSTIGMAN(collectionId: string, token: string): Observable<any[]> {
   const headers = this.getHeaders(token);
-  const endpoint = environment.getAvailableAssetsFromSTIGMANEndpoint + collectionId;
+  const endpoint = `${environment.STIGMANEndpoint}api/assets?collectionId=${collectionId}`;
   return new Observable<any[]>((observer) => {
     axios.get<any[]>(endpoint, { headers })
       .then(response => {
@@ -75,7 +86,43 @@ getAssetsFromSTIGMAN(collectionId: string, token: string): Observable<any[]> {
   }).pipe(
     catchError(this.handleError)
   );
-}
+  }
+
+  getSTIGAssociatedAssets(token: string, collectionId: string, benchmarkId: string): Observable<any[]> {
+    const headers = this.getHeaders(token);
+    const url = `${environment.STIGMANEndpoint}api/collections/${collectionId}/stigs/${benchmarkId}/assets`;
+
+return from(axios.get<any[]>(url, { headers })
+  .then(response => response.data)
+  .catch(error => {
+    console.error('Unable to connect to STIG Manager', error);
+    throw error;
+  }));
+  }
+
+  getAffectedAssetsFromSTIGMAN(token: string, collectionId: string): Observable<any[]> {
+    const headers = this.getHeaders(token);
+    const url = `${environment.STIGMANEndpoint}api/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=stigs&projection=rules`;
+
+    return from(axios.get<any[]>(url, { headers })
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Unable to connect to STIG Manager', error);
+        throw error;
+      }));
+  }
+
+  getRuleDataFromSTIGMAN(token: string, ruleId: string): Observable<any[]> {
+    const headers = this.getHeaders(token);
+    const url = `${environment.STIGMANEndpoint}api/stigs/rules/${ruleId}?projection=detail&projection=check&projection=fix`;
+
+    return from(axios.get<any[]>(url, { headers })
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Unable to connect to STIG Manager', error);
+        throw error;
+      }));
+  }
 
 private handleError(error: any) {
   let errorMessage = 'An unknown error occurred!';
@@ -92,7 +139,7 @@ private handleError(error: any) {
 
   selectedAssetsFromSTIGMAN(assetId: string, token: string): Observable<any> {
     const headers = this.getHeaders(token);
-    const endpoint = environment.getAssetsFromSTIGMANEndpoint + assetId;
+    const endpoint = `${environment.STIGMANEndpoint}api/assets/${assetId}`;
     return from(axios.get<any>(endpoint, { headers })
       .then(response => response.data)
       .catch(error => {

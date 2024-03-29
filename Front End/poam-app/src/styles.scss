@@ -16,9 +16,21 @@
 
 @include nb-install() {
   @include nb-theme-global();
-  @include nb-auth-global(); // append the install mixin inside of the nb-install
+  @include nb-auth-global();
 };
-/* You can add global styles to this file, and also import other style files */
 
-/* Importing Bootstrap SCSS file. */
 @import '../node_modules/bootstrap/scss/bootstrap';
+
+::-webkit-scrollbar {
+  width: 0.4rem;
+}
+
+::-webkit-scrollbar-track {
+  background: nb-theme(background-basic-color-2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: nb-theme(background-basic-color-4);
+  cursor: pointer;
+  border-radius: 0.4rem;
+}

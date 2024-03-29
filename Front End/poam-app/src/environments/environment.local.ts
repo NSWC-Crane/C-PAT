@@ -24,6 +24,7 @@ export const environment = {
   getCollectionsFromSTIGMANEndpoint: 'http://localhost:54000/api/collections/',
   getAvailableAssetsFromSTIGMANEndpoint: 'http://localhost:54000/api/assets?collectionId=',
   getAssetsFromSTIGMANEndpoint: 'http://localhost:54000/api/assets/',
+  getSTIGAssociatedAssetsEndpoint: 'http://localhost:54000/api/collections/',
   authizeEndpoint: 'http://localhost:2020/realms/RMFTools/protocol/openid-connect/auth',
   tokeEndpoint: 'http://localhost:2020/realms/RMFTools/protocol/openid-connect/token',
   redirectUri: 'http://localhost:4200/callback',

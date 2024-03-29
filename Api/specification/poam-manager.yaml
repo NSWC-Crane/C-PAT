@@ -701,6 +701,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
+  /collections/basiclist:
+    get:
+      tags:
+        - Collection
+      security:
+        - oauth:
+            - 'c-pat:read'        
+      summary: Return a list of collection names and collection IDs
+      operationId: getCollectionBasicList
+      description: Return a list of collection names and collection IDs
+      responses:
+        '200':
+          description: Collection Name and ID list response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/collectionNameAndId'
+        '500':
+          description: Client Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
   '/collections/{userName}':
     get:
       tags:
@@ -1633,6 +1665,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssets
+      security:
+        - oauth:
+            - 'c-pat:read'
+    delete:
+      summary: Delete all assets associated to a POAM by poamId
+      operationId: deletePoamAssetByPoamId
+      responses:
+        '200':
+          description: null asset response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  poamAsset:
+                    type: array
+                    items: {}
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'  
       tags:
         - PoamAssets
       security:
@@ -2801,9 +2858,67 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
+  '/vulnerability/poam/{vulnerabilityId}':
+    parameters:
+      - in: path
+        name: vulnerabilityId
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Return poam by vulnerabilityId
+      operationId: getPoamsByVulnerabilityId
+      responses:
+        '200':
+          description: POAM array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poam_Object'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Vulnerability            
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/vulnerability/existingPoams':
+    get:
+      summary: Return a list of vulnerabilities associated with existing POAMs
+      operationId: getExistingVulnerabilityPoams
+      responses:
+        '200':
+          description: Successful response with existing vulnerability POAMs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  existingPoams:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        poamId:
+                          type: integer
+                        vulnerabilityId:
+                          type: string
+      tags:
+        - Vulnerability
+      security:
+        - oauth:
+            - 'c-pat:read'
 
 components:
-
   schemas:
     STIGMANCollection:
       type: object
@@ -2893,7 +3008,6 @@ components:
           type: integer
         labelId:
           type: integer
-          
 
     change_Workspace:
       required:
@@ -2963,6 +3077,15 @@ components:
         isNameUnavailable:
           type: integer
           nullable: true
+
+    collectionNameAndId:
+      type: object
+      additionalProperties: false
+      properties:
+        collectionId:
+          type: integer
+        collectionName:
+          type: string
 
     collectionUpdate:
       type: object
@@ -3044,8 +3167,7 @@ components:
         labels:
           type: array
           items:
-            $ref: '#/components/schemas/label'
-          
+            $ref: '#/components/schemas/label'          
 
     error:
       type: object
@@ -3216,8 +3338,18 @@ components:
           type: string
         stigTitle:
           type: string
+          nullable: true
+        stigBenchmarkId:
+          type: string
+          nullable: true
+        stigCheckData:
+          type: string
+          nullable: true
         iavmNumber:
           type: string
+        iavComplyByDate:
+          type: string
+          nullable: true
         aaPackage:
           type: string
         vulnerabilityId:
@@ -3778,7 +3910,6 @@ components:
         defaultTheme:
           type: string
 
-
   responses:
     forbidden:
       description: The requesting User does not have access rights to the content
@@ -3846,8 +3977,7 @@ components:
       description: Returns collections belonging to a specif User
       schema:
         type: string    
-        
-        
+                
   securitySchemes:
       oauth:
         type: openIdConnect

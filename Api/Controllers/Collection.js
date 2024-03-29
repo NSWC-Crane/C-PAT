@@ -26,6 +26,16 @@ module.exports.getCollection = async function getCollection(req, res, next){
 		res.status(201).json(getCollection)
 }
 
+exports.getCollectionBasicList = async function (req, res, next) {
+	try {
+		const getCollection = await collectionService.getCollectionBasicList(req, res, next);
+		res.status(200).json(getCollection);
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('An error occurred while fetching collection details.');
+	}
+}
+
 module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res, next) {
 
 	var getCollection = await collectionService.getCollectionAssetLabel(req, res, next)

@@ -15,6 +15,11 @@ import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Collections } from './collections.model';
 
+interface CollectionBasicList {
+  collectionId: string;
+  collectionName: string;
+}
+
 @Injectable({
 	providedIn: 'root'
 })
@@ -49,7 +54,14 @@ export class CollectionsService {
 		return this.http
 					.get(`${this.uri}/collections/${id}`)
 					.pipe(catchError(this.handleError));
-	}
+  }
+
+  getCollectionBasicList() {
+    return this.http.get<CollectionBasicList[]>(`${this.uri}/collections/basiclist`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 
 	addCollection(collection: any): Observable<Collections> {
 		// console.log("Collections Service Call attempted: addCollection()");

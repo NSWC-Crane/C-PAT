@@ -81,7 +81,7 @@ export class PoamService {
 	getPoamsByCollection(id: string) {
 		return this.http.get(`${this.uri}/poams/collection/${id}`)
 			.pipe(catchError(this.handleError));
-	}
+  }
 
 	getAssetsForCollection(Id: number, offset: number, limit: number) {
 		let params = new HttpParams()
@@ -105,7 +105,6 @@ export class PoamService {
 
 
 	postPoam(poam: any) {
-		console.log("PoamsService Call attempted: postPoam(poam)...poam: ", poam);
 		return this.http
 			.post<any>(`${this.uri}/poam`, poam, this.httpOptions);
 	}
@@ -135,10 +134,15 @@ export class PoamService {
 	}
 
 	deletePoamAsset(poamId: any, assetId: any) {
-		// console.log("PoamService Call attempted: deletePoamAsset(poamId,assetId)...poamId: ", poamId,", assetId: ", assetId);
 		return this.http
 			.delete<any>(`${this.uri}/poamAsset/poam/${poamId}/asset/${assetId}`, this.httpOptions);
-	}
+  }
+
+  deletePoamAssetByPoamId(poamId: any) {
+    return this.http
+      .delete<any>(`${this.uri}/poamAssets/poam/${poamId}`, this.httpOptions);
+  }
+
 	getCollectionApprovers(id: string) {
 		// console.log("getCollectionApprovers id: ", id)
 		return this.http.get(`${this.uri}/collectionApprovers/${+id}`)

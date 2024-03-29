@@ -18,8 +18,13 @@ module.exports.getPoamAssets = async function getPoamAssets(req, res, next){
 
 module.exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, next){
         // res.status(201).json({message: "getPoamAssetsByPoamId Method called successfully"});
-        var poamAssets = await poamAssetService.getPoamAssetsByPoamId(req,res,next); 
+    var poamAssets = await poamAssetService.getPoamAssetsByPoamId(req,res,next); 
         res.status(201).json(poamAssets)
+}
+
+module.exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res, next) {
+    var poamAssets = await poamAssetService.deletePoamAssetByPoamId(req, res, next);
+    res.status(200).json(poamAssets)
 }
 
 module.exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res, next){
@@ -42,8 +47,6 @@ module.exports.postPoamAsset = async function postPoamAsset(req, res, next){
 
 module.exports.putPoamAsset = async function putPoamAsset(req, res, next){
         res.status(201).json({message: "putPoamAsset Method called successfully, There is only a unique index on poamId and assetId, nothing to update!!!"});
-        // var poamAsset = await poamAssetService.putAsset(req,res,next); 
-        // res.status(201).json(poamAsset)
 }
 
 module.exports.deletePoamAsset = async function deletePoamAsset(req, res, next){
