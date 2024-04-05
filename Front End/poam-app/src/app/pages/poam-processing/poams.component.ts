@@ -31,6 +31,12 @@ interface Permission {
   canView: number;
 }
 
+interface LabelInfo {
+  poamId: number;
+  labelId: number;
+  labelName: string;
+}
+
 @Component({
   selector: 'ngx-poams',
   templateUrl: './poams.component.html',
@@ -51,10 +57,34 @@ export class PoamsComponent implements OnInit {
   public poamSeverity: any[] = [];
   public poamEstimatedCompletion: any[] = [];
   public detailedPoam: any;
-  public selectedStatus: any = 'All';
-  public selectedLabel: any = 'All';
-  public selectedSeverity: any = 'All';
-  public selectedEstimatedCompletion: any = 'All';
+  public selectedStatus: any = null;
+  public selectedLabel: any = null;
+  public selectedSeverity: any = null;
+  public selectedEstimatedCompletion: any = null;
+  selectedOptionsValues: string[] = [];
+  poamStatuses = [
+    { value: 'Draft', label: 'Draft' },
+    { value: 'Approved', label: 'Approved' },
+    { value: 'Submitted', label: 'Submitted' },
+    { value: 'Rejected', label: 'Rejected' },
+    { value: 'Closed', label: 'Closed' },
+    { value: 'Expired', label: 'Expired' }
+  ];
+
+  poamSeverities = [
+    { value: 'CAT I - Critical/High', label: 'CAT I - Critical/High' },
+    { value: 'CAT II - Medium', label: 'CAT II - Medium' },
+    { value: 'CAT III - Low', label: 'CAT III - Low' }
+  ];
+
+  poamEstimatedCompletions = [
+    { value: 'OVERDUE', label: 'OVERDUE' },
+    { value: '< 30 Days', label: '< 30 Days' },
+    { value: '30-60 Days', label: '30-60 Days' },
+    { value: '60-90 Days', label: '60-90 Days' },
+    { value: '90-180 Days', label: '90-180 Days' },
+    { value: '> 365 Days', label: '> 365 Days' }
+  ];
   statusChart!: Chart;
   statusChartData: ChartData<'bar'> = {
     labels: [''],
@@ -71,7 +101,7 @@ export class PoamsComponent implements OnInit {
     datasets: [],
   };
   estimatedCompletionChart!: Chart;
-estimatedCompletionChartData: ChartData<'bar'> = {
+  estimatedCompletionChartData: ChartData<'bar'> = {
     labels: [''],
     datasets: [],
   };
@@ -116,27 +146,9 @@ estimatedCompletionChartData: ChartData<'bar'> = {
   poams: any[] = [];
   users: any;
   user: any;
-  filteredPoams: any;
-  viewingfulldetails: boolean = false;
   collection: any;
   payload: any;
-  members: any;
-  data: any;
-  themeSubscription: any;
   selectedPoamId: any;
-  items: any;
-  values: number[] | undefined;
-  buttonClasses = [
-    'btn-outline-primary',
-    'btn-outline-secondary',
-    'btn-outline-success',
-    'btn-outline-danger',
-    'btn-outline-warning',
-    'btn-outline-info',
-    'btn-outline-light',
-    'btn-outline-dark',
-  ];
-  buttonClass = this.buttonClasses[0];
 
   constructor(
     private poamService: PoamService,
@@ -155,10 +167,6 @@ estimatedCompletionChartData: ChartData<'bar'> = {
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();
-      this.onSelectedStatusChange();
-      this.onSelectedLabelChange();
-      this.onSelectedSeverityChange();
-      this.onSelectedEstimatedCompletionChange();
     }
   }
 
@@ -183,9 +191,6 @@ estimatedCompletionChartData: ChartData<'bar'> = {
         plugins: [ChartDataLabels],
         options: this.barChartOptions,
       });
-      if (this.poamStatus) {
-        this.updateStatusChartData(this.poamStatus);
-      }
     } else {
       console.error('Unable to initialize chart: Element not available.');
     }
@@ -197,23 +202,17 @@ estimatedCompletionChartData: ChartData<'bar'> = {
         plugins: [ChartDataLabels],
         options: this.barChartOptions,
       });
-      if (this.poamLabel) {
-        this.updateLabelChartData(this.poamLabel);
-      }
     } else {
       console.error('Unable to initialize chart: Element not available.');
     }
-    
+
     if (this.poamSeverityChart?.nativeElement) {
       this.severityChart = new Chart(this.poamSeverityChart.nativeElement, {
         type: 'bar',
         data: this.severityChartData,
         plugins: [ChartDataLabels],
         options: this.barChartOptions,
-      });    
-      if (this.poamSeverity) {
-        this.updateSeverityChartData(this.poamSeverity);
-      }
+      });
     } else {
       console.error('Unable to initialize chart: Element not available.');
     }
@@ -225,9 +224,6 @@ estimatedCompletionChartData: ChartData<'bar'> = {
         plugins: [ChartDataLabels],
         options: this.barChartOptions,
       });
-      if (this.poamEstimatedCompletion) {
-        this.updateSeverityChartData(this.poamEstimatedCompletion);
-      }
     } else {
       console.error('Unable to initialize chart: Element not available.');
     }
@@ -236,9 +232,8 @@ estimatedCompletionChartData: ChartData<'bar'> = {
   setPayload() {
     this.user = null;
     this.payload = null;
-
-    this.subs.sink = this.userService.getCurrentUser().subscribe(
-      (response: any) => {
+    this.subs.sink = this.userService.getCurrentUser().subscribe({
+      next: (response: any) => {
         if (response && response.userId) {
           this.user = response;
 
@@ -255,21 +250,20 @@ estimatedCompletionChartData: ChartData<'bar'> = {
                 })
               ),
             };
-
             this.getPoamData();
           }
         } else {
           console.error('User data is not available or user is not active');
         }
       },
-      (error) => {
+      error: (error) => {
         console.error('An error occurred:', error);
       }
-    );
+    });
   }
 
   getPoamData() {
-    this.subs.sink = forkJoin(
+    this.subs.sink = forkJoin([
       this.poamService.getCollection(
         this.payload.lastCollectionAccessedId,
         this.payload.userName
@@ -288,19 +282,21 @@ estimatedCompletionChartData: ChartData<'bar'> = {
       ),
       this.poamService.getPoamsByCollection(
         this.payload.lastCollectionAccessedId
+      ),
+      this.poamService.getPoamLabels(
+        this.payload.lastCollectionAccessedId
       )
-    ).subscribe(([collection, poamStatusResponse, poamLabelResponse, poamSeverityResponse, poamEstimatedCompletionResponse, poams]: any) => {
+    ]).subscribe(([collection, poamStatusResponse, collectionLabelResponse, poamSeverityResponse, poamEstimatedCompletionResponse, poams, poamLabelResponse]: any) => {
       if (!Array.isArray(poamStatusResponse.poamStatus)) {
         console.error(
           'poamStatusResponse.poamStatus is not an array',
           poamStatusResponse.poamStatus
         );
       }
-      else if (!Array.isArray(poamLabelResponse.poamLabel)) {
-        console.log("poamLabelResponse: ", poamLabelResponse);
+      else if (!Array.isArray(collectionLabelResponse.poamLabel)) {
         console.error(
-          'poamLabelResponse.poamLabel is not an array',
-          poamLabelResponse.poamLabel
+          'collectionLabelResponse.poamLabel is not an array',
+          collectionLabelResponse.poamLabel
         );
       }
       else if (!Array.isArray(poamSeverityResponse.poamSeverity)) {
@@ -310,122 +306,259 @@ estimatedCompletionChartData: ChartData<'bar'> = {
         );
       }
       else if (!Array.isArray(poamEstimatedCompletionResponse.poamEstimatedCompletion)) {
-      console.error(
-        'poamEstimatedCompletionResponse.poamEstimatedCompletion is not an array',
-        poamEstimatedCompletionResponse.poamEstimatedCompletion
-      );
-      return;
-    }      
-
+        console.error(
+          'poamEstimatedCompletionResponse.poamEstimatedCompletion is not an array',
+          poamEstimatedCompletionResponse.poamEstimatedCompletion
+        );
+      }
+      else if (!Array.isArray(poamLabelResponse.poamLabels)) {
+        console.error(
+          'poamLabelResponse.poamLabels is not an array',
+          poamLabelResponse.poamLabels
+        );
+        return;
+      }
       this.collection = collection;
       this.poamStatus = poamStatusResponse.poamStatus;
-      this.poamLabel = poamLabelResponse.poamLabel;
+      this.poamLabel = collectionLabelResponse.poamLabel;
       this.poamSeverity = poamSeverityResponse.poamSeverity;
       this.poamEstimatedCompletion = poamEstimatedCompletionResponse.poamEstimatedCompletion;
-      this.poams = poams.poams;
-      this.filteredPoams = this.poams;
+      const poamLabelMap: { [poamId: number]: string[] } = {};
+      (poamLabelResponse.poamLabels as LabelInfo[]).forEach(labelInfo => {
+        if (!poamLabelMap[labelInfo.poamId]) {
+          poamLabelMap[labelInfo.poamId] = [];
+        }
+        poamLabelMap[labelInfo.poamId].push(labelInfo.labelName);
+      });
 
-      this.sortData();
-      this.setStatusChartData(this.poamStatus);
-      this.setLabelChartData(this.poamLabel);
-      this.setSeverityChartData(this.poamSeverity);
-      this.setEstimatedCompletionChartData(this.poamEstimatedCompletion);
+      this.poams = poams.poams.map((poam: any) => ({
+        ...poam,
+        labels: poamLabelMap[poam.poamId] || ['']
+      }));
+      this.updateCharts();
     });
   }
 
-  setStatusChartData(poamStatus: any[]) {
-    this.updateStatusChartData(poamStatus);
+  updateCharts(): void {
+    this.updateStatusChart();
+    this.updateLabelChart();
+    this.updateSeverityChart();
+    this.updateEstimatedCompletionChart();
   }
 
-  setLabelChartData(poamLabel: any[]) {
-    this.updateLabelChartData(poamLabel);
-  }
-
-  setSeverityChartData(poamSeverity: any[]) {
-    this.updateSeverityChartData(poamSeverity);
-  }
-
-  setEstimatedCompletionChartData(poamEstimatedCompletion: any[]) {
-    this.updateEstimatedCompletionChartData(poamEstimatedCompletion);
-  }
-
-  updateStatusChartData(poamStatus: any[]): void {
+  updateStatusChart(): void {
     if (!this.statusChart) {
       console.warn("POAM Status chart is not initialized.");
       return;
     }
-      const datasets = poamStatus.map((item) => ({
-        label: item.status,
-        data: [item.statusCount],
-        datalabels: {},
-      }));
-      this.statusChart.data.datasets = datasets;
-      this.statusChart.update();
-    
+    const filteredPoamStatus = this.applyFilters('status');
+    const datasets = filteredPoamStatus.map((item) => ({
+      label: item.status,
+      data: [item.statusCount],
+      datalabels: {},
+    }));
+    this.statusChart.data.datasets = datasets;
+    this.statusChart.update();
   }
 
-  updateLabelChartData(poamLabel: any[]): void {
+  updateLabelChart(): void {
     if (!this.labelChart) {
       console.warn("POAM Label chart is not initialized.");
       return;
     }
-      const datasets = poamLabel.map((item) => ({
-        label: item.label,
-        data: [item.labelCount],
-        datalabels: {},
-      }));
-      this.labelChart.data.datasets = datasets;
-      this.labelChart.update();
-    
+    const filteredPoamLabel = this.applyFilters('label');
+    const datasets = filteredPoamLabel.map((item) => ({
+      label: item.label,
+      data: [item.labelCount],
+      datalabels: {},
+    }));
+
+    this.labelChart.data.datasets = datasets;
+    this.labelChart.update();
   }
 
-  updateSeverityChartData(poamSeverity: any[]): void {
+
+  updateSeverityChart(): void {
     if (!this.severityChart) {
       console.warn("POAM Severity chart is not initialized.");
       return;
     }
-      const datasets = poamSeverity.map((item) => ({
-        label: item.severity,
-        data: [item.severityCount],
-        datalabels: {},
-      }));
-
-      this.severityChart.data.datasets = datasets;
-      this.severityChart.update();    
+    const filteredPoamSeverity = this.applyFilters('severity');
+    const datasets = filteredPoamSeverity.map((item) => ({
+      label: item.severity,
+      data: [item.severityCount],
+      datalabels: {},
+    }));
+    this.severityChart.data.datasets = datasets;
+    this.severityChart.update();
   }
 
-  updateEstimatedCompletionChartData(poamEstimatedCompletion: any[]): void {
+  updateEstimatedCompletionChart(): void {
     if (!this.estimatedCompletionChart) {
       console.warn("POAM Estimated Completion chart is not initialized.");
       return;
     }
-      const datasets = poamEstimatedCompletion.map((item) => ({
-        label: item.estimatedCompletion,
-        data: [item.estimatedCompletionCount],
-        datalabels: {},
-      }));
-
-      this.estimatedCompletionChart.data.datasets = datasets;
-      this.estimatedCompletionChart.update();    
+    const filteredPoamEstimatedCompletion = this.applyFilters('estimatedCompletion');
+    const datasets = filteredPoamEstimatedCompletion.map((item) => ({
+      label: item.estimatedCompletion,
+      data: [item.estimatedCompletionCount],
+      datalabels: {},
+    }));
+    this.estimatedCompletionChart.data.datasets = datasets;
+    this.estimatedCompletionChart.update();
   }
 
-  sortData() {
-    if (this.filteredPoams) {
-      this.filteredPoams.sort((n1: any, n2: any) => {
-        if (n1.poamId < n2.poamId) {
-          return -1;
-        } else if (n1.poamId > n2.poamId) {
-          return 1;
-        } else {
-          return 0;
-        }
-      });
+  applyFilters(filterType: string): any[] {
+    let filteredPoams = this.poams;
 
-      this.poamsForChart = this.filteredPoams.map((poam: any) => ({
-        id: poam.poamId,
-        vulnerabilityId: poam.vulnerabilityId,
-        description: poam.description,
+    if (this.selectedOptions['status'] !== null) {
+      filteredPoams = filteredPoams.filter(poam => poam.status === this.selectedOptions['status']);
+    }
+
+    if (this.selectedOptions['label'] !== null) {
+      filteredPoams = filteredPoams.filter(poam => poam.labels.includes(this.selectedOptions['label']));
+    }
+
+    if (this.selectedOptions['severity'] !== null) {
+      filteredPoams = filteredPoams.filter(poam => poam.rawSeverity === this.selectedOptions['severity']);
+    }
+
+    if (this.selectedOptions['estimatedCompletion'] !== null) {
+      filteredPoams = filteredPoams.filter(poam => this.filterPoamsByEstimatedCompletion(poam));
+    }
+
+    this.poamsForChart = filteredPoams.map((poam: any) => ({
+      id: poam.poamId,
+      vulnerabilityId: poam.vulnerabilityId,
+      description: poam.description,
+    }));
+
+    switch (filterType) {
+      case 'status':
+        return this.generateChartDataForStatus(filteredPoams);
+      case 'label':
+        return this.generateChartDataForLabel(filteredPoams);
+      case 'severity':
+        return this.generateChartDataForSeverity(filteredPoams);
+      case 'estimatedCompletion':
+        return this.generateChartDataForEstimatedCompletion(filteredPoams);
+      default:
+        return [];
+    }
+  }
+
+  generateChartDataForStatus(filteredPoams: any[]): any[] {
+    const statusCounts: { [status: string]: number } = {};
+    filteredPoams.forEach(poam => {
+      const status = poam.status;
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+
+    if (this.selectedStatus === null) {
+      return Object.entries(statusCounts).map(([status, statusCount]) => ({
+        status,
+        statusCount,
       }));
+    } else {
+      return [
+        {
+          status: this.selectedStatus,
+          statusCount: statusCounts[this.selectedStatus] || 0,
+        },
+      ];
+    }
+  }
+
+  generateChartDataForLabel(filteredPoams: any[]): any[] {
+    const labelCounts: { [label: string]: number } = {};
+    filteredPoams.forEach(poam => {
+      if (poam.labels && poam.labels.length > 0) {
+        poam.labels.forEach((label: string) => {
+          if (label) {
+            labelCounts[label] = (labelCounts[label] || 0) + 1;
+          }
+        });
+      }
+    });
+    if (this.selectedLabel === null) {
+      return Object.entries(labelCounts).map(([label, labelCount]) => ({
+        label,
+        labelCount,
+      }));
+    } else {
+      return [
+        {
+          label: this.selectedLabel,
+          labelCount: labelCounts[this.selectedLabel] || 0,
+        },
+      ];
+    }
+  }
+
+  generateChartDataForSeverity(filteredPoams: any[]): any[] {
+    const severityCounts: { [severity: string]: number } = {};
+    filteredPoams.forEach(poam => {
+      const severity = poam.rawSeverity;
+      severityCounts[severity] = (severityCounts[severity] || 0) + 1;
+    });
+
+    if (this.selectedSeverity === null) {
+      return Object.entries(severityCounts).map(([severity, severityCount]) => ({
+        severity,
+        severityCount,
+      }));
+    } else {
+      return [
+        {
+          severity: this.selectedSeverity,
+          severityCount: severityCounts[this.selectedSeverity] || 0,
+        },
+      ];
+    }
+  }
+
+  generateChartDataForEstimatedCompletion(filteredPoams: any[]): any[] {
+    const estimatedCompletionCounts: { [estimatedCompletion: string]: number } = {};
+    filteredPoams.forEach(poam => {
+      const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionTimeAllowed);
+      const estimatedCompletion = this.getEstimatedCompletionLabel(days);
+      estimatedCompletionCounts[estimatedCompletion] = (estimatedCompletionCounts[estimatedCompletion] || 0) + 1;
+    });
+
+    if (this.selectedEstimatedCompletion === null) {
+      return Object.entries(estimatedCompletionCounts).map(([estimatedCompletion, estimatedCompletionCount]) => ({
+        estimatedCompletion,
+        estimatedCompletionCount,
+      }));
+    } else {
+      return [
+        {
+          estimatedCompletion: this.selectedEstimatedCompletion,
+          estimatedCompletionCount: estimatedCompletionCounts[this.selectedEstimatedCompletion] || 0,
+        },
+      ];
+    }
+  }
+
+  filterPoamsByEstimatedCompletion = (poam: any) => {
+    const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionTimeAllowed);
+    const estimatedCompletion = this.getEstimatedCompletionLabel(days);
+    return estimatedCompletion === this.selectedOptions['estimatedCompletion'];
+  };
+
+  getEstimatedCompletionLabel(days: number): string {
+    if (days < 0) {
+      return 'OVERDUE';
+    } else if (days <= 30) {
+      return '< 30 Days';
+    } else if (days <= 60) {
+      return '30-60 Days';
+    } else if (days <= 90) {
+      return '60-90 Days';
+    } else if (days <= 180) {
+      return '90-180 Days';
+    } else {
+      return '> 365 Days';
     }
   }
 
@@ -435,7 +568,6 @@ estimatedCompletionChartData: ChartData<'bar'> = {
 
   onSelectPoam(poamId: number) {
     const selectedPoam = this.poamsForChart.find((poam: any) => poam.id === poamId);
-
     if (selectedPoam) {
       this.router.navigateByUrl(`/poam-details/${selectedPoam.id}`);
     } else {
@@ -443,96 +575,72 @@ estimatedCompletionChartData: ChartData<'bar'> = {
     }
   }
 
-  onSelectedStatusChange(): void {
-    let filteredPoamStatus =
-      this.selectedStatus !== 'All'
-        ? this.poamStatus.filter((item) => item.status === this.selectedStatus)
-        : this.poamStatus;
-    this.updateStatusChartData(filteredPoamStatus);
-    if (this.selectedStatus !== 'All') {
-      this.filteredPoams = this.poams.filter((poam: any) => poam.status === this.selectedStatus);
-      this.sortData();
-    }
-    else {
-      this.filteredPoams = this.poams;
-      this.sortData();
-    }
-  }
-
-  onSelectedLabelChange(): void {
-    let filteredPoamLabel =
-      this.selectedLabel !== 'All'
-        ? this.poamLabel.filter((item) => item.label === this.selectedLabel)
-        : this.poamLabel;
-    this.updateLabelChartData(filteredPoamLabel);
-    if (this.selectedLabel !== 'All') {
-      this.filteredPoams = this.poams.filter((poam: any) => poam.label === this.selectedLabel);
-      this.sortData();
-    }
-    else {
-      this.filteredPoams = this.poams;
-      this.sortData();
-    }
-  }
-
-  onSelectedSeverityChange(): void {
-    let filteredPoamSeverity =
-      this.selectedSeverity !== 'All'
-        ? this.poamSeverity.filter((item) => item.severity === this.selectedSeverity)
-        : this.poamSeverity;
-    this.updateSeverityChartData(filteredPoamSeverity);
-    if (this.selectedSeverity !== 'All') {
-      this.filteredPoams = this.poams.filter((poam: any) => poam.rawSeverity === this.selectedSeverity);
-      this.sortData();
-    }
-    else {
-      this.filteredPoams = this.poams;
-      this.sortData();
-    }
-  }
-
-  onSelectedEstimatedCompletionChange(): void {
-    const currentDate = new Date();
-
-    const calculateDaysDifference = (scheduledCompletionDate: any, extensionTimeAllowed: any) => {
-      const completionDate = addDays(new Date(scheduledCompletionDate), extensionTimeAllowed);
-      return differenceInCalendarDays(completionDate, currentDate);
-    };
-
-    const filterPoamsByEstimatedCompletion = (poam: any) => {
-      const days = calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionTimeAllowed);
-      switch (this.selectedEstimatedCompletion) {
-        case 'OVERDUE':
-          return days < 0;
-        case '< 30 Days':
-          return days >= 0 && days <= 30;
-        case '30-60 Days':
-          return days > 30 && days <= 60;
-        case '60-90 Days':
-          return days > 60 && days <= 90;
-        case '90-180 Days':
-          return days > 90 && days <= 180;
-        case '> 365 Days':
-          return days > 365;
-        default:
-          return true;
-      }
-    };
-
-    if (this.selectedEstimatedCompletion !== 'All') {
-      this.filteredPoams = this.poams.filter(filterPoamsByEstimatedCompletion);
-    } else {
-      this.filteredPoams = this.poams;
-    }
-    this.sortData();
-
-    let filteredPoamEstimatedCompletion =
-      this.selectedEstimatedCompletion !== 'All'
-        ? this.poamEstimatedCompletion.filter((item) => item.estimatedCompletion === this.selectedEstimatedCompletion)
-        : this.poamEstimatedCompletion;
-
-    this.updateEstimatedCompletionChartData(filteredPoamEstimatedCompletion);
+  selectedOptions: { [key: string]: string | null } = {
+    status: null,
+    severity: null,
+    estimatedCompletion: null,
+    label: null
   };
+
+  onGroupSelect(selectedValues: string[]) {
+    this.selectedOptions = {
+      status: null,
+      severity: null,
+      estimatedCompletion: null,
+      label: null
+    };
+
+    selectedValues.forEach(value => {
+      const [group, selectedValue] = value.split(':');
+      this.selectedOptions[group] = selectedValue === null ? null : selectedValue;
+    });
+
+    this.selectedOptionsValues = Object.entries(this.selectedOptions)
+      .filter(([_, value]) => value !== null)
+      .map(([key, value]) => `${key}:${value}`);
+
+    this.updateCharts();
+  }
+
+  isOptionDisabled(groupName: string, optionValue: string): boolean {
+    return this.selectedOptions[groupName] !== null && this.selectedOptions[groupName] !== optionValue;
+  }
+
+  resetChartFilters() {
+    this.selectedOptions = {
+      status: null,
+      severity: null,
+      estimatedCompletion: null,
+      label: null
+    };
+    this.selectedOptionsValues = [];
+    this.updateCharts();
+  }
+
+  calculateDaysDifference(scheduledCompletionDate: any, extensionTimeAllowed: any): number {
+    const currentDate = new Date();
+    const completionDate = addDays(new Date(scheduledCompletionDate), extensionTimeAllowed);
+    return differenceInCalendarDays(completionDate, currentDate);
+  }
+
+  getChartSubtitle(): string {
+    const filterSelections: string[] = [];
+
+    if (this.selectedOptions['status'] !== null) {
+      filterSelections.push(`Status: ${this.selectedOptions['status']}`);
+    }
+    if (this.selectedOptions['severity'] !== null) {
+      filterSelections.push(`Severity: ${this.selectedOptions['severity']}`);
+    }
+    if (this.selectedOptions['estimatedCompletion'] !== null) {
+      filterSelections.push(`Estimated Completion: ${this.selectedOptions['estimatedCompletion']}`);
+    }
+    if (this.selectedOptions['label'] !== null) {
+      filterSelections.push(`Label: ${this.selectedOptions['label']}`);
+    }
+
+    return filterSelections.join(', ');
+  }
 
   exportChart(chartInstance: Chart, chartName: string) {
     const exportDatalabelsOptions = {
@@ -552,21 +660,39 @@ estimatedCompletionChartData: ChartData<'bar'> = {
       anchor: 'end',
       padding: 6
     };
-
     chartInstance.data.datasets.forEach(dataset => {
       if (dataset.datalabels) {
         Object.assign(dataset.datalabels, exportDatalabelsOptions);
       }
     });
 
+    const chartSubtitle = this.getChartSubtitle();
+
     chartInstance.options.plugins!.title = {
       display: true,
       position: 'bottom',
-      text: `${chartName}`,
+      text: chartSubtitle,
+      font: {
+        size: 14,
+        family: 'sans-serif',
+        weight: 600,
+      },
+      padding: {
+        bottom: 0,
+      },
+    };
+    chartInstance.options.plugins!.subtitle = {
+      display: true,
+      position: 'bottom',
+      text: chartName,
       font: {
         size: 16,
         family: 'sans-serif',
         weight: 600,
+      },
+      padding: {
+        top: 5,
+        bottom: 10,
       },
     };
     chartInstance.update();
@@ -594,12 +720,12 @@ estimatedCompletionChartData: ChartData<'bar'> = {
         chartInstance.options.plugins!.title = {
           display: false,
         };
+        chartInstance.options.plugins!.subtitle = {
+          display: false,
+        };
         chartInstance.update();
       }, 500);
 
     }, 150);
   }
-
-
 }
-

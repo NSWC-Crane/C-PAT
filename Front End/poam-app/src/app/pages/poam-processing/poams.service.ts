@@ -218,7 +218,7 @@ deletePoamMilestone(poamId: string, milestoneId: string) {
 
   getPoamLabels(id: any) {
     return this.http
-      .get(`${this.uri}/poamLabels/poam/${id}`)
+      .get(`${this.uri}/poamLabels/${id}`)
       .pipe(catchError(this.handleError));
   }
 
