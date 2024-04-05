@@ -15,7 +15,7 @@ import { PoamsRoutingModule } from './poams.routing';
 import { NbCardModule, NbIconModule, NbInputModule, NbFormFieldModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule, NbDatepickerModule, NbAutocompleteModule, NbTabsetModule, NbTooltipModule, NbCheckboxModule, NbToggleModule } from '@nebular/theme';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { FormsModule } from '@angular/forms';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { provideCharts, withDefaultRegisterables, BaseChartDirective } from 'ng2-charts';
 import { AppComponent } from '../../app.component';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 
@@ -26,7 +26,8 @@ import { NbEvaIconsModule } from '@nebular/eva-icons';
     exports: [
         PoamsComponent,
     ],
-    imports: [
+  imports: [
+      BaseChartDirective,
       CommonModule,
       NbAutocompleteModule,
       NbToggleModule,

@@ -9,160 +9,137 @@
 -->
 <nb-card>
   <nb-card-header>
-     <div class="row" style="padding-top: 20px;">
-       <nb-tabset fullWidth (changeTab)="sortData()">
+    <div class="row" style="padding-top: 20px;">
+      <nb-tabset fullWidth>
 
-         <!--POAM Status Tab-->
-         <nb-tab tabTitle="POAM Status">
-           <div class="row">
-             <div class="col">
-               <nb-form-field>
-                 <nb-icon nbPrefix icon="list-outline"></nb-icon>
-                 <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
-                   <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
-                     POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
-                   </nb-option>
-                 </nb-select>
-               </nb-form-field>
-             </div>
-           </div>
-           <div class="canvas" id="canvas" style="margin-top: 20px;">
-             <button nbButton ghost class="export-button" (click)="exportChart(statusChart, 'C-PAT POAM Status Chart')">
-               <nb-icon icon="download-outline"></nb-icon>
-             </button>
-             <canvas #poamStatusChart class="poam-status-chart"></canvas>
-           </div>
-           <hr />
-           <div class="row">
-             <button nbButton fullWidth outline status="info" (click)="addPoam()">Add POAM</button>
-           </div>
+        <!--POAM Status Tab-->
+        <nb-tab tabTitle="POAM Status">
+          <div class="row">
+            <div class="col">
+              <nb-form-field>
+                <nb-icon nbPrefix icon="list-outline"></nb-icon>
+                <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
+                  <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
+                    POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
+                  </nb-option>
+                </nb-select>
+              </nb-form-field>
+            </div>
+          </div>
+          <div class="canvas" id="canvas" style="margin-top: 20px;">
+            <button nbButton ghost class="export-button" (click)="exportChart(statusChart, 'C-PAT POAM Status Chart')">
+              <nb-icon icon="download-outline"></nb-icon>
+            </button>
+            <canvas #poamStatusChart class="poam-status-chart"></canvas>
+          </div>
+        </nb-tab>
 
-           <div class="row" style="padding-top: 20px;">
-             <label>Filter by POAM Status:</label>
-             <nb-select class="poam-filter" outline status="info" placeholder="Filter Poams: "
-                        [(ngModel)]="selectedStatus" name="selectedStatus"
-                        (ngModelChange)='onSelectedStatusChange()'>
-               <nb-option value="All">All</nb-option>
-               <nb-option value="Draft">Draft</nb-option>
-               <nb-option value="Approved">Approved</nb-option>
-               <nb-option value="Submitted">Submitted</nb-option>
-               <nb-option value="Rejected">Rejected</nb-option>
-               <nb-option value="Closed">Closed</nb-option>
-               <nb-option value="Expired">Expired</nb-option>
-             </nb-select>
-           </div>
-           <hr />
-         </nb-tab>
+        <!--POAM Severity Tab-->
+        <nb-tab tabTitle="POAM Severity">
+          <div class="row">
+            <div class="col">
+              <nb-form-field>
+                <nb-icon nbPrefix icon="list-outline"></nb-icon>
+                <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
+                  <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
+                    POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
+                  </nb-option>
+                </nb-select>
+              </nb-form-field>
+            </div>
+          </div>
+          <div class="canvas" id="canvas" style="margin-top: 20px;">
+            <button nbButton ghost class="export-button" (click)="exportChart(severityChart, 'C-PAT POAM Severity Chart')">
+              <nb-icon icon="download-outline"></nb-icon>
+            </button>
+            <canvas #poamSeverityChart class="poam-severity-chart"></canvas>
+          </div>
+        </nb-tab>
 
-         <!--POAM Severity Tab-->
-         <nb-tab tabTitle="POAM Severity">
-           <div class="row">
-             <div class="col">
-               <nb-form-field>
-                 <nb-icon nbPrefix icon="list-outline"></nb-icon>
-                 <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
-                   <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
-                     POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
-                   </nb-option>
-                 </nb-select>
-               </nb-form-field>
-             </div>
-           </div>
-           <div class="canvas" id="canvas" style="margin-top: 20px;">
-             <button nbButton ghost class="export-button" (click)="exportChart(severityChart, 'C-PAT POAM Severity Chart')">
-               <nb-icon icon="download-outline"></nb-icon>
-             </button>
-             <canvas #poamSeverityChart class="poam-severity-chart"></canvas>
-           </div>
-           <hr />
-           <div class="row">
-             <button nbButton fullWidth outline status="info" (click)="addPoam()">Add POAM</button>
-           </div>
+        <!--POAM Estimated Completion Tab-->
+        <nb-tab tabTitle="POAM Estimated Completion">
+          <div class="row">
+            <div class="col">
+              <nb-form-field>
+                <nb-icon nbPrefix icon="list-outline"></nb-icon>
+                <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
+                  <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
+                    POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
+                  </nb-option>
+                </nb-select>
+              </nb-form-field>
+            </div>
+          </div>
+          <div class="canvas" id="canvas" style="margin-top: 20px;">
+            <button nbButton ghost class="export-button" (click)="exportChart(estimatedCompletionChart, 'C-PAT POAM Estimated Completion Chart')">
+              <nb-icon icon="download-outline"></nb-icon>
+            </button>
+            <canvas #poamEstimatedCompletionChart class="poam-estimatedcompletion-chart"></canvas>
+          </div>
+        </nb-tab>
 
-           <div class="row" style="padding-top: 20px;">
-             <label>Filter by POAM Severity:</label>
-             <nb-select class="poam-filter" outline status="info" placeholder="Filter Poams: "
-                        [(ngModel)]="selectedSeverity" name="selectedSeverity"
-                        (ngModelChange)='onSelectedSeverityChange()'>
-               <nb-option value="All">All</nb-option>
-               <nb-option value="CAT I - Critical/High">CAT I - Critical/High</nb-option>
-               <nb-option value="CAT II - Medium">CAT II - Medium</nb-option>
-               <nb-option value="CAT III - Low">CAT III - Low</nb-option>
-             </nb-select>
-           </div>
-           <hr />
-         </nb-tab>
+        <!--POAM Label Tab-->
+        <nb-tab tabTitle="POAM Labels">
+          <div class="row">
+            <div class="col">
+              <nb-form-field>
+                <nb-icon nbPrefix icon="list-outline"></nb-icon>
+                <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
+                  <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
+                    POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
+                  </nb-option>
+                </nb-select>
+              </nb-form-field>
+            </div>
+          </div>
+          <div class="canvas" id="canvas" style="margin-top: 20px;">
+            <button nbButton ghost class="export-button" (click)="exportChart(labelChart, 'C-PAT POAM Label Chart')">
+              <nb-icon icon="download-outline"></nb-icon>
+            </button>
+            <canvas #poamLabelChart class="poam-label-chart"></canvas>
+          </div>
+        </nb-tab>
+      </nb-tabset>
+    </div>
+  </nb-card-header>
 
-         <!--POAM Estimated Completion Tab-->
-         <nb-tab tabTitle="POAM Estimated Completion">
-           <div class="row">
-             <div class="col">
-               <nb-form-field>
-                 <nb-icon nbPrefix icon="list-outline"></nb-icon>
-                 <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
-                   <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
-                     POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
-                   </nb-option>
-                 </nb-select>
-               </nb-form-field>
-             </div>
-           </div>
-           <div class="canvas" id="canvas" style="margin-top: 20px;">
-             <button nbButton ghost class="export-button" (click)="exportChart(estimatedCompletionChart, 'C-PAT POAM Estimated Completion Chart')">
-               <nb-icon icon="download-outline"></nb-icon>
-             </button>
-             <canvas #poamEstimatedCompletionChart class="poam-estimatedcompletion-chart"></canvas>
-           </div>
-           <hr />
-           <div class="row">
-             <button nbButton fullWidth outline status="info" (click)="addPoam()">Add POAM</button>
-           </div>
-
-           <div class="row" style="padding-top: 20px;">
-             <label>Filter by POAM Estimated Completion Date:</label>
-             <nb-select class="poam-filter" outline status="info" placeholder="Filter Poams: "
-                        [(ngModel)]="selectedEstimatedCompletion" name="selectedEstimatedCompletion"
-                        (ngModelChange)='onSelectedEstimatedCompletionChange()'>
-               <nb-option value="All">All</nb-option>
-               <nb-option value="OVERDUE">OVERDUE</nb-option>
-               <nb-option value="< 30 Days">< 30 Days</nb-option>
-               <nb-option value="30-60 Days">30-60 Days</nb-option>
-               <nb-option value="60-90 Days">60-90 Days</nb-option>
-               <nb-option value="90-180 Days">90-180 Days</nb-option>
-               <nb-option value="> 365 Days">> 365 Days</nb-option>
-             </nb-select>
-           </div>
-           <hr />
-         </nb-tab>
-
-                  <!--POAM Label Tab-->
-                  <nb-tab tabTitle="POAM Labels">
-                    <div class="row">
-                      <div class="col">
-                        <nb-form-field>
-                          <nb-icon nbPrefix icon="list-outline"></nb-icon>
-                          <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
-                            <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
-                              POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
-                            </nb-option>
-                          </nb-select>
-                        </nb-form-field>
-                      </div>
-                    </div>
-                    <div class="canvas" id="canvas" style="margin-top: 20px;">
-                      <button nbButton ghost class="export-button" (click)="exportChart(labelChart, 'C-PAT POAM Label Chart')">
-                        <nb-icon icon="download-outline"></nb-icon>
-                      </button>
-                      <canvas #poamLabelChart class="poam-label-chart"></canvas>
-                    </div>
-                    <hr />
-                    <div class="row">
-                      <button nbButton fullWidth outline status="info" (click)="addPoam()">Add POAM</button>
-                    </div>
-        
-                    <hr />
-                  </nb-tab>
-       </nb-tabset>
+  <nb-card-body>
+    <div class="container-fluid">
+      <div class="row" style="margin-bottom: 20px;">
+        <div class="col-12">
+          <button nbButton fullWidth outline status="info" (click)="addPoam()">Add POAM</button>
+        </div>
       </div>
-   </nb-card-header>
- </nb-card>
+      <div class="row">
+        <div class="col">
+          <nb-select placeholder="Filter by..." fullWidth (selectedChange)="onGroupSelect($event)" multiple [(selected)]="selectedOptionsValues">
+            <!-- POAM Status -->
+            <nb-option-group title="POAM Status">
+              <nb-option *ngFor="let status of poamStatuses" [value]="'status:' + status.value" [disabled]="isOptionDisabled('status', status.value)">{{ status.label }}</nb-option>
+            </nb-option-group>
+
+            <!-- POAM Severity -->
+            <nb-option-group title="POAM Severity">
+              <nb-option *ngFor="let severity of poamSeverities" [value]="'severity:' + severity.value" [disabled]="isOptionDisabled('severity', severity.value)">{{ severity.label }}</nb-option>
+            </nb-option-group>
+
+            <!-- POAM Estimated Completion -->
+            <nb-option-group title="POAM Estimated Completion">
+              <nb-option *ngFor="let estimatedCompletion of poamEstimatedCompletions" [value]="'estimatedCompletion:' + estimatedCompletion.value" [disabled]="isOptionDisabled('estimatedCompletion', estimatedCompletion.value)">{{ estimatedCompletion.label }}</nb-option>
+            </nb-option-group>
+
+            <!-- POAM Label -->
+            <nb-option-group title="POAM Label">
+              <nb-option *ngFor="let label of poamLabel" [value]="'label:' + label.label" [disabled]="isOptionDisabled('label', label.label)">{{ label.label }}</nb-option>
+            </nb-option-group>
+          </nb-select>
+        </div>
+        <div class="col-auto align-self-center">
+          <button nbButton ghost nbTooltip="Reset Chart Filters" nbTooltipStatus="basic" (click)="resetChartFilters()">
+            <nb-icon icon="refresh-outline"></nb-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>
