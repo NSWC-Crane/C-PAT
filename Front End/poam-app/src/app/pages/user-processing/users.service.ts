@@ -101,15 +101,11 @@ export class UsersService {
 			isAdmin: +userData.isAdmin,
 			updateSettingsOnly: (+userData.updateSettingsOnly) ? +userData.updateSettingsOnly : 0
 		}
-		//console.log("Collection Service Call attempted: updateUser()...user: ", user);
 		return this.http
 					.put<Users>(`${this.uri}/user`, user, this.httpOptions)
 					.pipe(catchError(this.handleError));
-					//.subscribe();
-					//.put<Staffing>(`${this.uri}/staffing_page`, { staffing }, this.httpOptions)
 	}
 	getCollection(collectionId: any, userName: string) {
-		//console.log("UsersService Call attempted: getCollection(collectionId)...collectionId: ", collectionId);
 		return this.http
 					.get<any>(`${this.uri}/collection/${collectionId}/user/${userName}`, this.httpOptions)
 					.pipe(catchError(this.handleError));

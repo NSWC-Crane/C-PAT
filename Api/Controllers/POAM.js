@@ -23,7 +23,7 @@ module.exports.getPoam = async function getPoam(req, res, next){
 }
 
 module.exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res, next){
-        var poams = await poamService.getPoamsByCollectionid(req,res,next); 
+        var poams = await poamService.getPoamsByCollectionId(req,res,next); 
         res.status(201).json(poams);
 }
 

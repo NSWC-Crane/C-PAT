@@ -110,32 +110,40 @@ export class PoamService {
 	}
 
 	updatePoam(poam: any) {
-		// console.log("PoamsService Call attempted: putPoam(poam)...poam: ", poam);
 		return this.http
 			.put<any>(`${this.uri}/poam`, poam, this.httpOptions);
 	}
 
 	postPoamAssignee(poamAssignee: any) {
-		//console.log("PoamsService Call attempted: postPoamAssignee(poamAssignee)...poamAssignee: ", poamAssignee);
 		return this.http
 			.post<any>(`${this.uri}/poamAssignee`, poamAssignee, this.httpOptions);
 	}
 
-	deletePoamAssignee(poamId: any, userId: any) {
-		// console.log("AssetsService Call attempted: deletePoamAssignee(poamId,userId)...poamId: ", poamId,", userId: ", userId);
-		return this.http
-			.delete<any>(`${this.uri}/poamAssignee/poam/${poamId}/user/${userId}`, this.httpOptions);
-	}
+  deletePoamAssignee(poamId: any, userId: any, requestorId: any) {
+    const requestBody = { requestorId: requestorId };
+
+    const options = {
+      ...this.httpOptions,
+      body: requestBody
+    };
+
+    return this.http.delete<any>(`${this.uri}/poamAssignee/poam/${poamId}/user/${userId}`, options);
+  }
 
 	postPoamAsset(poamAsset: any) {
-		// console.log("PoamsService Call attempted: postPoamAsset(poamAsset)...poamAsset: ", poamAsset);
 		return this.http
 			.post<any>(`${this.uri}/poamAsset`, poamAsset, this.httpOptions);
 	}
 
-	deletePoamAsset(poamId: any, assetId: any) {
-		return this.http
-			.delete<any>(`${this.uri}/poamAsset/poam/${poamId}/asset/${assetId}`, this.httpOptions);
+  deletePoamAsset(poamId: any, assetId: any, requestorId: any) {
+    const requestBody = { requestorId: requestorId };
+
+    const options = {
+      ...this.httpOptions,
+      body: requestBody
+    };
+
+    return this.http.delete<any>(`${this.uri}/poamAsset/poam/${poamId}/asset/${assetId}`, options);
   }
 
   deletePoamAssetByPoamId(poamId: any) {
@@ -143,33 +151,30 @@ export class PoamService {
       .delete<any>(`${this.uri}/poamAssets/poam/${poamId}`, this.httpOptions);
   }
 
-	getCollectionApprovers(id: string) {
-		// console.log("getCollectionApprovers id: ", id)
-		return this.http.get(`${this.uri}/collectionApprovers/${+id}`)
-			.pipe(catchError(this.handleError));
-	}
-
 	getPoamApprovers(id: string) {
 		return this.http.get<any>(`${this.uri}/poamApprovers/${id}`)
 			.pipe(catchError(this.handleError));
 	}
 
 	addPoamApprover(approver: any) {
-		//console.log("PoamsService Call attempted: postPoamAssignee(poamAssignee)...poamAssignee: ", poamAssignee);
 		return this.http
 			.post<any>(`${this.uri}/poamApprover`, approver, this.httpOptions);
 	}
 
 	updatePoamApprover(approver: any) {
-		//console.log("PoamsService Call attempted: putPoamApprover)...poamApprover: ", approver);
 		return this.http
 			.put<any>(`${this.uri}/poamApprover`, approver, this.httpOptions);
 	}
 
-	deletePoamApprover(poamId: any, userId: any) {
-		// console.log("AssetsService Call attempted: deletePoamAssignee(poamId,userId)...poamId: ", poamId,", userId: ", userId);
-		return this.http
-			.delete<any>(`${this.uri}/poamApprover/poam/${poamId}/user/${userId}`, this.httpOptions);
+  deletePoamApprover(poamId: any, userId: any, requestorId: any) {
+    const requestBody = { requestorId: requestorId };
+
+    const options = {
+      ...this.httpOptions,
+      body: requestBody
+    };
+
+    return this.http.delete<any>(`${this.uri}/poamApprover/poam/${poamId}/user/${userId}`, options);
   }
 
   getPoamExtension(poamId: string) {
@@ -200,9 +205,15 @@ export class PoamService {
         .put<any>(`${this.uri}/poamMilestones/${poamId}/${milestoneId}`, milestone, this.httpOptions);
 }
 
-deletePoamMilestone(poamId: string, milestoneId: string) {
-    return this.http
-        .delete<any>(`${this.uri}/poamMilestones/${poamId}/${milestoneId}`);
+  deletePoamMilestone(poamId: string, milestoneId: string, requestorId: any, extension: boolean) {
+    const requestBody = { requestorId: requestorId, extension: extension };
+
+    const options = {
+      ...this.httpOptions,
+      body: requestBody
+    };
+
+    return this.http.delete<any>(`${this.uri}/poamMilestones/${poamId}/${milestoneId}`, options);
   }
 
   getLabels(collectionId: string) {
@@ -211,9 +222,9 @@ deletePoamMilestone(poamId: string, milestoneId: string) {
       .pipe(catchError(this.handleError));
   }
 
-  postLabel(label: any) {
+  postLabel(collectionId: string, label: any) {
     return this.http
-      .post<any>(`${this.uri}/label`, label, this.httpOptions);
+      .post<any>(`${this.uri}/label/${collectionId}`, label, this.httpOptions);
   }
 
   getPoamLabels(id: any) {
@@ -222,13 +233,25 @@ deletePoamMilestone(poamId: string, milestoneId: string) {
       .pipe(catchError(this.handleError));
   }
 
+  getPoamLabelsByPoam(id: any) {
+    return this.http
+      .get(`${this.uri}/poamLabels/poam/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
   postPoamLabel(poamLabel: any) {
     return this.http
       .post<any>(`${this.uri}/poamLabel`, poamLabel, this.httpOptions);
   }
 
-  deletePoamLabel(poamId: any, labelId: any) {
-    return this.http
-      .delete<any>(`${this.uri}/poamLabel/poam/${poamId}/label/${labelId}`, this.httpOptions);
+  deletePoamLabel(poamId: any, labelId: any, requestorId: any) {
+    const requestBody = { requestorId: requestorId };
+
+    const options = {
+      ...this.httpOptions,
+      body: requestBody
+    };
+
+    return this.http.delete<any>(`${this.uri}/poamLabel/poam/${poamId}/label/${labelId}`, options);
   }
 }

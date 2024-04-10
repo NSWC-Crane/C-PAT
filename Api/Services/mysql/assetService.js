@@ -13,77 +13,61 @@ const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
-exports.getAssets = async function getAssets(req, res, next) {
-    console.log("getAssets (Service) ...");
-
+async function withConnection(callback) {
+    const pool = dbUtils.getPool();
+    const connection = await pool.getConnection();
     try {
-            let connection
-            connection = await dbUtils.pool.getConnection()
-            let sql = "SELECT * FROM  poamtracking.asset ORDER BY assetName;"
-            //console.log("getLabels sql: ", sql)
-
-            let [rowAssets] = await connection.query(sql)
-            console.log("rowAssets: ", rowAssets[0])
-            await connection.release()
-
-            var size = Object.keys(rowAssets).length
-
-            var assets = []
-
-            for (let counter = 0; counter < size; counter++) {
-                    // console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-                    assets.push({
-                            "assetId": rowAssets[counter].assetId,
-                            "assetName": rowAssets[counter].assetName,
-                            "description": rowAssets[counter].description,
-                            "fullyQualifiedDomainName": rowAssets[counter].fullyqualifiedDomainName,
-                            "collectionId": rowAssets[counter].collectionId,
-                            "ipAddress": rowAssets[counter].ipAddress,
-                            "macAddress": rowAssets[counter].macAddress,
-                    });
-            }
-
-            return { assets };
-
+        return await callback(connection);
+    } finally {
+        await connection.release();
     }
-    catch (error) {
-            let errorResponse = { null: "null" }
-            //await connection.release()
-            return errorResponse;
+}
+
+exports.getAssets = async function getAssets(req, res, next) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = "SELECT * FROM  poamtracking.asset ORDER BY assetName;"
+            let [rowAssets] = await connection.query(sql);
+            var assets = rowAssets.map(row => ({
+                "assetId": row.assetId,
+                "assetName": row.assetName,
+                "description": row.description,
+                "fullyQualifiedDomainName": row.fullyQualifiedDomainName,
+                "collectionId": row.collectionId,
+                "ipAddress": row.ipAddress,
+                "macAddress": row.macAddress,
+            }));
+            return { assets };
+        });
+    } catch (error) {
+        console.error(error);
+        return { null: "null" };
     }
 }
 
 exports.getAssetsByCollection = async function getAssetsByCollection(collectionId, offset = 0, limit = 50) {
-    console.log("getAssetsByCollection (Service) ...", collectionId, offset, limit);
-    let connection;
     try {
         if (!collectionId) {
             console.info('getAssetsByCollection collectionId not provided.');
             throw new Error('Collection ID is required');
         }
-
-        connection = await dbUtils.pool.getConnection();
-        const sql = "SELECT * FROM poamtracking.asset WHERE collectionId = ? ORDER BY assetName LIMIT ?, ?;";
-        let [rowAssets] = await connection.query(sql, [collectionId, offset, limit]);
-        console.log("rowAssets: ", rowAssets);
-
-        var assets = rowAssets.map(row => ({
-            "assetId": row.assetId,
-            "assetName": row.assetName,
-            "description": row.description,
-            "fullyQualifiedDomainName": row.fullyQualifiedDomainName,
-            "collectionId": row.collectionId,
-            "ipAddress": row.ipAddress,
-            "macAddress": row.macAddress,
-        }));
-
-        return { assets };
+        return await withConnection(async (connection) => {
+            const sql = "SELECT * FROM poamtracking.asset WHERE collectionId = ? ORDER BY assetName LIMIT ?, ?;";
+            let [rowAssets] = await connection.query(sql, [collectionId, offset, limit]);
+            var assets = rowAssets.map(row => ({
+                "assetId": row.assetId,
+                "assetName": row.assetName,
+                "description": row.description,
+                "fullyQualifiedDomainName": row.fullyQualifiedDomainName,
+                "collectionId": row.collectionId,
+                "ipAddress": row.ipAddress,
+                "macAddress": row.macAddress,
+            }));
+            return { assets };
+        });
     } catch (error) {
         console.error("Error in getAssetsByCollection: ", error);
-        throw error; // Or return a specific error object/format if preferred
-    } finally {
-        if (connection) await connection.release();
+        throw error;
     }
 };
 
@@ -96,42 +80,30 @@ exports.getAsset = async function getAsset(req, res, next) {
             }
         });
     }
-
-    let connection;
     try {
-        connection = await dbUtils.pool.getConnection();
-
-        const sql = "SELECT * FROM  poamtracking.asset WHERE assetId = ?"; 
-        return connection.execute(sql, [req.params.assetId]) 
-            .then(([rowAssets]) => {
-                if (rowAssets.length === 0) { 
-                    const customError = new Error(`Asset with ID ${req.params.assetId} was not found`);
-                    customError.status = 404; 
-                    throw customError; 
-                }
-
-                const response = {
-            asset: rowAssets.map(asset => ({
-                assetId: asset.assetId,
-                assetName: asset.assetName,
-                collectionId: asset.collectionId,
-                ipAddress: asset.ipAddress || "",
-                description: asset.description || "",
-                fullyQualifiedDomainName: asset.fullyQualifiedDomainName || "",
-                macAddress: asset.macAddress || ""
-            }))
-        };
-        
-        return response;
-
-            })  
-            .finally(() => {
-                 if (connection) connection.release(); 
-            }); 
-
+        return await withConnection(async (connection) => {
+            const sql = "SELECT * FROM  poamtracking.asset WHERE assetId = ?";
+            let [rowAssets] = await connection.execute(sql, [req.params.assetId]);
+            if (rowAssets.length === 0) {
+                const customError = new Error(`Asset with ID ${req.params.assetId} was not found`);
+                customError.status = 404;
+                throw customError;
+            }
+            const response = {
+                asset: rowAssets.map(asset => ({
+                    assetId: asset.assetId,
+                    assetName: asset.assetName,
+                    collectionId: asset.collectionId,
+                    ipAddress: asset.ipAddress || "",
+                    description: asset.description || "",
+                    fullyQualifiedDomainName: asset.fullyQualifiedDomainName || "",
+                    macAddress: asset.macAddress || ""
+                }))
+            };
+            return response;
+        });
     } catch (error) {
-        if (connection) connection.release(); 
-        throw error;
+        next(error);
     }
 };
 
@@ -144,46 +116,34 @@ exports.getAssetByName = async function getAssetByName(req, res, next) {
             }
         });
     }
-
-    let connection;
     try {
-        connection = await dbUtils.pool.getConnection();
-
-        const sql = "SELECT * FROM poamtracking.asset WHERE assetName = ?";
-        return connection.execute(sql, [req.params.assetName]) 
-            .then(([rowAssets]) => {
-                if (rowAssets.length === 0) { 
-                    const customError = new Error(`Asset with name ${req.params.assetName} was not found`);
-                    customError.status = 404; 
-                    throw customError; 
-                }
-
-                const response = {
-                    asset: rowAssets.map(asset => ({
-                        assetId: asset.assetId,
-                        assetName: asset.assetName,
-                        collectionId: asset.collectionId,
-                        ipAddress: asset.ipAddress || "",
-                        description: asset.description || "",
-                        fullyQualifiedDomainName: asset.fullyQualifiedDomainName || "",
-                        macAddress: asset.macAddress || ""
-                    })) 
-                };
-
-                return response; 
-            }) 
-            .finally(() => {
-                if (connection) connection.release(); 
-            }); 
-
+        return await withConnection(async (connection) => {
+            const sql = "SELECT * FROM poamtracking.asset WHERE assetName = ?";
+            let [rowAssets] = await connection.execute(sql, [req.params.assetName]);
+            if (rowAssets.length === 0) {
+                const customError = new Error(`Asset with name ${req.params.assetName} was not found`);
+                customError.status = 404;
+                throw customError;
+            }
+            const response = {
+                asset: rowAssets.map(asset => ({
+                    assetId: asset.assetId,
+                    assetName: asset.assetName,
+                    collectionId: asset.collectionId,
+                    ipAddress: asset.ipAddress || "",
+                    description: asset.description || "",
+                    fullyQualifiedDomainName: asset.fullyQualifiedDomainName || "",
+                    macAddress: asset.macAddress || ""
+                }))
+            };
+            return response;
+        });
     } catch (error) {
-        if (connection) connection.release(); 
-        next(error); 
+        next(error);
     }
 };
 
-exports.postAsset = async function posAsset(req, res, next) {
-
+exports.postAsset = async function postAsset(req, res, next) {
     if (!req.body.assetName) {
         console.info('postAsset assetName not provided.');
         return next({
@@ -193,7 +153,6 @@ exports.postAsset = async function posAsset(req, res, next) {
             }
         });
     }
-
     if (!req.body.collectionId) {
         console.info('postAsset collectionId not provided.');
         return next({
@@ -203,7 +162,6 @@ exports.postAsset = async function posAsset(req, res, next) {
             }
         });
     }
-
     if (!req.body.ipAddress) {
         console.info('postAsset ipAddressnot provided.');
         return next({
@@ -213,54 +171,39 @@ exports.postAsset = async function posAsset(req, res, next) {
             }
         });
     }
-
     try {
-        let connection
-        connection = await dbUtils.pool.getConnection()
-
-        let sql_query = `INSERT INTO poamtracking.asset (assetName, fullyQualifiedDomainName,
-                        collectionId, description, ipAddress, macAddress) 
-                        values (?, ?, ?, ?, ?, ?)`
-
-        await connection.query(sql_query, [req.body.assetName, req.body.fullyQualifiedDomainName,
-        req.body.collectionId, req.body.description, req.body.ipAddress,
-        req.body.macAddress])
-        await connection.release()
-
-        let sql = "SELECT * FROM poamtracking.asset WHERE assetName = '" + req.body.assetName + "';"
-        let [rowAsset] = await connection.query(sql)
-        console.log("rowAsset: ", rowAsset[0])
-        await connection.release()
-
-        // console.log("userId: ", user[0].userId)
-        if (req.body.labels) {
-            let labels = req.body.labels;
-            // console.log("collectionRequest: ",collectionRequest)
-            labels.forEach(async label => {
-                connection = await dbUtils.pool.getConnection()
-
-                let sql_query = `INSERT INTO poamtracking.assetLabels (assetId, labelId) values (?, ?)`
-
-                await connection.query(sql_query, [rowAsset[0].assetId, label.labelId])
-                await connection.release()
-            });
-        }
-
-        var assetLabel = rowAsset[0]
-
-        return (assetLabel)
-    }
-    catch (error) {
-        console.log("error: ", error)
-        let errorResponse = { null: "null" }
-        //await connection.release()
-        return errorResponse;
+        return await withConnection(async (connection) => {
+            let sql_query = `
+                INSERT INTO poamtracking.asset (assetName, fullyQualifiedDomainName,
+                collectionId, description, ipAddress, macAddress) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            `;
+            await connection.query(sql_query, [
+                req.body.assetName, req.body.fullyQualifiedDomainName,
+                req.body.collectionId, req.body.description, req.body.ipAddress,
+                req.body.macAddress
+            ]);
+            let sql = "SELECT * FROM poamtracking.asset WHERE assetName = ?";
+            let [rowAsset] = await connection.query(sql, [req.body.assetName]);
+            if (req.body.labels) {
+                let labels = req.body.labels;
+                for (let label of labels) {
+                    let sql_query = `
+                        INSERT INTO poamtracking.assetLabels (assetId, labelId) 
+                        VALUES (?, ?)
+                    `;
+                    await connection.query(sql_query, [rowAsset[0].assetId, label.labelId]);
+                }
+            }
+            return rowAsset[0];
+        });
+    } catch (error) {
+        console.error("error: ", error);
+        return { null: "null" };
     }
 }
 
 exports.putAsset = async function putAsset(req, res, next) {
-    // res.status(201).json({ message: "putPermission (Service) Method called successfully" });
-
     if (!req.body.assetId) {
         console.info('putAsset assetId not provided.');
         return next({
@@ -270,7 +213,6 @@ exports.putAsset = async function putAsset(req, res, next) {
             }
         });
     }
-
     if (!req.body.assetName) {
         console.info('putAsset assetName not provided.');
         return next({
@@ -280,7 +222,6 @@ exports.putAsset = async function putAsset(req, res, next) {
             }
         });
     }
-
     if (!req.body.collectionId) {
         console.info('putAsset collectionId not provided.');
         return next({
@@ -290,7 +231,6 @@ exports.putAsset = async function putAsset(req, res, next) {
             }
         });
     }
-
     if (!req.body.ipAddress) {
         console.info('putAsset ipAddress not provided.');
         return next({
@@ -300,49 +240,42 @@ exports.putAsset = async function putAsset(req, res, next) {
             }
         });
     }
-
     if (!req.body.description) req.body.description = "";
     if (!req.body.fullyQualifiedDomainName) req.body.fullyQualifiedDomainName = "";
     if (!req.body.macAddress) req.body.macAddress = "";
-
     try {
-        let connection
-        connection = await dbUtils.pool.getConnection()
-
-        let sql_query = "UPDATE poamtracking.asset SET assetName= ?, fullyQualifiedDomainName= ?, " +
-            "collectionId= ?, description= ?, ipAddress= ?, macAddress= ? " +
-            "WHERE assetId = " + req.body.assetId + ";"
-
-        await connection.query(sql_query, [req.body.assetName, req.body.fullyQualifiedDomainName,
-        req.body.collectionId, req.body.description, req.body.ipAddress,
-        req.body.macAddress])
-        await connection.release()
-
-        let sql = "SELECT * FROM poamtracking.asset WHERE assetId = '" + req.body.assetId + "';"
-        let [rowAsset] = await connection.query(sql)
-        //console.log("rowAsset: ", rowAsset[0])
-        await connection.release()
-
-        const message = new Object()
-        message.assetId = rowAsset[0].assetId
-        message.assetName = rowAsset[0].assetName
-        message.fullyQualifiedDomainName = rowAsset[0].fullyQualifiedDomainName
-        message.collectionId = rowAsset[0].collectionId
-        message.description = rowAsset[0].description
-        message.ipAddress = rowAsset[0].ipAddress
-        message.macAddress = rowAsset[0].macAddress
-        // message.nonComputing = rowAsset[0].nonComputing
-        return (message)
-    }
-    catch (error) {
-        let errorResponse = { null: "null" }
-        await connection.release()
-        return errorResponse;
+        return await withConnection(async (connection) => {
+            let sql_query = `
+                UPDATE poamtracking.asset 
+                SET assetName = ?, fullyQualifiedDomainName = ?, 
+                collectionId = ?, description = ?, ipAddress = ?, macAddress = ?
+                WHERE assetId = ?
+            `;
+            await connection.query(sql_query, [
+                req.body.assetName, req.body.fullyQualifiedDomainName,
+                req.body.collectionId, req.body.description, req.body.ipAddress,
+                req.body.macAddress, req.body.assetId
+            ]);
+            let sql = "SELECT * FROM poamtracking.asset WHERE assetId = ?";
+            let [rowAsset] = await connection.query(sql, [req.body.assetId]);
+            const message = {
+                assetId: rowAsset[0].assetId,
+                assetName: rowAsset[0].assetName,
+                fullyQualifiedDomainName: rowAsset[0].fullyQualifiedDomainName,
+                collectionId: rowAsset[0].collectionId,
+                description: rowAsset[0].description,
+                ipAddress: rowAsset[0].ipAddress,
+                macAddress: rowAsset[0].macAddress,
+            };
+            return message;
+        });
+    } catch (error) {
+        console.error(error);
+        return { null: "null" };
     }
 }
 
 exports.deleteAsset = async function deleteAsset(req, res, next) {
-    // res.status(201).json({ message: "deletePermission (Service) Method called successfully" });
     if (!req.params.assetId) {
         console.info('deleteAsset assetId not provided.');
         return next({
@@ -352,24 +285,14 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
             }
         });
     }
-
     try {
-        let connection
-        connection = await dbUtils.pool.getConnection()
-        let sql = "DELETE FROM  poamtracking.asset WHERE assetId=" + req.params.assetId + ";"
-        //console.log("deleteLabel sql: ", sql)
-
-        await connection.query(sql)
-        // console.log("rowPermissions: ", rowPermissions[0])
-        await connection.release()
-
-        var asset = []
-
-        return { asset };
-    }
-    catch (error) {
-        let errorResponse = { null: "null" }
-        await connection.release()
-        return errorResponse;
+        return await withConnection(async (connection) => {
+            let sql = "DELETE FROM poamtracking.asset WHERE assetId = ?";
+            await connection.query(sql, [req.params.assetId]);
+            return { asset: [] };
+        });
+    } catch (error) {
+        console.error(error);
+        return { null: "null" };
     }
 }

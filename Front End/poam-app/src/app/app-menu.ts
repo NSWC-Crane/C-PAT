@@ -25,6 +25,12 @@ export const appMenuItems: NbMenuItem[] = [
       expanded: true,
       children: [
         {
+          title: 'Manage POAMs',
+          icon: 'list-outline',
+          link: '/manage-poams',
+          data: { permission: 'approve', resource: 'poam' },
+        },
+        {
           title: 'View POAMs',
           icon: 'list-outline',
           link: '/poam-processing',

@@ -10,14 +10,13 @@
 
 import { Component, OnInit } from '@angular/core';
 import { UsersService } from './users.service';
-import { forkJoin, Observable } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
-import { Router } from '@angular/router';
-import { AuthService } from '../../auth';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
+import { CollectionsService } from '../collection-processing/collections.service';
 
 interface Permission {
   userId: number;
@@ -48,25 +47,19 @@ interface FSEntry {
   styleUrls: ['./user-processing.component.scss']
 })
 export class UserProcessingComponent implements OnInit {
-
-
+  public isLoggedIn = false;
+  public userProfile: KeycloakProfile | null = null;
   customColumn = 'user';
   defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Can Own', 'Can Maintain', 'Can Approve'];
   allColumns = [this.customColumn, ...this.defaultColumns];
   dataSource!: NbTreeGridDataSource<any>;
-
-  public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
-
   checked = false;
-
+  collectionList: any[] = [];
   users: any;
   user: any = {};
   data: any = [];
-
   allowSelectCollections = true;
   isLoading = true;
-
   selected: any
   selectedRole: string = 'admin';
   payload: any;
@@ -76,20 +69,17 @@ export class UserProcessingComponent implements OnInit {
       ? { display: 'block' }
       : { display: 'none' }
   }
-
   private subs = new SubSink()
 
   constructor(
+    private collectionsService: CollectionsService,
     private userService: UsersService,
     private dialogService: NbDialogService,
-    private router: Router,
-    private authService: AuthService,
     private readonly keycloak: KeycloakService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
   }
 
   onSubmit() {
-    console.log("Attempting to onSubmit()...");
     this.resetData();
   }
 
@@ -97,7 +87,6 @@ export class UserProcessingComponent implements OnInit {
     this.isLoggedIn = await this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
-        // console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
         this.setPayload();
       }
   }
@@ -110,7 +99,6 @@ export class UserProcessingComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
@@ -124,9 +112,6 @@ export class UserProcessingComponent implements OnInit {
               }))
             };
 
-            // console.log("payload: ", this.payload);
-
-            // Check if the user is an admin before calling getUserData
             if (this.user.isAdmin === 1) {
               this.getUserData();
             } else {
@@ -143,17 +128,22 @@ export class UserProcessingComponent implements OnInit {
     );
   }
 
-
   getUserData() {
     this.isLoading = true;
     this.users = [];
-    this.userService.getUsers().subscribe((rData: any) => {
-      this.data = rData.users.users;
+    forkJoin([
+      this.userService.getUsers(),
+      this.collectionsService.getCollectionBasicList()
+    ]).subscribe(([userData, collectionData]: [any, any]) => {
+      this.data = userData.users.users;
       this.users = this.data;
+      this.collectionList = collectionData.map((collection: any) => ({
+        collectionId: collection.collectionId,
+        collectionName: collection.collectionName
+      }));
       this.getUsersGrid("");
       this.isLoading = false;
     });
-
   }
 
   getUsersGrid(filter: string) {
@@ -163,17 +153,18 @@ export class UserProcessingComponent implements OnInit {
     for (let i = 0; i < userData.length; i++) {
       let tchild: any = [];
       let userPermissions = userData[i].permissions;
-
       if (userPermissions && userPermissions.length > 0) {
         userPermissions.forEach((permission: any) => {
+          const collection = this.collectionList.find(c => c.collectionId === permission.collectionId);
+          const collectionName = collection ? collection.collectionName : '';
           tchild.push({
             data: {
               user: '', 'Status': '', 'First Name': '', 'Last Name': '', 'Email': '',
-              'Collection': permission.collectionId,
+              'Collection': collectionName,
               'Can Own': permission.canOwn == 1 ? 'True' : 'False',
               'Can Maintain': permission.canMaintain == 1 ? 'True' : 'False',
               'Can Approve': permission.canApprove == 1 ? 'True' : 'False',
-              'Can View' : permission.canView == 1 ? 'True' : 'False'
+              'Can View': permission.canView == 1 ? 'True' : 'False'
             }
           });
         });
@@ -189,8 +180,6 @@ export class UserProcessingComponent implements OnInit {
 
     this.dataSource = this.dataSourceBuilder.create(mydata);
   }
-
-
 
   setUser(userId: any) {
     this.user = null;

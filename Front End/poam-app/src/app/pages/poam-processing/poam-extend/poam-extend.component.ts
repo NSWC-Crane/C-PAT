@@ -10,7 +10,7 @@
 
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { SubSink } from 'subsink';
-import { NbDialogService } from "@nebular/theme";
+import { NbDialogService, NbDialogRef } from "@nebular/theme";
 import { KeycloakService } from 'keycloak-angular'
 import { ActivatedRoute, Router } from '@angular/router';
 import { PoamService } from '../poams.service';
@@ -20,7 +20,7 @@ import { DatePipe } from '@angular/common';
 import { SmartTableTextareaComponent } from 'src/app/Shared/components/smart-table/smart-table-textarea.component';
 import { SmartTableDatepickerComponent } from 'src/app/Shared/components/smart-table/smart-table-datepicker.component';
 import { Settings } from 'angular2-smart-table';
-import { Observable, Subscription, forkJoin } from 'rxjs';
+import { Observable, Subscription, forkJoin, lastValueFrom } from 'rxjs';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SmartTableSelectComponent } from '../../../Shared/components/smart-table/smart-table-select.component';
 import { addDays, format, isAfter, parseISO } from 'date-fns';
@@ -54,6 +54,7 @@ export class PoamExtendComponent implements OnInit {
     "Unanticipated Risks",
   ];
   selectedCollection: any;
+  user: any;
   private subscriptions = new Subscription();
 
   public extensionJustificationPlaceholder: string = "Select from the available options, modify a provided option, or provide a custom justification";
@@ -151,13 +152,14 @@ export class PoamExtendComponent implements OnInit {
   @ViewChild('extendTemplate') extendTemplate!: TemplateRef<any>;
 
   public async ngOnInit() {
+
     this.route.params.subscribe(async params => {
       this.poamId = params['poamId'];
 
       this.isLoggedIn = await this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
-        this.getData();
+        this.setPayload();
       }
     });
     this.subscriptions.add(
@@ -167,17 +169,34 @@ export class PoamExtendComponent implements OnInit {
     );
   }
 
+  setPayload() {
+    this.user = null;
+    this.userService.getCurrentUser().subscribe({
+      next: (response: any) => {
+        if (response && response.userId) {
+          this.user = response;
+          this.getData();
+        } else {
+          console.error('User data is not available or user is not active');
+        }
+      },
+      error: (error) => {
+        console.error('An error occurred:', error);
+      }
+    });
+  }
+
   getData() {
     const extensionObservable = this.poamService.getPoamExtension(this.poamId);
     const milestonesObservable = this.poamService.getPoamMilestones(this.poamId);
-  
+
     this.subs.sink = forkJoin({
       extension: extensionObservable,
       milestones: milestonesObservable
     }).subscribe({
       next: (results) => {
         const { extension, milestones } = results;
-  
+
         if (extension.length > 0) {
           const extensionData = extension[0];
           this.poam = {
@@ -229,7 +248,11 @@ export class PoamExtendComponent implements OnInit {
       event.confirm.reject();
       return;
     }
-
+    if (!event.newData.milestoneDate) {
+      this.showConfirmation("You must provide a milestone date.");
+      event.confirm.reject();
+      return;
+    }
     const scheduledCompletionDate = parseISO(this.poam.scheduledCompletionDate);
     const milestoneDate = event.newData.milestoneDate;
 
@@ -248,24 +271,25 @@ export class PoamExtendComponent implements OnInit {
         return;
       }
     }
-
-    if (this.poam.poamId) {
+    if (this.poamId) {
       let milestone: any = {
         milestoneDate: format(event.newData.milestoneDate, "yyyy-MM-dd"),
         milestoneComments: (event.newData.milestoneComments) ? event.newData.milestoneComments : ' ',
         milestoneStatus: (event.newData.milestoneStatus) ? event.newData.milestoneStatus : 'Pending',
+        poamLog: [{ userId: this.user.userId }],
       }
 
-      await this.poamService.addPoamMilestone(this.poam.poamId, milestone).subscribe((res: any) => {
+      await this.poamService.addPoamMilestone(this.poamId, milestone).subscribe((res: any) => {
         if (res.null) {
           this.showConfirmation("Unable to insert row, potentially a duplicate.");
           event.confirm.reject();
+          this.getData();
           return;
         } else {
-
           event.confirm.resolve();
           this.poamMilestones.push(milestone);
           this.poamMilestones = [...this.poamMilestones];
+          this.getData();
         }
       })
 
@@ -301,29 +325,26 @@ export class PoamExtendComponent implements OnInit {
       ...(event.newData.milestoneStatus && { milestoneStatus: (event.newData.milestoneStatus) ? event.newData.milestoneStatus : 'Pending' }),
     };
   
-    this.poamService.updatePoamMilestone(this.poam.poamId, event.data.milestoneId, milestoneUpdate).subscribe(() => {
-      event.confirm.resolve();
-      this.getData();
-    }, error => {
-      this.showConfirmation("Failed to update the milestone. Please try again.");
-      console.error(error);
-      event.confirm.reject();
+    this.poamService.updatePoamMilestone(this.poamId, event.data.milestoneId, milestoneUpdate).subscribe({
+      next: () => {
+        event.confirm.resolve();
+        this.getData();
+      },
+      error: (error) => {
+        this.showConfirmation("Failed to update the milestone. Please try again.");
+        console.error(error);
+        event.confirm.reject();
+      }
     });
   }
 
   async confirmDeleteMilestone(event: any) {
-    if (this.poam.poamId === "ADDPOAM") {
+    if (this.poamId === "ADDPOAM") {
       event.confirm.resolve();
       return;
     }
 
-    if (this.poam.status != "Draft") {
-      this.showConfirmation("You may only modify the milestone list if POAM status is 'Draft'.");
-      event.confirm.reject();
-      return;
-    }
-
-    this.poamService.deletePoamMilestone(this.poam.poamId, event.data.milestoneId).subscribe((res: any) => {
+    this.poamService.deletePoamMilestone(this.poamId, event.data.milestoneId, this.user.userId, true).subscribe((res: any) => {
       const index = this.poamMilestones.findIndex((e: any) => e.poamId == event.data.poamId && e.milestoneId == event.data.milestoneId);
 
       if (index > -1) {
@@ -363,7 +384,24 @@ export class PoamExtendComponent implements OnInit {
  }).onClose;
  
   ngAfterViewInit() {
-    this.modalWindow = this.dialogService.open(this.extendTemplate)
+    this.openModal();
+  }
+
+  openModal() {
+    this.modalWindow = this.dialogService.open(this.extendTemplate, {
+      hasScroll: true,
+      hasBackdrop: true,
+      closeOnEsc: false,
+      closeOnBackdropClick: true,
+    });
+
+    this.modalWindow.onClose.subscribe(() => {
+      this.router.navigateByUrl(`/poam-details/${this.poamId}`);
+    });
+
+    this.modalWindow.componentRef.changeDetectorRef.detectChanges();
+    const dialogElement = this.modalWindow.componentRef.location.nativeElement;
+    dialogElement.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cancelExtension() {
@@ -378,14 +416,14 @@ export class PoamExtendComponent implements OnInit {
       poamId: parseInt(this.poamId, 10),
       extensionTimeAllowed: this.poam.extensionTimeAllowed,
       extensionJustification: this.extensionJustification,
+      poamLog: [{ userId: this.user.userId }],
     };
-
     if (this.poam.extensionTimeAllowed > 0) {
       this.findOrCreateExtendedLabel();
     }
 
     try {
-      const updatedExtension = await this.poamService.putPoamExtension(extensionData).toPromise();
+      const updatedExtension = await lastValueFrom(this.poamService.putPoamExtension(extensionData));
       if (this.modalWindow) {
         this.modalWindow.close();
       }
@@ -399,7 +437,6 @@ export class PoamExtendComponent implements OnInit {
     this.subs.sink = this.poamService.getLabels(this.selectedCollection).subscribe((labels: any) => {
       this.labelList = labels.labels;
       const extendedLabel = this.labelList.find((label: any) => label.labelName === "Extended");
-
       if (extendedLabel) {
         let extendedPoamLabel = {
           poamId: +this.poamId,
@@ -413,7 +450,7 @@ export class PoamExtendComponent implements OnInit {
           labelName: "Extended",
           description: "POAM has been extended",
         };
-        this.subs.sink = this.poamService.postLabel(extendLabel).subscribe(response => {
+        this.subs.sink = this.poamService.postLabel(this.selectedCollection, extendLabel).subscribe(response => {
           this.findOrCreateExtendedLabel();
         });
       }

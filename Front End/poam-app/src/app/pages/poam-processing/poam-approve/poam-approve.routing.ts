@@ -14,14 +14,8 @@ import { PoamApproveComponent } from './poam-approve.component';
 
 const routes: Routes = [{
   path: '',
-  component: PoamApproveComponent},
-  {
-  path: 'poam-approve/:poamId',
-  component: PoamApproveComponent},
-  {
-    path: 'approve',
-    component: PoamApproveComponent},
-]
+  component: PoamApproveComponent,
+}]
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

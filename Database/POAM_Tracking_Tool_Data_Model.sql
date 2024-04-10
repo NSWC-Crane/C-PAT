@@ -77,14 +77,22 @@ CREATE TABLE `poamtracking`.`assetlabels` (
    PRIMARY KEY (`poamId`,`labelId`)
  )
 
+  CREATE TABLE `poamtracking`.`poamlogs` (
+   `poamLogId` int NOT NULL AUTO_INCREMENT,
+   `poamId` int NOT NULL,
+   `userId` int NOT NULL,
+   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
+   `action` varchar(2000) NOT NULL,
+   PRIMARY KEY (`poamLogId`)
+ );
+
 CREATE TABLE `poamtracking`.`label` (
    `labelId` int NOT NULL AUTO_INCREMENT,
    `collectionId` int NOT NULL,
    `description` varchar(255) DEFAULT NULL,
    `labelName` varchar(50) NOT NULL,
    `stigmanLabelId` varchar(36) DEFAULT NULL,
-   PRIMARY KEY (`labelId`),
-   UNIQUE KEY `labelName_UNIQUE` (`labelName`)
+   PRIMARY KEY (`labelId`)
  );
   
 CREATE TABLE `poamtracking`.`collectionpermissions` (

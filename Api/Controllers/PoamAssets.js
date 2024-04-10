@@ -45,10 +45,6 @@ module.exports.postPoamAsset = async function postPoamAsset(req, res, next){
         res.status(201).json(poamAsset)
 }
 
-module.exports.putPoamAsset = async function putPoamAsset(req, res, next){
-        res.status(201).json({message: "putPoamAsset Method called successfully, There is only a unique index on poamId and assetId, nothing to update!!!"});
-}
-
 module.exports.deletePoamAsset = async function deletePoamAsset(req, res, next){
         // res.status(201).json({message: "deletePoamAsset Method called successfully"});
         var poamAsset = await poamAssetService.deletePoamAsset(req,res,next); 

@@ -7,34 +7,26 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-.poam-status-chart
-.poam-estimatedcompletion-chart
-.poam-severity-chart
-.poam-label-chart {
-  overflow: hidden;
-  height: 50vh;
-  width: 100vw;
-}
 
-.canvas {
-  position: relative;
-  max-height: 50vh;
-  max-width: 100vw;
-}
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+import { PoamLogComponent } from './poam-log.component';
 
-.export-button {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin-right: 0;
-}
+const routes: Routes = [{
+  path: '',
+  component: PoamLogComponent},
+  {
+  path: 'poam-log/:poamId',
+    component: PoamLogComponent
+},
+  {
+    path: 'log',
+    component: PoamLogComponent
+  },
+]
 
-hr {
-  display: block;
-  height: 1px;
-  border: 0;
-  border-top: 1px solid #ccc;
-  margin: 1em 0;
-  padding: 0;
-}
-
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class PoamLogRoutingModule { }

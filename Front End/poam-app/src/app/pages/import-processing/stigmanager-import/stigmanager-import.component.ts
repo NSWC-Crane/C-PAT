@@ -13,7 +13,7 @@ import { Component, OnInit, Input, ViewChild, ElementRef, AfterViewInit, ChangeD
 import { SharedService } from '../../../Shared/shared.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { CollectionsService } from '../../collection-processing/collections.service';
-import { catchError, forkJoin, Observable, Subscription } from 'rxjs';
+import { catchError, forkJoin, Observable, of, Subscription } from 'rxjs';
 import { NbDialogService, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
@@ -414,43 +414,29 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
         this.sharedService.getCollectionsFromSTIGMAN(token).pipe(
           catchError(err => {
             console.error('Failed to fetch from STIGMAN:', err);
-            return [];
+            return of([]);
           })
         ),
         this.collectionService.getCollectionBasicList().pipe(
           catchError(err => {
             console.error('Failed to fetch basic collection list:', err);
-            return [];
+            return of([]);
           })
         )
-      ]).subscribe({
-        next: ([stigmanData, basicListData]) => {
-          this.stigmanCollections = stigmanData.map(collection => ({
-            collectionId: collection.collectionId,
-            name: collection.name
-          }));
-          this.collectionBasicList = basicListData.map(collection => ({
-            collectionId: collection.collectionId,
-            name: collection.collectionName
-          }));
+      ]).subscribe(([stigmanData, basicListData]) => {
+        const stigmanCollectionsMap = new Map(stigmanData.map(collection => [collection.name, collection]));
+        const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
 
-          const stigmanCollection = this.stigmanCollections.find(collection => String(collection.collectionId) === String(this.selectedCollection));
-          const basicListCollection = this.collectionBasicList.find(collection => String(collection.collectionId) === String(this.selectedCollection));
+        const selectedCollection = basicListCollectionsMap.get(this.selectedCollection);
+        const selectedCollectionName = selectedCollection?.collectionName;
+        const stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
 
-          if (!stigmanCollection || !basicListCollection) {
-            this.showPopup('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are creating the POAM in the correct collection.');
-            return;
-          }
-
-          if (stigmanCollection.name === basicListCollection.name) {
-            this.getAffectedAssetGrid(token);
-          } else {
-            console.warn('Unable to match STIG Manager collection for Asset association.');
-          }
-        },
-        error: (err) => {
-          console.error('An error occurred:', err);
+        if (!stigmanCollection || !selectedCollectionName) {
+          this.showPopup('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are creating the POAM in the correct collection.');
+          return;
         }
+
+        this.getAffectedAssetGrid(token);
       });
     });
   }
@@ -512,16 +498,16 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
   }
 
   filterFindings() {
-      this.sharedService.getExistingVulnerabilityPoams().subscribe(
-        (response: any) => {
+    this.sharedService.getExistingVulnerabilityPoams().subscribe({
+        next: (response: any) => {
           const existingPoams = response.existingPoams;
           this.updateChartAndGrid(existingPoams);
         },
-        (error) => {
+        error: (error) => {
           console.error('Error retrieving existing POAMs:', error);
           this.showPopup("Error retrieving existing POAMs. Please try again.");
-        }
-      );
+      }
+    });
   }
 
   updateChartAndGrid(existingPoams: any[]) {
@@ -567,8 +553,8 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
     const ruleId = row.data['ruleId'];
 
     this.keycloak.getToken().then((token) => {
-      this.sharedService.getRuleDataFromSTIGMAN(token, ruleId).subscribe(
-        (ruleData: any) => {
+      this.sharedService.getRuleDataFromSTIGMAN(token, ruleId).subscribe({
+        next: (ruleData: any) => {
           const ruleDataString = `# Rule data from STIGMAN
 ## Discussion
 ${ruleData.detail.vulnDiscussion}
@@ -582,8 +568,8 @@ ${ruleData.check.content}
 ${ruleData.fix.text}
 ---`;
 
-          this.sharedService.getPoamsByVulnerabilityId(row.data['Group ID']).subscribe(
-            (response: any) => {
+          this.sharedService.getPoamsByVulnerabilityId(row.data['Group ID']).subscribe({
+            next: (response: any) => {
               if (response && response.poams && response.poams.length > 0) {
                 const poam = response.poams[0];
                 this.router.navigate(['/poam-details/' + poam.poamId], {
@@ -607,17 +593,17 @@ ${ruleData.fix.text}
                 });
               }
             },
-            (error) => {
+            error: (error) => {
               console.error('Error retrieving POAM:', error);
               this.showPopup("Error creating POAM. Please try again.");
             }
-          );
+          });
         },
-        (error) => {
+        error: (error) => {
           console.error('Error retrieving rule data from STIGMAN:', error);
           this.showPopup("Error retrieving rule data. Please try again.");
         }
-      );
+      });
     }).catch((error) => {
       console.error('Error fetching token:', error);
       this.showPopup("Error fetching token. Please try again.");

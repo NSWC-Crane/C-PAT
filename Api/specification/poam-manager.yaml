@@ -282,7 +282,7 @@ paths:
           type: integer
     get:
       summary: Return a asset label by assetId
-      operationId: getAssetLabelByAsset
+      operationId: getAssetLabelsByAsset
       responses:
         '200':
           description: Asset array response
@@ -315,7 +315,7 @@ paths:
           type: integer
     get:
       summary: Return a asset label by labelId
-      operationId: getAssetLabelByLabel
+      operationId: getAssetLabelsByLabel
       responses:
         '200':
           description: Asset array response
@@ -380,7 +380,7 @@ paths:
       summary: Delete a Asset by assetId
       operationId: deleteAssetLabel
       responses:
-        '200':
+        '204':
           description: null asset response
           content:
             application/json:
@@ -409,39 +409,12 @@ paths:
             schema:
               $ref: '#/components/schemas/assetLabel_Object'
       responses:
-        '200':
+        '201':
           description: return the added asset response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/assetLabel_Object'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - AssetLabel
-      security:
-        - oauth:
-            - 'c-pat:read'
-    put:
-      summary: Updates a AssetLabel
-      operationId: putAssetLabel
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-                $ref: '#/components/schemas/assetLabel_Object'
-      responses:
-        '200':
-          description: return the updated asset response
-          content:
-            application/json:
-              schema:
-                  $ref: '#/components/schemas/assetLabel_Object'
         default:
           description: unexpected error
           content:
@@ -950,127 +923,6 @@ paths:
       security:
         - oauth:
             - 'c-pat:op'
-
-  '/collectionApprovers/{collectionId}':
-    parameters:
-      - in: path
-        name: collectionId
-        required: true
-        schema:
-          type: integer
-    get:
-      summary: Return a label by Id
-      operationId: getCollectionApprovers
-      responses:
-        '200':
-          description: Poam Approvers array response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/collectionApprover_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - CollectionApprover
-      security:
-        - oauth:
-            - 'c-pat:read'        
-  '/collectionApprover/collection/{collectionId}/user/{userId}':
-    parameters:
-      - in: path
-        name: collectionId
-        required: true
-        schema:
-          type: integer
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer             
-    delete:
-      summary: Delete a collectionApprover by userId and poamId
-      operationId: deleteCollectionApprover
-      responses:
-        '200':
-          description: Poam Approver delete
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/collectionApprover_Object'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'  
-      tags:
-        - CollectionApprover
-      security:
-        - oauth:
-            - 'c-pat:read'
-  '/collectionApprover':
-    post:
-      summary: Add a collectionApprover
-      operationId: postCollectionApprover
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/collectionApprover_Object'
-      responses:
-        '200':
-          description: return the added collectionApprover response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/collectionApprover_Object'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - CollectionApprover
-      security:
-        - oauth:
-            - 'c-pat:read'        
-    put:
-      summary: Updates a collectionApprover
-      operationId: putCollectionApprover
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-                $ref: '#/components/schemas/collectionApprover_Object'
-      responses:
-        '200':
-          description: return the updated collectionApprover response
-          content:
-            application/json:
-              schema:
-                  $ref: '#/components/schemas/collectionApprover_Object'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - CollectionApprover
-      security:
-        - oauth:
-            - 'c-pat:read'
 
   /api/poamimport:
     post:
@@ -1816,33 +1668,6 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-    put:
-      summary: Updates a poamAssets
-      operationId: putPoamAsset
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-                $ref: '#/components/schemas/poamAssets_Object'
-      responses:
-        '200':
-          description: return the updated asset response
-          content:
-            application/json:
-              schema:
-                  $ref: '#/components/schemas/poamAssets_Object'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamAssets
-      security:
-        - oauth:
-            - 'c-pat:read'
 
   '/poamAssignees':
     get:
@@ -1975,7 +1800,7 @@ paths:
         - oauth:
             - 'c-pat:read'
     delete:
-      summary: Delete a PoamAsset by poamId and userId
+      summary: Delete a PoamAssignee by poamId and userId
       operationId: deletePoamAssignee
       responses:
         '200':
@@ -2013,33 +1838,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamAssignees_Object'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamAssignees
-      security:
-        - oauth:
-            - 'c-pat:read'
-    put:
-      summary: Updates a poamAssignees
-      operationId: putPoamAssignee
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-                $ref: '#/components/schemas/poamAssignees_Object'
-      responses:
-        '200':
-          description: return the updated poamAssignees response
-          content:
-            application/json:
-              schema:
-                  $ref: '#/components/schemas/poamAssignees_Object'
         default:
           description: unexpected error
           content:
@@ -2336,22 +2134,28 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-    put:
-      summary: Updates a PoamLabel
-      operationId: putPoamLabel
-      requestBody:
+
+  /poamLog/{poamId}:
+    parameters:
+      - in: path
+        name: poamId
         required: true
-        content:
-          application/json:
-            schema:
-                $ref: '#/components/schemas/poamLabel_Object'
+        schema:
+          type: integer
+    get:
+      summary: Return the log associated with a POAM by poamId
+      operationId: getPoamLogByPoamId
       responses:
         '200':
-          description: return the updated poam response
+          description: Poam log array response
           content:
             application/json:
               schema:
-                  $ref: '#/components/schemas/poamLabel_Object'
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamLog_Object'
+        '403':
+          $ref: '#/components/responses/forbidden'
         default:
           description: unexpected error
           content:
@@ -2359,10 +2163,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - PoamLabel
+        - PoamLog
       security:
         - oauth:
-            - 'c-pat:read'    
+            - 'c-pat:read'
 
   /poamMilestones/{poamId}:
     get:
@@ -3177,27 +2981,6 @@ components:
         detail:
           type: string          
 
-    collectionApprover_Object:
-      type: object
-      required:
-        - collectionId
-        - userId
-        - status
-      additionalProperties: true
-      properties:
-        collectionId:
-          type: integer
-        userId:
-          type: integer
-        status:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        userEmail:
-          type: string
-
     label_Object:
       type: object
       required:
@@ -3273,31 +3056,32 @@ components:
           type: string
         comments:
           type: string
+          nullable: true
         firstName:
           type: string
         lastName:
           type: string
         userEmail:
-          type: string          
+          type: string
 
     poamAssignees_Object:
       type: object
       required:
         - poamId
         - userId
-      additionalProperties: false
+      additionalProperties: true
       properties:
         poamId:
           type: integer
         userId:
-          type: integer        
-      
+          type: integer
+
     poamAssets_Object:
       type: object
       required:
         - poamId
         - assetId
-      additionalProperties: false
+      additionalProperties: true
       properties:
         poamId:
           type: integer
@@ -3395,6 +3179,7 @@ components:
           type: array
           items:
             type: object
+            additionalProperties: true
             properties:
               userId:
                 type: integer
@@ -3413,6 +3198,24 @@ components:
         labelId:
           type: integer
 
+    poamLog_Object:
+      type: object
+      properties:
+        Timestamp:
+          type: string
+          format: date-time
+          description: The timestamp when the log entry was created.
+        User:
+          type: string
+          description: The full name of the user who made the change.
+        Action:
+          type: string
+          description: The action performed (e.g., "POAM Created", "POAM Updated").
+      required:
+        - Timestamp
+        - User
+        - Action
+        
     PoamMilestonesResponse:
       type: object
       properties:
@@ -3438,6 +3241,7 @@ components:
 
     PoamMilestoneRequest:
       type: object
+      additionalProperties: true
       properties:
         poamId:
           type: integer
@@ -3450,6 +3254,7 @@ components:
 
     PoamMilestoneUpdateRequest:
       type: object
+      additionalProperties: true
       properties:
         milestoneDate:
           type: string

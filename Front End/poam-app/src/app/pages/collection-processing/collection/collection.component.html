@@ -10,39 +10,25 @@
 
 <form (ngSubmit)="onSubmit()" #form="ngForm">
 
-    <!-- Form Group -->
-    <div class="form-group">
-      <label for="collectionName">*Collection Name: </label>
-      <input nbInput type="text" name="collectionName" [(ngModel)]="collection.collectionName" placeholder="Collection Name" required>
-      <label for="description">Description</label>
-      <input nbInput type="text" name="description" [(ngModel)]="collection.description" placeholder="Description">
-      <label for="grantcount">Grant Count: </label>
-      <input nbInput type="number" name="grantcount" [(ngModel)]="collection.grantCount" disabled readonly>
-      <label for="created">Created</label>
-      <input nbInput type="text" name="created" [(ngModel)]="collection.created" disabled readonly>
-      <label for="assetcount">Asset Count: </label>
-      <input nbInput type="number" name="assetcount" [(ngModel)]="collection.assetCount" disabled readonly>
-      <label for="poamcount">POAM Count: </label>
-      <input nbInput type="number" name="poamcount" [(ngModel)]="collection.poamCount" disabled readonly>
-    </div>
-
-    <!-- Smart Table -->
-    <div class="row" [nbSpinner]="isLoading"
-    nbSpinnerStatus="success"
-    nbSpinnerSize="medium"
-    nbSpinnerMessage="Updating/loading data, please wait...">
-    <div class="col">
-       <br>
-      <angular2-smart-table id="collectionAprovers" [settings]="collectionApproverSettings" [source]="collectionApprovers" mode="inline"
-                     (createConfirm)="confirmCreate($event)" (editConfirm)="confirmEdit($event)"
-                     (deleteConfirm)="confirmDelete($event)">
-      </angular2-smart-table>
-    </div>
+  <!-- Form Group -->
+  <div class="form-group">
+    <label for="collectionName">*Collection Name: </label>
+    <input nbInput type="text" name="collectionName" [(ngModel)]="collection.collectionName" placeholder="Collection Name" required>
+    <label for="description">Description</label>
+    <input nbInput type="text" name="description" [(ngModel)]="collection.description" placeholder="Description">
+    <label for="grantcount">Grant Count: </label>
+    <input nbInput type="number" name="grantcount" [(ngModel)]="collection.grantCount" disabled readonly>
+    <label for="created">Created</label>
+    <input nbInput type="text" name="created" [(ngModel)]="collection.created" disabled readonly>
+    <label for="assetcount">Asset Count: </label>
+    <input nbInput type="number" name="assetcount" [(ngModel)]="collection.assetCount" disabled readonly>
+    <label for="poamcount">POAM Count: </label>
+    <input nbInput type="number" name="poamcount" [(ngModel)]="collection.poamCount" disabled readonly>
   </div>
-  
-    <!-- Buttons -->
-    <div class="buttons">
-      <button nbButton outline status="info" [disabled]="!form.valid">Submit</button>
-      <button style="margin-left:20px;" nbButton outline status="info" type="button" (click)="resetData()">Cancel</button>
-    </div>
+
+  <!-- Buttons -->
+  <div class="buttons">
+    <button nbButton outline status="info" [disabled]="!form.valid">Submit</button>
+    <button style="margin-left:20px;" nbButton outline status="info" type="button" (click)="resetData()">Cancel</button>
+  </div>
 </form>

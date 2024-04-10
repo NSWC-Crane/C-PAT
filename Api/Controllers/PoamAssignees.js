@@ -36,14 +36,8 @@ module.exports.getPoamAssignee = async function getPoamAssignee(req, res, next){
 
 module.exports.postPoamAssignee = async function postPoamAssignee(req, res, next){
         //res.status(201).json({message: "postPoamAssignee Method called successfully"});
-        var poamAssignee = await poamAssigneeService.postPoamAssignee(req,res,next); 
+    var poamAssignee = await poamAssigneeService.postPoamAssignee(req,res,next); 
         res.status(201).json(poamAssignee)
-}
-
-module.exports.putPoamAssignee = async function putPoamAssignee(req, res, next){
-        res.status(201).json({message: "putPoamAssignee Method called successfully, There is only a unique index on asset and label id's, nothing to update!!!"});
-        // var poamAssignee = await poamAssigneeService.putPoamAssignee(req,res,next); 
-        // res.status(201).json(poamAssignee)
 }
 
 module.exports.deletePoamAssignee = async function deletePoamAssignee(req, res, next){

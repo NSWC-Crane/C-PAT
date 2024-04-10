@@ -33,6 +33,7 @@ import { KcAuthService } from './kc-auth.service';
 import { RoleProvider } from './auth';
 import { PoamApproveModule } from "./pages/poam-processing/poam-approve/poam-approve.module";
 import { PoamExtendModule } from "./pages/poam-processing/poam-extend/poam-extend.module";
+import { PoamLogModule } from "./pages/poam-processing/poam-log/poam-log.module";
 import { FileUploadService } from './file-upload.service';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { STIGManagerImportModule } from './pages/import-processing/stigmanager-import/stigmanager-import.module';
@@ -130,9 +131,10 @@ function initializeKeycloak(keycloak: KeycloakService) {
             ],
             forms: {},
         }),
-        CoreModule,
-        PoamApproveModule,
+    CoreModule,
+    PoamApproveModule,
     PoamExtendModule,
+    PoamLogModule,
     STIGManagerImportModule,
     TenableImportModule,
     ]
