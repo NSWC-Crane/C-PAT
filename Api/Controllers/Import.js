@@ -233,6 +233,10 @@ module.exports.importAssets = async function importAssets(req, res) {
         for (const asset of assets) {
             const collection = asset.collection || {};
 
+            const collectionRecord = await db.Collection.findOne({
+                where: { collectionName: collection.name }
+            });
+
             const assetData = {
                 assetName: asset.name,
                 fullyQualifiedDomainName: asset.fqdn || '',
@@ -240,7 +244,7 @@ module.exports.importAssets = async function importAssets(req, res) {
                 ipAddress: asset.ip || '',
                 macAddress: asset.mac || '',
                 nonComputing: asset.noncomputing ? 1 : 0,
-                collectionId: collection.collectionId || null,
+                collectionId: collectionRecord ? collectionRecord.collectionId : null,
                 metadata: JSON.stringify(asset.metadata || {}),
                 assetOrigin: 'STIG Manager'
             };
@@ -267,7 +271,6 @@ module.exports.importCollectionAndAssets = async function importCollectionAndAss
     try {
         const { collection, assets } = req.body;
 
-        // Handle Collection
         const collectionData = {
             collectionName: collection.name,
             description: collection.description || '',
@@ -301,7 +304,6 @@ module.exports.importCollectionAndAssets = async function importCollectionAndAss
             }
         }
 
-        // Handle Assets
         for (const asset of assets) {
             const assetData = {
                 assetName: asset.name,
@@ -323,6 +325,7 @@ module.exports.importCollectionAndAssets = async function importCollectionAndAss
             if (!assetCreated) {
                 await assetRecord.update(assetData);
             }
+
             if (asset.labelIds && Array.isArray(asset.labelIds)) {
                 for (const labelId of asset.labelIds) {
                     const labelRecord = await db.Label.findOne({

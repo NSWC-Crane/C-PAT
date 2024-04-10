@@ -39,6 +39,11 @@
               </nb-select>
             </div>
 
+            <!-- POAM History Button -->
+            <div class="status-group" style="margin-left:20px;">
+              <button nbButton outline status="basic" (click)="poamLog(poam)">Poam History</button>
+            </div>
+
             <!-- Extend POAM Button -->
             <div class="status-group" style="margin-left:20px;">
               <button nbButton outline status="warning" (click)="extendPoam(poam)">Extend Poam</button>
@@ -46,7 +51,7 @@
 
             <!-- Close POAM Button -->
             <div class="status-group" style="margin-left:20px;">
-              <button nbButton outline status="danger" *ngIf="showClose" (click)="closePoam(poam)">Close Poam</button>
+              <button nbButton outline status="danger" *ngIf="showClose" (click)="closePoam(poam)"  nbTooltip="Update POAM Status to Closed" nbTooltipPlacement="top" nbTooltipStatus="basic">Close Poam</button>
             </div>
           </div>
 

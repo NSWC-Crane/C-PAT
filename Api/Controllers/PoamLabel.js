@@ -40,12 +40,6 @@ module.exports.postPoamLabel = async function postPoamLabel(req, res, next){
         res.status(201).json(poamLabel)
 }
 
-module.exports.putPoamLabel = async function putPoamLabel(req, res, next){
-        res.status(201).json({message: "putPoamLabel Method called successfully, There is only a unique index on poam and label id's, nothing to update!!!"});
-        // var poamLabel = await poamLabelService.putPoam(req,res,next); 
-        // res.status(201).json(poamLabel)
-}
-
 module.exports.deletePoamLabel= async function deletePoamLabel(req, res, next){
         //res.status(201).json({message: "deletePoamLabel Method called successfully"});
         var poamLabel = await poamLabelService.deletePoamLabel(req,res,next); 

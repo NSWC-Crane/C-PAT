@@ -3,8 +3,8 @@
 ! C-PATTM SOFTWARE
 ! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
 ! crane_C_PAT.1_license.txt, which is part of this software package. BY
-! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
-! CONDITIONS OF THE LICENSE.  
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
 !########################################################################
 */
 
@@ -63,6 +63,7 @@ export class CollectionProcessingComponent implements OnInit {
 
   users: any;
   user: any;
+  userCollections: any[] = [];
 
   availableAssets: any[] = [];
   exportCollectionId: any;
@@ -71,13 +72,10 @@ export class CollectionProcessingComponent implements OnInit {
   collections: any;
   collection: any = {};
   data: any = [];
-  collectionApprovers: any = [];
-  possibleCollectionApprovers: any = [];
-  allowSelectCollections = true;
+  canModifyCollection = false;
   isLoading = true;
 
   selected: any;
-  selectedRole: string = 'admin';
   payload: any;
 
   get hideCollectionEntry() {
@@ -95,7 +93,7 @@ export class CollectionProcessingComponent implements OnInit {
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>
-  ) {}
+  ) { }
 
   onSubmit() {
     this.resetData();
@@ -132,7 +130,6 @@ export class CollectionProcessingComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
@@ -147,8 +144,6 @@ export class CollectionProcessingComponent implements OnInit {
                 })
               ),
             };
-
-            // console.log("payload: ", this.payload);
             this.getCollectionData();
           }
         } else {
@@ -161,6 +156,23 @@ export class CollectionProcessingComponent implements OnInit {
     );
   }
 
+  checkModifyPermission(allowedCollections: any) {
+    this.canModifyCollection = this.user.isAdmin || this.user.permissions.some((permission: any) =>
+      permission.canOwn === 1 || permission.canApprove === 1
+    );
+
+    if (this.user.isAdmin) {
+      this.userCollections = allowedCollections;
+    } else {
+      this.userCollections = allowedCollections.filter((collection: any) =>
+        this.user.permissions.some((permission: any) =>
+          (permission.canOwn === 1 || permission.canApprove === 1) &&
+          permission.collectionId === collection.collectionId
+        )
+      );
+    }
+  }
+
   getCollectionData() {
     this.isLoading = true;
     this.collections = null;
@@ -169,17 +181,14 @@ export class CollectionProcessingComponent implements OnInit {
       .subscribe((result: any) => {
         this.data = result.collections;
         this.collections = this.data;
-        //console.log("Collections: ",this.data)
         this.getCollectionsGrid('');
         this.isLoading = false;
+        this.checkModifyPermission(this.data);
       });
   }
 
   getCollectionsGrid(filter: string) {
     let collectionData = this.data;
-
-    //if (filter) { collectionData = this.data.filter((collection: { collectionId: string; }) => collection.collectionId === filter); }
-
     var treeViewData: TreeNode<FSEntry>[] = collectionData.map(
       (collection: {
         collectionId: number | any[];
@@ -209,86 +218,18 @@ export class CollectionProcessingComponent implements OnInit {
 
   setCollection(collectionId: any) {
     this.collection = null;
-    this.collectionApprovers = [];
-    this.possibleCollectionApprovers = [];
     this.poams = [];
     let selectedData = this.data.filter(
       (collection: { collectionId: any }) =>
         collection.collectionId === collectionId
     );
-
     this.collection = selectedData[0];
-    // console.log("this.collection: ",this.collection)
     this.subs.sink = forkJoin(
-      this.collectionService.getUsersForCollection(
-        this.collection.collectionId
-      ),
-      this.collectionService.getCollectionApprovers(
-        this.collection.collectionId
-      ),
+      this.collectionService.getUsersForCollection(this.collection.collectionId),
       this.collectionService.getPoamsByCollection(this.collection.collectionId)
-    ).subscribe(([users, approvers, poams]: any) => {
-      // console.log("POAMS: ", poams)
+    ).subscribe(([users, poams]: any) => {
       this.poams = poams.poams;
-
-      this.collectionApprovers = approvers.collectionApprovers;
-      // console.log("coection-processing collectionApprovers: ", this.collectionApprovers)
-      let permissions = users.permissions.permissions;
-      // console.log("coection-processing permissions: ",permissions)
-
-      if (
-        this.collectionApprovers == undefined ||
-        this.collectionApprovers.length == 0
-      ) {
-        this.collectionApprovers = [];
-        if (permissions) {
-          permissions.forEach((permission: any) => {
-            if (permission.canOwn || permission.canApprove) {
-              this.possibleCollectionApprovers.push(permission);
-            }
-          });
-        }
-
-        if (this.possibleCollectionApprovers.length > 0) {
-          // *** Here's where we auto add approvers to collection if non exist, they come from the possibleCollectionApprovers list
-          // console.log("Auto adding colectionApprovers...")
-          this.possibleCollectionApprovers.forEach(async (user: any) => {
-            // console.log("PossibleApprovers user: ", user)
-            let approver: any = {};
-            approver = {
-              collectionId: this.collection.collectionId,
-              userId: user.userId,
-              status: 'Active',
-            };
-            await this.collectionService
-              .addCollectionAprover(approver)
-              .subscribe((res: any) => {
-                //console.log("add resut: ",res.collectionApprover[0])
-                approver.fullName = user.fullName;
-                approver.firstName = user.firstName;
-                approver.lastName = user.lastName;
-                approver.userEmail = user.userEmail;
-
-                if (approver) {
-                  // console.log("add approver to collectionApprovers: ", approver)
-                  this.collectionApprovers.push(approver);
-                }
-              });
-          });
-          // console.log("After push collectionApprovers: ", this.collectionApprovers)
-        }
-      } else {
-        if (permissions) {
-          permissions.forEach((permission: any) => {
-            if (permission.canOwn || permission.canApprove) {
-              this.possibleCollectionApprovers.push(permission);
-            }
-          });
-        }
-      }
     });
-
-    this.allowSelectCollections = false;
   }
 
   setExportCollection(collectionId: any) {
@@ -306,16 +247,16 @@ export class CollectionProcessingComponent implements OnInit {
       return;
     }
     console.log('collection this.poams: ', this.poams);
-    
+
     let excelData = ExcelDataService.ConvertToExcel(this.poams);
     let excelURL = window.URL.createObjectURL(excelData);
-  
+
     let link = document.createElement('a');
     link.id = 'download-excel';
     link.setAttribute('href', excelURL);
     link.setAttribute('download', ('Collection_' + this.exportCollectionId + '_POAMS_Export.xlsx'));
     document.body.appendChild(link);
-  
+
     link.click();
     document.body.removeChild(link);
   }
@@ -324,7 +265,6 @@ export class CollectionProcessingComponent implements OnInit {
     this.collection = [];
     this.getCollectionData();
     this.collection.collectionId = 'COLLECTION';
-    this.allowSelectCollections = true;
   }
 
   addCollection() {
@@ -335,7 +275,6 @@ export class CollectionProcessingComponent implements OnInit {
     this.collection.grantCount = 0;
     this.collection.assetCount = 0;
     this.collection.poamCount = 0;
-    this.allowSelectCollections = false;
   }
 
   ngOnDestroy() {

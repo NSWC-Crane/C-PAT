@@ -27,7 +27,7 @@
     "@nebular/theme": "^13.0.0",
     "@ng-bootstrap/ng-bootstrap": "^16.0.0",
     "@popperjs/core": "^2.11.8",
-    "@syncfusion/ej2-angular-treegrid": "^25.1.38",
+    "@syncfusion/ej2-angular-treegrid": "^25.1.39",
     "angular2-smart-table": "^3.2.0",
     "axios": "^1.6.8",
     "bootstrap": "^5.3.3",

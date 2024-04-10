@@ -9,12 +9,7 @@
 */
 
 const { expressjwt: jwt } = require('express-jwt');
-//const jwt = require('jsonwebtoken');
-//const { expressjwt: jwt } = require("express-jwt");
 
-//const expressJwt = require('express-jwt');
-//const { expressjwt: jwt } = require("express-jwt");
-//var jwt = require('express-jwt');
 
 const getTokenFromHeaders = function(req) {
   const { headers: { authorization }} = req;
@@ -24,11 +19,6 @@ const getTokenFromHeaders = function(req) {
   return null;
 }
 
-/**
- * auth middleware
- *
- * @description Determines whether or not a route requires authentication.
- */
 const auth = {
    optional: jwt({
      secret: process.env.JWT_SECRET_KEY,

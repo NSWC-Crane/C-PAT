@@ -8,71 +8,64 @@
 !########################################################################
 -->
 
-<div *ngIf="(selectedRole == 'admin'); else dontshowcollections">
-  <div class="row">
-    <div class="col-md-10" [nbSpinner]="isLoading" nbSpinnerStatus="success" nbSpinnerSize="medium"
-         nbSpinnerMessage="Loading data, please wait...">
-      <nb-card>
-        <nb-card-body class="scrollable-collections">
-          <h3>Current Collection Structure</h3>
-          <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Collections">
-          <table [nbTreeGrid]="dataSource">
-            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
-            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-          
-            <ng-container [nbTreeGridColumnDef]="customColumn">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">
-                {{row.data[customColumn]}}
-              </td>
-            </ng-container>
-          
-            <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
-            </ng-container>
-          </table>
-        </nb-card-body>
-      </nb-card>
-    </div>
+<div class="row">
+  <div class="col-md-10" [nbSpinner]="isLoading" nbSpinnerStatus="success" nbSpinnerSize="medium"
+       nbSpinnerMessage="Loading data, please wait...">
+    <nb-card>
+      <nb-card-body class="scrollable-collections">
+        <h3>Current Collection Structure</h3>
+        <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Collections">
+        <table [nbTreeGrid]="dataSource">
+          <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+          <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+
+          <ng-container [nbTreeGridColumnDef]="customColumn">
+            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
+            <td nbTreeGridCell *nbTreeGridCellDef="let row">
+              {{row.data[customColumn]}}
+            </td>
+          </ng-container>
+
+          <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
+            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
+            <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
+          </ng-container>
+        </table>
+      </nb-card-body>
+    </nb-card>
   </div>
+</div>
 
-  <div class="row">
-    <div class="col-md-10">
-      <nb-card>
-          <nb-card-header>Select Collection to Modify/Delete</nb-card-header>
-          <nb-card-body>
-          <div class="row" *ngIf="allowSelectCollections">
-
-            <div class="col-md-5" style="width: auto;">
-              <nb-form-field>
-                <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
-                  <nb-select fullWidth style="width: auto" outlineid="collectionid" name="collection"
-                           [(ngModel)]="collection.collectionId" (selectedChange)="setCollection($event)" placeholder="Select Collection"
-                           required>
-                    <nb-option *ngFor="let collection of data" [value]="collection.collectionId">
-                    {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
-                  </nb-option>
-                </nb-select>
-              </nb-form-field>
-            </div>
-
-            <div class="col-md-5" style="width: auto;">
-              <button nbButton outline status="info" style="float: right;" (click)="addCollection()">Add Collection</button>
-            </div>            
-          </div>
-          
-          <div [ngStyle]="hideCollectionEntry">
-            <div *ngIf="collectionApprovers">
-              <ngx-collection [collection]="collection" [collections]="collections"
-                              [collectionApprovers]="collectionApprovers" [possibleCollectionApprovers]="possibleCollectionApprovers"
-                              payload="payload" [poams]="poams" (collectionchange)="resetData();"></ngx-collection>
-            </div>
+<div class="row" *ngIf="canModifyCollection">
+  <div class="col-md-10">
+    <nb-card>
+      <nb-card-header>Select Collection to Modify/Delete</nb-card-header>
+      <nb-card-body>
+        <div class="row">
+          <div class="col-md-5" style="width: auto;">
+            <nb-form-field>
+              <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
+              <nb-select fullWidth style="width: auto" outlineid="collectionid" name="collection"
+                         [(ngModel)]="collection.collectionId" (selectedChange)="setCollection($event)" placeholder="Select Collection"
+                         required>
+                <nb-option *ngFor="let collection of userCollections" [value]="collection.collectionId">
+                  {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
+                </nb-option>
+              </nb-select>
+            </nb-form-field>
           </div>
 
-        </nb-card-body>
-      </nb-card>
-    </div>
+          <div class="col-md-5" style="width: auto;">
+            <button nbButton outline status="info" style="float: right;" (click)="addCollection()">Add Collection</button>
+          </div>
+        </div>
+
+        <div [ngStyle]="hideCollectionEntry">
+          <ngx-collection [collection]="collection" [collections]="collections"
+                          payload="payload" [poams]="poams" (collectionchange)="resetData();"></ngx-collection>
+        </div>
+      </nb-card-body>
+    </nb-card>
   </div>
 </div>
 
@@ -81,7 +74,7 @@
     <nb-card>
       <nb-card-header>Export POAMs by Collection</nb-card-header>
       <nb-card-body>
-        <div class="row" *ngIf="allowSelectCollections">
+        <div class="row">
           <div class="col-md-5" style="width: auto;">
             <nb-form-field>
               <nb-icon nbPrefix icon="download-outline"></nb-icon>
@@ -90,19 +83,16 @@
                   {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
                 </nb-option>
               </nb-select>
-              </nb-form-field>
-</div>
-        <div class="col-md-5" style="width: auto;">
+            </nb-form-field>
+          </div>
+          <div class="col-md-5" style="width: auto;">
             <button nbButton outline status="info" type="button" class="export-button" (click)="exportAll()">Export POAMS</button>
           </div>
         </div>
-        
       </nb-card-body>
     </nb-card>
   </div>
 </div>
-
-
 
 <ng-template #dialog let-data let-ref="dialogRef">
   <nb-card>
@@ -113,11 +103,4 @@
       <button nbButton outline status="primary" style="float: right;" (click)="ref.close()">Cancel</button>
     </nb-card-footer>
   </nb-card>
-</ng-template>
-
-<ng-template #dontshowcollections>
-  <h1 style>
-    Collections processing requires may role of admin.
-    <br /><br />
-  </h1>
 </ng-template>

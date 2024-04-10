@@ -83,7 +83,11 @@ export class UserComponent implements OnInit {
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return row.value
+          if (this.collectionList && Array.isArray(this.collectionList)) {
+            const collection = this.collectionList.find((c: any) => c.value === row.value);
+            return collection ? collection.title : '';
+          }
+          return '';
         },
         editor: {
           type: 'list',
@@ -174,6 +178,7 @@ export class UserComponent implements OnInit {
 
 
   private subs = new SubSink()
+  viewAllCollectionsChecked: boolean = false;
 
 
   constructor(private dialogService: NbDialogService,
@@ -276,11 +281,9 @@ export class UserComponent implements OnInit {
   }
 
   getData() {
-
     if (this.user && Array.isArray(this.user.permissions)) {
-      console.log("this.user.permissions: ", this.user.permissions);
       this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
-        collectionId: permission.collectionId,
+        collectionId: permission.collectionId.toString(),
         canOwn: permission.canOwn,
         canMaintain: permission.canMaintain,
         canApprove: permission.canApprove,
@@ -290,11 +293,9 @@ export class UserComponent implements OnInit {
       console.error('User or permissions data is not available');
     }
 
-    if (Array.isArray(this.collectionList)) {
+    if (this.collectionList && Array.isArray(this.collectionList)) {
       let settings = this.collectionPermissionsSettings;
-      // Use index signature syntax to access 'collectionId'
       let collectionIdSettings = settings.columns['collectionId'];
-      // Check if 'editor' and 'config' are defined and if 'config' is of type 'ListEditorSettings'
       if (collectionIdSettings.editor && collectionIdSettings.editor.type === 'list') {
         let editorConfig = collectionIdSettings.editor.config as ListEditorSettings;
         const collectionPlaceholder = { title: 'Select a Collection...', value: '' };
@@ -306,10 +307,9 @@ export class UserComponent implements OnInit {
           }))
         ];
       }
-        this.collectionPermissionsSettings = Object.assign({}, settings);
+      this.collectionPermissionsSettings = Object.assign({}, settings);
     }
   }
-
 
   confirmCreate(event: any) {
     if (this.user.userId &&
@@ -382,7 +382,6 @@ export class UserComponent implements OnInit {
       });
 
     } else {
-      console.log("Failed to update entry. Invalid input.");
       this.invalidData("Missing data, unable to update.");
       event.confirm.reject();
     }
@@ -433,6 +432,12 @@ export class UserComponent implements OnInit {
     this.checked = checked;
     this.user.isAdmin = 0;
     if (this.checked) this.user.isAdmin = 1;
+  }
+
+  private removeViewPrivilegesForAllCollections() {
+    this.user.permissions.forEach((permission: any) => {
+      permission.canView = 0;
+    });
   }
 
   ngOnDestroy() {

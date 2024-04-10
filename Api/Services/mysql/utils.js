@@ -8,92 +8,108 @@
 !########################################################################
 */
 
+'use strict';
 const mysql = require('mysql2/promise');
-const config = require('../../utils/config')
-const fs = require("fs")
-const retry = require('async-retry')
+const config = require('../../utils/config');
 
-
-const minMySqlVersion = '8.0.14'
-let _this = this
-
-let initAttempt = 0
-module.exports.testConnection = async function () {
-  let [result] = await _this.pool.query('SELECT VERSION() as version')
-  return result[0].version
+async function retryAsync(fn, opts) {
+    const retry = require('async-retry');
+    return retry(fn, opts);
 }
 
-function getPoolConfig() {
-  const poolConfig = {
-    connectionLimit : config.database.maxConnections,
-    timezone: 'Z',
-    host: config.database.host,
-    port: config.database.port,
-    user: config.database.username,
-    database: config.database.schema,
-    decimalNumbers: true,
-    typeCast: function (field, next) {
-      if ((field.type === "BIT") && (field.length === 1)) {
-        let bytes = field.buffer() || [0];
-        return( bytes[ 0 ] === 1 );
-      }
-      return next();
-    } 
-  }
-  if (config.database.password) {
-    poolConfig.password = config.database.password
-  }
-  return poolConfig
+class Database {
+    constructor() {
+        this.pool = this.createPool();
+        this.configureSignalHandlers();
+    }
+
+    createPool() {
+        const poolConfig = {
+            connectionLimit: config.database.maxConnections,
+            timezone: 'Z',
+            host: config.database.host,
+            port: config.database.port,
+            user: config.database.username,
+            password: config.database.password || '',
+            database: config.database.schema,
+            decimalNumbers: true,
+            typeCast: (field, next) => {
+                if ((field.type === "BIT") && (field.length === 1)) {
+                    const bytes = field.buffer() || [0];
+                    return (bytes[0] === 1);
+                }
+                return next();
+            }
+        };
+
+        const pool = mysql.createPool(poolConfig);
+        pool.on('connection', (connection) => {
+            connection.query('SET SESSION group_concat_max_len=10000000');
+        });
+
+        return pool;
+    }
+
+    async testConnection() {
+        const [result] = await this.pool.query('SELECT VERSION() as version');
+        return result[0].version;
+    }
+
+    configureSignalHandlers() {
+        const signals = ['SIGPIPE', 'SIGHUP', 'SIGTERM', 'SIGINT'];
+        signals.forEach((signal) => {
+            process.on(signal, async () => {
+                console.log('app', 'shutdown', { signal });
+                try {
+                    await this.pool.end();
+                    console.log('mysql', 'close', { success: true });
+                    process.exit(0);
+                } catch (err) {
+                    console.error('mysql', 'close', { success: false, message: err.message });
+                    process.exit(1);
+                }
+            });
+        });
+    }
 }
-function getSafePoolConfig(poolConfig) {
-    return {
-        connectionLimit: poolConfig.connectionLimit,
-        timezone: poolConfig.timezone,
-        host: poolConfig.host,
-        port: poolConfig.port,
-        database: poolConfig.database,
-        decimalNumbers: poolConfig.decimalNumbers,
-    };
-}
+
+let database;
 
 module.exports.initializeDatabase = async function () {
-    // Create the connection pool
-    const poolConfig = getPoolConfig();
-    // Create a safe pool config for logging
-    const safePoolConfig = getSafePoolConfig(poolConfig);
-    console.log('mysql', 'poolConfig', safePoolConfig);
+    database = new Database();
+    console.log(`\x1b[32m
+      _____            _____     _______            _____  _____ 
+     / ____|          |  __ \\ /\\|__   __|     /\\   |  __ \\|_   _|
+    | |       ______  | |__) /  \\  | |       /  \\  | |__)   | |  
+    | |      |______| |  ___/ /\\ \\ | |      / /\\ \\ |  ___/  | |  
+    | |____           | |  / ____ \\| |     / ____ \\| |     _| |_ 
+     \\_____|          |_| /_/    \\_\\_|    /_/    \\_\\_|    |_____|\x1b[0m
+`);
+    console.log("\x1b[90m01010111 01100101 01101100 01100011 01101111 01101101 01100101 00100000\n01010100 01101111 00100000 01000011 00101101 01010000 01000001 01010100\n\x1b[0m");
+    console.log("Initializing database...");
 
-  _this.pool = mysql.createPool(poolConfig)
-  // Set common session variables
-  _this.pool.on('connection', function (connection) {
-    connection.query('SET SESSION group_concat_max_len=10000000')
-  })
-
-  // Call the pool destruction methods on SIGTERM and SEGINT
-  async function closePoolAndExit(signal) {
-    console.log('app', 'shutdown', { signal })
     try {
-      await _this.pool.end()
-      console.log('mysql', 'close', { success: true })
-      process.exit(0);
-    } catch(err) {
-      console.log('mysql', 'close', { success: false, message: err.message })
-      process.exit(1);
-    }
-  }   
-  process.on('SIGPIPE', closePoolAndExit)
-  process.on('SIGHUP', closePoolAndExit)
-  process.on('SIGTERM', closePoolAndExit)
-  process.on('SIGINT', closePoolAndExit)
-  console.log("COMPLETE")
+        const version = await retryAsync(() => database.testConnection(), {
+            retries: 24,
 
-  const detectedMySqlVersion = await retry(_this.testConnection, {
-    retries: 24,
-    factor: 1,
-    minTimeout: 5 * 1000,
-    maxTimeout: 5 * 1000,
-    onRetry: (error) => {
-      console.log('mysql', 'preflight', { success: false, message: error.message })
+            factor: 1,
+            minTimeout: 5000,
+            maxTimeout: 5000,
+            onRetry: (error) => {
+                console.error('mysql', 'preflight', { success: false, message: error.message });
+            }
+        });
+
+        console.log(`MySQL version detected: ${version}`);
+    } catch (error) {
+        console.error('Failed to initialize database:', error);
+        process.exit(1);
     }
-  })
-}
+};
+
+module.exports.getPool = function () {
+    if (!database) {
+        throw new Error('Database not initialized. Please call initializeDatabase() first.');
+    }
+    return database.pool;
+};

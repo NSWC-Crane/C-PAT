@@ -48,7 +48,6 @@ module.exports.getAssetsByCollection = async function getAssetsByCollection(req,
             const limit = parseInt(req.query.limit) || 50;
     
             var response = await assetService.getAssetsByCollection(collectionId, offset, limit); 
-            // Assuming the service returns { assets: [] }, extract the array:
             var assets = response.assets;
             
             res.status(200).json(assets);
@@ -58,21 +57,17 @@ module.exports.getAssetsByCollection = async function getAssetsByCollection(req,
         }
     }
     
-
 module.exports.postAsset = async function postAsset(req, res, next){
-        // res.status(201).json({message: "post:Asset Method called successfully"});
         var asset = await assetService.postAsset(req,res,next); 
         res.status(201).json(asset)
 }
 
 module.exports.putAsset = async function putAsset(req, res, next){
-        //res.status(201).json({message: "putAsset Method called successfully"});
         var asset = await assetService.putAsset(req,res,next); 
         res.status(201).json(asset)
 }
 
 module.exports.deleteAsset= async function deleteAsset(req, res, next){
-        // res.status(201).json({message: "deleteAsset Method called successfully"});
         var asset = await assetService.deleteAsset(req,res,next); 
         res.status(201).json(asset)
 }

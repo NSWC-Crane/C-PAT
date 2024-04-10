@@ -8,9 +8,9 @@
 !########################################################################
 */
 
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
-import { NbThemeService, NbWindowService, NbDialogService } from "@nebular/theme";
+import { NbDialogService } from "@nebular/theme";
 import { KeycloakService } from 'keycloak-angular'
 import { ActivatedRoute, Router } from '@angular/router';
 import { PoamService } from '../poams.service';
@@ -33,9 +33,6 @@ interface Permission {
   templateUrl: './poam-approve.component.html',
 })
 export class PoamApproveComponent implements OnInit {
-
-
-
 
   private subs = new SubSink()
   modalWindow: any;
@@ -61,21 +58,14 @@ export class PoamApproveComponent implements OnInit {
     private  datepipe: DatePipe
   ) { }
 
-  @ViewChild('approveTemplate') approveTemplate!: TemplateRef<any>;
-
   public async ngOnInit() {
 
     this.route.params.subscribe(async params => {
-      // console.log("params: ", params)
-      this.poamId = params['poamId'];
-
       this.isLoggedIn = await this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
-        // console.log("userProfile.email: ", this.userProfile.email, ", userProfile.username: ", this.userProfile.username)
         this.setPayload();
       } 
-
     });
   }
 
@@ -87,7 +77,6 @@ export class PoamApproveComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          // console.log('Current user: ', this.user);
 
           if (this.user.accountStatus === 'ACTIVE') {
             const mappedPermissions = this.user.permissions.map((permission: Permission) => ({
@@ -103,7 +92,6 @@ export class PoamApproveComponent implements OnInit {
               collections: mappedPermissions
             };
 
-            // console.log("Payload with permissions: ", this.payload);
             this.getData();
           } else {
             console.error('User data is not available or user is not active');
@@ -122,48 +110,9 @@ export class PoamApproveComponent implements OnInit {
     
     this.subs.sink = forkJoin(
       this.poamService.getPoam(this.poamId),
-      this.poamService.getPoamApprovers(this.poamId)
     )
-      .subscribe(async ([poam, poamApprovers]: any) => {
+      .subscribe(async ([poam]: any) => {
         this.poam = { ...poam };
-        this.poamApprovers = poamApprovers.poamApprovers;
-        console.log('this.user: ',this.user)
-        console.log('this.poamApprovers: ',this.poamApprovers)
-        this.poamApprover = await this.poamApprovers.find((x: any) => x.poamId == this.poam.poamId && x.userId ==  this.user.userId)
-        console.log("poamApprover: ",this.poamApprover)
-        if (!this.poamApprover || this.poamApprover == undefined) {
-          await alert("Unfortunatly, user: " + this.user.fullName +" is not an approver on this poam.")
-          this.router.navigateByUrl("/poam-details/" + +this.poamId);
-          this.modalWindow.close();
-        }
       })
-  }
-
-  async ngAfterViewInit() {
-
-    this.modalWindow = this.dialogService.open(this.approveTemplate)
-
-  }
-
-  async approveOk() {
-    //Let's approve and add comments for this user.
-    this.poamApprover.approved = 'Approved';
-    this.poamApprover.approvedDate = this.datepipe.transform(new Date(), 'yyyy-MM-dd');
-    this.poamApprover.comments = this.comments;
-
-    await this.poamService.updatePoamApprover(this.poamApprover).subscribe((res: any) => {
-      this.router.navigateByUrl("/poam-details/" + +this.poamId);
-    });    
-  }
-
-  async approveReject() {
-    //Let's approve and add comments for this user.
-    this.poamApprover.approved = 'Rejected';
-    this.poamApprover.approvedDate = this.datepipe.transform(new Date(), 'yyyy-MM-dd');
-    this.poamApprover.comments = this.comments;
-
-    await this.poamService.updatePoamApprover(this.poamApprover).subscribe((res: any) => {
-      this.router.navigateByUrl("/poam-details/" + +this.poamId);
-    });    
   }
 }

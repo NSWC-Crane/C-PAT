@@ -17,6 +17,16 @@ const tokenGenerator = require('../../utils/token-generator')
 var refreshPayload = require('../../utils/refresh_payload');
 const { json } = require('express');
 
+async function withConnection(callback) {
+	const pool = dbUtils.getPool();
+	const connection = await pool.getConnection();
+	try {
+		return await callback(connection);
+	} finally {
+		await connection.release();
+	}
+}
+
 exports.changeWorkspace = async function changeWorkspace (req, res, next) {
 	console.log("authService changeWorkspace req.body: ", req.body)
 	if (!req.body.token) {
@@ -68,19 +78,17 @@ exports.login = async function login(req, res, next) {
 	}
 
 	try {
-		let connection
-		let sql = "SELECT * FROM user WHERE userEmail = ?";
-		connection = await dbUtils.pool.getConnection();
-		let [rowUser] = await connection.query(sql, [req.body.email]);
-	
-		await connection.release()
+		let rowUser = await withConnection(async (connection) => {
+			let sql = "SELECT * FROM user WHERE userEmail = ?";
+			let [result] = await connection.query(sql, [req.body.email]);
+			return result[0];
+		});
 
-		if (rowUser[0] != undefined) {
-			req.body.username = rowUser[0].userName;	//Needed for passport call to verify user
-			req.body.lastCollectionAccessedId = rowUser[0].lastCollectionAccessedId;
+		if (rowUser) {
+			req.body.username = rowUser.userName;
+			req.body.lastCollectionAccessedId = rowUser.lastCollectionAccessedId;
 
-			return await passport
-				.authenticate('local', { session: false }, async (err, user, info) => {
+			return await passport.authenticate('local', { session: false }, async (err, user, info) => {
 					if (err) {
 						console.error('Post node-api login err: ' + JSON.stringify(err));
 						return next(err);
@@ -88,10 +96,10 @@ exports.login = async function login(req, res, next) {
 					if (user) {
 						console.log('login successful!', 'user:', user);
 						let token = await userService.generateJWT('', '', user);
-						let sql = "UPDATE user SET lastAccess =  Now() WHERE userEmail = ?";
-						connection = await dbUtils.pool.getConnection()
-						await connection.query(sql, [req.body.email]);					
-						await connection.release()
+						await withConnection(async (connection) => {
+							let sql = "UPDATE user SET lastAccess = NOW() WHERE userEmail = ?";
+							await connection.query(sql, [req.body.email]);
+						});
 						
 						return res.status(200).json({
 							token: token,
@@ -133,20 +141,17 @@ exports.logout = async function logout(req, res, next) {
 }
 
 exports.register = async function register(req, res, next) {
-
 	try {
-
 		console.log('authService register incoming req.body:', req.body);
-		let connection
 
 		if (req.body.email) {
-			let sql = "SELECT * FROM user WHERE userEmail = ?";
-			connection = await dbUtils.pool.getConnection()
-			let [rowUser] = await connection.query(sql, [req.body.email]);
+			let rowUser = await withConnection(async (connection) => {
+				let sql = "SELECT * FROM user WHERE userEmail = ?";
+				let [result] = await connection.query(sql, [req.body.email]);
+				return result[0];
+			});
 
-			//console.log("email check: ",rowUser[0])
-			await connection.release()
-			if (rowUser[0] != undefined) {
+			if (rowUser) {
 				console.log('Post node-api register: email address exists.',rowUser[0].userEmail);
 				return next({
 					status: 500,
@@ -162,17 +167,14 @@ exports.register = async function register(req, res, next) {
 				stack: new Error().stack,
 			})
 		}
-		
-		// check if username already exists
 		if (req.body.userName) {
-			
-			let sql = "SELECT * FROM user WHERE userName = ?";
-			connection = await dbUtils.pool.getConnection()
-			
-			let [rowUser] = await connection.query(sql, [req.body.userName]);
-			await connection.release()
-			//console.log("name check: ",rowUser[0])
-			if (rowUser[0] != undefined) {
+			let rowUser = await withConnection(async (connection) => {
+				let sql = "SELECT * FROM user WHERE userName = ?";
+				let [result] = await connection.query(sql, [req.body.userName]);
+				return result[0];
+			});
+
+			if (rowUser) {
 				console.info('Post node-api register: username exists.',rowUser[0].userName);
 				return next({
 					status: 500,
@@ -188,29 +190,22 @@ exports.register = async function register(req, res, next) {
 				stack: new Error().stack,
 			})
 		}
+		if (req.body.userName && req.body.email) {
+			let user = await withConnection(async (connection) => {
+				let sql = "INSERT INTO user (userName, userEmail, created, firstName, lastName, " +
+					"lastCollectionAccessedId, accountStatus, fullName, defaultTheme) VALUES (?, ?, CURDATE(), ?, ?, 0 , 'PENDING', ?, 'default' )";
+				await connection.query(sql, [
+					req.body.userName,
+					req.body.email,
+					req.body.firstName,
+					req.body.lastName,
+					req.body.firstName + " " + req.body.lastName
+				]);
 
-		if (
-			req.body.userName &&
-			req.body.email
-		) {
-			// create new user
-			let sql = "INSERT INTO user (userName, userEmail, created, firstName, lastName, " +
-				"lastCollectionAccessedId, accountStatus, fullName, defaultTheme) VALUES (?, ?, CURDATE(), ?, ?, 0 , 'PENDING', ?, 'default' )";
-
-			connection = await dbUtils.pool.getConnection();
-			await connection.query(sql, [
-				req.body.userName,
-				req.body.email,
-				req.body.firstName,
-				req.body.lastName,
-				req.body.firstName + " " + req.body.lastName
-			]);
-			await connection.release();	
-			
-			sql = "SELECT * FROM user WHERE userName = ?";
-			connection = await dbUtils.pool.getConnection()			
-			let [user] = await connection.query(sql, [req.body.userName]);
-			await connection.release()	
+				sql = "SELECT * FROM user WHERE userName = ?";
+				let [result] = await connection.query(sql, [req.body.userName]);
+				return result[0];
+			});
 
 			if (!user) {
 				console.info('Post node-api register: failed to create user.');
@@ -220,26 +215,21 @@ exports.register = async function register(req, res, next) {
 					stack: new Error().stack,
 				})
 			}
-			// console.log("userId: ", user[0].userId)
 			if (req.body.collectionAccessRequest) {
 				let collectionRequest = req.body.collectionAccessRequest;
-				// console.log("collectionRequest: ",collectionRequest)
-				collectionRequest.forEach(async request => {
-					connection = await dbUtils.pool.getConnection()
-	
-					let sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, canOwn, canMaintain, canApprove, canView) values (?, ?, ?, ?, ?, ?)`
-			
-					await connection.query(sql_query, [user[0].userId, request.collectionId, false, false, false])
-					await connection.release()				
-				}); 
+				await withConnection(async (connection) => {
+					for (let request of collectionRequest) {
+						let sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, canOwn, canMaintain, canApprove, canView) VALUES (?, ?, ?, ?, ?, ?)`;
+						await connection.query(sql_query, [user.userId, request.collectionId, false, false, false]);
+					}
+				});
 			}
 
 			const token = await userService.generateJWT('', '', user);
 			console.log("Register token: ", token)
 			return res.status(200).json({
 				token: token
-			})
-
+			});
 		} else {
 			return next({
 				status: 500,

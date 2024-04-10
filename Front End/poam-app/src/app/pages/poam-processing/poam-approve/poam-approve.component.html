@@ -8,25 +8,12 @@
 !########################################################################
 -->
 
-<ng-template #approveTemplate let-ref="dialogRef">
   <nb-card>
     <nb-card-header>Approve POAM</nb-card-header>
     <nb-card-body>
-      <label style="margin-left: 40%;">Comments</label>
-      <textarea nbInput fullWidth [(ngModel)]="comments" placehoder="Comments" name='comments' cols="180" rows="10" maxlength="2000"></textarea>
-      <br>
-
+      <textarea nbInput fullWidth placehoder="Comments" name='comments' cols="180" rows="10" maxlength="2000"></textarea>
     </nb-card-body>
     <nb-card-footer>
-      <!-- <button nbButton (click)="ref.close()">Close Dialog</button> -->
-      <button nbButton outline status="info"
-              style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="approveOk(); ref.close();">
-        Approve
-      </button>
-      <button nbButton outline status="info"
-              style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="approveReject(); ref.close();">
-        Reject
-      </button>
+      <button nbButton outline status="info">Approve</button>
     </nb-card-footer>
   </nb-card>
-</ng-template>

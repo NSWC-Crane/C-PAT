@@ -42,7 +42,7 @@ module.exports.getUserByUserID = async function getUserByUserID(req, res, next) 
 
 module.exports.updateUser = async function updateUser(req, res, next) {
 	// console.log("updateUser call, req.body:", req.body);
-	var user = await userService.updateUser(req,res,next); 
+	var user = await userService.updateUser(req, res, next);
 	res.status(201).json(user)
 }
 
@@ -57,6 +57,6 @@ module.exports.deleteUser = async function deleteUser(req, res, next) {
 
 module.exports.loginout = async function loginout(req, res, next) {
 	//console.log("user controller loginout req: ",req.body)
-	var inout = await userService.loginout(req,res,next); 
+	var inout = await userService.loginout(req, res, next);
 	res.status(201).json(inout)
 }

@@ -112,7 +112,7 @@
 <div class="row">
   <div class="col-md-10">
     <nb-card>
-      <nb-card-header>Import Collection</nb-card-header>
+      <nb-card-header>Import or Update STIG Manager Collection</nb-card-header>
       <nb-card-body>
         <div class="row">
           <div class="col-md-5" style="width: auto;">
@@ -123,7 +123,7 @@
             </nb-select>
           </div>
           <div class="col-md-5" style="width: auto;">
-            <button nbButton outline status="info" (click)="importSTIGManagerCollection()">Import</button>
+            <button nbButton outline nbTooltip="If a STIG Manager collection has previously been imported, importing again will update the collection and relative assets with current data from STIG Manager." nbTooltipPlacement="top" nbTooltipStatus="basic" status="info" (click)="importSTIGManagerCollection()">Import</button>
           </div>
         </div>
       </nb-card-body>
@@ -136,7 +136,7 @@
 <div class="row">
   <div class="col-md-10">
     <nb-card class="my-card">
-      <nb-card-header>Import STIG Manager Assets</nb-card-header>
+      <nb-card-header>Import or Update STIG Manager Assets</nb-card-header>
       <nb-card-body class="import-section">
         <div class="import-item">
           <nb-select id="collectionSelect" placeholder="Select STIG Manager Collection" [(ngModel)]="selectedCollection" (selectedChange)="onCollectionSelect($event)">
@@ -155,7 +155,7 @@
         </div>
 
         <div class="import-item">
-          <button nbButton outline nbTooltip="Assets imported from STIG Manager will be imported into their coresponding STIG Manager collection." nbTooltipPlacement="top" nbTooltipStatus="basic" status="info" (click)="onImportAssetsButtonClick()">Import</button>
+          <button nbButton outline nbTooltip="Assets imported from STIG Manager will be imported into their coresponding STIG Manager collection. If an asset already exists, it will be updated with current data from STIG Manager." nbTooltipPlacement="top" nbTooltipStatus="basic" status="info" (click)="onImportAssetsButtonClick()">Import</button>
         </div>
       </nb-card-body>
     </nb-card>

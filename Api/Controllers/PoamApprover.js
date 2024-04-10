@@ -38,9 +38,9 @@ module.exports.putPoamApprover = async function putPoamApprover(req, res, next){
         res.status(201).json(poamApprover)
 }
 
-module.exports.deletePoamApprover= async function deletePoamApporver(req, res, next){
+module.exports.deletePoamApprover = async function deletePoamApprover(req, res, next){
         // res.status(201).json({message: "deletePoamApprover Method called successfully"});
-        var poamApprover = await poamApproverService.deletePoamAprover(req,res,next);
+    var poamApprover = await poamApproverService.deletePoamApprover(req,res,next);
        // console.log("returning poamApprover: ", poamApprover); 
         res.status(201).json(poamApprover)
 }

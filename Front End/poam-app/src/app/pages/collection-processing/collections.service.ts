@@ -91,12 +91,6 @@ export class CollectionsService {
 			.pipe(catchError(this.handleError));
 	}
 
-	getCollectionApprovers(id: string) {
-		//console.log("getCollectionApprovers id: ", id)
-		return this.http.get(`${this.uri}/collectionApprovers/${+id}`)
-			.pipe(catchError(this.handleError));
-	}
-
 	getPoamApproversByCollectionUser(collectionId: any, userId: any) {
 		//console.log("getPoamApproversByCollectionUser colectionId: ", collectionId,", userId: ",userId)
 		return this.http.get(`${this.uri}/poamApprovers/collection/${+collectionId}/user/${+userId}`)
@@ -119,11 +113,5 @@ export class CollectionsService {
 		//console.log("PoamsService Call attempted: postPoamAssignee(poamAssignee)...poamAssignee: ", poamAssignee);
 		return this.http
 			.put<any>(`${this.uri}/collectionApprover`, approver, this.httpOptions);
-	}
-
-	deleteCollectionApprover(collectionId: any, userId: any) {
-		// console.log("colectionService Call attempted: deleteCollectionApprover(collectionId,userId)...collectionId: ", collectionId,", userId: ", userId);
-		return this.http
-			.delete<any>(`${this.uri}/collectionApprover/collection/${collectionId}/user/${userId}`, this.httpOptions);
 	}
 }
