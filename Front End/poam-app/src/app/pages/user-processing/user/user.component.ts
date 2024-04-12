@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ChangeDetectorRef } from '@angular/core';
 import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SubSink } from 'subsink';
@@ -57,13 +57,13 @@ export class UserComponent implements OnInit {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i icon="nb-close"></i>',
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
       confirmCreate: true,
     },
     edit: {
       editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
       saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i class="nb-close"></i>',
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
       confirmSave: true
     },
     delete: {
@@ -184,16 +184,18 @@ export class UserComponent implements OnInit {
   constructor(private dialogService: NbDialogService,
     private collectionsService: CollectionsService,
     private userService: UsersService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.isLoading = true;
 
-    if (!this.user || !this.user.userId) {
+    if (this.user && this.user.userId) {
+      this.loadUserData(this.user.userId);
+    } else {
       this.userService.getCurrentUser().subscribe(
         currentUser => {
           this.user = currentUser;
-
           this.loadCollections();
           this.getData();
           this.isLoading = false;
@@ -203,8 +205,6 @@ export class UserComponent implements OnInit {
           this.isLoading = false;
         }
       );
-    } else {
-      this.loadUserData(this.user.userId);
     }
   }
 
@@ -231,7 +231,7 @@ export class UserComponent implements OnInit {
         this.collectionsService.getCollections(currentUser.userName).subscribe(
           (response: any) => {
             this.collectionList = [];
-            response.collections.forEach((collection: { collectionName: any; collectionId: { toString: () => any; }; }) => {
+            response.forEach((collection: { collectionName: any; collectionId: { toString: () => any; }; }) => {
               this.collectionList.push({
                 title: collection.collectionName,
                 value: collection.collectionId.toString()
@@ -338,30 +338,50 @@ export class UserComponent implements OnInit {
       }
 
       this.isLoading = true;
-      this.userService.postPermission(collectionPermission).subscribe(permissionData => {
-        this.isLoading = false;
-        event.confirm.resolve();
-        this.getData();
-      })
-
+      this.userService.postPermission(collectionPermission).subscribe({
+        next: (permissionData) => {
+          this.userService.getUser(this.user.userId).subscribe(
+            userData => {
+              this.user = userData;
+              this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
+                collectionId: permission.collectionId.toString(),
+                canOwn: permission.canOwn,
+                canMaintain: permission.canMaintain,
+                canApprove: permission.canApprove,
+                canView: permission.canView
+              }));
+              this.isLoading = false;
+              event.confirm.resolve();
+            },
+            error => {
+              console.error('Error fetching user data', error);
+              this.isLoading = false;
+              event.confirm.reject();
+            }
+          );
+        },
+        error: (error) => {
+          console.error('Error creating permission', error);
+          this.isLoading = false;
+          event.confirm.reject();
+        }
+      });
     } else {
-      console.log("Failed to create entry. Invalid input.");
-      this.invalidData("Missing data, unable to insert.");
+      this.invalidData("Failed to create entry. Invalid input.");
       event.confirm.reject();
     }
   }
 
   confirmEdit(event: any) {
-    console.log("Attempting to confirmEdit()...event.newData: ", event.newData);
-    if (this.user.userId &&
-      event.newData.collectionId
-    ) {
-
-      var collection_index = this.collectionList.findIndex((e: any) => e.collectionId == event.newData.collectionId);
+    if (this.user.userId && event.newData.collectionId) {
+      var collection_index = this.collectionList.findIndex(
+        (e: any) => e.collectionId == event.newData.collectionId
+      );
 
       if (!collection_index && collection_index != 0) {
-        this.invalidData("Unable to resolve collection")
+        this.invalidData("Unable to resolve collection");
         event.confirm.reject();
+        return;
       }
 
       let collectionPermission = {
@@ -372,35 +392,78 @@ export class UserComponent implements OnInit {
         canMaintain: parseInt(event.newData.canMaintain, 10),
         canApprove: parseInt(event.newData.canApprove, 10),
         canView: parseInt(event.newData.canView, 10),
-      }
+      };
 
       this.isLoading = true;
-      this.userService.updatePermission(collectionPermission).subscribe(permissionData => {
-        this.isLoading = false;
-        event.confirm.resolve();
-        this.getData();
-      });
-
+      this.userService.updatePermission(collectionPermission).subscribe(
+        (permissionData) => {
+          this.userService.getUser(this.user.userId).subscribe(
+            (userData) => {
+              this.user = userData;
+              this.collectionPermissions = this.user.permissions.map(
+                (permission: Permission) => ({
+                  collectionId: permission.collectionId.toString(),
+                  canOwn: permission.canOwn,
+                  canMaintain: permission.canMaintain,
+                  canApprove: permission.canApprove,
+                  canView: permission.canView,
+                })
+              );
+              this.isLoading = false;
+              event.confirm.resolve();
+            },
+            (error) => {
+              console.error("Error fetching user data", error);
+              this.isLoading = false;
+              event.confirm.reject();
+            }
+          );
+        },
+        (error) => {
+          console.error("Error updating permission", error);
+          this.isLoading = false;
+          event.confirm.reject();
+        }
+      );
     } else {
       this.invalidData("Missing data, unable to update.");
       event.confirm.reject();
     }
   }
 
-
   confirmDelete(event: any) {
     this.isLoading = true;
-
-    this.userService.deletePermission(this.user.userId, event.data.collectionId).subscribe(permissionData => {     
-        event.confirm.resolve();
-        this.getData();
-        this.isLoading = false;
-    }, error => {
+    this.userService.deletePermission(this.user.userId, event.data.collectionId).subscribe(
+      (permissionData) => {
+        this.userService.getUser(this.user.userId).subscribe(
+          (userData) => {
+            this.user = userData;
+            this.collectionPermissions = this.user.permissions.map(
+              (permission: Permission) => ({
+                collectionId: permission.collectionId.toString(),
+                canOwn: permission.canOwn,
+                canMaintain: permission.canMaintain,
+                canApprove: permission.canApprove,
+                canView: permission.canView,
+              })
+            );
+            this.isLoading = false;
+            event.confirm.resolve();
+          },
+          (error) => {
+            console.error("Error fetching user data", error);
+            this.isLoading = false;
+            event.confirm.reject();
+          }
+        );
+      },
+      (error) => {
         console.error("Error during deletePermission: ", error);
         this.isLoading = false;
         event.confirm.reject();
-    });
-}
+      }
+    );
+  }
 
   resetData() {
     this.userchange.emit();
@@ -432,12 +495,6 @@ export class UserComponent implements OnInit {
     this.checked = checked;
     this.user.isAdmin = 0;
     if (this.checked) this.user.isAdmin = 1;
-  }
-
-  private removeViewPrivilegesForAllCollections() {
-    this.user.permissions.forEach((permission: any) => {
-      permission.canView = 0;
-    });
   }
 
   ngOnDestroy() {

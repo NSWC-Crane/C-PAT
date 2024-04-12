@@ -102,14 +102,12 @@ export class PoamDetailsComponent implements OnInit {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i icon="nb-close"></i>',
-      confirmCreate: true,
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',       confirmCreate: true,
     },
     edit: {
       editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
       saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i class="nb-close"></i>',
-    },
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',     },
     delete: {
       deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
       confirmDelete: true,
@@ -146,14 +144,12 @@ export class PoamDetailsComponent implements OnInit {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i icon="nb-close"></i>',
-      confirmCreate: true,
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',       confirmCreate: true,
     },
     edit: {
       editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
       saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i class="nb-close"></i>',
-      confirmSave: true,
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',       confirmSave: true,
     },
     delete: {
       deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
@@ -244,14 +240,12 @@ export class PoamDetailsComponent implements OnInit {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i icon="nb-close"></i>',
-      confirmCreate: true,
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',       confirmCreate: true,
     },
     edit: {
       editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
       saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', //<i class="nb-close"></i>',
-    },
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',     },
     delete: {
       deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
       confirmDelete: true,
@@ -274,7 +268,7 @@ export class PoamDetailsComponent implements OnInit {
             if (userId === undefined || userId === null) {
               return '';
             }
-            var user = this.collectionUsers.permissions.find((tl: any) => tl.userId === userId);
+            var user = this.collectionUsers.find((tl: any) => tl.userId === userId);
             return user ? user.fullName : userId.toString();
           } catch (error) {
             console.error("Error in valuePrepareFunction: ", error);
@@ -519,23 +513,23 @@ export class PoamDetailsComponent implements OnInit {
         this.poamService.getPoamApprovers(this.poamId),
         this.poamService.getPoamMilestones(this.poamId),
         this.poamService.getPoamLabelsByPoam(this.poamId)
-      ]).subscribe(([poam, collection, users, collectionAssets, assets, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
+      ]).subscribe(([poam, collection, users, collectionAssets, poamAssets, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
         this.poam = { ...poam };
         this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? parseISO(this.poam.scheduledCompletionDate.substr(0, 10)) : '';
         this.dates.iavComplyByDate = (this.poam.iavComplyByDate) ? parseISO(this.poam.iavComplyByDate.substr(0, 10)) : '';
         this.dates.submittedDate = (this.poam.submittedDate) ? parseISO(this.poam.submittedDate.substr(0, 10)) : '';
-        this.collection = collection;
-        this.collectionUsers = users.permissions;
+        this.collection = collection.collection;
+        this.collectionUsers = users;
         this.assets = collectionAssets;
-        this.poamAssignees = assignees.poamAssignees;
-        this.poamApprovers = poamApprovers.poamApprovers;
+        this.poamAssignees = assignees;
+        this.poamApprovers = poamApprovers;
         this.poamMilestones = poamMilestones.poamMilestones.map((milestone: any) => ({
           ...milestone,
           milestoneDate: (milestone.milestoneDate) ? parseISO(milestone.milestoneDate.substr(0, 10)) : null,
         }));
         this.selectedStigTitle = this.poam.stigTitle;
         this.selectedStigBenchmarkId = this.poam.stigBenchmarkId;
-        this.collectionApprovers = this.collectionUsers.permissions.filter((user: Permission) => user.canApprove || user.canOwn || this.user.isAdmin);
+        this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.canApprove || user.canOwn || this.user.isAdmin);
         if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length == 0)) {
           this.addDefaultApprovers();
         }
@@ -543,9 +537,9 @@ export class PoamDetailsComponent implements OnInit {
           this.poamAssets = [];
           this.validateStigManagerCollection();
         } else {
-          this.poamAssets = assets.poamAssets;
+          this.poamAssets = poamAssets;
         }
-        this.poamLabels = poamLabels.poamLabels;
+        this.poamLabels = poamLabels;
         this.setChartSelectionData();
       });
       this.keycloak.getToken().then((token) => {
@@ -557,7 +551,7 @@ export class PoamDetailsComponent implements OnInit {
             }));
 
             if (!data || data.length === 0) {
-              console.log("Unable to retrieve list of current STIGs from STIGMAN.");
+              console.warn("Unable to retrieve list of current STIGs from STIGMAN.");
             }
           },
         });
@@ -603,17 +597,17 @@ export class PoamDetailsComponent implements OnInit {
       this.dates.submittedDate = this.poam.submittedDate;
 
       this.collection = collection;
-      this.collectionUsers = users.permissions;
+      this.collectionUsers = users;
       this.assets = collectionAssets;
       this.poamAssets = [];
       this.poamAssignees = [];
       this.collectionApprovers = [];
-      this.collectionApprovers = this.collectionUsers.permissions.filter((user: Permission) => user.canApprove || user.canOwn || this.user.isAdmin);
+      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.canApprove || user.canOwn || this.user.isAdmin);
       this.collectionOwners = [];
       this.collectionMaintainers = [];
 
-      if (this.collectionUsers.permissions) {
-        this.collectionUsers.permissions.forEach((user: any) => {
+      if (this.collectionUsers) {
+        this.collectionUsers.forEach((user: any) => {
           if (user.canOwn) this.collectionOwners.push({ ...user });
           if (user.canMaintain || user.canOwn) this.collectionMaintainers.push({ ...user });
         });
@@ -629,7 +623,7 @@ export class PoamDetailsComponent implements OnInit {
             }));
 
             if (!data || data.length === 0) {
-              console.log("Unable to retrieve list of current STIGs from STIGMAN.");
+              console.warn("Unable to retrieve list of current STIGs from STIGMAN.");
             }
 
             if (this.stateData.vulnerabilitySource && this.stateData.benchmarkId) {
@@ -655,14 +649,14 @@ export class PoamDetailsComponent implements OnInit {
 
   getLabelData() {
     this.subs.sink = this.poamService.getLabels(this.selectedCollection).subscribe((labels: any) => {
-      this.labelList = labels.labels;
+      this.labelList = labels;
       this.updateLabelEditorConfig();
     });
   }
 
   getPoamLabels() {
     this.subs.sink = this.poamService.getPoamLabelsByPoam(this.poamId).subscribe((poamLabels: any) => {
-      this.poamLabels = poamLabels.poamLabels;
+      this.poamLabels = poamLabels;
     });
   }
 
@@ -742,8 +736,8 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
     this.collectionOwners = [];
     this.collectionMaintainers = [];
   
-    if (this.collectionUsers.permissions) {
-      this.collectionUsers.permissions.forEach((user: any) => {
+    if (this.collectionUsers) {
+      this.collectionUsers.forEach((user: any) => {
         if (user.canOwn) this.collectionOwners.push({ ...user });
         if (user.canMaintain || user.canOwn) this.collectionMaintainers.push({ ...user });
       });
@@ -769,7 +763,7 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
   
     let assigneeSettings = this.poamAssigneesSettings;
     const assigneeList = [
-      ...this.collectionUsers.permissions.map((assignee: any) => ({
+      ...this.collectionUsers.map((assignee: any) => ({
         title: assignee.fullName,
         value: assignee.userId.toString(),
       }))
@@ -982,7 +976,6 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
           if (this.poamId !== "ADDPOAM" && this.stateData.vulnerabilitySource === 'STIG') {
             return this.poamService.deletePoamAssetByPoamId(+this.poamId).pipe(
               tap(() => {
-                console.log('Outdated assets successfully removed.');
               }),
               catchError((error) => {
                 console.error('Failed to remove outdated assets:', error);
@@ -1296,15 +1289,11 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
         approver.userEmail = user.userEmail;
       }
 
-      await this.poamService.addPoamApprover(approver).subscribe((res: any) => {
-        if (res.null) {
-          this.showConfirmation("Unable to insert row, potentially a duplicate.");
-          event.confirm.reject();
-          return;
-        } else {
-          event.confirm.resolve();
-          this.poamApprovers = [...this.poamApprovers, approver];
-        }
+      this.poamService.addPoamApprover(approver).subscribe((res: any) => {
+        event.confirm.resolve();
+        this.poamService.getPoamApprovers(this.poamId).subscribe((poamApprovers: any) => {
+          this.poamApprovers = poamApprovers;
+        })      
       });
     } else {
       this.showConfirmation("Failed to create entry on poamApprover. Invalid input.");
@@ -1335,11 +1324,10 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
 
       this.poamService.postPoamLabel(poamLabel).subscribe((poamLabelData: any) => {
         event.confirm.resolve();
-        this.poamLabels = [...this.poamLabels, poamLabelData.poamLabel[0]];
+        this.getPoamLabels();
       });
     } else {
-      console.log("Failed to create entry. Invalid input.");
-      this.showConfirmation("Missing data, unable to insert label.");
+      this.showConfirmation("Failed to create entry. Invalid input.");
       event.confirm.reject();
     }
   }
@@ -1390,7 +1378,9 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
 
       this.poamService.postPoamAssignee(poamAssignee).subscribe(poamAssigneeData => {
         data.confirm.resolve();
-        this.getData();
+        this.poamService.getPoamAssignees(this.poamId).subscribe((poamAssignees: any) => {
+          this.poamAssignees = poamAssignees;
+        })
       })
 
     } else if (this.poam.poamId && data.newData.assetId) {
@@ -1409,7 +1399,9 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
       }
       this.poamService.postPoamAsset(poamAsset).subscribe(poamAssetData => {
         data.confirm.resolve();
-        this.getData();
+        this.poamService.getPoamAssets(this.poamId).subscribe((poamAssets: any) => {
+          this.poamAssets = poamAssets;
+        })
       })
     }
     else {

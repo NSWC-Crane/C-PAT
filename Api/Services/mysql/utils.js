@@ -86,7 +86,6 @@ module.exports.initializeDatabase = async function () {
      \\_____|          |_| /_/    \\_\\_|    /_/    \\_\\_|    |_____|\x1b[0m
 `);
     console.log("\x1b[90m01010111 01100101 01101100 01100011 01101111 01101101 01100101 00100000\n01010100 01101111 00100000 01000011 00101101 01010000 01000001 01010100\n\x1b[0m");
-    console.log("Initializing database...");
 
     try {
         const version = await retryAsync(() => database.testConnection(), {
@@ -100,7 +99,7 @@ module.exports.initializeDatabase = async function () {
             }
         });
 
-        console.log(`MySQL version detected: ${version}`);
+        console.log(`Database connection established. MySQL v${version}.\n`);
     } catch (error) {
         console.error('Failed to initialize database:', error);
         process.exit(1);

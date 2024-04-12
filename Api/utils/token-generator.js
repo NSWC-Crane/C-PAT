@@ -26,19 +26,12 @@ class TokenGenerator {
     return jwt.verify(token, this.secretOrPublicKey, verifyOptions);
   }
 
-  /**
-   * refreshOptions.verify = options you would use with verify function
-   * refreshOptions.jwtid = contains the id for the new token
-   * refreshOptions.mergePayload = object with properties to merge into payload
-   * refreshOptions.refreshPayload = custom function to retrieve updated payload.  Must return token.
-   * @returns {Promise} token
-   */
   refresh = function(token, refreshOptions) {
     let payload = jwt.verify(token, this.secretOrPublicKey, refreshOptions.verify);
     delete payload.iat;
     delete payload.exp;
     delete payload.nbf;
-    delete payload.jti; // We're generating a new token, if you are using jwtid during signing, pass it in refreshOptions
+    delete payload.jti;
     const jwtSignOptions = Object.assign({}, this.options, { ...((refreshOptions.jwtid) && { jwtid: refreshOptions.jwtid }) });
     payload = Object.assign({}, payload, refreshOptions.mergePayload);
     return (refreshOptions.refreshPayload)
@@ -58,7 +51,4 @@ module.exports = new TokenGenerator(
   {
     algorithm: 'HS256',
     expiresIn: '2 days',
-    // audience: ,
-    // issuer: ,
-    // subject: ,
   })

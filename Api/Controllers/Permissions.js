@@ -8,24 +8,43 @@
 !########################################################################
 */
 
-const permissionService = require('../Services/mysql/permissionsService')
+const permissionService = require('../Services/mysql/permissionsService');
 
-module.exports.getPermissions_UserCollection = async function getPermissions_UserCollection(req, res, next){
-        var permissions = await permissionService.getPermissions_UserCollection(req,res,next); 
-        res.status(201).json(permissions)
-}
+module.exports.postPermission = async function postPermission(req, res, next) {
+    try {
+        const permission = await permissionService.postPermission(req, res, next);
+        res.status(201).json(permission);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
 
-module.exports.postPermission = async function postPermission(req, res, next){
-        var permission = await permissionService.postPermission(req,res,next); 
-        res.status(201).json(permission)
-}
+module.exports.putPermission = async function putPermission(req, res, next) {
+    try {
+        const permission = await permissionService.putPermission(req, res, next);
+        res.status(200).json(permission);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
 
-module.exports.putPermission = async function putPermission(req, res, next){
-        var permission = await permissionService.putPermission(req,res,next); 
-        res.status(201).json(permission)
-}
-
-module.exports.deletePermission = async function deletePermission(req, res, next){
-        var permission = await permissionService.deletePermission(req,res,next); 
-        res.status(201).json(permission)
-}
+module.exports.deletePermission = async function deletePermission(req, res, next) {
+    try {
+        await permissionService.deletePermission(req, res, next);
+        res.status(204).send();
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};

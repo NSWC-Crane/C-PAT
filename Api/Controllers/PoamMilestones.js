@@ -10,30 +10,58 @@
 
 const poamMilestoneService = require('../Services/mysql/poamMilestoneService')
 
-module.exports.getPoamMilestones = async function getPoamMilestones(req, res, next){
-        //res.status(201).json({message: "getPoamMilestones Method called successfully"})
-        var poamMilestones = await poamMilestoneService.getPoamMilestones(req,res,next); 
-        //console.log("returning poamMilestones: ", poamMilestones)
-        res.status(200).json(poamMilestones)
+module.exports.getPoamMilestones = async function getPoamMilestones(req, res, next) {
+    try {
+        const { poamId } = req.params;
+        var poamMilestones = await poamMilestoneService.getPoamMilestones(poamId);
+        res.status(200).json(poamMilestones);
+    } catch (error) {
+        if (error.message === 'POAM ID is required') {
+            res.status(400).json({ error: 'Validation Error', detail: error.message });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
 }
 
-module.exports.postPoamMilestones = async function postPoamMilestones(req, res, next){
-        //res.status(201).json({message: "postPoamMilestone Method called successfully"});
-        var poamMilestone = await poamMilestoneService.postPoamMilestone(req,res,next); 
-        //console.log("returning poamMilestone: ", poamMilestone)
-        res.status(201).json(poamMilestone)
+module.exports.postPoamMilestone = async function postPoamMilestone(req, res, next) {
+    try {
+        const { poamId } = req.params;
+        var poamMilestone = await poamMilestoneService.postPoamMilestone(poamId, req.body);
+        res.status(201).json(poamMilestone);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
 }
 
-module.exports.putPoamMilestones = async function putPoamMilestones(req, res, next){
-        // res.status(201).json({message: "putPoamMilestone Method called successfully"});
-        var poamMilestone = await poamMilestoneService.putPoamMilestone(req,res,next); 
-        //console.log("returning poamMilestone: ", poamMilestone)
-        res.status(200).json(poamMilestone)
+module.exports.putPoamMilestone = async function putPoamMilestone(req, res, next) {
+    try {
+        const { poamId, milestoneId } = req.params;
+        var poamMilestone = await poamMilestoneService.putPoamMilestone(poamId, milestoneId, req.body);
+        res.status(200).json(poamMilestone);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
 }
 
-module.exports.deletePoamMilestones = async function deletePoamMilestones(req, res, next){
-        // res.status(201).json({message: "deletePoamMilestone Method called successfully"});
-        var poamMilestone = await poamMilestoneService.deletePoamMilestone(req,res,next);
-       // console.log("returning poamMilestone: ", poamMilestone); 
-        res.status(204).json(poamMilestone)
+module.exports.deletePoamMilestone = async function deletePoamMilestone(req, res, next) {
+    try {
+        const { poamId, milestoneId } = req.params;
+        await poamMilestoneService.deletePoamMilestone(poamId, milestoneId, req.body);
+        res.status(204).send();
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
 }

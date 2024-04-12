@@ -8,19 +8,15 @@
 !########################################################################
 */
 
-// This file can be replaced during build by using the `fileReplacements` array.
-// `ng build` replaces `environment.ts` with `environment.prod.ts`.
-// The list of file replacements can be found in `angular.json`.
 
-//import { version } from '/package.json';
 
 export const environment = {
 	production: false,
 	environment: 'local',
 	apiEndpoint: 'http://localhost:8086',
-  fileUploadEndpoint: 'http://localhost:8086/api/poamimport',
-  stigmanCollectionImportEndpoint: 'http://localhost:8086/api/stigmancollectionimport',
-  stigmanAssetImportEndpoint: 'http://localhost:8086/api/stigmanassetimport',
+  fileUploadEndpoint: 'http://localhost:8086/import/poams',
+  stigmanCollectionImportEndpoint: 'http://localhost:8086/import/stigmanagercollection',
+  stigmanAssetImportEndpoint: 'http://localhost:8086/import/stigmanagerassets',
   getScanResultsFromTenableEndpoint: 'http://0.0.0.0:9000/scanResult', //placeholder
   tenableAccessKey: 'placeholder',
   tenableSecretKey: 'placeholder',

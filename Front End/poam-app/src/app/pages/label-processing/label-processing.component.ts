@@ -110,8 +110,6 @@ export class LabelProcessingComponent implements OnInit {
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
-          // console.log('Current user: ', this.user);
-
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
               ...this.user,
@@ -124,7 +122,6 @@ export class LabelProcessingComponent implements OnInit {
               }))
             };
 
-            // console.log("payload: ", this.payload);
             this.getLabelData();
           }
         } else {
@@ -142,7 +139,7 @@ export class LabelProcessingComponent implements OnInit {
     this.labels = null;
     this.labelService.getLabels(this.selectedCollection).subscribe((result: any) => {
 
-      this.data = result.labels.sort((a: { labelId: number; }, b: { labelId: number; }) => a.labelId - b.labelId);
+      this.data = result.sort((a: { labelId: number; }, b: { labelId: number; }) => a.labelId - b.labelId);
       this.labels = this.data;
       this.getLabelsGrid("");
       this.isLoading = false;

@@ -27,7 +27,7 @@ exports.getLabels = async function getLabels(req, res, next) {
     if (!req.params.collectionId) {
         console.info('getLabel collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -43,9 +43,10 @@ exports.getLabels = async function getLabels(req, res, next) {
                 labelId: row.labelId,
                 labelName: row.labelName,
                 description: row.description,
+                collectionId: row.collectionId,
             }));
 
-            return { labels };
+            return labels;
         });
     } catch (error) {
         console.error(error);
@@ -57,7 +58,7 @@ exports.getLabel = async function getLabel(req, res, next) {
     if (!req.params.labelId) {
         console.info('getLabel labelId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 labelId: 'is required',
             }
@@ -65,7 +66,7 @@ exports.getLabel = async function getLabel(req, res, next) {
     } else if (!req.params.collectionId) {
         console.info('getLabel collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -91,7 +92,7 @@ exports.postLabel = async function postLabel(req, res, next) {
     if (!req.params.collectionId) {
         console.info('getLabel collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -99,7 +100,7 @@ exports.postLabel = async function postLabel(req, res, next) {
     } else if (!req.body.labelName) {
         console.info('postLabel labelName not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 labelName: 'is required',
             }
@@ -117,7 +118,8 @@ exports.postLabel = async function postLabel(req, res, next) {
             const message = {
                 labelId: rowLabel[0].labelId,
                 labelName: rowLabel[0].labelName,
-                description: rowLabel[0].description
+                description: rowLabel[0].description,
+                collectionId: rowLabel[0].collectionId
             };
             return message;
         });
@@ -131,7 +133,7 @@ exports.putLabel = async function putLabel(req, res, next) {
     if (!req.params.collectionId) {
         console.info('getLabel collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -139,7 +141,7 @@ exports.putLabel = async function putLabel(req, res, next) {
     } else if (!req.body.labelId) {
         console.info('putLabel labelId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 labelId: 'is required',
             }
@@ -147,7 +149,7 @@ exports.putLabel = async function putLabel(req, res, next) {
     } else if (!req.body.labelName) {
         console.info('putLabels labelName not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 labelName: 'is required',
             }
@@ -163,6 +165,7 @@ exports.putLabel = async function putLabel(req, res, next) {
 
             const message = {
                 labelId: req.body.labelId,
+                collectionId: req.params.collectionId,
                 labelName: req.body.labelName,
                 description: req.body.description
             };
@@ -178,7 +181,7 @@ exports.deleteLabel = async function deleteLabel(req, res, next) {
     if (!req.params.labelId) {
         console.info('getLabel labelId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 labelId: 'is required',
             }
@@ -186,7 +189,7 @@ exports.deleteLabel = async function deleteLabel(req, res, next) {
     } else if (!req.params.collectionId) {
         console.info('getLabel collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }

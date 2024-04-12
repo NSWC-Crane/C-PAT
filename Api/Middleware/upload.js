@@ -16,10 +16,8 @@ const excelFilter = (req, file, cb) => {
         file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
         file.mimetype === 'application/vnd.ms-excel.sheet.macroenabled.12'
     ) {
-        cb(null, true); // Allow the file
-    } else {
-        cb("Please upload only XLS, XLSX, or XLSM files.", false); // Reject the file
-    }
+        cb(null, true);     } else {
+        cb("Please upload only XLS, XLSX, or XLSM files.", false);     }
 };
 
 const storage = multer.memoryStorage();

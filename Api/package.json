@@ -28,6 +28,8 @@
     "passport-local": "^1.0.0",
     "read-excel-file": "^5.7.1",
     "sequelize": "^6.37.2",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz"
+    "swagger-ui-express": "^5.0.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz",
+    "yamljs": "^0.3.0"
   }
 }

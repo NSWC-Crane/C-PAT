@@ -18,10 +18,10 @@ export class KcAuthService {
 
   constructor(
     private keyCloakService: KeycloakService
-  ) {}
+  ) { }
 
   getLoggedUser() {
-    try{
+    try {
       let userDetails = this.keyCloakService.getKeycloakInstance().idTokenParsed;
       console.log('UserDetails: ', userDetails)
       console.log('userRoles: ', this.keyCloakService.getUserRoles());
@@ -33,10 +33,9 @@ export class KcAuthService {
   }
 
   resetRole(payload: any) {
-    // console.log("resetRole payload: ", payload);
   }
 
-  onTokenChange(): Observable<NbAuthJWTToken>{
+  onTokenChange(): Observable<NbAuthJWTToken> {
     console.log("In onTokenChange kc-auth.service")
     return of();
   }
@@ -49,7 +48,7 @@ export class KcAuthService {
     this.keyCloakService.getKeycloakInstance().accountManagement();
   }
 
-  getRoles(): string[]{
+  getRoles(): string[] {
     return this.keyCloakService.getUserRoles();
   }
 }

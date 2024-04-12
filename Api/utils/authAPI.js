@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const config = require('./config')
+const config = require('../utils/config')
 
 const jwksClient = require('jwks-rsa')
 const jwt = require('jsonwebtoken')
@@ -24,7 +24,6 @@ let client
 const privilegeGetter = new Function("obj", "return obj?." + config.oauth.claims.privileges + " || [];");
 
 const verifyRequest = async function (req, requiredScopes, securityDefinition) {
-    console.log("Getting to verify Request")
     const token = getBearerToken(req)
     if (!token) {
         throw ({ status: 401, message: 'OIDC bearer token must be provided' })
@@ -60,8 +59,7 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
         throw ({ status: 403, message: 'Not in scope' })
     }
     else {
-        // Get privileges      
-        const privileges = {}
+                const privileges = {}
         privileges.canCreateCollection = privilegeGetter(decoded).includes('create_collection')
         privileges.canAdmin = privilegeGetter(decoded).includes('admin')
 
@@ -85,9 +83,7 @@ const getBearerToken = req => {
 
 function getKey(header, callback) {
     try {
-        // console.log("getKey header: ", header)
-        // console.log("client: ", client)
-        client.getSigningKey(header.kid, function (err, key) {
+                        client.getSigningKey(header.kid, function (err, key) {
             if (!err) {
                 var signingKey = key.publicKey || key.rsaPublicKey
                 callback(null, signingKey)
@@ -106,26 +102,20 @@ let initAttempt = 0
 async function initializeAuth() {
     const retries = 24
     const wellKnown = `${config.oauth.authority}/.well-known/openid-configuration`
-    // console.log("within initializeAuth... ")
-    async function getJwks() {
-        // logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, attempt: ++initAttempt })
-
-        // console.log("wellknown: ", wellKnown)
-        try {
+        async function getJwks() {
+        
+                try {
             const openidConfig = (await axios.get(wellKnown)).data
             if (openidConfig) {
 
-                // logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, metadata: openidConfig})
-                if (!openidConfig.jwks_uri) {
+                                if (!openidConfig.jwks_uri) {
                     throw (new Error('No jwks_uri property found'))
                 }
-                // console.log("openidConfig.jwks_uri: ", openidConfig.jwks_uri)
-                jwksUri = openidConfig.jwks_uri
+                                jwksUri = openidConfig.jwks_uri
                 client = jwksClient({
                     jwksUri: jwksUri
                 })
-                // console.log("client: ", client)
-            }
+                            }
 
         } catch (error) {
             console.log("axios.get err: ", error)
@@ -137,10 +127,8 @@ async function initializeAuth() {
         minTimeout: 5 * 1000,
         maxTimeout: 5 * 1000,
         onRetry: (error) => {
-            //logger.writeError('oidc', 'discovery', { success: false, metadataUri: wellKnown, message: error.message })
-        }
+                    }
     })
-    //logger.writeInfo('oidc', 'discovery', { success: true, metadataUri: wellKnown, jwksUri: jwksUri })
-}
+    }
 
 module.exports = { verifyRequest, initializeAuth }

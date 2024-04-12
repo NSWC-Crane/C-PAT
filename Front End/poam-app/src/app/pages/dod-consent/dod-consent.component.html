@@ -13,7 +13,7 @@
     <nb-card-header>DoD Consent</nb-card-header>
     <nb-card-body>
       <p>
-        Department of Defense Notice and Consent Banner You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only. By using this IS (which includes any device attached to this IS), you consent to the following conditions:
+        You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only. By using this IS (which includes any device attached to this IS), you consent to the following conditions:
         The USG routinely intercepts and monitors communications on this IS for purposes including, but not limited to, penetration testing, COMSEC monitoring, network operations and defense, personnel misconduct (PM), law enforcement (LE), and counterintelligence (CI) investigations.
         At any time, the USG may inspect and seize data stored on this IS.
       </p>
@@ -26,9 +26,7 @@
 
     </nb-card-body>
     <nb-card-footer>
-      <!-- <button nbButton (click)="ref.close()">Close Dialog</button> -->
-      <button nbButton outline status="info"
-              style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="consentOk(); ref.close();">
+      <button nbButton outline status="info" style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;" (click)="consentOk(); ref.close();">
         OK
       </button>
     </nb-card-footer>

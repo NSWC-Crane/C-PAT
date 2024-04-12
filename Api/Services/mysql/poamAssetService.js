@@ -52,7 +52,7 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
     if (!req.params.poamId) {
         console.info('getPoamAssetsByPoamIs poamId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 poamId: 'is required',
             }
@@ -76,7 +76,7 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
                 poamId: row.poamId,
                 description: row.description,
             }));
-            return { poamAssets };
+            return poamAssets;
         });
     } catch (error) {
         console.error(error);
@@ -88,7 +88,7 @@ exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, re
     if (!req.params.poamId) {
         console.info('deletePoamAssetByPoamId poamId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 poamId: 'is required',
             }
@@ -111,7 +111,7 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res,
     if (!req.params.assetId) {
         console.info('getPoamAssetsByAssetId assetId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetId: 'is required',
             }
@@ -147,7 +147,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     if (!req.params.assetId) {
         console.info('getAssetLabel assetId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetId: 'is required',
             }
@@ -157,7 +157,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     if (!req.params.labelId) {
         console.info('getAssetLabel labelId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 labelId: 'is required',
             }
@@ -188,7 +188,7 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
     if (!req.body.assetId || !req.body.poamId) {
         console.info('postPoamAsset: assetId and poamId are required.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetId: 'is required',
                 poamId: 'is required',
@@ -209,7 +209,7 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
                 WHERE t1.poamId = ? AND t1.assetId = ?
                 ORDER BY t3.description`;
             let [rowPoamAsset] = await connection.query(sql, [req.body.poamId, req.body.assetId]);
-            var poamAsset = rowPoamAsset.length > 0 ? [rowPoamAsset[0]] : [];
+            var poamAsset = rowPoamAsset.length > 0 ? rowPoamAsset[0] : [];
             if (req.body.poamLog[0].userId) {
             let assetNameQuery = `SELECT assetName FROM poamtracking.asset WHERE assetId = ?`;
             let [[assetNameResult]] = await connection.query(assetNameQuery, [req.body.assetId]);
@@ -222,11 +222,20 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
                 await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
             }
 
-            return { poamAsset };
+            return poamAsset;
         });
     } catch (error) {
-        console.error("Error in postPoamAsset:", error);
-        return { null: "null" };
+        if (error.code === 'ER_DUP_ENTRY') {
+            return await withConnection(async (connection) => {
+                let fetchSql = "SELECT * FROM poamtracking.poamassets WHERE assetId = ? AND poamId = ?";
+                const [existingAsset] = await connection.query(fetchSql, [req.body.assetId, req.body.poamId]);
+                return existingAsset[0];
+            });
+        }
+        else {
+            console.error("error: ", error);
+            return { null: "null" };
+        }
     }
 };
 
@@ -234,7 +243,7 @@ exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
     if (!req.params.assetId || !req.params.poamId) {
         console.info('deletePoamAsset: assetId and poamId are required.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetId: 'is required',
                 poamId: 'is required',

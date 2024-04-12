@@ -74,7 +74,7 @@ exports.getAssetsByCollection = async function getAssetsByCollection(collectionI
 exports.getAsset = async function getAsset(req, res, next) {
     if (!req.params.assetId) {
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetId: 'is required',
             }
@@ -84,11 +84,6 @@ exports.getAsset = async function getAsset(req, res, next) {
         return await withConnection(async (connection) => {
             const sql = "SELECT * FROM  poamtracking.asset WHERE assetId = ?";
             let [rowAssets] = await connection.execute(sql, [req.params.assetId]);
-            if (rowAssets.length === 0) {
-                const customError = new Error(`Asset with ID ${req.params.assetId} was not found`);
-                customError.status = 404;
-                throw customError;
-            }
             const response = {
                 asset: rowAssets.map(asset => ({
                     assetId: asset.assetId,
@@ -110,7 +105,7 @@ exports.getAsset = async function getAsset(req, res, next) {
 exports.getAssetByName = async function getAssetByName(req, res, next) {
     if (!req.params.assetName) {
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetName: 'is required',
             }
@@ -120,11 +115,6 @@ exports.getAssetByName = async function getAssetByName(req, res, next) {
         return await withConnection(async (connection) => {
             const sql = "SELECT * FROM poamtracking.asset WHERE assetName = ?";
             let [rowAssets] = await connection.execute(sql, [req.params.assetName]);
-            if (rowAssets.length === 0) {
-                const customError = new Error(`Asset with name ${req.params.assetName} was not found`);
-                customError.status = 404;
-                throw customError;
-            }
             const response = {
                 asset: rowAssets.map(asset => ({
                     assetId: asset.assetId,
@@ -147,7 +137,7 @@ exports.postAsset = async function postAsset(req, res, next) {
     if (!req.body.assetName) {
         console.info('postAsset assetName not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetName: 'is required',
             }
@@ -156,7 +146,7 @@ exports.postAsset = async function postAsset(req, res, next) {
     if (!req.body.collectionId) {
         console.info('postAsset collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -165,7 +155,7 @@ exports.postAsset = async function postAsset(req, res, next) {
     if (!req.body.ipAddress) {
         console.info('postAsset ipAddressnot provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 ipAddress: 'is required',
             }
@@ -207,7 +197,7 @@ exports.putAsset = async function putAsset(req, res, next) {
     if (!req.body.assetId) {
         console.info('putAsset assetId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetId: 'is required',
             }
@@ -216,7 +206,7 @@ exports.putAsset = async function putAsset(req, res, next) {
     if (!req.body.assetName) {
         console.info('putAsset assetName not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetName: 'is required',
             }
@@ -225,7 +215,7 @@ exports.putAsset = async function putAsset(req, res, next) {
     if (!req.body.collectionId) {
         console.info('putAsset collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -234,7 +224,7 @@ exports.putAsset = async function putAsset(req, res, next) {
     if (!req.body.ipAddress) {
         console.info('putAsset ipAddress not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 ipAddress: 'is required',
             }
@@ -279,7 +269,7 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
     if (!req.params.assetId) {
         console.info('deleteAsset assetId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetId: 'is required',
             }

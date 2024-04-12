@@ -8,31 +8,28 @@
 !########################################################################
 */
 
-const authService = require('../Services/mysql/authService')
+const authService = require('../Services/mysql/authService');
 const auth = require('../utils/auth');
 
-module.exports.authLogin = async function authLogin(req, res, next){
+module.exports = {
+    authLogin: async (req, res, next) => {
+        console.log("authLogin req.body: ", req.body);
+        await authService.login(req, res, next);
+    },
 
-	console.log("authLogin req.body: ",req.body);
-	await authService.login(req,res,next);
-}
+    authLogout: async (req, res, next) => {
+        console.log("authLogout...");
+        const userLogout = await authService.logout(req, res, next);
+        res.status(201).json(userLogout);
+    },
 
-module.exports.authLogout = async function authLogout(req, res, next){
+    authRegister: async (req, res, next) => {
+        console.log("authRegister req.body: ", req.body);
+        await authService.register(req, res, next);
+    },
 
-	console.log("authLogout...")
-
-	var userLogout = await authService.logout(req,res,next)
-	res.status(201).json(userLogout)
-}
-
-module.exports.authRegister = async function authRegister(req, res, next){
-
-	console.log("authRegister req.body: ", req.body);
-	await authService.register(req,res,next); 
-}
-
-module.exports.changeWorkspace = async function changeWorkspace(req, res, next) {
-
-	console.log("changeWorkspace...req.body: ", req.body)
-	await authService.changeWorkspace(req, res, next);
-}
+    changeWorkspace: async (req, res, next) => {
+        console.log("changeWorkspace...req.body: ", req.body);
+        await authService.changeWorkspace(req, res, next);
+    }
+};

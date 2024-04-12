@@ -26,9 +26,6 @@ export class WebsocketService {
   constructor(private authService: AuthService,
     private kcAuthService: KcAuthService) {}
 
-  /**
-   * Connect to the websocket.
-   */
   connect(connectInput: any): Subject<MessageEvent> {
     this.socket = io(`${environment.apiEndpoint}/${connectInput.namespace}`, {
       query: {
@@ -56,12 +53,6 @@ export class WebsocketService {
   }
 
   ngOnInit() {
-    // this.authService.onTokenChange()
-    //   .subscribe((token: NbAuthJWTToken) => {
-    //     if (token.isValid()) {
-    //       this.token = token;
-    //     }
-    //   })
       this.kcAuthService.onTokenChange()
       .subscribe((token: NbAuthJWTToken) => {
         if (token.isValid()) {

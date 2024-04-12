@@ -8,10 +8,6 @@
 !########################################################################
 */
 
-/**
- * middleware to help align with Nebular NbAuthResult
- */
-
 function UnauthorizedResponse(err, req, res, next) {
   if (
     err.status === 401 ||
@@ -25,9 +21,9 @@ function UnauthorizedResponse(err, req, res, next) {
 function DefaultErrorResponse(err, req, res, next) {
   let stack, status = 500, errors = []
 
-  if (err.message) errors = [err.message] // accepts error.message
-  if (err.error) errors = [err.error, ...errors] // accepts error
-  if (err.errors) { // accepts errors as key-value messages e.g. username: 'is required'
+  if (err.message) errors = [err.message]
+  if (err.error) errors = [err.error, ...errors]
+  if (err.errors) {
     for (const [key, value] of Object.entries(err.errors)) {
       if (typeof value !== 'string') continue
       errors.push(`${key} ${value}`)
@@ -39,7 +35,7 @@ function DefaultErrorResponse(err, req, res, next) {
     status: err.status || 500,
     stack: err.stack || new Error().stack,
     errors: errors,
-    data: err.data, // accepts data object
+    data: err.data,
   }
   res.status(status).json(response)
   console.log(response)

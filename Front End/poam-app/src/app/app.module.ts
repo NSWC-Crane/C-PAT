@@ -18,10 +18,10 @@ import { AppComponent } from './app.component';
 import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';
 import { CoreModule } from '../app/@core/core.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbActionsModule, NbAutocompleteModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule, NbAccordionModule, NbDatepickerModule, NbTooltipModule, NbFormFieldModule, NbToggleModule} from '@nebular/theme';
+import { NbActionsModule, NbAutocompleteModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule, NbAccordionModule, NbDatepickerModule, NbTooltipModule, NbFormFieldModule, NbToggleModule } from '@nebular/theme';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientModule } from '@angular/common/http';
-import { NbAuthModule, NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token,  } from '@nebular/auth';
+import { NbAuthModule, NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token, } from '@nebular/auth';
 import { AuthGuard } from "./auth.guard";
 import { NbSecurityModule } from '@nebular/security';
 import { SharedModule } from './Shared/shared.module';
@@ -41,102 +41,102 @@ import { TenableImportModule } from './pages/import-processing/tenable-import/te
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
-  keycloak.init({
-    config: {
-      url: environment.keycloakUrl,
-       realm: 'RMFTools',
-       clientId: 'c-pat'
-    },
-    initOptions: {
-      redirectUri: environment.CPATRedirectUri,
-      checkLoginIframe: false
-    }
-  })
+    keycloak.init({
+      config: {
+        url: environment.keycloakUrl,
+        realm: 'RMFTools',
+        clientId: 'c-pat'
+      },
+      initOptions: {
+        redirectUri: environment.CPATRedirectUri,
+        checkLoginIframe: false
+      }
+    })
 }
 
 
 @NgModule({
-    declarations: [
-        AppComponent,
-        PoamDetailsComponent,
-    ],
-    providers: [AuthGuard,
-        KeycloakService,
-        { provide: APP_BASE_HREF, useValue: "/" },
-        KeycloakService,
-        { provide: APP_INITIALIZER, useFactory: initializeKeycloak, multi: true, deps: [KeycloakService] },
-        AuthGuard,
-        KcAuthService,
-      RoleProvider,
-      FileUploadService,
-      provideCharts(withDefaultRegisterables()),
-    ],
-    bootstrap: [AppComponent],
+  declarations: [
+    AppComponent,
+    PoamDetailsComponent,
+  ],
+  providers: [AuthGuard,
+    KeycloakService,
+    { provide: APP_BASE_HREF, useValue: "/" },
+    KeycloakService,
+    { provide: APP_INITIALIZER, useFactory: initializeKeycloak, multi: true, deps: [KeycloakService] },
+    AuthGuard,
+    KcAuthService,
+    RoleProvider,
+    FileUploadService,
+    provideCharts(withDefaultRegisterables()),
+  ],
+  bootstrap: [AppComponent],
   exports: [],
   imports: [
-        TreeGridModule,
-        AppRoutingModule,
-        SharedModule,
-        BrowserModule,
-        FormsModule,
-        BrowserAnimationsModule,
-        HttpClientModule,
-        NbAccordionModule,
-        NbActionsModule,
-        NbAuthModule,
-        NbAlertModule,
-        NbAutocompleteModule,
-        NbButtonModule,
+    TreeGridModule,
+    AppRoutingModule,
+    SharedModule,
+    BrowserModule,
+    FormsModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    NbAccordionModule,
+    NbActionsModule,
+    NbAuthModule,
+    NbAlertModule,
+    NbAutocompleteModule,
+    NbButtonModule,
     NbCardModule,
     NbToggleModule,
-        NbCheckboxModule,
-        NbDatepickerModule.forRoot(),
-        NbDialogModule.forChild(),
-        NbEvaIconsModule,
-        NbFormFieldModule,
-        NbInputModule,
-        NbIconModule,
-        NbLayoutModule,
-        NbSelectModule,
-        NbSpinnerModule,
-        NbSecurityModule.forRoot(),
-        NbSidebarModule.forRoot(),
-        NbStepperModule,
-        NbTooltipModule,
-        NbMenuModule.forRoot(),
-        NgbModule,
-        NbThemeModule.forRoot({ name: 'default' }),
-        Angular2SmartTableModule,
-        KeycloakAngularModule,
-        NbAuthModule.forRoot({
-            strategies: [
-                NbOAuth2AuthStrategy.setup({
-                    name: 'redHat',
-                    clientId: 'c-pat',
-                    authorize: {
-                        endpoint: environment.authizeEndpoint,
-                        responseType: NbOAuth2ResponseType.CODE,
-                        redirectUri: environment.redirectUri,
-                        params: {
-                            p: '',
-                        },
-                    },
-                    token: {
-                        endpoint: environment.tokeEndpoint,
-                        grantType: NbOAuth2GrantType.AUTHORIZATION_CODE,
-                        redirectUri: environment.redirectUri,
-                        class: NbAuthOAuth2Token,
-                    },
-                }),
-            ],
-            forms: {},
+    NbCheckboxModule,
+    NbDatepickerModule.forRoot(),
+    NbDialogModule.forChild(),
+    NbEvaIconsModule,
+    NbFormFieldModule,
+    NbInputModule,
+    NbIconModule,
+    NbLayoutModule,
+    NbSelectModule,
+    NbSpinnerModule,
+    NbSecurityModule.forRoot(),
+    NbSidebarModule.forRoot(),
+    NbStepperModule,
+    NbTooltipModule,
+    NbMenuModule.forRoot(),
+    NgbModule,
+    NbThemeModule.forRoot({ name: 'default' }),
+    Angular2SmartTableModule,
+    KeycloakAngularModule,
+    NbAuthModule.forRoot({
+      strategies: [
+        NbOAuth2AuthStrategy.setup({
+          name: 'redHat',
+          clientId: 'c-pat',
+          authorize: {
+            endpoint: environment.authizeEndpoint,
+            responseType: NbOAuth2ResponseType.CODE,
+            redirectUri: environment.redirectUri,
+            params: {
+              p: '',
+            },
+          },
+          token: {
+            endpoint: environment.tokeEndpoint,
+            grantType: NbOAuth2GrantType.AUTHORIZATION_CODE,
+            redirectUri: environment.redirectUri,
+            class: NbAuthOAuth2Token,
+          },
         }),
+      ],
+      forms: {},
+    }),
     CoreModule,
     PoamApproveModule,
     PoamExtendModule,
     PoamLogModule,
     STIGManagerImportModule,
     TenableImportModule,
-    ]
+  ]
 })
 export class AppModule { }

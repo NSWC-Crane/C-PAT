@@ -18,14 +18,8 @@ import { switchMap } from "rxjs/operators";
   providedIn: 'root'
 })
 export class AuthService extends NbAuthService {
-  /**
-   * Difficult to add to the base NbAuthStrategy class,
-   * so we're adding on after the fact.
-   */
   changeWorkspace =  (strategyName: string, data?: any) => {
     var _this = this;
-    //var strategy = this.getStrategy(strategyName);
-    console.log("AuthService alling changeWorkspace...")
     return changeWorkspace(data);
   }
 }

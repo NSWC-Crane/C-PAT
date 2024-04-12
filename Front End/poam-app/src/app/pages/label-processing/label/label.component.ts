@@ -132,7 +132,7 @@ export class LabelComponent implements OnInit {
     if (this.label.labelId == "ADDLABEL") {
       let exists = this.labels.find((e: { labelName: any; }) => e.labelName === this.label.labelName);
       if (exists) {
-        this.invalidData("Duplicate collection number");
+        this.invalidData("Label Already Exists");
         return false;
       }
     }

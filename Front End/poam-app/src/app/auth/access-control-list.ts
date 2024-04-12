@@ -12,14 +12,6 @@ import { NbAclOptions } from "@nebular/security";
 
 export const accessControlList: NbAclOptions = {
   accessControl: {
-    // user: {
-    //   create: ['create-task','timekeeping', 'odcform', 'monthly-report'],
-    //   view: ['create-task', 'timekeeping', 'odcform', 'help', 'hierarchy', 'send-reports', 'reporting']
-    // },
-    // viewer: {
-    //   create: ['create-task'],
-    //   view: ['dashboard','hierarchy','send-reports','help','reporting']
-    // },
     owner: {
       view: ['*'],
       create: ['*'],

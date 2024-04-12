@@ -283,7 +283,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
         this.isLoading = false;
       }
       else if (!Array.isArray(assetLabelResponse.assetLabel)) {
-        console.log("assetLabelResponse: ", assetLabelResponse);
         console.error(
           'assetLabelResponse.assetLabel is not an array',
           assetLabelResponse.assetLabel
@@ -349,7 +348,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
         children: [],
         expanded: true
       };
-      console.log(this.data, this.asset.data, this.data.asset);
     });
 
     this.dataSource = this.dataSourceBuilder.create(treeNodes);
@@ -464,6 +462,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     this.asset = [];
     this.getAssetData();
     this.asset.assetId = "ASSET";
+    this.isListFull = false;
     this.allowSelectAssets = true;
   }
 

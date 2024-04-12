@@ -179,7 +179,7 @@ export class CollectionProcessingComponent implements OnInit {
     this.collectionService
       .getCollections(this.payload.userName)
       .subscribe((result: any) => {
-        this.data = result.collections;
+        this.data = result;
         this.collections = this.data;
         this.getCollectionsGrid('');
         this.isLoading = false;
@@ -246,8 +246,6 @@ export class CollectionProcessingComponent implements OnInit {
       this.showPopup('There are no POAMs available to export in the selected collection.');
       return;
     }
-    console.log('collection this.poams: ', this.poams);
-
     let excelData = ExcelDataService.ConvertToExcel(this.poams);
     let excelURL = window.URL.createObjectURL(excelData);
 

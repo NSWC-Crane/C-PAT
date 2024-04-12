@@ -9,15 +9,10 @@
 */
 
 const userService = require('../Services/mysql/usersService')
-//const userService = require('./usersService')
-//const util = require('util');
 
 const refreshPayload = async function(payload, jwtSignOptions) {
-  // console.log("refreshPayLoad payload: ", payload)
-  //const refreshUser = util.promisify(User.refresh);
   try {
     const user = await userService.getUserByUserID(payload.userId)
-    // console.log("refreshPayload user: ",user)
     return userService.generateJWT(payload, jwtSignOptions,user)
   } catch (err) {
     throw err

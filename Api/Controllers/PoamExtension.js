@@ -10,29 +10,36 @@
 
 const poamExtensionService = require('../Services/mysql/poamExtensionService');
 
-module.exports.getPoamExtension = async function getPoamExtension(req, res, next) {
+exports.getPoamExtension = async function (req, res, next) {
     try {
         const poamExtensions = await poamExtensionService.getPoamExtension(req.params.poamId);
-        res.status(200).json(poamExtensions);
+        if (!poamExtensions.length) {
+            res.status(200).json([]);
+        } else {
+            res.status(200).json(poamExtensions);
+        }
     } catch (error) {
-        next(error);
+        console.error("Error retrieving POAM extension:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 };
 
-module.exports.putPoamExtension = async function putPoamExtension(req, res, next) {
+exports.putPoamExtension = async function (req, res, next) {
     try {
         const updatedPoamExtension = await poamExtensionService.putPoamExtension(req.body);
         res.status(200).json(updatedPoamExtension);
     } catch (error) {
-        next(error);
+        console.error("Error updating POAM extension:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 };
 
-module.exports.deletePoamExtension = async function deletePoamExtension(req, res, next) {
+exports.deletePoamExtension = async function (req, res, next) {
     try {
         await poamExtensionService.deletePoamExtension(req.params.poamId);
-        res.status(200).json({ message: "Poam extension deleted successfully" });
+        res.status(200).json({ message: "POAM extension deleted successfully" });
     } catch (error) {
-        next(error);
+        console.error("Error deleting POAM extension:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 };

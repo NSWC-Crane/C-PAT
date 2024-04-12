@@ -23,56 +23,11 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPermissions_UserCollection = async function getPermissions_UserCollection(req, res, next) {
-    if (!req.params.userId) {
-        console.info('getPermissions_UserCollection userId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                userId: 'is required',
-            }
-        });
-    }
-
-    if (!req.params.collectionId) {
-        console.info('getPermissions_UserCollection collectionId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                collectionId: 'is required',
-            }
-        });
-    }
-
-    try {
-        return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM  poamtracking.collectionpermissions WHERE userId = ? AND collectionId = ?";
-            let [rowPermissions] = await connection.query(sql, [req.params.userId, req.params.collectionId]);
-
-            var permissions = {
-                permissions: rowPermissions.map(row => ({
-                    userId: row.userId,
-                    collectionId: row.collectionId,
-                    canOwn: row.canOwn,
-                    canMaintain: row.canMaintain,
-                    canApprove: row.canApprove,
-                    canView: row.canView
-                }))
-            };
-
-            return permissions;
-        });
-    } catch (error) {
-        console.error(error);
-        return { null: "null" };
-    }
-}
-
 exports.postPermission = async function postPermission(req, res, next) {
     if (!req.body.userId) {
         console.info('postPermissions userId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 userId: 'is required',
             }
@@ -82,7 +37,7 @@ exports.postPermission = async function postPermission(req, res, next) {
     if (!req.body.collectionId) {
         console.info('postPermission collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 oldCollectionId: 'is required',
             }
@@ -110,8 +65,17 @@ exports.postPermission = async function postPermission(req, res, next) {
             return message;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        if (error.code === 'ER_DUP_ENTRY') {
+            return await withConnection(async (connection) => {
+                let fetchSql = "SELECT * FROM poamtracking.collectionpermissions WHERE userId = ? AND collectionId = ?";
+                const [existingPermission] = await connection.query(fetchSql, [req.body.userId, req.body.collectionId]);
+                return existingPermission[0];
+            });
+        }
+        else {
+            console.error("error: ", error);
+            return { null: "null" };
+        }
     }
 }
 
@@ -119,7 +83,7 @@ exports.putPermission = async function putPermission(req, res, next) {
     if (!req.body.userId) {
         console.info('postPermissions userId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 userId: 'is required',
             }
@@ -129,7 +93,7 @@ exports.putPermission = async function putPermission(req, res, next) {
     if (!req.body.oldCollectionId) {
         console.info('putPermissions oldCollectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -148,7 +112,7 @@ exports.putPermission = async function putPermission(req, res, next) {
 
             const message = {
                 userId: req.body.userId,
-                collectionId: req.body.collectionId,
+                collectionId: req.body.newCollectionId,
                 canOwn: req.body.canOwn,
                 canMaintain: req.body.canMaintain,
                 canApprove: req.body.canApprove,
@@ -166,7 +130,7 @@ exports.deletePermission = async function deletePermission(req, res, next) {
     if (!req.params.userId) {
         console.info('getPermissions_UserCollection userId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 userId: 'is required',
             }
@@ -176,7 +140,7 @@ exports.deletePermission = async function deletePermission(req, res, next) {
     if (!req.params.collectionId) {
         console.info('getPermissions_UserCollection collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }

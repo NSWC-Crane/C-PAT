@@ -86,7 +86,7 @@ export class PoamLogComponent implements OnInit {
   private fetchPoamLog(poamId: string) {
     this.poamLogService.getPoamLogByPoamId(poamId).subscribe({
       next: (response: any) => {
-        const poamLog = response.poamLog;
+        const poamLog = response;
         const data: TreeNode<FSEntry>[] = poamLog.map((log: FSEntry) => ({
           data: { Timestamp: log.Timestamp, User: log.User, Action: log.Action }
         }));

@@ -27,40 +27,24 @@ async function withConnection(callback) {
 exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
     if (!req.params.collectionId) {
         console.info('getCollectionPermissions collectionId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                collectionId: 'is required',
-            }
-        });
+        throw new Error('collectionId is required');
     }
 
     try {
-        return await withConnection(async (connection) => {
-            let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM  poamtracking.collectionpermissions T1 " +
+        const permissions = await withConnection(async (connection) => {
+            let sql = "SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM poamtracking.collectionpermissions T1 " +
                 "INNER JOIN poamtracking.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
 
-            let [rowPermissions] = await connection.query(sql, req.params.collectionId)
-            console.log("rowPermissions: ", rowPermissions[0])
-
-            var size = Object.keys(rowPermissions).length
-
-            var permissions = {
-                permissions: []
-            }
-
-            for (let counter = 0; counter < size; counter++) {
-                permissions.permissions.push({
-                    ...rowPermissions[counter]
-                });
-            }
-
-            return { permissions };
+            let [rowPermissions] = await connection.query(sql, req.params.collectionId);
+            return rowPermissions.map(permission => ({
+                ...permission
+            }));
         });
-    }
-    catch (error) {
-        let errorResponse = { null: "null" }
-        return errorResponse;
+
+        return permissions;
+    } catch (error) {
+        console.error(error);
+        throw error;
     }
 }
 
@@ -115,7 +99,7 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
                     });
                 }
 
-                return user;
+                return user.collections;
             } else {
                 let sql = "SELECT * FROM collectionpermissions WHERE userId = ?";
                 let [row2] = await connection.query(sql, [userId])
@@ -137,7 +121,7 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
                     });
                 }
 
-                return nonAdminCollections;
+                return nonAdminCollections.collections;
             }
         });
     }
@@ -186,10 +170,6 @@ exports.getCollection = async function getCollection(userName, collectionId, req
             let [row] = await connection.query(sql, [collectionId]);
             return { ...row[0] };
         });
-
-        if (!collection) {
-            return { error: "Invalid Collection ID" };
-        }
 
         return collection;
     } catch (error) {
@@ -378,8 +358,6 @@ exports.postCollection = async function postCollection(req, res, next) {
             let [rowCollection] = await connection.query(sql)
 
             var collection = rowCollection[0]
-
-            writeLog.writeLog(4, "colectionService", 'info', req.userObject.username, req.userObject.displayName, { event: 'added collection', collectionName: req.body.collectionName, description: req.body.description })
             return (collection)
         });
     } catch (error) {
@@ -393,7 +371,7 @@ exports.putCollection = async function putCollection(req, res, next) {
     if (!req.body.collectionId) {
         console.info('postPermissions collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -407,9 +385,6 @@ exports.putCollection = async function putCollection(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.collection WHERE collectionId = ?";
-            let [currentCollection] = await connection.query(sql, [req.body.collectionId]);
-
             let sql_query = "UPDATE poamtracking.collection SET collectionName=?, description=?, grantCount= ?, assetCount= ?, poamCount= ? WHERE collectionId = ?";
             await connection.query(sql_query, [
                 req.body.collectionName,
@@ -420,15 +395,6 @@ exports.putCollection = async function putCollection(req, res, next) {
                 req.body.collectionId
             ]);
 
-            writeLog.writeLog(4, "colectionService", 'info', req.userObject.username, req.userObject.displayName, {
-                event: 'updated collection',
-                collectionName: req.body.collectionName,
-                description: req.body.description,
-                grantcount: req.body.grantCount,
-                assetCount: req.body.assetCount,
-                poamCount: req.body.poamCount
-            });
-
             const message = new Object();
             message.collectionId = req.body.collectionId;
             message.collectionName = req.body.collectionName;
@@ -436,7 +402,7 @@ exports.putCollection = async function putCollection(req, res, next) {
             message.grantCount = req.body.grantCount;
             message.assetCount = req.body.assetCount;
             message.poamCount = req.body.poamCount;
-            return (message);
+            return message;
         });
     }
     catch (error) {
@@ -444,8 +410,4 @@ exports.putCollection = async function putCollection(req, res, next) {
         console.error(error);
         return errorResponse;
     }
-}
-
-exports.deleteCollection = async function deleteCollection(body, projection, userObject) {
-    res.status(201).json({ message: "deleteCollection (Service) Method called successfully" })
 }

@@ -42,7 +42,6 @@ const socialLinks = [
 
 export class NbSimpleRoleProvider extends NbRoleProvider {
   getRole() {
-    // here you could provide any role based on any auth flow
     return observableOf('guest');
   }
 }

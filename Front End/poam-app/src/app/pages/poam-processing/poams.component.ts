@@ -311,10 +311,10 @@ export class PoamsComponent implements OnInit {
           poamEstimatedCompletionResponse.poamEstimatedCompletion
         );
       }
-      else if (!Array.isArray(poamLabelResponse.poamLabels)) {
+      else if (!Array.isArray(poamLabelResponse)) {
         console.error(
           'poamLabelResponse.poamLabels is not an array',
-          poamLabelResponse.poamLabels
+          poamLabelResponse
         );
         return;
       }
@@ -324,14 +324,14 @@ export class PoamsComponent implements OnInit {
       this.poamSeverity = poamSeverityResponse.poamSeverity;
       this.poamEstimatedCompletion = poamEstimatedCompletionResponse.poamEstimatedCompletion;
       const poamLabelMap: { [poamId: number]: string[] } = {};
-      (poamLabelResponse.poamLabels as LabelInfo[]).forEach(labelInfo => {
+      (poamLabelResponse as LabelInfo[]).forEach(labelInfo => {
         if (!poamLabelMap[labelInfo.poamId]) {
           poamLabelMap[labelInfo.poamId] = [];
         }
         poamLabelMap[labelInfo.poamId].push(labelInfo.labelName);
       });
 
-      this.poams = poams.poams.map((poam: any) => ({
+      this.poams = poams.map((poam: any) => ({
         ...poam,
         labels: poamLabelMap[poam.poamId] || ['']
       }));

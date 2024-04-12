@@ -31,10 +31,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AssetResponse'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -43,8 +41,8 @@ paths:
         - Asset
       security:
         - oauth:
-            - 'c-pat:op'      
-
+            - 'c-pat:op'
+  
   /assets/collection/{collectionId}:
     parameters:
       - in: path
@@ -78,10 +76,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AssetResponse'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -91,7 +93,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-
+  
   /asset/name/{assetName}:
     parameters:
       - in: path
@@ -114,10 +116,14 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AssetObject'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -127,7 +133,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
+  
   /asset/{assetId}:
     parameters:
       - in: path
@@ -150,10 +156,14 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AssetObject'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -162,28 +172,31 @@ paths:
         - Asset
       security:
         - oauth:
-            - 'c-pat:read'        
+            - 'c-pat:read'
     delete:
       summary: Delete an Asset by assetId
       operationId: deleteAsset
       responses:
-        '200':
-          description: null asset response
+        '204':
+          description: Asset successfully deleted
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetObject'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
       tags:
         - Asset
       security:
         - oauth:
             - 'c-pat:read'
+  
   /asset:
     post:
       summary: Add an asset
@@ -195,14 +208,20 @@ paths:
             schema:
               $ref: '#/components/schemas/AssetObject'
       responses:
-        '200':
-          description: return the added asset response
+        '201':
+          description: Return the added asset response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetObject'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -213,29 +232,35 @@ paths:
         - oauth:
             - 'c-pat:read'
     put:
-      summary: Updates a Asset
+      summary: Update an Asset
       operationId: putAsset
       requestBody:
         required: true
         content:
           application/json:
             schema:
-                $ref: '#/components/schemas/AssetObject'
+              $ref: '#/components/schemas/AssetObject'
       responses:
         '200':
-          description: return the updated asset response
+          description: Return the updated asset response
           content:
             application/json:
               schema:
-                  $ref: '#/components/schemas/AssetObject'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/AssetObject'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - Asset            
+        - Asset
       security:
         - oauth:
             - 'c-pat:read'
@@ -259,10 +284,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/assetLabel_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -292,10 +321,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/assetLabel_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -325,10 +358,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/assetLabel_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -363,10 +400,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/assetLabel_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -386,12 +427,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetObject'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
       tags:
         - AssetLabel
       security:
@@ -415,8 +462,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/assetLabel_Object'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -441,7 +494,7 @@ paths:
             schema:
               $ref: '#/components/schemas/change_Workspace'
       responses:
-        '200':
+        '201':
           description: Change Workspace response
           content:
             application/json:
@@ -473,7 +526,7 @@ paths:
             schema:
               $ref: '#/components/schemas/user_Login'
       responses:
-        '200':
+        '201':
           description: User login response
           content:
             application/json:
@@ -505,7 +558,7 @@ paths:
             schema:
               $ref: '#/components/schemas/error'
       responses:
-        '200':
+        '201':
           description: User logout response
           content:
             application/json:
@@ -537,7 +590,7 @@ paths:
             schema:
               $ref: '#/components/schemas/register'
       responses:
-        '200':
+        '201':
           description: Register response
           content:
             application/json:
@@ -558,13 +611,9 @@ paths:
   /collection:
     post:
       tags:
-        - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
+        - Collection  
       summary: Create a Collection
       operationId: postCollection
-      description: ''
       requestBody:
         required: true
         content:
@@ -573,53 +622,55 @@ paths:
               $ref: '#/components/schemas/collection'
       responses:
         '201':
-          description: CollectionProjected response
+          description: Collection created successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/collection'
         '400':
-          description: Client Error
+          description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-
+  
     put:
-      summary: Updates user collection
+      summary: Update a Collection
       operationId: putCollection
       requestBody:
         required: true
         content:
           application/json:
             schema:
-                $ref: '#/components/schemas/collection'
+              $ref: '#/components/schemas/collection'
       responses:
         '200':
-          description: return the updated collection  response
+          description: Collection updated successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/collection'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/collection'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
       tags: 
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'
+  
   '/collection/{collectionId}/user/{userName}':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
@@ -631,62 +682,33 @@ paths:
     get:
       tags:
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return a Collection
-      description: ''
+      summary: Get a Collection
       operationId: getCollection
       responses:
         '200':
-          description: CollectionProjected response
+          description: Collection retrieved successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/collection'
         '204':
           description: No Content
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-    delete:
-      tags:
-        - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Delete a Collection
-      operationId: deleteCollection
-      responses:
-        '200':
-          description: CollectionProjected response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/collection'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-
+  
   /collections/basiclist:
     get:
       tags:
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return a list of collection names and collection IDs
+      summary: Get a list of collection names and IDs
       operationId: getCollectionBasicList
-      description: Return a list of collection names and collection IDs
       responses:
         '200':
-          description: Collection Name and ID list response
+          description: Collection list retrieved successfully
           content:
             application/json:
               schema:
@@ -694,57 +716,35 @@ paths:
                 items:
                   $ref: '#/components/schemas/collectionNameAndId'
         '500':
-          description: Client Error
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-
+  
   '/collections/{userName}':
     get:
       tags:
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary:  Return a list of collections accessible to the requester
-      description: ''
+      summary: Get a list of collections accessible to the user
       operationId: getCollections
       parameters:
         - $ref: '#/components/parameters/collectionAuth'
-      
       responses:
         '200':
-          description: CollectionsProjected response
+          description: Collection list retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/collection'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-
-  '/collections/{collectionId}/POAMs':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-      - name: acceptedOnly
-        in: query
-        schema:
-          type: boolean
-          default: false
-      - $ref: '#/components/parameters/benchmarkIdQuery'
-      - $ref: '#/components/parameters/assetIdQuery'
   
   '/collection/{collectionId}/assetlabel':
     parameters:
@@ -752,51 +752,43 @@ paths:
     get:
       tags:
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return asset labels and label count by Collection
-      description: Return asset labels and label count by Collection
+      summary: Get asset labels and label count by Collection
       operationId: getCollectionAssetLabel
       responses:
         '200':
-          description: assetLabel response
+          description: Asset labels retrieved successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/assetLabel'
         '204':
           description: No Content
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-
+  
   '/collection/{collectionId}/poamlabel':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
     get:
       tags:
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return POAM labels and label count by Collection
-      description: Return POAM labels and label count by Collection
+      summary: Get POAM labels and label count by Collection
       operationId: getCollectionPoamLabel
       responses:
         '200':
-          description: poamLabel response
+          description: POAM labels retrieved successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamLabel'
         '204':
           description: No Content
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -808,88 +800,71 @@ paths:
     get:
       tags:
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return POAM status and status count by Collection
-      description: Return POAM status and status count by Collection
+      summary: Get POAM status and status count by Collection
       operationId: getCollectionPoamStatus
       responses:
         '200':
-          description: poamStatus response
+          description: POAM status retrieved successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamStatus'
         '204':
           description: No Content
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-
+  
   '/collection/{collectionId}/poamseverity':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
     get:
       tags:
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return POAM severity and severity count by Collection
-      description: Return POAM severity and severity count by Collection
+      summary: Get POAM severity and severity count by Collection
       operationId: getCollectionPoamSeverity
       responses:
         '200':
-          description: poamSeverity response
+          description: POAM severity retrieved successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamSeverity'
         '204':
           description: No Content
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-
+  
   '/collection/{collectionId}/poamEstimatedCompletion':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
     get:
       tags:
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: By collection, return a count of POAMs estimated to be completed in 30, 60, 90, 180, and 365 days.
-      description: By collection, return a count of POAMs estimated to be completed in 30, 60, 90, 180, and 365 days.
+      summary: Get POAM estimated completion counts by Collection
       operationId: getCollectionPoamEstimatedCompletion
       responses:
         '200':
-          description: poamEstimatedCompletion response
+          description: POAM estimated completion counts retrieved successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamEstimatedCompletion'
         '204':
           description: No Content
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-
-  '/collections/{collectionId}/labels/{labelId}':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-      - $ref: '#/components/parameters/labelIdPath'
   
   '/collection/permissions/{collectionId}':
     parameters:
@@ -899,32 +874,33 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return all permissions for a specific collection
+      summary: Get all permissions for a specific collection
       operationId: getCollectionPermissions
       responses:
         '200':
-          description: Collection Permissions array response
+          description: Collection permissions retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/user_Permissions'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
         - Collection
-      security:
-        - oauth:
-            - 'c-pat:op'
 
-  /api/poamimport:
+  /import/poams:
     post:
       summary: Parse and import .xls, .xlsx, or .xlsm eMASS POAM exports
       operationId: uploadPoamFile
@@ -939,8 +915,11 @@ paths:
                   type: string
                   format: binary
                   description: .xls, .xlsx, or .xlsm eMASS POAM export file
+                lastCollectionAccessedId:
+                  type: integer
+                  description: ID of the last accessed collection
       responses:
-        '200':
+        '201':
           description: File uploaded successfully
           content:
             application/json:
@@ -950,7 +929,7 @@ paths:
                   message:
                     type: string
         '400':
-          description: Bad request - invalid file format or missing file
+          description: Bad request - invalid file format, missing file, or missing lastCollectionAccessedId
           content:
             application/json:
               schema:
@@ -966,8 +945,8 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-
-  /api/stigmancollectionimport:
+  
+  /import/stigmanagercollection:
     post:
       summary: Endpoint to receive collection and assets data from STIG Manager
       operationId: importCollectionAndAssets
@@ -985,7 +964,7 @@ paths:
                   items:
                     $ref: '#/components/schemas/STIGMANAsset'
       responses:
-        '200':
+        '201':
           description: Collection and assets imported successfully
           content:
             application/json:
@@ -1011,8 +990,8 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-
-  /api/stigmanassetimport:
+  
+  /import/stigmanagerassets:
     post:
       summary: Endpoint to receive asset data from STIG Manager
       operationId: importAssets
@@ -1028,7 +1007,7 @@ paths:
                   items:
                     $ref: '#/components/schemas/STIGMANAsset'
       responses:
-        '200':
+        '201':
           description: Assets imported successfully
           content:
             application/json:
@@ -1051,20 +1030,17 @@ paths:
                 $ref: '#/components/schemas/error'
       tags:
         - Import
-      security:
-        - oauth:
-            - 'c-pat:read'
 
   '/labels/{collectionId}':
     get:
       summary: Return all labels for a collection
       operationId: getLabels
       parameters:
-      - in: path
-        name: collectionId
-        required: true
-        schema:
-          type: integer
+        - in: path
+          name: collectionId
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
           description: Collection Labels array response
@@ -1074,10 +1050,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/label_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1087,7 +1067,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
+  
   '/label/{collectionId}/{labelId}':
     parameters:
       - in: path
@@ -1105,17 +1085,19 @@ paths:
       operationId: getLabel
       responses:
         '200':
-          description: Collection Labels array response
+          description: Label object response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/label_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/label_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1124,29 +1106,31 @@ paths:
         - Label
       security:
         - oauth:
-            - 'c-pat:read'        
+            - 'c-pat:read'
     delete:
       summary: Delete a label by labelId
       operationId: deleteLabel
       responses:
-        '200':
-          description: Label delete
+        '204':
+          description: Label deleted successfully
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/label_Object'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
       tags:
         - Label
       security:
         - oauth:
             - 'c-pat:read'
-
+  
   '/label/{collectionId}':
     parameters:
       - in: path
@@ -1164,14 +1148,20 @@ paths:
             schema:
               $ref: '#/components/schemas/label_Object'
       responses:
-        '200':
-          description: return the added label response
+        '201':
+          description: Label created successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/label_Object'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1180,31 +1170,37 @@ paths:
         - Label
       security:
         - oauth:
-            - 'c-pat:read'        
+            - 'c-pat:read'
     put:
-      summary: Updates a Label
+      summary: Update a Label
       operationId: putLabel
       requestBody:
         required: true
         content:
           application/json:
             schema:
-                $ref: '#/components/schemas/label_Object'
+              $ref: '#/components/schemas/label_Object'
       responses:
         '200':
-          description: return the updated collection permission response
+          description: Label updated successfully
           content:
             application/json:
               schema:
-                  $ref: '#/components/schemas/label_Object'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/label_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - Label             
+        - Label
       security:
         - oauth:
             - 'c-pat:read'
@@ -1218,18 +1214,22 @@ paths:
         content:
           application/json:
             schema:
-                $ref: '#/components/schemas/user_Permissions'
+              $ref: '#/components/schemas/user_Permissions'
       responses:
-        '200':
-          description: return the added collection permission response
+        '201':
+          description: Permission created successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/user_Permissions'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/user_Permissions'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1239,37 +1239,41 @@ paths:
       security:
         - oauth:
             - 'c-pat:op'
-            
+  
     put:
-      summary: Updates user collection permissions
+      summary: Update user collection permissions
       operationId: putPermission
       requestBody:
         required: true
         content:
           application/json:
             schema:
-                $ref: '#/components/schemas/update_user_Permissions'
+              $ref: '#/components/schemas/update_user_Permissions'
       responses:
         '200':
-          description: return the updated collection permission response
+          description: Permission updated successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/update_user_Permissions'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/user_Permissions'
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-      tags: 
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
         - Permissions
       security:
         - oauth:
             - 'c-pat:op'
-          
+  
   '/permission/{userId}/{collectionId}':
     parameters:
       - in: path
@@ -1281,23 +1285,25 @@ paths:
         name: collectionId
         required: true
         schema:
-          type: integer        
+          type: integer
     delete:
       summary: Delete a collection permission by userId and collectionId
       operationId: deletePermission
       responses:
-        '200':
-          description: Collection Permissionsresponse
+        '204':
+          description: Permission deleted successfully
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_Permissions'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
       tags:
         - Permissions
       security:
@@ -1323,10 +1329,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamApprover_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
@@ -1335,7 +1345,8 @@ paths:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
+  
   '/poamApprovers/collection/{collectionId}/user/{userId}':
     parameters:
       - in: path
@@ -1347,7 +1358,7 @@ paths:
         name: userId
         required: true
         schema:
-          type: integer          
+          type: integer   
     get:
       summary: Return poamApprovers by userId
       operationId: getPoamApproversByCollectionUser
@@ -1360,10 +1371,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamApprover_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
@@ -1372,7 +1387,8 @@ paths:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:read'             
+            - 'c-pat:op'
+  
   '/poamApprover/poam/{poamId}/user/{userId}':
     parameters:
       - in: path
@@ -1384,48 +1400,50 @@ paths:
         name: userId
         required: true
         schema:
-          type: integer            
+          type: integer   
     delete:
       summary: Delete a poamApprover by userId and poamId
       operationId: deletePoamApprover
       responses:
-        '200':
-          description: Poam Approver delete
+        '204':
+          description: Poam Approver deleted
+        '400':
+          description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamApprover_Object'
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
       tags:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:read'
-
+            - 'c-pat:op'
+  
   '/poamApprover':
     post:
       summary: Add a poamApprover
       operationId: postPoamApprover
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/poamApprover_Object'
       responses:
-        '200':
-          description: return the added poamApprover response
+        '201':
+          description: Poam Approver created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamApprover_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
@@ -1434,25 +1452,25 @@ paths:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:read'        
+            - 'c-pat:op'
     put:
       summary: Updates a poamApprover
       operationId: putPoamApprover
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-                $ref: '#/components/schemas/poamApprover_Object'
       responses:
         '200':
-          description: return the updated poamApprover response
+          description: Poam Approver updated
           content:
             application/json:
               schema:
-                  $ref: '#/components/schemas/poamApprover_Object'
+                $ref: '#/components/schemas/poamApprover_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
@@ -1461,7 +1479,7 @@ paths:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
 
   '/poamAssets':
     get:
@@ -1476,10 +1494,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamAssets_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
@@ -1489,17 +1511,17 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-
+  
   '/poamAssets/poam/{poamId}':
-    parameters:
-      - in: path
-        name: poamId
-        required: true
-        schema:
-          type: integer
     get:
-      summary: Return  poamassets label by poamId
+      summary: Return poamassets by poamId
       operationId: getPoamAssetsByPoamId
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
           description: PoamAssets array response
@@ -1509,10 +1531,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamAssets_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
@@ -1525,39 +1551,43 @@ paths:
     delete:
       summary: Delete all assets associated to a POAM by poamId
       operationId: deletePoamAssetByPoamId
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
       responses:
-        '200':
-          description: null asset response
+        '204':
+          description: No content
+        '400':
+          description: Bad request
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  poamAsset:
-                    type: array
-                    items: {}
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
       tags:
         - PoamAssets
       security:
         - oauth:
             - 'c-pat:read'
-
+  
   '/poamAssets/assets/{assetId}':
-    parameters:
-      - in: path
-        name: assetId
-        required: true
-        schema:
-          type: integer
     get:
       summary: Return poamsAssets by assetId
       operationId: getPoamAssetsByAssetId
+      parameters:
+        - in: path
+          name: assetId
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
           description: PoamAssets array response
@@ -1567,10 +1597,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamAssets_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
@@ -1580,66 +1614,43 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-
+  
   '/poamAsset/poam/{poamId}/asset/{assetId}':
-    parameters:
-      - in: path
-        name: poamId
-        required: true
-        schema:
-          type: integer
-      - in: path
-        name: assetId
-        required: true
-        schema:
-          type: integer
-    get:
-      summary: Return a poamasset by poamId and assetId
-      operationId: getPoamAsset
-      responses:
-        '200':
-          description: PoamAssets array response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poamAssets_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamAssets
-      security:
-        - oauth:
-            - 'c-pat:read'
     delete:
       summary: Delete a PoamAsset by poamId and assetId
       operationId: deletePoamAsset
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: assetId
+          required: true
+          schema:
+            type: integer
       responses:
-        '200':
-          description: null asset response
+        '204':
+          description: No content
+        '400':
+          description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamAssets_Object'
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
       tags:
         - PoamAssets
       security:
         - oauth:
             - 'c-pat:read'
-
+  
   '/poamAsset':
     post:
       summary: Add a poam asset
@@ -1651,14 +1662,20 @@ paths:
             schema:
               $ref: '#/components/schemas/poamAssets_Object'
       responses:
-        '200':
-          description: return the added asset response
+        '201':
+          description: PoamAsset created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamAssets_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
+          description: Unexpected error
           content:
             application/json:
               schema:
@@ -1669,23 +1686,24 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/poamAssignees':
+  /poamAssignees:
     get:
-      summary: Return all poamAssignees
+      summary: Get all POAM assignees
       operationId: getPoamAssignees
       responses:
         '200':
-          description: PoamAssignees array response
+          description: Successful response with POAM assignees
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poamAssignees_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+                type: object
+                properties:
+                  poamAssignees:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PoamAssignee'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1695,30 +1713,28 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
-  '/poamAssignees/poam/{poamId}':
-    parameters:
-      - in: path
-        name: poamId
-        required: true
-        schema:
-          type: integer
+
+  /poamAssignees/poam/{poamId}:
     get:
-      summary: Return  poamassets label by poamId
+      summary: Get POAM assignees by POAM ID
       operationId: getPoamAssigneesByPoamId
+      parameters:
+        - name: poamId
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
-          description: PoamAssets array response
+          description: Successful response with POAM assignees
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/poamAssignees_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+                  $ref: '#/components/schemas/PoamAssignee'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1728,30 +1744,31 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
-  '/poamAssignees/users/{userId}':
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
+
+  /poamAssignees/user/{userId}:
     get:
-      summary: Return poamsAssignees by userId
+      summary: Get POAM assignees by user ID
       operationId: getPoamAssigneesByUserId
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
-          description: PoamAssignees array response
+          description: Successful response with POAM assignees
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poamAssignees_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+                type: object
+                properties:
+                  poamAssignees:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PoamAssignee'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1761,35 +1778,36 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
-  '/poamAssignee/poam/{poamId}/user/{userId}':
-    parameters:
-      - in: path
-        name: poamId
-        required: true
-        schema:
-          type: integer
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
+
+  /poamAssignee/poam/{poamId}/user/{userId}:
     get:
-      summary: Return a poamAssignees by poamId and userId
+      summary: Get a specific POAM assignee by POAM ID and user ID
       operationId: getPoamAssignee
+      parameters:
+        - name: poamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
-          description: PoamAssignees array response
+          description: Successful response with the POAM assignee
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poamAssignees_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+                type: object
+                properties:
+                  poamAssignee:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PoamAssignee'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1800,46 +1818,91 @@ paths:
         - oauth:
             - 'c-pat:read'
     delete:
-      summary: Delete a PoamAssignee by poamId and userId
+      summary: Delete a POAM assignee
       operationId: deletePoamAssignee
+      parameters:
+        - name: poamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: requestorId
+          in: header
+          required: false
+          schema:
+            type: integer
+          description: ID of the user making the request for logging purposes
       responses:
-        '200':
-          description: null poam asset response
+        '204':
+          description: POAM assignee deleted successfully
+        '400':
+          description: Bad request - missing required parameters
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamAssignees_Object'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
       tags:
         - PoamAssignees
       security:
         - oauth:
             - 'c-pat:read'
             
-  '/poamAssignee':
+  /poamAssignee:
     post:
-      summary: Add a poam Assignee
+      summary: Create a new POAM assignee
       operationId: postPoamAssignee
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/poamAssignees_Object'
+              type: object
+              properties:
+                userId:
+                  type: integer
+                poamId:
+                  type: integer
+                poamLog:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      userId:
+                        type: integer
+              required:
+                - userId
+                - poamId
       responses:
-        '200':
-          description: return the added asset response
+        '201':
+          description: POAM assignee created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamAssignees_Object'
-        default:
-          description: unexpected error
+                type: object
+                properties:
+                  poamId:
+                    type: integer
+                  userId:
+                    type: integer
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1898,7 +1961,7 @@ paths:
           description: The ID of the POAM
       responses:
         '200':
-          description: POAM extension details
+          description: POAM extension details or empty array if no extensions found
           content:
             application/json:
               schema:
@@ -1920,7 +1983,7 @@ paths:
         - PoamExtension
       security:
         - oauth:
-          - 'c-pat:read' 
+          - 'c-pat:read'
       parameters:
         - in: path
           name: poamId
@@ -1967,10 +2030,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamLabel_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1989,8 +2056,8 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return label associated with a POAM by poamId
-      operationId: getPoamLabelByPoam
+      summary: Return labels associated with a POAM by poamId
+      operationId: getPoamLabelsByPoam
       responses:
         '200':
           description: Poam array response
@@ -2000,10 +2067,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamLabel_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2033,10 +2104,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamLabel_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2064,17 +2139,19 @@ paths:
       operationId: getPoamLabel
       responses:
         '200':
-          description: Poam array response
+          description: Poam object response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poamLabel_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/poamLabel_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2085,21 +2162,23 @@ paths:
         - oauth:
             - 'c-pat:read'
     delete:
-      summary: Delete a Poam Label by poamId
+      summary: Delete a Poam Label by poamId and labelId
       operationId: deletePoamLabel
       responses:
-        '200':
-          description: null poam response
+        '204':
+          description: Successful deletion
+        '400':
+          description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamLabel_Object'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
       tags:
         - PoamLabel
       security:
@@ -2117,14 +2196,20 @@ paths:
             schema:
               $ref: '#/components/schemas/poamLabel_Object'
       responses:
-        '200':
-          description: return the added poam response
+        '201':
+          description: Return the added poam response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamLabel_Object'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2154,10 +2239,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamLog_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2186,8 +2275,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PoamMilestonesResponse'
-        '422':
-          description: Validation error, e.g., missing poamId
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2200,7 +2295,7 @@ paths:
     post:
       summary: Add a new milestone to a POAM
       description: Creates a new milestone. The milestoneId is auto-generated upon creation.
-      operationId: postPoamMilestones
+      operationId: postPoamMilestone
       parameters:
         - in: path
           name: poamId
@@ -2221,8 +2316,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PoamMilestone'
-        '422':
-          description: Validation error, e.g., missing fields
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2232,12 +2333,12 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-
+  
   /poamMilestones/{poamId}/{milestoneId}:
     put:
       summary: Update a specific milestone
       description: Updates the milestone identified by milestoneId for a given POAM.
-      operationId: putPoamMilestones
+      operationId: putPoamMilestone
       parameters:
         - in: path
           name: poamId
@@ -2264,8 +2365,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PoamMilestone'
-        '422':
-          description: Validation error
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2278,7 +2385,7 @@ paths:
     delete:
       summary: Delete a specific milestone
       description: Deletes the milestone identified by milestoneId for a given POAM.
-      operationId: deletePoamMilestones
+      operationId: deletePoamMilestone
       parameters:
         - in: path
           name: poamId
@@ -2293,12 +2400,14 @@ paths:
       responses:
         '204':
           description: Successfully deleted the milestone
+        '400':
+          description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PoamMilestone'
-        '422':
-          description: Validation error
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2311,21 +2420,19 @@ paths:
 
   '/poams':
     get:
-      summary: Return all poams
+      summary: Return all POAMs
       operationId: getPoams
       responses:
         '200':
-          description: Poam array response
+          description: POAM array response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/poam_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2335,7 +2442,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
+  
   '/poam/{poamId}':
     parameters:
       - in: path
@@ -2344,19 +2451,23 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return a poam by Id
+      summary: Return a POAM by ID
       operationId: getPoam
       responses:
         '200':
-          description: poam object response
+          description: POAM object response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/poam_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2367,27 +2478,29 @@ paths:
         - oauth:
             - 'c-pat:read'
     delete:
-      summary: Delete a Poam by poamId
+      summary: Delete a POAM by ID
       operationId: deletePoam
       responses:
-        '200':
-          description: null poam response
+        '204':
+          description: POAM deleted successfully
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poam_Object'
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
       tags:
-        - Poam    
+        - Poam
       security:
         - oauth:
-            - 'c-pat:read'        
-        
+            - 'c-pat:read'
+  
   '/poams/collection/{collectionId}':
     parameters:
       - in: path
@@ -2396,31 +2509,35 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return poams by collectionId
+      summary: Return POAMs by collection ID
       operationId: getPoamsByCollectionId
       responses:
         '200':
-          description: poam array response
+          description: POAM array response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/poam_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - Poam            
+        - Poam
       security:
         - oauth:
             - 'c-pat:read'
-            
+  
   '/poams/owner/{ownerId}':
     parameters:
       - in: path
@@ -2429,34 +2546,38 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return poams by ownerId
+      summary: Return POAMs by owner ID
       operationId: getPoamsByOwnerId
       responses:
         '200':
-          description: Asset array response
+          description: POAM array response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/poam_Object'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - Poam            
+        - Poam
       security:
         - oauth:
             - 'c-pat:read'
-            
+  
   '/poam':
     post:
-      summary: Add a poam
+      summary: Add a POAM
       operationId: postPoam
       requestBody:
         required: true
@@ -2465,41 +2586,20 @@ paths:
             schema:
               $ref: '#/components/schemas/poam_Object'
       responses:
-        '200':
-          description: return the added asset response
+        '201':
+          description: POAM added successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/poam_Object'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-      tags:
-        - Poam
-      security:
-        - oauth:
-            - 'c-pat:read'        
-    put:
-      summary: Updates a Poam
-      operationId: putPoam
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-                $ref: '#/components/schemas/poam_Object'
-      responses:
-        '200':
-          description: return the updated asset response
-          content:
-            application/json:
-              schema:
-                  $ref: '#/components/schemas/poam_Object'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2509,21 +2609,55 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
+    put:
+      summary: Update a POAM
+      operationId: putPoam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/poam_Object'
+      responses:
+        '200':
+          description: POAM updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poam_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Poam
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   '/user':
     get:
       tags:
         - User
-      summary: Return the current users information
+      summary: Return the current user's information
       operationId: getCurrentUser
       responses:
         '200':
-          description: UserProjected response
+          description: User response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/current_user_Response'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2547,18 +2681,24 @@ paths:
               $ref: '#/components/schemas/user_Update'
       responses:
         '200':
-          description: UserProjected response
+          description: User response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/user_Response'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  
   '/users':
     get:
       tags:
@@ -2572,18 +2712,18 @@ paths:
         '200':
           description: User response
           content:
-            applicaion/json:
+            application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/current_user_Response'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
-            applicaion/json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/error'
-
+  
   '/user/{userId}':
     parameters:
       - in: path
@@ -2603,13 +2743,13 @@ paths:
         '200':
           description: User response
           content:
-            applicaion/json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/user'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
-            applicaion/json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/error'
     delete:
@@ -2622,17 +2762,18 @@ paths:
       operationId: deleteUser
       responses:
         '200':
-          description: UserProjected response
+          description: User response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/user'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+                
   '/user/loginout':
     put:
       tags:
@@ -2640,7 +2781,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'        
-      summary: writes stdoutput log to indicate login or logout
+      summary: Writes stdout log to indicate login or logout
       operationId: loginout
       requestBody:
         required: true
@@ -2649,14 +2790,14 @@ paths:
             schema:
               $ref: '#/components/schemas/user_LoginOut'
       responses:
-        '200':
-          description: UserProjected response
+        '201':
+          description: Login/Logout response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/user_Login_Response'
-        default:
-          description: unexpected error
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -2670,7 +2811,7 @@ paths:
         schema:
           type: string
     get:
-      summary: Return poam by vulnerabilityId
+      summary: Return POAMs by vulnerabilityId
       operationId: getPoamsByVulnerabilityId
       responses:
         '200':
@@ -2683,14 +2824,20 @@ paths:
                   $ref: '#/components/schemas/poam_Object'
         '403':
           $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - Vulnerability            
+        - Vulnerability
       security:
         - oauth:
             - 'c-pat:read'
@@ -2705,17 +2852,20 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  existingPoams:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        poamId:
-                          type: integer
-                        vulnerabilityId:
-                          type: string
+                type: array
+                items:
+                  type: object
+                  properties:
+                    poamId:
+                      type: integer
+                    vulnerabilityId:
+                      type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
       tags:
         - Vulnerability
       security:
@@ -3054,6 +3204,7 @@ components:
           type: string
         approvedDate:
           type: string
+          nullable: true
         comments:
           type: string
           nullable: true
@@ -3064,7 +3215,7 @@ components:
         userEmail:
           type: string
 
-    poamAssignees_Object:
+    PoamAssignee:
       type: object
       required:
         - poamId
@@ -3341,44 +3492,35 @@ components:
       required:
         - userId
         - userName
-        - email
-        - displayName
-        - canAdmin
-        - canCreateCollection
+        - userEmail
+        - fullName
         - created
         - lastAccess
         - isAdmin
       additionalProperties: true
       properties:
         userId:
-          type: string
-          maxLength: 255
+          type: integer
           readOnly: true
         username:
           type: string
           maxLength: 255
           readOnly: true
-        email:
+        userEmail:
           type: string
           readOnly: true
-        displayName:
+        fullName:
           type: string
           maxLength: 255
           readOnly: true
-        canAdmin:
-          type: boolean
-        canCreateCollection:
-          type: boolean
+        isAdmin:
+          type: integer
         created:
           type: string
           format: date
-          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
         lastAccess:
           type: string
           format: date
-          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
-        isAdmin:
-          type: integer
 
     current_user_Response:
       type: object
@@ -3419,11 +3561,9 @@ components:
         created:
           type: string
           format: date
-          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
         lastAccess:
           type: string
           format: date
-          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
         lastCollectionAccessedId:
           type: integer
         accountStatus:
@@ -3500,11 +3640,9 @@ components:
         created:
           type: string
           format: date
-          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
         lastAccess:
           type: string
           format: date
-          # pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9][12][0-9]|3[0-1])$'
         lastCollectionAccessedId:
           type: integer
         accountStatus:

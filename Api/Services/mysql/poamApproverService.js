@@ -27,7 +27,7 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
     if (!req.params.poamId) {
         console.info('getPoamApprovers poamId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 poamId: 'is required',
             }
@@ -44,10 +44,49 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
             `;
             let [rows] = await connection.query(sql, [req.params.poamId]);
             var poamApprovers = rows.map(row => ({ ...row }));
-            return { poamApprovers };
+            return poamApprovers;
         });
     } catch (error) {
         console.error(error);
+        return { null: "null" };
+    }
+}
+
+exports.getPoamApproversByCollectionUser = async function getPoamApproversByCollectionUser(req, res, next) {
+    if (!req.params.collectionId) {
+        console.info('getPoamApproversByCollectionUser collectionId not provided.');
+        return next({
+            status: 400,
+            errors: {
+                collectionId: 'is required',
+            }
+        });
+    }
+    if (!req.params.userId) {
+        console.info('getPoamApprovers userId not provided.');
+        return next({
+            status: 400,
+            errors: {
+                userId: 'is required',
+            }
+        });
+    }
+
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
+                FROM poamtracking.poamapprovers T1
+                INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId
+                INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId
+                WHERE T3.collectionId = ? AND T1.userId = ?
+            `;
+            let [rows] = await connection.query(sql, [req.params.collectionId, req.params.userId]);
+            var poamApprovers = rows.map(row => ({ ...row }));
+            return { poamApprovers };
+        });
+    } catch (error) {
+        console.error("error: ", error);
         return { null: "null" };
     }
 }
@@ -56,7 +95,7 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
     if (!req.body.poamId) {
         console.info('postPoamApprover poamId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 poamId: 'is required',
             }
@@ -65,7 +104,7 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
     if (!req.body.userId) {
         console.info('postCollectionApprover userId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 userId: 'is required',
             }
@@ -100,59 +139,29 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
 
             let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
             let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
-            var poamApprover = row.map(row => ({ ...row }));
-            return { poamApprover };
+            var poamApprover = row.map(row => ({ ...row }))[0];
+            return poamApprover;
         });
     } catch (error) {
-        console.error("error: ", error);
-        return { null: "null" };
+        if (error.code === 'ER_DUP_ENTRY') {
+            return await withConnection(async (connection) => {
+                let fetchSql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
+                const [existingApprover] = await connection.query(fetchSql, [req.body.poamId, req.body.userId]);
+                return existingApprover[0];
+            });
+        }
+        else {
+            console.error("error: ", error);
+            return { null: "null" };
+        }
     }
-}
-
-exports.getPoamApproversByCollectionUser = async function getPoamApproversByCollectionUser(req, res, next) {
-    if (!req.params.collectionId) {
-        console.info('getPoamApproversByCollectionUser collectionId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                collectionId: 'is required',
-            }
-        });
-    }
-    if (!req.params.userId) {
-        console.info('getPoamApprovers userId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                userId: 'is required',
-            }
-        });
-    }
-
-    try {
-        return await withConnection(async (connection) => {
-            let sql = `
-                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
-                FROM poamtracking.poamapprovers T1
-                INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId
-                INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId
-                WHERE T3.collectionId = ? AND T1.userId = ?
-            `;
-            let [rows] = await connection.query(sql, [req.params.collectionId, req.params.userId]);
-            var poamApprovers = rows.map(row => ({ ...row }));
-            return { poamApprovers };
-        });
-    } catch (error) {
-        console.error("error: ", error);
-        return { null: "null" };
-    }
-}
+};
 
 exports.putPoamApprover = async function putPoamApprover(req, res, next) {
     if (!req.body.poamId) {
         console.info('putPoamApprover poamId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 poamId: 'is required',
             }
@@ -161,7 +170,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
     if (!req.body.userId) {
         console.info('putCollectionApprover userId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 userId: 'is required',
             }
@@ -220,7 +229,7 @@ exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
     if (!req.params.poamId) {
         console.info('deleteCollectionApprover poamId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 poamId: 'is required',
             }
@@ -229,7 +238,7 @@ exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
     if (!req.params.userId) {
         console.info('deleteCollectionApprover userId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 userId: 'is required',
             }

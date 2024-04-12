@@ -44,7 +44,6 @@ import { Angular2SmartTableModule } from 'angular2-smart-table';
    
   ],
   exports: [
-    // BilletTaskProcessComponent,
   ]
 })
 export class UserProcessingModule { }
