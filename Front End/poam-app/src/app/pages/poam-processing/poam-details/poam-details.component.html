@@ -56,9 +56,9 @@
           </div>
 
           <!-- View STIG Manager Check Data -->
-          <div ngif="poam.stigCheckData && poam.stigCheckData.length > 1"class="form-group">
+          <div *ngIf="poam.stigCheckData?.length > 0" class="form-group">
             <nb-toggle [(ngModel)]="showCheckData">View STIG Manager Check Data</nb-toggle>
-            <textarea *ngIf="showCheckData" nbInput fullWidth style="font-weight: normal;" [(ngModel)]="poam.stigCheckData" placeholder="STIG Manager Check Data" name="stigCheckData" cols="180" rows="16" maxlength="4000"></textarea>
+            <textarea *ngIf="showCheckData" nbInput fullWidth style="font-weight: normal;" [(ngModel)]="poam.stigCheckData" name="stigCheckData" cols="180" rows="16" maxlength="4000"></textarea>
           </div>
 
           <!-- Description -->

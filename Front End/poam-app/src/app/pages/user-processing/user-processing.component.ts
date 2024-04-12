@@ -114,8 +114,6 @@ export class UserProcessingComponent implements OnInit {
 
             if (this.user.isAdmin === 1) {
               this.getUserData();
-            } else {
-              console.log('Access Denied: User is not an admin.');
             }
           }
         } else {
@@ -135,7 +133,7 @@ export class UserProcessingComponent implements OnInit {
       this.userService.getUsers(),
       this.collectionsService.getCollectionBasicList()
     ]).subscribe(([userData, collectionData]: [any, any]) => {
-      this.data = userData.users.users;
+      this.data = userData;
       this.users = this.data;
       this.collectionList = collectionData.map((collection: any) => ({
         collectionId: collection.collectionId,

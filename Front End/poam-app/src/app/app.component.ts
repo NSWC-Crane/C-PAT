@@ -87,7 +87,6 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     });
 
-    //console.log("init app component...Environment: ", environment)
     this.classification = environment.classification;
     this.classificationCode = environment.classificationCode;
     this.classificationColorCode = environment.classificationColorCode;
@@ -100,21 +99,18 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.poamService.onNewPoam.subscribe({
       next: (poam: any) => {
-        // console.log("Received HHHEEERRREEE poam:", poam);
         this.getPoamsForCollection();
       }
     })
     this.isSettingWorkspace = false;
-    // console.log("routes: ", routes)
   }
 
   setPayload() {
     this.user = null;
     this.payload = null;
 
-    this.subs.sink = this.userService.getCurrentUser().subscribe(
-      (response: any) => {
-        //console.log('Current user: ', response);
+    this.subs.sink = this.userService.getCurrentUser().subscribe({
+      next: (response: any) => {
         this.user = response;
 
         if (this.user.accountStatus === 'ACTIVE') {
@@ -128,13 +124,12 @@ export class AppComponent implements OnInit, OnDestroy {
             }))
           });
 
-          //console.log("payload: ", this.payload);
           this.getCollections();
         } else {
           alert('Your account status is not Active, contact your system administrator');
         }
       },
-      (error) => {
+      error: (error) => {
         if (error.status === 404 || !this.user) {
           let newUser = {
             userName: this.userProfile?.username,
@@ -143,29 +138,28 @@ export class AppComponent implements OnInit, OnDestroy {
             email: this.userProfile?.email,
           };
 
-          this.userService.postUser(newUser).subscribe(result => {
-            console.log("User name: " + newUser.userName + " has been added, account status is PENDING");
-            this.user = newUser;
+          this.userService.postUser(newUser).subscribe({
+            next: (result) => {
+              console.log("User name: " + newUser.userName + " has been added, account status is PENDING");
+              this.user = newUser;
+            },
+            error: (error) => console.error('An error occurred:', error.message)
           });
         } else {
           console.error('An error occurred:', error.message);
         }
       }
-    );
+    });
   }
 
   getCollections() {
     const userName = this.payload.userName;
     this.subs.sink = this.collectionService.getCollections(userName).subscribe((result: any) => {
 
-      this.collections = result.collections;
-      // console.log("getCollections result: ", result);
-      //console.log("getCollections collections: ", this.collections);
-
+      this.collections = result;
       this.selectedTheme = (this.user.defaultTheme) ? this.user.defaultTheme : 'default'
       this.themeService.changeTheme(this.selectedTheme);
       this.selectedCollection = (this.user.lastCollectionAccessedId) ? +this.user.lastCollectionAccessedId : null;
-      //this.selectedCollection = this.collections.find((e: { collectionId: any; }) => e.collectionId == +this.user.lastCollectionAccessedId)
 
       if (this.selectedCollection) {
         this.resetWorkspace(this.selectedCollection);
@@ -181,10 +175,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   getPoamsForCollection() {
-    // Let's get POAMS for lastCollectionAccessId
-    if (this.payload.lastCollectionAccessedId) {
+        if (this.payload.lastCollectionAccessedId) {
       this.subs.sink = this.poamService.getPoamsByCollection(this.payload.lastCollectionAccessedId).subscribe((poams: any) => {
-        this.poams = poams.poams;
+        this.poams = poams;
         this.poamItems = [];
         let treeArray: any[] = []
         this.poams.forEach((poam: any) => {
@@ -208,16 +201,13 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onSelectedPoamChange(data: any) {
-    // console.log("onSelectedChange data: ", data)
-    if (data.length == 0) return;  // nothing to process
-    let poamId = data[0];
+        if (data.length == 0) return;      let poamId = data[0];
     let poam = this.poams.find((e: { poamId: any; }) => e.poamId === poamId)
 
     this.poamItems.forEach((item: { checked: boolean; }) => {
       if (item.checked) item.checked = false;
     })
-    //this.viewingfulldetails = true;
-    this.router.navigateByUrl("/poam-details/" + +poam.poamId);
+        this.router.navigateByUrl("/poam-details/" + +poam.poamId);
   }
 
   onSelectedThemeChange(theme: any) {
@@ -225,10 +215,8 @@ export class AppComponent implements OnInit, OnDestroy {
       console.error("User data is not available");
       return;
     }
-    // console.log("selected Theme: ", theme)
-    this.themeService.changeTheme(theme);
-    // update token and user
-
+        this.themeService.changeTheme(theme);
+    
     let userUpdate = {
       userId: this.user.userId,
       userName: this.user.userName,
@@ -237,15 +225,13 @@ export class AppComponent implements OnInit, OnDestroy {
       lastName: this.user.lastName,
       lastCollectionAccessedId: this.user.lastCollectionAccessedId,
       accountStatus: this.user.accountStatus,
-      // fullName: (this.user.fullName) ? this.user.fullName : '',
-      defaultTheme: theme,
+            defaultTheme: theme,
       isAdmin: this.user.isAdmin,
       updateSettingsOnly: 1
     }
 
     this.userService.updateUser(userUpdate).subscribe((result: any) => {
-      // console.log('updateUser call result: ',result)
-      this.user = result;
+            this.user = result;
     });
   }
 
@@ -272,8 +258,7 @@ export class AppComponent implements OnInit, OnDestroy {
       lastName: this.user.lastName,
       lastCollectionAccessedId: parseInt(selectedCollection),
       accountStatus: this.user.accountStatus,
-      // fullName: (this.user.fullName) ? this.user.fullName : '',
-      defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
+            defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
       isAdmin: this.user.isAdmin,
       updateSettingsOnly: 1
     }
@@ -295,8 +280,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.userService.changeRole(this.payload);
 
     this.userService.updateUser(userUpdate).subscribe((result: any) => {
-      // console.log('updateUser call result: ',result)
-      this.user = result;
+            this.user = result;
       let payloadUser = {
         userId: this.user.userId,
         userName: this.user.userName,
@@ -327,40 +311,34 @@ export class AppComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length) {
       const file = input.files[0];
-  
+
       if (!this.user || !this.user.lastCollectionAccessedId) {
         console.error('User information or lastCollectionAccessedId is not available');
         return;
       }
-  
+
       const lastCollectionAccessedId = this.user.lastCollectionAccessedId.toString();
-  
-      // Open the status dialog and keep a reference to it
+
       const dialogRef = this.dialogService.open(StatusDialogComponent, {
-        context: {
-          progress: 0, // Initial progress value
-          message: ''
-        }
+        context: { progress: 0, message: '' }
       });
-      
-      this.fileUploadService.upload(file, lastCollectionAccessedId).subscribe(
-        event => {
+
+      this.fileUploadService.upload(file, lastCollectionAccessedId).subscribe({
+        next: (event) => {
           if (event.type === HttpEventType.UploadProgress) {
-            // Calculate the progress percentage
             const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
             dialogRef.componentRef.instance.progress = progress;
           } else if (event instanceof HttpResponse) {
-            console.log('File is completely uploaded!');
-            // Pass the completion status to the dialog
             dialogRef.componentRef.instance.uploadComplete = true;
+            dialogRef.componentRef.instance.message = 'Upload successful!';
+            setTimeout(() => dialogRef.close(), 1500);
           }
         },
-        error => {
+        error: (error) => {
           console.error('Error during file upload:', error);
           dialogRef.componentRef.instance.message = 'An error occurred during upload.';
-          // TODO: Implement error handling
-        }
-      );
+        },
+      });
     }
   }
 
@@ -382,39 +360,31 @@ export class AppComponent implements OnInit, OnDestroy {
   authMenuItems() {
     this.menuItems = null;
     this.menuItems = appMenuItems;
-    // console.log("ACL: ", accessControlList)
-    this.menuItems.forEach((item: NbMenuItem) => {
+        this.menuItems.forEach((item: NbMenuItem) => {
       item.hidden = true;
       this.authMenuItem(item);
     });
   }
 
   authMenuItem(menuItem: NbMenuItem) {
-    // Default to hidden
-    menuItem.hidden = true;
+        menuItem.hidden = true;
 
     if (menuItem.data && menuItem.data['permission'] && menuItem.data['resource'] && this.payload.role != "none") {
-      // Check if the user has permission
-      if (this.accessChecker(menuItem.data['permission'], menuItem.data['resource'])) {
+            if (this.accessChecker(menuItem.data['permission'], menuItem.data['resource'])) {
         menuItem.hidden = false;
       }
     } else {
-      // If there is no permission data, do not hide (for items like 'Logout')
-      menuItem.hidden = false;
+            menuItem.hidden = false;
     }
 
-    // Handling children items
-    if (!menuItem.hidden && menuItem.children != null) {
+        if (!menuItem.hidden && menuItem.children != null) {
       menuItem.children.forEach(item => {
-        item.hidden = true; // Default to hidden for children
-        if (item.data && item.data['permission'] && item.data['resource']) {
-          // Check permission for child items
-          if (this.accessChecker(item.data['permission'], item.data['resource'])) {
+        item.hidden = true;         if (item.data && item.data['permission'] && item.data['resource']) {
+                    if (this.accessChecker(item.data['permission'], item.data['resource'])) {
             item.hidden = false;
           }
         } else {
-          // Inherit visibility from parent
-          item.hidden = menuItem.hidden;
+                    item.hidden = menuItem.hidden;
         }
       });
     }

@@ -30,18 +30,20 @@ function normalizeDate(date) {
 }
 
 exports.getPoams = async function getPoams(req, res, next) {
-    console.log("getPoams (poamService) ...");
-
     try {
         return await withConnection(async (connection) => {
             let sql = "SELECT * FROM poamtracking.poam ORDER BY poamId DESC";
             let [rowPoams] = await connection.query(sql);
-            var poams = rowPoams.map(row => ({ ...row }));
-            return { poams: poams };
+            var poams = rowPoams.map(row => ({
+                ...row,
+                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+            }));
+            return poams || null;
         });
     } catch (error) {
         console.error(error);
-        return { null: "null" };
+        return null;
     }
 };
 
@@ -49,7 +51,7 @@ exports.getPoam = async function getPoam(req, res, next) {
     if (!req.params.poamId) {
         console.info('getPoam poamId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 poamId: 'is required',
             }
@@ -59,13 +61,17 @@ exports.getPoam = async function getPoam(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql = "SELECT * FROM poamtracking.poam WHERE poamId = ?";
-            let [rowPoam] = await connection.query(sql, [req.params.poamId]);
-            var poam = rowPoam[0];
-            return poam;
+            let [rowPoams] = await connection.query(sql, [req.params.poamId]);
+            var poam = rowPoams.map(row => ({
+                ...row,
+                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+            }))[0];
+            return poam || null;
         });
     } catch (error) {
         console.error(error);
-        return { null: "null" };
+        return null;
     }
 };
 
@@ -73,7 +79,7 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
     if (!req.params.collectionId) {
         console.info('getPoamByCollectionId collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -84,12 +90,16 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
         return await withConnection(async (connection) => {
             let sql = "SELECT * FROM poamtracking.poam WHERE collectionId = ? ORDER BY poamId DESC";
             let [rowPoams] = await connection.query(sql, [req.params.collectionId]);
-            var poams = rowPoams.map(row => ({ ...row }));
-            return { poams };
+            var poams = rowPoams.map(row => ({
+                ...row,
+                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+            }));
+            return poams || null;
         });
     } catch (error) {
         console.error(error);
-        return { null: "null" };
+        return null;
     }
 };
 
@@ -97,7 +107,7 @@ exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, next) {
     if (!req.params.ownerId) {
         console.info('getPoamByOwnerId ownerId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 ownerId: 'is required',
             }
@@ -108,36 +118,16 @@ exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, next) {
         return await withConnection(async (connection) => {
             let sql = "SELECT * FROM poamtracking.poam WHERE ownerId = ? ORDER BY poamId DESC";
             let [rowPoams] = await connection.query(sql, [req.params.ownerId]);
-            var poams = rowPoams.map(row => ({ ...row }));
-            return { poams };
+            var poams = rowPoams.map(row => ({
+                ...row,
+                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+            }));
+            return poams || null;
         });
     } catch (error) {
         console.error(error);
-        return { null: "null" };
-    }
-};
-
-exports.getPoamsByVulnerabilityId = async function getPoamsByVulnerabilityId(req, res, next) {
-    if (!req.params.vulnerabilityId) {
-        console.info('getPoamsByVulnerabilityId; vulnerabilityId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                ownerId: 'is required',
-            }
-        });
-    }
-
-    try {
-        return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.poam WHERE vulnerabilityId = ? ORDER BY poamId DESC";
-            let [rowPoams] = await connection.query(sql, [req.params.vulnerabilityId]);
-            var poams = rowPoams.map(row => ({ ...row }));
-            return { poams };
-        });
-    } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return null;
     }
 };
 
@@ -146,7 +136,7 @@ exports.postPoam = async function postPoam(req) {
     for (let field of requiredFields) {
         if (!req.body[field]) {
             console.info(`postPoam ${field} not provided.`);
-            return { status: 422, errors: { [field]: 'is required' } };
+            return { status: 400, errors: { [field]: 'is required' } };
         }
     }
 
@@ -170,8 +160,11 @@ exports.postPoam = async function postPoam(req) {
 
             let sql = "SELECT * FROM poamtracking.poam WHERE poamId = LAST_INSERT_ID();";
             let [rowPoam] = await connection.query(sql);
-
-            var poam = rowPoam[0];
+            var poam = rowPoams.map(row => ({
+                ...row,
+                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+            }))[0];
 
             if (req.body.assignees) {
                 let assignees = req.body.assignees;
@@ -195,7 +188,7 @@ exports.postPoam = async function postPoam(req) {
                 await connection.query(logSql, [poam.poamId, action, req.body.poamLog[0].userId]);
             }
 
-            return (poam);
+            return poam;
         });
     } catch (error) {
         console.error("error: ", error);
@@ -208,7 +201,7 @@ exports.putPoam = async function putPoam(req, res, next) {
     let missingField = requiredFields.find(field => !req.body[field]);
     if (missingField) {
         console.info(`putPoam ${missingField} not provided.`);
-        return { status: 422, errors: { [missingField]: 'is required' } };
+        return { status: 400, errors: { [missingField]: 'is required' } };
     }
 
     req.body.submittedDate = normalizeDate(req.body.submittedDate);
@@ -267,7 +260,11 @@ exports.putPoam = async function putPoam(req, res, next) {
             req.body.submittedDate, req.body.poamId]);
 
             const [updatedPoamRow] = await connection.query("SELECT * FROM poamtracking.poam WHERE poamId = ?", [req.body.poamId]);
-            const updatedPoam = updatedPoamRow[0];
+            var updatedPoam = updatedPoamRow.map(row => ({
+                ...row,
+                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+            }))[0];
 
             if (req.body.poamLog && req.body.poamLog.length > 0) {
                 let poamId = req.body.poamId;
@@ -281,7 +278,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                         req.body[field] !== existingPoamNormalized[field];
                 });
                 const modifiedFieldFullNames = modifiedFields.map(field => fieldNameMap[field] || field);
-                let action = `POAM Updated. Current POAM Status: ${req.body.status}.<br> ${(modifiedFields.length > 0) ? "Fields modified: " + modifiedFieldFullNames.join(', ') + "." : "No POAM fields modified."}`;
+                let action = `POAM Updated. POAM Status: ${req.body.status}, Severity: ${req.body.adjSeverity}.<br> ${(modifiedFields.length > 0) ? "Fields modified: " + modifiedFieldFullNames.join(', ') + "." : "No POAM fields modified."}`;
                 let logSql = `INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]).catch(error => {
                     console.error("Failed to insert POAM update log:", error);
@@ -300,7 +297,7 @@ exports.putPoam = async function putPoam(req, res, next) {
         });
     } catch (error) {
         console.error("error: ", error);
-        return { null: "null" };
+        return null;
     }
 };
 
@@ -308,7 +305,7 @@ exports.deletePoam = async function deletePoam(req, res, next) {
     if (!req.params.poamId) {
         console.info('deletePoam: poamId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 poamId: 'is required',
             }
@@ -327,8 +324,7 @@ exports.deletePoam = async function deletePoam(req, res, next) {
 
             await connection.commit();
         });
-        var poam = [];
-        return { poam };
+        return {};
     } catch (error) {
         console.error('deletePoam error:', error);
         return { error: "An error occurred during deletion." };

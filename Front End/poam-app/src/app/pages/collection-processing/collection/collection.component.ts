@@ -62,7 +62,6 @@ export class CollectionComponent implements OnInit {
     if (collection.collectionId == "ADDCOLLECTION") {
       delete collection.collectionId;
 
-      console.log("data before: ", collection)
       this.subs.sink = this.collectionService.addCollection(collection).subscribe(
         data => {
           this.collectionchange.emit(data.collectionId);

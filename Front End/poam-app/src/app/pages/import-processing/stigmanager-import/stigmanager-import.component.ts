@@ -77,7 +77,7 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
   selectedSTIGMANCollection: string = '';
   stigmanCollections: Collection[] = [];
   selectedStigmanCollection: string = '';
-  selectedFindings: string = 'No Existing POAM';
+  selectedFindings: string = '';
   collectionBasicList: any[] = [];
   treeData: any[] = [];
   originalTreeData: any[] = [];
@@ -492,15 +492,19 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
         findings.sort((a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity));
 
         this.updateFindingsChartData(findings);
+
+        this.selectedFindings = 'No Existing POAM';
+        this.filterFindings();
       },
       error: (err) => console.error('Failed to fetch affected assets from STIGMAN:', err),
     });
   }
 
+
   filterFindings() {
     this.sharedService.getExistingVulnerabilityPoams().subscribe({
         next: (response: any) => {
-          const existingPoams = response.existingPoams;
+          const existingPoams = response;
           this.updateChartAndGrid(existingPoams);
         },
         error: (error) => {
@@ -522,7 +526,7 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
     }).filter(item => item !== null);
 
     this.dataSource.setData(filteredTreeData);
-
+    this.findingsCount = filteredTreeData.length;
     const severityGroups = filteredTreeData.reduce((groups: any, item: any) => {
       const severity = item.data['Severity'];
       if (!groups[severity]) {
@@ -570,8 +574,8 @@ ${ruleData.fix.text}
 
           this.sharedService.getPoamsByVulnerabilityId(row.data['Group ID']).subscribe({
             next: (response: any) => {
-              if (response && response.poams && response.poams.length > 0) {
-                const poam = response.poams[0];
+              if (response && response.length > 0) {
+                const poam = response[0];
                 this.router.navigate(['/poam-details/' + poam.poamId], {
                   state: {
                     vulnerabilitySource: 'STIG',

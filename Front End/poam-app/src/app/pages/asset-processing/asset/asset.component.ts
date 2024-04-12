@@ -11,6 +11,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
 import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { Router } from '@angular/router';
 import { SubSink } from 'subsink';
 import { Observable, Subscription } from 'rxjs';
 import { AssetService } from '../assets.service'
@@ -118,7 +119,7 @@ export class AssetComponent implements OnInit {
 
   constructor(private dialogService: NbDialogService,
     private assetService: AssetService,
-    private authService: AuthService,
+    private router: Router,
     private sharedService: SharedService,
   ) { }
 
@@ -132,9 +133,6 @@ export class AssetComponent implements OnInit {
   }
 
   onSubmit() {
-
-    // console.log("Attempting to onSubmit()...");
-
     let asset = {
       assetId: (this.asset.assetId == "ADDASSET") ? 0 : this.asset.assetId,
       assetName: this.asset.assetName,
@@ -144,7 +142,6 @@ export class AssetComponent implements OnInit {
       ipAddress: this.asset.ipAddress,
       macAddress: this.asset.macAddress
     }
-    // console.log("this.asset: ", this.asset)
 
     if (this.asset.assetId == "ADDASSET") {
       this.asset.assetId = "";
@@ -169,9 +166,8 @@ export class AssetComponent implements OnInit {
     } else {
     
       this.subs.sink = this.assetService.updateAsset(asset).subscribe(data => {
-        //console.log("returned data: ",data)
         this.asset = data;        
-        this.assetchange.emit();                       //this will hide the billet and assign-task components
+        this.assetchange.emit();
       });
       
     }
@@ -199,7 +195,7 @@ export class AssetComponent implements OnInit {
   
   getLabelData() {
     this.subs.sink = this.assetService.getLabels(this.selectedCollection).subscribe((labels: any) => {
-      this.labelList = labels.labels;
+      this.labelList = labels;
       this.updateLabelEditorConfig();
     });
   }
@@ -207,7 +203,7 @@ export class AssetComponent implements OnInit {
   getCollectionData() {
     let userName = this.payload.userName;
     this.subs.sink = this.assetService.getCollections(userName).subscribe((collections: any) => {
-      this.collectionList = collections.collections;
+      this.collectionList = collections;
       if (this.asset.collectionId) {
         this.setCollection(this.asset.collectionId);
       }
@@ -215,9 +211,14 @@ export class AssetComponent implements OnInit {
   }
   
   getAssetLabels() {
-    this.subs.sink = this.assetService.getAssetLabels(this.asset.assetId).subscribe((assetLabels: any) => {
-      this.assetLabels = assetLabels.assetLabels;
-    });
+    this.subs.sink = this.assetService.getAssetLabels(this.asset.assetId).subscribe(
+      (assetLabels: any) => {
+        this.assetLabels = assetLabels;
+      },
+      (error) => {
+        console.error('Error fetching asset labels:', error);
+      }
+    );
   }
   
   updateLabelEditorConfig() {
@@ -246,7 +247,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
     this.collection = null;
     this.tcollectionName = '';
 
-    let selectedData = this.collectionList.find((collection: { collectionId: any; }) => collection.collectionId === collectionId);
+    let selectedData = this.collectionList ? this.collectionList.find((collection: { collectionId: any; }) => collection.collectionId === collectionId) : null;
   
     if (selectedData) {
       this.collection = selectedData;
@@ -270,7 +271,6 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
 
       var label_index = this.labelList.findIndex((e: any) => e.labelId == event.newData.labelId);
 
-      // can't continue without collection data.   NOTE** collection_index my be 0, if the 1st row is selected!
       if (!label_index && label_index != 0) {
         this.invalidData("Unable to resolve label");
         event.confirm.reject();
@@ -286,24 +286,18 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
       this.isLoading = true;
       this.assetService.postAssetLabel(assetLabel).subscribe(assetLabelData => {
         this.isLoading = false;
-        //console.log("after postPermission, permissionData: ",permissionData)
         event.confirm.resolve();
         this.getData();
       })
 
     } else {
-      console.log("Failed to create entry. Invalid input.");
-      this.invalidData("missing data, unable to insert");
+      this.invalidData("Failed to create entry. Invalid input.");
       event.confirm.reject();
     }
   }
 
   confirmDelete(event: any) {
-    // console.log("Attempting to confirmDelete()...event.data: ",event.data);
     if (this.asset.assetId === "ADDASSET") {
-      // nothing to do, when the asset is submitted, we'll push the array of label id's to so they can be
-      // associated properly to the asset
-
       event.confirm.resolve();
       return;
     }
@@ -320,8 +314,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
 
 
       this.isLoading = true;
-      this.assetService.deleteAssetLabel(+event.data.assetId, +event.data.labelId).subscribe(assetLabelData => {
-        // console.log("after deletePermission, permissionData: ",permissionData);        
+      this.assetService.deleteAssetLabel(+event.data.assetId, +event.data.labelId).subscribe(assetLabelData => {       
         event.confirm.resolve();
         this.getData();
       });
@@ -358,6 +351,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
   ngOnDestroy() {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
+    this.router.navigateByUrl("/asset-processing");
   }
 }
 

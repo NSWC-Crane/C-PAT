@@ -7,7 +7,7 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-
+require('dotenv').config();
 const package = require("../package.json")
 
 let config = {
@@ -23,6 +23,10 @@ let config = {
         lastAccessResolution: 60,
         responseValidation: process.env.POAM_DEV_RESPONSE_VALIDATION
 
+    },
+    cpat: {
+        host: process.env.CPAT_HOST,
+        port: process.env.CPAT_PORT,
     },
     client: {
         clientId: process.env.POAM_CLIENT_ID,
@@ -53,19 +57,23 @@ let config = {
         maxUpload: process.env.POAM_API_MAX_UPLOAD
     },
     database: {
-        type: process.env.POAM_DB_TYPE,
-        host: process.env.POAM_DB_HOST,
-        port: process.env.POAM_DB_PORT,
-        schema: process.env.POAM_DB_SCHEMA,
-        username: process.env.POAM_DB_USER,
-        password: process.env.POAM_DB_PASSWORD,
-        maxConnections: process.env.POAM_DB_MAX_CONNECTIONS || 25,
+        type: process.env.DB_TYPE,
+        dialect: process.env.DB_DIALECT,
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        schema: process.env.DB_SCHEMA,
+        username: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        maxConnections: process.env.DB_MAX_CONNECTIONS, 
+        minConnections: process.env.DB_MIN_CONNECTIONS,   
+        acquire: process.env.DB_ACQUIRE,
+        idle: process.env.DB_IDLE,   
         tls: {
-            ca_file: process.env.POAM_DB_TLS_CA_FILE,
-            cert_file: process.env.POAM_DB_TLS_CERT_FILE,
-            key_file: process.env.POAM_DB_TLS_KEY_FILE
+            ca_file: process.env.DB_TLS_CA_FILE,
+            cert_file: process.env.DB_TLS_CERT_FILE,
+            key_file: process.env.DB_TLS_KEY_FILE
         },
-        revert: process.env.POAM_DB_REVERT,
+        revert: process.env.DB_REVERT,
         toJSON: function () {
             let {password, ...props} = this
             props.password = !!password

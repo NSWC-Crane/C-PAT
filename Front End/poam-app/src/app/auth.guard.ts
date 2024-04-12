@@ -16,18 +16,18 @@ import { KeycloakAuthGuard, KeycloakService } from 'keycloak-angular';
   providedIn: 'root'
 })
 export class AuthGuard extends KeycloakAuthGuard {
- constructor( protected override router: Router, protected override keycloakAngular: KeycloakService) {
-  super(router, keycloakAngular);
-}
-isAccessAllowed(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean | UrlTree>{
-  return new Promise(async (resolve, reject) => {
-    if (!this.authenticated) {
-      this.keycloakAngular.login();
-      resolve(false);
-      return;
-    }
-    let granted: boolean = true;
-    resolve(granted);
-  })
- }
+  constructor(protected override router: Router, protected override keycloakAngular: KeycloakService) {
+    super(router, keycloakAngular);
+  }
+  isAccessAllowed(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean | UrlTree> {
+    return new Promise(async (resolve, reject) => {
+      if (!this.authenticated) {
+        this.keycloakAngular.login();
+        resolve(false);
+        return;
+      }
+      let granted: boolean = true;
+      resolve(granted);
+    })
+  }
 } 

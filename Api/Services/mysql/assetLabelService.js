@@ -27,7 +27,7 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
     if (!req.params.collectionId) {
         console.info('getAssetLabels collectionId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 collectionId: 'is required',
             }
@@ -50,7 +50,7 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
                 "labelId": row.labelId,
                 "labelName": row.labelName,
             }));
-            return { assetLabels };
+            return assetLabels.assetLabel;
         });
     } catch (error) {
         console.error(error);
@@ -61,17 +61,13 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
 exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, next) {
     if (!req.params.assetId) {
         console.info('getAssetLabelByAsset assetId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                assetId: 'is required',
-            }
-        });
+        throw new Error('assetId is required');
     }
+
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT t1.assetId, assetName, t1.labelId, labelName 
+                SELECT t1.assetId, assetName, t1.labelId, labelName, t2.collectionId
                 FROM poamtracking.assetlabels t1 
                 INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId 
                 INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId 
@@ -84,8 +80,9 @@ exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, n
                 "assetName": row.assetName,
                 "labelId": row.labelId,
                 "labelName": row.labelName,
+                "collectionId": row.collectionId
             }));
-            return { assetLabels };
+            return assetLabels;
         });
     } catch (error) {
         console.error(error);
@@ -97,7 +94,7 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, n
     if (!req.params.labelId) {
         console.info('getAssetLabelByLabel labelId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 labelId: 'is required',
             }
@@ -120,7 +117,7 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, n
                 "labelId": row.labelId,
                 "labelName": row.labelName,
             }));
-            return { assetLabels };
+            return assetLabels.assetLabels;
         });
     } catch (error) {
         console.error(error);
@@ -132,7 +129,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     if (!req.params.assetId) {
         console.info('getAssetLabel assetId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetId: 'is required',
             }
@@ -141,7 +138,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     if (!req.params.labelId) {
         console.info('getAssetLabel labelId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 labelId: 'is required',
             }
@@ -157,60 +154,44 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
                 WHERE t1.assetId = ? AND t1.labelId = ?
                 ORDER BY t3.labelName
             `;
-            let [rowAssetLabel] = await connection.query(sql, [req.params.assetId, req.params.labelId]);
             var assetLabel = rowAssetLabel.length > 0 ? [rowAssetLabel[0]] : [];
-            return { assetLabel };
+            return assetLabel.assetLabel;
         });
     } catch (error) {
         console.error(error);
-        return { null: "null" };
+        throw error;
     }
 }
 
 exports.postAssetLabel = async function postAssetLabel(req, res, next) {
     if (!req.body.assetId) {
         console.info('postAssetLabel assetId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                assetId: 'is required',
-            }
-        });
+        throw new Error('assetId is required');
     } else if (!req.body.labelId) {
         console.info('postAssetLabel labelId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                labelId: 'is required',
-            }
-        });
+        throw new Error('labelId is required');
     } else if (!req.body.collectionId) {
         console.info('postAssetLabel collectionId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                collectionId: 'is required',
-            }
-        });
+        throw new Error('collectionId is required');
     }
+
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                INSERT INTO poamtracking.assetlabels (assetId, collectionId, labelId) 
+                INSERT INTO poamtracking.assetlabels (assetId, collectionId, labelId)
                 VALUES (?, ?, ?)
             `;
             await connection.query(sql_query, [req.body.assetId, req.body.collectionId, req.body.labelId]);
+
             let sql = `
-                SELECT t1.assetId, assetName, t1.labelId, labelName 
-                FROM poamtracking.assetlabels t1 
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId 
-                INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId 
+                SELECT t1.assetId, t1.collectionId, t1.labelId
+                FROM poamtracking.assetlabels t1
                 WHERE t1.assetId = ? AND t1.labelId = ?
-                ORDER BY t3.labelName
             `;
             let [rowAssetLabel] = await connection.query(sql, [req.body.assetId, req.body.labelId]);
-            var assetLabel = [rowAssetLabel[0]];
-            return { assetLabel };
+
+            var assetLabel = rowAssetLabel.length > 0 ? rowAssetLabel[0] : null;
+            return (assetLabel);
         });
     } catch (error) {
         console.error(error);
@@ -222,7 +203,7 @@ exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
     if (!req.params.assetId) {
         console.info('deleteAssetLabel assetId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 assetId: 'is required',
             }
@@ -231,7 +212,7 @@ exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
     if (!req.params.labelId) {
         console.info('deleteAssetLabel labelId not provided.');
         return next({
-            status: 422,
+            status: 400,
             errors: {
                 labelId: 'is required',
             }

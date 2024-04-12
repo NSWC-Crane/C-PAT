@@ -9,88 +9,33 @@
 !########################################################################
 */
 
-require('dotenv').config();
 const express = require('express');
 const app = express();
-const PORT = 8086;
-const HOST = 'localhost';
 const passport = require('passport');
-const sequelize = require('./utils/sequelize');
-const path = require('path');
-const multer = require('multer');
-const http = require('http');
 const cors = require('cors');
 const authAPI = require('./utils/authAPI');
-const upload = multer({ storage: multer.memoryStorage() });
-const Import = require('./Controllers/Import');
-
-const { middleware: openApiMiddleware } = require('express-openapi-validator');
-const apiSpecPath = path.join(__dirname, './specification/poam-manager.yaml');
-const eovPath = path.dirname(require.resolve('express-openapi-validator'));
-const eovErrors = require(path.join(eovPath, 'framework', 'types.js'));
 const config = require('./utils/config');
-
-let storage = multer.memoryStorage();
-initAuth();
+const routes = require('./routes');
+const db = require('./db');
+const YAML = require('yamljs');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecification = YAML.load('./specification/C-PAT.yaml');
 
 app.use(cors());
 app.use(express.json({
     strict: false,
-    limit: parseInt('10485760') //JSON request body limited to 10MB
+    limit: parseInt('10485760'),
 }));
 
-// Define the poamUploadRoutes within index.js
-app.post('/api/poamimport', upload.single('file'), Import.uploadPoamFile);
+app.use('/api', swaggerUi.serve, swaggerUi.setup(swaggerSpecification));
 
-app.use("/", openApiMiddleware({
-    apiSpec: apiSpecPath,
-    validateRequests: {
-        coerceTypes: false,
-        allowUnknownQueryParameters: false,
-    },
-    validateResponses: true,
-    validateApiSpec: true,
-    $refParser: {
-        mode: 'dereference',
-    },
-    operationHandlers: {
-        basePath: path.join(__dirname, 'controllers'),
-        resolver: modulePathResolver
-    },
-    validateSecurity: {
-        handlers: {
-            oauth: authAPI.verifyRequest
-        }
-    },
-}));
-
-app.post('/api/stigmancollectionimport', Import.importCollectionAndAssets);
-app.post('/api/stigmanassetimport', Import.importAssets);
-
-require('./utils/passport');
-
-async function initAuth() {
+(async () => {
     await authAPI.initializeAuth();
-}
+    await db.initializeDatabase();
 
-let db = require(`./Services/${config.database.type}/utils`);
-try {
-    db.initializeDatabase();
-} catch (e) {
-    console.log(e);
-}
+    app.use(routes);
 
-const server = http.createServer(app).listen(PORT, () => console.log(`It's alive on http://${HOST}:${PORT}`));
-
-function modulePathResolver(handlersPath, route, apiDoc) {
-    const pathKey = route.openApiRoute.substring(route.basePath.length);
-    const schema = apiDoc.paths[pathKey][route.method.toLowerCase()];
-    const controller = schema.tags[0];
-    const method = schema['operationId'];
-    const modulePath = path.join(handlersPath, controller);
-    const handler = require(modulePath);
-    if (handler[method] === undefined) {
-        throw new Error(`Could not find a [${method}] function in ${modulePath} when trying to route [${route.method} ${route.expressRoute}]. Pathkey: ${pathKey} Schema: ${schema} Controller: ${controller} method: ${method} ModulePath: ${modulePath} Handler: ${handler}`);
-    }
-    return handler[method];
-}
+    const server = app.listen(config.cpat.port, () =>
+        console.log(`API is live on http://${config.cpat.host}:${config.cpat.port}\nSwagger UI is live on http://${config.cpat.host}:${config.cpat.port}/api`),
+    );
+})();

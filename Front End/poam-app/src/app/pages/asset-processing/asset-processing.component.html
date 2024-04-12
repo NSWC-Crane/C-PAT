@@ -6,7 +6,6 @@
         <nb-card-body class="scrollable-assets" (scroll)="onScroll($event)">
           <nb-tabset fullWidth>
             <nb-tab tabTitle="Asset Management">
-
               <h3>Assets</h3>
               <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Assets">
               <table [nbTreeGrid]="dataSource">
@@ -25,8 +24,6 @@
                   <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
                 </ng-container>
               </table>
-
-
             </nb-tab>
 
             <nb-tab tabTitle="Asset Chart">

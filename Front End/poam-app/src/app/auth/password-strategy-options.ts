@@ -9,9 +9,6 @@
 */
 
 import { NbPasswordAuthStrategyOptions, NbPasswordAuthStrategy, NbAuthJWTToken, NbAuthOAuth2JWTToken, NbPasswordStrategyModule } from "@nebular/auth";
-import { HttpClient } from "@angular/common/http";
-import { ActivatedRoute } from "@angular/router";
-import { environment } from "../../environments/environment";
 
 class PasswordAuthStrategyOptions extends NbPasswordAuthStrategyOptions {
   changeWorkspace?: boolean | NbPasswordStrategyModule;
@@ -19,7 +16,6 @@ class PasswordAuthStrategyOptions extends NbPasswordAuthStrategyOptions {
 
 export const PASSWORD_AUTH_OPTIONS: PasswordAuthStrategyOptions = {
   name: "email",
-  //baseEndpoint: `${environment.apiEndpoint}/auth/`,
   baseEndpoint: `http://localhost:8086`,
   changeWorkspace: {
     endpoint: "changeWorkspace",
@@ -53,10 +49,6 @@ export const PASSWORD_AUTH_OPTIONS: PasswordAuthStrategyOptions = {
     endpoint: 'reset-pass',
     method: 'put',
   },
-  // token: {
-  //   class: NbAuthJWTToken,
-  //   key: "token",
-  // },
   errors: {
     key: "errors",
   },

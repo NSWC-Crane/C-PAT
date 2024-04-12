@@ -8,15 +8,6 @@
 !########################################################################
 */
 
-/**
- * Extending object that entered in first argument.
- *
- * Returns extended object or false if have no target object or incorrect type.
- *
- * If you wish to clone source object (without modify it), just use empty new
- * object as first argument, like this:
- *   deepExtend({}, yourObj_1, [yourObj_N]);
- */
 export const deepExtend = function (...objects: any[]): any {
     if (arguments.length < 1 || typeof arguments[0] !== 'object') {
       return false;
@@ -27,55 +18,43 @@ export const deepExtend = function (...objects: any[]): any {
     }
   
     const target = arguments[0];
-  
-    // convert arguments to array and cut off target object
     const args = Array.prototype.slice.call(arguments, 1);
-  
     let val, src;
   
     args.forEach(function (obj: any) {
-      // skip argument if it is array or isn't object
       if (typeof obj !== 'object' || Array.isArray(obj)) {
         return;
       }
   
       Object.keys(obj).forEach(function (key) {
-        src = target[key]; // source value
-        val = obj[key]; // new value
+        src = target[key];
+        val = obj[key];
   
-        // recursion prevention
         if (val === target) {
           return;
   
-          /**
-           * if new value isn't object then just overwrite by new value
-           * instead of extending.
-           */
+
         } else if (typeof val !== 'object' || val === null) {
           target[key] = val;
   
           return;
   
-          // just clone arrays (and recursive clone objects inside)
         } else if (Array.isArray(val)) {
           target[key] = deepCloneArray(val);
   
           return;
   
-          // custom cloning and overwrite for specific objects
-        } else if (isSpecificValue(val)) {
+                  } else if (isSpecificValue(val)) {
           target[key] = cloneSpecificValue(val);
   
           return;
   
-          // overwrite by new value if source isn't object or array
-        } else if (typeof src !== 'object' || src === null || Array.isArray(src)) {
+                  } else if (typeof src !== 'object' || src === null || Array.isArray(src)) {
           target[key] = deepExtend({}, val);
   
           return;
   
-          // source value and new value is objects both, extending...
-        } else {
+                  } else {
           target[key] = deepExtend(src, val);
   
           return;
@@ -103,9 +82,6 @@ export const deepExtend = function (...objects: any[]): any {
     }
   }
   
-  /**
-   * Recursive cloning array.
-   */
   function deepCloneArray(arr: any[]): any {
     const clone: any[] = [];
     arr.forEach(function (item: any, index: any) {
@@ -125,10 +101,8 @@ export const deepExtend = function (...objects: any[]): any {
     return clone;
   }
   
-  // getDeepFromObject({result: {data: 1}}, 'result.data', 2); // returns 1
   export function getDeepFromObject(object = {}, name: string, defaultValue?: any) {
     const keys = name.split('.');
-    // clone the object
     let level = deepExtend({}, object || {});
     keys.forEach((k) => {
       if (level && typeof level[k] !== 'undefined') {
@@ -165,23 +139,17 @@ export const deepExtend = function (...objects: any[]): any {
     }
   
     for (
-      // initialize result and counters
       let bc: number = 0, bs: any, buffer: any, idx: number = 0;
-      // get next character
       buffer = str.charAt(idx++);
-      // character found in table? initialize bit storage and add its ascii value;
       ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
-        // and if not first of each 4 characters,
-        // convert the first 8 bits to one ascii character
+
       bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
     ) {
-      // try to find character in table (0-63, not found => -1)
       buffer = chars.indexOf(buffer);
     }
     return output;
   }
   
-  // https://developer.mozilla.org/en/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
   export function b64DecodeUnicode(str: any) {
     return decodeURIComponent(Array.prototype.map.call(b64decode(str), (c: any) => {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);

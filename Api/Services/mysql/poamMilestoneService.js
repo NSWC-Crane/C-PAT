@@ -15,7 +15,7 @@ const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const pool = dbUtils.getPool();
-	const connection = await pool.getConnection();
+    const connection = await pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -29,195 +29,189 @@ function normalizeDate(date) {
     return d.toISOString().split('T')[0];
 }
 
-exports.getPoamMilestones = async function getPoamMilestones(req, res, next) {
-    if (!req.params.poamId) {
-        console.info("getPoamMilestones poamId not provided.");
-        return next({
-            status: 422,
-            errors: {
-                poamId: "is required",
-            },
-        });
-    }
-
+exports.getPoamMilestones = async function getPoamMilestones(poamId) {
     try {
+        if (!poamId) {
+            console.info("getPoamMilestones poamId not provided.");
+            throw new Error('POAM ID is required');
+        }
+
         return await withConnection(async (connection) => {
             let sql = "SELECT * FROM poamtracking.poammilestones WHERE poamId = ?;";
-            let [rows] = await connection.query(sql, [req.params.poamId]);
+            let [rows] = await connection.query(sql, [poamId]);
             var poamMilestones = rows.map(row => ({ ...row }));
             return { poamMilestones };
         });
     } catch (error) {
         console.error(error);
-        return { null: "null" };
+        throw error;
     }
 };
 
-exports.postPoamMilestone = async function postPoamMilestone(req, res, next) {
-    if (!req.params.poamId) {
-        console.info("postPoamMilestone poamId not provided.");
-        return next({
-            status: 422,
-            errors: {
-                poamId: "is required",
-            },
-        });
-    }
-
-    req.body.milestoneDate = normalizeDate(req.body.milestoneDate);
-    if (!req.body.milestoneComments) req.body.milestoneComments = null;
-    if (!req.body.milestoneStatus) req.body.milestoneStatus = null;
-
+exports.postPoamMilestone = async function postPoamMilestone(poamId, requestBody) {
     try {
+        if (!poamId) {
+            console.info("postPoamMilestone poamId not provided.");
+            throw {
+                status: 400,
+                errors: {
+                    poamId: "is required",
+                },
+            };
+        }
+
+        requestBody.milestoneDate = normalizeDate(requestBody.milestoneDate);
+        if (!requestBody.milestoneComments) requestBody.milestoneComments = null;
+        if (!requestBody.milestoneStatus) requestBody.milestoneStatus = null;
+
         return await withConnection(async (connection) => {
             let sql_query = `INSERT INTO poamtracking.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneStatus) VALUES (?, ?, ?, ?)`;
             await connection.query(sql_query, [
-                req.params.poamId,
-                req.body.milestoneDate,
-                req.body.milestoneComments,
-                req.body.milestoneStatus,
+                poamId,
+                requestBody.milestoneDate,
+                requestBody.milestoneComments,
+                requestBody.milestoneStatus,
             ]);
 
             let sql = "SELECT * FROM poamtracking.poamMilestones WHERE poamId = ?";
-            let [rows] = await connection.query(sql, [req.params.poamId]);
+            let [rows] = await connection.query(sql, [poamId]);
 
             var poamMilestone = rows.map(row => ({ ...row }));
 
-            if (req.body.poamLog && req.body.poamLog.length > 0) {
-                let userId = req.body.poamLog[0].userId;
+            if (requestBody.poamLog && requestBody.poamLog.length > 0) {
+                let userId = requestBody.poamLog[0].userId;
                 let action = `POAM Milestone Created.<br>
-Milestone Date: ${normalizeDate(req.body.milestoneDate)}<br>
-Milestone Comment: ${req.body.milestoneComments}`;
+Milestone Date: ${normalizeDate(requestBody.milestoneDate)}<br>
+Milestone Comment: ${requestBody.milestoneComments}`;
 
                 let logSql = `INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [req.params.poamId, action, userId]);
+                await connection.query(logSql, [poamId, action, userId]);
             }
-            console.log("poamMilestone: ", poamMilestone);
             return { poamMilestone };
         });
     } catch (error) {
         console.error("error: ", error);
-        return { null: "null" };
+        throw error;
     }
 };
 
-exports.putPoamMilestone = async function putPoamMilestone(req, res, next) {
-    if (!req.params.poamId) {
-        console.info("putPoamMilestone poamId not provided.");
-        return next({
-            status: 422,
-            errors: {
-                poamId: "is required",
-            },
-        });
-    }
-
-    if (!req.params.milestoneId) {
-        console.info("putCollectionMilestone milestoneId not provided.");
-        return next({
-            status: 422,
-            errors: {
-                userId: "is required",
-            },
-        });
-    }
-
-    req.body.milestoneDate = normalizeDate(req.body.milestoneDate);
-    if (!req.body.milestoneComments) req.body.milestoneComments = null;
-    if (!req.body.milestoneStatus) req.body.milestoneStatus = null;
-
+exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, requestBody) {
     try {
+        if (!poamId) {
+            console.info("putPoamMilestone poamId not provided.");
+            throw {
+                status: 400,
+                errors: {
+                    poamId: "is required",
+                },
+            };
+        }
+
+        if (!milestoneId) {
+            console.info("putCollectionMilestone milestoneId not provided.");
+            throw {
+                status: 400,
+                errors: {
+                    milestoneId: "is required",
+                },
+            };
+        }
+
+        requestBody.milestoneDate = normalizeDate(requestBody.milestoneDate);
+        if (!requestBody.milestoneComments) requestBody.milestoneComments = null;
+        if (!requestBody.milestoneStatus) requestBody.milestoneStatus = null;
+
         return await withConnection(async (connection) => {
             let getMilestoneSql = "SELECT * FROM poamtracking.poammilestones WHERE poamId = ? AND milestoneId = ?";
-            let [existingMilestone] = await connection.query(getMilestoneSql, [req.params.poamId, req.params.milestoneId]);
+            let [existingMilestone] = await connection.query(getMilestoneSql, [poamId, milestoneId]);
 
             let sql_query = `UPDATE poamtracking.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneStatus = ? WHERE poamId = ? AND milestoneId = ?`;
             await connection.query(sql_query, [
-                req.body.milestoneDate,
-                req.body.milestoneComments,
-                req.body.milestoneStatus,
-                req.params.poamId,
-                req.params.milestoneId,
+                requestBody.milestoneDate,
+                requestBody.milestoneComments,
+                requestBody.milestoneStatus,
+                poamId,
+                milestoneId,
             ]);
 
             sql_query = "SELECT * FROM poamtracking.poamMilestones WHERE poamId = ?;";
-            let [rows] = await connection.query(sql_query, [req.params.poamId]);
+            let [rows] = await connection.query(sql_query, [poamId]);
 
             var poamMilestone = rows.map(row => ({ ...row }));
 
-            if (req.body.poamLog && req.body.poamLog.length > 0) {
-                let userId = req.body.poamLog[0].userId;
+            if (requestBody.poamLog && requestBody.poamLog.length > 0) {
+                let userId = requestBody.poamLog[0].userId;
                 let actionParts = ["POAM Milestone Updated."];
 
-                if (normalizeDate(existingMilestone[0].milestoneDate) !== normalizeDate(req.body.milestoneDate)) {
+                if (normalizeDate(existingMilestone[0].milestoneDate) !== normalizeDate(requestBody.milestoneDate)) {
                     actionParts.push(`Previous Milestone Date: ${normalizeDate(existingMilestone[0].milestoneDate)}<br>
-New Milestone Date: ${normalizeDate(req.body.milestoneDate)}`);
+New Milestone Date: ${normalizeDate(requestBody.milestoneDate)}`);
                 }
 
-                if (existingMilestone[0].milestoneComments !== req.body.milestoneComments) {
+                if (existingMilestone[0].milestoneComments !== requestBody.milestoneComments) {
                     actionParts.push(`Previous Milestone Comment: ${existingMilestone[0].milestoneComments}<br>
-New Milestone Comment: ${req.body.milestoneComments}`);
+New Milestone Comment: ${requestBody.milestoneComments}`);
                 }
 
-                if (existingMilestone[0].milestoneStatus !== req.body.milestoneStatus) {
+                if (existingMilestone[0].milestoneStatus !== requestBody.milestoneStatus) {
                     actionParts.push(`Previous Milestone Status: ${existingMilestone[0].milestoneStatus}<br>
-New Milestone Status: ${req.body.milestoneStatus}`);
+New Milestone Status: ${requestBody.milestoneStatus}`);
                 }
 
                 let action = actionParts.join("<br>");
 
                 let logSql = `INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [req.params.poamId, action, userId]);
+                await connection.query(logSql, [poamId, action, userId]);
             }
-            console.log("poamMilestone: ", poamMilestone);
             return { poamMilestone };
         });
     } catch (error) {
         console.error("error: ", error);
-        return { null: "null" };
+        throw error;
     }
 };
-exports.deletePoamMilestone = async function deletePoamMilestone(req, res, next) {
-    if (!req.params.poamId) {
-        console.info("deleteCollectionMilestone poamId not provided.");
-        return next({
-            status: 422,
-            errors: {
-                poamId: "is required",
-            },
-        });
-    }
 
-    if (!req.params.milestoneId) {
-        console.info("deleteCollectionMilestone milestoneId not provided.");
-        return next({
-            status: 422,
-            errors: {
-                milestoneId: "is required",
-            },
-        });
-    }
-
+exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milestoneId, requestBody) {
     try {
+        if (!poamId) {
+            console.info("deleteCollectionMilestone poamId not provided.");
+            throw {
+                status: 400,
+                errors: {
+                    poamId: "is required",
+                },
+            };
+        }
+
+        if (!milestoneId) {
+            console.info("deleteCollectionMilestone milestoneId not provided.");
+            throw {
+                status: 400,
+                errors: {
+                    milestoneId: "is required",
+                },
+            };
+        }
+
         return await withConnection(async (connection) => {
             let sql = "DELETE FROM poamtracking.poammilestones WHERE poamId= ? AND milestoneId = ?";
-            await connection.query(sql, [req.params.poamId, req.params.milestoneId]);
+            await connection.query(sql, [poamId, milestoneId]);
 
             let action = `Milestone Deleted.`;
-            if (req.body.requestorId) {
-                if (req.body.extension == true) {
+            if (requestBody.requestorId) {
+                if (requestBody.extension == true) {
                     action = `Extension milestone deleted.`;
                 }
                 else {
                     action = `POAM milestone deleted.`;
                 }
                 let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
+                await connection.query(logSql, [poamId, action, requestBody.requestorId]);
             }
-            return { delete: "Success" };
+            return {};
         });
     } catch (error) {
         console.error("error: ", error);
-        return { null: "null" };
+        throw error;
     }
 };

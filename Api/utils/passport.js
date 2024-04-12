@@ -12,16 +12,10 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const userService = require('../Services/mysql/usersService');
 
-/**
- * Local Strategy
- *
- * @param username
- * @param password
- */
+
 passport.use(
   new LocalStrategy(
     async (username, password, done) => {
-      //console.log("passport.use...");
     await userService.getUserByNamePassword(username, (err, user) => {
       console.log("passpport... username, password...", JSON.stringify(user))
       if (err) { 

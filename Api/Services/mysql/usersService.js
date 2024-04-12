@@ -8,17 +8,12 @@
 !########################################################################
 */
 
-'use strict';
-const config = require('../../utils/config');
 const dbUtils = require('./utils');
-const mysql = require('mysql2');
-const tokenGenerator = require('../../utils/token-generator');
-const auth = require('../../utils/auth');
 const writeLog = require('../../utils/poam_logger');
 
 async function withConnection(callback) {
     const pool = dbUtils.getPool();
-	const connection = await pool.getConnection();
+    const connection = await pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -26,44 +21,17 @@ async function withConnection(callback) {
     }
 }
 
-exports.getUserObject = async function getUserObject(body, projection, userObject) {
-    res.status(201).json({ message: "getUser (Service) Method Called successfully" });
-};
-
-exports.refresh = async function refresh(userId, body, projection, userObject) {
-    return await withConnection(async (connection) => {
-        let sql = "SELECT * FROM user WHERE userId = ?";
-        let [row] = await connection.query(sql, [userId]);
-        return row[0];
-    });
-};
-
-exports.getUserByUserID = async function getUserByUserID(userId, body, projection, userObject) {
-    return await withConnection(async (connection) => {
-        let sql = "SELECT * FROM user WHERE userId = ?";
-        let [row] = await connection.query(sql, [userId]);
-        return row[0];
-    });
-};
-
-exports.getCurrentUser = async function getCurrentUser(req) {
-    if (!req.userObject || !req.userObject.email) {
-        return { error: "User is not authenticated", status: 400 };
-    }
-
+exports.getUsers = async function getUsers() {
     try {
-        const userEmail = req.userObject.email;
         return await withConnection(async (connection) => {
-            const sqlUser = "SELECT * FROM user WHERE userEmail = ?";
-            const [rows] = await connection.query(sqlUser, [userEmail]);
+            let sql = "SELECT * FROM poamtracking.user;";
+            let [rows] = await connection.query(sql);
 
-            if (rows.length > 0) {
-                const user = rows[0];
-
+            const users = await Promise.all(rows.map(async (user) => {
                 const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId = ?";
-                const [rowPermissions] = await connection.query(sqlPermissions, [user.userId]);
+                const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
 
-                const permissions = rowPermissions.map(permission => ({
+                const permissions = permissionRows.map(permission => ({
                     userId: permission.userId,
                     collectionId: permission.collectionId,
                     canOwn: permission.canOwn,
@@ -72,7 +40,7 @@ exports.getCurrentUser = async function getCurrentUser(req) {
                     canView: permission.canView
                 }));
 
-                const response = {
+                return {
                     userId: user.userId,
                     userName: user.userName,
                     userEmail: user.userEmail,
@@ -87,188 +55,157 @@ exports.getCurrentUser = async function getCurrentUser(req) {
                     isAdmin: user.isAdmin,
                     permissions: permissions
                 };
+            }));
 
-                return { data: response, status: 200 };
-            } else {
-                return { error: "User email not found", status: 404 };
-            }
-        });
-    } catch (error) {
-        console.error('Error in getCurrentUser:', error);
-        return { error: "Internal Server Error", status: 500 };
-    }
-};
-
-exports.getUsers = async function getUsers(req, res, next) {
-    try {
-        return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.user;";
-            let [rows] = await connection.query(sql);
-
-            var size = Object.keys(rows).length;
-            var users = {
-                users: []
-            };
-
-            for (let counter = 0; counter < size; counter++) {
-                const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId = ?";
-                const [rowPermissions] = await connection.query(sqlPermissions, [rows[counter].userId]);
-
-                const permissions = rowPermissions.map(permission => ({
-                    userId: permission.userId,
-                    collectionId: permission.collectionId,
-                    canOwn: permission.canOwn,
-                    canMaintain: permission.canMaintain,
-                    canApprove: permission.canApprove,
-                    canView: permission.canView
-                }));
-
-                users.users.push({
-                    "userId": rows[counter].userId,
-                    "userName": rows[counter].userName,
-                    "userEmail": rows[counter].userEmail,
-                    "firstName": rows[counter].firstName,
-                    "lastName": rows[counter].lastName,
-                    "created": rows[counter].created,
-                    "lastAccess": rows[counter].lastAccess,
-                    "lastCollectionAccessedId": rows[counter].lastCollectionAccessedId,
-                    "accountStatus": rows[counter].accountStatus,
-                    "fullName": rows[counter].fullName,
-                    "defaultTheme": rows[counter].defaultTheme,
-                    "isAdmin": rows[counter].isAdmin,
-                    "permissions": permissions
-                });
-            }
-
-            return { users };
+            return users;
         });
     } catch (error) {
         console.error('Error in getUsers:', error);
-        return { error: "Internal Server Error", status: 500 };
+        throw error;
     }
 };
 
-exports.getUserByNamePassword = async function getUserByNamePassword(username, callback) {
-    function loginObj(userId, userName, email, created, lastAccess, firstName, lastName,
-        lastCollectionAccessedId, defaultTheme) {
-        this.userId = userId;
-        this.userName = userName;
-        this.email = email;
-        this.created = created;
-        this.lastAccess = lastAccess;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.lastCollectionAccessedId = lastCollectionAccessedId;
-        this.defaultTheme = defaultTheme;
-        this.isAdmin = isAdmin;
-    }
-
+exports.getCurrentUser = async function getCurrentUser(userEmail) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM user WHERE userName = ?";
-            let [rowUser] = await connection.query(sql, [username]);
+            const sqlUser = "SELECT * FROM user WHERE userEmail = ?";
+            const [userRows] = await connection.query(sqlUser, [userEmail]);
 
-            let response = new loginObj(
-                rowUser[0].userId,
-                rowUser[0].userName,
-                rowUser[0].userEmail,
-                rowUser[0].created,
-                rowUser[0].lastAcces ? rowUser[0].lastAcces : '',
-                rowUser[0].firstName,
-                rowUser[0].lastName,
-                rowUser[0].lastCollectionAccessedId,
-                rowUser[0].defaultTheme,
-                rowUser[0].isAdmin
-            );
+            if (userRows.length === 0) {
+                throw new Error("User not found");
+            }
 
-            return callback(null, response);
+            const user = userRows[0];
+
+            const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId = ?";
+            const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
+
+            const permissions = permissionRows.map(permission => ({
+                userId: permission.userId,
+                collectionId: permission.collectionId,
+                canOwn: permission.canOwn,
+                canMaintain: permission.canMaintain,
+                canApprove: permission.canApprove,
+                canView: permission.canView
+            }));
+
+            return {
+                userId: user.userId,
+                userName: user.userName,
+                userEmail: user.userEmail,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                created: user.created,
+                lastAccess: user.lastAccess,
+                lastCollectionAccessedId: user.lastCollectionAccessedId,
+                accountStatus: user.accountStatus,
+                fullName: user.fullName,
+                defaultTheme: user.defaultTheme,
+                isAdmin: user.isAdmin,
+                permissions: permissions
+            };
         });
     } catch (error) {
-        console.error(error);
-        return callback(error);
+        console.error('Error in getCurrentUser:', error);
+        throw error;
     }
 };
 
-exports.updateUser = async function updateUser(req, res, next) {
-    let userId = req.body.userId;
-
-    if (!req.body.userEmail) {
-        console.info('Post usersService updateUser: email not provided.');
-        return next({
-            status: 422,
-            errors: {
-                email: 'is required',
-            }
-        });
-    }
-
-    if (!req.body.userId) {
-        console.info('Post usersService updateUser: userId not provided.');
-        return next({
-            status: 422,
-            errors: {
-                email: 'is required',
-            }
-        });
-    }
-
-    let updateSettingsOnly = (+req.body.updateSettingsOnly) ? +req.body.updateSettingsOnly : 0;
-
+exports.getUserByUserID = async function getUserByUserID(userId) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * from user WHERE userId = ?";
-            let [currentUser] = await connection.query(sql, [userId]);
+            let sql = "SELECT * FROM user WHERE userId = ?";
+            const [userRows] = await connection.query(sql, [userId]);
 
-            let fullName = `${req.body.firstName} ${req.body.lastName}`;
-            sql = "UPDATE user SET firstName = ?, lastName = ?, userEmail = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, defaultTheme = ?, isAdmin = ? WHERE userId = ?";
+            if (userRows.length === 0) {
+                throw new Error("User not found");
+            }
+
+            const user = userRows[0];
+
+            const sqlPermissions = "SELECT * FROM poamtracking.collectionpermissions WHERE userId = ?";
+            const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
+
+            const permissions = permissionRows.map(permission => ({
+                userId: permission.userId,
+                collectionId: permission.collectionId,
+                canOwn: permission.canOwn,
+                canMaintain: permission.canMaintain,
+                canApprove: permission.canApprove,
+                canView: permission.canView
+            }));
+
+            return {
+                userId: user.userId,
+                userName: user.userName,
+                userEmail: user.userEmail,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                created: user.created,
+                lastAccess: user.lastAccess,
+                lastCollectionAccessedId: user.lastCollectionAccessedId,
+                accountStatus: user.accountStatus,
+                fullName: user.fullName,
+                defaultTheme: user.defaultTheme,
+                isAdmin: user.isAdmin,
+                permissions: permissions
+            };
+        });
+    } catch (error) {
+        console.error('Error in getUser:', error);
+        throw error;
+    }
+};
+
+exports.updateUser = async function updateUser(userId, userData) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = "UPDATE user SET firstName = ?, lastName = ?, userEmail = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, defaultTheme = ?, isAdmin = ? WHERE userId = ?";
 
             await connection.query(sql, [
-                req.body.firstName,
-                req.body.lastName,
-                req.body.userEmail,
-                req.body.lastCollectionAccessedId,
-                req.body.accountStatus,
-                fullName,
-                req.body.defaultTheme,
-                req.body.isAdmin,
-                userId,
+                userData.firstName,
+                userData.lastName,
+                userData.userEmail,
+                userData.lastCollectionAccessedId,
+                userData.accountStatus,
+                `${userData.firstName} ${userData.lastName}`,
+                userData.defaultTheme,
+                userData.isAdmin,
+                userId
             ]);
 
-            sql = "SELECT * from user WHERE userId = ?";
-            let [rowUser] = await connection.query(sql, [userId]);
+            sql = "SELECT * FROM user WHERE userId = ?";
+            let [updatedUser] = await connection.query(sql, [userId]);
 
-            if (rowUser[0] != undefined) {
-                if (updateSettingsOnly != 1) {
-                    writeLog.writeLog(3, "usersService", 'log', req.userObject.username, req.userObject.displayName, { event: 'modified account', userId: rowUser[0].userId, userName: rowUser[0].userName, userEmail: rowUser[0].userEmail });
-                    writeLog.writeLog(3, "usersService", 'notification', req.userObject.username, req.userObject.displayName, { event: 'modified account', userId: rowUser[0].userId, userName: rowUser[0].userName, userEmail: rowUser[0].userEmail });
-
-                    if (rowUser[0].accountStatus == 'ACTIVE' && currentUser[0].accountStatus != 'ACTIVE') {
-                        writeLog.writeLog(3, "usersService", 'log', req.userObject.username, req.userObject.displayName, { event: 'enabled account', userId: rowUser[0].userId, userName: rowUser[0].userName, userEmail: rowUser[0].userEmail });
-                        writeLog.writeLog(3, "usersService", 'notification', req.userObject.username, req.userObject.displayName, { event: 'enabled account', userId: rowUser[0].userId, userName: rowUser[0].userName, userEmail: rowUser[0].userEmail });
-                    }
-
-                    if (rowUser[0].accountStatus == 'EXPIRED' && currentUser[0].accountStatus != "EXPIRED") {
-                        writeLog.writeLog(3, "usersService", 'log', req.userObject.username, req.userObject.displayName, { event: 'disabled account', userId: rowUser[0].userId, userName: rowUser[0].userName, userEmail: rowUser[0].userEmail });
-                        writeLog.writeLog(3, "usersService", 'notification', req.userObject.username, req.userObject.displayName, { event: 'disabled account', userId: rowUser[0].userId, userName: rowUser[0].userName, userEmail: rowUser[0].userEmail });
-                    }
-                }
-
-                res.status(201).json(rowUser[0]);
-            } else {
-                return next({
-                    status: 422,
-                    errors: {
-                        message: 'update failed',
-                    }
-                });
+            if (updatedUser.length === 0) {
+                throw new Error("User update failed");
             }
+
+            writeLog.writeLog(3, "usersService", 'log', userData.userName, userData.fullName, { event: 'modified account', userId: userId });
+            writeLog.writeLog(3, "usersService", 'notification', userData.userName, userData.fullName, { event: 'modified account', userId: userId });
+
+            return updatedUser[0];
         });
     } catch (error) {
-        console.info('Post usersService login: user login failed.', error);
-        return next({
-            status: 400,
-            message: "Login failed"
+        console.error('Error in updateUser:', error);
+        throw error;
+    }
+};
+
+exports.deleteUserByUserID = async function deleteUserByUserID(userId, username, displayName) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = 'DELETE FROM `user` WHERE `userId`= ?';
+            await connection.query(sql, [userId]);
+
+            writeLog.writeLog(3, "usersService", 'log', username, displayName, { event: 'removed account', userId: userId });
+            writeLog.writeLog(3, "usersService", 'notification', username, displayName, { event: 'removed account', userId: userId });
+
+            return { message: "User deleted" };
         });
+    } catch (error) {
+        console.error('Error in deleteUserByUserID:', error);
+        throw error;
     }
 };
 
@@ -345,4 +282,12 @@ module.exports.generateJWT = async function (previousPayload, jwtSignOptions, us
     }
 
     return tokenGenerator.sign(payload, jwtSignOptions);
+};
+
+exports.refresh = async function refresh(userId, body, projection, userObject) {
+    return await withConnection(async (connection) => {
+        let sql = "SELECT * FROM user WHERE userId = ?";
+        let [row] = await connection.query(sql, [userId]);
+        return row[0];
+    });
 };

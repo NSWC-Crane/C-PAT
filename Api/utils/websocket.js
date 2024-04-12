@@ -16,7 +16,6 @@ exports.init = (io) => {
     .of('/notifications')
     .use(authentication)
     .on('connection', (socket) => {
-      // upon connection, send user notifications
       if (
         socket.request.user.notifications &&
         socket.request.user.notifications.queue
@@ -26,14 +25,10 @@ exports.init = (io) => {
         ));
       }
 
-      // catch internal server events
       common.serverEvents.on('notify', (userid, notification) => {
         if (socket.request.user.id === userid) {
           socket.emit('notify', JSON.stringify(notification));
         }
       });
-
-      // catch event response sent from client
-      // socket.on('notify', () => {})
     })
 }

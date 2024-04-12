@@ -10,8 +10,7 @@
 
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { SubSink } from 'subsink';
-import { NbThemeService, NbWindowService, NbDialogService } from "@nebular/theme";
-import { AuthService } from '../../auth';
+import { NbDialogService } from "@nebular/theme";
 import { KeycloakService } from 'keycloak-angular'
 import { Router } from '@angular/router';
 import { UsersService } from '../user-processing/users.service';
@@ -21,14 +20,9 @@ import { UsersService } from '../user-processing/users.service';
   templateUrl: './dod-consent.component.html',
 })
 export class DoDConsentComponent implements OnInit {
-
-
-
-
   private subs = new SubSink()
   modalWindow: any;
   public isLoggedIn = false;
-
 
   constructor(
     private router: Router,
@@ -44,7 +38,6 @@ export class DoDConsentComponent implements OnInit {
 
   async ngAfterViewInit() {
     this.isLoggedIn = await this.keycloak.isLoggedIn();
-    //console.log("isLoggedIn: ",this.isLoggedIn)
     if (this.isLoggedIn) {
       this.modalWindow = this.dialogService.open(this.consentTemplate)
     } else {
@@ -52,11 +45,9 @@ export class DoDConsentComponent implements OnInit {
     } 
   }
 
-  consentOk() {
-    
+  consentOk() {    
     this.login.loginOut("logIn").subscribe(data =>{
       this.router.navigateByUrl("/poam-processing");
-    })
-    
+    })    
   }
 }

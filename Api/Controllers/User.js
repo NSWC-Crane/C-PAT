@@ -8,55 +8,75 @@
 !########################################################################
 */
 
-const userService = require('../Services/mysql/usersService')
-
+const userService = require('../Services/mysql/usersService');
 
 module.exports.getUsers = async function getUsers(req, res, next) {
-	// res.status(201).json({message: "getUser Method Called successfully"})
+    try {
+        const users = await userService.getUsers();
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
 
-	var users = await userService.getUsers(req, res, next)
-	// console.log("returning user: ",users)
-	res.status(201).json(users)
-}
-
-module.exports.getCurrentUser = async function getCurrentUser(req, res) {
-	const result = await userService.getCurrentUser(req);
-
-	if (result.error) {
-		res.status(result.status).json({ message: result.error });
-	} else {
-		res.status(200).json(result.data);
-	}
-}
-
+module.exports.getCurrentUser = async function getCurrentUser(req, res, next) {
+    try {
+        const userEmail = req.userObject.email;
+        const user = await userService.getCurrentUser(userEmail);
+        res.status(200).json(user);
+    } catch (error) {
+        if (error.message === "User not found") {
+            res.status(200).json(user);
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
 
 module.exports.getUserByUserID = async function getUserByUserID(req, res, next) {
-	// console.log("getUserByUserID: ", req.params.userId)
-	let userId = req.params.userId
-	// console.log(userId)
-	var user = await userService.getUserByUserID(userId)
-	// console.log(user)
-	res.status(201).json(user)
-
-}
+    try {
+        const userId = req.params.userId;
+        const user = await userService.getUserByUserID(userId);
+        res.status(200).json(user);
+    } catch (error) {
+        if (error.message === "User not found") {
+            res.status(200).json(user);
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
 
 module.exports.updateUser = async function updateUser(req, res, next) {
-	// console.log("updateUser call, req.body:", req.body);
-	var user = await userService.updateUser(req, res, next);
-	res.status(201).json(user)
-}
-
+    try {
+        const userId = req.body.userId;
+        const userData = req.body;
+        const updatedUser = await userService.updateUser(userId, userData);
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        if (error.message === "User update failed") {
+            res.status(400).json({ error: 'Bad Request', detail: error.message });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
 
 module.exports.deleteUser = async function deleteUser(req, res, next) {
-
-	let userId = req.params.userId
-	var deletedUser = await userService.deleteUserByUserID(userId)
-
-	res.status(201).json(deletedUser)
-}
+    try {
+        const userId = req.params.userId;
+        await userService.deleteUserByUserID(userId, req.userObject.username, req.userObject.displayName);
+        res.status(200).json({ message: 'User deleted' });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
 
 module.exports.loginout = async function loginout(req, res, next) {
-	//console.log("user controller loginout req: ",req.body)
-	var inout = await userService.loginout(req, res, next);
-	res.status(201).json(inout)
-}
+    try {
+        const message = await userService.loginout(req, res, next);
+        res.status(201).json(message);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
