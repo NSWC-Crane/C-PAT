@@ -150,9 +150,9 @@ exports.register = async (req, res, next) => {
 
         if (req.body.collectionAccessRequest) {
             await withConnection(async (connection) => {
-                const sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, canOwn, canMaintain, canApprove, canView) VALUES (?, ?, ?, ?, ?, ?)`;
+                const sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, accessLevel) VALUES (?, ?, ?)`;
                 for (const request of req.body.collectionAccessRequest) {
-                    await connection.query(sql_query, [user.userId, request.collectionId, false, false, false]);
+                    await connection.query(sql_query, [user.userId, request.collectionId, 1]);
                 }
             });
         }

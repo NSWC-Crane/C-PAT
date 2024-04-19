@@ -1,35 +1,41 @@
-import { Component, ViewChild, ElementRef, EventEmitter, OnDestroy, OnInit, Output, TemplateRef } from '@angular/core';
-import { AuthService } from './auth';
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+import { Component, ViewChild, ElementRef, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { NbDialogService, NbMenuItem, NbSidebarService, NbThemeService, NbMenuService } from '@nebular/theme';
 import { Router } from '@angular/router';
 import { CollectionsService } from './pages/collection-processing/collections.service';
 import { UsersService } from './pages/user-processing/users.service';
 import { SubSink } from 'subsink';
 import { PoamService } from '../app/pages/poam-processing/poams.service'
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { KeycloakService } from 'keycloak-angular'
 import { KeycloakProfile } from 'keycloak-js';
 import { accessControlList } from './access-control-list';
 import { appMenuItems } from './app-menu';
 import { environment } from '../environments/environment';
-import { FileUploadService } from './file-upload.service';
+import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { ChangeDetectorRef } from '@angular/core';
 import { StatusDialogComponent } from './Shared/components/status-dialog/status-dialog.component';
 import { SharedService } from './Shared/shared.service';
 
 interface Permission {
   userId: number;
   collectionId: number;
-  canOwn: number;
-  canMaintain: number;
-  canApprove: number;
-  canView: number;
+  accessLevel: number;
 }
 
 @Component({
-  selector: "ngx-app",
+  selector: "cpat-app",
   templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
 
 export class AppComponent implements OnInit, OnDestroy {
@@ -47,8 +53,12 @@ export class AppComponent implements OnInit, OnDestroy {
   collections: any = [];
   nbSelectorStatus = "success"
   selectedCollection: any = null;
+  sidebarExpanded = true;
+  private sidebarSubscription: Subscription;
   payload: any;
   user: any;
+  fullName: any;
+  userRole: any;
   token: any;
   title = 'poam-app';
   buttonClass = 'btn-outline-primary';
@@ -56,16 +66,15 @@ export class AppComponent implements OnInit, OnDestroy {
   poamItems: any;
   viewingfulldetails: boolean = false;
   public detailedPoam: any;
-
   private subs = new SubSink()
 
+  userMenu = ['Notification 1', 'Notification 2'];
+
   constructor(
-    private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
-    private readonly sidebarService: NbSidebarService,
+    public sidebarService: NbSidebarService,
     private menuService: NbMenuService,
     private themeService: NbThemeService,
-    private authService: AuthService,
     private router: Router,
     private sharedService: SharedService,
     private collectionService: CollectionsService,
@@ -73,7 +82,14 @@ export class AppComponent implements OnInit, OnDestroy {
     private poamService: PoamService,
     private readonly keycloak: KeycloakService,
     private fileUploadService: FileUploadService,
-  ) { }
+  ) {
+    this.sidebarSubscription = this.sidebarService.onToggle()
+      .subscribe(({ tag }) => {
+        if (tag === 'menu-sidebar') {
+          this.checkSidebarState();
+        }
+      });
+  }
 
   public async ngOnInit() {
 
@@ -112,15 +128,13 @@ export class AppComponent implements OnInit, OnDestroy {
     this.subs.sink = this.userService.getCurrentUser().subscribe({
       next: (response: any) => {
         this.user = response;
-
+        this.fullName = response.fullName
+        this.user.isAdmin ? this.userRole = 'C-PAT Admin' : this.userRole = 'C-PAT User';
         if (this.user.accountStatus === 'ACTIVE') {
           this.payload = Object.assign({}, this.user, {
             collections: this.user.permissions.map((permission: Permission) => ({
               collectionId: permission.collectionId,
-              canOwn: permission.canOwn,
-              canMaintain: permission.canMaintain,
-              canApprove: permission.canApprove,
-              canView: permission.canView
+              accessLevel: permission.accessLevel,
             }))
           });
 
@@ -175,7 +189,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   getPoamsForCollection() {
-        if (this.payload.lastCollectionAccessedId) {
+    if (this.payload.lastCollectionAccessedId) {
       this.subs.sink = this.poamService.getPoamsByCollection(this.payload.lastCollectionAccessedId).subscribe((poams: any) => {
         this.poams = poams;
         this.poamItems = [];
@@ -195,19 +209,25 @@ export class AppComponent implements OnInit, OnDestroy {
 
   }
 
-  toggleSidebar(): boolean {
-    this.sidebarService.toggle();
-    return false;
+  toggleSidebar() {
+    this.sidebarService.toggle(true, 'menu-sidebar');
+  }
+
+  checkSidebarState() {
+    this.sidebarService.getSidebarState('menu-sidebar')
+      .subscribe((state) => {
+        this.sidebarExpanded = state != 'expanded';
+      });
   }
 
   onSelectedPoamChange(data: any) {
-        if (data.length == 0) return;      let poamId = data[0];
+    if (data.length == 0) return; let poamId = data[0];
     let poam = this.poams.find((e: { poamId: any; }) => e.poamId === poamId)
 
     this.poamItems.forEach((item: { checked: boolean; }) => {
       if (item.checked) item.checked = false;
     })
-        this.router.navigateByUrl("/poam-details/" + +poam.poamId);
+    this.router.navigateByUrl("/poam-details/" + +poam.poamId);
   }
 
   onSelectedThemeChange(theme: any) {
@@ -215,8 +235,8 @@ export class AppComponent implements OnInit, OnDestroy {
       console.error("User data is not available");
       return;
     }
-        this.themeService.changeTheme(theme);
-    
+    this.themeService.changeTheme(theme);
+
     let userUpdate = {
       userId: this.user.userId,
       userName: this.user.userName,
@@ -225,18 +245,18 @@ export class AppComponent implements OnInit, OnDestroy {
       lastName: this.user.lastName,
       lastCollectionAccessedId: this.user.lastCollectionAccessedId,
       accountStatus: this.user.accountStatus,
-            defaultTheme: theme,
+      defaultTheme: theme,
       isAdmin: this.user.isAdmin,
       updateSettingsOnly: 1
     }
 
     this.userService.updateUser(userUpdate).subscribe((result: any) => {
-            this.user = result;
+      this.user = result;
     });
   }
 
   resetWorkspace(selectedCollection: any) {
-    this.selectedCollection = selectedCollection; 
+    this.selectedCollection = selectedCollection;
     this.selectCollectionMsg = false;
     this.sharedService.setSelectedCollection(parseInt(this.selectedCollection, 10));
 
@@ -258,7 +278,7 @@ export class AppComponent implements OnInit, OnDestroy {
       lastName: this.user.lastName,
       lastCollectionAccessedId: parseInt(selectedCollection),
       accountStatus: this.user.accountStatus,
-            defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
+      defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
       isAdmin: this.user.isAdmin,
       updateSettingsOnly: 1
     }
@@ -269,18 +289,17 @@ export class AppComponent implements OnInit, OnDestroy {
       myRole = 'none'
     } else {
       myRole = (this.user.isAdmin) ? 'admin' :
-      (selectedPermissions.canOwn) ? 'owner' :
-      (selectedPermissions.canMaintain) ? 'maintainer' :
-      (selectedPermissions.canApprove) ? 'approver' :
-      (selectedPermissions.canView) ? 'viewer' :
-      'none'
+        (selectedPermissions.accessLevel === 1) ? 'approver' :
+          (selectedPermissions.accessLevel === 2) ? 'submitter' :
+            (selectedPermissions.accessLevel === 3) ? 'viewer' :
+              'none';
     }
 
     this.payload.role = myRole;
     this.userService.changeRole(this.payload);
 
     this.userService.updateUser(userUpdate).subscribe((result: any) => {
-            this.user = result;
+      this.user = result;
       let payloadUser = {
         userId: this.user.userId,
         userName: this.user.userName,
@@ -297,7 +316,7 @@ export class AppComponent implements OnInit, OnDestroy {
     });
     if (this.user.lastCollectionAccessedId !== selectedCollection) {
       window.location.reload();
-  }
+    }
   }
 
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef;
@@ -323,7 +342,7 @@ export class AppComponent implements OnInit, OnDestroy {
         context: { progress: 0, message: '' }
       });
 
-      this.fileUploadService.upload(file, lastCollectionAccessedId).subscribe({
+      this.fileUploadService.upload(file, lastCollectionAccessedId, this.user.userId).subscribe({
         next: (event) => {
           if (event.type === HttpEventType.UploadProgress) {
             const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
@@ -360,31 +379,31 @@ export class AppComponent implements OnInit, OnDestroy {
   authMenuItems() {
     this.menuItems = null;
     this.menuItems = appMenuItems;
-        this.menuItems.forEach((item: NbMenuItem) => {
+    this.menuItems.forEach((item: NbMenuItem) => {
       item.hidden = true;
       this.authMenuItem(item);
     });
   }
 
   authMenuItem(menuItem: NbMenuItem) {
-        menuItem.hidden = true;
+    menuItem.hidden = true;
 
     if (menuItem.data && menuItem.data['permission'] && menuItem.data['resource'] && this.payload.role != "none") {
-            if (this.accessChecker(menuItem.data['permission'], menuItem.data['resource'])) {
+      if (this.accessChecker(menuItem.data['permission'], menuItem.data['resource'])) {
         menuItem.hidden = false;
       }
     } else {
-            menuItem.hidden = false;
+      menuItem.hidden = false;
     }
 
-        if (!menuItem.hidden && menuItem.children != null) {
+    if (!menuItem.hidden && menuItem.children != null) {
       menuItem.children.forEach(item => {
-        item.hidden = true;         if (item.data && item.data['permission'] && item.data['resource']) {
-                    if (this.accessChecker(item.data['permission'], item.data['resource'])) {
+        item.hidden = true; if (item.data && item.data['permission'] && item.data['resource']) {
+          if (this.accessChecker(item.data['permission'], item.data['resource'])) {
             item.hidden = false;
           }
         } else {
-                    item.hidden = menuItem.hidden;
+          item.hidden = menuItem.hidden;
         }
       });
     }
@@ -392,15 +411,15 @@ export class AppComponent implements OnInit, OnDestroy {
 
   accessChecker(permission: string, resource: string): boolean {
     const rolePermissions = accessControlList.accessControl[this.payload.role] || {};
-  
+
     if (!permission) return false;
-  
+
     const resourcesWithPermission = rolePermissions[permission];
-  
+
     if (resourcesWithPermission && Array.isArray(resourcesWithPermission)) {
       return resourcesWithPermission.includes(resource) || resourcesWithPermission.includes("*");
     }
-  
+
     return false;
   }
 
@@ -411,6 +430,9 @@ export class AppComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ngOnDestroy() {
+    if (this.sidebarSubscription) {
+      this.sidebarSubscription.unsubscribe();
+    }
     this.subs.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();

@@ -34,10 +34,7 @@ exports.getUsers = async function getUsers() {
                 const permissions = permissionRows.map(permission => ({
                     userId: permission.userId,
                     collectionId: permission.collectionId,
-                    canOwn: permission.canOwn,
-                    canMaintain: permission.canMaintain,
-                    canApprove: permission.canApprove,
-                    canView: permission.canView
+                    accessLevel: permission.accessLevel,
                 }));
 
                 return {
@@ -83,10 +80,7 @@ exports.getCurrentUser = async function getCurrentUser(userEmail) {
             const permissions = permissionRows.map(permission => ({
                 userId: permission.userId,
                 collectionId: permission.collectionId,
-                canOwn: permission.canOwn,
-                canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove,
-                canView: permission.canView
+                accessLevel: permission.accessLevel,
             }));
 
             return {
@@ -129,10 +123,7 @@ exports.getUserByUserID = async function getUserByUserID(userId) {
             const permissions = permissionRows.map(permission => ({
                 userId: permission.userId,
                 collectionId: permission.collectionId,
-                canOwn: permission.canOwn,
-                canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove,
-                canView: permission.canView
+                accessLevel: permission.accessLevel,
             }));
 
             return {
@@ -260,10 +251,7 @@ module.exports.generateJWT = async function (previousPayload, jwtSignOptions, us
                 for (let permission in permissions) {
                     let assignedCollections = {
                         collectionId: permission.collectionId,
-                        canOwn: permission.canOwn,
-                        canMaintain: permission.canMaintain,
-                        canApprove: permission.canApprove,
-                        canView: permission.canView
+                        accessLevel: permission.accessLevel,
                     };
                     payload.collections.push(assignedCollections);
                 }

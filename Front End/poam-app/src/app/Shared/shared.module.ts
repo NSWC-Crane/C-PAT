@@ -15,7 +15,7 @@ import { ConfirmationDialogComponent } from './components/confirmation-dialog/co
 import { StatusDialogComponent } from './components/status-dialog/status-dialog.component';
 import { NbButtonModule, NbCardModule, NbWindowModule, NbDialogModule, NbIconModule, NbLayoutModule,
          NbProgressBarModule, NbSidebarModule, NbThemeModule, NbSelectModule, NbSpinnerModule, NbAlertModule, 
-         NbTreeGridModule, NbRadioModule, NbDatepickerComponent, NbDatepickerModule, NbInputModule } from '@nebular/theme';
+         NbTreeGridModule, NbRadioModule, NbDatepickerComponent, NbDatepickerModule, NbInputModule, NbListModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { SmartTableDatepickerComponent } from './components/smart-table/smart-table-datepicker.component';
@@ -24,6 +24,7 @@ import { SmartTableInputComponent } from './components/smart-table/smart-table-i
 import { SmartTableTextareaComponent } from './components/smart-table/smart-table-textarea.component';
 import { SmartTableInputDisabledComponent } from './components/smart-table/smart-table-inputDisabled.component';
 import { SmartTableSelectComponent } from './components/smart-table/smart-table-select.component';
+import { NotificationsPanelComponent } from './notifications-panel/notifications-panel.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { SmartTableSelectComponent } from './components/smart-table/smart-table-
     SmartTableInputDisabledComponent,
     SmartTableSelectComponent,
     SmartTableTextareaComponent,
+    NotificationsPanelComponent,
   ],
   imports: [
     CommonModule,
@@ -49,6 +51,7 @@ import { SmartTableSelectComponent } from './components/smart-table/smart-table-
     NbIconModule,
     NbInputModule,
     NbLayoutModule,
+    NbListModule,
     NbProgressBarModule,
     NbRadioModule,  
     NbSelectModule,
@@ -67,6 +70,7 @@ import { SmartTableSelectComponent } from './components/smart-table/smart-table-
     SmartTableInputDisabledComponent,
     SmartTableSelectComponent,
     SmartTableTextareaComponent,
+    NotificationsPanelComponent,
   ],
   providers: [
     CurrencyPipe,

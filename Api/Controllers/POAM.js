@@ -10,13 +10,16 @@
 
 const poamService = require('../Services/mysql/poamService');
 
-module.exports.getPoams = async function getPoams(req, res, next) {
+module.exports.getAvailablePoams = async function getAvailablePoams(req, res, next) {
     try {
-        const poams = await poamService.getPoams(req, res, next);
+        const poams = await poamService.getAvailablePoams(req, res, next);
         res.status(200).json(poams);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
     }
 };
 
@@ -46,9 +49,9 @@ module.exports.getPoamsByCollectionId = async function getPoamsByCollectionId(re
     }
 };
 
-module.exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, next) {
+module.exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, next) {
     try {
-        const poams = await poamService.getPoamsByOwnerId(req, res, next);
+        const poams = await poamService.getPoamsBySubmitterId(req, res, next);
             res.status(200).json(poams);
     } catch (error) {
         if (error.status === 400) {

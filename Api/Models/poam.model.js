@@ -53,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATEONLY,
             defaultValue: '1900-01-01'
         },
-        ownerId: {
+        submitterId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 0
@@ -74,11 +74,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(10),
             allowNull: false,
             defaultValue: 'Draft'
-        },
-        poamType: {
-            type: DataTypes.STRING(10),
-            allowNull: false,
-            defaultValue: ''
         },
         vulnIdRestricted: {
             type: DataTypes.STRING(255),
@@ -126,10 +121,6 @@ module.exports = (sequelize, DataTypes) => {
         likelihood: {
             type: DataTypes.STRING(15),
             allowNull: false,
-            defaultValue: ''
-        },
-        recommendations: {
-            type: DataTypes.STRING(2000),
             defaultValue: ''
         },
         devicesAffected: {

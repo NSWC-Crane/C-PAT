@@ -45,15 +45,15 @@ exports.getAssets = async function getAssets(req, res, next) {
     }
 }
 
-exports.getAssetsByCollection = async function getAssetsByCollection(collectionId, offset = 0, limit = 50) {
+exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
     try {
-        if (!collectionId) {
+        if (!req.params.collectionId) {
             console.info('getAssetsByCollection collectionId not provided.');
             throw new Error('Collection ID is required');
         }
         return await withConnection(async (connection) => {
-            const sql = "SELECT * FROM poamtracking.asset WHERE collectionId = ? ORDER BY assetName LIMIT ?, ?;";
-            let [rowAssets] = await connection.query(sql, [collectionId, offset, limit]);
+            const sql = "SELECT * FROM poamtracking.asset WHERE collectionId = ? ORDER BY assetName;";
+            let [rowAssets] = await connection.query(sql, [req.params.collectionId]);
             var assets = rowAssets.map(row => ({
                 "assetId": row.assetId,
                 "assetName": row.assetName,

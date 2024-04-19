@@ -21,15 +21,7 @@ import { CollectionsService } from '../collection-processing/collections.service
 interface Permission {
   userId: number;
   collectionId: number;
-  canOwn: number;
-  canMaintain: number;
-  canApprove: number;
-  canView: number;
-}
-interface TreeNode<T> {
-  data: T;
-  children?: TreeNode<T>[];
-  expanded?: boolean;
+  accessLevel: number;
 }
 
 interface FSEntry {
@@ -42,7 +34,7 @@ interface FSEntry {
 }
 
 @Component({
-  selector: 'ngx-user-processing',
+  selector: 'cpat-user-processing',
   templateUrl: './user-processing.component.html',
   styleUrls: ['./user-processing.component.scss']
 })
@@ -50,7 +42,7 @@ export class UserProcessingComponent implements OnInit {
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
   customColumn = 'user';
-  defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Can Own', 'Can Maintain', 'Can Approve'];
+  defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level'];
   allColumns = [this.customColumn, ...this.defaultColumns];
   dataSource!: NbTreeGridDataSource<any>;
   checked = false;
@@ -105,10 +97,7 @@ export class UserProcessingComponent implements OnInit {
               ...this.user,
               collections: this.user.permissions.map((permission: Permission) => ({
                 collectionId: permission.collectionId,
-                canOwn: permission.canOwn,
-                canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove,
-                canView: permission.canView
+                accessLevel: permission.accessLevel,
               }))
             };
 
@@ -151,18 +140,26 @@ export class UserProcessingComponent implements OnInit {
     for (let i = 0; i < userData.length; i++) {
       let tchild: any = [];
       let userPermissions = userData[i].permissions;
+
       if (userPermissions && userPermissions.length > 0) {
         userPermissions.forEach((permission: any) => {
           const collection = this.collectionList.find(c => c.collectionId === permission.collectionId);
           const collectionName = collection ? collection.collectionName : '';
+
+          let accessLevelDisplay = '';
+          if (permission.accessLevel === 1) {
+            accessLevelDisplay = 'Viewer';
+          } else if (permission.accessLevel === 2) {
+            accessLevelDisplay = 'Submitter';
+          } else if (permission.accessLevel === 3) {
+            accessLevelDisplay = 'Approver';
+          }
+
           tchild.push({
             data: {
               user: '', 'Status': '', 'First Name': '', 'Last Name': '', 'Email': '',
               'Collection': collectionName,
-              'Can Own': permission.canOwn == 1 ? 'True' : 'False',
-              'Can Maintain': permission.canMaintain == 1 ? 'True' : 'False',
-              'Can Approve': permission.canApprove == 1 ? 'True' : 'False',
-              'Can View': permission.canView == 1 ? 'True' : 'False'
+              'Access Level': accessLevelDisplay
             }
           });
         });

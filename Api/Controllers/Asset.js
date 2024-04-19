@@ -47,10 +47,7 @@ module.exports.getAssetByName = async function getAssetByName(req, res, next) {
 
 module.exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
     try {
-        const { collectionId } = req.params;
-        const offset = parseInt(req.query.offset) || 0;
-        const limit = parseInt(req.query.limit) || 50;
-        var response = await assetService.getAssetsByCollection(collectionId, offset, limit);
+        var response = await assetService.getAssetsByCollection(req, res, next);
         var assets = response.assets;
         res.status(200).json(assets);
     } catch (error) {

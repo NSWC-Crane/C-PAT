@@ -17,35 +17,30 @@
       <nb-card>
         <nb-card-body class="scrollable-users">
           <h3>Users</h3>
-
           <table [nbTreeGrid]="dataSource">
             <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
             <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-
             <ng-container [nbTreeGridColumnDef]="customColumn">
               <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
               <td nbTreeGridCell *nbTreeGridCellDef="let row">
-
                 <nb-tree-grid-row-toggle [expanded]="row.expanded" *ngIf="row.data['user']">
                 </nb-tree-grid-row-toggle>
-
                 {{row.data[customColumn]}}
-
               </td>
             </ng-container>
-
             <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
               <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{ column }}</th>
               <td nbTreeGridCell *nbTreeGridCellDef="let row">
                 <ng-container *ngIf="row.data[column]">{{ row.data[column] }}</ng-container>
-                <ng-container *ngIf="!row.data[column] && (column === 'Collection' || column === 'Can Own' || column === 'Can Maintain' || column === 'Can Approve')">
+                <ng-container *ngIf="!row.data[column] && column === 'Collection'">
+                  <nb-icon icon="chevron-down"></nb-icon>
+                </ng-container>
+                <ng-container *ngIf="!row.data[column] && column === 'Access Level'">
                   <nb-icon icon="chevron-down"></nb-icon>
                 </ng-container>
               </td>
             </ng-container>
-            
           </table>
-
         </nb-card-body>
       </nb-card>
     </div>
@@ -76,7 +71,7 @@
 
           <div *ngIf="!allowSelectCollections">
 
-            <ngx-user [user]="user" [users]="users" [payload]="payload" (userchange)="resetData();"></ngx-user>
+            <cpat-user [user]="user" [users]="users" [payload]="payload" (userchange)="resetData();"></cpat-user>
           </div>
 
         </nb-card-body>

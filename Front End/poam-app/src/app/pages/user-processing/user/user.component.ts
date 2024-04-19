@@ -21,10 +21,7 @@ import { SmartTableSelectComponent } from '../../../Shared/components/smart-tabl
 interface Permission {
   userId: number;
   collectionId: number;
-  canOwn: number;
-  canMaintain: number;
-  canApprove: number;
-  canView: number;
+  accessLevel: number;
 }
 export interface CollectionsResponse {
   collections: Array<{
@@ -34,7 +31,7 @@ export interface CollectionsResponse {
 }
 
 @Component({
-  selector: 'ngx-user',
+  selector: 'cpat-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss']
 })
@@ -79,7 +76,7 @@ export class UserComponent implements OnInit {
     columns: {
       collectionId: {
         title: 'Collections',
-        width: '19%',
+        width: '47%',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
@@ -96,78 +93,25 @@ export class UserComponent implements OnInit {
           },
         },
       },
-      canOwn: {
-        title: 'Can Own',
-        width: '19%',
+      accessLevel: {
+        title: 'Access Level',
+        width: '47%',
         isFilterable: false,
         type: 'html',
         valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value == 1) ? 'True' : 'False'
+          return row.value == 1 ? 'Viewer' :
+                 row.value === 2 ? 'Submitter' :
+                 row.value === 3 ? 'Approver' :
+                 'none';
         },
         editor: {
           type: 'custom',
           component: SmartTableSelectComponent,
           config: {
             list: [
-              { value: '1', title: 'True' },
-              { value: '0', title: 'False' }
-            ],
-          },
-        },
-      },
-      canMaintain: {
-        title: 'Can Maintain',
-        width: '19%',
-        isFilterable: false,
-        type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value == 1) ? 'True' : 'False'
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableSelectComponent,
-          config: {
-            list: [
-              { value: '1', title: 'True' },
-              { value: '0', title: 'False' }
-            ],
-          },
-        },
-      },
-      canApprove: {
-        title: 'Can Approve',
-        width: '19%',
-        isFilterable: false,
-        type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value == 1) ? 'True' : 'False'
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableSelectComponent,
-          config: {
-            list: [
-              { value: '1', title: 'True' },
-              { value: '0', title: 'False' }
-            ],
-          },
-        },
-      },
-      canView: {
-        title: 'Can View',
-        width: '19%',
-        isFilterable: false,
-        type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value == 1) ? 'True' : 'False'
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableSelectComponent,
-          config: {
-            list: [
-              { value: '1', title: 'True' },
-              { value: '0', title: 'False' }
+              { value: '1', title: 'Viewer' },
+              { value: '2', title: 'Submitter' },
+              { value: '3', title: 'Approver' },
             ],
           },
         },
@@ -284,10 +228,7 @@ export class UserComponent implements OnInit {
     if (this.user && Array.isArray(this.user.permissions)) {
       this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
         collectionId: permission.collectionId.toString(),
-        canOwn: permission.canOwn,
-        canMaintain: permission.canMaintain,
-        canApprove: permission.canApprove,
-        canView: permission.canView
+        accessLevel: permission.accessLevel,
       }));
     } else {
       console.error('User or permissions data is not available');
@@ -312,13 +253,7 @@ export class UserComponent implements OnInit {
   }
 
   confirmCreate(event: any) {
-    if (this.user.userId &&
-      event.newData.collectionId &&
-      event.newData.canOwn &&
-      event.newData.canMaintain &&
-      event.newData.canApprove &&
-      event.newData.canView
-    ) {
+    if (this.user.userId && event.newData.collectionId && event.newData.accessLevel) {
 
       var collection_index = this.collectionList.findIndex((e: any) => e.collectionId == event.newData.collectionId);
 
@@ -331,10 +266,7 @@ export class UserComponent implements OnInit {
       let collectionPermission = {
         userId: this.user.userId,
         collectionId: parseInt(event.newData.collectionId, 10),
-        canOwn: parseInt(event.newData.canOwn, 10),
-        canMaintain: parseInt(event.newData.canMaintain, 10),
-        canApprove: parseInt(event.newData.canApprove, 10),
-        canView: parseInt(event.newData.canView, 10),
+        accessLevel: parseInt(event.newData.accessLevel, 10),
       }
 
       this.isLoading = true;
@@ -345,10 +277,7 @@ export class UserComponent implements OnInit {
               this.user = userData;
               this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
                 collectionId: permission.collectionId.toString(),
-                canOwn: permission.canOwn,
-                canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove,
-                canView: permission.canView
+                accessLevel: permission.accessLevel,
               }));
               this.isLoading = false;
               event.confirm.resolve();
@@ -388,10 +317,7 @@ export class UserComponent implements OnInit {
         userId: this.user.userId,
         oldCollectionId: parseInt(event.data.collectionId, 10),
         newCollectionId: parseInt(event.newData.collectionId, 10),
-        canOwn: parseInt(event.newData.canOwn, 10),
-        canMaintain: parseInt(event.newData.canMaintain, 10),
-        canApprove: parseInt(event.newData.canApprove, 10),
-        canView: parseInt(event.newData.canView, 10),
+        accessLevel: parseInt(event.newData.accessLevel, 10),
       };
 
       this.isLoading = true;
@@ -403,10 +329,7 @@ export class UserComponent implements OnInit {
               this.collectionPermissions = this.user.permissions.map(
                 (permission: Permission) => ({
                   collectionId: permission.collectionId.toString(),
-                  canOwn: permission.canOwn,
-                  canMaintain: permission.canMaintain,
-                  canApprove: permission.canApprove,
-                  canView: permission.canView,
+                  accessLevel: permission.accessLevel,
                 })
               );
               this.isLoading = false;
@@ -441,10 +364,7 @@ export class UserComponent implements OnInit {
             this.collectionPermissions = this.user.permissions.map(
               (permission: Permission) => ({
                 collectionId: permission.collectionId.toString(),
-                canOwn: permission.canOwn,
-                canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove,
-                canView: permission.canView,
+                accessLevel: permission.accessLevel,
               })
             );
             this.isLoading = false;

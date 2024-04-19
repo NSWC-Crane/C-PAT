@@ -44,23 +44,25 @@ exports.postPermission = async function postPermission(req, res, next) {
         });
     }
 
-    if (!req.body.canOwn) req.body.canOwn = 0;
-    if (!req.body.canMaintain) req.body.canMaintain = 0;
-    if (!req.body.canApprove) req.body.canApprove = 0;
-    if (!req.body.canView) req.body.canView = 1;
+    if (!req.body.accessLevel) {
+        console.info('postPermission accessLevel not provided.');
+        return next({
+            status: 400,
+            errors: {
+                accessLevel: 'is required',
+            }
+        });
+    }
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "INSERT INTO poamtracking.collectionpermissions (canOwn, canMaintain, canApprove, canView, userId, collectionId) VALUES (?, ?, ?, ?, ?, ?);";
-            await connection.query(sql_query, [req.body.canOwn, req.body.canMaintain, req.body.canApprove, req.body.canView, req.body.userId, req.body.collectionId]);
+            let sql_query = "INSERT INTO poamtracking.collectionpermissions (accessLevel, userId, collectionId) VALUES (?, ?, ?);";
+            await connection.query(sql_query, [req.body.accessLevel, req.body.userId, req.body.collectionId]);
 
             const message = {
                 userId: req.body.userId,
                 collectionId: req.body.collectionId,
-                canOwn: req.body.canOwn,
-                canMaintain: req.body.canMaintain,
-                canApprove: req.body.canApprove,
-                canView: req.body.canView
+                accessLevel: req.body.accessLevel,
             };
             return message;
         });
@@ -100,23 +102,25 @@ exports.putPermission = async function putPermission(req, res, next) {
         });
     }
 
-    if (!req.body.canOwn) req.body.canOwn = 0;
-    if (!req.body.canMaintain) req.body.canMaintain = 0;
-    if (!req.body.canApprove) req.body.canApprove = 0;
-    if (!req.body.canView) req.body.canView = 1;
+    if (!req.body.accessLevel) {
+        console.info('postPermission accessLevel not provided.');
+        return next({
+            status: 400,
+            errors: {
+                accessLevel: 'is required',
+            }
+        });
+    }
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE poamtracking.collectionpermissions SET collectionId= ?, canOwn= ?, canMaintain= ?, canApprove= ?, canView= ? WHERE userId = ? AND collectionId = ?;";
-            await connection.query(sql_query, [req.body.newCollectionId, req.body.canOwn, req.body.canMaintain, req.body.canApprove, req.body.canView, req.body.userId, req.body.oldCollectionId]);
+            let sql_query = "UPDATE poamtracking.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;";
+            await connection.query(sql_query, [req.body.newCollectionId, req.body.accessLevel, req.body.userId, req.body.oldCollectionId]);
 
             const message = {
                 userId: req.body.userId,
                 collectionId: req.body.newCollectionId,
-                canOwn: req.body.canOwn,
-                canMaintain: req.body.canMaintain,
-                canApprove: req.body.canApprove,
-                canView: req.body.canView
+                accessLevel: req.body.accessLevel,
             };
             return message;
         });

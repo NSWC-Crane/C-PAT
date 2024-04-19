@@ -22,13 +22,12 @@ interface Poam {
   rawSeverity: string;
   adjSeverity: string;
   scheduledCompletionDate: Date | string;
-  ownerId: number;
+  submitterId: number;
   mitigations: string;
   requiredResources: string;
   residualRisk: string;
   notes: string;
   status: string;
-  poamType: string;
   vulnIdRestricted: string;
   submittedDate: Date | string;
   poamItemId: string;
@@ -40,7 +39,6 @@ interface Poam {
   environmentOfThreat: string;
   threatDescription: string;
   likelihood: string;
-  recommendations: string;
   devicesAffected: string;
   businessImpactRating: string;
   businessImpactDescription: string;
@@ -67,13 +65,12 @@ export class ExcelDataService {
       { wch: 10 }, // rawSeverity
       { wch: 10 }, // adjSeverity
       { wch: 22 }, // scheduledCompletionDate
-      { wch: 10 }, // ownerId
+      { wch: 10 }, // submitterId
       { wch: 30 }, // mitigations
       { wch: 16 }, // requiredResources
       { wch: 15 }, // residualRisk
       { wch: 30 }, // notes
       { wch: 10 }, // status
-      { wch: 15 }, // poamType
       { wch: 15 }, // vulnIdRestricted
       { wch: 22 }, // submittedDate
       { wch: 15 }, // poamitemid
@@ -86,7 +83,6 @@ export class ExcelDataService {
       { wch: 20 }, // threatDescription
       { wch: 15 }, // likelihood
       { wch: 30 }, // impactDescription
-      { wch: 30 }, // recommendations
       { wch: 15 }, // devicesAffected
       { wch: 15 }, // businessImpactRating
       { wch: 30 }, // businessImpactDescription

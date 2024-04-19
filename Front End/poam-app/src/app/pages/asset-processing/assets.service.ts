@@ -43,13 +43,9 @@ export class AssetService {
           .pipe(catchError(this.handleError));
   }
 
-  getAssetsByCollection(collectionId: number, offset: number, limit: number) {
-    let params = new HttpParams()
-      .set('offset', offset.toString())
-      .set('limit', limit.toString());
-
+  getAssetsByCollection(collectionId: number) {
     return this.http
-      .get<any>(`${this.uri}/assets/collection/${collectionId}`, { params })
+      .get<any>(`${this.uri}/assets/collection/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
@@ -79,7 +75,7 @@ export class AssetService {
   }
 
   getCollectionAssetLabel(id: string) {
-    return this.http.get(`${this.uri}/collection/${id}/assetlabel`, this.httpOptions)
+    return this.http.get(`${this.uri}/metrics/collection/${id}/assetlabel`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 

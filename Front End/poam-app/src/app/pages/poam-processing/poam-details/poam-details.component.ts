@@ -39,14 +39,11 @@ interface Label {
 interface Permission {
   userId: number;
   collectionId: number;
-  canOwn: number;
-  canMaintain: number;
-  canApprove: number;
-  canView: number;
+  accessLevel: number;
 }
 
 @Component({
-  selector: 'ngx-poamdetails',
+  selector: 'cpat-poamdetails',
   templateUrl: './poam-details.component.html',
   styleUrls: ['./poam-details.component.scss'],
   providers: [DatePipe]
@@ -67,8 +64,7 @@ export class PoamDetailsComponent implements OnInit {
   token: any;
   dates: any = {};
   collectionUsers: any;
-  collectionOwners: any;
-  collectionMaintainers: any;
+  collectionSubmitters: any[] = [];
   collection: any;
   collectionApprovers: any;
   collectionBasicList: any[] = [];
@@ -77,7 +73,7 @@ export class PoamDetailsComponent implements OnInit {
   assets: any;
   poamAssets: any[] = [];
   poamAssignees: any[] = [];
-  canModifyOwner: boolean = false;
+  canModifySubmitter: boolean = false;
   showApprove: boolean = false;
   showSubmit: boolean = false;
   showClose: boolean = false;
@@ -189,7 +185,7 @@ export class PoamDetailsComponent implements OnInit {
           },
         },
       },
-      approved: {
+      approvalStatus: {
         title: 'Approval Status',
         width: '20%',
         isFilterable: false,
@@ -455,10 +451,7 @@ export class PoamDetailsComponent implements OnInit {
 
             const mappedPermissions = this.user.permissions.map((permission: Permission) => ({
               collectionId: permission.collectionId,
-              canOwn: permission.canOwn,
-              canMaintain: permission.canMaintain,
-              canApprove: permission.canApprove,
-              canView: permission.canView
+              accessLevel: permission.accessLevel,
             }));
 
             this.payload = {
@@ -473,16 +466,16 @@ export class PoamDetailsComponent implements OnInit {
               myRole = 'none';
             } else {
               myRole = (this.user.isAdmin) ? 'admin' :
-                (selectedPermissions?.canOwn) ? 'owner' :
-                  (selectedPermissions?.canMaintain) ? 'maintainer' :
-                    (selectedPermissions?.canApprove) ? 'approver' :
-                      (selectedPermissions?.canView) ? 'viewer' : 'none';
+                (selectedPermissions.accessLevel === 2) ? 'submitter' :
+                  (selectedPermissions.accessLevel === 1) ? 'approver' :
+                    (selectedPermissions.accessLevel === 3) ? 'viewer' :
+                      'none';
             }
             this.payload.role = myRole;
-            this.showApprove = ['admin', 'owner', 'approver'].includes(this.payload.role);
-            this.showClose = ['admin', 'owner'].includes(this.payload.role);
-            this.showSubmit = ['admin', 'owner', 'maintainer'].includes(this.payload.role);
-            this.canModifyOwner = ['admin', 'owner', 'maintainer'].includes(this.payload.role);
+            this.showApprove = ['admin', 'submitter', 'approver'].includes(this.payload.role);
+            this.showClose = ['admin', 'submitter'].includes(this.payload.role);
+            this.showSubmit = ['admin', 'submitter'].includes(this.payload.role);
+            this.canModifySubmitter = ['admin', 'submitter'].includes(this.payload.role);
             this.updateTableSettings();
             this.getData();
           }
@@ -507,7 +500,7 @@ export class PoamDetailsComponent implements OnInit {
         this.poamService.getPoam(this.poamId),
         this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
         this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-        this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId, 0, 50),
+        this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
         this.poamService.getPoamAssets(this.poamId),
         this.poamService.getPoamAssignees(this.poamId),
         this.poamService.getPoamApprovers(this.poamId),
@@ -518,6 +511,7 @@ export class PoamDetailsComponent implements OnInit {
         this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? parseISO(this.poam.scheduledCompletionDate.substr(0, 10)) : '';
         this.dates.iavComplyByDate = (this.poam.iavComplyByDate) ? parseISO(this.poam.iavComplyByDate.substr(0, 10)) : '';
         this.dates.submittedDate = (this.poam.submittedDate) ? parseISO(this.poam.submittedDate.substr(0, 10)) : '';
+        this.dates.closedDate = (this.poam.closedDate) ? parseISO(this.poam.closedDate.substr(0, 10)) : null;
         this.collection = collection.collection;
         this.collectionUsers = users;
         this.assets = collectionAssets;
@@ -529,9 +523,16 @@ export class PoamDetailsComponent implements OnInit {
         }));
         this.selectedStigTitle = this.poam.stigTitle;
         this.selectedStigBenchmarkId = this.poam.stigBenchmarkId;
-        this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.canApprove || user.canOwn || this.user.isAdmin);
+        this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 2 || this.user.isAdmin);
         if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length == 0)) {
           this.addDefaultApprovers();
+        }
+        if (this.collectionUsers) {
+          this.collectionUsers.forEach((user: any) => {
+            if (user.accessLevel >= 2) {
+              this.collectionSubmitters.push({ ...user });
+            }
+          });
         }
         if (this.stateData.vulnerabilitySource && this.stateData.benchmarkId) {
           this.poamAssets = [];
@@ -560,35 +561,24 @@ export class PoamDetailsComponent implements OnInit {
   }
 
   createNewPoam() {
-    this.canModifyOwner = true;
+    this.canModifySubmitter = true;
 
     forkJoin([
       this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
       this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-      this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId, 0, 50),
+      this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
     ]).subscribe(([collection, users, collectionAssets]: any) => {
       this.poam = {
         poamId: "ADDPOAM",
         collectionId: this.payload.lastCollectionAccessedId,
         vulnerabilitySource: this.stateData.vulnerabilitySource || "",
-        iavmNumber: "",
         aaPackage: "",
         vulnerabilityId: this.stateData.vulnerabilityId || "",
         description: "",
         rawSeverity: this.stateData.severity || "",
-        adjSeverity: "",
-        iavComplyByDate: '',
         scheduledCompletionDate: '',
-        ownerId: this.payload.userId,
-        mitigations: "",
-        requiredResources: "",
-        residualRisk: "",
-        businessImpactRating: "",
-        businessImpactDescription: "",
-        notes: "",
+        submitterId: this.payload.userId,
         status: "Draft",
-        poamType: "Standard",
-        vulnIdRestricted: "",
         submittedDate: new Date().toISOString().slice(0, 10),
       };
 
@@ -602,14 +592,13 @@ export class PoamDetailsComponent implements OnInit {
       this.poamAssets = [];
       this.poamAssignees = [];
       this.collectionApprovers = [];
-      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.canApprove || user.canOwn || this.user.isAdmin);
-      this.collectionOwners = [];
-      this.collectionMaintainers = [];
-
+      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 2 || this.user.isAdmin);
+      this.collectionSubmitters = [];
       if (this.collectionUsers) {
         this.collectionUsers.forEach((user: any) => {
-          if (user.canOwn) this.collectionOwners.push({ ...user });
-          if (user.canMaintain || user.canOwn) this.collectionMaintainers.push({ ...user });
+          if (user.accessLevel >= 2) {
+            this.collectionSubmitters.push({ ...user });
+          }
         });
       }
       this.setChartSelectionData();
@@ -686,7 +675,7 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
         poamId: +this.poamId,
         collectionId: +collectionApprover.collectionId,
         userId: +collectionApprover.userId,
-        approved: 'Not Reviewed',
+        approvalStatus: 'Not Reviewed',
         poamLog: [{ userId: this.user.userId }],
       }
       await this.poamService.addPoamApprover(approver).subscribe((res: any) => {
@@ -707,7 +696,7 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
 
     if (this.showApprove)
     {
-      this.poamApproverSettings.columns['approved'] = {
+      this.poamApproverSettings.columns['approvalStatus'] = {
         title: 'Approval Status',
         width: '20%',
         isFilterable: false,
@@ -733,13 +722,11 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
   }
 
   setChartSelectionData() {
-    this.collectionOwners = [];
-    this.collectionMaintainers = [];
+    this.collectionSubmitters = [];
   
     if (this.collectionUsers) {
       this.collectionUsers.forEach((user: any) => {
-        if (user.canOwn) this.collectionOwners.push({ ...user });
-        if (user.canMaintain || user.canOwn) this.collectionMaintainers.push({ ...user });
+        if (user.accessLevel >= 2) this.collectionSubmitters.push({ ...user });
       });
     }
   
@@ -818,9 +805,9 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
           let updApprover = {
             poamId: +approver.poamId,
             userId: +approver.userId,
-            approved: 'Approved',
+            approvalStatus: 'Approved',
             approvedDate: this.datePipe.transform(new Date(), 'yyyy-MM-dd'),
-            comments: approver.comments + " - Approved ALL by owner or admin"
+            comments: approver.comments + " - Approved ALL by submitter or admin"
           }
           await this.poamService.updatePoamApprover(updApprover).subscribe((res: any) =>{
           })
@@ -865,6 +852,7 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
       return;
     }
     this.poam.status = "Closed";
+    this.poam.closedDate = new Date().toISOString().slice(0, 10);
     this.savePoam(this.poam);
   }
 
@@ -876,6 +864,10 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
     this.poam.vulnIdRestricted = this.poam.vulnIdRestricted ? this.poam.vulnIdRestricted : "";
     this.poam.iavComplyByDate = this.poam.iavComplyByDate ? format(this.dates.iavComplyByDate, "yyyy-MM-dd") : null;
     this.poam.poamLog = [{ userId: this.user.userId }];
+
+    if (this.poam.status === "Closed") {
+      this.poam.closedDate = new Date().toISOString().slice(0, 10);
+    }
 
     if (this.poam.poamId === "ADDPOAM") {
       this.poam.poamId = 0;
@@ -1008,8 +1000,11 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
       this.showConfirmation("You may not submit a POAM until after it has been saved.","Information","warnging");
       return;
     }
+    if (this.poam.status === "Closed") {
+      this.poam.closedDate = new Date().toISOString().slice(0, 10);
+    }
     this.poam.status = "Submitted";
-    this.poam.iavComplyByDate = format(this.dates.iavComplyByDate, "yyyy-MM-dd");
+    this.poam.iavComplyByDate = this.poam.iavComplyByDate ? format(this.dates.iavComplyByDate, "yyyy-MM-dd") : null;
     this.poam.scheduledCompletionDate = format(this.dates.scheduledCompletionDate, "yyyy-MM-dd");
     this.poam.submittedDate = format(this.dates.submittedDate, "yyyy-MM-dd");
     this.savePoam(this.poam);
@@ -1025,10 +1020,6 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
       this.showConfirmation("POAM Status is required");
       return false;
     }
-    if (!this.poam.poamType) {
-      this.showConfirmation("POAM Type is required");
-      return false;
-    }
     if (!this.poam.aaPackage) {
       this.showConfirmation("POAM aaPackage is required");
       return false;
@@ -1041,8 +1032,8 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
       this.showConfirmation("POAM Raw Severity is required");
       return false;
     }
-    if (!this.poam.ownerId) {
-      this.showConfirmation("POAM Owner ID is required");
+    if (!this.poam.submitterId) {
+      this.showConfirmation("POAM Submitter ID is required");
       return false;
     }
     if (!this.dates.scheduledCompletionDate) {
@@ -1219,8 +1210,8 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
       let approver = {
         poamId: +this.poam.poamId,
         userId: +event.newData.userId,
-        approved: event.newData.approved,
-        approvedDate: (event.newData.approved != 'Not Reviewed') ?  this.datePipe.transform(new Date(), 'yyyy-MM-dd') : '',
+        approvalStatus: event.newData.approvalStatus,
+        approvedDate: (event.newData.approvalStatus != 'Not Reviewed') ?  this.datePipe.transform(new Date(), 'yyyy-MM-dd') : '',
         comments: event.newData.comments,
         poamLog: [{ userId: this.user.userId }],
       }

@@ -12,12 +12,7 @@ import { NbAclOptions } from "@nebular/security";
 
 export const accessControlList: NbAclOptions = {
   accessControl: {
-    owner: {
-      view: ['*'],
-      create: ['*'],
-      delete: ['*'],
-    },
-    maintainer: {
+    submitter: {
       view: ['*'],
       create: ['*'],
       delete: ['*'],

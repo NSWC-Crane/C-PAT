@@ -13,19 +13,38 @@
   <nb-layout-header fixed>
     <div class="container">
       <img src="../assets/cpat.png" alt="C-PAT (Crane POAM Automation Tool)" (click)="reloadPage()" style="cursor: pointer;">
-</div>
+    </div>
     <div class="col" style="margin-top: 10px;" [nbSpinner]="isSettingWorkspace" nbSpinnerStatus="success"
          nbSpinnerSize="medium" nbSpinnerMessage="Loading work space, please wait...">
     </div>
+    <nb-user class="userIcon"
+             size="large"
+             [name]="this.fullName"
+             [title]="this.userRole"
+             picture="../assets/user.png"
+             badgeText="99+"
+             badgeStatus="info"
+             badgePosition="bottom right"
+             color="#4A4A4A"
+             [nbPopover]="notificationsPanel"
+             nbPopoverPlacement="bottom"
+             nbPopoverTrigger="click">
+    </nb-user>
+    <ng-template #notificationsPanel>
+      <cpat-notifications-panel></cpat-notifications-panel>
+    </ng-template>
   </nb-layout-header>
   <nb-layout-header subheader>
     <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
       {{ classification }}
     </div>
-    <nb-icon (click)="toggleSidebar()" class="sidebar-toggle" icon="menu-2-outline"></nb-icon>
+    <a (click)="toggleSidebar()" class="sidebar-toggle">
+      <nb-icon icon="menu-2-outline"></nb-icon>
+    </a>
   </nb-layout-header>
+
   <nb-sidebar class="menu-sidebar" tag="menu-sidebar" responsive start>
-    <div class="sidebar-header">
+    <div *ngIf="this.sidebarExpanded" class="sidebar-header">
       <nb-actions size="tiny" style="padding-bottom: 10px">
         <nb-action icon="moon-outline" (click)="onSelectedThemeChange('dark')"></nb-action>
         <nb-action icon="star-outline" (click)="onSelectedThemeChange('cosmic')"></nb-action>
@@ -33,7 +52,9 @@
         <!--<nb-action icon="brush-outline" (click)="onSelectedThemeChange('cosmic-dark')"></nb-action>-->
       </nb-actions>
     </div>
-    <div class="sidebar-top" style="margin-top:10px; display: flex; justify-content: center; align-items: center;">
+
+
+    <div *ngIf="this.sidebarExpanded" class="sidebar-top" style="margin-top:10px; display: flex; justify-content: center; align-items: center;">
       <nb-select class="appearance-outline size-mediumoutline" placeholder="Select Collection"
                  [(ngModel)]="selectedCollection" name="selectedCollection" id="selectedCollection"
                  (ngModelChange)="resetWorkspace($event)" size="small" shape="semi-round">
@@ -46,6 +67,7 @@
       <nb-menu [items]="menuItems" id="menuItems" autoCollapse="true"></nb-menu>
     </div>
   </nb-sidebar>
+
   <nb-layout-column>
     <router-outlet>
       <nb-alert *ngIf="selectCollectionMsg" role="alert">

@@ -24,10 +24,7 @@ import { SharedService } from '../../Shared/shared.service';
 interface Permission {
   userId: number;
   collectionId: number;
-  canOwn: number;
-  canMaintain: number;
-  canApprove: number;
-  canView: number;
+  accessLevel: number;
 }
 interface TreeNode<T> {
   data: T;
@@ -42,7 +39,7 @@ interface FSEntry {
 }
 
 @Component({
-  selector: 'ngx-label-processing',
+  selector: 'cpat-label-processing',
   templateUrl: './label-processing.component.html',
   styleUrls: ['./label-processing.component.scss']
 })
@@ -115,10 +112,7 @@ export class LabelProcessingComponent implements OnInit {
               ...this.user,
               collections: this.user.permissions.map((permission: Permission) => ({
                 collectionId: permission.collectionId,
-                canOwn: permission.canOwn,
-                canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove,
-                canView: permission.canView
+                accessLevel: permission.accessLevel,
               }))
             };
 

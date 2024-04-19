@@ -28,17 +28,9 @@ interface Asset {
   assetId: any;
   name: string;
 }
-interface Permission {
-  userId: number;
-  collectionId: number;
-  canOwn: number;
-  canMaintain: number;
-  canApprove: number;
-  canView: number;
-}
 
 @Component({
-  selector: 'ngx-tenable-import',
+  selector: 'cpat-tenable-import',
   templateUrl: './tenable-import.component.html',
   styleUrls: ['./tenable-import.component.scss']
 })

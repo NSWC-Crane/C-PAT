@@ -98,10 +98,7 @@ CREATE TABLE `poamtracking`.`label` (
 CREATE TABLE `poamtracking`.`collectionpermissions` (
    `userId` int NOT NULL,
    `collectionId` int NOT NULL,
-   `canOwn` tinyint NOT NULL DEFAULT '0',
-   `canMaintain` tinyint NOT NULL DEFAULT '0',
-   `canApprove` tinyint NOT NULL DEFAULT '0',
-   `canView` tinyint NOT NULL DEFAULT '1',
+   `accessLevel` int NOT NULL,
    PRIMARY KEY (`userId`,`collectionId`),
    KEY `userId` (`userId`),
    KEY `collectionId` (`collectionId`)
@@ -110,7 +107,7 @@ CREATE TABLE `poamtracking`.`collectionpermissions` (
 CREATE TABLE `poamtracking`.`poamapprovers` (
   `poamId` int NOT NULL,
   `userId` int NOT NULL,
-  `approved` varchar(12) NOT NULL DEFAULT 'Not Reviewed',
+  `approvalStatus` varchar(12) NOT NULL DEFAULT 'Not Reviewed',
   `approvedDate` datetime DEFAULT CURRENT_TIMESTAMP,
   `comments` varchar(2000) DEFAULT NULL,
   PRIMARY KEY (`poamId`,`userId`)
@@ -158,16 +155,16 @@ CREATE TABLE `poamtracking`.`poam` (
   `description` varchar(2000) DEFAULT '',
   `rawSeverity` varchar(25) DEFAULT '',
   `adjSeverity` varchar(25) DEFAULT '',
-  `scheduledCompletionDate` date DEFAULT '1900-01-01',
-  `ownerId` int NOT NULL DEFAULT '0',
+  `scheduledCompletionDate` DATE NULL DEFAULT NULL,
+  `submittedDate` DATE NULL DEFAULT NULL,
+  `closedDate` DATE NULL DEFAULT NULL,
+  `submitterId` int NOT NULL DEFAULT '0',
   `mitigations` TEXT,
   `requiredResources` TEXT,
   `residualRisk` TEXT,
   `notes` TEXT,
   `status` char(10) NOT NULL DEFAULT 'Draft',
-  `poamType` CHAR(10) NOT NULL DEFAULT 'Standard',
   `vulnIdRestricted` varchar(255) DEFAULT '',
-  `submittedDate` date DEFAULT '1900-01-01',
   `poamitemid` varchar(20) NOT NULL DEFAULT '0',
   `securityControlNumber` varchar(25) DEFAULT '',
   `officeOrg` varchar(100) DEFAULT '',
@@ -177,7 +174,6 @@ CREATE TABLE `poamtracking`.`poam` (
   `relevanceOfThreat` varchar(15) NOT NULL DEFAULT '',
   `threatDescription` varchar(255) DEFAULT '',
   `likelihood` varchar(15) NOT NULL DEFAULT '',
-  `recommendations` varchar(2000) DEFAULT '',
   `devicesAffected` varchar(255) NOT NULL DEFAULT '',
   `businessImpactRating` varchar(25) DEFAULT '',
   `businessImpactDescription` varchar(2000) DEFAULT '',
@@ -186,20 +182,8 @@ CREATE TABLE `poamtracking`.`poam` (
   PRIMARY KEY (`poamId`),
   UNIQUE KEY `poamID_UNIQUE` (`poamId`) /*!80000 INVISIBLE */,
   KEY `collectionId` (`collectionId`) /*!80000 INVISIBLE */,
-  KEY `ownerId` (`ownerId`) /*!80000 INVISIBLE */
+  KEY `submitterId` (`submitterId`) /*!80000 INVISIBLE */
 ) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE `poamtracking`.`adminpermissions` (
-  `userId` INT NOT NULL,
-  `userName` VARCHAR(20) NOT NULL,
-  PRIMARY KEY (`userId`));
-
-CREATE TABLE `poamtracking`.`usertokens` (
-  `userName` VARCHAR(20) NOT NULL,
-  `token` VARCHAR(255) NOT NULL,
-  `expiration` DATETIME NOT NULL,
-  PRIMARY KEY (`userName`));
-
 
   
 DELIMITER $$

@@ -8,6 +8,8 @@
 !########################################################################
 */
 
+const multer = require("multer");
+const ExcelJS = require('exceljs');
 const db = require('../../utils/sequelize');
 const { Poam } = require('../../utils/sequelize.js');
 const { parse, format } = require('date-fns');
@@ -66,7 +68,64 @@ async function processMilestones(poamId, milestone) {
     }
 }
 
-async function processPoamWorksheet(worksheet, lastCollectionAccessedId) {
+function mapValueToCategory(cellValue, dbColumn) {
+    const severityMapping = {
+        rawSeverity: {
+            'I': "Cat I - Critical/High",
+            'II': "CAT II - Medium",
+            'III': "CAT III - Low"
+        },
+        adjSeverity: {
+            'Very High': "Cat I - Critical/High",
+            'High': "Cat I - Critical/High",
+            'Moderate': "CAT II - Medium",
+            'Low': "CAT III - Low",
+            'Very Low': "CAT III - Low"
+        }
+    };
+
+    return severityMapping[dbColumn][cellValue] || cellValue;
+}
+
+exports.excelFilter = (req, file, cb) => {
+    if (
+        file.mimetype === 'application/vnd.ms-excel' ||
+        file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.mimetype === 'application/vnd.ms-excel.sheet.macroenabled.12'
+    ) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Please upload only XLS, XLSX, or XLSM files.'), false);
+    }
+};
+
+exports.processPoamFile = async function processPoamFile(file, lastCollectionAccessedId, userId) {
+    if (!file) {
+        throw new Error("Please upload an Excel file!");
+    }
+
+    if (!lastCollectionAccessedId) {
+        throw new Error("lastCollectionAccessedId is required");
+    }
+
+    if (!userId) {
+        throw new Error("userId is required");
+    }
+
+    try {
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(file.buffer);
+        if (workbook.worksheets.length === 0) {
+            throw new Error('No worksheets found in the workbook');
+        }
+        const worksheet = workbook.worksheets[0];
+        await processPoamWorksheet(worksheet, lastCollectionAccessedId, userId);
+    } catch (error) {
+        throw error;
+    }
+};
+
+async function processPoamWorksheet(worksheet, lastCollectionAccessedId, userId) {
     let headers;
     const poamData = [];
 
@@ -115,6 +174,14 @@ async function processPoamWorksheet(worksheet, lastCollectionAccessedId) {
 
             if (!isEmptyRow) {
                 poamEntry.collectionId = lastCollectionAccessedId;
+                poamEntry.submitterId = userId;
+
+                const comments = poamEntry.notes || '';
+                const recommendations = poamEntry.recommendations || '';
+                poamEntry.notes = comments + (comments && recommendations ? '\n\n' : '') + recommendations;
+
+                delete poamEntry.recommendations;
+
                 poamData.push(poamEntry);
             }
         }
@@ -175,26 +242,7 @@ async function processPoamWorksheet(worksheet, lastCollectionAccessedId) {
     }
 }
 
-function mapValueToCategory(cellValue, dbColumn) {
-    const severityMapping = {
-        rawSeverity: {
-            'I': "Cat I - Critical/High",
-            'II': "CAT II - Medium",
-            'III': "CAT III - Low"
-        },
-        adjSeverity: {
-            'Very High': "Cat I - Critical/High",
-            'High': "Cat I - Critical/High",
-            'Moderate': "CAT II - Medium",
-            'Low': "CAT III - Low",
-            'Very Low': "CAT III - Low"
-        }
-    };
-
-    return severityMapping[dbColumn][cellValue] || cellValue;
-}
-
-async function importAssets(assets) {
+exports.importAssets = async function importAssets(assets) {
     for (const asset of assets) {
         const collection = asset.collection || {};
 
@@ -225,7 +273,7 @@ async function importAssets(assets) {
     }
 }
 
-async function importCollectionAndAssets(collection, assets) {
+exports.importCollectionAndAssets = async function importCollectionAndAssets(collection, assets) {
     const collectionData = {
         collectionName: collection.name,
         description: collection.description || '',
@@ -304,9 +352,3 @@ async function importCollectionAndAssets(collection, assets) {
         }
     }
 }
-
-module.exports = {
-    processPoamWorksheet,
-    importAssets,
-    importCollectionAndAssets
-};

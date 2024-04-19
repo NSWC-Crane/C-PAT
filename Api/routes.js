@@ -11,18 +11,10 @@
 
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const path = require('path');
-const Import = require('./Controllers/Import');
 const { middleware: openApiMiddleware } = require('express-openapi-validator');
 const authAPI = require('./utils/authAPI');
 const apiSpecPath = path.join(__dirname, './specification/C-PAT.yaml');
-
-const upload = multer({ storage: multer.memoryStorage() });
-
-router.post('/import/poams', upload.single('file'), Import.uploadPoamFile);
-router.post('/import/stigmanagercollection', Import.importCollectionAndAssets);
-router.post('/import/stigmanagerassets', Import.importAssets);
 
 router.use(
     '/',

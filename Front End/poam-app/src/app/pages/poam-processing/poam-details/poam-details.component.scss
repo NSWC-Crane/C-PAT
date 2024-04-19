@@ -67,25 +67,22 @@
   width: 100%;
 }
 
+.status-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .status-group {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 15px;
+  gap: 10px;
 }
 
-.status-group label {
-  margin-right: 10px;
-}
-
-.status-group nb-select {
-  flex-grow: 1;
-}
-
-.status-container {
+.button-group {
   display: flex;
-  justify-content: left;
-  gap: 20px;
+  margin-right: 1rem;
+  gap: 3rem;
 }
 
 hr {

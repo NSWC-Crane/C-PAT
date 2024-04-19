@@ -17,7 +17,7 @@ import { SubSink } from 'subsink';
 import { UsersService } from '../../user-processing/users.service';
 
 @Component({
-  selector: 'ngx-collection',
+  selector: 'cpat-collection',
   templateUrl: './collection.component.html',
   styleUrls: ['./collection.component.scss']
 })
