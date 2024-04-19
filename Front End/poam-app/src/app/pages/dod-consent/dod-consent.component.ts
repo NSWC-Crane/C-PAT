@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 import { UsersService } from '../user-processing/users.service';
 
 @Component({
-  selector: 'ngx-consent',
+  selector: 'cpat-consent',
   templateUrl: './dod-consent.component.html',
 })
 export class DoDConsentComponent implements OnInit {

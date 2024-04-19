@@ -17,30 +17,40 @@ export const appMenuItems: NbMenuItem[] = [
       link: '/consent',
       home: true
   },
-    {
-      title: 'POAMs',
-      icon: 'menu-outline',
-      data: { permission: 'view', resource: 'poam' },
-      hidden: true,
-      expanded: true,
-      children: [
-        {
-          title: 'Manage POAMs',
-          icon: 'list-outline',
-          link: '/manage-poams',
-          data: { permission: 'approve', resource: 'poam' },
-        },
-        {
-          title: 'View POAMs',
-          icon: 'list-outline',
-          link: '/poam-processing',
-        },
-        {
-          title: 'Add POAM',
-          icon: 'file-add-outline',
-          link: '/poam-details/ADDPOAM'
-        }
-      ]
+  {
+    title: 'Admin Portal',
+    icon: 'people-outline',
+    link: '/user-processing',
+    data: { permission: 'create', resource: 'user' },
+    hidden: true,
+    children: [
+      {
+        title: 'User Processing',
+        icon: 'people-outline',
+        link: '/user-processing',
+        data: { permission: 'create', resource: 'user' },
+      },
+    ]
+  },
+  {
+    title: 'POAMs',
+    icon: 'menu-outline',
+    data: { permission: 'view', resource: 'poam' },
+    hidden: true,
+    expanded: true,
+    children: [
+      {
+        title: 'Manage POAMs',
+        icon: 'list-outline',
+        link: '/poam-manage',
+        data: { permission: 'approve', resource: 'poam' },
+      },
+      {
+        title: 'Add POAM',
+        icon: 'file-add-outline',
+        link: '/poam-details/ADDPOAM'
+      }
+    ]
   },
   {
     title: 'Importing',
@@ -83,13 +93,6 @@ export const appMenuItems: NbMenuItem[] = [
       icon: 'pricetags-outline',
       link: '/label-processing',
       data: { permission: 'view', resource: 'label' },
-      hidden: true,
-    },
-    {
-      title: 'User Processing',
-      icon: 'people-outline',
-      link: '/user-processing',
-      data: { permission: 'create', resource: 'user' },
       hidden: true,
     },
     {

@@ -26,7 +26,7 @@ async function withConnection(callback) {
 exports.getPoamAssignees = async function getPoamAssignees() {
     return await withConnection(async (connection) => {
         let sql = `
-            SELECT t1.userId, t2.fullName, t1.poamId, t3.description
+            SELECT t1.userId, t2.fullName, t1.poamId, t3.status
             FROM poamtracking.poamassignees t1
             INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId
             INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
@@ -37,7 +37,7 @@ exports.getPoamAssignees = async function getPoamAssignees() {
             userId: row.userId,
             fullName: row.fullName,
             poamId: row.poamId,
-            description: row.description,
+            status: row.status,
         }));
         return { poamAssignees };
     });
@@ -50,7 +50,7 @@ exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(poamI
 
     return await withConnection(async (connection) => {
         let sql = `
-            SELECT t1.userId, t2.firstName, t2.lastName, t2.fullName, t2.userEmail, t1.poamId, t3.description
+            SELECT t1.userId, t2.firstName, t2.lastName, t2.fullName, t2.userEmail, t1.poamId, t3.status
             FROM poamtracking.poamassignees t1
             INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId
             INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
@@ -62,7 +62,7 @@ exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(poamI
             userId: row.userId,
             fullName: row.fullName,
             poamId: row.poamId,
-            description: row.description,
+            poamStatus: row.status,
         }));
         return poamAssignees;
     });
@@ -75,7 +75,7 @@ exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(userI
 
     return await withConnection(async (connection) => {
         let sql = `
-            SELECT t1.userId, t2.fullName, t1.poamId, t3.description
+            SELECT t1.userId, t2.fullName, t1.poamId, t3.status
             FROM poamtracking.poamassignees t1
             INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId
             INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
@@ -87,7 +87,7 @@ exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(userI
             userId: row.userId,
             fullName: row.fullName,
             poamId: row.poamId,
-            description: row.description,
+            poamStatus: row.status,
         }));
         return { poamAssignees };
     });
@@ -103,15 +103,21 @@ exports.getPoamAssignee = async function getPoamAssignee(userId, poamId) {
 
     return await withConnection(async (connection) => {
         let sql = `
-            SELECT t1.userId, t2.fullName, t1.poamId, t3.description
+            SELECT t1.userId, t2.fullName, t1.poamId, t3.status
             FROM poamtracking.poamassignees t1
             INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId
             INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
             WHERE t1.userId = ? AND t1.poamId = ?
             ORDER BY t2.fullName
         `;
-        let [rowPoamAssignee] = await connection.query(sql, [userId, poamId]);
-        var poamAssignee = rowPoamAssignee.length > 0 ? [rowPoamAssignee[0]] : [];
+        let [rowPoamAssignees] = await connection.query(sql, [userId, poamId]);
+        var poamAssignees = rowPoamAssignees.map(row => ({
+            userId: row.userId,
+            fullName: row.fullName,
+            poamId: row.poamId,
+            poamStatus: row.status,
+        }));
+        var poamAssignee = poamAssignees.length > 0 ? [poamAssignees[0]] : [];
         return { poamAssignee };
     });
 };

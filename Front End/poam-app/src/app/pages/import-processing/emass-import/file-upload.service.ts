@@ -10,7 +10,7 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -18,10 +18,11 @@ import { environment } from '../environments/environment';
 export class FileUploadService {
   constructor(private http: HttpClient) { }
   
-  upload(file: File, lastCollectionAccessedId: string) {
+  upload(file: File, lastCollectionAccessedId: string, userId: string) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('lastCollectionAccessedId', lastCollectionAccessedId);
+    formData.append('userId', userId);
     return this.http.post(environment.fileUploadEndpoint, formData, {
       reportProgress: true,
       observe: 'events'

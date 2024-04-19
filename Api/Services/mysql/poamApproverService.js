@@ -43,11 +43,47 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
                 WHERE poamId = ?;
             `;
             let [rows] = await connection.query(sql, [req.params.poamId]);
-            var poamApprovers = rows.map(row => ({ ...row }));
+            var poamApprovers = rows.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }));
             return poamApprovers;
         });
     } catch (error) {
         console.error(error);
+        return { null: "null" };
+    }
+}
+
+exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req, res, next) {
+    if (!req.params.collectionId) {
+        console.info('getPoamApproversByCollection collectionId not provided.');
+        return next({
+            status: 400,
+            errors: {
+                collectionId: 'is required',
+            }
+        });
+    }
+
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
+                FROM poamtracking.poamapprovers T1
+                INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId
+                INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId
+                WHERE T3.collectionId = ?
+            `;
+            let [rows] = await connection.query(sql, [req.params.collectionId]);
+            var poamApprovers = rows.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }));
+            return poamApprovers;
+        });
+    } catch (error) {
+        console.error("error: ", error);
         return { null: "null" };
     }
 }
@@ -82,8 +118,44 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
                 WHERE T3.collectionId = ? AND T1.userId = ?
             `;
             let [rows] = await connection.query(sql, [req.params.collectionId, req.params.userId]);
-            var poamApprovers = rows.map(row => ({ ...row }));
-            return { poamApprovers };
+            var poamApprovers = rows.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }));
+            return poamApprovers;
+        });
+    } catch (error) {
+        console.error("error: ", error);
+        return { null: "null" };
+    }
+}
+
+exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, res, next) {
+    if (!req.params.userId) {
+        console.info('getPoamApproversByUserId userId not provided.');
+        return next({
+            status: 400,
+            errors: {
+                userId: 'is required',
+            }
+        });
+    }
+
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
+                FROM poamtracking.poamapprovers T1
+                INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId
+                INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId
+                WHERE T1.userId = ?
+            `;
+            let [rows] = await connection.query(sql, [req.params.userId]);
+            var poamApprovers = rows.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }));
+            return poamApprovers;
         });
     } catch (error) {
         console.error("error: ", error);
@@ -111,18 +183,18 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
         });
     }
 
-    if (!req.body.approved) req.body.approved = 'Not Reviewed';
+    if (!req.body.approvalStatus) req.body.approvalStatus = 'Not Reviewed';
     if (!req.body.approvedDate) req.body.approvedDate = null;
     if (!req.body.comments) req.body.comments = null;
 
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                INSERT INTO poamtracking.poamapprovers (poamId, userId, approved, approvedDate, comments)
+                INSERT INTO poamtracking.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments)
                 VALUES (?, ?, ?, ?, ?)
             `;
             await connection.query(sql_query, [
-                req.body.poamId, req.body.userId, req.body.approved,
+                req.body.poamId, req.body.userId, req.body.approvalStatus,
                 req.body.approvedDate, req.body.comments
             ]);
 
@@ -177,7 +249,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
         });
     }
 
-    if (!req.body.approved) req.body.approved = 'Not Reviewed';
+    if (!req.body.approvalStatus) req.body.approvalStatus = 'Not Reviewed';
     if (!req.body.approvedDate) req.body.approvedDate = null;
     if (!req.body.comments) req.body.comments = null;
 
@@ -185,11 +257,11 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
         return await withConnection(async (connection) => {
             let sql_query = `
                 UPDATE poamtracking.poamapprovers
-                SET approved = ?, approvedDate = ?, comments = ?
+                SET approvalStatus = ?, approvedDate = ?, comments = ?
                 WHERE poamId = ? AND userId = ?;
             `;
             await connection.query(sql_query, [
-                req.body.approved, req.body.approvedDate, req.body.comments,
+                req.body.approvalStatus, req.body.approvedDate, req.body.comments,
                 req.body.poamId, req.body.userId
             ]);
 
@@ -202,11 +274,11 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                 await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
             }
 
-            if (req.body.approved === 'Rejected') {
+            if (req.body.approvalStatus === 'Rejected') {
                 sql_query = "UPDATE poamtracking.poam SET status = ? WHERE poamId = ?;";
                 await connection.query(sql_query, ["Rejected", req.body.poamId]);
             } else {
-                sql_query = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND approved != 'Approved';";
+                sql_query = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND approvalStatus != 'Approved';";
                 let [rows] = await connection.query(sql_query, [req.body.poamId]);
                 if (rows.length === 0) {
                     sql_query = "UPDATE poamtracking.poam SET status = ? WHERE poamId = ?;";

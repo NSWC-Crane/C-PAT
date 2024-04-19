@@ -11,7 +11,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';
-import { PoamApproveComponent } from './pages/poam-processing/poam-approve/poam-approve.component';
+import { PoamManageComponent } from './pages/poam-processing/poam-manage/poam-manage.component';
 import { PoamExtendComponent } from './pages/poam-processing/poam-extend/poam-extend.component';
 import { PoamLogComponent } from './pages/poam-processing/poam-log/poam-log.component';
 import { AuthGuard } from './auth.guard'
@@ -28,10 +28,10 @@ const routes: Routes = [
   { path: 'label-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/label-processing/label-processing.module').then(m => m.LabelProcessingModule) },
   { path: 'poam-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/poam-processing/poams.module').then(m => m.PoamsModule) },
   { path: 'poam-details/:poamId', canActivate: [AuthGuard], component: PoamDetailsComponent },
-  { path: 'poam-approve/:poamId', canActivate: [AuthGuard], component: PoamApproveComponent },
+  { path: 'poam-approve/:poamId', canActivate: [AuthGuard], component: PoamManageComponent },
   { path: 'poam-extend/:poamId', canActivate: [AuthGuard], component: PoamExtendComponent },
   { path: 'poam-log/:poamId', canActivate: [AuthGuard], component: PoamLogComponent },
-  { path: 'manage-poams', canActivate: [AuthGuard], loadChildren: () => import('./pages/poam-processing/poam-approve/poam-approve.module').then(m => m.PoamApproveModule) },
+  { path: 'poam-manage', canActivate: [AuthGuard], loadChildren: () => import('./pages/poam-processing/poam-manage/poam-manage.module').then(m => m.PoamManageModule) },
   { path: 'stigmanager-import', canActivate: [AuthGuard], loadChildren: () => import('./pages/import-processing/stigmanager-import/stigmanager-import.module').then(m => m.STIGManagerImportModule) },
   { path: 'tenable-import', canActivate: [AuthGuard], loadChildren: () => import('./pages/import-processing/tenable-import/tenable-import.module').then(m => m.TenableImportModule) },
   { path: 'user-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/user-processing/user-processing.module').then(m => m.UserProcessingModule) },

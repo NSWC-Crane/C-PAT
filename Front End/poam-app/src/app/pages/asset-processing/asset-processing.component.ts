@@ -25,10 +25,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 interface Permission {
   userId: number;
   collectionId: number;
-  canOwn: number;
-  canMaintain: number;
-  canApprove: number;
-  canView: number;
+  accessLevel: number;
 }
 interface TreeNode<T> {
   data: T;
@@ -52,16 +49,12 @@ interface FSEntry {
 }
 
 @Component({
-  selector: 'ngx-asset-processing',
+  selector: 'cpat-asset-processing',
   templateUrl: './asset-processing.component.html',
   styleUrls: ['./asset-processing.component.scss']
 })
 export class AssetProcessingComponent implements OnInit, AfterViewInit {
   @ViewChild('assetLabelsChart') assetLabelsChart!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('assetScrollListener', { read: ElementRef }) select!: ElementRef;
-  offset = 0;
-  limit = 50;
-  isListFull = false;
 
   public assetLabel: any[] = [];
   public selectedLabel: any = 'All';
@@ -150,8 +143,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
-  Chart.register(...registerables);
-}
+    Chart.register(...registerables);
+  }
 
   onSubmit() {
     this.resetData();
@@ -167,21 +160,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.select.nativeElement.addEventListener('click', () => {
-      setTimeout(() => {
-        const dropdownPanel = this.getSelectPanel();
-        if (dropdownPanel) {
-          dropdownPanel.addEventListener('scroll', (event) => this.onScroll(event));
-        }
-      }, 0);
-    });
     this.initializeChart();
     this.cdr.detectChanges();
-  }
-
-  getSelectPanel(): HTMLElement | null {
-    const dropdownPanel = document.querySelector('.option-list');
-    return dropdownPanel as HTMLElement;
   }
 
   private initializeChart(): void {
@@ -202,9 +182,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     } else {
       console.error('Unable to initialize chart: Element not available.');
     }
-
   }
-
 
   showPopup(message: string) {
     const dialogOptions: ConfirmationDialogOptions = {
@@ -213,7 +191,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
       button: { text: 'OK', status: 'info' },
       cancelbutton: 'false'
     };
-  
+
     this.dialogService.open(ConfirmationDialogComponent, {
       context: {
         options: dialogOptions
@@ -235,10 +213,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
               ...this.user,
               collections: this.user.permissions.map((permission: Permission) => ({
                 collectionId: permission.collectionId,
-                canOwn: permission.canOwn,
-                canMaintain: permission.canMaintain,
-                canApprove: permission.canApprove,
-                canView: permission.canView
+                accessLevel: permission.accessLevel,
               }))
             };
 
@@ -254,42 +229,24 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     );
   }
 
-  getAssetData(loadMore = false) {
-    if (this.isListFull) {
-      return;
-    }
+  getAssetData() {
     this.isLoading = true;
-
-    if (!loadMore) {
-      this.assets = [];
-      this.isListFull = false;
-    }
 
     if (this.payload == undefined) return;
 
     this.subs.sink = forkJoin(
-      this.assetService.getAssetsByCollection(
-        this.user.lastCollectionAccessedId,
-        this.offset,
-        this.limit
-    ),
-      this.assetService.getCollectionAssetLabel(
-        this.payload.lastCollectionAccessedId
-      )
+      this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
+      this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
     ).subscribe(([assetData, assetLabelResponse]: any) => {
       if (!Array.isArray(assetData)) {
-        console.error('Unexpected response format:', assetData
-        );
+        console.error('Unexpected response format:', assetData);
         this.isLoading = false;
+      } else if (!Array.isArray(assetLabelResponse.assetLabel)) {
+        console.error('assetLabelResponse.assetLabel is not an array', assetLabelResponse.assetLabel);
+        return;
       }
-      else if (!Array.isArray(assetLabelResponse.assetLabel)) {
-        console.error(
-          'assetLabelResponse.assetLabel is not an array',
-          assetLabelResponse.assetLabel
-        );
-      return;
-    }
-      this.assets = loadMore ? [...this.assets, ...assetData] : assetData;
+
+      this.assets = assetData;
       this.assetLabel = assetLabelResponse.assetLabel;
       this.setLabelChartData(this.assetLabel);
 
@@ -301,12 +258,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
         ipAddress: asset.ipAddress,
         macAddress: asset.macAddress,
       }));
-  
-      if (assetData.length < this.limit) {
-        this.isListFull = true;
-      }
+
       this.updateDataSource();
-      this.offset += this.limit;
       this.isLoading = false;
     }, error => {
       console.error('Failed to fetch assets by collection', error);
@@ -332,7 +285,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     this.assetLabelChart.update();
   }
 
-
   updateDataSource() {
     let treeNodes: AssetTreeNode[] = this.assets.map((asset: Assets) => {
       return {
@@ -351,19 +303,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     });
 
     this.dataSource = this.dataSourceBuilder.create(treeNodes);
-  }
-
-  onScroll(event: any) {
-    if (this.isListFull) {
-      return;
-    }
-    const threshold = 100;
-    const currentPosition = event.target.scrollTop + event.target.clientHeight;
-    const maximumScrollPosition = event.target.scrollHeight;
-
-    if (currentPosition + threshold >= maximumScrollPosition) {
-      this.getAssetData(true);
-    }
   }
 
   exportChart(chartInstance: Chart, chartName: string) {
@@ -426,8 +365,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     }, 150);
   }
 
-
-
   updateSort(sortRequest: NbSortRequest): void {
     this.sortColumn = sortRequest.column;
     this.sortDirection = sortRequest.direction;
@@ -462,7 +399,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
     this.asset = [];
     this.getAssetData();
     this.asset.assetId = "ASSET";
-    this.isListFull = false;
     this.allowSelectAssets = true;
   }
 

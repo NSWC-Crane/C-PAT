@@ -16,7 +16,7 @@ import { environment } from 'src/environments/environment';
 import { LoginService } from './login.service';
 
 @Component({
-  selector: 'ngx-login',
+  selector: 'cpat-login',
   templateUrl: './login.component.html',
 })
 export class LoginComponent extends NbLoginComponent implements OnInit {

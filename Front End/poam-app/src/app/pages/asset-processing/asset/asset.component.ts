@@ -45,7 +45,7 @@ interface CollectionsResponse {
 }
 
 @Component({
-  selector: 'ngx-asset',
+  selector: 'cpat-asset',
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss']
 })

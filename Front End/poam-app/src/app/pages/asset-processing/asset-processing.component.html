@@ -3,27 +3,28 @@
     <div class="col-md-10">
 
       <nb-card>
-        <nb-card-body class="scrollable-assets" (scroll)="onScroll($event)">
+        <nb-card-body>
           <nb-tabset fullWidth>
             <nb-tab tabTitle="Asset Management">
-              <h3>Assets</h3>
               <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Assets">
-              <table [nbTreeGrid]="dataSource">
-                <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
-                <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+              <div class="scrollable-assets">
+                <table [nbTreeGrid]="dataSource">
+                  <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+                  <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
 
-                <ng-container [nbTreeGridColumnDef]="customColumn">
-                  <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
-                  <td nbTreeGridCell *nbTreeGridCellDef="let row">
-                    {{row.data[customColumn]}}
-                  </td>
-                </ng-container>
+                  <ng-container [nbTreeGridColumnDef]="customColumn">
+                    <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
+                    <td nbTreeGridCell *nbTreeGridCellDef="let row">
+                      {{row.data[customColumn]}}
+                    </td>
+                  </ng-container>
 
-                <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
-                  <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-                  <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
-                </ng-container>
-              </table>
+                  <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
+                    <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
+                    <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
+                  </ng-container>
+                </table>
+              </div>
             </nb-tab>
 
             <nb-tab tabTitle="Asset Chart">
@@ -51,7 +52,7 @@
             <div class="col-md-5" style="width: auto;">
               <nb-form-field>
                 <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
-                <nb-select fullWidth #assetScrollListener style="width: auto" (scroll)="onScroll($event)" outlineid="assetid" name="asset"
+                <nb-select fullWidth style="width: auto" outlineid="assetid" name="asset"
                            [(ngModel)]="asset.assetId" (selectedChange)="setAsset($event)" placeholder="Select Asset to Modify" required>
                   <nb-option *ngFor="let asset of data" [value]="asset.assetId">
                     {{ asset?.assetId }} - {{ asset?.assetName }}
@@ -67,7 +68,7 @@
           </div>
 
             <div *ngIf="!allowSelectAssets">
-              <ngx-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData();"></ngx-asset>
+              <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData();"></cpat-asset>
             </div>
         </nb-card-body>
       </nb-card>

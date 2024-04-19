@@ -1,0 +1,54 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+.ngx-poam-assigned-grid {
+    height: 66rem;
+}
+.poam-advanced-pie {
+  display: block;
+  height: 27.5rem;
+
+  ::ng-deep {
+    .pie-label {
+      fill: nb-theme(text-basic-color);
+    }
+
+    text {
+      fill: nb-theme(text-hint-color);
+    }
+
+    .chart-legend {
+      .legend-labels {
+        background: nb-theme(background-basic-color-2);
+      }
+
+      .legend-label {
+        color: nb-theme(text-hint-color);
+
+        .active .legend-label-text {
+          color: nb-theme(text-basic-color);
+        }
+      }
+    }
+
+    .total-value,
+    .item-value,
+    .item-percent {
+      line-height: 1.5;
+    }
+  }
+}
+
+.monthly-poam-status-chart,
+.poam-severity-pie-chart {
+  position: relative;
+  height: 27.5rem;
+  max-width: 100rem;
+}

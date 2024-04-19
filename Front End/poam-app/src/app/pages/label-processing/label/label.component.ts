@@ -20,7 +20,7 @@ import { SharedService } from '../../../Shared/shared.service';
 
 
 @Component({
-  selector: 'ngx-label',
+  selector: 'cpat-label',
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss']
 })

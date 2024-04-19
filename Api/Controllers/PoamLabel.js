@@ -24,6 +24,19 @@ module.exports.getPoamLabels = async function getPoamLabels(req, res, next) {
     }
 }
 
+module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res, next) {
+    try {
+        var poamLabels = await poamLabelService.getAvailablePoamLabels(req, res, next);
+        res.status(200).json(poamLabels);
+    } catch (error) {
+        if (error.message === 'User ID is required') {
+            res.status(400).json({ error: 'Validation Error', detail: error.message });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+}
+
 module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(req, res, next) {
     try {
         const { poamId } = req.params;

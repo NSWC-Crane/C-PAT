@@ -50,20 +50,6 @@ paths:
         required: true
         schema:
           type: integer
-      - in: query
-        name: offset
-        required: false
-        schema:
-          type: integer
-          default: 0
-        description: The number of items to skip before starting to collect the result set
-      - in: query
-        name: limit
-        required: false
-        schema:
-          type: integer
-          default: 50
-        description: The numbers of items to return
     get:
       summary: Return all assets belonging to a specific collection
       operationId: getAssetsByCollection
@@ -746,126 +732,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
   
-  '/collection/{collectionId}/assetlabel':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-    get:
-      tags:
-        - Collection
-      summary: Get asset labels and label count by Collection
-      operationId: getCollectionAssetLabel
-      responses:
-        '200':
-          description: Asset labels retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/assetLabel'
-        '204':
-          description: No Content
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-  
-  '/collection/{collectionId}/poamlabel':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-    get:
-      tags:
-        - Collection
-      summary: Get POAM labels and label count by Collection
-      operationId: getCollectionPoamLabel
-      responses:
-        '200':
-          description: POAM labels retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/poamLabel'
-        '204':
-          description: No Content
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-  
-  '/collection/{collectionId}/poamstatus':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-    get:
-      tags:
-        - Collection
-      summary: Get POAM status and status count by Collection
-      operationId: getCollectionPoamStatus
-      responses:
-        '200':
-          description: POAM status retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/poamStatus'
-        '204':
-          description: No Content
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-  
-  '/collection/{collectionId}/poamseverity':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-    get:
-      tags:
-        - Collection
-      summary: Get POAM severity and severity count by Collection
-      operationId: getCollectionPoamSeverity
-      responses:
-        '200':
-          description: POAM severity retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/poamSeverity'
-        '204':
-          description: No Content
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-  
-  '/collection/{collectionId}/poamEstimatedCompletion':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-    get:
-      tags:
-        - Collection
-      summary: Get POAM estimated completion counts by Collection
-      operationId: getCollectionPoamEstimatedCompletion
-      responses:
-        '200':
-          description: POAM estimated completion counts retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/poamEstimatedCompletion'
-        '204':
-          description: No Content
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-  
   '/collection/permissions/{collectionId}':
     parameters:
       - in: path
@@ -900,10 +766,11 @@ paths:
       tags:
         - Collection
 
-  /import/poams:
+  '/import/poams':
     post:
       summary: Parse and import .xls, .xlsx, or .xlsm eMASS POAM exports
       operationId: uploadPoamFile
+      x-eov-file-handler: true
       requestBody:
         required: true
         content:
@@ -916,8 +783,11 @@ paths:
                   format: binary
                   description: .xls, .xlsx, or .xlsm eMASS POAM export file
                 lastCollectionAccessedId:
-                  type: integer
+                  type: string
                   description: ID of the last accessed collection
+              required:
+                - file
+                - lastCollectionAccessedId
       responses:
         '201':
           description: File uploaded successfully
@@ -946,7 +816,7 @@ paths:
         - oauth:
             - 'c-pat:read'
   
-  /import/stigmanagercollection:
+  '/import/stigmanagercollection':
     post:
       summary: Endpoint to receive collection and assets data from STIG Manager
       operationId: importCollectionAndAssets
@@ -991,7 +861,7 @@ paths:
         - oauth:
             - 'c-pat:read'
   
-  /import/stigmanagerassets:
+  '/import/stigmanagerassets':
     post:
       summary: Endpoint to receive asset data from STIG Manager
       operationId: importAssets
@@ -1204,7 +1074,385 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
+
+  '/metrics/collection/{collectionId}/assetlabel':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      summary: Get asset labels and label counts by Collection
+      operationId: getCollectionAssetLabel
+      responses:
+        '200':
+          description: Asset labels retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/assetLabel'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  '/metrics/collection/{collectionId}/poamlabel':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      summary: Get POAM labels and label counts by Collection
+      operationId: getCollectionPoamLabel
+      responses:
+        '200':
+          description: POAM labels retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamLabel'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  '/metrics/collection/{collectionId}/poamstatus':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      summary: Get POAM status and status counts by Collection
+      operationId: getCollectionPoamStatus
+      responses:
+        '200':
+          description: POAM status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamStatus'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  '/metrics/collection/{collectionId}/poamseverity':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      summary: Get POAM severity and severity counts by Collection
+      operationId: getCollectionPoamSeverity
+      responses:
+        '200':
+          description: POAM severity retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamSeverity'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  '/metrics/collection/{collectionId}/poamEstimatedCompletion':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      summary: Get POAM estimated completion counts by Collection
+      operationId: getCollectionPoamEstimatedCompletion
+      responses:
+        '200':
+          description: POAM estimated completion counts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamEstimatedCompletion'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/metrics/collection/{collectionId}/monthlypoamstatus':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+    get:
+      summary: Get a status status and status counts grouped under Open or Closed from POAMs submitted within the last 30 days for a specific collection
+      operationId: getCollectionMonthlyPoamStatus
+      responses:
+        '200':
+          description: POAM status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamStatus'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/metrics/available/{userId}/assetlabel':
+    parameters:
+      - $ref: '#/components/parameters/userIdPath'
+    get:
+      summary: Get all asset labels and label counts available to the user
+      operationId: getAvailableAssetLabel
+      responses:
+        '200':
+          description: Asset labels retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/assetLabel'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:op'
+  
+  '/metrics/available/{userId}/poamlabel':
+    parameters:
+      - $ref: '#/components/parameters/userIdPath'
+    get:
+      summary: Get all POAM labels and label counts available to the user
+      operationId: getAvailablePoamLabel
+      responses:
+        '200':
+          description: POAM labels retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamLabel'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:op'
+  
+  '/metrics/available/{userId}/poamstatus':
+    parameters:
+      - $ref: '#/components/parameters/userIdPath'
+    get:
+      summary: Get all POAM status and status counts available to the user
+      operationId: getAvailablePoamStatus
+      responses:
+        '200':
+          description: POAM status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamStatus'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:op'
+  
+  '/metrics/available/{userId}/poamseverity':
+    parameters:
+      - $ref: '#/components/parameters/userIdPath'
+    get:
+      summary: Get all POAM severity and severity counts available to the user
+      operationId: getAvailablePoamSeverity
+      responses:
+        '200':
+          description: POAM severity retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamSeverity'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  '/metrics/available/{userId}/monthlypoamseverity':
+    parameters:
+      - $ref: '#/components/parameters/userIdPath'
+    get:
+      summary: Get all POAM severity and severity counts from within the last 30 days available to the user
+      operationId: getAvailableMonthlyPoamSeverity
+      responses:
+        '200':
+          description: POAM severity retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamSeverity'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  '/metrics/available/{userId}/monthlypoamstatus':
+    parameters:
+      - $ref: '#/components/parameters/userIdPath'
+    get:
+      summary: Get a status of all POAMs available to the user with status and status counts grouped under Open or Closed from POAMs submitted within the last 30 days
+      operationId: getAvailableMonthlyPoamStatus
+      responses:
+        '200':
+          description: POAM status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamStatus'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:op'
+  
+  '/metrics/available/{userId}/poamEstimatedCompletion':
+    parameters:
+      - $ref: '#/components/parameters/userIdPath'
+    get:
+      summary: Get all POAM estimated completion and estimated completion counts available to the user
+      operationId: getAvailablePoamEstimatedCompletion
+      responses:
+        '200':
+          description: POAM estimated completion counts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamEstimatedCompletion'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  '/metrics/available/{userId}/collectionpoamcount':
+    parameters:
+      - $ref: '#/components/parameters/userIdPath'
+    get:
+      summary: Get a count of poams for each collection available to the user
+      operationId: getAvailableCollectionPoamCounts
+      responses:
+        '200':
+          description: POAM counts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/collectionPoamCounts'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Metrics
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   '/permission':
     post:
       summary: Add a user collection permission
@@ -1346,6 +1594,80 @@ paths:
       security:
         - oauth:
             - 'c-pat:op'
+
+  '/poamApprovers/user/{userId}':
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer   
+    get:
+      summary: Return poamApprovers by userId
+      operationId: getPoamApproversByUserId
+      responses:
+        '200':
+          description: Poam Approvers array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamApprover_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamApprover
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  '/poamApprovers/collection/{collectionId}':
+    parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer 
+    get:
+      summary: Return poamApprovers by collectionId
+      operationId: getPoamApproversByCollection
+      responses:
+        '200':
+          description: Poam Approvers array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamApprover_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamApprover
+      security:
+        - oauth:
+            - 'c-pat:op'
   
   '/poamApprovers/collection/{collectionId}/user/{userId}':
     parameters:
@@ -1360,7 +1682,7 @@ paths:
         schema:
           type: integer   
     get:
-      summary: Return poamApprovers by userId
+      summary: Return poamApprovers by collectionId and userId
       operationId: getPoamApproversByCollectionUser
       responses:
         '200':
@@ -1701,7 +2023,7 @@ paths:
                   poamAssignees:
                     type: array
                     items:
-                      $ref: '#/components/schemas/PoamAssignee'
+                      $ref: '#/components/schemas/poamAssignee_Object'
         '500':
           description: Internal server error
           content:
@@ -1732,7 +2054,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PoamAssignee'
+                  $ref: '#/components/schemas/poamAssignee_Object'
         '500':
           description: Internal server error
           content:
@@ -1766,7 +2088,7 @@ paths:
                   poamAssignees:
                     type: array
                     items:
-                      $ref: '#/components/schemas/PoamAssignee'
+                      $ref: '#/components/schemas/poamAssignee_Object'
         '500':
           description: Internal server error
           content:
@@ -1805,7 +2127,7 @@ paths:
                   poamAssignee:
                     type: array
                     items:
-                      $ref: '#/components/schemas/PoamAssignee'
+                      $ref: '#/components/schemas/poamAssignee_Object'
         '500':
           description: Internal server error
           content:
@@ -2047,6 +2369,43 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
+
+  /poamLabels/available/{userId}:
+    get:
+      summary: Return all poams with labels available to a user
+      operationId: getAvailablePoamLabels
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Poam array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamLabel_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamLabel
+      security:
+        - oauth:
+            - 'c-pat:op'
             
   /poamLabels/poam/{poamId}:
     parameters:
@@ -2418,10 +2777,29 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/poams':
+  /poams/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
     get:
-      summary: Return all POAMs
-      operationId: getPoams
+      summary: Return all POAMs available to a user
+      operationId: getAvailablePoams
+      parameters:
+        - in: query
+          name: approvers
+          schema:
+            type: boolean
+        - in: query
+          name: assignees
+          schema:
+            type: boolean
+        - in: query
+          name: assets
+          schema:
+            type: boolean
       responses:
         '200':
           description: POAM array response
@@ -2431,6 +2809,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poam_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2441,9 +2825,9 @@ paths:
         - Poam
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
   
-  '/poam/{poamId}':
+  /poam/{poamId}:
     parameters:
       - in: path
         name: poamId
@@ -2453,6 +2837,19 @@ paths:
     get:
       summary: Return a POAM by ID
       operationId: getPoam
+      parameters:
+        - in: query
+          name: approvers
+          schema:
+            type: boolean
+        - in: query
+          name: assignees
+          schema:
+            type: boolean
+        - in: query
+          name: assets
+          schema:
+            type: boolean
       responses:
         '200':
           description: POAM object response
@@ -2501,7 +2898,7 @@ paths:
         - oauth:
             - 'c-pat:read'
   
-  '/poams/collection/{collectionId}':
+  /poams/collection/{collectionId}:
     parameters:
       - in: path
         name: collectionId
@@ -2511,6 +2908,19 @@ paths:
     get:
       summary: Return POAMs by collection ID
       operationId: getPoamsByCollectionId
+      parameters:
+        - in: query
+          name: approvers
+          schema:
+            type: boolean
+        - in: query
+          name: assignees
+          schema:
+            type: boolean
+        - in: query
+          name: assets
+          schema:
+            type: boolean
       responses:
         '200':
           description: POAM array response
@@ -2538,16 +2948,29 @@ paths:
         - oauth:
             - 'c-pat:read'
   
-  '/poams/owner/{ownerId}':
+  /poams/submitter/{submitterId}:
     parameters:
       - in: path
-        name: ownerId
+        name: submitterId
         required: true
         schema:
           type: integer
     get:
-      summary: Return POAMs by owner ID
-      operationId: getPoamsByOwnerId
+      summary: Return POAMs by Submitter ID
+      operationId: getPoamsBySubmitterId
+      parameters:
+        - in: query
+          name: approvers
+          schema:
+            type: boolean
+        - in: query
+          name: assignees
+          schema:
+            type: boolean
+        - in: query
+          name: assets
+          schema:
+            type: boolean
       responses:
         '200':
           description: POAM array response
@@ -3041,39 +3464,6 @@ components:
         collectionName:
           type: string
 
-    collectionUpdate:
-      type: object
-      additionalProperties: false
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-          nullable: true
-        settings:
-          $ref: '#/components/schemas/collectionSettings'
-        grants:
-          type: array
-          items:
-            type: object
-            properties:
-              userId:
-                type: string
-              accessLevel:
-                type: integer
-
-    collectionSettings:
-      type: object
-      required:
-        - fields
-        - status
-      additionalProperties: false
-      properties:
-        fields:
-          $ref: '#/components/schemas/collectionField'
-        status:
-          $ref: '#/components/schemas/collectionStatus'
-
     collectionField:
       type: object
       required:
@@ -3089,39 +3479,10 @@ components:
         renewalNotes:
           type: string
 
-    collectionStatus:
-      type: object
-      additionalProperties: false
-      required:
-        - canApprove
-      properties:
-        canApprove:
-          type: boolean
-
     collectionLabelList:
       type: array
       items:
         $ref: '#/components/schemas/label'
-
-    collectionCreateOrReplace:
-      type: object
-      required:
-        - name
-        - settings
-        - grants
-      additionalProperties: false
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-          nullable: true
-        settings:
-          $ref: '#/components/schemas/collectionSettings'
-        labels:
-          type: array
-          items:
-            $ref: '#/components/schemas/label'          
 
     error:
       type: object
@@ -3193,14 +3554,14 @@ components:
       required:
         - poamId
         - userId
-        - approved
+        - approvalStatus
       additionalProperties: true
       properties:
         poamId:
           type: integer
         userId:
           type: integer
-        approved:
+        approvalStatus:
           type: string
         approvedDate:
           type: string
@@ -3215,7 +3576,7 @@ components:
         userEmail:
           type: string
 
-    PoamAssignee:
+    poamAssignee_Object:
       type: object
       required:
         - poamId
@@ -3226,6 +3587,10 @@ components:
           type: integer
         userId:
           type: integer
+        fullName:
+          type: string
+        poamStatus:
+          type: string
 
     poamAssets_Object:
       type: object
@@ -3260,9 +3625,8 @@ components:
         - vulnerabilitySource
         - aaPackage
         - rawSeverity
-        - ownerId
+        - submitterId
         - status
-        - poamType
       additionalProperties: true
       properties:
         poamId:
@@ -3282,6 +3646,7 @@ components:
           nullable: true
         iavmNumber:
           type: string
+          nullable: true
         iavComplyByDate:
           type: string
           nullable: true
@@ -3289,51 +3654,61 @@ components:
           type: string
         vulnerabilityId:
           type: string
+          nullable: true
         description:
           type: string
         rawSeverity:
           type: string
         adjSeverity:
           type: string
+          nullable: true
         scheduledCompletionDate:
           type: string
-        ownerId:
+        closedDate:
+          type: string
+          nullable: true
+        submitterId:
           type: integer
         mitigations:
           type: string
+          nullable: true
+        predisposingConditions:
+          type: string
+          nullable: true
         requiredResources:
           type: string
+          nullable: true
         residualRisk:
           type: string
+          nullable: true
         businessImpactRating:
           type: string
+          nullable: true
         businessImpactDescription:
           type: string
+          nullable: true
         notes:
           type: string
+          nullable: true
         status:
-          type: string
-        poamType:
           type: string
         vulnIdRestricted:
           type: string
+          nullable: true
         submittedDate:
           type: string
-        assets:
+        approvers:
           type: array
           items:
-            type: object
-            properties:
-              assetId:
-                type: integer
+            $ref: '#/components/schemas/poamApprover_Object'
         assignees:
           type: array
           items:
-            type: object
-            additionalProperties: true
-            properties:
-              userId:
-                type: integer
+            $ref: '#/components/schemas/poamAssignee_Object'
+        assets:
+          type: array
+          items:
+            $ref: '#/components/schemas/poamAssets_Object'
 
     poamLabel_Object:
       type: object
@@ -3455,6 +3830,14 @@ components:
         estimatedCompletionCount:
           type: integer
 
+    collectionPoamCounts:
+      type: object
+      properties:
+        collectionName:
+          type: string
+        poamCount:
+          type: integer
+          
     register:
       required:
         - email
@@ -3584,22 +3967,13 @@ components:
             required:
               - userId
               - collectionId
-              - canOwn
-              - canMaintain
-              - canApprove
-              - canView
+              - accessLevel
             properties:
               userId:
                 type: integer
               collectionId:
                 type: integer
-              canOwn:
-                type: integer
-              canMaintain:
-                type: integer
-              canApprove:
-                type: integer
-              canView:
+              accessLevel:
                 type: integer
 
     user_Response:
@@ -3761,23 +4135,14 @@ components:
       required:
         - userId
         - collectionId
-        - canOwn
-        - canMaintain
-        - canApprove
-        - canView
+        - accessLevel
       additionalProperties: true
       properties:
         userId:
           type: integer
         collectionId:
           type: integer
-        canOwn:
-          type: integer
-        canMaintain:
-          type: integer
-        canApprove:
-          type: integer
-        canView:
+        accessLevel:
           type: integer
         firstName:
           type: string
@@ -3794,10 +4159,7 @@ components:
         - userId
         - oldCollectionId
         - newCollectionId
-        - canOwn
-        - canMaintain
-        - canApprove
-        - canView
+        - accessLevel
       additionalProperties: true
       properties:
         userId:
@@ -3806,13 +4168,7 @@ components:
           type: integer
         newCollectionId:
           type: integer
-        canOwn:
-          type: integer
-        canMaintain:
-          type: integer
-        canApprove:
-          type: integer
-        canView:
+        accessLevel:
           type: integer
         firstName:
           type: string
@@ -3873,7 +4229,7 @@ components:
         items:
           type: string
           enum:
-            - owners
+            - submitters
             - statistics
             - labels
 

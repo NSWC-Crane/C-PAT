@@ -8,40 +8,33 @@
 !########################################################################
 */
 
-const express = require('express');
-const router = express.Router();
-const ExcelJS = require('exceljs');
 const importService = require('../services/mysql/importService');
 
-module.exports.uploadPoamFile = exports.uploadPoamFile = async (req, res) => {
-    if (!req.file) {
-        return res.status(400).send({ message: "Please upload an Excel file!" });
-    }
 
+module.exports.uploadPoamFile = async (req, res, next) => {
+    const file = req.files[0];
     const lastCollectionAccessedId = req.body.lastCollectionAccessedId;
+    const userId = req.body.userId;
 
-    if (!lastCollectionAccessedId) {
-        return res.status(400).send({ message: "lastCollectionAccessedId is required" });
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    try {
-        await workbook.xlsx.load(req.file.buffer);
-        if (workbook.worksheets.length === 0) {
-            throw new Error('No worksheets found in the workbook');
+    importService.excelFilter(req, file, async (err) => {
+        if (err) {
+            console.error("Invalid file type:", err);
+            res.status(400).json({
+                message: err.message,
+            });
+        } else {
+            try {
+                await importService.processPoamFile(file, lastCollectionAccessedId, userId);
+                res.status(201).json({ message: "Uploaded the file successfully" });
+            } catch (error) {
+                console.error("Error during file upload and processing:", error);
+                res.status(500).json({
+                    message: "Could not process the file",
+                    error: error.message,
+                });
+            }
         }
-        const worksheet = workbook.worksheets[0];
-
-        await importService.processPoamWorksheet(worksheet, lastCollectionAccessedId);
-
-        res.status(201).send({ message: "Uploaded the file successfully: " + req.file.originalname });
-    } catch (error) {
-        console.error("Error during file upload and processing: ", error);
-        res.status(500).send({
-            message: "Could not process the file: " + req.file.originalname,
-            error: error.message,
-        });
-    }
+    });
 };
 
 module.exports.importAssets = async function importAssets(req, res) {

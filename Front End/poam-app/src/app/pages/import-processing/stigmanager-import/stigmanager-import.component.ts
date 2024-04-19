@@ -33,20 +33,6 @@ interface Asset {
   assetId: any;
   name: string;
 }
-interface Permission {
-  userId: number;
-  collectionId: number;
-  canOwn: number;
-  canMaintain: number;
-  canApprove: number;
-  canView: number;
-}
-
-interface TreeNode<T> {
-  data: T;
-  children?: TreeNode<T>[];
-  expanded?: boolean;
-}
 
 interface AssetEntry {
   groupId: string;
@@ -57,7 +43,7 @@ interface AssetEntry {
 }
 
 @Component({
-  selector: 'ngx-stigmanager-import',
+  selector: 'cpat-stigmanager-import',
   templateUrl: './stigmanager-import.component.html',
   styleUrls: ['./stigmanager-import.component.scss']
 })

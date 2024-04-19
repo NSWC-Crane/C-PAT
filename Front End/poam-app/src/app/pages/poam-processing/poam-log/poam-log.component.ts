@@ -30,7 +30,7 @@ interface FSEntry {
 }
 
 @Component({
-  selector: 'ngx-poam-log',
+  selector: 'cpat-poam-log',
   templateUrl: './poam-log.component.html',
   styleUrls: ['./poam-log.component.scss']
 })

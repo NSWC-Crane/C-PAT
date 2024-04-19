@@ -53,6 +53,62 @@ exports.getPoamLabels = async function getPoamLabels(collectionId) {
     }
 }
 
+exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res, next) {
+    try {
+        const userId = req.params.userId;
+
+        if (!userId) {
+            console.info('getAvailablePoamLabels userId not provided.');
+            throw new Error('User ID is required');
+        }
+
+        return await withConnection(async (connection) => {
+            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const isAdmin = adminRows[0].isAdmin;
+
+            let sql = `
+                SELECT t1.poamId, t1.labelId, labelName
+                FROM poamtracking.poamlabels t1
+                INNER JOIN poamtracking.poam t2 ON t1.poamId = t2.poamId
+                INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId
+            `;
+            let params = [];
+
+            if (!isAdmin) {
+                const [permissionRows] = await connection.query(`
+                    SELECT collectionId 
+                    FROM poamtracking.collectionpermissions
+                    WHERE userId = ? AND accessLevel >= 2
+                `, [userId]);
+
+                const collectionIds = permissionRows.map(row => row.collectionId);
+
+                if (collectionIds.length === 0) {
+                    return [];
+                }
+
+                sql += " WHERE t2.collectionId IN (?)";
+                params.push(collectionIds);
+            }
+
+            sql += " ORDER BY t3.labelName";
+
+            const [rowPoamLabels] = await connection.query(sql, params);
+
+            const poamLabels = rowPoamLabels.map(row => ({
+                poamId: row.poamId,
+                labelId: row.labelId,
+                labelName: row.labelName,
+            }));
+
+            return poamLabels;
+        });
+    } catch (error) {
+        console.error("Error fetching POAM labels: ", error);
+        throw error;
+    }
+};
+
 exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
     try {
         if (!poamId) {

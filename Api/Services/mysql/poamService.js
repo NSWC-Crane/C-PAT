@@ -12,7 +12,9 @@
 const config = require('../../utils/config');
 const dbUtils = require('./utils');
 const mysql = require('mysql2');
-
+const poamApproverService = require('./poamApproverService')
+const poamAssetService = require('./poamAssetService')
+const poamAssigneeService = require('./poamAssigneeService')
 async function withConnection(callback) {
     const pool = dbUtils.getPool();
     const connection = await pool.getConnection();
@@ -29,17 +31,67 @@ function normalizeDate(date) {
     return d.toISOString().split('T')[0];
 }
 
-exports.getPoams = async function getPoams(req, res, next) {
+exports.getAvailablePoams = async function getAvailablePoams(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.poam ORDER BY poamId DESC";
-            let [rowPoams] = await connection.query(sql);
-            var poams = rowPoams.map(row => ({
+            const userId = req.params.userId;
+
+            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const isAdmin = adminRows[0].isAdmin;
+
+            let sql = `
+        SELECT p.*, u.fullName AS submitterName
+        FROM poamtracking.poam p
+        LEFT JOIN poamtracking.user u ON p.submitterId = u.userId
+      `;
+            let params = [];
+
+            if (!isAdmin) {
+                const [permissionRows] = await connection.query(`
+          SELECT collectionId
+          FROM poamtracking.collectionpermissions
+          WHERE userId = ? AND accessLevel >= 2
+        `, [userId]);
+
+                const collectionIds = permissionRows.map(row => row.collectionId);
+
+                if (collectionIds.length === 0) {
+                    return [];
+                }
+
+                sql += " WHERE p.collectionId IN (?)";
+                params.push(collectionIds);
+            }
+
+            sql += " ORDER BY p.poamId DESC";
+
+            const [rowPoams] = await connection.query(sql, params);
+
+            const poams = rowPoams.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                submitterName: row.submitterName || null,
             }));
-            return poams || null;
+
+            if (req.query.approvers) {
+                const approversData = await Promise.all(poams.map(poam => poamApproverService.getPoamApprovers({ params: { poamId: poam.poamId } }, res, next)));
+                poams.forEach((poam, index) => poam.approvers = approversData[index] || []);
+            }
+
+            if (req.query.assignees) {
+                const assigneesData = await Promise.all(poams.map(poam => poamAssigneeService.getPoamAssigneesByPoamId(poam.poamId)));
+                poams.forEach((poam, index) => poam.assignees = assigneesData[index] || []);
+            }
+
+            if (req.query.assets) {
+                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
+                poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
+            }
+
+            return poams;
         });
     } catch (error) {
         console.error(error);
@@ -60,13 +112,31 @@ exports.getPoam = async function getPoam(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.poam WHERE poamId = ?";
+            let sql = `
+                SELECT T1.*, T2.fullName AS submitterName
+                FROM poamtracking.poam T1
+                LEFT JOIN poamtracking.user T2 ON T1.submitterId = T2.userId
+                WHERE poamId = ?;
+                `;
             let [rowPoams] = await connection.query(sql, [req.params.poamId]);
             var poam = rowPoams.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
             }))[0];
+
+            if (req.query.approvers) {
+                poam.approvers = await poamApproverService.getPoamApprovers(req, res, next);
+            }
+            if (req.query.assignees) {
+                poam.assignees = await poamAssigneeService.getPoamAssigneesByPoamId(req.params.poamId);
+            }
+            if (req.query.assets) {
+                poam.assets = await poamAssetService.getPoamAssetsByPoamId(req, res, next);
+            }
+
             return poam || null;
         });
     } catch (error) {
@@ -88,13 +158,35 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.poam WHERE collectionId = ? ORDER BY poamId DESC";
+            let sql = `
+            SELECT T1.*, T2.fullName AS submitterName
+            FROM poamtracking.poam T1
+            LEFT JOIN poamtracking.user T2 ON T1.submitterId = T2.userId
+            WHERE T1.collectionId = ?
+            ORDER BY T1.poamId DESC;
+            `;
             let [rowPoams] = await connection.query(sql, [req.params.collectionId]);
             var poams = rowPoams.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
             }));
+
+            if (req.query.approvers) {
+                const approversData = await poamApproverService.getPoamApproversByCollection(req, res, next);
+                poams.forEach(poam => poam.approvers = approversData.filter(approver => approver.poamId === poam.poamId));
+            }
+            if (req.query.assignees) {
+                const assigneesData = await Promise.all(poams.map(poam => poamAssigneeService.getPoamAssigneesByPoamId(poam.poamId)));
+                poams.forEach((poam, index) => poam.assignees = assigneesData[index] || []);
+            }
+            if (req.query.assets) {
+                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
+                poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
+            }
+
             return poams || null;
         });
     } catch (error) {
@@ -103,26 +195,48 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
     }
 };
 
-exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, next) {
-    if (!req.params.ownerId) {
-        console.info('getPoamByOwnerId ownerId not provided.');
+exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, next) {
+    if (!req.params.submitterId) {
+        console.info('getPoamBySubmitterId submitterId not provided.');
         return next({
             status: 400,
             errors: {
-                ownerId: 'is required',
+                submitterId: 'is required',
             }
         });
     }
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.poam WHERE ownerId = ? ORDER BY poamId DESC";
-            let [rowPoams] = await connection.query(sql, [req.params.ownerId]);
+            let sql = `
+            SELECT T1.*, T2.fullName AS submitterName
+            FROM poamtracking.poam T1
+            LEFT JOIN poamtracking.user T2 ON T1.submitterId = T2.userId
+            WHERE T1.submitterId = ?
+            ORDER BY T1.poamId DESC;
+            `;
+            let [rowPoams] = await connection.query(sql, [req.params.submitterId]);
             var poams = rowPoams.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
             }));
+
+            if (req.query.approvers) {
+                const approversData = await Promise.all(poams.map(poam => poamApproverService.getPoamApprovers({ params: { poamId: poam.poamId } }, res, next)));
+                poams.forEach((poam, index) => poam.approvers = approversData[index] || []);
+            }
+            if (req.query.assignees) {
+                const assigneesData = await Promise.all(poams.map(poam => poamAssigneeService.getPoamAssigneesByPoamId(poam.poamId)));
+                poams.forEach((poam, index) => poam.assignees = assigneesData[index] || []);
+            }
+            if (req.query.assets) {
+                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
+                poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
+            }
+
             return poams || null;
         });
     } catch (error) {
@@ -132,7 +246,7 @@ exports.getPoamsByOwnerId = async function getPoamsByOwnerId(req, res, next) {
 };
 
 exports.postPoam = async function postPoam(req) {
-    const requiredFields = ['collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'ownerId'];
+    const requiredFields = ['collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'submitterId'];
     for (let field of requiredFields) {
         if (!req.body[field]) {
             console.info(`postPoam ${field} not provided.`);
@@ -142,28 +256,31 @@ exports.postPoam = async function postPoam(req) {
 
     req.body.submittedDate = req.body.submittedDate || null;
     req.body.scheduledCompletionDate = req.body.scheduledCompletionDate || null;
+    req.body.closedDate = req.body.closedDate || null;
     req.body.iavComplyByDate = req.body.iavComplyByDate || null;
 
     let sql_query = `INSERT INTO poamtracking.poam (collectionId, vulnerabilitySource, stigTitle, stigBenchmarkId, stigCheckData,
                     iavmNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate, scheduledCompletionDate,
-                    ownerId, mitigations, requiredResources, residualRisk, businessImpactRating, businessImpactDescription,
-                    notes, status, poamType, vulnIdRestricted, submittedDate) 
+                    submitterId, mitigations, requiredResources, residualRisk, businessImpactRating, businessImpactDescription,
+                    notes, status, vulnIdRestricted, submittedDate, closedDate)
                     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     try {
         return await withConnection(async (connection) => {
             await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
             req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity, req.body.iavComplyByDate,
-            req.body.scheduledCompletionDate, req.body.ownerId, req.body.mitigations, req.body.requiredResources, req.body.residualRisk,
+            req.body.scheduledCompletionDate, req.body.submitterId, req.body.mitigations, req.body.requiredResources, req.body.residualRisk,
             req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status,
-            req.body.poamType, req.body.vulnIdRestricted, req.body.submittedDate]);
+            req.body.vulnIdRestricted, req.body.submittedDate, req.body.closedDate]);
 
             let sql = "SELECT * FROM poamtracking.poam WHERE poamId = LAST_INSERT_ID();";
             let [rowPoam] = await connection.query(sql);
-            var poam = rowPoams.map(row => ({
+            var poam = rowPoam.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null
             }))[0];
 
             if (req.body.assignees) {
@@ -197,16 +314,17 @@ exports.postPoam = async function postPoam(req) {
 };
 
 exports.putPoam = async function putPoam(req, res, next) {
-    const requiredFields = ['poamId', 'collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'ownerId'];
+    const requiredFields = ['poamId', 'collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'submitterId'];
     let missingField = requiredFields.find(field => !req.body[field]);
     if (missingField) {
         console.info(`putPoam ${missingField} not provided.`);
         return { status: 400, errors: { [missingField]: 'is required' } };
     }
 
-    req.body.submittedDate = normalizeDate(req.body.submittedDate);
-    req.body.scheduledCompletionDate = normalizeDate(req.body.scheduledCompletionDate);
-    req.body.iavComplyByDate = normalizeDate(req.body.iavComplyByDate);
+    req.body.submittedDate = normalizeDate(req.body.submittedDate) || null;
+    req.body.scheduledCompletionDate = normalizeDate(req.body.scheduledCompletionDate) || null;
+    req.body.closedDate = normalizeDate(req.body.closedDate) || null;
+    req.body.iavComplyByDate = normalizeDate(req.body.iavComplyByDate) || null;
     const fieldNameMap = {
         "assets": "Asset List",
         "vulnerabilitySource": "Source Identifying Control Vulnerability",
@@ -221,13 +339,12 @@ exports.putPoam = async function putPoam(req, res, next) {
         "rawSeverity": "Raw Severity",
         "adjSeverity": "Adjusted Severity",
         "scheduledCompletionDate": "Scheduled Completion Date",
-        "ownerId": "POAM Owner",
+        "submitterId": "POAM Submitter",
         "mitigations": "Mitigations",
         "requiredResources": "Required Resources",
         "residualRisk": "Residual Risk",
         "notes": "Notes",
         "status": "POAM Status",
-        "poamType": "POAM Type",
         "vulnIdRestricted": "Vulnerability Restricted ID #",
         "submittedDate": "Submitted Date",
         "businessImpactRating": "Business Impact",
@@ -241,29 +358,32 @@ exports.putPoam = async function putPoam(req, res, next) {
 
             const existingPoamNormalized = {
                 ...existingPoam,
-                submittedDate: normalizeDate(existingPoam.submittedDate),
-                scheduledCompletionDate: normalizeDate(existingPoam.scheduledCompletionDate),
-                iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate),
+                submittedDate: normalizeDate(existingPoam.submittedDate) || null,
+                scheduledCompletionDate: normalizeDate(existingPoam.scheduledCompletionDate) || null,
+                closedDate: normalizeDate(existingPoam.closedDate) || null,
+                iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate) || null,
             };
 
             const sqlInsertPoam = `UPDATE poamtracking.poam SET collectionId = ?, vulnerabilitySource = ?, stigTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
                             iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
-                            iavComplyByDate = ?, scheduledCompletionDate = ?, ownerId = ?, mitigations = ?, requiredResources = ?,
-                            residualRisk = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?, poamType = ?,
-                            vulnIdRestricted = ?, submittedDate = ?  WHERE poamId = ?`
+                            iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, mitigations = ?, requiredResources = ?,
+                            residualRisk = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?,
+                            vulnIdRestricted = ?, submittedDate = ?, closedDate = ?  WHERE poamId = ?`
 
             await connection.query(sqlInsertPoam, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId,
             req.body.stigCheckData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
-            req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.ownerId,
+            req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId,
             req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.businessImpactRating,
-            req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.poamType, req.body.vulnIdRestricted,
-            req.body.submittedDate, req.body.poamId]);
+            req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.vulnIdRestricted,
+            req.body.submittedDate, req.body.closedDate, req.body.poamId]);
 
             const [updatedPoamRow] = await connection.query("SELECT * FROM poamtracking.poam WHERE poamId = ?", [req.body.poamId]);
             var updatedPoam = updatedPoamRow.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
             }))[0];
 
             if (req.body.poamLog && req.body.poamLog.length > 0) {
@@ -272,8 +392,8 @@ exports.putPoam = async function putPoam(req, res, next) {
 
                 const modifiedFields = Object.keys(req.body).filter(field => {
                     return !['poamId', 'collectionId', 'poamitemid', 'securityControlNumber', 'officeOrg', 'poamLog', 'emassStatus',
-                        'predisposingConditions', 'severity', 'relevanceOfThreat', 'threatDescription', 'likelihood', 'recommendations',
-                        'devicesAffected', 'extensionTimeAllowed', 'extensionJustification'].includes(field) &&
+                        'predisposingConditions', 'severity', 'relevanceOfThreat', 'threatDescription', 'likelihood', 'devicesAffected',
+                        'extensionTimeAllowed', 'extensionJustification'].includes(field) &&
                         req.body[field] !== undefined &&
                         req.body[field] !== existingPoamNormalized[field];
                 });

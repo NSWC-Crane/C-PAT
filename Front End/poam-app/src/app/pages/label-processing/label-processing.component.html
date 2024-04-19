@@ -16,25 +16,26 @@
          nbSpinnerMessage="Loading data, please wait...">
       <nb-card>
         <nb-card-body>
-          <h3>Labels</h3>
           <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Labels">
-          <table [nbTreeGrid]="dataSource">
-            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
-            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-          
-            <ng-container [nbTreeGridColumnDef]="customColumn">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">
-                {{row.data[customColumn]}}
-              </td>
-            </ng-container>
-          
-            <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
-            </ng-container>
-          </table>         
-        </nb-card-body>
+          <div class="scrollable-labels">
+            <table [nbTreeGrid]="dataSource">
+              <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+              <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+
+              <ng-container [nbTreeGridColumnDef]="customColumn">
+                <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
+                <td nbTreeGridCell *nbTreeGridCellDef="let row">
+                  {{row.data[customColumn]}}
+                </td>
+              </ng-container>
+
+              <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
+                <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
+                <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
+              </ng-container>
+            </table>
+            </div>
+</nb-card-body>
       </nb-card>
     </div>
   </div>
@@ -63,7 +64,7 @@
           </div>
 
           <div [ngStyle]="hideCollectionEntry">
-            <ngx-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData();"></ngx-label>
+            <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData();"></cpat-label>
           </div>
 
         </nb-card-body>

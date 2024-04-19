@@ -12,25 +12,26 @@
   <div class="col-md-10" [nbSpinner]="isLoading" nbSpinnerStatus="success" nbSpinnerSize="medium"
        nbSpinnerMessage="Loading data, please wait...">
     <nb-card>
-      <nb-card-body class="scrollable-collections">
-        <h3>Current Collection Structure</h3>
+      <nb-card-body>
         <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Collections">
-        <table [nbTreeGrid]="dataSource">
-          <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
-          <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+        <div class="scrollable-collections">
+          <table [nbTreeGrid]="dataSource">
+            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
 
-          <ng-container [nbTreeGridColumnDef]="customColumn">
-            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
-            <td nbTreeGridCell *nbTreeGridCellDef="let row">
-              {{row.data[customColumn]}}
-            </td>
-          </ng-container>
+            <ng-container [nbTreeGridColumnDef]="customColumn">
+              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
+              <td nbTreeGridCell *nbTreeGridCellDef="let row">
+                {{row.data[customColumn]}}
+              </td>
+            </ng-container>
 
-          <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
-            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-            <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
-          </ng-container>
-        </table>
+            <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
+              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
+              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
+            </ng-container>
+          </table>
+        </div>
       </nb-card-body>
     </nb-card>
   </div>
@@ -61,8 +62,8 @@
         </div>
 
         <div [ngStyle]="hideCollectionEntry">
-          <ngx-collection [collection]="collection" [collections]="collections"
-                          payload="payload" [poams]="poams" (collectionchange)="resetData();"></ngx-collection>
+          <cpat-collection [collection]="collection" [collections]="collections"
+                          payload="payload" [poams]="poams" (collectionchange)="resetData();"></cpat-collection>
         </div>
       </nb-card-body>
     </nb-card>

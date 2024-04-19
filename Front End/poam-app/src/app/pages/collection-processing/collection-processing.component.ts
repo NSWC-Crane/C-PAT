@@ -22,10 +22,7 @@ import { ExcelDataService } from '../../Shared/utils/excel-data.service'
 interface Permission {
   userId: number;
   collectionId: number;
-  canOwn: number;
-  canMaintain: number;
-  canApprove: number;
-  canView: number;
+  accessLevel: number;
 }
 interface TreeNode<T> {
   data: T;
@@ -42,7 +39,7 @@ interface FSEntry {
 }
 
 @Component({
-  selector: 'ngx-collection-processing',
+  selector: 'cpat-collection-processing',
   templateUrl: './collection-processing.component.html',
   styleUrls: ['./collection-processing.component.scss'],
 })
@@ -137,10 +134,7 @@ export class CollectionProcessingComponent implements OnInit {
               collections: this.user.permissions.map(
                 (permission: Permission) => ({
                   collectionId: permission.collectionId,
-                  canOwn: permission.canOwn,
-                  canMaintain: permission.canMaintain,
-                  canApprove: permission.canApprove,
-                  canView: permission.canView
+                  accessLevel: permission.accessLevel,
                 })
               ),
             };
@@ -158,7 +152,7 @@ export class CollectionProcessingComponent implements OnInit {
 
   checkModifyPermission(allowedCollections: any) {
     this.canModifyCollection = this.user.isAdmin || this.user.permissions.some((permission: any) =>
-      permission.canOwn === 1 || permission.canApprove === 1
+      permission.accessLevel >= 2
     );
 
     if (this.user.isAdmin) {
@@ -166,7 +160,7 @@ export class CollectionProcessingComponent implements OnInit {
     } else {
       this.userCollections = allowedCollections.filter((collection: any) =>
         this.user.permissions.some((permission: any) =>
-          (permission.canOwn === 1 || permission.canApprove === 1) &&
+          (permission.accessLevel >= 2) &&
           permission.collectionId === collection.collectionId
         )
       );

@@ -28,7 +28,7 @@ import { SharedService } from '../../../Shared/shared.service';
 
 
 @Component({
-  selector: 'ngx-poam-extend',
+  selector: 'cpat-poam-extend',
   templateUrl: './poam-extend.component.html',
   styleUrls: ['./poam-extend.component.scss'],
   providers: [DatePipe]
