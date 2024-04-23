@@ -92,6 +92,21 @@ module.exports.putPoam = async function putPoam(req, res, next) {
     }
 };
 
+module.exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
+    try {
+        const poam = await poamService.updatePoamStatus(req, res, next);
+        if (poam.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: poam.errors });
+        } else if (!poam) {
+            res.status(500).json({ error: 'Internal Server Error', detail: 'Failed to update POAM' });
+        } else {
+            res.status(200).json(poam);
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
+
 module.exports.deletePoam = async function deletePoam(req, res, next) {
     try {
         const result = await poamService.deletePoam(req, res, next);

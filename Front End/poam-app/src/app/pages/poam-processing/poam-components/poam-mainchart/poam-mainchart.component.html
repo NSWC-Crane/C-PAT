@@ -20,7 +20,7 @@
                 <nb-icon nbPrefix icon="list-outline"></nb-icon>
                 <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
                   <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
-                    POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
+                    POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{ poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
                   </nb-option>
                 </nb-select>
               </nb-form-field>
@@ -42,7 +42,7 @@
                 <nb-icon nbPrefix icon="list-outline"></nb-icon>
                 <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
                   <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
-                    POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
+                    POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{ poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
                   </nb-option>
                 </nb-select>
               </nb-form-field>
@@ -64,7 +64,7 @@
                 <nb-icon nbPrefix icon="list-outline"></nb-icon>
                 <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
                   <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
-                    POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
+                    POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{ poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
                   </nb-option>
                 </nb-select>
               </nb-form-field>
@@ -86,7 +86,7 @@
                 <nb-icon nbPrefix icon="list-outline"></nb-icon>
                 <nb-select fullWidth status="info" placeholder="Select POAM to Modify" [(selected)]="selectedPoamId" (selectedChange)="onSelectPoam($event)">
                   <nb-option *ngFor="let poam of poamsForChart" [value]="poam.id">
-                    POAM ID: {{ poam.id }} - Vulnerability ID: {{ poam.vulnerabilityId }} - {{ poam.description }}
+                    POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{ poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
                   </nb-option>
                 </nb-select>
               </nb-form-field>

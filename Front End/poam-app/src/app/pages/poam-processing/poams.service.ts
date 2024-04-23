@@ -130,6 +130,11 @@ export class PoamService {
       .put<any>(`${this.uri}/poam`, poam, this.httpOptions);
   }
 
+  updatePoamStatus(poamId: any, poamStatusUpdate: any) {
+    return this.http
+      .put<any>(`${this.uri}/poam/status/${poamId}`, poamStatusUpdate, this.httpOptions);
+  }
+
   postPoamAssignee(poamAssignee: any) {
     return this.http
       .post<any>(`${this.uri}/poamAssignee`, poamAssignee, this.httpOptions);
@@ -201,19 +206,6 @@ export class PoamService {
     };
 
     return this.http.delete<any>(`${this.uri}/poamApprover/poam/${poamId}/user/${userId}`, options);
-  }
-
-  getPoamExtension(poamId: string) {
-    return this.http.get<any>(`${this.uri}/poamExtension/${poamId}`)
-      .pipe(catchError(this.handleError));
-  }
-
-  putPoamExtension(extensionData: any) {
-    return this.http.put<any>(`${this.uri}/poamExtension`, extensionData, this.httpOptions);
-  }
-
-  deletePoamExtension(poamId: string) {
-    return this.http.delete<any>(`${this.uri}/poamExtension/${poamId}`, this.httpOptions);
   }
 
   getPoamMilestones(poamId: string) {

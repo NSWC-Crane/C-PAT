@@ -19,7 +19,7 @@ const config = require('./utils/config');
 const routes = require('./routes');
 const db = require('./db');
 const swaggerUi = require('swagger-ui-express');
-
+const server = require('http').createServer(app);
 
 app.use(cors());
 app.use(express.json({strict: false, limit: parseInt('10485760')}));

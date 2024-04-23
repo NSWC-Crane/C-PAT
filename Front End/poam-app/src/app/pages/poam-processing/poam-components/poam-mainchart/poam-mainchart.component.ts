@@ -11,7 +11,7 @@
 import { Output, EventEmitter, ChangeDetectorRef, Component, ElementRef, OnChanges, AfterViewInit, SimpleChanges, ViewChild, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { Chart, registerables, ChartData } from 'chart.js';
-import { addDays, differenceInCalendarDays } from 'date-fns';
+import { addDays, differenceInCalendarDays, parseISO } from 'date-fns';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 @Component({
@@ -295,7 +295,8 @@ export class PoamMainchartComponent implements OnChanges, AfterViewInit {
     this.poamsForChart = filteredPoams.map((poam: any) => ({
       id: poam.poamId,
       vulnerabilityId: poam.vulnerabilityId,
-      description: poam.description,
+      status: poam.status,
+      submittedDate: (poam.submittedDate) ? poam.submittedDate.substr(0, 10) : ''
     }));
     this.poamsChange.emit(filteredPoams);
     switch (filterType) {

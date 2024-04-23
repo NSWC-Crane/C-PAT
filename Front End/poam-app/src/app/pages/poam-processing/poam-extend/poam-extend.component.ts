@@ -25,6 +25,7 @@ import { ConfirmationDialogComponent, ConfirmationDialogOptions } from 'src/app/
 import { SmartTableSelectComponent } from '../../../Shared/components/smart-table/smart-table-select.component';
 import { addDays, format, isAfter, parseISO } from 'date-fns';
 import { SharedService } from '../../../Shared/shared.service';
+import { PoamExtensionService } from '../poam-extend/poam-extend.service';
 
 
 @Component({
@@ -41,7 +42,7 @@ export class PoamExtendComponent implements OnInit {
   public userProfile: KeycloakProfile | null = null;
   poam: any;
   poamId: any;
-  poamMilestones: any[] = [];
+  poamExtensionMilestones: any[] = [];
   extensionJustification: string = '';
   justifications: string[] = [
     "Security Vulnerability Remediation - More Time Required",
@@ -60,7 +61,7 @@ export class PoamExtendComponent implements OnInit {
   public extensionJustificationPlaceholder: string = "Select from the available options, modify a provided option, or provide a custom justification";
   completionDate: any;
   completionDateWithExtension: any;
-  poamMilestoneSettings: Settings = {
+  poamExtensionMilestoneSettings: Settings = {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
@@ -139,14 +140,13 @@ export class PoamExtendComponent implements OnInit {
   
   constructor(
     private router: Router,
-    private datePipe: DatePipe,
     private dialogService: NbDialogService,
     private readonly keycloak: KeycloakService,
     private route: ActivatedRoute,
     private poamService: PoamService,
     private userService: UsersService,
-    private datepipe: DatePipe,
     private sharedService: SharedService,
+    private poamExtensionService: PoamExtensionService,
   ) { }
 
   @ViewChild('extendTemplate') extendTemplate!: TemplateRef<any>;
@@ -187,8 +187,8 @@ export class PoamExtendComponent implements OnInit {
   }
 
   getData() {
-    const extensionObservable = this.poamService.getPoamExtension(this.poamId);
-    const milestonesObservable = this.poamService.getPoamMilestones(this.poamId);
+    const extensionObservable = this.poamExtensionService.getPoamExtension(this.poamId);
+    const milestonesObservable = this.poamExtensionService.getPoamExtensionMilestones(this.poamId);
 
     this.subs.sink = forkJoin({
       extension: extensionObservable,
@@ -219,7 +219,7 @@ export class PoamExtendComponent implements OnInit {
           this.extensionJustification = '';
           this.completionDateWithExtension = this.poam.scheduledCompletionDate.substr(0, 10).replaceAll('-', '/');
         }
-        this.poamMilestones = milestones.poamMilestones;
+        this.poamExtensionMilestones = milestones.poamExtensionMilestones;
       },
       error: (error) => {
         console.error("Failed to fetch POAM data:", error);
@@ -279,7 +279,7 @@ export class PoamExtendComponent implements OnInit {
         poamLog: [{ userId: this.user.userId }],
       }
 
-      await this.poamService.addPoamMilestone(this.poamId, milestone).subscribe((res: any) => {
+      await this.poamExtensionService.addPoamExtensionMilestone(this.poamId, milestone).subscribe((res: any) => {
         if (res.null) {
           this.showConfirmation("Unable to insert row, potentially a duplicate.");
           event.confirm.reject();
@@ -287,8 +287,8 @@ export class PoamExtendComponent implements OnInit {
           return;
         } else {
           event.confirm.resolve();
-          this.poamMilestones.push(milestone);
-          this.poamMilestones = [...this.poamMilestones];
+          this.poamExtensionMilestones.push(milestone);
+          this.poamExtensionMilestones = [...this.poamExtensionMilestones];
           this.getData();
         }
       })
@@ -325,7 +325,7 @@ export class PoamExtendComponent implements OnInit {
       ...(event.newData.milestoneStatus && { milestoneStatus: (event.newData.milestoneStatus) ? event.newData.milestoneStatus : 'Pending' }),
     };
   
-    this.poamService.updatePoamMilestone(this.poamId, event.data.milestoneId, milestoneUpdate).subscribe({
+    this.poamExtensionService.updatePoamExtensionMilestone(this.poamId, event.data.milestoneId, milestoneUpdate).subscribe({
       next: () => {
         event.confirm.resolve();
         this.getData();
@@ -344,11 +344,11 @@ export class PoamExtendComponent implements OnInit {
       return;
     }
 
-    this.poamService.deletePoamMilestone(this.poamId, event.data.milestoneId, this.user.userId, true).subscribe((res: any) => {
-      const index = this.poamMilestones.findIndex((e: any) => e.poamId == event.data.poamId && e.milestoneId == event.data.milestoneId);
+    this.poamExtensionService.deletePoamExtensionMilestone(this.poamId, event.data.milestoneId, this.user.userId, true).subscribe((res: any) => {
+      const index = this.poamExtensionMilestones.findIndex((e: any) => e.poamId == event.data.poamId && e.milestoneId == event.data.milestoneId);
 
       if (index > -1) {
-        this.poamMilestones.splice(index, 1);
+        this.poamExtensionMilestones.splice(index, 1);
       }
       event.confirm.resolve();
     })
@@ -423,7 +423,7 @@ export class PoamExtendComponent implements OnInit {
     }
 
     try {
-      const updatedExtension = await lastValueFrom(this.poamService.putPoamExtension(extensionData));
+      const updatedExtension = await lastValueFrom(this.poamExtensionService.putPoamExtension(extensionData));
       if (this.modalWindow) {
         this.modalWindow.close();
       }

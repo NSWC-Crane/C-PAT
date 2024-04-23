@@ -18,7 +18,7 @@ import { AppComponent } from './app.component';
 import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';
 import { CoreModule } from '../app/@core/core.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbActionsModule, NbAutocompleteModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule, NbAccordionModule, NbDatepickerModule, NbTooltipModule, NbFormFieldModule, NbToggleModule, NbUserModule, NbPopoverModule } from '@nebular/theme';
+import { NbActionsModule, NbAutocompleteModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule, NbAccordionModule, NbDatepickerModule, NbTooltipModule, NbFormFieldModule, NbToggleModule, NbUserModule, NbPopoverModule, NbListModule } from '@nebular/theme';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientModule } from '@angular/common/http';
 import { NbAuthModule, NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token, } from '@nebular/auth';
@@ -33,6 +33,7 @@ import { KcAuthService } from './kc-auth.service';
 import { RoleProvider } from './auth';
 import { PoamManageModule } from "./pages/poam-processing/poam-manage/poam-manage.module";
 import { PoamExtendModule } from "./pages/poam-processing/poam-extend/poam-extend.module";
+import { PoamApproveModule } from "./pages/poam-processing/poam-approve/poam-approve.module";
 import { PoamLogModule } from "./pages/poam-processing/poam-log/poam-log.module";
 import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
@@ -90,27 +91,34 @@ function initializeKeycloak(keycloak: KeycloakService) {
     NbCardModule,
     NbToggleModule,
     NbCheckboxModule,
-    NbDatepickerModule.forRoot(),
-    NbDialogModule.forChild(),
     NbEvaIconsModule,
     NbFormFieldModule,
     NbInputModule,
     NbIconModule,
     NbLayoutModule,
+    NbListModule,
     NbPopoverModule,
     NbSelectModule,
     NbSpinnerModule,
-    NbSecurityModule.forRoot(),
-    NbSidebarModule.forRoot(),
     NbStepperModule,
     NbTooltipModule,
-    NbMenuModule.forRoot(),
     NbUserModule,
     NgbModule,
-    NbThemeModule.forRoot({ name: 'default' }),
-    SharedModule,
     Angular2SmartTableModule,
     KeycloakAngularModule,
+    CoreModule,
+    PoamApproveModule,
+    PoamManageModule,
+    PoamExtendModule,
+    PoamLogModule,
+    STIGManagerImportModule,
+    TenableImportModule,
+    NbDialogModule.forChild(),
+    NbDatepickerModule.forRoot(),
+    NbThemeModule.forRoot({ name: 'dark' }),
+    NbMenuModule.forRoot(),
+    NbSecurityModule.forRoot(),
+    NbSidebarModule.forRoot(),
     NbAuthModule.forRoot({
       strategies: [
         NbOAuth2AuthStrategy.setup({
@@ -134,12 +142,6 @@ function initializeKeycloak(keycloak: KeycloakService) {
       ],
       forms: {},
     }),
-    CoreModule,
-    PoamManageModule,
-    PoamExtendModule,
-    PoamLogModule,
-    STIGManagerImportModule,
-    TenableImportModule,
   ]
 })
 export class AppModule { }

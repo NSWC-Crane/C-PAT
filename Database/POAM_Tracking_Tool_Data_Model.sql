@@ -94,6 +94,17 @@ CREATE TABLE `poamtracking`.`label` (
    `stigmanLabelId` varchar(36) DEFAULT NULL,
    PRIMARY KEY (`labelId`)
  );
+
+ CREATE TABLE `poamtracking`.`notification` (
+  `notificationId` INT NOT NULL AUTO_INCREMENT,
+  `userId` INT NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `message` TEXT NOT NULL,
+  `timestamp` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `read` TINYINT(1) DEFAULT 0,
+  PRIMARY KEY (`notificationId`),
+  KEY `userId` (`userId`)
+);
   
 CREATE TABLE `poamtracking`.`collectionpermissions` (
    `userId` int NOT NULL,
@@ -120,6 +131,15 @@ CREATE TABLE `poamtracking`.`poammilestones` (
   `milestoneComments` varchar(2000) DEFAULT '',
   `milestoneStatus` varchar(10) DEFAULT 'Pending',
   PRIMARY KEY (`milestoneId`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+  CREATE TABLE `poamtracking`.`poamextensionmilestones` (
+  `extensionMilestoneId` INT NOT NULL AUTO_INCREMENT,
+  `poamId` int NOT NULL,
+  `extensionMilestoneDate` date DEFAULT NULL,
+  `extensionMilestoneComments` varchar(2000) DEFAULT '',
+  `extensionMilestoneStatus` varchar(10) DEFAULT 'Pending',
+  PRIMARY KEY (`extensionMilestoneId`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
   
 CREATE TABLE `poamtracking`.`collection` (

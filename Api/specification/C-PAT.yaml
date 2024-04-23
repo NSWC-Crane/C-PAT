@@ -1453,6 +1453,227 @@ paths:
         - oauth:
             - 'c-pat:op'
 
+  /notifications/all/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get all notifications for a user
+      operationId: getAllNotificationsByUserId
+      responses:
+        '200':
+          description: Notification array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/notification'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Notification
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /notifications/unread/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get all unread notifications for a user
+      operationId: getUnreadNotificationsByUserId
+      responses:
+        '200':
+          description: Notification array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/notification'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Notification
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /notifications/unread/count/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get a count of all unread notifications for a user
+      operationId: getUnreadNotificationCountByUserId
+      responses:
+        '200':
+          description: Notification count response
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Notification
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /notifications/dismiss/{notificationId}:
+    parameters:
+      - in: path
+        name: notificationId
+        required: true
+        schema:
+          type: integer
+    put:
+      summary: Dismiss a notification
+      operationId: dismissNotificationByNotificationId
+      responses:
+        '200':
+          description: Notification array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/notification'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Notification
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /notifications/all/dismiss/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+    put:
+      summary: Dismiss all notifications for a user
+      operationId: dismissAllNotificationsByUserId
+      responses:
+        '204':
+          description: Notification dismissed successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Notification
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /notifications/delete/{notificationId}:
+    parameters:
+      - in: path
+        name: notificationId
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Delete a notification
+      operationId: deleteNotificationByNotificationId
+      responses:
+        '204':
+          description: Notification dismissed successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Notification
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /notifications/all/delete/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Delete a notification
+      operationId: deleteAllNotificationsByUserId
+      responses:
+        '204':
+          description: Notification dismissed successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Notification
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   '/permission':
     post:
       summary: Add a user collection permission
@@ -2777,6 +2998,167 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /poamExtensionMilestones/{poamId}:
+    get:
+      summary: Get all Extension Milestones for a specific POAM
+      operationId: getPoamExtensionMilestones
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the POAM
+      responses:
+        '200':
+          description: Successfully retrieved Extension Milestones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoamExtensionMilestonesResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamExtensionMilestones
+      security:
+        - oauth:
+            - 'c-pat:read'
+    post:
+      summary: Add a new Extension Milestone to a POAM
+      description: Creates a new Extension Milestone. The extensionMilestoneId is auto-generated upon creation.
+      operationId: postPoamExtensionMilestone
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the POAM
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoamExtensionMilestoneRequest'
+      responses:
+        '201':
+          description: Successfully created a new ExtensionMilestone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoamExtensionMilestone'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamExtensionMilestones
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  /poamExtensionMilestones/{poamId}/{extensionMilestoneId}:
+    put:
+      summary: Update a specific Extension Milestone
+      description: Updates the Extension Milestone identified by extensionMilestoneId for a given POAM.
+      operationId: putPoamExtensionMilestone
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the POAM to which the Extension Milestone belongs.
+        - in: path
+          name: extensionMilestoneId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the Extension Milestone to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoamExtensionMilestoneUpdateRequest'
+      responses:
+        '200':
+          description: Successfully updated the Extension Milestone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoamExtensionMilestone'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamExtensionMilestones
+      security:
+        - oauth:
+            - 'c-pat:read'
+    delete:
+      summary: Delete a specific Extension Milestone
+      description: Deletes the Extension Milestone identified by extensionMilestoneId for a given POAM.
+      operationId: deletePoamExtensionMilestone
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: extensionMilestoneId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Successfully deleted the Extension Milestone
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamExtensionMilestones
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   /poams/{userId}:
     parameters:
       - in: path
@@ -3041,6 +3423,41 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/poam_Object'
+      responses:
+        '200':
+          description: POAM updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poam_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Poam
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/poam/status/{poamId}':
+    put:
+      summary: Update a POAMs status
+      operationId: updatePoamStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/poam_status_object'
       responses:
         '200':
           description: POAM updated successfully
@@ -3549,6 +3966,30 @@ components:
       type: string
       maxLength: 36
 
+    notification:
+      type: object
+      properties:
+        notificationId:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        read:
+          type: integer
+      required:
+        - notificationId
+        - userId
+        - title
+        - message
+        - timestamp
+        - read
+
     poamApprover_Object:
       type: object
       required:
@@ -3616,7 +4057,19 @@ components:
           type: integer
         extensionJustification:
           type: string
-      
+
+    poam_status_object:
+      type: object
+      required:
+        - poamId
+        - status
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        status:
+          type: string
+            
     poam_Object:
       type: object
       required:
@@ -3779,6 +4232,54 @@ components:
           type: string
 
     PoamMilestoneUpdateRequest:
+      type: object
+      additionalProperties: true
+      properties:
+        milestoneDate:
+          type: string
+        milestoneComments:
+          type: string
+        milestoneStatus:
+          type: string
+      description: Schema for updating a milestone. All fields are optional, allowing partial updates.
+
+    PoamExtensionMilestonesResponse:
+      type: object
+      properties:
+        poamMilestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoamExtensionMilestone'
+
+    PoamExtensionMilestone:
+      type: object
+      properties:
+        milestoneId:
+          type: integer
+        poamId:
+          type: integer
+        milestoneDate:
+          type: string
+          format: date
+        milestoneComments:
+          type: string
+        milestoneStatus:
+          type: string
+
+    PoamExtensionMilestoneRequest:
+      type: object
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        milestoneDate:
+          type: string
+        milestoneComments:
+          type: string
+        milestoneStatus:
+          type: string
+
+    PoamExtensionMilestoneUpdateRequest:
       type: object
       additionalProperties: true
       properties:
