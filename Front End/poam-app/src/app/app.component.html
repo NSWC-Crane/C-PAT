@@ -22,16 +22,15 @@
              [name]="this.fullName"
              [title]="this.userRole"
              picture="../assets/user.png"
-             badgeText="99+"
+             [badgeText]="notificationCount"
              badgeStatus="info"
              badgePosition="bottom right"
              color="#4A4A4A"
              [nbPopover]="notificationsPanel"
-             nbPopoverPlacement="bottom"
              nbPopoverTrigger="click">
     </nb-user>
     <ng-template #notificationsPanel>
-      <cpat-notifications-panel></cpat-notifications-panel>
+      <cpat-notifications-popover></cpat-notifications-popover>
     </ng-template>
   </nb-layout-header>
   <nb-layout-header subheader>

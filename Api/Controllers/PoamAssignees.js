@@ -33,7 +33,7 @@ exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(req, 
 
 exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(req, res, next) {
     try {
-        const result = await poamAssigneeService.getPoamAssigneesByUserId(req.params.userId);
+        const result = await poamAssigneeService.getPoamAssigneesByUserId(req, res, next);
         return res.status(200).json(result);
     } catch (error) {
         console.error(error);
@@ -43,7 +43,7 @@ exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(req, 
 
 exports.getPoamAssignee = async function getPoamAssignee(req, res, next) {
     try {
-        const result = await poamAssigneeService.getPoamAssignee(req.params.userId, req.params.poamId);
+        const result = await poamAssigneeService.getPoamAssignee(req, res, next);
         return res.status(200).json(result);
     } catch (error) {
         console.error(error);
@@ -53,7 +53,7 @@ exports.getPoamAssignee = async function getPoamAssignee(req, res, next) {
 
 exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
     try {
-        const assignee = await poamAssigneeService.postPoamAssignee(req.body);
+        const assignee = await poamAssigneeService.postPoamAssignee(req, res, next);
         return res.status(201).json(assignee);
     } catch (error) {
         console.error("Error in postPoamAssignee controller: ", error);
@@ -63,7 +63,7 @@ exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
 
 exports.deletePoamAssignee = async function deletePoamAssignee(req, res, next) {
     try {
-        await poamAssigneeService.deletePoamAssignee(req.params.userId, req.params.poamId, req.body.requestorId);
+        await poamAssigneeService.deletePoamAssignee(req, res, next);
         return res.status(204).send();
     } catch (error) {
         console.error(error);

@@ -17,11 +17,11 @@
             <label id="status">POAM Status: <span class="text-danger">*</span></label>
             <nb-select outline status="basic" placeholder="POAM Status..." [(ngModel)]="poam.status" name="status">
               <nb-option value="Draft">Draft</nb-option>
-              <nb-option value="Submitted">Submitted</nb-option>
-              <nb-option value="Approved">Approved</nb-option>
-              <nb-option value="Rejected">Rejected</nb-option>
               <nb-option value="Closed">Closed</nb-option>
               <nb-option value="Expired">Expired</nb-option>
+              <nb-option value="Submitted" disabled>Submitted</nb-option>
+              <nb-option value="Approved" disabled>Approved</nb-option>
+              <nb-option value="Rejected" disabled>Rejected</nb-option>
             </nb-select>
           </div>
 
@@ -29,7 +29,7 @@
             <button nbButton outline status="basic" (click)="poamLog(poam)">Poam History</button>
             <button nbButton outline status="warning" (click)="extendPoam(poam)">Extend Poam</button>
             <button nbButton outline status="success" *ngIf="showSubmit" (click)="submitPoam(poam)" nbTooltip="Update POAM Status to Submitted" nbTooltipPlacement="top" nbTooltipStatus="basic">Submit Poam</button>
-            <!--<button nbButton outline status="danger" *ngIf="showClose" (click)="closePoam(poam)" nbTooltip="Update POAM Status to Closed" nbTooltipPlacement="top" nbTooltipStatus="basic">Close Poam</button>-->
+            <button nbButton outline status="primary" *ngIf="showApprove" (click)="poamApproval(poam)">POAM Approval</button>
           </div>
         </div>
       </nb-card-header>

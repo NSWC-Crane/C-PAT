@@ -11,9 +11,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';
+import { PoamApproveComponent } from './pages/poam-processing/poam-approve/poam-approve.component';
 import { PoamManageComponent } from './pages/poam-processing/poam-manage/poam-manage.component';
 import { PoamExtendComponent } from './pages/poam-processing/poam-extend/poam-extend.component';
 import { PoamLogComponent } from './pages/poam-processing/poam-log/poam-log.component';
+import { NotificationsComponent } from './Shared/notifications/notifications.component';
 import { AuthGuard } from './auth.guard'
 import { AppComponent } from './app.component';
 
@@ -22,11 +24,14 @@ const routes: Routes = [
   { path: '', canActivate: [AuthGuard], component: AppComponent },
   { path: 'consent',  loadChildren: () => import('./pages/dod-consent/dod-consent.module').then(m => m.DoDConsentModule) },
   { path: 'extend', loadChildren: () => import('./pages/poam-processing/poam-extend/poam-extend.module').then(m => m.PoamExtendModule) },
+  { path: 'approve', loadChildren: () => import('./pages/poam-processing/poam-approve/poam-approve.module').then(m => m.PoamApproveModule) },
   { path: 'log', loadChildren: () => import('./pages/poam-processing/poam-log/poam-log.module').then(m => m.PoamLogModule) },
   { path: 'asset-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/asset-processing/asset-processing.module').then(m => m.AssetProcessingModule) },
   { path: 'collection-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/collection-processing/collection-processing.module').then(m => m.CollectionProcessingModule) },
   { path: 'label-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/label-processing/label-processing.module').then(m => m.LabelProcessingModule) },
+  { path: 'notifications', canActivate: [AuthGuard], component: NotificationsComponent },
   { path: 'poam-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/poam-processing/poams.module').then(m => m.PoamsModule) },
+  { path: 'poam-approve/:poamId', canActivate: [AuthGuard], component: PoamApproveComponent },
   { path: 'poam-details/:poamId', canActivate: [AuthGuard], component: PoamDetailsComponent },
   { path: 'poam-approve/:poamId', canActivate: [AuthGuard], component: PoamManageComponent },
   { path: 'poam-extend/:poamId', canActivate: [AuthGuard], component: PoamExtendComponent },

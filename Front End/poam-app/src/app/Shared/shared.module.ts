@@ -15,7 +15,7 @@ import { ConfirmationDialogComponent } from './components/confirmation-dialog/co
 import { StatusDialogComponent } from './components/status-dialog/status-dialog.component';
 import { NbButtonModule, NbCardModule, NbWindowModule, NbDialogModule, NbIconModule, NbLayoutModule,
          NbProgressBarModule, NbSidebarModule, NbThemeModule, NbSelectModule, NbSpinnerModule, NbAlertModule, 
-         NbTreeGridModule, NbRadioModule, NbDatepickerComponent, NbDatepickerModule, NbInputModule, NbListModule } from '@nebular/theme';
+         NbTreeGridModule, NbRadioModule, NbDatepickerModule, NbInputModule, NbListModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { SmartTableDatepickerComponent } from './components/smart-table/smart-table-datepicker.component';
@@ -24,19 +24,21 @@ import { SmartTableInputComponent } from './components/smart-table/smart-table-i
 import { SmartTableTextareaComponent } from './components/smart-table/smart-table-textarea.component';
 import { SmartTableInputDisabledComponent } from './components/smart-table/smart-table-inputDisabled.component';
 import { SmartTableSelectComponent } from './components/smart-table/smart-table-select.component';
-import { NotificationsPanelComponent } from './notifications-panel/notifications-panel.component';
+import { NotificationsPanelComponent } from './notifications/notifications-popover/notifications-popover.component';
+import { NotificationsComponent } from './notifications/notifications.component';
 
 @NgModule({
   declarations: [
-    NotFoundComponent,
     ConfirmationDialogComponent,
+    NotFoundComponent,
+    NotificationsComponent,
+    NotificationsPanelComponent,
     StatusDialogComponent,
     SmartTableDatepickerComponent,
     SmartTableInputComponent,
     SmartTableInputDisabledComponent,
     SmartTableSelectComponent,
     SmartTableTextareaComponent,
-    NotificationsPanelComponent,
   ],
   imports: [
     CommonModule,
@@ -63,14 +65,15 @@ import { NotificationsPanelComponent } from './notifications-panel/notifications
     Angular2SmartTableModule, 
   ],
   exports: [
-    NotFoundComponent,
     ConfirmationDialogComponent,
+    NotFoundComponent,
+    NotificationsComponent,
+    NotificationsPanelComponent,
     SmartTableDatepickerComponent,
     SmartTableInputComponent,
     SmartTableInputDisabledComponent,
     SmartTableSelectComponent,
     SmartTableTextareaComponent,
-    NotificationsPanelComponent,
   ],
   providers: [
     CurrencyPipe,

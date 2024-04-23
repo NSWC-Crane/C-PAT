@@ -12,7 +12,6 @@
 const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
-
 async function withConnection(callback) {
     const pool = dbUtils.getPool();
     const connection = await pool.getConnection();
@@ -205,13 +204,24 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
                 let action = `${fullName} was added to the Approver List.`;
                 let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+
+                    const notification = {
+                        title: 'Added to Approver List',
+                        message: `You have been assigned as an approver for POAM ${req.body.poamId}.`,
+                        userId: req.body.userId
+                    };
+                    const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    await connection.query(notificationSql, [req.body.userId, notification.title, notification.message]);
             } else {
                 console.warn("No poamLog information provided for logging.");
             }
-
             let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
             let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
-            var poamApprover = row.map(row => ({ ...row }))[0];
+            var poamApprover = row.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }))[0];
+
             return poamApprover;
         });
     } catch (error) {
@@ -265,10 +275,14 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                 req.body.poamId, req.body.userId
             ]);
 
-            if (req.body.poamLog[0].userId) {
-                let userSql = "SELECT fullName FROM poamtracking.user WHERE userId = ?";
-                const [user] = await connection.query(userSql, [req.body.userId]);
-                const fullName = user[0] ? user[0].fullName : "Unknown User";
+            let fullName = "Unknown User";
+            let userSql = "SELECT fullName FROM poamtracking.user WHERE userId = ?";
+            const [user] = await connection.query(userSql, [req.body.userId]);
+            if (user[0]) {
+                fullName = user[0].fullName;
+            }
+
+            if (req.body.poamLog && req.body.poamLog[0] && req.body.poamLog[0].userId) {
                 let action = `${fullName} was added to the Approver List.`;
                 let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
@@ -277,25 +291,62 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
             if (req.body.approvalStatus === 'Rejected') {
                 sql_query = "UPDATE poamtracking.poam SET status = ? WHERE poamId = ?;";
                 await connection.query(sql_query, ["Rejected", req.body.poamId]);
-            } else {
+                const poamSql = "SELECT submitterId FROM poamtracking.poam WHERE poamId = ?";
+                const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
+                const submitterId = poamResult[0].submitterId;
+
+                const notification = {
+                    title: 'POAM Rejected',
+                    message: `POAM ${req.body.poamId} has been rejected by ${fullName}. Approver Comments: ${req.body.comments}.`,
+                    userId: submitterId
+                };
+                const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
+            } else if (req.body.approvalStatus === 'Approved') {
+                const poamSql = "SELECT submitterId FROM poamtracking.poam WHERE poamId = ?";
+                const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
+                const submitterId = poamResult[0].submitterId;
+
+                const notification = {
+                    title: `POAM Approved by ${fullName}`,
+                    message: `POAM ${req.body.poamId} has been marked approved by ${fullName}.`,
+                    userId: submitterId
+                };
+                const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
+
                 sql_query = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND approvalStatus != 'Approved';";
                 let [rows] = await connection.query(sql_query, [req.body.poamId]);
                 if (rows.length === 0) {
                     sql_query = "UPDATE poamtracking.poam SET status = ? WHERE poamId = ?;";
                     await connection.query(sql_query, ["Approved", req.body.poamId]);
+                    const poamSql = "SELECT submitterId FROM poamtracking.poam WHERE poamId = ?";
+                    const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
+                    const submitterId = poamResult[0].submitterId;
+
+                    const notification = {
+                        title: 'POAM Approved',
+                        message: `POAM ${req.body.poamId} has been marked approved by all Approvers. POAM Status has changed to Approved`,
+                        userId: submitterId
+                    };
+                    const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
                 }
             }
+            let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
+            let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
+            var poamApprover = row.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }))[0];
 
-            sql_query = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?;";
-            let [rows] = await connection.query(sql_query, [req.body.poamId, req.body.userId]);
-            var poamApprover = rows.map(row => ({ ...row }));
-            return { poamApprover };
+            return poamApprover;
         });
     } catch (error) {
         console.error("error: ", error);
         return { null: "null" };
     }
-}
+};
 
 exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
     if (!req.params.poamId) {
@@ -329,6 +380,14 @@ exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
                 let action = `${fullName} was removed from the Approver List.`;
                 let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
+
+                const notification = {
+                    title: 'Removed from POAM Approver list',
+                    message: `You have been removed from the Approver list for POAM ${req.params.poamId}.`,
+                    userId: req.params.userId
+                };
+                const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                await connection.query(notificationSql, [req.params.userId, notification.title, notification.message]);
             }
             return { delete: 'Success' };
         });

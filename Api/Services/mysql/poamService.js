@@ -413,11 +413,112 @@ exports.putPoam = async function putPoam(req, res, next) {
                 }
             }
 
+            if (req.body.status === 'Submitted') {
+                let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ?";
+                let [rows] = await connection.query(sql, [req.body.poamId]);
+
+                const poamApprovers = rows.map(row => ({ ...row }));
+
+                const notificationPromises = poamApprovers.map(async (approver) => {
+                    const notification = {
+                        title: 'POAM Pending Approval',
+                        message: `POAM ${req.body.poamId} has been submitted and is pending Approver review.`,
+                        userId: approver.userId
+                    };
+
+                    const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    await connection.query(notificationSql, [approver.userId, notification.title, notification.message]);
+                });
+
+                await Promise.all(notificationPromises);
+            }
+
             return updatedPoam;
         });
     } catch (error) {
         console.error("error: ", error);
         return null;
+    }
+};
+
+exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
+    if (!req.params.poamId) {
+        console.info(`updatePoamStatus poamId not provided.`);
+        return res.status(400).json({ errors: 'poamId is required' });
+    }
+
+    if (!req.body.status) {
+        console.info(`updatePoamStatus status not provided.`);
+        return res.status(400).json({ errors: 'status is required' });
+    }
+
+    try {
+        return await withConnection(async (connection) => {
+            const [existingPoamRow] = await connection.query("SELECT * FROM poamtracking.poam WHERE poamId = ?", [req.params.poamId]);
+
+            if (existingPoamRow.length === 0) {
+                return res.status(404).json({ errors: 'POAM not found' });
+            }
+
+            const existingPoam = existingPoamRow[0];
+
+            const existingPoamNormalized = {
+                ...existingPoam,
+                submittedDate: normalizeDate(existingPoam.submittedDate) || null,
+                scheduledCompletionDate: normalizeDate(existingPoam.scheduledCompletionDate) || null,
+                closedDate: normalizeDate(existingPoam.closedDate) || null,
+                iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate) || null,
+            };
+
+            const sqlUpdatePoam = `UPDATE poamtracking.poam SET status = ? WHERE poamId = ?`;
+            await connection.query(sqlUpdatePoam, [req.body.status, req.params.poamId]);
+
+            const [updatedPoamRow] = await connection.query("SELECT * FROM poamtracking.poam WHERE poamId = ?", [req.params.poamId]);
+
+            const updatedPoam = updatedPoamRow.map(row => ({
+                ...row,
+                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+            }))[0];
+
+            if (req.body.poamLog && req.body.poamLog.length > 0) {
+                let poamId = req.params.poamId;
+                let userId = req.body.poamLog[0].userId;
+                let action = `POAM Status Updated. POAM Status: ${req.body.status}.`;
+                let logSql = `INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+
+                await connection.query(logSql, [poamId, action, userId]).catch(error => {
+                    console.error("Failed to insert POAM update log:", error);
+                });
+            }
+
+            if (req.body.status === 'Submitted') {
+                let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ?";
+                let [rows] = await connection.query(sql, [req.params.poamId]);
+
+                const poamApprovers = rows.map(row => ({ ...row }));
+
+                const notificationPromises = poamApprovers.map(async (approver) => {
+                    const notification = {
+                        title: 'POAM Pending Approval',
+                        message: `POAM ${req.params.poamId} has been submitted and is pending Approver review.`,
+                        userId: approver.userId
+                    };
+
+                    const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    await connection.query(notificationSql, [approver.userId, notification.title, notification.message]);
+                });
+
+                await Promise.all(notificationPromises);
+            }
+
+            return updatedPoam;
+        });
+    } catch (error) {
+        console.error("Error: ", error);
+        return res.status(500).json({ errors: 'Internal Server Error' });
     }
 };
 

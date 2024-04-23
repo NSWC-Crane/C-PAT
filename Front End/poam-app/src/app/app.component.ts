@@ -10,12 +10,12 @@
 
 import { Component, ViewChild, ElementRef, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { NbDialogService, NbMenuItem, NbSidebarService, NbThemeService, NbMenuService } from '@nebular/theme';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { CollectionsService } from './pages/collection-processing/collections.service';
 import { UsersService } from './pages/user-processing/users.service';
 import { SubSink } from 'subsink';
 import { PoamService } from '../app/pages/poam-processing/poams.service'
-import { Subject, Subscription } from 'rxjs';
+import { Subject, Subscription, filter, takeUntil } from 'rxjs';
 import { KeycloakService } from 'keycloak-angular'
 import { KeycloakProfile } from 'keycloak-js';
 import { accessControlList } from './access-control-list';
@@ -25,6 +25,7 @@ import { FileUploadService } from '../app/pages/import-processing/emass-import/f
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { StatusDialogComponent } from './Shared/components/status-dialog/status-dialog.component';
 import { SharedService } from './Shared/shared.service';
+import { NotificationService } from './Shared/notifications/notifications.service';
 
 interface Permission {
   userId: number;
@@ -51,6 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
   isSettingWorkspace: boolean = true;
   selectCollectionMsg: boolean = false;
   collections: any = [];
+  notificationCount: any = null;
   nbSelectorStatus = "success"
   selectedCollection: any = null;
   sidebarExpanded = true;
@@ -67,6 +69,7 @@ export class AppComponent implements OnInit, OnDestroy {
   viewingfulldetails: boolean = false;
   public detailedPoam: any;
   private subs = new SubSink()
+  private destroy$ = new Subject<void>();
 
   userMenu = ['Notification 1', 'Notification 2'];
 
@@ -82,6 +85,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private poamService: PoamService,
     private readonly keycloak: KeycloakService,
     private fileUploadService: FileUploadService,
+    private notificationService: NotificationService,
   ) {
     this.sidebarSubscription = this.sidebarService.onToggle()
       .subscribe(({ tag }) => {
@@ -92,6 +96,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public async ngOnInit() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      if (this.user) {
+        this.getNotificationCount();
+      }
+    });
 
     this.menuService.onItemClick().subscribe((event) => {
       if (event.item.title === 'eMASS Excel Import') {
@@ -137,7 +149,7 @@ export class AppComponent implements OnInit, OnDestroy {
               accessLevel: permission.accessLevel,
             }))
           });
-
+          this.getNotificationCount()
           this.getCollections();
         } else {
           alert('Your account status is not Active, contact your system administrator');
@@ -185,6 +197,12 @@ export class AppComponent implements OnInit, OnDestroy {
         this.getPoamsForCollection();
       }
 
+    });
+  }
+
+  getNotificationCount() {
+    this.subs.sink = this.notificationService.getUnreadNotificationCountByUserId(this.user.userId).subscribe((result: any) => {
+      (result > 0) ? (this.notificationCount = result) : null;
     });
   }
 
@@ -427,9 +445,9 @@ export class AppComponent implements OnInit, OnDestroy {
     window.location.reload();
   }
 
-  private destroy$ = new Subject<void>();
-
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     if (this.sidebarSubscription) {
       this.sidebarSubscription.unsubscribe();
     }

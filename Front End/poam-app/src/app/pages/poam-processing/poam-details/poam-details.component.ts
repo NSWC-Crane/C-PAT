@@ -98,7 +98,8 @@ export class PoamDetailsComponent implements OnInit {
     add: {
       addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
       createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',       confirmCreate: true,
+      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
+      confirmCreate: true,
     },
     edit: {
       editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
@@ -786,7 +787,6 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
   }
 
   async approvePoamAll(poam: any) {
-
     let options = new ConfirmationDialogOptions({
       header: "Warning",
       body: "You are about to mark all approvers on this POAM as having approved, are you sure?",
@@ -797,8 +797,8 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
       cancelbutton: "true",
     });
 
-    await this.confirm(options).subscribe(async (res: boolean) => {
-      if (res) {
+    await this.confirm(options).subscribe(async (res: { confirmed: boolean; convert: boolean }) => {
+      if (res.confirmed) {
         if (!this.validateData()) return;
 
         this.poamApprovers.forEach(async approver => {
@@ -836,6 +836,18 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
       return;
     }
     this.router.navigate(['/poam-extend', this.poam.poamId]);
+  }
+
+  poamApproval(poamId: any) {
+    if (this.poam.poamId === "ADDPOAM") {
+      this.showConfirmation("The POAM must be submitted before it can be approved.", "Information", "warning");
+      return;
+    }
+    if (this.poam.status === "Draft") {
+      this.showConfirmation("The POAM is currently in 'Draft' status. Approvals can not be entered until after a POAM has been submitted.", "Information", "warning");
+      return;
+    }
+    this.router.navigate(['/poam-approve', this.poam.poamId]);
   }
 
   poamLog(poamId: any) {
@@ -1062,7 +1074,7 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
     }
 
     if (this.poam.status != "Draft") {
-      this.showConfirmation("You may only modify the milestone list if poam status is 'Draft'.");
+      this.showConfirmation("The milestone list can only be modified if the POAM status is 'Draft'.", "Warning", "warning", false, true);
       event.confirm.reject();
       return;
     }
@@ -1123,8 +1135,13 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
   }
 
   confirmEditMilestone(event: any) {
-    if (this.poam.poamId === "ADDPOAM" || this.poam.status !== "Draft") {
-      this.showConfirmation("Milestones can only be modified if the POAM status is 'Draft'.");
+    if (this.poam.poamId === "ADDPOAM") {
+      event.confirm.resolve();
+      return;
+    }
+
+    if (this.poam.status != "Draft") {
+      this.showConfirmation("Milestones can only be modified if the POAM status is 'Draft'.", "Warning", "warning", false, true);
       event.confirm.reject();
       return;
     }
@@ -1175,7 +1192,7 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
     }
 
     if (this.poam.status != "Draft") {
-      this.showConfirmation("You may only modify the milestone list if POAM status is 'Draft'.");
+      this.showConfirmation("The milestone list can only be modified if the POAM status is 'Draft'.", "Warning", "warning", false, true);
       event.confirm.reject();
       return;
     }
@@ -1197,7 +1214,7 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
     }
 
     if (this.poam.status != "Draft") {
-      this.showConfirmation("you may only modify the approver list if poam status is 'Draft'.");
+      this.showConfirmation("You may only remove an approver from the approver list if the POAM status is 'Draft'.", "Warning", "warning", false, true);
       event.confirm.reject();
       return;
     }
@@ -1234,7 +1251,7 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
     }
 
     if (this.poam.status != "Draft") {
-      this.showConfirmation("You may only modify the approver list if the POAM status is 'Draft'.");
+      this.showConfirmation("You may only remove an approver from the approver list if the POAM status is 'Draft'.", "Warning", "warning", false, true);
       event.confirm.reject();
       return;
     }
@@ -1252,12 +1269,6 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
   async confirmCreateApprover(event: any) {
     if (this.poam.poamId === "ADDPOAM") {
       event.confirm.resolve();
-      return;
-    }
-
-    if (this.poam.status != "Draft") {
-      this.showConfirmation("You may only modify the approver list if the POAM status is 'Draft'.");
-      event.confirm.reject();
       return;
     }
 
@@ -1446,7 +1457,19 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
     }
   }
 
-  async showConfirmation(errMsg: string, header?: string, status?: string, isSuccessful: boolean = false) {
+  convertPoamToDraft() {
+    const poamStatusUpdate = {
+      poamId: this.poam.poamId,
+      status: 'Draft',
+      poamLog: [{ userId: this.user.userId }],
+    };
+
+    this.poamService.updatePoamStatus(this.poam.poamId, poamStatusUpdate).subscribe(() => {
+    });
+    this.poam.status = 'Draft';
+  }
+
+  async showConfirmation(errMsg: string, header?: string, status?: string, isSuccessful: boolean = false, showConvertButton: boolean = false) {
     let options = new ConfirmationDialogOptions({
       header: header ? header : "Notification",
       body: errMsg,
@@ -1455,25 +1478,35 @@ this.poamLabelsSettings = Object.assign({}, labelSettings);
         status: status ? status : "Primary",
       },
       cancelbutton: "false",
+      convertButton: showConvertButton ? { text: "Convert to Draft" } : undefined,
     });
 
     const dialogRef = this.confirm(options);
-
-    dialogRef.subscribe((res: boolean) => {
-      if (res && isSuccessful) {
+    dialogRef.subscribe((res: { confirmed: boolean; convert: boolean }) => {
+      if (res.confirmed && isSuccessful) {
         this.router.navigateByUrl('/poam-processing');
+      } else if (res.convert) {
+        this.convertPoamToDraft();
       }
     });
   }
 
-  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> => 
+  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<{ confirmed: boolean; convert: boolean }> =>
     this.dialogService.open(ConfirmationDialogComponent, {
       hasBackdrop: false,
       closeOnBackdropClick: true,
       context: {
         options: dialogOptions,
       },
-    }).onClose;
+    }).onClose.pipe(
+      map((result: boolean | { convert: boolean }) => {
+        if (typeof result === 'boolean') {
+          return { confirmed: result, convert: false };
+        } else {
+          return { confirmed: false, convert: result.convert };
+        }
+      })
+    );
 
   ngOnDestroy() {
     this.subs.unsubscribe();
