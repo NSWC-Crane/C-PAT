@@ -490,15 +490,15 @@ exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWit
                 }
 
                 const [assetsToRemove] = await connection.query(`
-          SELECT pa.assetId
-          FROM cpat.poamassets pa
-          LEFT JOIN cpat.asset a ON pa.assetId = a.assetId
-          WHERE pa.poamId = ? AND a.assetId IS NULL
-        `, [poamAssetData.poamId]);
+          SELECT a.assetId
+          FROM cpat.asset a
+          LEFT JOIN cpat.poamassets pa ON a.assetId = pa.assetId
+          WHERE a.collectionId = ? AND pa.assetId IS NULL
+        `, [poamAssetData.collectionId]);
 
                 if (assetsToRemove.length > 0) {
                     const assetIdsToRemove = assetsToRemove.map(asset => asset.assetId);
-                    await connection.query('DELETE FROM cpat.poamassets WHERE assetId IN (?)', [assetIdsToRemove]);
+                    await connection.query('DELETE FROM cpat.asset WHERE assetId IN (?)', [assetIdsToRemove]);
                 }
 
                 if (poamAssetData.poamLog[0].userId) {

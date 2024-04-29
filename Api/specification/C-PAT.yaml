@@ -4227,7 +4227,11 @@ components:
         assignees:
           type: array
           items:
-            $ref: '#/components/schemas/poamAssignee_Object'
+            type: object
+            properties:
+              userId:
+                type: integer
+            additionalProperties: true
         assets:
           type: array
           items:

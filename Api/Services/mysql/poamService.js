@@ -263,7 +263,7 @@ exports.postPoam = async function postPoam(req) {
                     iavmNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate, scheduledCompletionDate,
                     submitterId, predisposingConditions, mitigations, requiredResources, residualRisk, likelihood, relevanceOfThreat, businessImpactRating,
                     businessImpactDescription, notes, status, vulnIdRestricted, submittedDate, closedDate)
-                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     try {
         return await withConnection(async (connection) => {
@@ -275,7 +275,7 @@ exports.postPoam = async function postPoam(req) {
 
             let sql = "SELECT * FROM cpat.poam WHERE poamId = LAST_INSERT_ID();";
             let [rowPoam] = await connection.query(sql);
-            var poam = rowPoam.map(row => ({
+            let poam = rowPoam.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
@@ -286,6 +286,10 @@ exports.postPoam = async function postPoam(req) {
             if (req.body.assignees) {
                 let assignees = req.body.assignees;
                 for (let user of assignees) {
+                    if (!user.userId) {
+                        console.info(`postPoam assignee userId not provided.`);
+                        return { status: 400, errors: { "assignees.userId": "is required" } };
+                    }
                     let sql_query = `INSERT INTO cpat.poamassignees (poamId, userId) values (?, ?)`;
                     await connection.query(sql_query, [poam.poamId, user.userId]);
                 }
