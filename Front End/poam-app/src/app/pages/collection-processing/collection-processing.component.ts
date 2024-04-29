@@ -8,16 +8,16 @@
 !########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
-import { CollectionsService } from './collections.service';
-import { forkJoin, Observable } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
-import { SubSink } from "subsink";
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { UsersService } from '../user-processing/users.service'
-import { ExcelDataService } from '../../Shared/utils/excel-data.service'
+import { Observable, forkJoin } from 'rxjs';
+import { SubSink } from "subsink";
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ExcelDataService } from '../../Shared/utils/excel-data.service';
+import { UsersService } from '../admin-processing/user-processing/users.service';
+import { CollectionsService } from './collections.service';
 
 interface Permission {
   userId: number;
@@ -43,46 +43,37 @@ interface FSEntry {
   templateUrl: './collection-processing.component.html',
   styleUrls: ['./collection-processing.component.scss'],
 })
-export class CollectionProcessingComponent implements OnInit {
+export class CollectionProcessingComponent implements OnInit, OnDestroy {
   customColumn = 'collection';
   defaultColumns = [
     'Name',
     'Description',
-    'Grant Count',
     'Asset Count',
     'POAM Count',
   ];
   allColumns = [this.customColumn, ...this.defaultColumns];
   dataSource!: NbTreeGridDataSource<any>;
-
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
-
-  users: any;
   user: any;
   userCollections: any[] = [];
-
   availableAssets: any[] = [];
   exportCollectionId: any;
   poams: any[] = [];
-
   collections: any;
   collection: any = {};
   data: any = [];
   canModifyCollection = false;
   isLoading = true;
-
   selected: any;
   payload: any;
-
+  private subs = new SubSink();
   get hideCollectionEntry() {
     return this.collection.collectionId &&
       this.collection.collectionId != 'COLLECTION'
       ? { display: 'block' }
       : { display: 'none' };
   }
-
-  private subs = new SubSink();
 
   constructor(
     private collectionService: CollectionsService,
@@ -97,7 +88,7 @@ export class CollectionProcessingComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.isLoggedIn = await this.keycloak.isLoggedIn();
+    this.isLoggedIn = this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();
@@ -175,31 +166,29 @@ export class CollectionProcessingComponent implements OnInit {
       .subscribe((result: any) => {
         this.data = result;
         this.collections = this.data;
-        this.getCollectionsGrid('');
+        this.getCollectionsGrid();
         this.isLoading = false;
         this.checkModifyPermission(this.data);
       });
   }
 
-  getCollectionsGrid(filter: string) {
-    let collectionData = this.data;
-    var treeViewData: TreeNode<FSEntry>[] = collectionData.map(
+  getCollectionsGrid() {
+    const collectionData = this.data;
+    const treeViewData: TreeNode<FSEntry>[] = collectionData.map(
       (collection: {
         collectionId: number | any[];
         collectionName: any;
         description: any;
-        grantCount: any;
         assetCount: any;
         poamCount: any;
       }) => {
-        let myChildren: never[] = [];
+        const myChildren: never[] = [];
 
         return {
           data: {
             collection: collection.collectionId,
             Name: collection.collectionName,
             Description: collection.description,
-            'Grant Count': collection.grantCount,
             'Asset Count': collection.assetCount,
             'POAM Count': collection.poamCount,
           },
@@ -213,16 +202,15 @@ export class CollectionProcessingComponent implements OnInit {
   setCollection(collectionId: any) {
     this.collection = null;
     this.poams = [];
-    let selectedData = this.data.filter(
+    const selectedData = this.data.filter(
       (collection: { collectionId: any }) =>
         collection.collectionId === collectionId
     );
     this.collection = selectedData[0];
     this.subs.sink = forkJoin(
-      this.collectionService.getUsersForCollection(this.collection.collectionId),
       this.collectionService.getPoamsByCollection(this.collection.collectionId)
-    ).subscribe(([users, poams]: any) => {
-      this.poams = poams.poams;
+    ).subscribe(([poams]: any) => {
+      this.poams = poams;
     });
   }
 
@@ -231,27 +219,36 @@ export class CollectionProcessingComponent implements OnInit {
     this.collectionService
       .getPoamsByCollection(collectionId)
       .subscribe((response: any) => {
-        this.poams = response.poams;
+        this.poams = response;
       });
   }
 
-  exportAll() {
+  async exportAll() {
     if (!this.poams || !Array.isArray(this.poams) || !this.poams.length) {
       this.showPopup('There are no POAMs available to export in the selected collection.');
       return;
     }
-    let excelData = ExcelDataService.ConvertToExcel(this.poams);
-    let excelURL = window.URL.createObjectURL(excelData);
 
-    let link = document.createElement('a');
-    link.id = 'download-excel';
-    link.setAttribute('href', excelURL);
-    link.setAttribute('download', ('Collection_' + this.exportCollectionId + '_POAMS_Export.xlsx'));
-    document.body.appendChild(link);
+    try {
+      const excelData = await ExcelDataService.convertToExcel(this.poams);
+      const excelURL = window.URL.createObjectURL(excelData);
 
-    link.click();
-    document.body.removeChild(link);
+      const link = document.createElement('a');
+      link.id = 'download-excel';
+      link.setAttribute('href', excelURL);
+      link.setAttribute('download', 'Collection_' + this.exportCollectionId + '_POAMS_Export.xlsx');
+      document.body.appendChild(link);
+
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(excelURL);
+    } catch (error) {
+      console.error('Error exporting POAMs:', error);
+      this.showPopup('Failed to export POAMs. Please try again.');
+    }
   }
+
 
   resetData() {
     this.collection = [];
@@ -264,7 +261,6 @@ export class CollectionProcessingComponent implements OnInit {
     this.collection.collectionName = '';
     this.collection.description = '';
     this.collection.created = new Date().toISOString();
-    this.collection.grantCount = 0;
     this.collection.assetCount = 0;
     this.collection.poamCount = 0;
   }

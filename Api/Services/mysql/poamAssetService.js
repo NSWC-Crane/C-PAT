@@ -27,18 +27,15 @@ exports.getPoamAssets = async function getPoamAssets(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT t1.assetId, t2.assetName, t1.poamId, t3.description
-                FROM poamtracking.poamassets t1
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId
-                INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
-                ORDER BY t3.description
+                SELECT t1.assetId, t2.assetName, t1.poamId
+                FROM cpat.poamassets t1
+                INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId
             `;
             let [rowPoamAssets] = await connection.query(sql);
             var poamAssets = rowPoamAssets.map(row => ({
                 assetId: row.assetId,
                 assetName: row.assetName,
                 poamId: row.poamId,
-                description: row.description,
             }));
             return { poamAssets };
         });
@@ -62,19 +59,16 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT t1.assetId, assetName, t1.poamId, t3.description
-                FROM poamtracking.poamassets t1
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId
-                INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
+                SELECT t1.assetId, assetName, t1.poamId
+                FROM cpat.poamassets t1
+                INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId
                 WHERE t1.poamId = ?
-                ORDER BY t3.description
             `;
             let [rowPoamAssets] = await connection.query(sql, [req.params.poamId]);
             var poamAssets = rowPoamAssets.map(row => ({
                 assetId: row.assetId,
                 assetName: row.assetName,
                 poamId: row.poamId,
-                description: row.description,
             }));
             return poamAssets;
         });
@@ -97,7 +91,7 @@ exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, re
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM poamtracking.poamassets WHERE poamId = ?";
+            let sql = "DELETE FROM cpat.poamassets WHERE poamId = ?";
             await connection.query(sql, [req.params.poamId]);
             return { poamAsset: [] };
         });
@@ -121,19 +115,16 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res,
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT t1.assetId, t2.assetName, t1.poamId, t3.description
-                FROM poamtracking.poamassets t1
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId
-                INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
+                SELECT t1.assetId, t2.assetName, t1.poamId
+                FROM cpat.poamassets t1
+                INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId
                 WHERE t1.assetId = ?
-                ORDER BY t3.description
             `;
             let [rowPoamAssets] = await connection.query(sql, [req.params.assetId]);
             var poamAssets = rowPoamAssets.map(row => ({
                 assetId: row.assetId,
                 assetName: row.assetName,
                 poamId: row.poamId,
-                description: row.description,
             }));
             return { poamAssets };
         });
@@ -168,9 +159,9 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName
-                FROM poamtracking.assetlabels t1
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId
-                INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId
+                FROM cpat.assetlabels t1
+                INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId
+                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId
                 WHERE t1.assetId = ? AND t1.labelId = ?
                 ORDER BY t3.labelName
             `;
@@ -198,36 +189,34 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO poamtracking.poamassets (assetId, poamId) VALUES (?, ?)`;
+            let sql_query = `INSERT INTO cpat.poamassets (assetId, poamId) VALUES (?, ?)`;
             await connection.query(sql_query, [req.body.assetId, req.body.poamId]);
 
             let sql = `
-                SELECT t1.assetId, t2.assetName, t1.poamId, t3.description
-                FROM poamtracking.poamassets t1
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId
-                INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
-                WHERE t1.poamId = ? AND t1.assetId = ?
-                ORDER BY t3.description`;
+                SELECT t1.assetId, t2.assetName, t1.poamId
+                FROM cpat.poamassets t1
+                INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId
+                WHERE t1.poamId = ? AND t1.assetId = ?`;
             let [rowPoamAsset] = await connection.query(sql, [req.body.poamId, req.body.assetId]);
             var poamAsset = rowPoamAsset.length > 0 ? rowPoamAsset[0] : [];
             if (req.body.poamLog[0].userId) {
-            let assetNameQuery = `SELECT assetName FROM poamtracking.asset WHERE assetId = ?`;
+            let assetNameQuery = `SELECT assetName FROM cpat.asset WHERE assetId = ?`;
             let [[assetNameResult]] = await connection.query(assetNameQuery, [req.body.assetId]);
             let assetName = "Unknown Asset";
             if (assetNameResult) {
                 assetName = assetNameResult.assetName;
             }
                 let action = `${assetName} was added to the Asset List.`;
-                let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
             }
-
+            console.log("poamAsset: ", poamAsset)
             return poamAsset;
         });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             return await withConnection(async (connection) => {
-                let fetchSql = "SELECT * FROM poamtracking.poamassets WHERE assetId = ? AND poamId = ?";
+                let fetchSql = "SELECT * FROM cpat.poamassets WHERE assetId = ? AND poamId = ?";
                 const [existingAsset] = await connection.query(fetchSql, [req.body.assetId, req.body.poamId]);
                 return existingAsset[0];
             });
@@ -253,18 +242,18 @@ exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM poamtracking.poamassets WHERE assetId = ? AND poamId = ?";
+            let sql = "DELETE FROM cpat.poamassets WHERE assetId = ? AND poamId = ?";
             await connection.query(sql, [req.params.assetId, req.params.poamId]);
 
             if (req.body.requestorId) {
-                let assetNameQuery = `SELECT assetName FROM poamtracking.asset WHERE assetId = ?`;
+                let assetNameQuery = `SELECT assetName FROM cpat.asset WHERE assetId = ?`;
                 let [[assetNameResult]] = await connection.query(assetNameQuery, [req.params.assetId]);
                 let assetName = "Unknown Asset";
                 if (assetNameResult) {
                     assetName = assetNameResult.assetName;
                 }
                     let action = `${assetName} was removed from the Asset List.`;
-                    let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                    let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
             }
             return { poamAsset: [] };

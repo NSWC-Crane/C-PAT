@@ -42,6 +42,13 @@ db.poamAsset = require("../Models/poamAsset.model.js")(sequelize, Sequelize.Data
 db.poamMilestone = require("../Models/poamMilestone.model.js")(sequelize, Sequelize.DataTypes);
 
 db.Asset.belongsTo(db.Collection, { foreignKey: 'collectionId' });
+db.poamAsset.belongsTo(db.Asset, { foreignKey: 'assetId' });
 db.Collection.hasMany(db.Asset, { foreignKey: 'collectionId' });
+
+Object.keys(db).forEach(modelName => {
+    if (db[modelName].associate) {
+        db[modelName].associate(db);
+    }
+});
 
 module.exports = db;

@@ -11,6 +11,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { Router } from '@angular/router';
+import { ExcelDataService } from '../../../../Shared/utils/excel-data.service';
 
 @Component({
   selector: 'cpat-poam-grid',
@@ -34,6 +35,31 @@ export class PoamGridComponent implements OnChanges {
       this.resetData();
       this.updateFilteredData();
       this.loadMoreData();
+    }
+  }
+
+  async exportAll() {
+    if (!this.poamsData || !Array.isArray(this.poamsData) || !this.poamsData.length) {
+      console.warn('There are no POAMs available to export.');
+      return;
+    }
+
+    try {
+      const excelData = await ExcelDataService.convertToExcel(this.poamsData);
+      const excelURL = window.URL.createObjectURL(excelData);
+
+      const link = document.createElement('a');
+      link.id = 'download-excel';
+      link.setAttribute('href', excelURL);
+      link.setAttribute('download', 'CPAT_POAMs_Export.xlsx');
+      document.body.appendChild(link);
+
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(excelURL);
+    } catch (error) {
+      console.error('Error exporting POAMs:', error);
     }
   }
 

@@ -16,17 +16,18 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class FileUploadService {
+  private url = environment.CPAT_API_URL;
   constructor(private http: HttpClient) { }
-  
-  upload(file: File, lastCollectionAccessedId: string, userId: string) {
+
+  upload(file: File, userId: string) {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('lastCollectionAccessedId', lastCollectionAccessedId);
     formData.append('userId', userId);
-    return this.http.post(environment.fileUploadEndpoint, formData, {
+    return this.http.post(`${this.url}/import/poams`, formData, {
       reportProgress: true,
       observe: 'events'
     });
   }
 }
+
 

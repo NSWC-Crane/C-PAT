@@ -8,12 +8,23 @@
 !########################################################################
 */
 
-const importService = require('../services/mysql/importService');
+const importService = require('../Services/mysql/importService');
 
+module.exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWithStigManagerData(req, res, next) {
+    try {
+        const poamAsset = await importService.updatePoamAssetsWithStigManagerData(req, res, next);
+        res.status(200).json(poamAsset);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+}
 
 module.exports.uploadPoamFile = async (req, res, next) => {
     const file = req.files[0];
-    const lastCollectionAccessedId = req.body.lastCollectionAccessedId;
     const userId = req.body.userId;
 
     importService.excelFilter(req, file, async (err) => {
@@ -24,7 +35,7 @@ module.exports.uploadPoamFile = async (req, res, next) => {
             });
         } else {
             try {
-                await importService.processPoamFile(file, lastCollectionAccessedId, userId);
+                await importService.processPoamFile(file, userId);
                 res.status(201).json({ message: "Uploaded the file successfully" });
             } catch (error) {
                 console.error("Error during file upload and processing:", error);
@@ -37,24 +48,22 @@ module.exports.uploadPoamFile = async (req, res, next) => {
     });
 };
 
-module.exports.importAssets = async function importAssets(req, res) {
+module.exports.postStigManagerAssets = async function postStigManagerAssets(req, res) {
     try {
         const { assets } = req.body;
-
-        await importService.importAssets(assets);
-
-        res.status(201).json({ message: 'Assets Imported Successfully' });
+        const importedAssets = await importService.postStigManagerAssets(assets);
+        res.status(201).json({ message: 'Assets Imported Successfully', assets: importedAssets });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
-}
+};
 
-module.exports.importCollectionAndAssets = async function importCollectionAndAssets(req, res) {
+module.exports.postStigManagerCollection = async function postStigManagerCollection(req, res) {
     try {
         const { collection, assets } = req.body;
 
-        await importService.importCollectionAndAssets(collection, assets);
+        await importService.postStigManagerCollection(collection, assets);
 
         res.status(201).json({ message: 'Collection, Assets, and Labels Imported Successfully' });
     } catch (error) {

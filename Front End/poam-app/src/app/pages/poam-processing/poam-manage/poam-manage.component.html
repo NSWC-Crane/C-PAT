@@ -11,25 +11,20 @@
 <div class="row">
   <div class="col-xxxl-8">
     <div class="row">
-      <div class="col-xxxl-3">
+      <div class="col-xxxl-7">
         <nb-card>
-          <canvas #poamSeverityPieChart class="poam-severity-pie-chart"></canvas>
+          <cpat-poam-advanced-pie class="poam-status-advanced-pie" [pieChartData]="advancedStatusPieChartData" [collectionName]="selectedCollectionName"></cpat-poam-advanced-pie>
         </nb-card>
       </div>
-      <div class="col-xxxl-3">
+      <div class="col-xxxl-5">
         <nb-card>
-          <canvas #monthlyPoamStatusChart class="monthly-poam-status-chart"></canvas>
-        </nb-card>
-      </div>
-      <div class="col-xxxl-6">
-        <nb-card>
-          <cpat-poam-advanced-pie class="poam-advanced-pie" [pieChartData]="advancedPieChartData"></cpat-poam-advanced-pie>
+          <cpat-poam-advanced-pie class="poam-severity-advanced-pie" [pieChartData]="advancedSeverityseverityPieChartData" [collectionName]="selectedCollectionName"></cpat-poam-advanced-pie>
         </nb-card>
       </div>
     </div>
     <div class="row">
-      <div class="col">
-        <cpat-poam-mainchart [poams]="poams" [showAddButton]="false" canvasHeight="20rem" canvasWidth="100rem" (poamsChange)="onPoamsChange($event)"></cpat-poam-mainchart>
+      <div class="col-xxl">
+        <cpat-poam-mainchart [poams]="poams" [showAddButton]="false" canvasHeight="30rem" canvasWidth="100rem" (poamsChange)="onPoamsChange($event)"></cpat-poam-mainchart>
       </div>
     </div>
   </div>

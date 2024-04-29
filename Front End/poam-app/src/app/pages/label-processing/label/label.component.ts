@@ -8,12 +8,10 @@
 !########################################################################
 */
 
-import { Component, OnInit, TemplateRef, Input, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, TemplateRef, Input, EventEmitter, Output, OnDestroy } from '@angular/core';
 import { LabelService } from '../label.service';
 import { Observable, Subscription } from 'rxjs';
 import { NbDialogService,  NbWindowRef } from '@nebular/theme';
-import { Router } from '@angular/router';
-import { AuthService } from '../../../auth';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../Shared/shared.service';
@@ -24,7 +22,7 @@ import { SharedService } from '../../../Shared/shared.service';
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss']
 })
-export class LabelComponent implements OnInit {
+export class LabelComponent implements OnInit, OnDestroy {
   @Input() label: any;
   @Input() labels: any;
   @Input() payload: any;
@@ -41,8 +39,6 @@ export class LabelComponent implements OnInit {
 
   constructor(private labelService: LabelService,
     private dialogService: NbDialogService,
-    private router: Router,
-    private authService: AuthService,
     private sharedService: SharedService,
     ) {
      }
@@ -64,7 +60,7 @@ export class LabelComponent implements OnInit {
 
     if (!this.validData()) return;
 
-    let label = {
+    const label = {
       labelId: (this.label.labelId == "ADDLABEL") ? 0 : this.label.labelId,
       collectionId: this.selectedCollection,
       labelName: this.label.labelName,
@@ -75,11 +71,12 @@ export class LabelComponent implements OnInit {
       this.label.labelId = "";
 
       this.subs.sink = this.labelService.addLabel(this.selectedCollection, label).subscribe(
-        data => {
+        (data: any) => {
           this.labelchange.emit(data.labelId);
-        }, err => {
-
-          this.invalidData("unexpected error adding label");
+        },
+        (err: any) => {
+          this.invalidData("Unexpected error adding label");
+          console.error(err);
         }
       );
 
@@ -130,7 +127,7 @@ export class LabelComponent implements OnInit {
     }
 
     if (this.label.labelId == "ADDLABEL") {
-      let exists = this.labels.find((e: { labelName: any; }) => e.labelName === this.label.labelName);
+      const exists = this.labels.find((e: { labelName: any; }) => e.labelName === this.label.labelName);
       if (exists) {
         this.invalidData("Label Already Exists");
         return false;

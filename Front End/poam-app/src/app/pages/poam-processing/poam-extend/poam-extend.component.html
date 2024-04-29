@@ -17,7 +17,7 @@
           <!-- Extension Time Allowed -->
           <div class="form-group">
             <label for="extensionTimeAllowed">Extension Time Allowed:</label>
-            <nb-select fullWidth placeholder="Extension Time Allowed" [(ngModel)]="poam.extensionTimeAllowed" name="extensionTimeAllowed" (selectedChange)="computeDeadlineWithExtension($event)">
+            <nb-select fullWidth placeholder="Extension Time Allowed" [(ngModel)]="poam.extensionTimeAllowed" name="extensionTimeAllowed" (selectedChange)="computeDeadlineWithExtension()">
               <nb-option [value]="0">0 Days</nb-option>
               <nb-option [value]="30">30 Days</nb-option>
               <nb-option [value]="60">60 Days</nb-option>

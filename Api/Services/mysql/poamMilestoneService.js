@@ -37,7 +37,7 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
         }
 
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.poammilestones WHERE poamId = ?;";
+            let sql = "SELECT * FROM cpat.poammilestones WHERE poamId = ?;";
             let [rows] = await connection.query(sql, [poamId]);
             var poamMilestones = rows.map(row => ({ ...row }));
             return { poamMilestones };
@@ -65,7 +65,7 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, requestBody
         if (!requestBody.milestoneStatus) requestBody.milestoneStatus = null;
 
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO poamtracking.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneStatus) VALUES (?, ?, ?, ?)`;
+            let sql_query = `INSERT INTO cpat.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneStatus) VALUES (?, ?, ?, ?)`;
             await connection.query(sql_query, [
                 poamId,
                 requestBody.milestoneDate,
@@ -73,7 +73,7 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, requestBody
                 requestBody.milestoneStatus,
             ]);
 
-            let sql = "SELECT * FROM poamtracking.poamMilestones WHERE poamId = ?";
+            let sql = "SELECT * FROM cpat.poamMilestones WHERE poamId = ?";
             let [rows] = await connection.query(sql, [poamId]);
 
             var poamMilestone = rows.map(row => ({ ...row }));
@@ -84,7 +84,7 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, requestBody
 Milestone Date: ${normalizeDate(requestBody.milestoneDate)}<br>
 Milestone Comment: ${requestBody.milestoneComments}`;
 
-                let logSql = `INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
             }
             return { poamMilestone };
@@ -122,10 +122,10 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
         if (!requestBody.milestoneStatus) requestBody.milestoneStatus = null;
 
         return await withConnection(async (connection) => {
-            let getMilestoneSql = "SELECT * FROM poamtracking.poammilestones WHERE poamId = ? AND milestoneId = ?";
+            let getMilestoneSql = "SELECT * FROM cpat.poammilestones WHERE poamId = ? AND milestoneId = ?";
             let [existingMilestone] = await connection.query(getMilestoneSql, [poamId, milestoneId]);
 
-            let sql_query = `UPDATE poamtracking.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneStatus = ? WHERE poamId = ? AND milestoneId = ?`;
+            let sql_query = `UPDATE cpat.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneStatus = ? WHERE poamId = ? AND milestoneId = ?`;
             await connection.query(sql_query, [
                 requestBody.milestoneDate,
                 requestBody.milestoneComments,
@@ -134,7 +134,7 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
                 milestoneId,
             ]);
 
-            sql_query = "SELECT * FROM poamtracking.poamMilestones WHERE poamId = ?;";
+            sql_query = "SELECT * FROM cpat.poamMilestones WHERE poamId = ?;";
             let [rows] = await connection.query(sql_query, [poamId]);
 
             var poamMilestone = rows.map(row => ({ ...row }));
@@ -160,7 +160,7 @@ New Milestone Status: ${requestBody.milestoneStatus}`);
 
                 let action = actionParts.join("<br>");
 
-                let logSql = `INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
             }
             return { poamMilestone };
@@ -194,7 +194,7 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
         }
 
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM poamtracking.poammilestones WHERE poamId= ? AND milestoneId = ?";
+            let sql = "DELETE FROM cpat.poammilestones WHERE poamId= ? AND milestoneId = ?";
             await connection.query(sql, [poamId, milestoneId]);
 
             let action = `Milestone Deleted.`;
@@ -205,7 +205,7 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
                 else {
                     action = `POAM milestone deleted.`;
                 }
-                let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [poamId, action, requestBody.requestorId]);
             }
             return {};

@@ -8,67 +8,28 @@
 !########################################################################
 */
 
-import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NbAuthJWTInterceptor, NbAuthModule, NbDummyAuthStrategy, NB_AUTH_TOKEN_INTERCEPTOR_FILTER } from '@nebular/auth';
-import { NbSecurityModule, NbRoleProvider } from '@nebular/security';
-import { of as observableOf } from 'rxjs';
-
-import { throwIfAlreadyLoaded } from './module-import-guard';
-import { WebsocketService } from './websocket.service';
+import { NgModule, Optional, SkipSelf } from '@angular/core';
+import { NbSecurityModule } from '@nebular/security';
 import { accessControlList } from '../access-control-list';
-import { AUTH_OPTIONS } from '../auth/auth-options';
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { TOKEN_INTERCEPTOR_FILTER } from '../auth/token-interceptor-filter';
-import { RoleProvider } from '../auth';
-
-const socialLinks = [
-  {
-    url: 'https://github.com/akveo/nebular',
-    target: '_blank',
-    icon: 'socicon-github',
-  },
-  {
-    url: 'https://www.facebook.com/akveo/',
-    target: '_blank',
-    icon: 'socicon-facebook',
-  },
-  {
-    url: 'https://twitter.com/akveo_inc',
-    target: '_blank',
-    icon: 'socicon-twitter',
-  },
-];
-
-export class NbSimpleRoleProvider extends NbRoleProvider {
-  getRole() {
-    return observableOf('guest');
-  }
-}
+import { WebsocketService } from './websocket.service';
 
 export const NB_CORE_PROVIDERS = [
-  NbAuthModule.forRoot(AUTH_OPTIONS).providers,
-
   NbSecurityModule.forRoot(accessControlList).providers,
-  {
-    provide: HTTP_INTERCEPTORS, useClass: NbAuthJWTInterceptor, multi: true
-  },
-  {
-    provide: NB_AUTH_TOKEN_INTERCEPTOR_FILTER, useValue: TOKEN_INTERCEPTOR_FILTER
-  },
-  {
-    provide: NbRoleProvider, useClass: RoleProvider,
-  },
   WebsocketService,
 ];
+
+function throwIfAlreadyLoaded(parentModule: any, moduleName: string) {
+  if (parentModule) {
+    throw new Error(`${moduleName} has already been loaded. Import Core modules in the AppModule only.`);
+  }
+}
 
 @NgModule({
   imports: [
     CommonModule,
   ],
-  exports: [
-    NbAuthModule,
-  ],
+  exports: [],
   declarations: [],
 })
 export class CoreModule {

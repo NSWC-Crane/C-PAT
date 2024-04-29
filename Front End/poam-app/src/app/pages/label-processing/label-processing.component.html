@@ -8,7 +8,7 @@
 !########################################################################
 -->
 
-<div *ngIf="(selectedRole == 'admin'); else dontshowcollections">
+<div *ngIf="(selectedRole === 'admin'); else dontshowcollections">
   <div class="row">
     <div class="col-md-10" [nbSpinner]="isLoading"
          nbSpinnerStatus="success"

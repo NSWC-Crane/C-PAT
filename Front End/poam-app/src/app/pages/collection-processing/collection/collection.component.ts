@@ -8,20 +8,19 @@
 !########################################################################
 */
 
-import { Component, OnInit, TemplateRef, Input, EventEmitter, Output } from '@angular/core';
-import { CollectionsService } from '../collections.service';
-import { Observable } from 'rxjs';
+import { Component, EventEmitter, Input, OnDestroy, Output, TemplateRef } from '@angular/core';
 import { NbDialogService, NbWindowRef } from '@nebular/theme';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
+import { Observable } from 'rxjs';
 import { SubSink } from 'subsink';
-import { UsersService } from '../../user-processing/users.service';
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { CollectionsService } from '../collections.service';
 
 @Component({
   selector: 'cpat-collection',
   templateUrl: './collection.component.html',
   styleUrls: ['./collection.component.scss']
 })
-export class CollectionComponent implements OnInit {
+export class CollectionComponent implements OnDestroy {
   @Input() collection: any;
   @Input() collections: any;
   @Input() payload: any;
@@ -38,7 +37,6 @@ export class CollectionComponent implements OnInit {
   private subs = new SubSink()
 
   constructor(private collectionService: CollectionsService,
-    private userService: UsersService,
     private dialogService: NbDialogService,
   ) { }
 
@@ -50,11 +48,10 @@ export class CollectionComponent implements OnInit {
   onSubmit() {
     if (!this.validData()) return;
 
-    let collection = {
+    const collection = {
       collectionId: this.collection.collectionId,
       collectionName: this.collection.collectionName,
       description: this.collection.description,
-      grantCount: this.collection.grantCount,
       assetCount: this.collection.assetCount,
       poamCount: this.collection.poamCount,
     }
@@ -83,10 +80,6 @@ export class CollectionComponent implements OnInit {
     this.resetData();
   }
 
-  ngOnInit() {
-  }
-
-
   resetData() {
     this.collection.collectionId = "COLLECTION";
     this.collectionchange.emit();
@@ -114,16 +107,11 @@ export class CollectionComponent implements OnInit {
     }
 
     if (this.collection.collectionId == "ADDCOLLECTION") {
-      let exists = this.collections.find((e: { collectionName: any; }) => e.collectionName === this.collection.collectionName);
+      const exists = this.collections.find((e: { collectionName: any; }) => e.collectionName === this.collection.collectionName);
       if (exists) {
         this.invalidData("Duplicate collection");
         return false;
       }
-    }
-
-    if (this.collection.grantCount < 0 || this.collection.grantCount == undefined) {
-      this.invalidData("Grant Count must be defined and >= 0");
-      return false;
     }
     return true;
   }

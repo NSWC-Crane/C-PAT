@@ -14,22 +14,23 @@
       <nb-card-header>
         <div class="status-container">
           <div class="status-group">
-            <label id="status">POAM Status: <span class="text-danger">*</span></label>
-            <nb-select outline status="basic" placeholder="POAM Status..." [(ngModel)]="poam.status" name="status">
+            <label for="status">POAM Status: <span class="text-danger">*</span></label>
+            <nb-select outline status="basic" placeholder="POAM Status..." [(ngModel)]="poam.status" id="status" name="status">
               <nb-option value="Draft">Draft</nb-option>
               <nb-option value="Closed">Closed</nb-option>
               <nb-option value="Expired">Expired</nb-option>
               <nb-option value="Submitted" disabled>Submitted</nb-option>
               <nb-option value="Approved" disabled>Approved</nb-option>
               <nb-option value="Rejected" disabled>Rejected</nb-option>
+              <nb-option value="Extension Requested" disabled>Extension Requested</nb-option>
             </nb-select>
           </div>
 
           <div class="button-group">
-            <button nbButton outline status="basic" (click)="poamLog(poam)">Poam History</button>
-            <button nbButton outline status="warning" (click)="extendPoam(poam)">Extend Poam</button>
-            <button nbButton outline status="success" *ngIf="showSubmit" (click)="submitPoam(poam)" nbTooltip="Update POAM Status to Submitted" nbTooltipPlacement="top" nbTooltipStatus="basic">Submit Poam</button>
-            <button nbButton outline status="primary" *ngIf="showApprove" (click)="poamApproval(poam)">POAM Approval</button>
+            <button nbButton outline status="basic" (click)="poamLog()">Poam History</button>
+            <button nbButton outline status="warning" (click)="extendPoam()">Extend Poam</button>
+            <button nbButton outline status="success" *ngIf="showSubmit" (click)="submitPoam()" nbTooltip="Update POAM Status to Submitted" nbTooltipPlacement="top" nbTooltipStatus="basic">Submit Poam</button>
+            <button nbButton outline status="primary" *ngIf="showApprove" (click)="poamApproval()">POAM Approval</button>
           </div>
         </div>
       </nb-card-header>
@@ -43,26 +44,27 @@
 
           <!-- Description -->
           <div class="form-group">
-            <label>Description of the POAM: <span class="text-danger">*</span></label>
-            <textarea nbInput fullWidth placeholder="Description..." rows="8" [(ngModel)]="poam.description" name='description' maxlength="2000"></textarea>
+            <label for='description'>Description of the POAM: <span class="text-danger">*</span></label>
+            <textarea nbInput fullWidth placeholder="Description..." rows="8" [(ngModel)]="poam.description" id='description' name='description' maxlength="2000"></textarea>
           </div>
 
           <!-- AA Package -->
           <div class="form-group">
-            <label id="aaPackage">A&A Package: <span class="text-danger">*</span></label>
-            <input type="text" nbInput fullWidth placeholder="AA Package..." [(ngModel)]="poam.aaPackage" name='aaPackage'>
+            <label for="aaPackage">A&A Package: <span class="text-danger">*</span></label>
+            <input type="text" nbInput fullWidth placeholder="AA Package..." [(ngModel)]="poam.aaPackage" name='aaPackage' id="aaPackage">
           </div>
 
           <!-- Source -->
           <div class="form-group">
-            <label id="vulnerabilitySource">Source Identifying Control Vulnerability: <span class="text-danger">*</span></label>
+            <label for="vulnerabilitySource">Source Identifying Control Vulnerability: <span class="text-danger">*</span></label>
             <input nbInput
                    fullWidth
                    type="text"
                    placeholder="Vulnerability Source..."
                    [(ngModel)]="poam.vulnerabilitySource"
                    [nbAutocomplete]="autoNgModel"
-                   name="vulnerabilitySource">
+                   name="vulnerabilitySource"
+                   id="vulnerabilitySource">
 
             <nb-autocomplete #autoNgModel>
               <nb-option *ngFor="let source of vulnerabilitySources" [value]="source">
@@ -90,18 +92,18 @@
           </div>
 
           <!-- Source Identifying Control Vulnerability - ID # for ACAS/EXORD-->
-          <div class="form-group" *ngIf="poam.vulnerabilitySource != 'STIG'">
-            <label id="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
+          <div class="form-group" *ngIf="poam.vulnerabilitySource !== 'STIG'">
+            <label for="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
             <nb-form-field>
-              <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId'>
+              <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId' id="vulnerabilityId">
             </nb-form-field>
           </div>
 
           <!-- Source Identifying Control Vulnerability - ID # for STIG-->
           <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
-            <label id="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
+            <label for="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
             <nb-form-field>
-              <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId'>
+              <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId' id="vulnerabilityId">
               <button nbSuffix nbButton ghost (click)="validateStigManagerCollection()" nbTooltip="Update POAM Asset list with STIG Manager findings for the provided Vulnerability ID." nbTooltipPlacement="top" nbTooltipStatus="basic" [disabled]="!poam.vulnerabilityId">
                 <nb-icon icon="download-outline"></nb-icon>
               </button>
@@ -110,8 +112,8 @@
 
           <!-- Vuln Restricted Id -->
           <div class="form-group">
-            <label id="vulnIdRestricted">Vulnerability Restricted - ID #: </label>
-            <input type="text" nbInput fullWidth placeholder="Vulnerability Restricted ID..." [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted'>
+            <label for="vulnIdRestricted">Vulnerability Restricted - ID #: </label>
+            <input type="text" nbInput fullWidth placeholder="Vulnerability Restricted ID..." [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted' id="vulnIdRestricted">
           </div>
 
           <!-- IAVM # -->
@@ -136,8 +138,8 @@
 
           <!-- Raw Severity -->
           <div class="form-group">
-            <label id="rawSeverity">Raw Severity Value: <span class="text-danger">*</span></label>
-            <nb-select placeholder="Raw Severity..." [(ngModel)]="poam.rawSeverity" name='rawSeverity'>
+            <label for="rawSeverity">Raw Severity Value: <span class="text-danger">*</span></label>
+            <nb-select placeholder="Raw Severity..." [(ngModel)]="poam.rawSeverity" name='rawSeverity' id="rawSeverity">
               <nb-option value="CAT I - Critical/High">CAT I - Critical/High</nb-option>
               <nb-option value="CAT II - Medium">CAT II - Medium</nb-option>
               <nb-option value="CAT III - Low">CAT III - Low</nb-option>
@@ -146,8 +148,8 @@
 
           <!-- Adj Severity -->
           <div class="form-group">
-            <label id="adjSeverity">Adjusted Severity Value: </label>
-            <nb-select placeholder="Adjusted Severity..." [(ngModel)]="poam.adjSeverity" name='adjSeverity'>
+            <label for="adjSeverity">Adjusted Severity Value: </label>
+            <nb-select placeholder="Adjusted Severity..." [(ngModel)]="poam.adjSeverity" name='adjSeverity' id="adjSeverity" [disabled]="poam.status !== 'Draft' && !showApprove">
               <nb-option value="CAT I - Critical/High">CAT I - Critical/High</nb-option>
               <nb-option value="CAT II - Medium">CAT II - Medium</nb-option>
               <nb-option value="CAT III - Low">CAT III - Low</nb-option>
@@ -156,8 +158,8 @@
 
           <!-- Submitter -->
           <div class="form-group">
-            <label id="submitterId">POAM Submitted By: <span class="text-danger">*</span></label>
-            <nb-select maxlength="6" outlineid="submitterId" name="submitterId" [(ngModel)]="poam.submitterId" placeholder="Submitted By..." required>
+            <label for="submitterId">POAM Submitted By: <span class="text-danger">*</span></label>
+            <nb-select maxlength="6" outlineid="submitterId" name="submitterId" id="submitterId" [(ngModel)]="poam.submitterId" placeholder="Submitted By..." required>
               <nb-option *ngFor="let user of collectionSubmitters" [value]="user.userId">
                 {{ user.fullName }}
               </nb-option>
@@ -198,13 +200,12 @@
                                         (createConfirm)="confirmCreate($event)" (deleteConfirm)="confirmDelete($event)">
                   </angular2-smart-table>
                 </div>
+                <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious disabled>prev</button>
                 <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
               </nb-step>
 
               <!-- Approvers -->
               <nb-step label="Approvers">
-                <!-- <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showApprove" (click)="approvePoam(poam)">Approve</button>
-          <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showApprove" (click)="approvePoamAll(poam)">Approve ALL</button> -->
                 <div class="col">
                   <angular2-smart-table [settings]="poamApproverSettings" [source]="poamApprovers" mode="inline"
                                         (createConfirm)="confirmCreateApprover($event)" (editConfirm)="confirmEditApprover($event)" (deleteConfirm)="confirmDeleteApprover($event)">
@@ -251,25 +252,58 @@
 
               <!-- Residual Risk -->
               <nb-step label="Residual Risk">
-                <textarea nbInput fullWidth [(ngModel)]="poam.residualRisk" placehoder="Residual Risk..." name='residualRisk' cols="180"
-                          rows="10" maxlength="2000"></textarea>
-                <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-                <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-              </nb-step>
-
-              <!-- Business Impact -->
-              <nb-step label="Business Impact">
-                <nb-select fullWidth placeholder="Business Impact..." [(ngModel)]="poam.businessImpactRating" name='businessImpactRating'>
+                <nb-select fullWidth placeholder="Residual Risk..." [(ngModel)]="poam.residualRisk" name='residualRisk'>
                   <nb-option value="Very Low">Very Low</nb-option>
                   <nb-option value="Low">Low</nb-option>
                   <nb-option value="Moderate">Moderate</nb-option>
                   <nb-option value="High">High</nb-option>
                   <nb-option value="Very High">Very High</nb-option>
                 </nb-select>
-                <textarea *ngIf="poam.businessImpactRating === 'Moderate' || poam.businessImpactRating === 'High' || poam.businessImpactRating === 'Very High'"
-                          style="margin-top: 20px;" nbInput fullWidth [(ngModel)]="poam.businessImpactDescription"
-                          placeholder="Business Impact Description..." name='businessImpactDescription' cols="180" rows="10"></textarea>
+                <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
+                <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
+              </nb-step>
 
+              <!-- Business Impact -->
+              <nb-step label="Business Impact">
+                <div class="form-group">
+                  <label for="likelihood">Likelihood:</label>
+                  <nb-select fullWidth outlineid="likelihood" name="likelihood" id="likelihood" [(ngModel)]="poam.likelihood" placeholder="Likelihood..." required>
+                    <nb-option value="Very Low">Very Low</nb-option>
+                    <nb-option value="Low">Low</nb-option>
+                    <nb-option value="Moderate">Moderate</nb-option>
+                    <nb-option value="High">High</nb-option>
+                    <nb-option value="Very High">Very High</nb-option>
+                  </nb-select>
+                </div>
+
+                <div class="form-group">
+                  <label for="relevanceOfThreat">Relevance of Threat:</label>
+                  <nb-select fullWidth outlineid="relevanceOfThreat" name="relevanceOfThreat" id="relevanceOfThreat" [(ngModel)]="poam.relevanceOfThreat" placeholder="Relevance of Threat..." required>
+                    <nb-option value="Very Low">Very Low</nb-option>
+                    <nb-option value="Low">Low</nb-option>
+                    <nb-option value="Moderate">Moderate</nb-option>
+                    <nb-option value="High">High</nb-option>
+                    <nb-option value="Very High">Very High</nb-option>
+                  </nb-select>
+                </div>
+
+                <div class="form-group">
+                  <label for="businessImpactRating">Business Impact Rating: </label>
+                  <nb-select fullWidth placeholder="Business Impact..." [(ngModel)]="poam.businessImpactRating" name='businessImpactRating'>
+                    <nb-option value="Very Low">Very Low</nb-option>
+                    <nb-option value="Low">Low</nb-option>
+                    <nb-option value="Moderate">Moderate</nb-option>
+                    <nb-option value="High">High</nb-option>
+                    <nb-option value="Very High">Very High</nb-option>
+                  </nb-select>
+                </div>
+
+                <div class="form-group">
+                  <label *ngIf="poam.businessImpactRating === 'Moderate' || poam.businessImpactRating === 'High' || poam.businessImpactRating === 'Very High'" for="businessImpactDescription">Business Impact Description: </label>
+                  <textarea *ngIf="poam.businessImpactRating === 'Moderate' || poam.businessImpactRating === 'High' || poam.businessImpactRating === 'Very High'"
+                            nbInput fullWidth [(ngModel)]="poam.businessImpactDescription"
+                            placeholder="Business Impact Description..." name='businessImpactDescription' cols="180" rows="10"></textarea>
+                </div>
                 <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
                 <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
               </nb-step>
@@ -294,22 +328,21 @@
                   </angular2-smart-table>
                 </div>
                 <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-                <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" disabled nbStepperNext>next</button>
+                <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
               </nb-step>
 
               <!-- Notes -->
               <nb-step label="Notes">
                 <textarea nbInput fullWidth style="font-weight: normal;" [(ngModel)]="poam.notes" placehoder="Notes..." name='notes' cols="180" rows="10" maxlength="4000"></textarea>
                 <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-                <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
+                <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext disabled>next</button>
               </nb-step>
-
             </nb-stepper>
           </nb-card-footer>
 
           <!-- Buttons -->
           <nb-card-footer>            
-            <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showSubmit" (click)="savePoam(poam)">Save</button>
+            <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showSubmit" (click)="savePoam()">Save</button>
             <button style="margin-left:20px;" nbButton outline status="info" (click)="cancelPoam()">Cancel Edit</button>
           </nb-card-footer>
 </nb-card>

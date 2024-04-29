@@ -19,7 +19,7 @@ import { Label } from './label.model';
   providedIn: 'root'
 })
 export class LabelService {
-  private uri = environment.apiEndpoint;
+  private url = environment.CPAT_API_URL;
   httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json'
@@ -39,31 +39,31 @@ export class LabelService {
 
   getLabels(collectionId: string) {
     return this.http
-      .get(`${this.uri}/labels/${collectionId}` )
+      .get(`${this.url}/labels/${collectionId}` )
           .pipe(catchError(this.handleError));
   }
 
   getLabel(collectionId: string, labelId: string) {
     return this.http
-      .get(`${this.uri}/label/${collectionId}/${labelId}`)
+      .get(`${this.url}/label/${collectionId}/${labelId}`)
           .pipe(catchError(this.handleError));
   }
 
   addLabel(collectionId: string, label: any) {
     return this.http
-      .post<Label>(`${this.uri}/label/${collectionId}`, label, this.httpOptions)
+      .post<Label>(`${this.url}/label/${collectionId}`, label, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   updateLabel(collectionId: string, label: any) {
     return this.http
-      .put<Label>(`${this.uri}/label/${collectionId}`, label, this.httpOptions)
+      .put<Label>(`${this.url}/label/${collectionId}`, label, this.httpOptions)
           .pipe(catchError(this.handleError));
   }
 
   deleteLabel(collectionId: string, labelId: string) {
     return this.http
-      .delete<Label>(`${this.uri}/label/${collectionId}/${labelId}`, this.httpOptions)
+      .delete<Label>(`${this.url}/label/${collectionId}/${labelId}`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 

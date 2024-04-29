@@ -8,56 +8,78 @@
 !########################################################################
 */
 
-import { Injectable } from '@angular/core';
-import { Subject, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import io, { Socket } from 'socket.io-client';
-import { NbAuthJWTToken } from '@nebular/auth';
-import { AuthService } from '../auth';
-import { KcAuthService } from '../kc-auth.service';
+import { Injectable, OnDestroy } from '@angular/core';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
+import { Observable, Subject } from 'rxjs';
+import io, { Socket } from 'socket.io-client';
+import { environment } from '../../environments/environment';
+import { KeycloakService } from 'keycloak-angular';
 
 @Injectable()
-export class WebsocketService {
-
+export class WebsocketService implements OnDestroy {
   private socket: Socket<DefaultEventsMap, DefaultEventsMap> | undefined;
-  private token: NbAuthJWTToken | undefined;
+  private token: string | undefined;
+  private destroy$ = new Subject<void>();
 
-  constructor(private authService: AuthService,
-    private kcAuthService: KcAuthService) {}
+  constructor(private keycloakService: KeycloakService) {
+    this.subscribeToTokenChange();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   connect(connectInput: any): Subject<MessageEvent> {
-    this.socket = io(`${environment.apiEndpoint}/${connectInput.namespace}`, {
-      query: {
-        token: this.token
-      }
+    this.socket = io(`${environment.CPAT_API_URL}/${connectInput.namespace}`, {
+      query: { token: this.token },
     });
 
-    let observable = new Observable(observer => {
-      
+    const observable = new Observable(observer => {
       this.socket!.on(connectInput.event, (data: any) => {
         observer.next(data);
-      })
+      });
       return () => {
         this.socket!.disconnect();
-      }
+      };
     });
 
-    let observer = {
-      next: (data: Object) => {
-        this.socket!.emit(connectInput.event, JSON.stringify(data))
-      }
+    const observer = {
+      next: (data: unknown) => {
+        this.socket!.emit(connectInput.event, JSON.stringify(data));
+      },
     };
 
     return Subject.create(observer, observable);
   }
 
-  ngOnInit() {
-      this.kcAuthService.onTokenChange()
-      .subscribe((token: NbAuthJWTToken) => {
-        if (token.isValid()) {
-          this.token = token;
-        }
-      })
+  private async subscribeToTokenChange() {
+    try {
+      this.token = await this.keycloakService.getToken();
+      this.checkTokenExpiration();
+    } catch (error) {
+      console.error('Failed to get token:', error);
+    }
+  }
+  
+  private checkTokenExpiration() {
+    const tokenParsed = this.keycloakService.getKeycloakInstance().tokenParsed;
+    if (tokenParsed && tokenParsed.exp) {
+      const expiresIn = tokenParsed.exp;
+      const now = Math.floor(Date.now() / 1000);
+      const refreshInterval = (expiresIn - now - 60) * 1000;
+  
+      if (refreshInterval > 0) {
+        setTimeout(async () => {
+          try {
+            await this.keycloakService.updateToken(60);
+            this.token = await this.keycloakService.getToken();
+            this.checkTokenExpiration();
+          } catch (error) {
+            console.error('Failed to refresh token:', error);
+          }
+        }, refreshInterval);
+      }
+    }
   }
 }

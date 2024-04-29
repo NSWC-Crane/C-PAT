@@ -9,35 +9,15 @@
 */
 
 .ngx-poam-assigned-grid {
-    height: 66rem;
+    height: 66.6rem;
 }
-.poam-advanced-pie {
+
+.poam-severity-advanced-pie,
+.poam-status-advanced-pie {
   display: block;
-  height: 27.5rem;
+  height: 18rem;
 
   ::ng-deep {
-    .pie-label {
-      fill: nb-theme(text-basic-color);
-    }
-
-    text {
-      fill: nb-theme(text-hint-color);
-    }
-
-    .chart-legend {
-      .legend-labels {
-        background: nb-theme(background-basic-color-2);
-      }
-
-      .legend-label {
-        color: nb-theme(text-hint-color);
-
-        .active .legend-label-text {
-          color: nb-theme(text-basic-color);
-        }
-      }
-    }
-
     .total-value,
     .item-value,
     .item-percent {
@@ -46,9 +26,30 @@
   }
 }
 
-.monthly-poam-status-chart,
-.poam-severity-pie-chart {
-  position: relative;
-  height: 27.5rem;
-  max-width: 100rem;
+.poam-status-advanced-pie {
+  ::ng-deep .advanced-pie-legend .total-value,
+  ::ng-deep .advanced-pie-legend .total-label {
+    display: none;
+  }
+
+
+  ::ng-deep .advanced-pie-legend .legend-items-container .legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-top: 0.10rem;
+  }
+
+  ::ng-deep .advanced-pie-legend .legend-items-container .legend-items .legend-item:nth-child(1),
+  ::ng-deep .advanced-pie-legend .legend-items-container .legend-items .legend-item:nth-child(2),
+  ::ng-deep .advanced-pie-legend .legend-items-container .legend-items .legend-item:nth-child(3) {
+    margin-bottom: 0.50rem;
+  }
+
+  ::ng-deep .advanced-pie-legend .legend-items-container .legend-items .legend-item:nth-child(4),
+  ::ng-deep .advanced-pie-legend .legend-items-container .legend-items .legend-item:nth-child(5),
+  ::ng-deep .advanced-pie-legend .legend-items-container .legend-items .legend-item:nth-child(6),
+  ::ng-deep .advanced-pie-legend .legend-items-container .legend-items .legend-item:nth-child(7) {
+    flex-basis: calc(25% - 0.5rem);
+  }
 }

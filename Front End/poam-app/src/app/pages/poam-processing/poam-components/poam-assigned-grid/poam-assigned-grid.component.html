@@ -20,8 +20,8 @@
       </ng-container>
 
       <ng-container [nbTreeGridColumnDef]="'Adjusted Severity'">
-        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="25">Adjusted Severity</th>
-        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="25">{{row.data.adjSeverity}}</td>
+        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="22">Adjusted Severity</th>
+        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="22">{{row.data.adjSeverity}}</td>
       </ng-container>
 
       <ng-container [nbTreeGridColumnDef]="'Poam Status'">
@@ -40,8 +40,8 @@
       </ng-container>
 
       <ng-container [nbTreeGridColumnDef]="'Manage'">
-        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="15">Manage</th>
-        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="15">
+        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="18">Manage</th>
+        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="18">
           <button class="manage-POAM-button" nbButton ghost (click)="managePoam(row)">
             <nb-icon icon="plus-square-outline"></nb-icon>
           </button>

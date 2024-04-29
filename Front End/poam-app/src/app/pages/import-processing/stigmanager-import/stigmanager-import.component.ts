@@ -8,26 +8,22 @@
 !########################################################################
 */
 
-import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, Input, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
-import { SharedService } from '../../../Shared/shared.service';
-import { PoamService } from '../../poam-processing/poams.service';
-import { CollectionsService } from '../../collection-processing/collections.service';
-import { catchError, forkJoin, Observable, of, Subscription } from 'rxjs';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { NbDialogService, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
-import { SubSink } from "subsink";
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
+import { Chart, ChartData, registerables } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { environment } from '../../../../environments/environment';
-import { Router } from '@angular/router';
-import { Chart, registerables, ChartData } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { Observable, Subscription, catchError, forkJoin, of } from 'rxjs';
+import { SubSink } from "subsink";
+import { ImportService } from '../../import-processing/import.service';
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SharedService } from '../../../Shared/shared.service';
+import { CollectionsService } from '../../collection-processing/collections.service';
+import { UsersService } from '../../admin-processing/user-processing/users.service';
+import { PoamAssetUpdateService } from '../../import-processing/stigmanager-import/stigmanager-update/stigmanager-update.service';
 
-interface Collection {
-  collectionId: any;
-  name: string;
-}
 
 interface Asset {
   assetId: any;
@@ -47,7 +43,7 @@ interface AssetEntry {
   templateUrl: './stigmanager-import.component.html',
   styleUrls: ['./stigmanager-import.component.scss']
 })
-export class STIGManagerImportComponent implements OnInit, AfterViewInit {
+export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('findingChart') findingChart!: ElementRef<HTMLCanvasElement>;
   customColumn = 'Group ID';
   defaultColumns = ['Rule Title', 'Benchmark ID', 'Severity', 'Asset Count', 'Update POAM'];
@@ -59,15 +55,13 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
   userProfile: KeycloakProfile | null = null;
   availableAssets: Asset[] = [];
   selectedAssets: string[] = [];
-  collections: Collection[] = [];
-  selectedSTIGMANCollection: string = '';
-  stigmanCollections: Collection[] = [];
-  selectedStigmanCollection: string = '';
   selectedFindings: string = '';
   collectionBasicList: any[] = [];
   treeData: any[] = [];
   originalTreeData: any[] = [];
   selectedCollection: any;
+  stigmanCollection: { name: string; description: string;  collectionId: string; } | undefined;
+  user: any;
   private subs = new SubSink();
   private subscriptions = new Subscription();
 
@@ -120,14 +114,55 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private collectionService: CollectionsService,
     private sharedService: SharedService,
-    private poamService: PoamService,
+    private poamAssetUpdateService: PoamAssetUpdateService,
+    private userService: UsersService,
     private dialogService: NbDialogService,
-    private http: HttpClient,
+    private importService: ImportService,
     private keycloak: KeycloakService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<AssetEntry>
   ) {
     this.dataSource = this.dataSourceBuilder.create(this.treeData);
     Chart.register(...registerables);
+  }
+
+  async ngOnInit() {
+    this.isLoggedIn = this.keycloak.isLoggedIn();
+
+    if (this.isLoggedIn) {
+      this.userProfile = await this.keycloak.loadUserProfile();
+    }
+
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
+    this.userService.getCurrentUser().subscribe({
+      next: (response: any) => {
+        if (response && response.userId) {
+          this.user = response;
+        }
+      },
+      error: (error) => {
+        console.error('An error occurred:', error);
+      }
+    });
+    this.validateStigManagerCollection();
+  }
+
+  ngAfterViewInit() {
+    this.initializeChart();
+    this.cdr.detectChanges();
+  }
+
+  async stigManagerAssetSync() {
+    try {
+      await this.poamAssetUpdateService.updateOpenPoamAssets(this.selectedCollection, this.stigmanCollection!.collectionId, this.user.userId);
+      this.showPopup("POAM Asset Lists have been updated.");
+    } catch (error) {
+      console.error('Failed to update POAM assets:', error);
+      this.showPopup("Failed to update POAM Asset Lists. Please try again.");
+    }
   }
 
   updateSort(sortRequest: NbSortRequest): void {
@@ -140,25 +175,6 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
       return this.sortDirection;
     }
     return NbSortDirection.NONE;
-  }
-
-  async ngOnInit() {
-    this.isLoggedIn = await this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
-    }
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
-        this.selectedCollection = collectionId;
-      })
-    );
-    this.fetchCollections();
-    this.validateStigManagerCollection();
-  }
-
-  ngAfterViewInit() {
-    this.initializeChart();
-    this.cdr.detectChanges();
   }
 
   updateFindingsChartData(findings: any[]): void {
@@ -190,28 +206,6 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
     } else {
       console.error('Unable to initialize chart: Element not available.');
     }
-  }
-
-  fetchCollections() {
-    this.keycloak.getToken().then((token) => {
-      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe({
-        next: (data) => {
-          this.stigmanCollections = data;
-          if (!data || data.length === 0) {
-            this.showPopup(
-              'No collections available to import. Please ensure you have access to view collections in STIG Manager.'
-            );
-          } else {
-            this.collections = data;
-          }
-        },
-        error: (error) => {
-          this.showPopup(
-            'You are not connected to STIG Manager or the connection is not properly configured.'
-          );
-        },
-      });
-    });
   }
 
   exportChart(chartInstance: Chart, chartName: string) {
@@ -274,13 +268,9 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
     }, 150);
   }
 
-  fetchAssetsFromAPI() {
-    if (!this.selectedSTIGMANCollection || this.selectedSTIGMANCollection === '') {
-      return;
-    }
-
+  fetchAssetsFromAPI(collectionId: string) {
     this.keycloak.getToken().then(token => {
-      this.sharedService.getAssetsFromSTIGMAN(this.selectedSTIGMANCollection, token).subscribe({
+      this.sharedService.getAssetsFromSTIGMAN(collectionId, token).subscribe({
         next: (data) => {
           if (!data || data.length === 0) {
             this.showPopup('No assets found for the selected collection.');
@@ -288,66 +278,10 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
             this.availableAssets = data;
           }
         },
-        error: (error) => {
+        error: () => {
           this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
         }
       });
-    });
-  }
-
-  onCollectionSelect(collectionId: string) {
-    this.selectedSTIGMANCollection = collectionId;
-    this.fetchAssetsFromAPI();
-  }
-
-  onSTIGManagerCollectionSelect(collectionId: string) {
-    this.selectedStigmanCollection = collectionId;
-  }
-
-  importSTIGManagerCollection() {
-    if (this.selectedStigmanCollection) {
-      this.keycloak.getToken().then((token) => {
-        forkJoin({
-          collectionData: this.sharedService.selectedCollectionFromSTIGMAN(
-            this.selectedStigmanCollection,
-            token
-          ),
-          assetsData: this.sharedService.getAssetsFromSTIGMAN(
-            this.selectedStigmanCollection,
-            token
-          ),
-        }).subscribe({
-          next: (results) => {
-            const payload = {
-              collection: results.collectionData,
-              assets: results.assetsData,
-            };
-            this.sendSTIGManagerCollectionImportRequest(payload);
-          },
-          error: (error) => {
-            console.error('Error fetching collection or assets data:', error);
-          },
-        });
-      });
-    } else {
-      console.error('No collection selected');
-    }
-  }
-
-  private sendSTIGManagerCollectionImportRequest(data: any) {
-    this.keycloak.getToken().then((token) => {
-      const headers = { Authorization: `Bearer ${token}` };
-      this.http
-        .post(environment.stigmanCollectionImportEndpoint, data, { headers })
-        .subscribe({
-          next: (response) => {
-            this.showPopup('Import successful');
-          },
-          error: (error) => {
-            console.error('Error during import', error);
-            this.showPopup('Error during import: ' + error.message);
-          },
-        });
     });
   }
 
@@ -362,35 +296,20 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onImportAssetsButtonClick() {
-    if (this.selectedAssets.length > 0) {
-      this.fetchAssetDetails();
-    } else {
-      console.error('No assets selected');
-    }
-  }
-
-
   importAssets(assetDetails: any[]) {
-    const payload = {
-      assets: assetDetails
-    };
-    this.sendSTIGManagerAssetImportRequest(payload);
-  }
-
-  private sendSTIGManagerAssetImportRequest(data: any) {
-    this.keycloak.getToken().then(token => {
-      const headers = { Authorization: `Bearer ${token}` };
-      this.http.post(environment.stigmanAssetImportEndpoint, data, { headers })
-        .subscribe({
-          next: (response) => {
-            this.showPopup('Import successful');
-          },
-          error: (error) => {
-            console.error('Error during import', error);
-            this.showPopup('Error during import: ' + error.message);
-          }
-        });
+    const assets = assetDetails.map(asset => {
+      const { assetId, ...rest } = asset;
+      return rest;
+    });
+    const requestBody = { assets: assets };
+    this.importService.postStigManagerAssets(requestBody).subscribe({
+      next: () => {
+        this.showPopup('Import successful');
+      },
+      error: (error) => {
+        console.error('Error during import', error);
+        this.showPopup('Error during import: ' + error.message);
+      }
     });
   }
 
@@ -413,22 +332,21 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit {
         const stigmanCollectionsMap = new Map(stigmanData.map(collection => [collection.name, collection]));
         const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
 
-        const selectedCollection = basicListCollectionsMap.get(this.selectedCollection);
+        const selectedCollection = basicListCollectionsMap.get(this.user.lastCollectionAccessedId);
         const selectedCollectionName = selectedCollection?.collectionName;
-        const stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
-
-        if (!stigmanCollection || !selectedCollectionName) {
-          this.showPopup('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are creating the POAM in the correct collection.');
+        this.stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
+        if (!this.stigmanCollection || !selectedCollectionName) {
+          this.showPopup('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are viewing a STIG Manager collection.');
           return;
         }
-
-        this.getAffectedAssetGrid(token);
+        this.fetchAssetsFromAPI(this.stigmanCollection.collectionId);
+        this.getAffectedAssetGrid(token, this.stigmanCollection.collectionId);
       });
     });
   }
 
-  getAffectedAssetGrid(token: string) {
-    this.sharedService.getAffectedAssetsFromSTIGMAN(token, this.selectedCollection).subscribe({
+  getAffectedAssetGrid(token: string, stigmanCollection: string) {
+    this.sharedService.getAffectedAssetsFromSTIGMAN(token, stigmanCollection).subscribe({
       next: (data) => {
         const mappedData = data.map(item => ({
           data: {

@@ -97,3 +97,16 @@ module.exports.deleteAsset = async function deleteAsset(req, res, next) {
         }
     }
 }
+
+module.exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, next) {
+    try {
+        await assetService.deleteAssetsByPoamId(req, res, next);
+        res.status(204).send();
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+}

@@ -8,7 +8,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class PoamExtensionService {
-  private uri = environment.apiEndpoint;
+  private url = environment.CPAT_API_URL;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -29,31 +29,31 @@ export class PoamExtensionService {
 
 
   getPoamExtension(poamId: string) {
-    return this.http.get<any>(`${this.uri}/poamExtension/${poamId}`)
+    return this.http.get<any>(`${this.url}/poamExtension/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
   putPoamExtension(extensionData: any) {
-    return this.http.put<any>(`${this.uri}/poamExtension`, extensionData, this.httpOptions);
+    return this.http.put<any>(`${this.url}/poamExtension`, extensionData, this.httpOptions);
   }
 
   deletePoamExtension(poamId: string) {
-    return this.http.delete<any>(`${this.uri}/poamExtension/${poamId}`, this.httpOptions);
+    return this.http.delete<any>(`${this.url}/poamExtension/${poamId}`, this.httpOptions);
   }
 
   getPoamExtensionMilestones(poamId: string) {
-    return this.http.get<any>(`${this.uri}/poamExtensionMilestones/${poamId}`)
+    return this.http.get<any>(`${this.url}/poamExtensionMilestones/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
   addPoamExtensionMilestone(poamId: string, milestone: any) {
     return this.http
-      .post<any>(`${this.uri}/poamExtensionMilestones/${poamId}`, milestone, this.httpOptions);
+      .post<any>(`${this.url}/poamExtensionMilestones/${poamId}`, milestone, this.httpOptions);
   }
 
   updatePoamExtensionMilestone(poamId: string, milestoneId: string, milestone: any) {
     return this.http
-      .put<any>(`${this.uri}/poamExtensionMilestones/${poamId}/${milestoneId}`, milestone, this.httpOptions);
+      .put<any>(`${this.url}/poamExtensionMilestones/${poamId}/${milestoneId}`, milestone, this.httpOptions);
   }
 
   deletePoamExtensionMilestone(poamId: string, milestoneId: string, requestorId: any, extension: boolean) {
@@ -64,6 +64,6 @@ export class PoamExtensionService {
       body: requestBody
     };
 
-    return this.http.delete<any>(`${this.uri}/poamExtensionMilestones/${poamId}/${milestoneId}`, options);
+    return this.http.delete<any>(`${this.url}/poamExtensionMilestones/${poamId}/${milestoneId}`, options);
   }
 }

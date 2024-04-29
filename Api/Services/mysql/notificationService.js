@@ -25,7 +25,7 @@ async function withConnection(callback) {
 exports.getAllNotificationsByUserId = async function getAllNotificationsByUserId(userId) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `SELECT * FROM poamtracking.notification WHERE userId = ? ORDER BY timestamp DESC`;
+            const sql = `SELECT * FROM cpat.notification WHERE userId = ? ORDER BY timestamp DESC`;
             const [rows] = await connection.query(sql, [userId]);
             return rows;
         });
@@ -38,7 +38,7 @@ exports.getAllNotificationsByUserId = async function getAllNotificationsByUserId
 exports.getUnreadNotificationsByUserId = async function getUnreadNotificationsByUserId(userId) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `SELECT * FROM poamtracking.notification WHERE notification.read = 0 AND userId = ? ORDER BY timestamp DESC`;
+            const sql = `SELECT * FROM cpat.notification WHERE notification.read = 0 AND userId = ? ORDER BY timestamp DESC`;
             const [rows] = await connection.query(sql, [userId]);
             return rows;
         });
@@ -51,7 +51,7 @@ exports.getUnreadNotificationsByUserId = async function getUnreadNotificationsBy
 exports.getUnreadNotificationCountByUserId = async function getUnreadNotificationCountByUserId(userId) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `SELECT COUNT(userId) AS NotificationCount FROM poamtracking.notification WHERE notification.read = 0 AND userId = ?`;
+            const sql = `SELECT COUNT(userId) AS NotificationCount FROM cpat.notification WHERE notification.read = 0 AND userId = ?`;
             const [rows] = await connection.query(sql, [userId]);
             const notificationCount = rows[0].NotificationCount.toString();
             return notificationCount;
@@ -65,13 +65,13 @@ exports.getUnreadNotificationCountByUserId = async function getUnreadNotificatio
 exports.dismissNotificationByNotificationId = async function dismissNotificationByNotificationId(notificationId, userId) {
     try {
         return await withConnection(async (connection) => {
-            const userIdQuery = `SELECT userId FROM poamtracking.notification WHERE notificationId = ?`;
+            const userIdQuery = `SELECT userId FROM cpat.notification WHERE notificationId = ?`;
             const [userId] = await connection.query(userIdQuery, [notificationId]);
 
-            const dismissSql = `UPDATE poamtracking.notification SET notification.read = 1 WHERE notificationId = ?`;
+            const dismissSql = `UPDATE cpat.notification SET notification.read = 1 WHERE notificationId = ?`;
             await connection.query(dismissSql, [notificationId]);
             
-            const unreadSql = `SELECT * FROM poamtracking.notification WHERE notification.read = 0 AND userId = ? ORDER BY timestamp DESC`;
+            const unreadSql = `SELECT * FROM cpat.notification WHERE notification.read = 0 AND userId = ? ORDER BY timestamp DESC`;
             const [unreadNotifications] = await connection.query(unreadSql, [userId]);
 
             return unreadNotifications;
@@ -85,7 +85,7 @@ exports.dismissNotificationByNotificationId = async function dismissNotification
 exports.dismissAllNotificationsByUserId = async function dismissAllNotificationsByUserId(userId) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `UPDATE poamtracking.notification SET notification.read = 1 WHERE userId = ?`;
+            const sql = `UPDATE cpat.notification SET notification.read = 1 WHERE userId = ?`;
             const [result] = await connection.query(sql, [userId]);
             return result.affectedRows > 0;
         });
@@ -98,7 +98,7 @@ exports.dismissAllNotificationsByUserId = async function dismissAllNotifications
 exports.deleteNotificationByNotificationId = async function deleteNotificationByNotificationId(notificationId) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `DELETE FROM poamtracking.notification WHERE notificationId = ?`;
+            const sql = `DELETE FROM cpat.notification WHERE notificationId = ?`;
             const [result] = await connection.query(sql, [notificationId]);
             return result.affectedRows > 0;
         });
@@ -111,7 +111,7 @@ exports.deleteNotificationByNotificationId = async function deleteNotificationBy
 exports.deleteAllNotificationsByUserId = async function deleteAllNotificationsByUserId(userId) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `DELETE FROM poamtracking.notification WHERE userId = ?`;
+            const sql = `DELETE FROM cpat.notification WHERE userId = ?`;
             const [result] = await connection.query(sql, [userId]);
             return result.affectedRows > 0;
         });

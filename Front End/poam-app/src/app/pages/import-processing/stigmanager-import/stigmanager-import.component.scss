@@ -28,37 +28,8 @@
   justify-content: center;
 }
 
-.import-section {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.import-section .import-item {
-  margin-right: 8vw;
-}
-
-.import-section .import-item:last-child {
-  margin-right: 0;
-}
-
 .search-input {
   margin-bottom: 1rem;
-}
-
-::ng-deep .severity-cell.cat-i {
-  color: #d74400;
-  font-weight: bold;
-}
-
-::ng-deep .severity-cell.cat-ii {
-  color: #36c;
-  font-weight: bold;
-}
-
-::ng-deep .severity-cell.cat-iii {
-  color: darkgreen;
-  font-weight: bold;
 }
 
 .findings-chart {
@@ -78,11 +49,54 @@
   margin-right: 0;
 }
 
+.filter-container {
+  margin-top: 20px;
+}
+
+.sync-button {
+  width: 60rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.import-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.assets-select {
+  max-width: 50rem;
+}
+
+
+.import-button {
+  margin-left: 2rem;
+  width: 10rem;
+}
+
+
 ::ng-deep nb-tree-grid-header-cell,
 ::ng-deep nb-tree-grid-cell {
   text-align: center;
 }
 
-.filter-container {
-  margin-top: 20px;
+::ng-deep .severity-cell.cat-i {
+  color: #d74400;
+  font-weight: bold;
+}
+
+::ng-deep .severity-cell.cat-ii {
+  color: #36c;
+  font-weight: bold;
+}
+
+::ng-deep .severity-cell.cat-iii {
+  color: darkgreen;
+  font-weight: bold;
 }

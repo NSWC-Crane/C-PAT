@@ -8,13 +8,13 @@
 !########################################################################
 */
 
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { SubSink } from 'subsink';
 import { NbDialogService } from "@nebular/theme";
 import { KeycloakService } from 'keycloak-angular'
 import { ActivatedRoute, Router } from '@angular/router';
 import { KeycloakProfile } from 'keycloak-js';
-import { UsersService } from '../../user-processing/users.service';
+import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { DatePipe } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
@@ -29,7 +29,7 @@ import { parseISO, format } from 'date-fns';
   styleUrls: ['./poam-approve.component.scss'],
   providers: [DatePipe]
 })
-export class PoamApproveComponent implements OnInit {
+export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private subs = new SubSink()
   modalWindow: any;
@@ -63,7 +63,7 @@ export class PoamApproveComponent implements OnInit {
     this.route.params.subscribe(async params => {
       this.poamId = params['poamId'];
 
-      this.isLoggedIn = await this.keycloak.isLoggedIn();
+      this.isLoggedIn = this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
         this.setPayload();
@@ -163,7 +163,7 @@ export class PoamApproveComponent implements OnInit {
     };
 
     this.poamApproveService.updatePoamApprover(approvalData).subscribe(
-      (updatedApproval) => {
+      () => {
         if (this.modalWindow) {
           this.modalWindow.close();
         }

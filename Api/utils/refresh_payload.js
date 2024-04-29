@@ -8,12 +8,13 @@
 !########################################################################
 */
 
-const userService = require('../Services/mysql/usersService')
+const userService = require('../Services/mysql/usersService');
+const authService = require('../Services/mysql/authService');
 
 const refreshPayload = async function(payload, jwtSignOptions) {
   try {
     const user = await userService.getUserByUserID(payload.userId)
-    return userService.generateJWT(payload, jwtSignOptions,user)
+      return authService.generateJWT(payload, jwtSignOptions,user)
   } catch (err) {
     throw err
   }

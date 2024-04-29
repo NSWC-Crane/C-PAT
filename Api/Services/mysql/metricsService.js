@@ -29,9 +29,9 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, re
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM poamtracking.assetlabels pl
-                INNER JOIN poamtracking.asset p ON pl.assetId = p.assetId
-                INNER JOIN poamtracking.label l ON pl.labelId = l.labelId
+                FROM cpat.assetlabels pl
+                INNER JOIN cpat.asset p ON pl.assetId = p.assetId
+                INNER JOIN cpat.label l ON pl.labelId = l.labelId
                 WHERE p.collectionId = ?
                 GROUP BY l.labelName;
             `;
@@ -79,9 +79,9 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res,
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM poamtracking.poamlabels pl
-                INNER JOIN poamtracking.poam p ON pl.poamId = p.poamId
-                INNER JOIN poamtracking.label l ON pl.labelId = l.labelId
+                FROM cpat.poamlabels pl
+                INNER JOIN cpat.poam p ON pl.poamId = p.poamId
+                INNER JOIN cpat.label l ON pl.labelId = l.labelId
                 WHERE p.collectionId = ?
                 GROUP BY l.labelName;
             `;
@@ -131,14 +131,14 @@ exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoam
             let sql = `
         SELECT
           CASE
-            WHEN status IN ('Submitted', 'Approved', 'Rejected', 'Expired') THEN 'Open'
-            WHEN status IN ('Closed', 'Expired') THEN 'Closed'
+            WHEN status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Extension Requested') THEN 'Open'
+            WHEN status = 'Closed' THEN 'Closed'
           END AS status,
           COUNT(*) AS statusCount
         FROM poam
         WHERE collectionId = ?
         AND submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-        AND status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Closed')
+        AND status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Extension Requested', 'Closed')
         GROUP BY status;
       `;
 
@@ -226,14 +226,14 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res,
         return await withConnection(async (connection) => {
             const userId = req.params.userId;
 
-            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM poamtracking.assetlabels pl
-                INNER JOIN poamtracking.asset p ON pl.assetId = p.assetId
-                INNER JOIN poamtracking.label l ON pl.labelId = l.labelId
+                FROM cpat.assetlabels pl
+                INNER JOIN cpat.asset p ON pl.assetId = p.assetId
+                INNER JOIN cpat.label l ON pl.labelId = l.labelId
             `;
 
             let params = [];
@@ -241,7 +241,7 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res,
             if (!isAdmin) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
-                    FROM poamtracking.collectionpermissions
+                    FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel = 3
                 `, [userId]);
 
@@ -277,7 +277,7 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res,
         return await withConnection(async (connection) => {
             const userId = req.params.userId;
 
-            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
             let sql = "SELECT status, COUNT(*) AS statusCount FROM poam";
@@ -286,7 +286,7 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res,
             if (!isAdmin) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
-                    FROM poamtracking.collectionpermissions
+                    FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel = 3
                 `, [userId]);
 
@@ -322,19 +322,19 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
         return await withConnection(async (connection) => {
             const userId = req.params.userId;
 
-            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
             let sql = `
         SELECT
           CASE
-            WHEN status IN ('Submitted', 'Approved', 'Rejected', 'Expired') THEN 'Open'
+            WHEN status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Extension Requested') THEN 'Open'
             WHEN status = 'Closed' THEN 'Closed'
           END AS status,
           COUNT(*) AS statusCount
         FROM poam
         WHERE submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-        AND status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Closed')
+        AND status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Extension Requested', 'Closed')
       `;
 
             let params = [];
@@ -342,7 +342,7 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
             if (!isAdmin) {
                 const [permissionRows] = await connection.query(`
           SELECT collectionId
-          FROM poamtracking.collectionpermissions
+          FROM cpat.collectionpermissions
           WHERE userId = ? AND accessLevel = 3
         `, [userId]);
 
@@ -391,14 +391,14 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res, n
         return await withConnection(async (connection) => {
             const userId = req.params.userId;
 
-            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM poamtracking.poamlabels pl
-                INNER JOIN poamtracking.poam p ON pl.poamId = p.poamId
-                INNER JOIN poamtracking.label l ON pl.labelId = l.labelId
+                FROM cpat.poamlabels pl
+                INNER JOIN cpat.poam p ON pl.poamId = p.poamId
+                INNER JOIN cpat.label l ON pl.labelId = l.labelId
             `;
 
             let params = [];
@@ -406,7 +406,7 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res, n
             if (!isAdmin) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
-                    FROM poamtracking.collectionpermissions
+                    FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel = 3
                 `, [userId]);
 
@@ -442,19 +442,19 @@ exports.getAvailableCollectionPoamCounts = async function getAvailableCollection
         return await withConnection(async (connection) => {
             const userId = req.params.userId;
 
-            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
             let sql = `
         SELECT c.collectionName, c.poamCount
-        FROM poamtracking.collection c
+        FROM cpat.collection c
       `;
 
             let params = [];
 
             if (!isAdmin) {
                 sql += `
-          INNER JOIN poamtracking.collectionpermissions cp ON c.collectionId = cp.collectionId
+          INNER JOIN cpat.collectionpermissions cp ON c.collectionId = cp.collectionId
           WHERE cp.userId = ? AND cp.accessLevel = 3
         `;
                 params.push(userId);
@@ -482,7 +482,7 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, 
         return await withConnection(async (connection) => {
             const userId = req.params.userId;
 
-            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
             let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam";
@@ -491,7 +491,7 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, 
             if (!isAdmin) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
-                    FROM poamtracking.collectionpermissions
+                    FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel = 3
                 `, [userId]);
 
@@ -527,7 +527,7 @@ exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoam
         return await withConnection(async (connection) => {
             const userId = req.params.userId;
 
-            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
             let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam WHERE submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
@@ -536,7 +536,7 @@ exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoam
             if (!isAdmin) {
                 const [permissionRows] = await connection.query(`
           SELECT collectionId
-          FROM poamtracking.collectionpermissions
+          FROM cpat.collectionpermissions
           WHERE userId = ? AND accessLevel = 3
         `, [userId]);
 
@@ -571,7 +571,7 @@ exports.getAvailablePoamEstimatedCompletion = async function getAvailablePoamEst
         return await withConnection(async (connection) => {
             const userId = req.params.userId;
 
-            const [adminRows] = await connection.query("SELECT isAdmin FROM poamtracking.user WHERE userId = ?", [userId]);
+            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
             let sql = `
@@ -590,7 +590,7 @@ exports.getAvailablePoamEstimatedCompletion = async function getAvailablePoamEst
             if (!isAdmin) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
-                    FROM poamtracking.collectionpermissions
+                    FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel = 3
                 `, [userId]);
 

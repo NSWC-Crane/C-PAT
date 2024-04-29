@@ -8,16 +8,16 @@
 !########################################################################
 */
 
-import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
 import { PoamService } from '../poams.service';
-import { forkJoin } from 'rxjs';
+import { CollectionsService } from '../../collection-processing/collections.service';
+import { SharedService } from '../../../Shared/shared.service';
+import { Subscription, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { UsersService } from '../../user-processing/users.service';
-import { Chart, registerables, ChartData } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { UsersService } from '../../admin-processing/user-processing/users.service';
 
 interface Permission {
   userId: number;
@@ -36,10 +36,9 @@ interface LabelInfo {
   templateUrl: './poam-manage.component.html',
   styleUrls: ['./poam-manage.component.scss'],
 })
-export class PoamManageComponent implements OnInit {
-  @ViewChild('poamSeverityPieChart') poamSeverityPieChart!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('monthlyPoamStatusChart') monthlyPoamStatusChart!: ElementRef<HTMLCanvasElement>;
-  advancedPieChartData: any[] = [];
+export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
+  advancedSeverityseverityPieChartData: any[] = [];
+  advancedStatusPieChartData: any[] = [];
   approvalColumns = ['POAM ID', 'Adjusted Severity', 'Approval Status', 'Manage'];
   private subs = new SubSink();
   public isLoggedIn = false;
@@ -54,90 +53,36 @@ export class PoamManageComponent implements OnInit {
   user: any;
   users: any;
   userPermissions: any = [];
-
+  collection: any;
+  selectedCollection: any;
+  selectedCollectionName: any;
   pendingPoams: any[] = [];
   submittedPoams: any[] = [];
   poamsPendingApproval: any[] = [];
+  private subscriptions = new Subscription();
 
-  severityPieChart!: Chart;
-  severityPieChartData: ChartData<'pie'> = {
-    labels: [''],
-    datasets: [],
-  };
-  monthlyStatusChart!: Chart;
-  monthlyStatusChartData: ChartData<'doughnut'> = {
-    labels: [''],
-    datasets: [],
-  };
-
-  public top: any = 'top';
-  pieChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    layout: {
-      padding: {
-        bottom: 20,
-      }
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: this.top,
-        labels: {
-          font: {
-            size: 13,
-            family: 'sans-serif',
-            weight: 600,
-          }
-        },
-      },
-      title: {
-        display: true,
-        text: '',
-      },
-    },
-  };
-  doughnutChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    layout: {
-      padding: {
-        bottom: 20,
-      }
-    },
-    plugins: {
-      legend: {
-        position: this.top,
-        labels: {
-          font: {
-            size: 13,
-            family: 'sans-serif',
-            weight: 600,
-          }
-        },
-      },
-      title: {
-        display: true,
-        text: 'POAMs Submitted in Last 30 Days',
-      },
-    },
-  };
   constructor(
+    private collectionService: CollectionsService,
     private poamService: PoamService,
+    private sharedService: SharedService,
     private router: Router,
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private cdr: ChangeDetectorRef,
   ) {
-    Chart.register(...registerables);
   }
 
   async ngOnInit() {
-    this.isLoggedIn = await this.keycloak.isLoggedIn();
+    this.isLoggedIn = this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();
     }
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
   }
 
   setPayload() {
@@ -175,23 +120,21 @@ export class PoamManageComponent implements OnInit {
 
   getPoamData() {
     this.subs.sink = forkJoin([
-      this.poamService.getCollectionMonthlyPoamStatus(
-        this.payload.lastCollectionAccessedId
-      ),
       this.poamService.getPoamsByCollection(
         this.payload.lastCollectionAccessedId, true, true, false
       ),
       this.poamService.getPoamLabels(
         this.payload.lastCollectionAccessedId
-      )
-    ]).subscribe(([monthlyPoamStatusResponse, poams, poamLabelResponse]: any) => {
+      ),
+      this.collectionService.getCollectionBasicList()
+    ]).subscribe(([poams, poamLabelResponse, basicListData]: any) => {
       if (!Array.isArray(poamLabelResponse)) {
         console.error(
           'poamLabelResponse.poamLabels is not an array',
           poamLabelResponse
         );
       }
-      this.monthlyPoamStatus = monthlyPoamStatusResponse.poamStatus;
+
       const poamLabelMap: { [poamId: number]: string[] } = {};
       (poamLabelResponse as LabelInfo[]).forEach(labelInfo => {
         if (!poamLabelMap[labelInfo.poamId]) {
@@ -199,53 +142,28 @@ export class PoamManageComponent implements OnInit {
         }
         poamLabelMap[labelInfo.poamId].push(labelInfo.labelName);
       });
+
       this.poams = poams.map((poam: any) => ({
         ...poam,
         labels: poamLabelMap[poam.poamId] || ['']
       }));
+
+      const selectedCollection = basicListData.find(
+        (collection: any) => collection.collectionId === this.selectedCollection
+      );
+      this.selectedCollectionName = selectedCollection?.collectionName;
+
       this.updateGridData();
       this.updateAdvancedPieChart();
-      this.updateSeverityPieChart();
-      this.updateMonthlyStatusChart();
     });
   }
 
   ngAfterViewInit(): void {
-    this.initializeChart();
     this.cdr.detectChanges();
   }
 
   onPoamsChange(updatedPoams: any[]) {
     this.poamsForChart = updatedPoams;
-  }
-
-  private initializeChart(): void {
-    Chart.defaults.set('plugins.datalabels', {
-      display: false,
-    });
-    this.cdr.detectChanges();
-
-    if (this.poamSeverityPieChart?.nativeElement) {
-      this.severityPieChart = new Chart(this.poamSeverityPieChart.nativeElement, {
-        type: 'pie',
-        data: this.severityPieChartData,
-        plugins: [ChartDataLabels],
-        options: this.pieChartOptions,
-      });
-    } else {
-      console.error('Unable to initialize chart: Element not available.');
-    }
-
-    if (this.monthlyPoamStatusChart?.nativeElement) {
-      this.monthlyStatusChart = new Chart(this.monthlyPoamStatusChart.nativeElement, {
-        type: 'doughnut',
-        data: this.monthlyStatusChartData,
-        plugins: [ChartDataLabels],
-        options: this.doughnutChartOptions,
-      });
-    } else {
-      console.error('Unable to initialize chart: Element not available.');
-    }
   }
 
   managePoam(row: any) {
@@ -258,86 +176,46 @@ export class PoamManageComponent implements OnInit {
       poam.status === 'Submitted' ||
       poam.status === 'Approved' ||
       poam.status === 'Rejected' ||
-      poam.status === 'Expired'
+      poam.status === 'Expired' ||
+      poam.status === 'Extension Requested'
     ));
 
-    this.submittedPoams = this.poams.filter(poam => poam.status === 'Submitted');
+    this.submittedPoams = this.poams.filter(poam => poam.status === 'Submitted' || poam.status === 'Extension Requested');
 
-    this.poamsPendingApproval = this.poams.filter(poam => poam.status === 'Submitted');
+    this.poamsPendingApproval = this.poams.filter(poam => poam.status === 'Submitted' || poam.status === 'Extension Requested');
   }
 
   updateAdvancedPieChart(): void {
-    if (!this.severityPieChart) {
-      console.warn("POAM Severity Pie chart is not initialized.");
-      return;
-    }
-
     const severityOrder = ['CAT I - Critical/High', 'CAT II - Medium', 'CAT III - Low'];
-    const severityLabels = ['CAT I - Critical/High', 'CAT II - Medium', 'CAT III - Low'];
+    const severityLabel = ['CAT I', 'CAT II', 'CAT III'];
+    const statusOrder = ['Submitted', 'Approved', 'Closed', 'Rejected', 'Extension Requested', 'Expired', 'Draft'];
 
     const severityCounts: { [severity: string]: number } = {};
+    const statusCounts: { [status: string]: number } = {};
 
     this.poams.forEach(poam => {
       const severity = poam.rawSeverity;
       severityCounts[severity] = (severityCounts[severity] || 0) + 1;
     });
 
-    const pieChartData = severityOrder.map((severity, index) => ({
-      name: severityLabels[index],
+    const severityPieChartData = severityOrder.map((severity, index) => ({
+      name: severityLabel[index],
       value: severityCounts[severity] || 0,
     }));
 
-    this.advancedPieChartData = pieChartData;
-  }
-
-  updateSeverityPieChart(): void {
-    if (!this.severityPieChart) {
-      console.warn("POAM Severity Pie chart is not initialized.");
-      return;
-    }
-
-    const severityOrder = ['CAT I - Critical/High', 'CAT II - Medium', 'CAT III - Low'];
-    const severityLabels = ['CAT I', 'CAT II', 'CAT III'];
-    const severityCounts: { [severity: string]: number } = {};
+    this.advancedSeverityseverityPieChartData = severityPieChartData;
 
     this.poams.forEach(poam => {
-      const severity = poam.rawSeverity;
-      severityCounts[severity] = (severityCounts[severity] || 0) + 1;
+      const status = poam.status;
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
-    const data = severityOrder.map(severity => severityCounts[severity] || 0);
-    this.severityPieChart.data.labels = severityLabels;
 
-    const backgroundColors = ['rgba(54, 162, 235, 0.5)', 'rgba(75, 192, 192, 0.5)', 'rgba(201, 203, 207, 0.5)'];
-    const borderColors = backgroundColors.map(color => color.replace('0.5', '0.6'));
-    this.severityPieChart.data.datasets = [{
-      data: data,
-      backgroundColor: backgroundColors,
-      borderColor: borderColors,
-      hoverOffset: 10,
-    }];
-    this.severityPieChart.options.plugins!.title!.text = 'POAM Severity';
-    this.severityPieChart.update();
-  }
+    const statusPieChartData = statusOrder.map((status, index) => ({
+      name: statusOrder[index],
+      value: statusCounts[status] || 0,
+    }));
 
-  updateMonthlyStatusChart(): void {
-    if (!this.monthlyStatusChart) {
-      console.warn("Monthly POAM Severity chart is not initialized.");
-      return;
-    }
-    const backgroundColors = ['rgba(54, 162, 235, 0.5)', 'rgba(75, 192, 192, 0.5)'];
-    const borderColors = backgroundColors.map(color => color.replace('0.5', '0.6'));
-    const monthlyStatusLabels = ['Open', 'Closed'];
-    const openCount = this.monthlyPoamStatus.find(item => item.status === 'Open')?.statusCount || 0;
-    const closedCount = this.monthlyPoamStatus.find(item => item.status === 'Closed')?.statusCount || 0;
-    this.monthlyStatusChart.data.labels = monthlyStatusLabels;
-    this.monthlyStatusChart.data.datasets = [{
-      data: [openCount, closedCount],
-      backgroundColor: backgroundColors,
-      borderColor: borderColors,
-      hoverOffset: 10,
-    }];
-
-    this.monthlyStatusChart.update();
+    this.advancedStatusPieChartData = statusPieChartData;
   }
 
   ngOnDestroy(): void {

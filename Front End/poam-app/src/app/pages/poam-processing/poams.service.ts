@@ -18,7 +18,7 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class PoamService {
-  private uri = environment.apiEndpoint;
+  private url = environment.CPAT_API_URL;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -44,32 +44,32 @@ export class PoamService {
 
   getCollection(id: string, userName: string) {
 
-    return this.http.get(`${this.uri}/collection/${id}/user/${userName}`, this.httpOptions)
+    return this.http.get(`${this.url}/collection/${id}/user/${userName}`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getCollectionPoamStatus(id: string) {
-    return this.http.get(`${this.uri}/metrics/collection/${id}/poamstatus`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/collection/${id}/poamstatus`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getCollectionPoamLabel(id: string) {
-    return this.http.get(`${this.uri}/metrics/collection/${id}/poamlabel`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/collection/${id}/poamlabel`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getCollectionPoamSeverity(id: string) {
-    return this.http.get(`${this.uri}/metrics/collection/${id}/poamseverity`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/collection/${id}/poamseverity`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getCollectionPoamEstimatedCompletion(id: string) {
-    return this.http.get(`${this.uri}/metrics/collection/${id}/poamEstimatedCompletion`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/collection/${id}/poamEstimatedCompletion`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getCollectionMonthlyPoamStatus(collectionId: string) {
-    return this.http.get(`${this.uri}/metrics/collection/${collectionId}/monthlypoamstatus`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/collection/${collectionId}/monthlypoamstatus`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
@@ -79,7 +79,7 @@ export class PoamService {
       .set('assignees', includeAssignees.toString())
       .set('assets', includeAssets.toString());
 
-    return this.http.get(`${this.uri}/poam/${id}`, { params })
+    return this.http.get(`${this.url}/poam/${id}`, { params })
       .pipe(catchError(this.handleError));
   }
 
@@ -89,7 +89,7 @@ export class PoamService {
       .set('assignees', includeAssignees.toString())
       .set('assets', includeAssets.toString());
 
-    return this.http.get(`${this.uri}/poams/collection/${id}`, { params })
+    return this.http.get(`${this.url}/poams/collection/${id}`, { params })
       .pipe(catchError(this.handleError));
   }
 
@@ -99,45 +99,45 @@ export class PoamService {
       .set('assignees', includeAssignees.toString())
       .set('assets', includeAssets.toString());
 
-    return this.http.get(`${this.uri}/poams/submitter/${submitterId}`, { params })
+    return this.http.get(`${this.url}/poams/submitter/${submitterId}`, { params })
       .pipe(catchError(this.handleError));
   }
 
   getAssetsForCollection(collectionId: number) {
     return this.http
-      .get<any>(`${this.uri}/assets/collection/${collectionId}`)
+      .get<any>(`${this.url}/assets/collection/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
   getPoamAssets(id: string) {
-    return this.http.get(`${this.uri}/poamAssets/poam/${id}`)
+    return this.http.get(`${this.url}/poamAssets/poam/${id}`)
       .pipe(catchError(this.handleError));
   }
 
   getPoamAssignees(id: string) {
-    return this.http.get(`${this.uri}/poamAssignees/poam/${id}`)
+    return this.http.get(`${this.url}/poamAssignees/poam/${id}`)
       .pipe(catchError(this.handleError));
   }
 
 
   postPoam(poam: any) {
     return this.http
-      .post<any>(`${this.uri}/poam`, poam, this.httpOptions);
+      .post<any>(`${this.url}/poam`, poam, this.httpOptions);
   }
 
   updatePoam(poam: any) {
     return this.http
-      .put<any>(`${this.uri}/poam`, poam, this.httpOptions);
+      .put<any>(`${this.url}/poam`, poam, this.httpOptions);
   }
 
   updatePoamStatus(poamId: any, poamStatusUpdate: any) {
     return this.http
-      .put<any>(`${this.uri}/poam/status/${poamId}`, poamStatusUpdate, this.httpOptions);
+      .put<any>(`${this.url}/poam/status/${poamId}`, poamStatusUpdate, this.httpOptions);
   }
 
   postPoamAssignee(poamAssignee: any) {
     return this.http
-      .post<any>(`${this.uri}/poamAssignee`, poamAssignee, this.httpOptions);
+      .post<any>(`${this.url}/poamAssignee`, poamAssignee, this.httpOptions);
   }
 
   deletePoamAssignee(poamId: any, userId: any, requestorId: any) {
@@ -148,12 +148,12 @@ export class PoamService {
       body: requestBody
     };
 
-    return this.http.delete<any>(`${this.uri}/poamAssignee/poam/${poamId}/user/${userId}`, options);
+    return this.http.delete<any>(`${this.url}/poamAssignee/poam/${poamId}/user/${userId}`, options);
   }
 
   postPoamAsset(poamAsset: any) {
     return this.http
-      .post<any>(`${this.uri}/poamAsset`, poamAsset, this.httpOptions);
+      .post<any>(`${this.url}/poamAsset`, poamAsset, this.httpOptions);
   }
 
   deletePoamAsset(poamId: any, assetId: any, requestorId: any) {
@@ -164,37 +164,37 @@ export class PoamService {
       body: requestBody
     };
 
-    return this.http.delete<any>(`${this.uri}/poamAsset/poam/${poamId}/asset/${assetId}`, options);
+    return this.http.delete<any>(`${this.url}/poamAsset/poam/${poamId}/asset/${assetId}`, options);
   }
 
   deletePoamAssetByPoamId(poamId: any) {
     return this.http
-      .delete<any>(`${this.uri}/poamAssets/poam/${poamId}`, this.httpOptions);
+      .delete<any>(`${this.url}/poamAssets/poam/${poamId}`, this.httpOptions);
   }
 
   getPoamApprovers(id: string) {
-    return this.http.get<any>(`${this.uri}/poamApprovers/${id}`)
+    return this.http.get<any>(`${this.url}/poamApprovers/${id}`)
       .pipe(catchError(this.handleError));
   }
 
   getPoamApproversByCollectionUser(collectionId: string, userId: string) {
-    return this.http.get<any>(`${this.uri}/poamApprovers/collection/${collectionId}/${userId}`)
+    return this.http.get<any>(`${this.url}/poamApprovers/collection/${collectionId}/${userId}`)
       .pipe(catchError(this.handleError));
   }
 
   getPoamApproversByUserId(userId: string) {
-    return this.http.get<any>(`${this.uri}/poamApprovers/user/${userId}`)
+    return this.http.get<any>(`${this.url}/poamApprovers/user/${userId}`)
       .pipe(catchError(this.handleError));
   }
 
   addPoamApprover(approver: any) {
     return this.http
-      .post<any>(`${this.uri}/poamApprover`, approver, this.httpOptions);
+      .post<any>(`${this.url}/poamApprover`, approver, this.httpOptions);
   }
 
   updatePoamApprover(approver: any) {
     return this.http
-      .put<any>(`${this.uri}/poamApprover`, approver, this.httpOptions);
+      .put<any>(`${this.url}/poamApprover`, approver, this.httpOptions);
   }
 
   deletePoamApprover(poamId: any, userId: any, requestorId: any) {
@@ -205,22 +205,22 @@ export class PoamService {
       body: requestBody
     };
 
-    return this.http.delete<any>(`${this.uri}/poamApprover/poam/${poamId}/user/${userId}`, options);
+    return this.http.delete<any>(`${this.url}/poamApprover/poam/${poamId}/user/${userId}`, options);
   }
 
   getPoamMilestones(poamId: string) {
-    return this.http.get<any>(`${this.uri}/poamMilestones/${poamId}`)
+    return this.http.get<any>(`${this.url}/poamMilestones/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
   addPoamMilestone(poamId: string, milestone: any) {
     return this.http
-      .post<any>(`${this.uri}/poamMilestones/${poamId}`, milestone, this.httpOptions);
+      .post<any>(`${this.url}/poamMilestones/${poamId}`, milestone, this.httpOptions);
   }
 
   updatePoamMilestone(poamId: string, milestoneId: string, milestone: any) {
     return this.http
-      .put<any>(`${this.uri}/poamMilestones/${poamId}/${milestoneId}`, milestone, this.httpOptions);
+      .put<any>(`${this.url}/poamMilestones/${poamId}/${milestoneId}`, milestone, this.httpOptions);
   }
 
   deletePoamMilestone(poamId: string, milestoneId: string, requestorId: any, extension: boolean) {
@@ -231,35 +231,35 @@ export class PoamService {
       body: requestBody
     };
 
-    return this.http.delete<any>(`${this.uri}/poamMilestones/${poamId}/${milestoneId}`, options);
+    return this.http.delete<any>(`${this.url}/poamMilestones/${poamId}/${milestoneId}`, options);
   }
 
   getLabels(collectionId: string) {
     return this.http
-      .get(`${this.uri}/labels/${collectionId}`)
+      .get(`${this.url}/labels/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
   postLabel(collectionId: string, label: any) {
     return this.http
-      .post<any>(`${this.uri}/label/${collectionId}`, label, this.httpOptions);
+      .post<any>(`${this.url}/label/${collectionId}`, label, this.httpOptions);
   }
 
   getPoamLabels(id: any) {
     return this.http
-      .get(`${this.uri}/poamLabels/${id}`)
+      .get(`${this.url}/poamLabels/${id}`)
       .pipe(catchError(this.handleError));
   }
 
   getPoamLabelsByPoam(id: any) {
     return this.http
-      .get(`${this.uri}/poamLabels/poam/${id}`)
+      .get(`${this.url}/poamLabels/poam/${id}`)
       .pipe(catchError(this.handleError));
   }
 
   postPoamLabel(poamLabel: any) {
     return this.http
-      .post<any>(`${this.uri}/poamLabel`, poamLabel, this.httpOptions);
+      .post<any>(`${this.url}/poamLabel`, poamLabel, this.httpOptions);
   }
 
   deletePoamLabel(poamId: any, labelId: any, requestorId: any) {
@@ -270,47 +270,47 @@ export class PoamService {
       body: requestBody
     };
 
-    return this.http.delete<any>(`${this.uri}/poamLabel/poam/${poamId}/label/${labelId}`, options);
+    return this.http.delete<any>(`${this.url}/poamLabel/poam/${poamId}/label/${labelId}`, options);
   }
 
   getAvailablePoamStatus(userId: string) {
-    return this.http.get(`${this.uri}/metrics/available/${userId}/poamstatus`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/available/${userId}/poamstatus`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getAvailablePoamLabel(userId: string) {
-    return this.http.get(`${this.uri}/metrics/available/${userId}/poamlabel`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/available/${userId}/poamlabel`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getAvailablePoamSeverity(userId: string) {
-    return this.http.get(`${this.uri}/metrics/available/${userId}/poamseverity`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/available/${userId}/poamseverity`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getAvailableMonthlyPoamStatus(userId: string) {
-    return this.http.get(`${this.uri}/metrics/available/${userId}/monthlypoamstatus`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/available/${userId}/monthlypoamstatus`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getAvailablePoamEstimatedCompletion(userId: string) {
-    return this.http.get(`${this.uri}/metrics/available/${userId}/poamEstimatedCompletion`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/available/${userId}/poamEstimatedCompletion`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getAvailableCollectionPoamCounts(userId: any) {
-    return this.http.get(`${this.uri}/metrics/available/${userId}/collectionpoamcount`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/available/${userId}/collectionpoamcount`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   getAvailablePoams(userId: string) {
-    return this.http.get(`${this.uri}/poams/${userId}`)
+    return this.http.get(`${this.url}/poams/${userId}`)
       .pipe(catchError(this.handleError));
   }
 
   getAvailablePoamLabels(userId: any) {
     return this.http
-      .get(`${this.uri}/poamLabels/available/${userId}`)
+      .get(`${this.url}/poamLabels/available/${userId}`)
       .pipe(catchError(this.handleError));
   }
 }

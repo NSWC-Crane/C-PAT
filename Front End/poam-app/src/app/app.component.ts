@@ -8,24 +8,25 @@
 !########################################################################
 */
 
-import { Component, ViewChild, ElementRef, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
-import { NbDialogService, NbMenuItem, NbSidebarService, NbThemeService, NbMenuService } from '@nebular/theme';
-import { Router, NavigationEnd } from '@angular/router';
-import { CollectionsService } from './pages/collection-processing/collections.service';
-import { UsersService } from './pages/user-processing/users.service';
-import { SubSink } from 'subsink';
-import { PoamService } from '../app/pages/poam-processing/poams.service'
-import { Subject, Subscription, filter, takeUntil } from 'rxjs';
-import { KeycloakService } from 'keycloak-angular'
+import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { NbDialogService, NbMenuItem, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
+import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
+import { Subject, Subscription, filter, takeUntil } from 'rxjs';
+import { SubSink } from 'subsink';
+import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
+import { PoamService } from '../app/pages/poam-processing/poams.service';
+import { environment } from '../environments/environment';
+import { StatusDialogComponent } from './Shared/components/status-dialog/status-dialog.component';
+import { NotificationService } from './Shared/notifications/notifications.service';
+import { SharedService } from './Shared/shared.service';
 import { accessControlList } from './access-control-list';
 import { appMenuItems } from './app-menu';
-import { environment } from '../environments/environment';
-import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
-import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { StatusDialogComponent } from './Shared/components/status-dialog/status-dialog.component';
-import { SharedService } from './Shared/shared.service';
-import { NotificationService } from './Shared/notifications/notifications.service';
+import { CollectionsService } from './pages/collection-processing/collections.service';
+import { UsersService } from './pages/admin-processing/user-processing/users.service';
+
 
 interface Permission {
   userId: number;
@@ -96,15 +97,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public async ngOnInit() {
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      if (this.user) {
-        this.getNotificationCount();
-      }
-    });
-
     this.menuService.onItemClick().subscribe((event) => {
       if (event.item.title === 'eMASS Excel Import') {
         this.triggerFileInput();
@@ -118,15 +110,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.classification = environment.classification;
     this.classificationCode = environment.classificationCode;
     this.classificationColorCode = environment.classificationColorCode;
-    this.isLoggedIn = await this.keycloak.isLoggedIn();
+    this.isLoggedIn = this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();
     }
 
-
     this.poamService.onNewPoam.subscribe({
-      next: (poam: any) => {
+      next: () => {
         this.getPoamsForCollection();
       }
     })
@@ -151,13 +142,21 @@ export class AppComponent implements OnInit, OnDestroy {
           });
           this.getNotificationCount()
           this.getCollections();
+          this.router.events.pipe(
+            filter(event => event instanceof NavigationEnd),
+            takeUntil(this.destroy$)
+          ).subscribe(() => {
+            if (this.user.userId) {
+              this.getNotificationCount();
+            }
+          });
         } else {
           alert('Your account status is not Active, contact your system administrator');
         }
       },
       error: (error) => {
         if (error.status === 404 || !this.user) {
-          let newUser = {
+          const newUser = {
             userName: this.userProfile?.username,
             firstName: this.userProfile?.firstName,
             lastName: this.userProfile?.lastName,
@@ -165,7 +164,7 @@ export class AppComponent implements OnInit, OnDestroy {
           };
 
           this.userService.postUser(newUser).subscribe({
-            next: (result) => {
+            next: () => {
               console.log("User name: " + newUser.userName + " has been added, account status is PENDING");
               this.user = newUser;
             },
@@ -211,10 +210,10 @@ export class AppComponent implements OnInit, OnDestroy {
       this.subs.sink = this.poamService.getPoamsByCollection(this.payload.lastCollectionAccessedId).subscribe((poams: any) => {
         this.poams = poams;
         this.poamItems = [];
-        let treeArray: any[] = []
+        const treeArray: any[] = []
         this.poams.forEach((poam: any) => {
 
-          let treeObj = {
+          const treeObj = {
             text: poam.poamId + " - " + poam.vulnerabilityId + ' - ' + poam.description,
             value: poam.poamId,
             collapsed: true,
@@ -239,8 +238,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onSelectedPoamChange(data: any) {
-    if (data.length == 0) return; let poamId = data[0];
-    let poam = this.poams.find((e: { poamId: any; }) => e.poamId === poamId)
+    if (data.length == 0) return; const poamId = data[0];
+    const poam = this.poams.find((e: { poamId: any; }) => e.poamId === poamId)
 
     this.poamItems.forEach((item: { checked: boolean; }) => {
       if (item.checked) item.checked = false;
@@ -255,7 +254,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     this.themeService.changeTheme(theme);
 
-    let userUpdate = {
+    const userUpdate = {
       userId: this.user.userId,
       userName: this.user.userName,
       userEmail: this.user.userEmail,
@@ -263,6 +262,7 @@ export class AppComponent implements OnInit, OnDestroy {
       lastName: this.user.lastName,
       lastCollectionAccessedId: this.user.lastCollectionAccessedId,
       accountStatus: this.user.accountStatus,
+      officeOrg: this.user.officeOrg,
       defaultTheme: theme,
       isAdmin: this.user.isAdmin,
       updateSettingsOnly: 1
@@ -278,17 +278,17 @@ export class AppComponent implements OnInit, OnDestroy {
     this.selectCollectionMsg = false;
     this.sharedService.setSelectedCollection(parseInt(this.selectedCollection, 10));
 
-    let collection = this.collections.find((x: { collectionId: any; }) => x.collectionId == this.selectedCollection)
+    const collection = this.collections.find((x: { collectionId: any; }) => x.collectionId == this.selectedCollection)
     if (collection) {
-      var stWorkspace = <HTMLInputElement>document.getElementById('selectedCollection');
+      const stWorkspace = <HTMLInputElement>document.getElementById('selectedCollection');
       if (stWorkspace) {
-        var att = stWorkspace.getElementsByTagName("BUTTON")[0];
+        const att = stWorkspace.getElementsByTagName("BUTTON")[0];
         att.textContent = "Collection - " + collection.collectionName
       }
     }
 
 
-    let userUpdate = {
+    const userUpdate = {
       userId: this.user.userId,
       userName: this.user.userName,
       userEmail: this.user.userEmail,
@@ -296,11 +296,12 @@ export class AppComponent implements OnInit, OnDestroy {
       lastName: this.user.lastName,
       lastCollectionAccessedId: parseInt(selectedCollection),
       accountStatus: this.user.accountStatus,
+      officeOrg: this.user.officeOrg,
       defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
       isAdmin: this.user.isAdmin,
       updateSettingsOnly: 1
     }
-    let selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == selectedCollection)
+    const selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == selectedCollection)
     let myRole = ''
 
     if (!selectedPermissions && !this.user.isAdmin) {
@@ -318,18 +319,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.userService.updateUser(userUpdate).subscribe((result: any) => {
       this.user = result;
-      let payloadUser = {
-        userId: this.user.userId,
-        userName: this.user.userName,
-        userEmail: this.user.userEmail,
-        firstName: this.user.firstName,
-        lastName: this.user.lastName,
-        lastCollectionAccessedId: parseInt(selectedCollection),
-        accountStatus: this.user.accountStatus,
-        fullName: (this.user.fullName) ? this.user.fullName : '',
-        defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
-        isAdmin: this.user.isAdmin
-      }
       this.authMenuItems();
     });
     if (this.user.lastCollectionAccessedId !== selectedCollection) {
@@ -349,18 +338,16 @@ export class AppComponent implements OnInit, OnDestroy {
     if (input.files && input.files.length) {
       const file = input.files[0];
 
-      if (!this.user || !this.user.lastCollectionAccessedId) {
+      if (!this.user) {
         console.error('User information or lastCollectionAccessedId is not available');
         return;
       }
-
-      const lastCollectionAccessedId = this.user.lastCollectionAccessedId.toString();
 
       const dialogRef = this.dialogService.open(StatusDialogComponent, {
         context: { progress: 0, message: '' }
       });
 
-      this.fileUploadService.upload(file, lastCollectionAccessedId, this.user.userId).subscribe({
+      this.fileUploadService.upload(file, this.user.userId).subscribe({
         next: (event) => {
           if (event.type === HttpEventType.UploadProgress) {
             const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
@@ -380,7 +367,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   logOut() {
-    this.userService.loginOut("logOut").subscribe(data => {
+    this.userService.loginOut("logOut").subscribe(() => {
       this.keycloak.logout();
     })
   }

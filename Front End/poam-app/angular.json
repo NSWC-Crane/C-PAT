@@ -22,7 +22,9 @@
               "base64-js",
               "js-sha256",
               "lodash",
-              "chart.js"
+              "chart.js",
+              "rfdc",
+              "exceljs"
             ],
             "outputPath": "dist/poam-app",
             "index": "src/index.html",
@@ -111,11 +113,23 @@
             ],
             "scripts": []
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
+          }
         }
       }
     }
   },
   "cli": {
-    "analytics": false
+    "analytics": false,
+    "schematicCollections": [
+      "@angular-eslint/schematics"
+    ]
   }
 }

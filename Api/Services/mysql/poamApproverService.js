@@ -37,8 +37,8 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
-                FROM poamtracking.poamapprovers T1
-                INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId
+                FROM cpat.poamapprovers T1
+                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
                 WHERE poamId = ?;
             `;
             let [rows] = await connection.query(sql, [req.params.poamId]);
@@ -69,9 +69,9 @@ exports.getPoamApproversByCollection = async function getPoamApproversByCollecti
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
-                FROM poamtracking.poamapprovers T1
-                INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId
-                INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId
+                FROM cpat.poamapprovers T1
+                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
+                INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
                 WHERE T3.collectionId = ?
             `;
             let [rows] = await connection.query(sql, [req.params.collectionId]);
@@ -111,9 +111,9 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
-                FROM poamtracking.poamapprovers T1
-                INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId
-                INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId
+                FROM cpat.poamapprovers T1
+                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
+                INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
                 WHERE T3.collectionId = ? AND T1.userId = ?
             `;
             let [rows] = await connection.query(sql, [req.params.collectionId, req.params.userId]);
@@ -144,9 +144,9 @@ exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, 
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
-                FROM poamtracking.poamapprovers T1
-                INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId
-                INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId
+                FROM cpat.poamapprovers T1
+                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
+                INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
                 WHERE T1.userId = ?
             `;
             let [rows] = await connection.query(sql, [req.params.userId]);
@@ -189,7 +189,7 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                INSERT INTO poamtracking.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments)
+                INSERT INTO cpat.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments)
                 VALUES (?, ?, ?, ?, ?)
             `;
             await connection.query(sql_query, [
@@ -198,11 +198,11 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
             ]);
 
             if (req.body.poamLog[0].userId) {
-                let userSql = "SELECT fullName FROM poamtracking.user WHERE userId = ?";
+                let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
                 const [user] = await connection.query(userSql, [req.body.userId]);
                 const fullName = user[0] ? user[0].fullName : "Unknown User";
                 let action = `${fullName} was added to the Approver List.`;
-                let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
 
                     const notification = {
@@ -210,12 +210,12 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
                         message: `You have been assigned as an approver for POAM ${req.body.poamId}.`,
                         userId: req.body.userId
                     };
-                    const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
                     await connection.query(notificationSql, [req.body.userId, notification.title, notification.message]);
             } else {
                 console.warn("No poamLog information provided for logging.");
             }
-            let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
+            let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
             let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
             var poamApprover = row.map(row => ({
                 ...row,
@@ -227,7 +227,7 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             return await withConnection(async (connection) => {
-                let fetchSql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
+                let fetchSql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
                 const [existingApprover] = await connection.query(fetchSql, [req.body.poamId, req.body.userId]);
                 return existingApprover[0];
             });
@@ -266,7 +266,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                UPDATE poamtracking.poamapprovers
+                UPDATE cpat.poamapprovers
                 SET approvalStatus = ?, approvedDate = ?, comments = ?
                 WHERE poamId = ? AND userId = ?;
             `;
@@ -276,22 +276,16 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
             ]);
 
             let fullName = "Unknown User";
-            let userSql = "SELECT fullName FROM poamtracking.user WHERE userId = ?";
+            let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
             const [user] = await connection.query(userSql, [req.body.userId]);
             if (user[0]) {
                 fullName = user[0].fullName;
             }
 
-            if (req.body.poamLog && req.body.poamLog[0] && req.body.poamLog[0].userId) {
-                let action = `${fullName} was added to the Approver List.`;
-                let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
-            }
-
             if (req.body.approvalStatus === 'Rejected') {
-                sql_query = "UPDATE poamtracking.poam SET status = ? WHERE poamId = ?;";
+                sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?;";
                 await connection.query(sql_query, ["Rejected", req.body.poamId]);
-                const poamSql = "SELECT submitterId FROM poamtracking.poam WHERE poamId = ?";
+                const poamSql = "SELECT submitterId FROM cpat.poam WHERE poamId = ?";
                 const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
                 const submitterId = poamResult[0].submitterId;
 
@@ -300,10 +294,16 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                     message: `POAM ${req.body.poamId} has been rejected by ${fullName}. Approver Comments: ${req.body.comments}.`,
                     userId: submitterId
                 };
-                const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
                 await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
+
+                if (req.body.poamLog[0].userId) {
+                    let action = `POAM ${req.body.poamId} has been rejected by ${fullName}. Approver Comments: ${req.body.comments}.`;
+                    let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                    await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                }
             } else if (req.body.approvalStatus === 'Approved') {
-                const poamSql = "SELECT submitterId FROM poamtracking.poam WHERE poamId = ?";
+                const poamSql = "SELECT submitterId FROM cpat.poam WHERE poamId = ?";
                 const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
                 const submitterId = poamResult[0].submitterId;
 
@@ -312,15 +312,21 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                     message: `POAM ${req.body.poamId} has been marked approved by ${fullName}.`,
                     userId: submitterId
                 };
-                const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
                 await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
 
-                sql_query = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND approvalStatus != 'Approved';";
+                if (req.body.poamLog[0].userId) {
+                    let action = `POAM ${req.body.poamId} has been approved by ${fullName}. Approver Comments: ${req.body.comments}.`;
+                    let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                    await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                }
+
+                sql_query = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND approvalStatus != 'Approved';";
                 let [rows] = await connection.query(sql_query, [req.body.poamId]);
                 if (rows.length === 0) {
-                    sql_query = "UPDATE poamtracking.poam SET status = ? WHERE poamId = ?;";
+                    sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?;";
                     await connection.query(sql_query, ["Approved", req.body.poamId]);
-                    const poamSql = "SELECT submitterId FROM poamtracking.poam WHERE poamId = ?";
+                    const poamSql = "SELECT submitterId FROM cpat.poam WHERE poamId = ?";
                     const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
                     const submitterId = poamResult[0].submitterId;
 
@@ -329,11 +335,22 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                         message: `POAM ${req.body.poamId} has been marked approved by all Approvers. POAM Status has changed to Approved`,
                         userId: submitterId
                     };
-                    const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
                     await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
                 }
+            } else {
+                if (req.body.poamLog[0].userId && req.body.approvalStatus === 'Not Reviewed') {
+                    let action = `${fullName} has changed approval status to 'Not Reviewed'.`;
+                    let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                    await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                }
+                else if(req.body.poamLog[0].userId) {
+                    let action = `${fullName} was added to the Approver List.`;
+                    let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                    await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                }               
             }
-            let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
+            let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
             let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
             var poamApprover = row.map(row => ({
                 ...row,
@@ -370,15 +387,15 @@ exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?";
+            let sql = "DELETE FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
             await connection.query(sql, [req.params.poamId, req.params.userId]);
 
             if (req.body.requestorId) {
-                let userSql = "SELECT fullName FROM poamtracking.user WHERE userId = ?";
+                let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
                 const [user] = await connection.query(userSql, [req.params.userId]);
                 const fullName = user[0] ? user[0].fullName : "Unknown User";
                 let action = `${fullName} was removed from the Approver List.`;
-                let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
 
                 const notification = {
@@ -386,7 +403,7 @@ exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
                     message: `You have been removed from the Approver list for POAM ${req.params.poamId}.`,
                     userId: req.params.userId
                 };
-                const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+                const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
                 await connection.query(notificationSql, [req.params.userId, notification.title, notification.message]);
             }
             return { delete: 'Success' };

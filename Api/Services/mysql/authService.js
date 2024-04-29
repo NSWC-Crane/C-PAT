@@ -12,9 +12,9 @@
 const config = require('../../utils/config');
 const dbUtils = require('./utils');
 const passport = require('passport');
-const userService = require('./usersService');
 const tokenGenerator = require('../../utils/token-generator');
 const refreshPayload = require('../../utils/refresh_payload');
+const writeLog = require('../../utils/poam_logger');
 
 async function withConnection(callback) {
     const pool = dbUtils.getPool();
@@ -47,6 +47,53 @@ exports.changeWorkspace = async (req, res, next) => {
     }
 };
 
+exports.generateJWT = async function (previousPayload, jwtSignOptions, user, req) {
+    let payload = Object.assign({}, previousPayload, {
+        userId: user.userId,
+        userName: user.userName,
+        userEmail: user.userEmail,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        created: user.created,
+        lastAccess: user.lastAccess,
+        lastCollectionAccessedId: user.lastCollectionAccessedId,
+        accountStatus: user.accountStatus,
+        fullName: user.fullName,
+        officeOrg: user.officeOrg,
+        defaultTheme: user.defaultTheme
+    });
+
+    if (payload.collections) {
+        try {
+            const permissions = "";
+            if (!permissions) {
+                console.log("deleting payload.collection...");
+                delete payload.collections;
+            } else {
+                for (let permission in permissions) {
+                    let assignedCollections = {
+                        collectionId: permission.collectionId,
+                        accessLevel: permission.accessLevel,
+                    };
+                    payload.collections.push(assignedCollections);
+                }
+            }
+        } catch (err) {
+            console.log("ERROR: collections is missing from payload.");
+            console.log(err);
+            throw err;
+        }
+    } else if (this.lastCollectionAccessedId) {
+        payload.lastCollectionAccessedId = this.lastCollectionAccessedId;
+    } else if (user.accountStatus === 'Pending') {
+        console.log("User account is pending, not setting payload...");
+    } else {
+        writeLog.writeLog(4, "usersService", 'info', payload.username, payload.displayName, { event: 'No lastCollectionAccessedId, not setting payload.lastCollectionAccessedId.' });
+    }
+
+    return tokenGenerator.sign(payload, jwtSignOptions);
+};
+
 exports.login = async (req, res, next) => {
     if (!req.body.email) {
         console.info('Post authService login: email or username not provided.');
@@ -76,7 +123,7 @@ exports.login = async (req, res, next) => {
                 return next({ status: 400, message: info.message });
             }
             console.log('login successful!', 'user:', user);
-            const token = await userService.generateJWT('', '', user);
+            const token = await exports.generateJWT('', '', user);
             await withConnection(async (connection) => {
                 const sql = "UPDATE user SET lastAccess = NOW() WHERE userEmail = ?";
                 await connection.query(sql, [req.body.email]);
@@ -129,13 +176,14 @@ exports.register = async (req, res, next) => {
 
         const user = await withConnection(async (connection) => {
             let sql = "INSERT INTO user (userName, userEmail, created, firstName, lastName, " +
-                "lastCollectionAccessedId, accountStatus, fullName, defaultTheme) VALUES (?, ?, CURDATE(), ?, ?, 0 , 'PENDING', ?, 'default' )";
+                "lastCollectionAccessedId, accountStatus, fullName, officeOrg, defaultTheme) VALUES (?, ?, CURDATE(), ?, ?, 0 , 'PENDING', ?, ?, 'dark' )";
             await connection.query(sql, [
                 req.body.userName,
                 req.body.email,
                 req.body.firstName,
                 req.body.lastName,
-                req.body.firstName + " " + req.body.lastName
+                req.body.firstName + " " + req.body.lastName,
+                req.body.officeOrg
             ]);
 
             sql = "SELECT * FROM user WHERE userName = ?";
@@ -150,15 +198,14 @@ exports.register = async (req, res, next) => {
 
         if (req.body.collectionAccessRequest) {
             await withConnection(async (connection) => {
-                const sql_query = `INSERT INTO poamtracking.collectionpermissions (userId, collectionId, accessLevel) VALUES (?, ?, ?)`;
+                const sql_query = `INSERT INTO cpat.collectionpermissions (userId, collectionId, accessLevel, lastAccess) VALUES (?, ?, ?, ?)`;
                 for (const request of req.body.collectionAccessRequest) {
                     await connection.query(sql_query, [user.userId, request.collectionId, 1]);
                 }
             });
         }
 
-        const token = await userService.generateJWT('', '', user);
-        console.log("Register token: ", token);
+        const token = await exports.generateJWT('', '', user);
         return res.status(201).json({ token: token });
     } catch (err) {
         console.error('Post node-api register err: ' + JSON.stringify(err));

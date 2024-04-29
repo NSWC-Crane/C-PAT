@@ -26,7 +26,7 @@ async function withConnection(callback) {
 exports.getAssets = async function getAssets(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM  poamtracking.asset ORDER BY assetName;"
+            let sql = "SELECT * FROM  cpat.asset ORDER BY assetName;"
             let [rowAssets] = await connection.query(sql);
             var assets = rowAssets.map(row => ({
                 "assetId": row.assetId,
@@ -52,7 +52,7 @@ exports.getAssetsByCollection = async function getAssetsByCollection(req, res, n
             throw new Error('Collection ID is required');
         }
         return await withConnection(async (connection) => {
-            const sql = "SELECT * FROM poamtracking.asset WHERE collectionId = ? ORDER BY assetName;";
+            const sql = "SELECT * FROM cpat.asset WHERE collectionId = ? ORDER BY assetName;";
             let [rowAssets] = await connection.query(sql, [req.params.collectionId]);
             var assets = rowAssets.map(row => ({
                 "assetId": row.assetId,
@@ -82,7 +82,7 @@ exports.getAsset = async function getAsset(req, res, next) {
     }
     try {
         return await withConnection(async (connection) => {
-            const sql = "SELECT * FROM  poamtracking.asset WHERE assetId = ?";
+            const sql = "SELECT * FROM  cpat.asset WHERE assetId = ?";
             let [rowAssets] = await connection.execute(sql, [req.params.assetId]);
             const response = {
                 asset: rowAssets.map(asset => ({
@@ -113,7 +113,7 @@ exports.getAssetByName = async function getAssetByName(req, res, next) {
     }
     try {
         return await withConnection(async (connection) => {
-            const sql = "SELECT * FROM poamtracking.asset WHERE assetName = ?";
+            const sql = "SELECT * FROM cpat.asset WHERE assetName = ?";
             let [rowAssets] = await connection.execute(sql, [req.params.assetName]);
             const response = {
                 asset: rowAssets.map(asset => ({
@@ -164,7 +164,7 @@ exports.postAsset = async function postAsset(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                INSERT INTO poamtracking.asset (assetName, fullyQualifiedDomainName,
+                INSERT INTO cpat.asset (assetName, fullyQualifiedDomainName,
                 collectionId, description, ipAddress, macAddress) 
                 VALUES (?, ?, ?, ?, ?, ?)
             `;
@@ -173,13 +173,13 @@ exports.postAsset = async function postAsset(req, res, next) {
                 req.body.collectionId, req.body.description, req.body.ipAddress,
                 req.body.macAddress
             ]);
-            let sql = "SELECT * FROM poamtracking.asset WHERE assetName = ?";
+            let sql = "SELECT * FROM cpat.asset WHERE assetName = ?";
             let [rowAsset] = await connection.query(sql, [req.body.assetName]);
             if (req.body.labels) {
                 let labels = req.body.labels;
                 for (let label of labels) {
                     let sql_query = `
-                        INSERT INTO poamtracking.assetLabels (assetId, labelId) 
+                        INSERT INTO cpat.assetLabels (assetId, labelId) 
                         VALUES (?, ?)
                     `;
                     await connection.query(sql_query, [rowAsset[0].assetId, label.labelId]);
@@ -236,7 +236,7 @@ exports.putAsset = async function putAsset(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                UPDATE poamtracking.asset 
+                UPDATE cpat.asset 
                 SET assetName = ?, fullyQualifiedDomainName = ?, 
                 collectionId = ?, description = ?, ipAddress = ?, macAddress = ?
                 WHERE assetId = ?
@@ -246,7 +246,7 @@ exports.putAsset = async function putAsset(req, res, next) {
                 req.body.collectionId, req.body.description, req.body.ipAddress,
                 req.body.macAddress, req.body.assetId
             ]);
-            let sql = "SELECT * FROM poamtracking.asset WHERE assetId = ?";
+            let sql = "SELECT * FROM cpat.asset WHERE assetId = ?";
             let [rowAsset] = await connection.query(sql, [req.body.assetId]);
             const message = {
                 assetId: rowAsset[0].assetId,
@@ -277,7 +277,7 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
     }
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM poamtracking.asset WHERE assetId = ?";
+            let sql = "DELETE FROM cpat.asset WHERE assetId = ?";
             await connection.query(sql, [req.params.assetId]);
             return { asset: [] };
         });
@@ -286,3 +286,31 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
         return { null: "null" };
     }
 }
+
+exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, next) {
+    if (!req.params.poamId) {
+        console.info('deleteAssetsByPoamId poamId not provided.');
+        throw {
+            status: 400,
+            errors: {
+                poamId: 'is required',
+            },
+        };
+    }
+    try {
+        await withConnection(async (connection) => {
+            let findAssetSql = "SELECT * FROM cpat.poamassets WHERE poamId = ?";
+            const [rowAssets] = await connection.query(findAssetSql, [req.params.poamId]);
+
+            const assetIds = rowAssets.map(asset => asset.assetId);
+
+            if (assetIds.length > 0) {
+                let deleteSql = "DELETE FROM cpat.asset WHERE assetId IN (?)";
+                await connection.query(deleteSql, [assetIds]);
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};

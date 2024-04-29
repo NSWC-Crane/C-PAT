@@ -8,17 +8,17 @@
 !########################################################################
 */
 
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NbAutocompleteModule, NbButtonModule, NbCardModule, NbFormFieldModule, NbIconModule, NbInputModule, NbSelectModule, NbTabsetModule, NbThemeModule, NbTreeGridModule } from '@nebular/theme';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
+import { PoamAdvancedPieModule } from '../poam-components/poam-advanced-pie/poam-advanced-pie.module';
+import { PoamsAssignedGridModule } from '../poam-components/poam-assigned-grid/poam-assigned-grid.module';
+import { PoamGridModule } from '../poam-components/poam-grid/poam-grid.module';
+import { PoamMainchartModule } from '../poam-components/poam-mainchart/poam-mainchart.module';
 import { PoamManageComponent } from './poam-manage.component';
 import { PoamManageRoutingModule } from './poam-manage.routing';
-import { NbButtonModule, NbCardModule, NbInputModule, NbThemeModule, NbSelectModule, NbAutocompleteModule, NbIconModule, NbFormFieldModule, NbTabsetModule, NbTreeGridModule } from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
-import { FormsModule } from '@angular/forms';
-import { PoamMainchartModule } from '../poam-components/poam-mainchart/poam-mainchart.module';
-import { PoamGridModule } from '../poam-components/poam-grid/poam-grid.module';
-import { PoamsAssignedGridModule } from '../poam-components/poam-assigned-grid/poam-assigned-grid.module';
-import { PoamAdvancedPieModule } from '../poam-components/poam-advanced-pie/poam-advanced-pie.module';
 
 @NgModule({
     declarations: [

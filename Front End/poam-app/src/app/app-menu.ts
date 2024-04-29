@@ -25,16 +25,29 @@ export const appMenuItems: NbMenuItem[] = [
     hidden: true,
     children: [
       {
-        title: 'User Processing',
+        title: 'User Management',
         icon: 'people-outline',
         link: '/user-processing',
+        data: { permission: 'create', resource: 'collection' },
+      },
+      {
+        title: 'Collection Management',
+        icon: { icon: 'archive-outline', pack: 'eva' },
+        link: '/collection-processing',
+        data: { permission: 'view', resource: 'collection' },
+        hidden: true,
+      },
+      {
+        title: 'STIG Manager',
+        icon: 'flag-outline',
+        link: '/stigmanager-admin',
         data: { permission: 'create', resource: 'user' },
       },
     ]
   },
   {
     title: 'POAMs',
-    icon: 'menu-outline',
+    icon: 'file-text-outline',
     data: { permission: 'view', resource: 'poam' },
     hidden: true,
     expanded: true,
@@ -54,7 +67,7 @@ export const appMenuItems: NbMenuItem[] = [
   },
   {
     title: 'Importing',
-    icon: 'menu-outline',
+    icon: 'swap-outline',
     data: { permission: 'create', resource: 'import' },
     hidden: true,
     children: [
@@ -75,13 +88,6 @@ export const appMenuItems: NbMenuItem[] = [
     ]
   },
     {
-      title: 'Collections',
-      icon: { icon: 'archive-outline', pack: 'eva' },
-      link: '/collection-processing',
-      data: { permission: 'view', resource: 'collection' },
-      hidden: true,
-    },
-    {
       title: 'Asset Processing',
       icon: 'hard-drive-outline',
       link: '/asset-processing',
@@ -97,7 +103,7 @@ export const appMenuItems: NbMenuItem[] = [
     },
     {
       title: 'Logout',
-      icon: { icon: 'power-outline', pack: 'eva' },
+      icon: { icon: 'log-out-outline', pack: 'eva' },
       link: '',
       hidden: false,
     },

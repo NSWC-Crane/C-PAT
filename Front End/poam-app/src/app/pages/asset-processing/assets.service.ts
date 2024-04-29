@@ -8,18 +8,17 @@
 !########################################################################
 */
 
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Assets } from './asset.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AssetService {
-  private uri = environment.apiEndpoint;
+  private url = environment.CPAT_API_URL;
   httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json'
@@ -39,63 +38,68 @@ export class AssetService {
 
   getAssets() {
     return this.http
-          .get<any>(`${this.uri}/assets`)
+          .get<any>(`${this.url}/assets`)
           .pipe(catchError(this.handleError));
   }
 
   getAssetsByCollection(collectionId: number) {
     return this.http
-      .get<any>(`${this.uri}/assets/collection/${collectionId}`)
+      .get<any>(`${this.url}/assets/collection/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
   getLabels(collectionId: any) {
     return this.http
-      .get(`${this.uri}/labels/${collectionId}`)
+      .get(`${this.url}/labels/${collectionId}`)
           .pipe(catchError(this.handleError));
   }
 
   getAssetLabels(id: any) {
     return this.http
-          .get(`${this.uri}/assetLabels/asset/${id}`)
+          .get(`${this.url}/assetLabels/asset/${id}`)
           .pipe(catchError(this.handleError));
   }
 
   getCollection(collectionId: any, userName: string) {
     return this.http
-          .get<any>(`${this.uri}/collection/${collectionId}/user/${userName}`, this.httpOptions)
+          .get<any>(`${this.url}/collection/${collectionId}/user/${userName}`, this.httpOptions)
           .pipe(catchError(this.handleError));
   }
 
   getCollections(userName: string) {
-    const url = `${this.uri}/collections/${userName}`;
+    const url = `${this.url}/collections/${userName}`;
     return this.http
       .get(url)
       .pipe(catchError(this.handleError));
   }
 
   getCollectionAssetLabel(id: string) {
-    return this.http.get(`${this.uri}/metrics/collection/${id}/assetlabel`, this.httpOptions)
+    return this.http.get(`${this.url}/metrics/collection/${id}/assetlabel`, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   postAssetLabel(assetLabel: any) {
     return this.http
-    .post<any>(`${this.uri}/assetLabel`, assetLabel, this.httpOptions);
+    .post<any>(`${this.url}/assetLabel`, assetLabel, this.httpOptions);
   }
 
   postAsset(asset: any) {
     return this.http
-    .post<any>(`${this.uri}/asset`, asset, this.httpOptions);
+    .post<any>(`${this.url}/asset`, asset, this.httpOptions);
   }
 
   updateAsset(asset: any) {
     return this.http
-    .put<any>(`${this.uri}/asset`, asset, this.httpOptions);
+    .put<any>(`${this.url}/asset`, asset, this.httpOptions);
   }
 
   deleteAssetLabel(assetId: any, labelId: any) {
     return this.http
-          .delete<any>(`${this.uri}/assetLabel/asset/${assetId}/label/${labelId}`, this.httpOptions);
+          .delete<any>(`${this.url}/assetLabel/asset/${assetId}/label/${labelId}`, this.httpOptions);
+  }
+
+  deleteAssetsByPoamId(poamId: number) {
+    return this.http
+      .delete<any>(`${this.url}/assets/${poamId}`, this.httpOptions);
   }
 }

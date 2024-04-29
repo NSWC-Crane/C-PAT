@@ -8,14 +8,14 @@
 !########################################################################
 */
 
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
 import { PoamService } from './poams.service';
 import { forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { UsersService } from '../user-processing/users.service';
+import { UsersService } from '../admin-processing/user-processing/users.service';
 
 interface Permission {
   userId: number;
@@ -35,7 +35,7 @@ interface LabelInfo {
   styleUrls: ['./poams.component.scss'],
 })
 
-export class PoamsComponent implements OnInit {
+export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   private subs = new SubSink();
   public isLoggedIn = false;
   public userProfile: KeycloakProfile | null = null;
@@ -53,7 +53,7 @@ export class PoamsComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.isLoggedIn = await this.keycloak.isLoggedIn();
+    this.isLoggedIn = this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();

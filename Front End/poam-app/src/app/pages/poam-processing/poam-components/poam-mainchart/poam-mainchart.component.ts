@@ -8,18 +8,18 @@
 !########################################################################
 */
 
-import { Output, EventEmitter, ChangeDetectorRef, Component, ElementRef, OnChanges, AfterViewInit, SimpleChanges, ViewChild, Input } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { Chart, registerables, ChartData } from 'chart.js';
-import { addDays, differenceInCalendarDays, parseISO } from 'date-fns';
+import { Chart, ChartData, registerables } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { addDays, differenceInCalendarDays } from 'date-fns';
 
 @Component({
   selector: 'cpat-poam-mainchart',
   templateUrl: './poam-mainchart.component.html',
   styleUrls: ['./poam-mainchart.component.scss']
 })
-export class PoamMainchartComponent implements OnChanges, AfterViewInit {
+export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit {
   @Output() poamsChange = new EventEmitter<any[]>();
   @Input() poams!: any[];
   @Input() showAddButton: boolean = false;
@@ -44,7 +44,8 @@ export class PoamMainchartComponent implements OnChanges, AfterViewInit {
     { value: 'Submitted', label: 'Submitted' },
     { value: 'Rejected', label: 'Rejected' },
     { value: 'Closed', label: 'Closed' },
-    { value: 'Expired', label: 'Expired' }
+    { value: 'Expired', label: 'Expired' },
+    { value: 'Extension Requested', label: 'Extension Requested' }
   ];
 
   poamSeverities = [
@@ -458,7 +459,7 @@ export class PoamMainchartComponent implements OnChanges, AfterViewInit {
     });
 
     this.selectedOptionsValues = Object.entries(this.selectedOptions)
-      .filter(([_, value]) => value !== null)
+      .filter(([, value]) => value !== null)
       .map(([key, value]) => `${key}:${value}`);
 
     this.updateCharts();

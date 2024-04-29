@@ -22,14 +22,12 @@
       <div class="row">
         <div class="col-md-10">
           <label id="description">Description:  </label>
-          <input nbInput type="text" fullWidth name="description" [(ngModel)]="label.description"
-                 placeholder="Description">
+          <input nbInput type="text" fullWidth name="description" id="description" [(ngModel)]="label.description" placeholder="Description">
         </div>
       </div>
       <br>
       <div class="row">
         <div class="container">
-
           <button nbButton outline status="info" class="mr-3" [disabled]="!form.valid">Submit</button>
           <button style="margin-left:20px;" nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
           <!--<button style="margin-left:20px;" nbButton outline status="warning" type="button" class="mr-3" (click)="deleteLabel()">Delete Label</button>-->

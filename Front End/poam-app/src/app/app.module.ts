@@ -8,48 +8,45 @@
 !########################################################################
 */
 
-import { TreeGridModule } from '@syncfusion/ej2-angular-treegrid';
-import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { APP_BASE_HREF } from "@angular/common";
-import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NbAuthModule, NbAuthOAuth2Token, NbOAuth2AuthStrategy, NbOAuth2GrantType, NbOAuth2ResponseType } from '@nebular/auth';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
+import { NbSecurityModule } from '@nebular/security';
+import { NbAccordionModule, NbActionsModule, NbAlertModule, NbAutocompleteModule, NbButtonModule, NbCardModule, NbCheckboxModule, NbDatepickerModule, NbDialogModule, NbFormFieldModule, NbIconModule, NbInputModule, NbLayoutModule, NbListModule, NbMenuModule, NbPopoverModule, NbSelectModule, NbSidebarModule, NbSpinnerModule, NbStepperModule, NbThemeModule, NbToggleModule, NbTooltipModule, NbUserModule } from '@nebular/theme';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { TreeGridModule } from '@syncfusion/ej2-angular-treegrid';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
+import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { environment } from 'src/environments/environment';
+import { CoreModule } from '../app/@core/core.module';
+import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
+import { SharedModule } from './Shared/shared.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';
-import { CoreModule } from '../app/@core/core.module';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbActionsModule, NbAutocompleteModule, NbCardModule, NbDialogModule, NbMenuModule, NbSidebarModule, NbLayoutModule, NbAlertModule, NbSelectModule, NbIconModule, NbSpinnerModule, NbThemeModule, NbStepperModule, NbCheckboxModule, NbButtonModule, NbInputModule, NbAccordionModule, NbDatepickerModule, NbTooltipModule, NbFormFieldModule, NbToggleModule, NbUserModule, NbPopoverModule, NbListModule } from '@nebular/theme';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { HttpClientModule } from '@angular/common/http';
-import { NbAuthModule, NbOAuth2AuthStrategy, NbOAuth2ResponseType, NbOAuth2GrantType, NbAuthOAuth2Token, } from '@nebular/auth';
-import { AuthGuard } from "./auth.guard";
-import { NbSecurityModule } from '@nebular/security';
-import { SharedModule } from './Shared/shared.module';
-import { NbEvaIconsModule } from '@nebular/eva-icons';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
-import { environment } from 'src/environments/environment';
-import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
-import { KcAuthService } from './kc-auth.service';
-import { RoleProvider } from './auth';
-import { PoamManageModule } from "./pages/poam-processing/poam-manage/poam-manage.module";
-import { PoamExtendModule } from "./pages/poam-processing/poam-extend/poam-extend.module";
-import { PoamApproveModule } from "./pages/poam-processing/poam-approve/poam-approve.module";
-import { PoamLogModule } from "./pages/poam-processing/poam-log/poam-log.module";
-import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { STIGManagerImportModule } from './pages/import-processing/stigmanager-import/stigmanager-import.module';
 import { TenableImportModule } from './pages/import-processing/tenable-import/tenable-import.module';
+import { PoamApproveModule } from "./pages/poam-processing/poam-approve/poam-approve.module";
+import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';
+import { PoamExtendModule } from "./pages/poam-processing/poam-extend/poam-extend.module";
+import { PoamLogModule } from "./pages/poam-processing/poam-log/poam-log.module";
+import { PoamManageModule } from "./pages/poam-processing/poam-manage/poam-manage.module";
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
     keycloak.init({
       config: {
-        url: environment.keycloakUrl,
+        url: environment.OIDC_PROVIDER_URL,
         realm: 'RMFTools',
         clientId: 'c-pat'
       },
       initOptions: {
-        redirectUri: environment.CPATRedirectUri,
+        redirectUri: `${environment.CPAT_FRONTEND_URL}/consent`,
         checkLoginIframe: false
       }
     })
@@ -61,14 +58,11 @@ function initializeKeycloak(keycloak: KeycloakService) {
     AppComponent,
     PoamDetailsComponent,
   ],
-  providers: [AuthGuard,
+  providers: [
     KeycloakService,
     { provide: APP_BASE_HREF, useValue: "/" },
     KeycloakService,
     { provide: APP_INITIALIZER, useFactory: initializeKeycloak, multi: true, deps: [KeycloakService] },
-    AuthGuard,
-    KcAuthService,
-    RoleProvider,
     FileUploadService,
     provideCharts(withDefaultRegisterables()),
   ],
@@ -122,20 +116,20 @@ function initializeKeycloak(keycloak: KeycloakService) {
     NbAuthModule.forRoot({
       strategies: [
         NbOAuth2AuthStrategy.setup({
-          name: 'redHat',
+          name: environment.OIDC_PROVIDER_NAME,
           clientId: 'c-pat',
           authorize: {
-            endpoint: environment.authizeEndpoint,
+            endpoint: `${environment.OIDC_PROVIDER_URL}/realms/RMFTools/protocol/openid-connect/auth`,
             responseType: NbOAuth2ResponseType.CODE,
-            redirectUri: environment.redirectUri,
+            redirectUri: `${environment.CPAT_FRONTEND_URL}/callback`,
             params: {
               p: '',
             },
           },
           token: {
-            endpoint: environment.tokeEndpoint,
+            endpoint: `${environment.OIDC_PROVIDER_URL}/realms/RMFTools/protocol/openid-connect/token`,
             grantType: NbOAuth2GrantType.AUTHORIZATION_CODE,
-            redirectUri: environment.redirectUri,
+            redirectUri: `${environment.CPAT_FRONTEND_URL}/callback`,
             class: NbAuthOAuth2Token,
           },
         }),

@@ -8,13 +8,13 @@
 !########################################################################
 */
 
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NbButtonModule, NbCardModule, NbSelectModule, NbThemeModule } from '@nebular/theme';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { DoDConsentComponent } from './dod-consent.component';
 import { DodConsentRoutingModule } from './dod-consent.routing';
-import { NbButtonModule, NbCardModule, NbThemeModule, NbSelectModule } from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
-import { FormsModule } from '@angular/forms';
 
 @NgModule({
     declarations: [

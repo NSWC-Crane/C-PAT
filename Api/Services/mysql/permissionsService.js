@@ -56,7 +56,7 @@ exports.postPermission = async function postPermission(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "INSERT INTO poamtracking.collectionpermissions (accessLevel, userId, collectionId) VALUES (?, ?, ?);";
+            let sql_query = "INSERT INTO cpat.collectionpermissions (accessLevel, userId, collectionId) VALUES (?, ?, ?);";
             await connection.query(sql_query, [req.body.accessLevel, req.body.userId, req.body.collectionId]);
 
             const message = {
@@ -69,7 +69,7 @@ exports.postPermission = async function postPermission(req, res, next) {
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             return await withConnection(async (connection) => {
-                let fetchSql = "SELECT * FROM poamtracking.collectionpermissions WHERE userId = ? AND collectionId = ?";
+                let fetchSql = "SELECT * FROM cpat.collectionpermissions WHERE userId = ? AND collectionId = ?";
                 const [existingPermission] = await connection.query(fetchSql, [req.body.userId, req.body.collectionId]);
                 return existingPermission[0];
             });
@@ -114,7 +114,7 @@ exports.putPermission = async function putPermission(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE poamtracking.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;";
+            let sql_query = "UPDATE cpat.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;";
             await connection.query(sql_query, [req.body.newCollectionId, req.body.accessLevel, req.body.userId, req.body.oldCollectionId]);
 
             const message = {
@@ -153,7 +153,7 @@ exports.deletePermission = async function deletePermission(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM  poamtracking.collectionpermissions WHERE userId = ? AND collectionId = ?";
+            let sql = "DELETE FROM  cpat.collectionpermissions WHERE userId = ? AND collectionId = ?";
             await connection.query(sql, [req.params.userId, req.params.collectionId]);
 
             return { permissions: [] };

@@ -9,7 +9,7 @@
 */
 
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 import { KeycloakAuthGuard, KeycloakService } from 'keycloak-angular';
 
 @Injectable({
@@ -19,14 +19,14 @@ export class AuthGuard extends KeycloakAuthGuard {
   constructor(protected override router: Router, protected override keycloakAngular: KeycloakService) {
     super(router, keycloakAngular);
   }
-  isAccessAllowed(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean | UrlTree> {
-    return new Promise(async (resolve, reject) => {
+  isAccessAllowed(): Promise<boolean | UrlTree> {
+    return new Promise(async (resolve) => {
       if (!this.authenticated) {
         this.keycloakAngular.login();
         resolve(false);
         return;
       }
-      let granted: boolean = true;
+      const granted: boolean = true;
       resolve(granted);
     })
   }
