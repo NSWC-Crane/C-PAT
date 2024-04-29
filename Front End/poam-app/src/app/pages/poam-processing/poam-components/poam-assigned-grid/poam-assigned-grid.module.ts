@@ -8,9 +8,9 @@
 !########################################################################
 */
 
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NbTreeGridModule, NbIconModule, NbInputModule, NbButtonModule, NbCardModule } from '@nebular/theme';
+import { NgModule } from '@angular/core';
+import { NbButtonModule, NbCardModule, NbIconModule, NbInputModule, NbTreeGridModule } from '@nebular/theme';
 import { PoamAssignedGridComponent } from './poam-assigned-grid.component';
 
 @NgModule({

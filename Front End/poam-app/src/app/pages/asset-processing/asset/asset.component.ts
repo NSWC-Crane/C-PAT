@@ -8,17 +8,16 @@
 !########################################################################
 */
 
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
-import { NbDialogService, NbWindowRef } from '@nebular/theme';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, TemplateRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { SubSink } from 'subsink';
-import { Observable, Subscription } from 'rxjs';
-import { AssetService } from '../assets.service'
-import { AuthService } from '../../../auth';
+import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { Settings } from 'angular2-smart-table';
+import { Observable, Subscription } from 'rxjs';
+import { SubSink } from 'subsink';
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SmartTableSelectComponent } from '../../../Shared/components/smart-table/smart-table-select.component';
 import { SharedService } from '../../../Shared/shared.service';
+import { AssetService } from '../assets.service';
 
 interface Label {
   labelId?: number;
@@ -26,30 +25,12 @@ interface Label {
   description?: string;
 }
 
-interface LabelsResponse {
-  labels: Label[];
-}
-
-interface Collection {
-  data: any;
-  collectionId?: number;
-  collectionName?: string;
-  description?: string;
-  created?: string;
-  grantCount?: number;
-  assetCount?: number;
-}
-
-interface CollectionsResponse {
-  collections: Collection[];
-}
-
 @Component({
   selector: 'cpat-asset',
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss']
 })
-export class AssetComponent implements OnInit {
+export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() asset: any;
   @Input() assets: any;
@@ -97,7 +78,7 @@ export class AssetComponent implements OnInit {
         width: '100%',
         isFilterable: false,
         type: 'html',
-        valuePrepareFunction: (labelId: any, row: any) => {
+        valuePrepareFunction: (labelId: any) => {
           const label = this.labelList.find((label: Label) => label.labelId === labelId);
           return label ? label.labelName : 'Label not found';
         },
@@ -133,7 +114,7 @@ export class AssetComponent implements OnInit {
   }
 
   onSubmit() {
-    let asset = {
+    const asset = {
       assetId: (this.asset.assetId == "ADDASSET") ? 0 : this.asset.assetId,
       assetName: this.asset.assetName,
       description: this.asset.description,
@@ -146,7 +127,7 @@ export class AssetComponent implements OnInit {
     if (this.asset.assetId == "ADDASSET") {
       this.asset.assetId = "";
 
-      let labels: any[] = [];
+      const labels: any[] = [];
       if (this.assetLabels) {
         this.assetLabels.forEach((label) => {
           labels.push({ labelId: +label.labelId })
@@ -158,8 +139,8 @@ export class AssetComponent implements OnInit {
         data => {
           this.assetchange.emit(data.assetId);
       }, err => {
-
           this.invalidData("unexpected error adding asset");
+          console.error(err);
         }
         );
 
@@ -201,7 +182,7 @@ export class AssetComponent implements OnInit {
   }
   
   getCollectionData() {
-    let userName = this.payload.userName;
+    const userName = this.payload.userName;
     this.subs.sink = this.assetService.getCollections(userName).subscribe((collections: any) => {
       this.collectionList = collections;
       if (this.asset.collectionId) {
@@ -222,7 +203,7 @@ export class AssetComponent implements OnInit {
   }
   
   updateLabelEditorConfig() {
-    let labelSettings = this.assetLabelsSettings;
+    const labelSettings = this.assetLabelsSettings;
 
     const labelOptionsList = [
       ...this.labelList.map((label: any) => ({
@@ -247,7 +228,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
     this.collection = null;
     this.tcollectionName = '';
 
-    let selectedData = this.collectionList ? this.collectionList.find((collection: { collectionId: any; }) => collection.collectionId === collectionId) : null;
+    const selectedData = this.collectionList ? this.collectionList.find((collection: { collectionId: any; }) => collection.collectionId === collectionId) : null;
   
     if (selectedData) {
       this.collection = selectedData;
@@ -269,7 +250,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
       event.newData.labelId 
     ) {
 
-      var label_index = this.labelList.findIndex((e: any) => e.labelId == event.newData.labelId);
+      const label_index = this.labelList.findIndex((e: any) => e.labelId == event.newData.labelId);
 
       if (!label_index && label_index != 0) {
         this.invalidData("Unable to resolve label");
@@ -277,14 +258,14 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
         return;
       }
 
-      let assetLabel = {
+      const assetLabel = {
         assetId: +this.asset.assetId,
         collectionId: this.selectedCollection,
         labelId: +event.newData.labelId,
       }
 
       this.isLoading = true;
-      this.assetService.postAssetLabel(assetLabel).subscribe(assetLabelData => {
+      this.assetService.postAssetLabel(assetLabel).subscribe(() => {
         this.isLoading = false;
         event.confirm.resolve();
         this.getData();
@@ -302,7 +283,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
       return;
     }
 
-    var label_index = this.assetLabels.findIndex((data: any) => {
+    const label_index = this.assetLabels.findIndex((data: any) => {
       if (event.data.assetId === data.assetId && event.data.labelId === data.labelId) return true;
       else return false;
     })
@@ -310,11 +291,11 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
     if (!label_index && label_index != 0) {
       this.invalidData("Unable to resolve label assinged")
       event.confirm.reject();
-    } else {;
+    } else {
 
 
       this.isLoading = true;
-      this.assetService.deleteAssetLabel(+event.data.assetId, +event.data.labelId).subscribe(assetLabelData => {       
+      this.assetService.deleteAssetLabel(+event.data.assetId, +event.data.labelId).subscribe(() => {       
         event.confirm.resolve();
         this.getData();
       });

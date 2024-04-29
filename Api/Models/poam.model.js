@@ -83,7 +83,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATEONLY,
             defaultValue: '1900-01-01' 
         },
-        poamitemid: {
+        emassPoamId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 0
@@ -118,18 +118,17 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(255),
             defaultValue: ''
         },
-        likelihood: {
-            type: DataTypes.STRING(15),
-            allowNull: false,
-            defaultValue: ''
-        },
         devicesAffected: {
             type: DataTypes.STRING(255),
             allowNull: false,
             defaultValue: ''
         },
+        likelihood: {
+            type: DataTypes.STRING(15),
+            defaultValue: ''
+        },
         businessImpactRating: {
-            type: DataTypes.STRING(25),
+            type: DataTypes.STRING(15),
             defaultValue: ''
         },
         businessImpactDescription: {

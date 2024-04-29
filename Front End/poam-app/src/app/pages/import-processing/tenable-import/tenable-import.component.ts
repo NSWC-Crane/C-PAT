@@ -9,32 +9,23 @@
 */
 
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { SharedService } from '../../../Shared/shared.service';
-import { forkJoin, Observable } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
-import { SubSink } from "subsink";
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { environment } from '../../../../environments/environment';
+import { Observable } from 'rxjs';
+import { SubSink } from "subsink";
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SharedService } from '../../../Shared/shared.service';
 
-interface Collection {
-  collectionId: any;
-  name: string;
-}
 
-interface Asset {
-  assetId: any;
-  name: string;
-}
 
 @Component({
   selector: 'cpat-tenable-import',
   templateUrl: './tenable-import.component.html',
   styleUrls: ['./tenable-import.component.scss']
 })
-export class TenableImportComponent implements OnInit {
+export class TenableImportComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   userProfile: KeycloakProfile | null = null;
   scanResults: string = '';
@@ -48,7 +39,7 @@ export class TenableImportComponent implements OnInit {
   ) { }
 
   async ngOnInit() {
-    this.isLoggedIn = await this.keycloak.isLoggedIn();
+    this.isLoggedIn = this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
     }

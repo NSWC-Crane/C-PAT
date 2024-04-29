@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
 
 @Component({
@@ -25,7 +25,7 @@ import { NbDialogRef } from '@nebular/theme';
       <nb-card-footer>
         <div style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;">
           <button nbButton style="margin-left: 10%;" outline status='warning' (click)="cancel()" *ngIf="options.cancelbutton === 'true'">Cancel</button>
-          <button nbButton style="margin-left: 5%;" outline status="warning" (click)="confirm()">{{ options.button.text }}</button>
+          <button nbButton style="margin-left: 5%;" outline [status]="options.button.status" (click)="confirm()">{{ options.button.text }}</button>
           <button *ngIf="options.convertButton" (click)="convert()" nbButton style="margin-left: 5%;" outline status="warning">{{ options.convertButton.text }}</button>
         </div>
       </nb-card-footer>
@@ -34,28 +34,26 @@ import { NbDialogRef } from '@nebular/theme';
 })
 export class ConfirmationDialogComponent {
   @Input() options!: ConfirmationDialogOptions;
-  title: string = '';
-  message: string = '';
 
   constructor(protected dialogRef: NbDialogRef<ConfirmationDialogComponent>) { }
 
   cancel() {
-    this.dialogRef.close({ confirmed: false, convert: false });
+    this.dialogRef.close(false);
   }
 
   confirm() {
-    this.dialogRef.close({ confirmed: true, convert: false });
+    this.dialogRef.close(true);
   }
 
   convert() {
-    this.dialogRef.close({ confirmed: false, convert: true });
+    this.dialogRef.close({ convert: true });
   }
 }
 
 export class ConfirmationDialogOptions {
   header: string;
   body: string;
-  button: { text: string, status: string };
+  button: { text: string; status: string };
   cancelbutton: string;
   convertButton?: { text: string };
 
@@ -64,13 +62,13 @@ export class ConfirmationDialogOptions {
     body,
     button,
     cancelbutton,
-    convertButton
+    convertButton,
   }: {
-    header?: string,
-    body?: string,
-    button?: { text: string, status: string },
-    cancelbutton?: string,
-    convertButton?: { text: string }
+    header?: string;
+    body?: string;
+    button?: { text: string; status: string };
+    cancelbutton?: string;
+    convertButton?: { text: string };
   }) {
     this.header = header || 'Confirmation';
     this.body = body || 'Are you sure you wish to continue?';

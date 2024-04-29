@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { AfterViewInit, Component, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ViewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
 import { AssetService } from './assets.service';
 import { forkJoin, Observable } from 'rxjs';
 import { NbDialogService, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
@@ -16,7 +16,7 @@ import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { UsersService } from '../user-processing/users.service';
+import { UsersService } from '../admin-processing/user-processing/users.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { Assets } from './asset.model';
 import { Chart, registerables, ChartData } from 'chart.js';
@@ -26,11 +26,6 @@ interface Permission {
   userId: number;
   collectionId: number;
   accessLevel: number;
-}
-interface TreeNode<T> {
-  data: T;
-  children?: TreeNode<T>[];
-  expanded?: boolean;
 }
 
 interface AssetTreeNode {
@@ -53,7 +48,7 @@ interface FSEntry {
   templateUrl: './asset-processing.component.html',
   styleUrls: ['./asset-processing.component.scss']
 })
-export class AssetProcessingComponent implements OnInit, AfterViewInit {
+export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('assetLabelsChart') assetLabelsChart!: ElementRef<HTMLCanvasElement>;
 
   public assetLabel: any[] = [];
@@ -152,7 +147,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
 
   async ngOnInit() {
     this.getAssetData();
-    this.isLoggedIn = await this.keycloak.isLoggedIn();
+    this.isLoggedIn = this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();
@@ -286,7 +281,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
   }
 
   updateDataSource() {
-    let treeNodes: AssetTreeNode[] = this.assets.map((asset: Assets) => {
+    const treeNodes: AssetTreeNode[] = this.assets.map((asset: Assets) => {
       return {
         data: {
           'asset': asset.assetId,
@@ -379,7 +374,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit {
 
   setAsset(assetId: any) {
     this.asset = null;
-    let selectedData = this.data.filter((asset: { assetId: any; }) => asset.assetId === assetId)
+    const selectedData = this.data.filter((asset: { assetId: any; }) => asset.assetId === assetId)
     this.asset = selectedData[0];
     this.allowSelectAssets = false;
   }

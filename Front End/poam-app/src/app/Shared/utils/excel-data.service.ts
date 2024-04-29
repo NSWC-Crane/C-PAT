@@ -7,8 +7,8 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-import * as XLSX from 'xlsx';
 
+import * as ExcelJS from 'exceljs';
 interface Poam {
   [key: string]: any;
   poamId: number;
@@ -30,7 +30,7 @@ interface Poam {
   status: string;
   vulnIdRestricted: string;
   submittedDate: Date | string;
-  poamItemId: string;
+  emassPoamId: string;
   securityControlNumber: string;
   officeOrg: string;
   emassStatus: string;
@@ -39,69 +39,66 @@ interface Poam {
   environmentOfThreat: string;
   threatDescription: string;
   likelihood: string;
+  relevanceOfThreat: string;
   devicesAffected: string;
   businessImpactRating: string;
   businessImpactDescription: string;
   extensionTimeAllowed: number;
   extensionJustification: string;
 }
-
 export class ExcelDataService {
-  static ConvertToExcel(poams: Poam[]): Blob {
-    if (!poams || !poams.length) {
-      return new Blob();
-    }
-
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(poams);
-    const columnWidths = [
-      { wch: 10 }, // poamId
-      { wch: 10 }, // collectionId
-      { wch: 20 }, // vulnerabilitySource
-      { wch: 20 }, // stigTitle
-      { wch: 20 }, // iavmNumber
-      { wch: 20 }, // aaPackage
-      { wch: 20 }, // vulnerabilityId
-      { wch: 30 }, // description
-      { wch: 10 }, // rawSeverity
-      { wch: 10 }, // adjSeverity
-      { wch: 22 }, // scheduledCompletionDate
-      { wch: 10 }, // submitterId
-      { wch: 30 }, // mitigations
-      { wch: 16 }, // requiredResources
-      { wch: 15 }, // residualRisk
-      { wch: 30 }, // notes
-      { wch: 10 }, // status
-      { wch: 15 }, // vulnIdRestricted
-      { wch: 22 }, // submittedDate
-      { wch: 15 }, // poamitemid
-      { wch: 20 }, // securityControlNumber
-      { wch: 20 }, // officeOrg
-      { wch: 20 }, // emassStatus
-      { wch: 20 }, // predisposingConditions
-      { wch: 10 }, // severity
-      { wch: 10 }, // relevanceOfThreat
-      { wch: 20 }, // threatDescription
-      { wch: 15 }, // likelihood
-      { wch: 30 }, // impactDescription
-      { wch: 15 }, // devicesAffected
-      { wch: 15 }, // businessImpactRating
-      { wch: 30 }, // businessImpactDescription
-      { wch: 10 }, // extensionTimeAllowed
-      { wch: 30 }, // extensionJustification
-    ];
-    worksheet['!cols'] = columnWidths;
-
-    const headerRowHeight = { hpt: 20 }; // header row height
-    const dataRowHeights = poams.map(() => ({ hpt: 100 })); // data row height
-
-    worksheet['!rows'] = [headerRowHeight, ...dataRowHeights];
-
-    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'POAMS');
-
-    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    return new Blob([excelBuffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8',
+  static async convertToExcel(poams: Poam[]): Promise<Blob> {
+    const workbook = new ExcelJS.Workbook();
+    const response = await fetch('../../../assets/eMASS_Template.xlsx');
+    const arrayBuffer = await response.arrayBuffer();
+    await workbook.xlsx.load(arrayBuffer, {
+      ignoreNodes: [
+        'dataValidations'
+      ],
+    });
+    const worksheet = workbook.getWorksheet("CPAT_POAMS");
+    const excelColumnToDbColumnMapping: { [key: string]: string } = {
+      "B": "emassPoamId",
+      "C": "description",
+      "D": "securityControlNumber",
+      "E": "officeOrg",
+      "F": "vulnerabilityId",
+      "G": "requiredResources",
+      "H": "scheduledCompletionDate",
+      "I": "milestones",
+      "J": "milestoneChanges",
+      "K": "vulnerabilitySource",
+      "L": "emassStatus",
+      "M": "notes",
+      "N": "rawSeverity",
+      "O": "devicesAffected",
+      "P": "mitigations",
+      "Q": "predisposingConditions",
+      "R": "severity",
+      "S": "relevanceOfThreat",
+      "T": "threatDescription",
+      "U": "likelihood",
+      "V": "businessImpactRating",
+      "W": "businessImpactDescription",
+      "X": "residualRisk",
+      "Y": "recommendations",
+      "Z": "adjSeverity"
+    };
+    let rowIndex = 8;
+    poams.forEach(poam => {
+      const row = worksheet!.getRow(rowIndex);
+      Object.keys(excelColumnToDbColumnMapping).forEach(columnKey => {
+        const dbKey = excelColumnToDbColumnMapping[columnKey];
+        if (poam[dbKey] !== undefined) {
+          row.getCell(columnKey).value = poam[dbKey];
+        }
+      });
+      row.commit();
+      rowIndex++;
+    });
+    const buffer = await workbook.xlsx.writeBuffer();
+    return new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     });
   }
 }

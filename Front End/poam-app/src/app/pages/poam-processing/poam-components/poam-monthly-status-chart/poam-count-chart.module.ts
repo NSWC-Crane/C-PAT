@@ -1,6 +1,6 @@
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NbTabsetModule, NbFormFieldModule, NbIconModule, NbSelectModule, NbButtonModule, NbCardModule } from '@nebular/theme';
+import { NgModule } from '@angular/core';
+import { NbButtonModule, NbCardModule, NbFormFieldModule, NbIconModule, NbSelectModule, NbTabsetModule } from '@nebular/theme';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { PoamCountChartComponent } from './poam-count-chart.component';
 

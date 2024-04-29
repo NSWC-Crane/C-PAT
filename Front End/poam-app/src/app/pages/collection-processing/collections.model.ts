@@ -13,7 +13,6 @@ export interface Collections {
     collectionName?: string;
     description?: string;
     created?: string;
-    grantCount?: number;
     assetCount?: number;
     poamCount?: number;
   }

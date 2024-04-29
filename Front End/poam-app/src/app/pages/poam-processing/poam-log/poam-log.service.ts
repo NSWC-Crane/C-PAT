@@ -18,7 +18,7 @@ import { environment } from '../../../../environments/environment';
 	providedIn: 'root'
 })
 export class PoamLogService {
-	private uri = environment.apiEndpoint;
+	private url = environment.CPAT_API_URL;
 
 	httpOptions = {
 		headers: new HttpHeaders({
@@ -38,7 +38,7 @@ export class PoamLogService {
 	}
 
   getPoamLogByPoamId(poamId: string) {
-    return this.http.get(`${this.uri}/poamLog/${poamId}`)
+    return this.http.get(`${this.url}/poamLog/${poamId}`)
 			.pipe(catchError(this.handleError));
 	}
 }

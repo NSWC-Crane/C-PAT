@@ -10,13 +10,14 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             primaryKey: true
         },
-        assetOrigin: {
-            type: DataTypes.STRING(15),
-        },
     }, {
         freezeTableName: true,
         timestamps: false,
     });
+
+    poamAsset.associate = function (models) {
+        poamAsset.belongsTo(models.Asset, { foreignKey: 'assetId' });
+    };
 
     return poamAsset;
 };

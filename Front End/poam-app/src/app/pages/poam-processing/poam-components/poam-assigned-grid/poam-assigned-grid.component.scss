@@ -14,7 +14,7 @@
 }
 
 .poam-table {
-  width: 100%;
+  width: 100rem;
 }
 
 .search-input {
@@ -30,6 +30,7 @@
 .nb-column-POAM-ID,
 .nb-column-Adjusted-Severity,
 .nb-column-Approval-Status,
+.nb-column-Submitter,
 .nb-column-Manage {
   text-align: center !important;
 }

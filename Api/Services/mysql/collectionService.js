@@ -32,8 +32,8 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
 
     try {
         const permissions = await withConnection(async (connection) => {
-            let sql = "SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM poamtracking.collectionpermissions T1 " +
-                "INNER JOIN poamtracking.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
+            let sql = "SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM cpat.collectionpermissions T1 " +
+                "INNER JOIN cpat.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
 
             let [rowPermissions] = await connection.query(sql, req.params.collectionId);
             return rowPermissions.map(permission => ({
@@ -52,7 +52,7 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
     if (userNameInput == "Registrant") {
         try {
             return await withConnection(async (connection) => {
-                let sql = "SELECT collectionId, collectionName FROM poamtracking.collection;"
+                let sql = "SELECT collectionId, collectionName FROM cpat.collection;"
                 let [row] = await connection.query(sql)
                 var size = Object.keys(row).length
 
@@ -115,7 +115,6 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
                         "collectionName": row3[0].collectionName,
                         "description": row3[0].description,
                         "created": row3[0].created,
-                        "grantCount": row3[0].grantCount,
                         "assetCount": row3[0].assetCount,
                         "poamCount": row3[0].poamCount
                     });
@@ -132,12 +131,11 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
 }
 
 exports.getCollection = async function getCollection(userName, collectionId, req, res, next) {
-    function collectionObj(collectionId, collectionName, description, created, grantCount, poamCount) {
+    function collectionObj(collectionId, collectionName, description, created, poamCount) {
         this.collectionId = collectionId
         this.collectionName = collectionName
         this.description = description
         this.created = created
-        this.grantCount = grantCount
         this.poamCount = poamCount
     }
 
@@ -194,15 +192,14 @@ exports.getCollectionBasicList = async function getCollectionBasicList(req, res,
 exports.postCollection = async function postCollection(req, res, next) {
     if (!req.body.collectionName) req.body.collectionName = undefined
     if (!req.body.description) req.body.description = ""
-    if (!req.body.grantCount) req.body.grantCount = 0;
     if (!req.body.assetCount) req.body.assetCount = 0;
     if (!req.body.poamCount) req.body.poamCount = 0;
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO poamtracking.collection (collectionName, description, grantCount, assetCount, poamCount) VALUES (?, ?, ?, ?, ?) `
+            let sql_query = `INSERT INTO cpat.collection (collectionName, description, assetCount, poamCount) VALUES (?, ?, ?, ?) `
             await connection.query(sql_query, [req.body.collectionName, req.body.description, 0, 0, 0])
-            let sql = "SELECT * FROM poamtracking.collection WHERE collectionId = LAST_INSERT_ID();"
+            let sql = "SELECT * FROM cpat.collection WHERE collectionId = LAST_INSERT_ID();"
             let [rowCollection] = await connection.query(sql)
 
             var collection = rowCollection[0]
@@ -227,17 +224,15 @@ exports.putCollection = async function putCollection(req, res, next) {
     }
     if (!req.body.collectionName) req.body.collectionName = undefined;
     if (!req.body.description) req.body.description = "";
-    if (!req.body.grantCount) req.body.grantCount = 0;
     if (!req.body.assetCount) req.body.assetCount = 0;
     if (!req.body.poamCount) req.body.poamCount = 0;
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE poamtracking.collection SET collectionName=?, description=?, grantCount= ?, assetCount= ?, poamCount= ? WHERE collectionId = ?";
+            let sql_query = "UPDATE cpat.collection SET collectionName=?, description=?, assetCount= ?, poamCount= ? WHERE collectionId = ?";
             await connection.query(sql_query, [
                 req.body.collectionName,
                 req.body.description,
-                req.body.grantCount,
                 req.body.assetCount,
                 req.body.poamCount,
                 req.body.collectionId
@@ -247,7 +242,6 @@ exports.putCollection = async function putCollection(req, res, next) {
             message.collectionId = req.body.collectionId;
             message.collectionName = req.body.collectionName;
             message.description = req.body.description;
-            message.grantCount = req.body.grantCount;
             message.assetCount = req.body.assetCount;
             message.poamCount = req.body.poamCount;
             return message;

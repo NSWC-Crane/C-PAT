@@ -182,6 +182,37 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
+
+  /assets/{poamId}:
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Delete an Asset by assetId
+      operationId: deleteAssetsByPoamId
+      responses:
+        '204':
+          description: Assets successfully deleted
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Asset
+      security:
+        - oauth:
+            - 'c-pat:read'
   
   /asset:
     post:
@@ -787,7 +818,6 @@ paths:
                   description: ID of the last accessed collection
               required:
                 - file
-                - lastCollectionAccessedId
       responses:
         '201':
           description: File uploaded successfully
@@ -815,11 +845,72 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
+
+  '/update/stigmanager/poamassets':
+    put:
+      summary: Update POAM Assets with STIG Manager Data
+      operationId: updatePoamAssetsWithStigManagerData
+      description: Updates the POAM Assets based on the STIG Manager data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              properties:
+                assets:
+                  type: object
+                  items:
+                    type: object
+                    required:
+                      - assetName
+                      - collectionId
+                      - poamId
+                    properties:
+                      assetName:
+                        type: string
+                      collectionId:
+                        type: integer
+                      poamId:
+                        type: integer
+                      poamLog:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            userId:
+                              type: integer
+      responses:
+        '200':
+          description: Poam Assets updated with stigman data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/stigmanPoamAssetUpdate'
+        '400':
+          description: Bad request - invalid data format or missing data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Import
+      security:
+        - oauth:
+            - 'c-pat:read'
   
-  '/import/stigmanagercollection':
+  '/import/stigmanager/collection':
     post:
       summary: Endpoint to receive collection and assets data from STIG Manager
-      operationId: importCollectionAndAssets
+      operationId: postStigManagerCollection
       requestBody:
         required: true
         content:
@@ -861,10 +952,10 @@ paths:
         - oauth:
             - 'c-pat:read'
   
-  '/import/stigmanagerassets':
+  '/import/stigmanager/assets':
     post:
       summary: Endpoint to receive asset data from STIG Manager
-      operationId: importAssets
+      operationId: postStigManagerAssets
       requestBody:
         required: true
         content:
@@ -886,6 +977,10 @@ paths:
                 properties:
                   message:
                     type: string
+                  assets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssetObject'
         '400':
           description: Bad request - invalid data format or missing data
           content:
@@ -3449,6 +3544,12 @@ paths:
             - 'c-pat:read'
 
   '/poam/status/{poamId}':
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
     put:
       summary: Update a POAMs status
       operationId: updatePoamStatus
@@ -3496,6 +3597,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/current_user_Response'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -3724,8 +3831,6 @@ components:
         description:
           type: string
           nullable: true
-        metadata:
-          type: object
       required:
         - name
     STIGMANAsset:
@@ -3769,24 +3874,9 @@ components:
         nonComputing:
           type: integer
           nullable: true
-        metadata:
-          type: string
-          nullable: true
-        state:
-          type: string
-          nullable: true
         assetOrigin:
           type: string
           nullable: true
-        stateDate:
-          type: string
-          nullable: true
-        stateUserId:
-          type: integer
-          nullable: true
-        isEnabled:
-          type: integer
-          nullable: true 
 
     assetLabel_Object:
       type: object
@@ -3838,38 +3928,12 @@ components:
         created:
           type: string
           format: date   
-        grantCount:
-          type: integer
         assetCount:
           type: integer
         poamCount:
           type: integer
-        settings:
-          type: string
-          nullable: true
-        metadata:
-          type: string
-          nullable: true
-        state:
-          type: string
         collectionOrigin:
           type: string
-          nullable: true
-        createdUserId:
-          type: string
-          nullable: true
-        stateDate:
-          type: string
-          format: date
-          nullable: true
-        stateUserId:
-          type: string
-          nullable: true
-        isEnabled:
-          type: integer
-          nullable: true
-        isNameUnavailable:
-          type: integer
           nullable: true
 
     collectionNameAndId:
@@ -4134,6 +4198,12 @@ components:
         residualRisk:
           type: string
           nullable: true
+        likelihood:
+          type: string
+          nullable: true
+        relevanceOfThreat:
+          type: string
+          nullable: true
         businessImpactRating:
           type: string
           nullable: true
@@ -4161,7 +4231,16 @@ components:
         assets:
           type: array
           items:
-            $ref: '#/components/schemas/poamAssets_Object'
+            type: object
+            properties:
+              assetId:
+                type: integer
+              assetName:
+                type: string
+            oneOf:
+              - required: ['assetId']
+              - required: ['assetName']
+            additionalProperties: false
 
     poamLabel_Object:
       type: object
@@ -4299,6 +4378,16 @@ components:
         labelCount:
           type: integer
 
+    stigmanPoamAssetUpdate:
+      type: object
+      properties:
+        assetId:
+          type: integer
+        assetName:
+          type: string
+        poamId:
+          type: integer
+
     poamStatus:
       type: object
       properties:
@@ -4419,6 +4508,7 @@ components:
         - lastCollectionAccessedId
         - accountStatus
         - fullName
+        - officeOrg
         - defaultTheme
         - isAdmin
         - permissions
@@ -4456,6 +4546,9 @@ components:
         fullName:
           type: string
           maxLength: 225
+        officeOrg:
+          type: string
+          maxLength: 100
         defaultTheme:
           type: string
           maxLength: 20
@@ -4489,6 +4582,7 @@ components:
         - lastAccess
         - lastCollectionAccessedId
         - accountStatus
+        - officeOrg
         - fullName
         - defaultTheme
         - isAdmin
@@ -4526,6 +4620,9 @@ components:
         fullName:
           type: string
           maxLength: 225
+        officeOrg:
+          type: string
+          maxLength: 100
         defaultTheme:
           type: string
           maxLength: 20
@@ -4540,6 +4637,7 @@ components:
         - firstName
         - lastName
         - accountStatus
+        - officeOrg
         - lastCollectionAccessedId
         - defaultTheme
         - isAdmin
@@ -4558,6 +4656,9 @@ components:
         accountStatus:
           type: string
           maxLength: 45
+        officeOrg:
+          type: string
+          maxLength: 100
         lastCollectionAccessedId:
           type: integer
         defaultTheme:
@@ -4603,6 +4704,7 @@ components:
         - lastCollectionAccessedId
         - accountStatus
         - fullName
+        - officeOrg
         - defaultTheme
       additionalProperties: false
       properties:
@@ -4627,6 +4729,9 @@ components:
         fullName:
           type: string
           maxLength: 225
+        officeOrg:
+          type: string
+          maxLength: 100
         defaultTheme:
           type: string
           maxLength: 20
@@ -4689,6 +4794,7 @@ components:
         - lastCollectionAccessedId
         - accountStatus
         - fullName
+        - officeOrg
         - defaultTheme
       type: object
       additionalProperties: false
@@ -4706,6 +4812,8 @@ components:
         accountStatus:
           type: string
         fullName:
+          type: string
+        officeOrg:
           type: string
         defaultTheme:
           type: string

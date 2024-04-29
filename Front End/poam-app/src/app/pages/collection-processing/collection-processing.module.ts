@@ -8,15 +8,15 @@
 !########################################################################
 */
 
-import { NgModule } from '@angular/core';
-import {  FormsModule  } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NbButtonModule, NbCardModule, NbFormFieldModule, NbIconModule, NbInputModule, NbSelectModule, NbSpinnerModule, NbTableModule, NbTreeGridModule } from '@nebular/theme';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
+import { SharedModule } from '../../Shared/shared.module';
 import { CollectionProcessingComponent } from './collection-processing.component';
 import { CollectionProcessingRoutingModule } from './collection-processing.routing';
-import { SharedModule } from '../../Shared/shared.module';
 import { CollectionComponent } from './collection/collection.component';
-import { NbButtonModule, NbCardModule, NbIconModule, NbInputModule, NbTreeGridModule, NbSpinnerModule, NbSelectModule, NbTableModule, NbFormFieldModule } from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
 
 @NgModule({
   declarations: [

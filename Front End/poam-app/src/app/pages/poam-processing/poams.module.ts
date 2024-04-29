@@ -8,16 +8,16 @@
 !########################################################################
 */
 
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PoamsComponent } from './poams.component';
-import { PoamsRoutingModule } from './poams.routing';
-import { NbCardModule, NbIconModule, NbInputModule, NbFormFieldModule, NbButtonModule, NbThemeModule, NbSelectModule, NbRadioModule, NbDatepickerModule, NbAutocompleteModule, NbTabsetModule, NbTooltipModule, NbToggleModule } from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
+import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
-import { PoamMainchartModule } from './poam-components/poam-mainchart/poam-mainchart.module';
+import { NbAutocompleteModule, NbButtonModule, NbCardModule, NbDatepickerModule, NbFormFieldModule, NbIconModule, NbInputModule, NbRadioModule, NbSelectModule, NbTabsetModule, NbThemeModule, NbToggleModule, NbTooltipModule } from '@nebular/theme';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { PoamGridModule } from './poam-components/poam-grid/poam-grid.module';
+import { PoamMainchartModule } from './poam-components/poam-mainchart/poam-mainchart.module';
+import { PoamsComponent } from './poams.component';
+import { PoamsRoutingModule } from './poams.routing';
 
 @NgModule({
     declarations: [

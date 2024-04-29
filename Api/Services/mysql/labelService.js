@@ -36,7 +36,7 @@ exports.getLabels = async function getLabels(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.label WHERE collectionId = ? ORDER BY labelName;";
+            let sql = "SELECT * FROM cpat.label WHERE collectionId = ? ORDER BY labelName;";
             let [rowLabels] = await connection.query(sql, [req.params.collectionId]);
 
             var labels = rowLabels.map(row => ({
@@ -75,7 +75,7 @@ exports.getLabel = async function getLabel(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.label WHERE labelId = ? AND collectionId = ?";
+            let sql = "SELECT * FROM cpat.label WHERE labelId = ? AND collectionId = ?";
             let [rowLabel] = await connection.query(sql, [req.params.labelId, req.params.collectionId]);
 
             var label = rowLabel.length > 0 ? [rowLabel[0]] : [];
@@ -109,10 +109,10 @@ exports.postLabel = async function postLabel(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO poamtracking.label (labelName, description, collectionId) VALUES (?, ?, ?)`;
+            let sql_query = `INSERT INTO cpat.label (labelName, description, collectionId) VALUES (?, ?, ?)`;
             await connection.query(sql_query, [req.body.labelName, req.body.description, req.params.collectionId]);
 
-            let sql = "SELECT * FROM poamtracking.label WHERE labelName = ? AND collectionId = ?";
+            let sql = "SELECT * FROM cpat.label WHERE labelName = ? AND collectionId = ?";
             let [rowLabel] = await connection.query(sql, [req.body.labelName, req.params.collectionId]);
 
             const message = {
@@ -160,7 +160,7 @@ exports.putLabel = async function putLabel(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE poamtracking.label SET labelName = ?, description = ? WHERE labelId = ? AND collectionId = ?";
+            let sql_query = "UPDATE cpat.label SET labelName = ?, description = ? WHERE labelId = ? AND collectionId = ?";
             await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.labelId, req.params.collectionId]);
 
             const message = {
@@ -198,7 +198,7 @@ exports.deleteLabel = async function deleteLabel(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM poamtracking.label WHERE labelId = ? AND collectionId = ?";
+            let sql = "DELETE FROM cpat.label WHERE labelId = ? AND collectionId = ?";
             await connection.query(sql, [req.params.labelId, req.params.collectionId]);
 
             return { label: [] };

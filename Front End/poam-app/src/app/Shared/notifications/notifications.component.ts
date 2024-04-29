@@ -13,7 +13,7 @@ import { NotificationService } from './notifications.service';
 import { SubSink } from 'subsink';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { UsersService } from '../../pages/user-processing/users.service';
+import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 
 interface Permission {
   userId: number;
@@ -43,7 +43,7 @@ export class NotificationsComponent implements OnInit {
   ) { }
 
   async ngOnInit() {
-    this.isLoggedIn = await this.keycloak.isLoggedIn();
+    this.isLoggedIn = this.keycloak.isLoggedIn();
     if (this.isLoggedIn) {
       this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();

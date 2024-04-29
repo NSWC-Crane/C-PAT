@@ -9,25 +9,26 @@
 */
 
 
-CREATE TABLE `poamtracking`.`user` (
+CREATE TABLE `cpat`.`user` (
    `userId` int NOT NULL AUTO_INCREMENT,
    `userName` varchar(20) NOT NULL,
    `userEmail` varchar(100) NOT NULL,
    `firstName` varchar(50) NOT NULL,
    `lastName` varchar(50) NOT NULL,
    `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-   `lastAccess` datetime DEFAULT NULL,
+   `lastAccess` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
    `lastCollectionAccessedId` int NOT NULL DEFAULT '0',
    `accountStatus` varchar(25) NOT NULL DEFAULT 'Pending',
+   `officeOrg` varchar(100) NOT NULL,
    `fullName` varchar(100) DEFAULT NULL,
    `defaultTheme` varchar(20) DEFAULT 'dark',
    `isAdmin` int NOT NULL DEFAULT '0',
    PRIMARY KEY (`userId`),
    UNIQUE KEY `userEmail_UNIQUE` (`userEmail`) USING BTREE,
    UNIQUE KEY `userName_UNIQUE` (`userName`)
- )
+ );
 
-CREATE TABLE `poamtracking`.`asset` (
+CREATE TABLE `cpat`.`asset` (
   `assetId` INT NOT NULL AUTO_INCREMENT,
   `assetName` VARCHAR(255) NOT NULL,
   `fullyQualifiedDomainName` VARCHAR(255) DEFAULT NULL,
@@ -36,48 +37,43 @@ CREATE TABLE `poamtracking`.`asset` (
   `ipAddress` VARCHAR(50) DEFAULT NULL,
   `macAddress` VARCHAR(50) DEFAULT NULL,
   `nonComputing` TINYINT(1) DEFAULT '0',
-  `metadata` JSON,
-  `state` ENUM('enabled', 'disabled'),
   `assetOrigin` VARCHAR(15) NULL DEFAULT 'C-PAT',
-  `stateDate` DATETIME,
-  `stateUserId` INT,
-  `isEnabled` TINYINT GENERATED ALWAYS AS (case when `state` = 'enabled' then 1 else NULL end),
-   PRIMARY KEY (`assetId`),
-   UNIQUE KEY `assetId_UNIQUE` (`assetId`) /*!80000 INVISIBLE */,
-   UNIQUE KEY `assetName_UNIQUE` (`assetName`) /*!80000 INVISIBLE */,
-   KEY `CollectionId` (`collectionId`)
- )
+  PRIMARY KEY (`assetId`),
+  UNIQUE KEY `assetId_UNIQUE` (`assetId`) /*!80000 INVISIBLE */,
+  KEY `CollectionId` (`collectionId`)
+);
 
-CREATE TABLE `poamtracking`.`poamassets` (
-   `poamId` int NOT NULL,
-   `assetId` int NOT NULL,
-   PRIMARY KEY (`poamId`,`assetId`),
-   KEY `poamAssetsAssetId` (`assetId`) /*!80000 INVISIBLE */,
-   KEY `poamAssetPoamId` (`poamId`)
- )
+CREATE TABLE `cpat`.`poamassets` (
+  `poamId` INT NOT NULL,
+  `assetId` INT NOT NULL,
+  PRIMARY KEY (`poamId`, `assetId`),
+  KEY `poamAssetsAssetId` (`assetId`) /*!80000 INVISIBLE */,
+  KEY `poamAssetPoamId` (`poamId`),
+  CONSTRAINT `fk_poamassets_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE
+);
   
-CREATE TABLE `poamtracking`.`poamassignees` (
+CREATE TABLE `cpat`.`poamassignees` (
    `poamId` int NOT NULL,
    `userId` int NOT NULL,
    PRIMARY KEY (`poamId`,`userId`),
    KEY `poamAssigneesPoamId` (`poamId`) /*!80000 INVISIBLE */,
    KEY `poamAssigneesUserId` (`userId`)
- )
+ );
   
-CREATE TABLE `poamtracking`.`assetlabels` (
+CREATE TABLE `cpat`.`assetlabels` (
    `assetId` int NOT NULL,
    `collectionId` int NOT NULL,
    `labelId` int NOT NULL,
    PRIMARY KEY (`assetId`,`labelId`)
- )
+ );
 
- CREATE TABLE `poamtracking`.`poamlabels` (
+ CREATE TABLE `cpat`.`poamlabels` (
    `poamId` int NOT NULL,
    `labelId` int NOT NULL,
    PRIMARY KEY (`poamId`,`labelId`)
- )
+ );
 
-  CREATE TABLE `poamtracking`.`poamlogs` (
+  CREATE TABLE `cpat`.`poamlogs` (
    `poamLogId` int NOT NULL AUTO_INCREMENT,
    `poamId` int NOT NULL,
    `userId` int NOT NULL,
@@ -86,16 +82,17 @@ CREATE TABLE `poamtracking`.`assetlabels` (
    PRIMARY KEY (`poamLogId`)
  );
 
-CREATE TABLE `poamtracking`.`label` (
+CREATE TABLE `cpat`.`label` (
    `labelId` int NOT NULL AUTO_INCREMENT,
    `collectionId` int NOT NULL,
    `description` varchar(255) DEFAULT NULL,
    `labelName` varchar(50) NOT NULL,
    `stigmanLabelId` varchar(36) DEFAULT NULL,
-   PRIMARY KEY (`labelId`)
+   PRIMARY KEY (`labelId`),
+   UNIQUE KEY `unique_label_collection` (`labelName`, `collectionId`)
  );
 
- CREATE TABLE `poamtracking`.`notification` (
+ CREATE TABLE `cpat`.`notification` (
   `notificationId` INT NOT NULL AUTO_INCREMENT,
   `userId` INT NOT NULL,
   `title` VARCHAR(255) NOT NULL,
@@ -106,7 +103,7 @@ CREATE TABLE `poamtracking`.`label` (
   KEY `userId` (`userId`)
 );
   
-CREATE TABLE `poamtracking`.`collectionpermissions` (
+CREATE TABLE `cpat`.`collectionpermissions` (
    `userId` int NOT NULL,
    `collectionId` int NOT NULL,
    `accessLevel` int NOT NULL,
@@ -115,7 +112,7 @@ CREATE TABLE `poamtracking`.`collectionpermissions` (
    KEY `collectionId` (`collectionId`)
  );
 
-CREATE TABLE `poamtracking`.`poamapprovers` (
+CREATE TABLE `cpat`.`poamapprovers` (
   `poamId` int NOT NULL,
   `userId` int NOT NULL,
   `approvalStatus` varchar(12) NOT NULL DEFAULT 'Not Reviewed',
@@ -124,7 +121,7 @@ CREATE TABLE `poamtracking`.`poamapprovers` (
   PRIMARY KEY (`poamId`,`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `poamtracking`.`poammilestones` (
+CREATE TABLE `cpat`.`poammilestones` (
   `milestoneId` INT NOT NULL AUTO_INCREMENT,
   `poamId` int NOT NULL,
   `milestoneDate` date DEFAULT NULL,
@@ -133,7 +130,7 @@ CREATE TABLE `poamtracking`.`poammilestones` (
   PRIMARY KEY (`milestoneId`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-  CREATE TABLE `poamtracking`.`poamextensionmilestones` (
+  CREATE TABLE `cpat`.`poamextensionmilestones` (
   `extensionMilestoneId` INT NOT NULL AUTO_INCREMENT,
   `poamId` int NOT NULL,
   `extensionMilestoneDate` date DEFAULT NULL,
@@ -142,26 +139,17 @@ CREATE TABLE `poamtracking`.`poammilestones` (
   PRIMARY KEY (`extensionMilestoneId`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
   
-CREATE TABLE `poamtracking`.`collection` (
+CREATE TABLE `cpat`.`collection` (
   `collectionId` INT NOT NULL AUTO_INCREMENT,
   `collectionName` VARCHAR(50) NOT NULL,
   `description` VARCHAR(255) DEFAULT NULL,
   `created` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `grantCount` INT DEFAULT '0',
   `assetCount` INT DEFAULT '0',
   `poamCount` INT DEFAULT '0',
-  `settings` JSON DEFAULT NULL,
-  `metadata` JSON DEFAULT NULL,
-  `state` ENUM('enabled', 'disabled', 'cloning'),
-  `createdUserId` INT DEFAULT NULL,
-  `stateDate` DATETIME DEFAULT NULL,
   `collectionOrigin` VARCHAR(15) NULL DEFAULT 'C-PAT',
-  `stateUserId` INT DEFAULT NULL,
-  `isEnabled` TINYINT GENERATED ALWAYS AS (case when `state` = 'enabled' then 1 else NULL end),
-  `isNameUnavailable` TINYINT GENERATED ALWAYS AS (case when ((`state` = 'cloning') or (`state` = 'enabled')) then 1 else NULL end),
    PRIMARY KEY (`collectionId`));
   
-CREATE TABLE `poamtracking`.`poam` (
+CREATE TABLE `cpat`.`poam` (
   `poamId` int NOT NULL AUTO_INCREMENT,
   `collectionId` int DEFAULT '0',
   `vulnerabilitySource` varchar(255) DEFAULT '',
@@ -181,32 +169,34 @@ CREATE TABLE `poamtracking`.`poam` (
   `submitterId` int NOT NULL DEFAULT '0',
   `mitigations` TEXT,
   `requiredResources` TEXT,
-  `residualRisk` TEXT,
+  `residualRisk` VARCHAR(25) NULL DEFAULT NULL,
   `notes` TEXT,
-  `status` char(10) NOT NULL DEFAULT 'Draft',
+  `status` char(20) NOT NULL DEFAULT 'Draft',
   `vulnIdRestricted` varchar(255) DEFAULT '',
-  `poamitemid` varchar(20) NOT NULL DEFAULT '0',
   `securityControlNumber` varchar(25) DEFAULT '',
   `officeOrg` varchar(100) DEFAULT '',
-  `emassStatus` varchar(15) DEFAULT 'Ongoing',
   `predisposingConditions` varchar(2000) DEFAULT '',
   `severity` varchar(25) NOT NULL DEFAULT '',
   `relevanceOfThreat` varchar(15) NOT NULL DEFAULT '',
   `threatDescription` varchar(255) DEFAULT '',
   `likelihood` varchar(15) NOT NULL DEFAULT '',
   `devicesAffected` varchar(255) NOT NULL DEFAULT '',
-  `businessImpactRating` varchar(25) DEFAULT '',
+  `businessImpactRating` varchar(15) DEFAULT '',
   `businessImpactDescription` varchar(2000) DEFAULT '',
   `extensionTimeAllowed` INT NULL DEFAULT '0',
   `extensionJustification` varchar(2000) DEFAULT '',
+  `emassStatus` varchar(15) DEFAULT 'Ongoing',
+  `emassPoamId` varchar(20) NOT NULL DEFAULT '0',
   PRIMARY KEY (`poamId`),
   UNIQUE KEY `poamID_UNIQUE` (`poamId`) /*!80000 INVISIBLE */,
+  UNIQUE KEY `emassPoamId_UNIQUE` (`emassPoamId`) /*!80000 INVISIBLE */,
   KEY `collectionId` (`collectionId`) /*!80000 INVISIBLE */,
   KEY `submitterId` (`submitterId`) /*!80000 INVISIBLE */
 ) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
   
 DELIMITER $$
+
 CREATE PROCEDURE daily_poam_status_update()
 BEGIN
     UPDATE poam 
@@ -217,15 +207,13 @@ BEGIN
         poamId > 0;
 END $$
 
-DELIMITER $$
 CREATE EVENT poam_expiration_check
 ON SCHEDULE EVERY 1 DAY 
 STARTS DATE_ADD(CURDATE(), INTERVAL 1 DAY) + INTERVAL 0 HOUR
 DO
 CALL daily_poam_status_update();
-END $$
+$$
 
-DELIMITER $$
 CREATE TRIGGER `after_asset_insert` 
 AFTER INSERT ON `asset` 
 FOR EACH ROW 
@@ -234,9 +222,7 @@ BEGIN
     SET `assetCount` = `assetCount` + 1
     WHERE `collectionId` = NEW.`collectionId`;
 END $$
-DELIMITER ;
 
-DELIMITER $$
 CREATE TRIGGER `after_asset_delete` 
 AFTER DELETE ON `asset` 
 FOR EACH ROW 
@@ -245,9 +231,7 @@ BEGIN
     SET `assetCount` = `assetCount` - 1
     WHERE `collectionId` = OLD.`collectionId`;
 END $$
-DELIMITER ;
 
-DELIMITER $$
 CREATE TRIGGER `after_asset_update` 
 AFTER UPDATE ON `asset` 
 FOR EACH ROW 
@@ -262,9 +246,7 @@ BEGIN
         WHERE `collectionId` = NEW.`collectionId`;
     END IF;
 END $$
-DELIMITER ;
 
-DELIMITER $$
 CREATE TRIGGER `after_poam_insert` 
 AFTER INSERT ON `POAM` 
 FOR EACH ROW 
@@ -273,9 +255,7 @@ BEGIN
     SET `poamCount` = `poamCount` + 1
     WHERE `collectionId` = NEW.`collectionId`;
 END $$
-DELIMITER ;
 
-DELIMITER $$
 CREATE TRIGGER `after_poam_delete` 
 AFTER DELETE ON `POAM` 
 FOR EACH ROW 
@@ -284,9 +264,7 @@ BEGIN
     SET `poamCount` = `poamCount` - 1
     WHERE `collectionId` = OLD.`collectionId`;
 END $$
-DELIMITER ;
 
-DELIMITER $$
 CREATE TRIGGER `after_poam_update` 
 AFTER UPDATE ON `POAM` 
 FOR EACH ROW 
@@ -301,43 +279,8 @@ BEGIN
         WHERE c.`collectionId` = NEW.`collectionId`;
     END IF;
 END $$
+
 DELIMITER ;
 
-DELIMITER $$
-CREATE TRIGGER after_collectionpermissions_insert
-AFTER INSERT ON collectionpermissions
-FOR EACH ROW
-BEGIN
-    UPDATE collection c
-    SET c.grantCount = (SELECT COUNT(*) FROM collectionpermissions WHERE collectionId = NEW.collectionId)
-    WHERE c.collectionId = NEW.collectionId;
-END $$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER after_collectionpermissions_delete
-AFTER DELETE ON collectionpermissions
-FOR EACH ROW
-BEGIN
-    UPDATE collection c
-    SET c.grantCount = (SELECT COUNT(*) FROM collectionpermissions WHERE collectionId = OLD.collectionId)
-    WHERE c.collectionId = OLD.collectionId;
-END $$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER `after_collectionpermissions_update` 
-AFTER UPDATE ON `collectionpermissions` 
-FOR EACH ROW 
-BEGIN
-    IF OLD.`collectionId` != NEW.`collectionId` THEN
-        UPDATE `collection` c
-        SET c.`grantCount` = c.`grantCount` - 1
-        WHERE c.`collectionId` = OLD.`collectionId`;
-        
-        UPDATE `collection` c
-        SET c.`grantCount` = c.`grantCount` + 1
-        WHERE c.`collectionId` = NEW.`collectionId`;
-    END IF;
-END $$
-DELIMITER ;
+INSERT INTO `cpat`.`collection` (`collectionName`, `description`, `collectionOrigin`) 
+VALUES ('eMASS', 'eMASS Imports', 'C-PAT');

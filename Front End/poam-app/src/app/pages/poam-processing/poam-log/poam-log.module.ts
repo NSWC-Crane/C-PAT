@@ -8,13 +8,13 @@
 !########################################################################
 */
 
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NbAutocompleteModule, NbButtonModule, NbCardModule, NbInputModule, NbSelectModule, NbThemeModule, NbTreeGridModule } from '@nebular/theme';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { PoamLogComponent } from './poam-log.component';
 import { PoamLogRoutingModule } from './poam-log.routing';
-import { NbButtonModule, NbCardModule, NbInputModule, NbThemeModule, NbSelectModule, NbAutocompleteModule, NbTreeGridModule } from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
-import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [

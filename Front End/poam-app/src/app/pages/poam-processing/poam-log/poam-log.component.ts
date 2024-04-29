@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbTreeGridDataSource, NbTreeGridDataSourceBuilder, NbDialogService } from '@nebular/theme';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedService } from '../../../Shared/shared.service';
@@ -34,7 +34,7 @@ interface FSEntry {
   templateUrl: './poam-log.component.html',
   styleUrls: ['./poam-log.component.scss']
 })
-export class PoamLogComponent implements OnInit {
+export class PoamLogComponent implements OnInit, AfterViewInit {
   customColumn = 'Timestamp';
   defaultColumns = ['User', 'Action'];
   allColumns = [this.customColumn, ...this.defaultColumns];
@@ -66,7 +66,7 @@ export class PoamLogComponent implements OnInit {
         this.fetchPoamLog(this.poamId);
       }
 
-      this.isLoggedIn = await this.keycloak.isLoggedIn();
+      this.isLoggedIn = this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
       }

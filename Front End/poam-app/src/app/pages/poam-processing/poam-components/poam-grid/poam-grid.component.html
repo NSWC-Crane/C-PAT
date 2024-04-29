@@ -13,7 +13,10 @@
   <nb-card-body>
     <div class="row">
       <div class="col">
-        <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search...">
+        <div class="toolbar" style="display: flex; justify-content: space-between; align-items: center;">
+          <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search..." style="flex-grow: 1; margin-right: 10px;">
+          <button nbButton ghost nbTooltip="Export filtered POAMs to .xlsx" nbTooltipStatus="basic" (click)="exportAll()"><nb-icon icon="download-outline"></nb-icon></button>
+        </div>
         <div class="table-container" (scroll)="onScroll($event)">
           <table class="poam-table" [nbTreeGrid]="dataSource">
             <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>

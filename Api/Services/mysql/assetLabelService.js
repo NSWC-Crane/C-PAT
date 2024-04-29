@@ -37,9 +37,9 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName 
-                FROM poamtracking.assetlabels t1 
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId 
-                INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId 
+                FROM cpat.assetlabels t1 
+                INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId 
+                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId 
                 WHERE t3.collectionId = ?
                 ORDER BY t3.labelName
             `;
@@ -68,9 +68,9 @@ exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, n
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName, t2.collectionId
-                FROM poamtracking.assetlabels t1 
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId 
-                INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId 
+                FROM cpat.assetlabels t1 
+                INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId 
+                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId 
                 WHERE t1.assetId = ? 
                 ORDER BY t3.labelName
             `;
@@ -104,9 +104,9 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, n
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName 
-                FROM poamtracking.assetlabels t1 
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId 
-                INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId 
+                FROM cpat.assetlabels t1 
+                INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId 
+                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId 
                 WHERE t1.labelId = ?
                 ORDER BY t3.labelName
             `;
@@ -148,9 +148,9 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName 
-                FROM poamtracking.assetlabels t1 
-                INNER JOIN poamtracking.asset t2 ON t1.assetId = t2.assetId 
-                INNER JOIN poamtracking.label t3 ON t1.labelId = t3.labelId 
+                FROM cpat.assetlabels t1 
+                INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId 
+                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId 
                 WHERE t1.assetId = ? AND t1.labelId = ?
                 ORDER BY t3.labelName
             `;
@@ -178,14 +178,14 @@ exports.postAssetLabel = async function postAssetLabel(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                INSERT INTO poamtracking.assetlabels (assetId, collectionId, labelId)
+                INSERT INTO cpat.assetlabels (assetId, collectionId, labelId)
                 VALUES (?, ?, ?)
             `;
             await connection.query(sql_query, [req.body.assetId, req.body.collectionId, req.body.labelId]);
 
             let sql = `
                 SELECT t1.assetId, t1.collectionId, t1.labelId
-                FROM poamtracking.assetlabels t1
+                FROM cpat.assetlabels t1
                 WHERE t1.assetId = ? AND t1.labelId = ?
             `;
             let [rowAssetLabel] = await connection.query(sql, [req.body.assetId, req.body.labelId]);
@@ -221,7 +221,7 @@ exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                DELETE FROM poamtracking.assetlabels 
+                DELETE FROM cpat.assetlabels 
                 WHERE assetId = ? AND labelId = ?
             `;
             await connection.query(sql, [req.params.assetId, req.params.labelId]);

@@ -8,22 +8,36 @@
 !########################################################################
 */
 
-import { NgModule } from '@angular/core';
 import { AsyncPipe, CommonModule, CurrencyPipe, DatePipe, DecimalPipe, PercentPipe } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
+import {
+  NbAlertModule,
+  NbButtonModule, NbCardModule,
+  NbDatepickerModule,
+  NbDialogModule, NbIconModule,
+  NbInputModule,
+  NbLayoutModule,
+  NbListModule,
+  NbProgressBarModule,
+  NbRadioModule,
+  NbSelectModule,
+  NbSidebarModule,
+  NbSpinnerModule,
+  NbThemeModule,
+  NbTreeGridModule,
+  NbWindowModule
+} from '@nebular/theme';
+import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { NotFoundComponent } from '../Shared/components/not-found/not-found.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
-import { StatusDialogComponent } from './components/status-dialog/status-dialog.component';
-import { NbButtonModule, NbCardModule, NbWindowModule, NbDialogModule, NbIconModule, NbLayoutModule,
-         NbProgressBarModule, NbSidebarModule, NbThemeModule, NbSelectModule, NbSpinnerModule, NbAlertModule, 
-         NbTreeGridModule, NbRadioModule, NbDatepickerModule, NbInputModule, NbListModule } from '@nebular/theme';
-import { NbEvaIconsModule } from '@nebular/eva-icons';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { SmartTableDatepickerComponent } from './components/smart-table/smart-table-datepicker.component';
-import { FormsModule } from '@angular/forms';
 import { SmartTableInputComponent } from './components/smart-table/smart-table-input.component';
-import { SmartTableTextareaComponent } from './components/smart-table/smart-table-textarea.component';
 import { SmartTableInputDisabledComponent } from './components/smart-table/smart-table-inputDisabled.component';
 import { SmartTableSelectComponent } from './components/smart-table/smart-table-select.component';
+import { SmartTableTextareaComponent } from './components/smart-table/smart-table-textarea.component';
+import { StatusDialogComponent } from './components/status-dialog/status-dialog.component';
 import { NotificationsPanelComponent } from './notifications/notifications-popover/notifications-popover.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 

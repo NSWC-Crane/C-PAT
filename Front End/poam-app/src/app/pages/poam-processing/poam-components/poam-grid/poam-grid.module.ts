@@ -8,11 +8,11 @@
 !########################################################################
 */
 
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NbTreeGridModule, NbIconModule, NbInputModule, NbButtonModule, NbCardModule } from '@nebular/theme';
-import { PoamGridComponent } from './poam-grid.component';
+import { NgModule } from '@angular/core';
+import { NbButtonModule, NbCardModule, NbIconModule, NbInputModule, NbTooltipModule, NbTreeGridModule } from '@nebular/theme';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
+import { PoamGridComponent } from './poam-grid.component';
 
 @NgModule({
   declarations: [PoamGridComponent],
@@ -22,6 +22,7 @@ import { InfiniteScrollModule } from 'ngx-infinite-scroll';
     NbIconModule,
     NbInputModule,
     NbButtonModule,
+    NbTooltipModule,
     NbCardModule,
     InfiniteScrollModule,
   ],

@@ -8,7 +8,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class PoamApproveService {
-  private uri = environment.apiEndpoint;
+  private url = environment.CPAT_API_URL;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -29,12 +29,12 @@ export class PoamApproveService {
 
 
   getPoamApprovers(id: string) {
-    return this.http.get<any>(`${this.uri}/poamApprovers/${id}`)
+    return this.http.get<any>(`${this.url}/poamApprovers/${id}`)
       .pipe(catchError(this.handleError));
   }
 
   updatePoamApprover(approver: any) {
     return this.http
-      .put<any>(`${this.uri}/poamApprover`, approver, this.httpOptions);
+      .put<any>(`${this.url}/poamApprover`, approver, this.httpOptions);
   }
 }

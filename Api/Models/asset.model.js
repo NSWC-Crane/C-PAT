@@ -30,32 +30,17 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TINYINT(1),
             defaultValue: '0',
         },
-        metadata: {
-            type: DataTypes.JSON,
-        },
-        state: {
-            type: DataTypes.ENUM('enabled', 'disabled'),
-        },
         assetOrigin: {
             type: DataTypes.STRING(15),
-        },
-        stateDate: {
-            type: DataTypes.DATE,
-        },
-        stateUserId: {
-            type: DataTypes.INTEGER,
-        },
-        isEnabled: {
-            type: DataTypes.VIRTUAL,
-            get() {
-                const state = this.getDataValue('state');
-                return state === 'enabled' ? 1 : 0;
-            }
         },
     }, {
         tableName: 'asset',
         timestamps: false,
     });
+
+    Asset.associate = function (models) {
+        Asset.hasMany(models.poamAsset, { foreignKey: 'assetId' });
+    };
 
     return Asset;
 };

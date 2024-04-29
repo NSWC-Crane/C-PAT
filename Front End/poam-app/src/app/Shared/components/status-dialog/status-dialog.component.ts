@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 
+
 @Component({
   selector: 'status-dialog',
   template: `
@@ -29,6 +30,7 @@ export class StatusDialogComponent implements OnInit, OnDestroy {
   countdownMessage: string = '';
   private intervalId: any;
 
+
   ngOnInit() {
     if (this.message) {
       this.startCountdown();
@@ -37,15 +39,15 @@ export class StatusDialogComponent implements OnInit, OnDestroy {
 
   startCountdown() {
     this.countdownMessage = `The page will refresh in ${this.countdown} seconds.`;
-    this.intervalId = setInterval(() => {
+    const intervalId = setInterval(() => {
       this.countdown -= 1;
       this.countdownMessage = `The page will refresh in ${this.countdown} seconds.`;
       if (this.countdown <= 0) {
-        clearInterval(this.intervalId);
-        window.location.reload();
+        clearInterval(intervalId);
       }
     }, 1000);
   }
+
 
   ngOnDestroy() {
     if (this.intervalId) {

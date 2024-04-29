@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { KeycloakService } from 'keycloak-angular';
@@ -16,10 +16,9 @@ import { KeycloakProfile } from 'keycloak-js';
 import { Observable, Subscription } from 'rxjs';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component';
-import { AuthService } from '../../auth';
-import { UsersService } from '../user-processing/users.service';
-import { LabelService } from './label.service';
 import { SharedService } from '../../Shared/shared.service';
+import { UsersService } from '../admin-processing/user-processing/users.service';
+import { LabelService } from './label.service';
 
 interface Permission {
   userId: number;
@@ -43,7 +42,7 @@ interface FSEntry {
   templateUrl: './label-processing.component.html',
   styleUrls: ['./label-processing.component.scss']
 })
-export class LabelProcessingComponent implements OnInit {
+export class LabelProcessingComponent implements OnInit, OnDestroy {
   customColumn = 'label';
   defaultColumns = [ 'Name', 'Description' ];
   allColumns = [ this.customColumn, ...this.defaultColumns ];
@@ -75,7 +74,6 @@ export class LabelProcessingComponent implements OnInit {
     private labelService: LabelService,
     private dialogService: NbDialogService,
     private router: Router,
-    private authService: AuthService,
     private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private sharedService: SharedService,
@@ -87,7 +85,7 @@ export class LabelProcessingComponent implements OnInit {
   }
 
   async ngOnInit() {
-      this.isLoggedIn = await this.keycloak.isLoggedIn();
+      this.isLoggedIn = this.keycloak.isLoggedIn();
       if (this.isLoggedIn) {
         this.userProfile = await this.keycloak.loadUserProfile();
         this.setPayload();
@@ -135,18 +133,18 @@ export class LabelProcessingComponent implements OnInit {
 
       this.data = result.sort((a: { labelId: number; }, b: { labelId: number; }) => a.labelId - b.labelId);
       this.labels = this.data;
-      this.getLabelsGrid("");
+      this.getLabelsGrid();
       this.isLoading = false;
     });
 
   }
 
-  getLabelsGrid(filter: string) {
-    let labelData = this.data;
+  getLabelsGrid() {
+    const labelData = this.data;
 
-    var treeViewData: TreeNode<FSEntry>[] = labelData.map((label: { labelId: number | any[]; labelName: any; 
+    const treeViewData: TreeNode<FSEntry>[] = labelData.map((label: { labelId: number | any[]; labelName: any; 
         description: any;}) => {
-      let myChildren: never[] = [];
+      const myChildren: never[] = [];
 
       return {
 
@@ -160,7 +158,7 @@ export class LabelProcessingComponent implements OnInit {
   setLabel(labelId: any) {
     this.label = null;
 
-    let selectedData = this.data.filter((label: { labelId: any; }) => label.labelId === labelId)
+    const selectedData = this.data.filter((label: { labelId: any; }) => label.labelId === labelId)
 
     this.label = selectedData[0];
     this.allowSelectLabels = false;

@@ -37,7 +37,7 @@ exports.getPoamExtensionMilestones = async function getPoamExtensionMilestones(p
         }
 
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM poamtracking.poamExtensionMilestones WHERE poamId = ?;";
+            let sql = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ?;";
             let [rows] = await connection.query(sql, [poamId]);
             var poamExtensionMilestones = rows.map(row => ({ ...row }));
             return { poamExtensionMilestones };
@@ -65,7 +65,7 @@ exports.postPoamExtensionMilestone = async function postPoamExtensionMilestone(p
         if (!requestBody.ExtensionMilestoneStatus) requestBody.ExtensionMilestoneStatus = null;
 
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO poamtracking.poamExtensionMilestones (poamId, ExtensionMilestoneDate, ExtensionMilestoneComments, ExtensionMilestoneStatus) VALUES (?, ?, ?, ?)`;
+            let sql_query = `INSERT INTO cpat.poamExtensionMilestones (poamId, ExtensionMilestoneDate, ExtensionMilestoneComments, ExtensionMilestoneStatus) VALUES (?, ?, ?, ?)`;
             await connection.query(sql_query, [
                 poamId,
                 requestBody.ExtensionMilestoneDate,
@@ -73,7 +73,7 @@ exports.postPoamExtensionMilestone = async function postPoamExtensionMilestone(p
                 requestBody.ExtensionMilestoneStatus,
             ]);
 
-            let sql = "SELECT * FROM poamtracking.poamExtensionMilestones WHERE poamId = ?";
+            let sql = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ?";
             let [rows] = await connection.query(sql, [poamId]);
 
             var poamExtensionMilestone = rows.map(row => ({ ...row }));
@@ -84,7 +84,7 @@ exports.postPoamExtensionMilestone = async function postPoamExtensionMilestone(p
 ExtensionMilestone Date: ${normalizeDate(requestBody.ExtensionMilestoneDate)}<br>
 ExtensionMilestone Comment: ${requestBody.ExtensionMilestoneComments}`;
 
-                let logSql = `INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
             }
             return { poamExtensionMilestone };
@@ -122,10 +122,10 @@ exports.putPoamExtensionMilestone = async function putPoamExtensionMilestone(poa
         if (!requestBody.ExtensionMilestoneStatus) requestBody.ExtensionMilestoneStatus = null;
 
         return await withConnection(async (connection) => {
-            let getExtensionMilestoneSql = "SELECT * FROM poamtracking.poamExtensionMilestones WHERE poamId = ? AND ExtensionMilestoneId = ?";
+            let getExtensionMilestoneSql = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ? AND ExtensionMilestoneId = ?";
             let [existingExtensionMilestone] = await connection.query(getExtensionMilestoneSql, [poamId, ExtensionMilestoneId]);
 
-            let sql_query = `UPDATE poamtracking.poamExtensionMilestones SET ExtensionMilestoneDate = ?, ExtensionMilestoneComments = ?, ExtensionMilestoneStatus = ? WHERE poamId = ? AND ExtensionMilestoneId = ?`;
+            let sql_query = `UPDATE cpat.poamExtensionMilestones SET ExtensionMilestoneDate = ?, ExtensionMilestoneComments = ?, ExtensionMilestoneStatus = ? WHERE poamId = ? AND ExtensionMilestoneId = ?`;
             await connection.query(sql_query, [
                 requestBody.ExtensionMilestoneDate,
                 requestBody.ExtensionMilestoneComments,
@@ -134,7 +134,7 @@ exports.putPoamExtensionMilestone = async function putPoamExtensionMilestone(poa
                 ExtensionMilestoneId,
             ]);
 
-            sql_query = "SELECT * FROM poamtracking.poamExtensionMilestones WHERE poamId = ?;";
+            sql_query = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ?;";
             let [rows] = await connection.query(sql_query, [poamId]);
 
             var poamExtensionMilestone = rows.map(row => ({ ...row }));
@@ -160,7 +160,7 @@ New ExtensionMilestone Status: ${requestBody.ExtensionMilestoneStatus}`);
 
                 let action = actionParts.join("<br>");
 
-                let logSql = `INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
             }
             return { poamExtensionMilestone };
@@ -194,7 +194,7 @@ exports.deletePoamExtensionMilestone = async function deletePoamExtensionMilesto
         }
 
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM poamtracking.poamExtensionMilestones WHERE poamId= ? AND ExtensionMilestoneId = ?";
+            let sql = "DELETE FROM cpat.poamExtensionMilestones WHERE poamId= ? AND ExtensionMilestoneId = ?";
             await connection.query(sql, [poamId, ExtensionMilestoneId]);
 
             let action = `ExtensionMilestone Deleted.`;
@@ -205,7 +205,7 @@ exports.deletePoamExtensionMilestone = async function deletePoamExtensionMilesto
                 else {
                     action = `POAM ExtensionMilestone deleted.`;
                 }
-                let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [poamId, action, requestBody.requestorId]);
             }
             return {};

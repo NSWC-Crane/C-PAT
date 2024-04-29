@@ -8,12 +8,12 @@
 !########################################################################
 */
 
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { TenableImportComponent } from './tenable-import.component';
+import { NbButtonModule, NbCardModule, NbIconModule, NbInputModule, NbLayoutModule, NbSelectModule, NbSpinnerModule, NbTooltipModule } from '@nebular/theme';
 import { SharedModule } from '../../../Shared/shared.module';
-import { NbButtonModule, NbInputModule, NbCardModule, NbLayoutModule, NbSpinnerModule, NbSelectModule, NbIconModule, NbTooltipModule } from '@nebular/theme';
+import { TenableImportComponent } from './tenable-import.component';
 import { TenableImportRoutingModule } from './tenable-import.routing';
 
 @NgModule({

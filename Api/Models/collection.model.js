@@ -16,10 +16,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,
         },
-        grantCount: {
-            type: DataTypes.INTEGER,
-            defaultValue: '0',
-        },
         assetCount: {
             type: DataTypes.INTEGER,
             defaultValue: '0',
@@ -28,38 +24,8 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             defaultValue: '0',
         },
-        settings: {
-            type: DataTypes.JSON,
-        },
-        metadata: {
-            type: DataTypes.JSON,
-        },
-        state: {
-            type: DataTypes.ENUM('enabled', 'disabled'),
-        },
         collectionOrigin: {
             type: DataTypes.STRING(15),
-        },
-        createdUserId: {
-            type: DataTypes.INTEGER,
-        },
-        stateDate: {
-            type: DataTypes.DATE,
-        },
-        stateUserId: {
-            type: DataTypes.INTEGER,
-        },
-        isEnabled: {
-            type: DataTypes.VIRTUAL,
-            get() {
-                return this.getDataValue('state') === 'enabled';
-            }
-        },
-        isNameUnavailable: {
-            type: DataTypes.VIRTUAL,
-            get() {
-                return this.getDataValue('state') === 'cloning' || this.getDataValue('state') === 'enabled';
-            }
         },
     }, {
         tableName: 'collection',

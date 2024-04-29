@@ -27,9 +27,9 @@ exports.getPoamAssignees = async function getPoamAssignees() {
     return await withConnection(async (connection) => {
         let sql = `
             SELECT t1.userId, t2.fullName, t1.poamId, t3.status
-            FROM poamtracking.poamassignees t1
-            INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId
-            INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
+            FROM cpat.poamassignees t1
+            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
+            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
             ORDER BY t2.fullName
         `;
         let [rowPoamAssignees] = await connection.query(sql);
@@ -51,9 +51,9 @@ exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(poamI
     return await withConnection(async (connection) => {
         let sql = `
             SELECT t1.userId, t2.firstName, t2.lastName, t2.fullName, t2.userEmail, t1.poamId, t3.status
-            FROM poamtracking.poamassignees t1
-            INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId
-            INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
+            FROM cpat.poamassignees t1
+            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
+            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
             WHERE t1.poamId = ?
             ORDER BY t2.fullName
         `;
@@ -76,9 +76,9 @@ exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(req, 
     return await withConnection(async (connection) => {
         let sql = `
             SELECT t1.userId, t2.fullName, t1.poamId, t3.status
-            FROM poamtracking.poamassignees t1
-            INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId
-            INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
+            FROM cpat.poamassignees t1
+            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
+            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
             WHERE t1.userId = ?
             ORDER BY t2.fullName
         `;
@@ -104,9 +104,9 @@ exports.getPoamAssignee = async function getPoamAssignee(req, res, next) {
     return await withConnection(async (connection) => {
         let sql = `
             SELECT t1.userId, t2.fullName, t1.poamId, t3.status
-            FROM poamtracking.poamassignees t1
-            INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId
-            INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId
+            FROM cpat.poamassignees t1
+            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
+            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
             WHERE t1.userId = ? AND t1.poamId = ?
             ORDER BY t2.fullName
         `;
@@ -133,23 +133,23 @@ exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
 
     return await withConnection(async (connection) => {
         try {
-            let fetchSql = "SELECT poamId, userId FROM poamtracking.poamassignees WHERE userId = ? AND poamId = ?";
+            let fetchSql = "SELECT poamId, userId FROM cpat.poamassignees WHERE userId = ? AND poamId = ?";
             const [existingAssignee] = await connection.query(fetchSql, [req.body.userId, req.body.poamId]);
 
             if (existingAssignee.length > 0) {
                 return existingAssignee[0];
             }
 
-            let addSql = "INSERT INTO poamtracking.poamassignees (poamId, userId) VALUES (?, ?)";
+            let addSql = "INSERT INTO cpat.poamassignees (poamId, userId) VALUES (?, ?)";
             await connection.query(addSql, [req.body.poamId, req.body.userId]);
 
-            let userSql = "SELECT fullName FROM poamtracking.user WHERE userId = ?";
+            let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
             const [user] = await connection.query(userSql, [req.body.userId]);
             const fullName = user[0] ? user[0].fullName : "Unknown User";
 
             if (req.body.poamLog[0].userId) {
                 let action = `${fullName} was added to the Assignee List.`;
-                let logSql = "INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
             }
 
@@ -158,10 +158,10 @@ exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
                 message: `You have been added as an Assignee for POAM ${req.body.poamId}.`,
                 userId: req.body.userId
             };
-            const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+            const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
             await connection.query(notificationSql, [req.body.userId, notification.title, notification.message]);
 
-            let fetchNewSql = "SELECT poamId, userId FROM poamtracking.poamassignees WHERE userId = ? AND poamId = ?";
+            let fetchNewSql = "SELECT poamId, userId FROM cpat.poamassignees WHERE userId = ? AND poamId = ?";
             const [newAssignee] = await connection.query(fetchNewSql, [req.body.userId, req.body.poamId]);
 
             if (newAssignee.length > 0) {
@@ -172,7 +172,7 @@ exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY') {
                 return await withConnection(async (connection) => {
-                    let fetchSql = "SELECT poamId, userId FROM poamtracking.poamassignees WHERE userId = ? AND poamId = ?";
+                    let fetchSql = "SELECT poamId, userId FROM cpat.poamassignees WHERE userId = ? AND poamId = ?";
                     const [existingAssignee] = await connection.query(fetchSql, [req.body.userId, req.body.poamId]);
                     return existingAssignee[0];
                 });
@@ -194,16 +194,16 @@ exports.deletePoamAssignee = async function deletePoamAssignee(req, res, next) {
     }
 
     await withConnection(async (connection) => {
-        const userSql = "SELECT fullName FROM poamtracking.user WHERE userId = ?";
+        const userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
         const [user] = await connection.query(userSql, [req.params.userId]);
         const fullName = user[0] ? user[0].fullName : "Unknown User";
 
-        let sql = "DELETE FROM poamtracking.poamassignees WHERE userId = ? AND poamId = ?";
+        let sql = "DELETE FROM cpat.poamassignees WHERE userId = ? AND poamId = ?";
         await connection.query(sql, [req.params.userId, req.params.poamId]);
 
         if (req.body.requestorId) {
             let action = `${fullName} was removed from the Assignee List.`;
-            let logSql = `INSERT INTO poamtracking.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
             await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
         }
 
@@ -212,7 +212,7 @@ exports.deletePoamAssignee = async function deletePoamAssignee(req, res, next) {
             message: `You have been removed from the Assignee list for POAM ${req.params.poamId}.`,
             userId: req.params.userId
         };
-        const notificationSql = `INSERT INTO poamtracking.notification (userId, title, message) VALUES (?, ?, ?)`;
+        const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
         await connection.query(notificationSql, [req.params.userId, notification.title, notification.message]);
     });
 };

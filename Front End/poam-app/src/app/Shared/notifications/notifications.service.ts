@@ -8,18 +8,17 @@
 !########################################################################
 */
 
-import { Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { throwError } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
-  private uri = environment.apiEndpoint;
+  private url = environment.CPAT_API_URL;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -40,37 +39,37 @@ export class NotificationService {
   }
 
   getAllNotificationsByUserId(userId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.uri}/notifications/all/${userId}`)
+    return this.http.get<any[]>(`${this.url}/notifications/all/${userId}`)
       .pipe(catchError(this.handleError));
   }
 
   getUnreadNotificationsByUserId(userId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.uri}/notifications/unread/${userId}`)
+    return this.http.get<any[]>(`${this.url}/notifications/unread/${userId}`)
       .pipe(catchError(this.handleError));
   }
 
   getUnreadNotificationCountByUserId(userId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.uri}/notifications/unread/count/${userId}`)
+    return this.http.get<any[]>(`${this.url}/notifications/unread/count/${userId}`)
       .pipe(catchError(this.handleError));
   }
 
   dismissNotificationByNotificationId(notificationId: number): Observable<any> {
-    return this.http.put<any>(`${this.uri}/notifications/dismiss/${notificationId}`, null, this.httpOptions)
+    return this.http.put<any>(`${this.url}/notifications/dismiss/${notificationId}`, null, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   dismissAllNotificationsByUserId(userId: number): Observable<any> {
-    return this.http.put<any>(`${this.uri}/notifications/all/dismiss/${userId}`, null, this.httpOptions)
+    return this.http.put<any>(`${this.url}/notifications/all/dismiss/${userId}`, null, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
   deleteNotificationByNotificationId(notificationId: number): Observable<any> {
-    return this.http.delete<any>(`${this.uri}/notifications/delete/${notificationId}`)
+    return this.http.delete<any>(`${this.url}/notifications/delete/${notificationId}`)
       .pipe(catchError(this.handleError));
   }
 
   deleteAllNotificationsByUserId(userId: number): Observable<any> {
-    return this.http.delete<any>(`${this.uri}/notifications/all/delete/${userId}`)
+    return this.http.delete<any>(`${this.url}/notifications/all/delete/${userId}`)
       .pipe(catchError(this.handleError));
   }
 }

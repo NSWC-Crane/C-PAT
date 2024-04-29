@@ -8,12 +8,12 @@
 !########################################################################
 */
 
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { STIGManagerImportComponent } from './stigmanager-import.component';
+import { NbButtonModule, NbCardModule, NbIconModule, NbInputModule, NbLayoutModule, NbSelectModule, NbSpinnerModule, NbTabsetModule, NbTooltipModule, NbTreeGridModule } from '@nebular/theme';
 import { SharedModule } from '../../../Shared/shared.module';
-import { NbButtonModule, NbInputModule, NbCardModule, NbLayoutModule, NbSpinnerModule, NbSelectModule, NbIconModule, NbTooltipModule, NbTreeGridModule, NbTabsetModule } from '@nebular/theme';
+import { STIGManagerImportComponent } from './stigmanager-import.component';
 import { STIGManagerImportRoutingModule } from './stigmanager-import.routing';
 
 @NgModule({
