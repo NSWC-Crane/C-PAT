@@ -47,6 +47,20 @@ module.exports.getUserByUserID = async function getUserByUserID(req, res, next) 
     }
 };
 
+module.exports.getBasicUserByUserID = async function getBasicUserByUserID(req, res, next) {
+    try {
+        const userId = req.params.userId;
+        const user = await userService.getBasicUserByUserID(userId);
+        res.status(200).json(user);
+    } catch (error) {
+        if (error.message === "User not found") {
+            res.status(200).json(user);
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
+
 module.exports.updateUser = async function updateUser(req, res, next) {
     try {
         const userId = req.body.userId;

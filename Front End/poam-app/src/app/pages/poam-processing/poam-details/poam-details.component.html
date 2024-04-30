@@ -208,7 +208,7 @@
               <nb-step label="Approvers">
                 <div class="col">
                   <angular2-smart-table [settings]="poamApproverSettings" [source]="poamApprovers" mode="inline"
-                                        (createConfirm)="confirmCreateApprover($event)" (editConfirm)="confirmEditApprover($event)" (deleteConfirm)="confirmDeleteApprover($event)">
+                                        (createConfirm)="confirmCreateApprover($event)" (deleteConfirm)="confirmDeleteApprover($event)">
                   </angular2-smart-table>
                 </div>
                 <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>

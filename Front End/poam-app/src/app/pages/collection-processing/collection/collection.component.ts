@@ -54,25 +54,23 @@ export class CollectionComponent implements OnDestroy {
       description: this.collection.description,
       assetCount: this.collection.assetCount,
       poamCount: this.collection.poamCount,
-    }
+    };
 
     if (collection.collectionId == "ADDCOLLECTION") {
       delete collection.collectionId;
 
       this.subs.sink = this.collectionService.addCollection(collection).subscribe(
         data => {
-          this.collectionchange.emit(data.collectionId);
+          this.collectionchange.emit('submit');
         }, () => {
-
           this.invalidData("Unexpected error while adding Collection.");
         }
       );
-
     } else {
       this.collectionService.updateCollection(collection).subscribe(data => {
         this.collection = data;
+        this.collectionchange.emit('submit');
       });
-      this.collectionchange.emit();
     }
   }
 
@@ -81,8 +79,8 @@ export class CollectionComponent implements OnDestroy {
   }
 
   resetData() {
-    this.collection.collectionId = "COLLECTION";
-    this.collectionchange.emit();
+    this.collection.collectionId = "ADDCOLLECTION";
+    this.collectionchange.emit('submit');
   }
 
   addCollection() {

@@ -242,7 +242,7 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res,
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
-                    WHERE userId = ? AND accessLevel = 3
+                    WHERE userId = ? AND accessLevel >= 3
                 `, [userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
@@ -287,7 +287,7 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res,
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
-                    WHERE userId = ? AND accessLevel = 3
+                    WHERE userId = ? AND accessLevel >= 3
                 `, [userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
@@ -343,7 +343,7 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
                 const [permissionRows] = await connection.query(`
           SELECT collectionId
           FROM cpat.collectionpermissions
-          WHERE userId = ? AND accessLevel = 3
+          WHERE userId = ? AND accessLevel >= 3
         `, [userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
@@ -407,7 +407,7 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res, n
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
-                    WHERE userId = ? AND accessLevel = 3
+                    WHERE userId = ? AND accessLevel >= 3
                 `, [userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
@@ -455,7 +455,7 @@ exports.getAvailableCollectionPoamCounts = async function getAvailableCollection
             if (!isAdmin) {
                 sql += `
           INNER JOIN cpat.collectionpermissions cp ON c.collectionId = cp.collectionId
-          WHERE cp.userId = ? AND cp.accessLevel = 3
+          WHERE cp.userId = ? AND cp.accessLevel >= 3
         `;
                 params.push(userId);
             }
@@ -492,7 +492,7 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, 
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
-                    WHERE userId = ? AND accessLevel = 3
+                    WHERE userId = ? AND accessLevel >= 3
                 `, [userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
@@ -537,7 +537,7 @@ exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoam
                 const [permissionRows] = await connection.query(`
           SELECT collectionId
           FROM cpat.collectionpermissions
-          WHERE userId = ? AND accessLevel = 3
+          WHERE userId = ? AND accessLevel >= 3
         `, [userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
@@ -591,7 +591,7 @@ exports.getAvailablePoamEstimatedCompletion = async function getAvailablePoamEst
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
-                    WHERE userId = ? AND accessLevel = 3
+                    WHERE userId = ? AND accessLevel >= 3
                 `, [userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);

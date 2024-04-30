@@ -102,6 +102,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           return row.value == 1 ? 'Viewer' :
                  row.value === 2 ? 'Submitter' :
                  row.value === 3 ? 'Approver' :
+                 row.value === 4 ? 'CAT-I Approver' :
                  'none';
         },
         editor: {
@@ -112,6 +113,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
               { value: '1', title: 'Viewer' },
               { value: '2', title: 'Submitter' },
               { value: '3', title: 'Approver' },
+              { value: '4', title: 'CAT-I Approver' },
             ],
           },
         },

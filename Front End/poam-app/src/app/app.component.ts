@@ -308,9 +308,10 @@ export class AppComponent implements OnInit, OnDestroy {
       myRole = 'none'
     } else {
       myRole = (this.user.isAdmin) ? 'admin' :
-        (selectedPermissions.accessLevel === 1) ? 'approver' :
+        (selectedPermissions.accessLevel === 1) ? 'viewer' :
           (selectedPermissions.accessLevel === 2) ? 'submitter' :
-            (selectedPermissions.accessLevel === 3) ? 'viewer' :
+            (selectedPermissions.accessLevel === 3) ? 'approver' :
+              (selectedPermissions.accessLevel === 4) ? 'cat1approver' :
               'none';
     }
 

@@ -63,6 +63,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   collections: any;
   collection: any = {};
   data: any = [];
+  showSelect: boolean = true;
   canModifyCollection = false;
   isLoading = true;
   selected: any;
@@ -113,7 +114,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   setPayload() {
     this.user = null;
     this.payload = null;
-
+    this.showSelect = true;
     this.subs.sink = this.userService.getCurrentUser().subscribe(
       (response: any) => {
         if (response && response.userId) {
@@ -200,6 +201,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   }
 
   setCollection(collectionId: any) {
+    this.showSelect = false;
     this.collection = null;
     this.poams = [];
     const selectedData = this.data.filter(
@@ -249,11 +251,17 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     }
   }
 
+  onCollectionChange(event: any) {
+    if (event === 'submit') {
+      this.resetData();
+    }
+  }
 
   resetData() {
-    this.collection = [];
-    this.getCollectionData();
+    this.collection = {};
     this.collection.collectionId = 'COLLECTION';
+    this.getCollectionData();
+    this.showSelect = true;
   }
 
   addCollection() {

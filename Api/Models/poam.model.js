@@ -118,11 +118,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(255),
             defaultValue: ''
         },
-        devicesAffected: {
-            type: DataTypes.STRING(255),
-            allowNull: false,
-            defaultValue: ''
-        },
         likelihood: {
             type: DataTypes.STRING(15),
             defaultValue: ''

@@ -12,10 +12,10 @@
 @import '@nebular/theme/styles/themes';
 
 ::ng-deep angular2-smart-table table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 1px solid nb-theme(border-basic-color-3);
-  }
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid nb-theme(border-basic-color-3);
+}
 
 ::ng-deep angular2-smart-table-pager .angular2-smart-page-item .angular2-smart-page-link {
   background-color: nb-theme(background-basic-color-2);

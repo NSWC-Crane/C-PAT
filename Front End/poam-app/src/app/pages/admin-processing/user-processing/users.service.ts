@@ -79,7 +79,12 @@ export class UsersService {
 		return this.http
 					.get(`${this.url}/permissions/user/${id}`)
 					.pipe(catchError(this.handleError));
-	}
+  }
+
+  getBasicUserByUserId(userId: any) {
+    return this.http.get(`${this.url}/user/basic/${userId}`, this.httpOptions)
+      .pipe(catchError(this.handleError));
+  }
 
 	updateUser(userData: any) {
 		const user = { userId: userData.userId,
