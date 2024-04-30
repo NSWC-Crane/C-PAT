@@ -26,7 +26,9 @@ export class PoamGridComponent implements OnChanges {
   displayedData: any[] = [];
   batchSize = 20;
 
-  constructor(private router: Router, private dataSourceBuilder: NbTreeGridDataSourceBuilder<any>) {
+  constructor(
+    private router: Router,
+    private dataSourceBuilder: NbTreeGridDataSourceBuilder<any>) {
     this.dataSource = this.dataSourceBuilder.create([]);
   }
 

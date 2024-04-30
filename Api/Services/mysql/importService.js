@@ -198,8 +198,7 @@ async function processPoamWorksheet(worksheet, userId) {
             await updateMilestones(poamId, poamEntry.milestoneChanges);
         }
 
-        const devicesString = poamEntry.devicesAffected && poamEntry.devicesAffected.toString();
-        const devices = devicesString ? devicesString.split(/[,\s]+/) : [];
+        const devices = poamEntry.devicesAffected ? poamEntry.devicesAffected.split(/[,\s]+/) : [];
 
         const existingPoamAssets = await db.poamAsset.findAll({
             where: { poamId: poamId },

@@ -3720,6 +3720,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+
+  '/user/basic/{userId}':
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - User
+      security:
+        - oauth:
+            - 'c-pat:read'        
+      summary: Return basic user information by userId
+      operationId: getBasicUserByUserID
+      responses:
+        '200':
+          description: Basic user response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/basic_user'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
                 
   '/user/loginout':
     put:
@@ -4074,12 +4103,6 @@ components:
         comments:
           type: string
           nullable: true
-        firstName:
-          type: string
-        lastName:
-          type: string
-        userEmail:
-          type: string
 
     poamAssignee_Object:
       type: object
@@ -4223,7 +4246,11 @@ components:
         approvers:
           type: array
           items:
-            $ref: '#/components/schemas/poamApprover_Object'
+            type: object
+            properties:
+              userId:
+                type: integer
+            additionalProperties: true
         assignees:
           type: array
           items:
@@ -4490,6 +4517,9 @@ components:
           type: string
           maxLength: 255
           readOnly: true
+        officeOrg:
+          type: string
+          maxLength: 100
         isAdmin:
           type: integer
         created:
@@ -4498,6 +4528,35 @@ components:
         lastAccess:
           type: string
           format: date
+
+    basic_user:
+      type: object
+      required:
+        - userId
+        - userEmail
+        - fullName
+      additionalProperties: true
+      properties:
+        userId:
+          type: integer
+          readOnly: true
+        userEmail:
+          type: string
+          readOnly: true
+        firstName:
+          type: string
+          maxLength: 50
+          readOnly: true
+        lastName:
+          type: string
+          maxLength: 50
+        fullName:
+          type: string
+          maxLength: 255
+          readOnly: true
+        officeOrg:
+          type: string
+          maxLength: 100
 
     current_user_Response:
       type: object

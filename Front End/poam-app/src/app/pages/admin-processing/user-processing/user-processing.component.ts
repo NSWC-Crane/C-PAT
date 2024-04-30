@@ -153,6 +153,8 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
             accessLevelDisplay = 'Submitter';
           } else if (permission.accessLevel === 3) {
             accessLevelDisplay = 'Approver';
+          } else if (permission.accessLevel === 4) {
+            accessLevelDisplay = 'CAT-I Approver';
           }
 
           tchild.push({

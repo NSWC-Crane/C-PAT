@@ -151,6 +151,33 @@ exports.getUserByUserID = async function getUserByUserID(userId) {
     }
 };
 
+exports.getBasicUserByUserID = async function getBasicUserByUserID(userId) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = "SELECT * FROM user WHERE userId = ?";
+            const [userRows] = await connection.query(sql, [userId]);
+
+            if (userRows.length === 0) {
+                throw new Error("User not found");
+            }
+
+            const user = userRows[0];
+
+            return {
+                userId: user.userId,
+                userEmail: user.userEmail,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                fullName: user.fullName,
+                officeOrg: user.officeOrg,
+            };
+        });
+    } catch (error) {
+        console.error('Error in getUser:', error);
+        throw error;
+    }
+};
+
 exports.updateUser = async function updateUser(userId, userData) {
     try {
         return await withConnection(async (connection) => {

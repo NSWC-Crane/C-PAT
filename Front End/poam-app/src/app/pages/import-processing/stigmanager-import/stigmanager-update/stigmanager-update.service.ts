@@ -70,8 +70,7 @@ export class PoamAssetUpdateService {
           return of(null);
         })
       ).subscribe(
-        (result) => {
-          console.log('POAM Asset update completed:', result);
+        () => {
         },
         (error) => {
           console.error('Error in POAM Asset update:', error);

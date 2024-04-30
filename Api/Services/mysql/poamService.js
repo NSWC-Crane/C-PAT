@@ -261,17 +261,27 @@ exports.postPoam = async function postPoam(req) {
 
     let sql_query = `INSERT INTO cpat.poam (collectionId, vulnerabilitySource, stigTitle, stigBenchmarkId, stigCheckData,
                     iavmNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate, scheduledCompletionDate,
-                    submitterId, predisposingConditions, mitigations, requiredResources, residualRisk, likelihood, relevanceOfThreat, businessImpactRating,
-                    businessImpactDescription, notes, status, vulnIdRestricted, submittedDate, closedDate)
-                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    submitterId, officeOrg, predisposingConditions, mitigations, requiredResources, residualRisk, likelihood, relevanceOfThreat,
+                    businessImpactRating, businessImpactDescription, notes, status, vulnIdRestricted, submittedDate, closedDate)
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     try {
         return await withConnection(async (connection) => {
+            if (!req.body.officeOrg) {
+                let userSql = "SELECT officeOrg, fullName, userEmail FROM cpat.user WHERE userId = ?";
+                let [userRows] = await connection.query(userSql, [req.body.submitterId]);
+
+                if (userRows.length > 0) {
+                    const { officeOrg, fullName, userEmail } = userRows[0];
+                    req.body.officeOrg = `${officeOrg}, ${fullName}, ${userEmail}`;
+                }
+            }
+
             await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
             req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity, req.body.iavComplyByDate,
-            req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions, req.body.mitigations, req.body.requiredResources, req.body.residualRisk,
-            req.body.likelihood, req.body.relevanceOfThreat, req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status,
-            req.body.vulnIdRestricted, req.body.submittedDate, req.body.closedDate]);
+            req.body.scheduledCompletionDate, req.body.submitterId, req.body.officeOrg, req.body.predisposingConditions, req.body.mitigations, req.body.requiredResources,
+            req.body.residualRisk, req.body.likelihood, req.body.relevanceOfThreat, req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes,
+            req.body.status, req.body.vulnIdRestricted, req.body.submittedDate, req.body.closedDate]);
 
             let sql = "SELECT * FROM cpat.poam WHERE poamId = LAST_INSERT_ID();";
             let [rowPoam] = await connection.query(sql);
@@ -291,6 +301,18 @@ exports.postPoam = async function postPoam(req) {
                         return { status: 400, errors: { "assignees.userId": "is required" } };
                     }
                     let sql_query = `INSERT INTO cpat.poamassignees (poamId, userId) values (?, ?)`;
+                    await connection.query(sql_query, [poam.poamId, user.userId]);
+                }
+            }
+
+            if (req.body.approvers) {
+                let approvers = req.body.approvers;
+                for (let user of approvers) {
+                    if (!user.userId) {
+                        console.info(`postPoam approver userId not provided.`);
+                        return { status: 400, errors: { "approvers.userId": "is required" } };
+                    }
+                    let sql_query = `INSERT INTO cpat.poamapprovers (poamId, userId) values (?, ?)`;
                     await connection.query(sql_query, [poam.poamId, user.userId]);
                 }
             }
@@ -388,18 +410,30 @@ exports.putPoam = async function putPoam(req, res, next) {
                 iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate) || null,
             };
 
-            const sqlInsertPoam = `UPDATE cpat.poam SET collectionId = ?, vulnerabilitySource = ?, stigTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
-                            iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
-                            iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
-                            residualRisk = ?, likelihood = ?, relevanceOfThreat = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?,
-                            vulnIdRestricted = ?, submittedDate = ?, closedDate = ?  WHERE poamId = ?`
+            if (!req.body.officeOrg) {
+                let userSql = "SELECT officeOrg, fullName, userEmail FROM cpat.user WHERE userId = ?";
+                let [userRows] = await connection.query(userSql, [req.body.submitterId]);
 
-            await connection.query(sqlInsertPoam, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId,
-            req.body.stigCheckData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
-            req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions,
-            req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.relevanceOfThreat,
-            req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.vulnIdRestricted,
-            req.body.submittedDate, req.body.closedDate, req.body.poamId]);
+                if (userRows.length > 0) {
+                    const { officeOrg, fullName, userEmail } = userRows[0];
+                    req.body.officeOrg = `${officeOrg}, ${fullName}, ${userEmail}`;
+                }
+            }
+
+            const sqlInsertPoam = `UPDATE cpat.poam SET collectionId = ?, vulnerabilitySource = ?, stigTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
+                      iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
+                      iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
+                      residualRisk = ?, likelihood = ?, relevanceOfThreat = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?,
+                      vulnIdRestricted = ?, submittedDate = ?, closedDate = ?, officeOrg = ?  WHERE poamId = ?`;
+
+            await connection.query(sqlInsertPoam, [
+                req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId,
+                req.body.stigCheckData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
+                req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions,
+                req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.relevanceOfThreat,
+                req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.vulnIdRestricted,
+                req.body.submittedDate, req.body.closedDate, req.body.officeOrg, req.body.poamId
+            ]);
 
             const [updatedPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.body.poamId]);
             var updatedPoam = updatedPoamRow.map(row => ({
@@ -416,7 +450,7 @@ exports.putPoam = async function putPoam(req, res, next) {
 
                 const modifiedFields = Object.keys(req.body).filter(field => {
                     return !['poamId', 'collectionId', 'emassPoamId', 'securityControlNumber', 'officeOrg', 'poamLog', 'emassStatus',
-                        'severity', 'threatDescription', 'devicesAffected', 'extensionTimeAllowed', 'extensionJustification'].includes(field) &&
+                        'severity', 'threatDescription', 'extensionTimeAllowed', 'extensionJustification'].includes(field) &&
                         req.body[field] !== undefined &&
                         req.body[field] !== existingPoamNormalized[field];
                 });

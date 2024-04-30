@@ -42,7 +42,7 @@
     <nb-card>
       <nb-card-header>Select Collection to Modify/Delete</nb-card-header>
       <nb-card-body>
-        <div class="row">
+        <div class="row" *ngIf="showSelect">
           <div class="col-md-5" style="width: auto;">
             <nb-form-field>
               <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
@@ -79,7 +79,7 @@
           <div class="col-md-5" style="width: auto;">
             <nb-form-field>
               <nb-icon nbPrefix icon="download-outline"></nb-icon>
-              <nb-select [(ngModel)]="exportCollectionId" (selectedChange)="setExportCollection($event)" placeholder="Select Collection" required>
+              <nb-select [(ngModel)]="exportCollectionId" (collectionchange)="onCollectionChange($event)" (selectedChange)="setExportCollection($event)" placeholder="Select Collection" required>
                 <nb-option *ngFor="let collection of data" [value]="collection.collectionId">
                   {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
                 </nb-option>
