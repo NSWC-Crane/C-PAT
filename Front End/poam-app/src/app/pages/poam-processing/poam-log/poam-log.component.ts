@@ -105,7 +105,7 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
     });
 
     this.modalWindow.onClose.subscribe(() => {
-      this.router.navigateByUrl(`/poam-details/${this.poamId}`);
+      this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
     });
   }
 

@@ -103,6 +103,6 @@ export class PoamGridComponent implements OnChanges {
 
   managePoam(row: any) {
     const poamId = row.data.poamId;
-    this.router.navigateByUrl(`/poam-details/${poamId}`);
+    this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
   }
 }

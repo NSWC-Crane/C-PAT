@@ -11,7 +11,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
 import { PoamService } from '../poams.service';
-import { CollectionsService } from '../../collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { SharedService } from '../../../Shared/shared.service';
 import { Subscription, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
@@ -168,7 +168,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   managePoam(row: any) {
     const poamId = row.data.poamId;
-    this.router.navigateByUrl(`/poam-details/${poamId}`);
+    this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
   }
 
   updateGridData() {

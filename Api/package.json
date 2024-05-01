@@ -9,7 +9,6 @@
   "author": "Christian Rodriguez",
   "license": "ISC",
   "dependencies": {
-    "@nestjs/passport": "^10.0.3",
     "async-retry": "^1.3.3",
     "axios": "^1.6.8",
     "cors": "^2.8.5",
@@ -21,16 +20,14 @@
     "express-openapi-validator": "^5.1.6",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.1.0",
+    "lodash": "^4.17.21",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.9.7",
     "npm-check-updates": "^16.14.18",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "read-excel-file": "^5.7.1",
     "sequelize": "^6.37.3",
-    "socket.io": "^4.7.5",
     "swagger-ui-express": "^5.0.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz",
     "yamljs": "^0.3.0"
   }
 }

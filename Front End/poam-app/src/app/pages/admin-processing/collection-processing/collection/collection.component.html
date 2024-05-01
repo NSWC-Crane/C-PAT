@@ -1,0 +1,45 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
+<form (ngSubmit)="onSubmit()" #form="ngForm">
+
+  <div class="form-container">
+    <div class="form-group">
+      <label for="collectionName">Collection Name: </label>
+      <input nbInput type="text" name="collectionName" [(ngModel)]="collection.collectionName" placeholder="Collection Name" required>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <input nbInput type="text" name="description" [(ngModel)]="collection.description" placeholder="Description">
+    </div>
+
+    <div class="form-group">
+      <label for="created">Created</label>
+      <input nbInput type="text" name="created" [(ngModel)]="collection.created" disabled readonly>
+    </div>
+
+    <div class="form-group">
+      <label for="assetcount">Asset Count: </label>
+      <input nbInput type="number" name="assetcount" [(ngModel)]="collection.assetCount" disabled readonly>
+    </div>
+
+    <div class="form-group">
+      <label for="poamcount">POAM Count: </label>
+      <input nbInput type="number" name="poamcount" [(ngModel)]="collection.poamCount" disabled readonly>
+    </div>
+   </div>
+
+    <!-- Buttons -->
+    <div class="buttons">
+      <button nbButton outline status="info" [disabled]="!form.valid">Submit</button>
+      <button style="margin-left:20px;" nbButton outline status="info" type="button" (click)="resetData()">Cancel</button>
+    </div>
+</form>

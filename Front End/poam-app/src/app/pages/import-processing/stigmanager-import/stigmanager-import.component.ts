@@ -20,7 +20,7 @@ import { SubSink } from "subsink";
 import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../../Shared/shared.service';
-import { CollectionsService } from '../../collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { PoamAssetUpdateService } from '../../import-processing/stigmanager-import/stigmanager-update/stigmanager-update.service';
 
@@ -480,7 +480,7 @@ ${ruleData.fix.text}
             next: (response: any) => {
               if (response && response.length > 0) {
                 const poam = response[0];
-                this.router.navigate(['/poam-details/' + poam.poamId], {
+                this.router.navigate(['/poam-processing/poam-details/' + poam.poamId], {
                   state: {
                     vulnerabilitySource: 'STIG',
                     vulnerabilityId: row.data['Group ID'],
@@ -490,7 +490,7 @@ ${ruleData.fix.text}
                   }
                 });
               } else {
-                this.router.navigate(['/poam-details/ADDPOAM'], {
+                this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
                   state: {
                     vulnerabilitySource: 'STIG',
                     vulnerabilityId: row.data['Group ID'],

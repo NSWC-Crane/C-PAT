@@ -25,7 +25,7 @@ import { SmartTableTextareaComponent } from 'src/app/Shared/components/smart-tab
 import { SubSink } from 'subsink';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../../Shared/shared.service';
-import { CollectionsService } from '../../collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { PoamService } from '../poams.service';
 import { AssetService } from '../../asset-processing/assets.service';
@@ -517,7 +517,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.selectedStigTitle = this.poam.stigTitle;
         this.selectedStigBenchmarkId = this.poam.stigBenchmarkId;
         this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3 || this.user.isAdmin);
-        console.log(this.collectionApprovers);
         if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length == 0)) {
           this.addDefaultApprovers();
         }
@@ -780,7 +779,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   async approvePoam() {
-    await this.router.navigateByUrl("/poam-approve/" + this.poam.poamId);
+    await this.router.navigateByUrl("/poam-processing/poam-approve/" + this.poam.poamId);
   }
 
   extendPoam() {
@@ -788,7 +787,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.showConfirmation("You may not extend POAM until after it has been saved.", "Information", "warning");
       return;
     }
-    this.router.navigate(['/poam-extend', this.poam.poamId]);
+    this.router.navigate(['/poam-processing/poam-extend', this.poam.poamId]);
   }
 
   poamApproval() {
@@ -800,7 +799,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.showConfirmation("The POAM is currently in 'Draft' status. Approvals can not be entered until after a POAM has been submitted.", "Information", "warning");
       return;
     }
-    this.router.navigate(['/poam-approve', this.poam.poamId]);
+    this.router.navigate(['/poam-processing/poam-approve', this.poam.poamId]);
   }
 
   poamLog() {
@@ -808,7 +807,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.showConfirmation("You may not view a POAM log until after the POAM has been saved.", "Information", "warning");
       return;
     }
-    this.router.navigate(['/poam-log', this.poam.poamId]);
+    this.router.navigate(['/poam-processing/poam-log', this.poam.poamId]);
   }
 
   closePoam() {

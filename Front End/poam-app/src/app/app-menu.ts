@@ -20,27 +20,27 @@ export const appMenuItems: NbMenuItem[] = [
   {
     title: 'Admin Portal',
     icon: 'people-outline',
-    link: '/user-processing',
+    link: '/admin-processing',
     data: { permission: 'create', resource: 'user' },
     hidden: true,
     children: [
       {
         title: 'User Management',
         icon: 'people-outline',
-        link: '/user-processing',
+        link: '/admin-processing/user-processing',
         data: { permission: 'create', resource: 'collection' },
       },
       {
         title: 'Collection Management',
         icon: { icon: 'archive-outline', pack: 'eva' },
-        link: '/collection-processing',
+        link: '/admin-processing/collection-processing',
         data: { permission: 'view', resource: 'collection' },
         hidden: true,
       },
       {
         title: 'STIG Manager',
         icon: 'flag-outline',
-        link: '/stigmanager-admin',
+        link: '/admin-processing/stigmanager-admin',
         data: { permission: 'create', resource: 'user' },
       },
     ]
@@ -55,13 +55,13 @@ export const appMenuItems: NbMenuItem[] = [
       {
         title: 'Manage POAMs',
         icon: 'list-outline',
-        link: '/poam-manage',
+        link: '/poam-processing/poam-manage',
         data: { permission: 'approve', resource: 'poam' },
       },
       {
         title: 'Add POAM',
         icon: 'file-add-outline',
-        link: '/poam-details/ADDPOAM'
+        link: 'poam-processing/poam-details/ADDPOAM'
       }
     ]
   },
@@ -74,12 +74,12 @@ export const appMenuItems: NbMenuItem[] = [
       {
         title: 'STIG Manager',
         icon: 'swap-outline',
-        link: 'stigmanager-import',
+        link: 'import-processing/stigmanager-import',
       },
       {
         title: 'Tenable',
         icon: 'swap-outline',
-        link: 'tenable-import'
+        link: 'import-processing/tenable-import'
       },
       {
         title: 'eMASS Excel Import',

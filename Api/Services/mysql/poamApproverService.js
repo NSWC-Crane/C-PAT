@@ -307,7 +307,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                 const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
                 const submitterId = poamResult[0].submitterId;
                 const rawSeverity = poamResult[0].rawSeverity;
-                const collectionId = poamResult[0].collectionId
+                const collectionId = poamResult[0].collectionId;
 
                 const notification = {
                     title: `POAM Approved by ${fullName}`,
@@ -321,31 +321,21 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                     let action = `POAM ${req.body.poamId} has been approved by ${fullName}. Approver Comments: ${req.body.comments}.`;
                     let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                     await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
-                };
+                }
 
-                const permissionSql = "SELECT accessLevel FROM cpat.collectionpermissions WHERE userId = ? AND collectionId = ?";
-                const [permissionResult] = await connection.query(permissionSql, [req.body.userId, collectionId]);
-                const accessLevel = permissionResult[0].accessLevel;
+                const permissionSql = "SELECT userId FROM cpat.collectionpermissions WHERE collectionId = ? AND accessLevel = 4";
+                const [permissionResult] = await connection.query(permissionSql, [collectionId]);
+                const cat1ApproverId = permissionResult[0].userId;
 
-                if (rawSeverity === "CAT I - Critical/High" && accessLevel === 4) {
-                    sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?";
-                    await connection.query(sql_query, ["Approved", req.body.poamId]);
-
-                    const notification = {
-                        title: 'POAM status changed to Approved',
-                        message: `POAM ${req.body.poamId} has been marked approved by a CAT 1 Approver. POAM Status has changed to Approved.`,
-                        userId: submitterId
+                if (rawSeverity === "CAT I - Critical/High") {
+                    const cat1Notification = {
+                        title: 'CAT-I POAM Pending Approval',
+                        message: `POAM ${req.body.poamId} has been marked approved and is pending CAT-I Approver review.`,
+                        userId: cat1ApproverId
                     };
-                    const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
-
-                    if (req.body.poamLog[0].userId) {
-                        let action = `POAM ${req.body.poamId} has been marked approved by a CAT 1 Approver. POAM Status has changed to Approved.`;
-                        let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                        await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
-                    }
-
-                } else if (rawSeverity != "CAT I - Critical/High") {
+                    const cat1NotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    await connection.query(cat1NotificationSql, [cat1ApproverId, cat1Notification.title, cat1Notification.message]);
+                } else {
                     sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?";
                     await connection.query(sql_query, ["Approved", req.body.poamId]);
 
@@ -363,7 +353,6 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                         await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
                     }
                 }
-
             } else {
                 if (req.body.poamLog[0].userId && req.body.approvalStatus === 'Not Reviewed') {
                     let action = `${fullName} has changed approval status to 'Not Reviewed'.`;

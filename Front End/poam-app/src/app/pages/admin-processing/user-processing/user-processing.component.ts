@@ -16,7 +16,7 @@ import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
-import { CollectionsService } from '../../collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 
 interface Permission {
   userId: number;
