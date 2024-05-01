@@ -488,7 +488,13 @@ exports.putPoam = async function putPoam(req, res, next) {
             }
 
             if (req.body.status === 'Submitted') {
-                let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ?";
+                let sql = `
+    SELECT pa.userId
+    FROM cpat.poamapprovers pa
+    JOIN cpat.collectionpermissions cp ON pa.userId = cp.userId
+    WHERE pa.poamId = ? AND cp.accessLevel = 3
+  `;
+
                 let [rows] = await connection.query(sql, [req.body.poamId]);
 
                 const poamApprovers = rows.map(row => ({ ...row }));

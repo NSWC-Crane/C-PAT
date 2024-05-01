@@ -126,7 +126,7 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   addPoam() {
-    this.router.navigateByUrl('/poam-details/ADDPOAM');
+    this.router.navigateByUrl('/poam-processing/poam-details/ADDPOAM');
   }
 
   ngOnDestroy(): void {

@@ -151,7 +151,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   addPoam() {
-    this.router.navigateByUrl('/poam-details/ADDPOAM');
+    this.router.navigateByUrl('/poam-processing/poam-details/ADDPOAM');
   }
 
   private initializeChart(): void {
@@ -432,7 +432,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   onSelectPoam(poamId: number) {
     const selectedPoam = this.poamsForChart.find((poam: any) => poam.id === poamId);
     if (selectedPoam) {
-      this.router.navigateByUrl(`/poam-details/${selectedPoam.id}`);
+      this.router.navigateByUrl(`/poam-processing/poam-details/${selectedPoam.id}`);
     } else {
       console.error('POAM not found');
     }

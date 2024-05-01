@@ -183,7 +183,7 @@ exports.register = async (req, res, next) => {
                 req.body.firstName,
                 req.body.lastName,
                 req.body.firstName + " " + req.body.lastName,
-                req.body.officeOrg
+                req.body.officeOrg || " "
             ]);
 
             sql = "SELECT * FROM user WHERE userName = ?";

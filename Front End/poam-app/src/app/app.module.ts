@@ -29,13 +29,6 @@ import { FileUploadService } from '../app/pages/import-processing/emass-import/f
 import { SharedModule } from './Shared/shared.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { STIGManagerImportModule } from './pages/import-processing/stigmanager-import/stigmanager-import.module';
-import { TenableImportModule } from './pages/import-processing/tenable-import/tenable-import.module';
-import { PoamApproveModule } from "./pages/poam-processing/poam-approve/poam-approve.module";
-import { PoamDetailsComponent } from './pages/poam-processing/poam-details/poam-details.component';
-import { PoamExtendModule } from "./pages/poam-processing/poam-extend/poam-extend.module";
-import { PoamLogModule } from "./pages/poam-processing/poam-log/poam-log.module";
-import { PoamManageModule } from "./pages/poam-processing/poam-manage/poam-manage.module";
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
@@ -56,7 +49,6 @@ function initializeKeycloak(keycloak: KeycloakService) {
 @NgModule({
   declarations: [
     AppComponent,
-    PoamDetailsComponent,
   ],
   providers: [
     KeycloakService,
@@ -101,12 +93,6 @@ function initializeKeycloak(keycloak: KeycloakService) {
     Angular2SmartTableModule,
     KeycloakAngularModule,
     CoreModule,
-    PoamApproveModule,
-    PoamManageModule,
-    PoamExtendModule,
-    PoamLogModule,
-    STIGManagerImportModule,
-    TenableImportModule,
     NbDialogModule.forChild(),
     NbDatepickerModule.forRoot(),
     NbThemeModule.forRoot({ name: 'dark' }),

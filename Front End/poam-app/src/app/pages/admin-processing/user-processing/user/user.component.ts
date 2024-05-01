@@ -14,7 +14,7 @@ import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../..
 import { SubSink } from 'subsink';
 import { Observable } from 'rxjs';
 import { UsersService } from '../users.service'
-import { CollectionsService } from '../../../collection-processing/collections.service'
+import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service'
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
 import { SmartTableSelectComponent } from '../../../../Shared/components/smart-table/smart-table-select.component';
 

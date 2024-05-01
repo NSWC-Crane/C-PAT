@@ -24,7 +24,7 @@ import { NotificationService } from './Shared/notifications/notifications.servic
 import { SharedService } from './Shared/shared.service';
 import { accessControlList } from './access-control-list';
 import { appMenuItems } from './app-menu';
-import { CollectionsService } from './pages/collection-processing/collections.service';
+import { CollectionsService } from './pages/admin-processing/collection-processing/collections.service';
 import { UsersService } from './pages/admin-processing/user-processing/users.service';
 
 
@@ -244,7 +244,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.poamItems.forEach((item: { checked: boolean; }) => {
       if (item.checked) item.checked = false;
     })
-    this.router.navigateByUrl("/poam-details/" + +poam.poamId);
+    this.router.navigateByUrl("/poam-processing/poam-details/" + +poam.poamId);
   }
 
   onSelectedThemeChange(theme: any) {

@@ -401,7 +401,7 @@ export class PoamExtendComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.modalWindow.onClose.subscribe(() => {
-      this.router.navigateByUrl(`/poam-details/${this.poamId}`);
+      this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
     });
 
     this.modalWindow.componentRef.changeDetectorRef.detectChanges();
@@ -413,7 +413,7 @@ export class PoamExtendComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.modalWindow) {
       this.modalWindow.close();
     }
-    this.router.navigateByUrl(`/poam-details/${this.poamId}`);
+    this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
   }
 
   async submitPoamExtension() {
@@ -436,7 +436,7 @@ export class PoamExtendComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.modalWindow) {
         this.modalWindow.close();
       }
-      this.router.navigateByUrl(`/poam-details/${this.poamId}`);
+      this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
     } catch (error) {
       console.error('Failed to update POAM extension:', error);
     }
