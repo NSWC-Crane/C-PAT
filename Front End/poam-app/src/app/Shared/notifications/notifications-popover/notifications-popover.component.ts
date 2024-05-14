@@ -11,8 +11,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NotificationService } from '../notifications.service';
 import { SubSink } from 'subsink';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
 import { Router } from '@angular/router';
 
@@ -30,30 +28,24 @@ interface Permission {
 export class NotificationsPanelComponent implements OnInit {
   notifications: any[] = [];
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   user: any;
   payload: any;
   private subs = new SubSink();
 
   constructor(
     private notificationService: NotificationService,
-    private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private router: Router,
   ) { }
 
   async ngOnInit() {
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();
-    }
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
-    this.subs.sink = this.userService.getCurrentUser().subscribe({
+    this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -80,8 +72,8 @@ export class NotificationsPanelComponent implements OnInit {
     });
   }
 
-  fetchNotifications() {
-    this.notificationService.getUnreadNotificationsByUserId(this.user.userId).subscribe(
+  async fetchNotifications() {
+    (await this.notificationService.getUnreadNotificationsByUserId(this.user.userId)).subscribe(
       notifications => {
         notifications.length >= 1 ?
           (this.notifications = notifications) :
@@ -93,9 +85,9 @@ export class NotificationsPanelComponent implements OnInit {
     );
   }
 
-  dismissNotification(notification: any) {
+  async dismissNotification(notification: any) {
     console.log(notification);
-    this.notificationService.dismissNotificationByNotificationId(notification.notificationId).subscribe(
+    (await this.notificationService.dismissNotificationByNotificationId(notification.notificationId)).subscribe(
       () => {
         const index = this.notifications.indexOf(notification);
         if (index !== -1) {
@@ -108,8 +100,8 @@ export class NotificationsPanelComponent implements OnInit {
     );
   }
 
-  dismissAllNotifications() {
-    this.notificationService.dismissAllNotificationsByUserId(this.user.userId).subscribe(
+  async dismissAllNotifications() {
+    (await this.notificationService.dismissAllNotificationsByUserId(this.user.userId)).subscribe(
       () => {   
       },
       error => {

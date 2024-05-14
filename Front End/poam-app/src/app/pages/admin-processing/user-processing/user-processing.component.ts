@@ -13,9 +13,7 @@ import { UsersService } from './users.service';
 import { Observable, forkJoin } from 'rxjs';
 import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { SubSink } from "subsink";
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 
 interface Permission {
@@ -30,7 +28,6 @@ interface FSEntry {
   ftehours?: string;
   task?: string;
   company?: string;
-
 }
 
 @Component({
@@ -40,7 +37,6 @@ interface FSEntry {
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   customColumn = 'user';
   defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level'];
   allColumns = [this.customColumn, ...this.defaultColumns];
@@ -52,23 +48,23 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   data: any = [];
   allowSelectCollections = true;
   isLoading = true;
-  selected: any
+  selected: any;
   selectedRole: string = 'admin';
   payload: any;
 
   get hideUserEntry() {
     return (this.user.userId && this.user.UserId != "USER")
       ? { display: 'block' }
-      : { display: 'none' }
+      : { display: 'none' };
   }
-  private subs = new SubSink()
+  private subs = new SubSink();
 
   constructor(
     private collectionsService: CollectionsService,
     private userService: UsersService,
     private dialogService: NbDialogService,
-    private readonly keycloak: KeycloakService,
-    private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
+    private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>
+  ) {
   }
 
   onSubmit() {
@@ -76,18 +72,14 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-      if (this.isLoggedIn) {
-        this.userProfile = await this.keycloak.loadUserProfile();
-        this.setPayload();
-      }
+      this.setPayload();
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
 
-    this.subs.sink = this.userService.getCurrentUser().subscribe(
+    this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -115,12 +107,12 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     );
   }
 
-  getUserData() {
+  async getUserData() {
     this.isLoading = true;
     this.users = [];
     forkJoin([
-      this.userService.getUsers(),
-      this.collectionsService.getCollectionBasicList()
+      await this.userService.getUsers(),
+      await this.collectionsService.getCollectionBasicList()
     ]).subscribe(([userData, collectionData]: [any, any]) => {
       this.data = userData;
       this.users = this.data;
@@ -181,7 +173,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   setUser(userId: any) {
     this.user = null;
 
-    const selectedData = this.data.filter((user: { userId: any; }) => user.userId === userId)
+    const selectedData = this.data.filter((user: { userId: any; }) => user.userId === userId);
 
     this.user = selectedData[0];
     this.allowSelectCollections = false;
@@ -195,7 +187,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.subs.unsubscribe()
+    this.subs.unsubscribe();
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>

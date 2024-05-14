@@ -10,23 +10,22 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { throwError } from 'rxjs';
+import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Label } from './label.model';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LabelService {
   private url = environment.CPAT_API_URL;
-  httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    })
-  };
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private oidcSecurityService: OidcSecurityService
+  ) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -37,34 +36,43 @@ export class LabelService {
     return throwError('Something bad happened; please try again later.');
   }
 
-  getLabels(collectionId: string) {
-    return this.http
-      .get(`${this.url}/labels/${collectionId}` )
-          .pipe(catchError(this.handleError));
+  private async getAuthHeaders() {
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
-  getLabel(collectionId: string, labelId: string) {
-    return this.http
-      .get(`${this.url}/label/${collectionId}/${labelId}`)
-          .pipe(catchError(this.handleError));
-  }
-
-  addLabel(collectionId: string, label: any) {
-    return this.http
-      .post<Label>(`${this.url}/label/${collectionId}`, label, this.httpOptions)
+  async getLabels(collectionId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .get(`${this.url}/labels/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  updateLabel(collectionId: string, label: any) {
-    return this.http
-      .put<Label>(`${this.url}/label/${collectionId}`, label, this.httpOptions)
-          .pipe(catchError(this.handleError));
-  }
-
-  deleteLabel(collectionId: string, labelId: string) {
-    return this.http
-      .delete<Label>(`${this.url}/label/${collectionId}/${labelId}`, this.httpOptions)
+  async getLabel(collectionId: string, labelId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .get(`${this.url}/label/${collectionId}/${labelId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
+  async addLabel(collectionId: string, label: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .post<Label>(`${this.url}/label/${collectionId}`, label, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async updateLabel(collectionId: string, label: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .put<Label>(`${this.url}/label/${collectionId}`, label, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async deleteLabel(collectionId: string, labelId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .delete<Label>(`${this.url}/label/${collectionId}/${labelId}`, { headers })
+      .pipe(catchError(this.handleError));
+  }
 }

@@ -10,13 +10,10 @@
 
 @use 'themes' as *;
 
-@use '@nebular/theme/styles/globals' as *
-;
-@use '@nebular/auth/styles/globals' as *;
+@use '@nebular/theme/styles/globals' as *;
 
 @include nb-install() {
   @include nb-theme-global();
-  @include nb-auth-global();
 };
 
 @import '../node_modules/bootstrap/scss/bootstrap';

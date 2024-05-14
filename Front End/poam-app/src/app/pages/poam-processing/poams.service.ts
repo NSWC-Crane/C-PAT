@@ -10,9 +10,9 @@
 
 import { EventEmitter, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
@@ -20,297 +20,353 @@ import { environment } from '../../../environments/environment';
 export class PoamService {
   private url = environment.CPAT_API_URL;
 
-  httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    })
-  };
+  constructor(
+    private http: HttpClient,
+    private oidcSecurityService: OidcSecurityService
+  ) { }
 
-  constructor(private http: HttpClient) { }
-  public onNewPoam: EventEmitter<any> = new EventEmitter<any>();
+  public onNewPoam = new EventEmitter<any>();
 
   public newPoam(poam: any) {
-    this.onNewPoam.emit({ poam: poam });
+    this.onNewPoam.emit({ poam });
   }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(`Backend returned code ${error.status}, ` + `body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
     return throwError('Something bad happened; please try again later.');
   }
 
-  getCollection(id: string, userName: string) {
+  private async getAuthHeaders() {
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
+  }
 
-    return this.http.get(`${this.url}/collection/${id}/user/${userName}`, this.httpOptions)
+  async getCollection(id: string, userName: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/collection/${id}/user/${userName}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getCollectionPoamStatus(id: string) {
-    return this.http.get(`${this.url}/metrics/collection/${id}/poamstatus`, this.httpOptions)
+  async getCollectionPoamStatus(id: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/collection/${id}/poamstatus`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getCollectionPoamLabel(id: string) {
-    return this.http.get(`${this.url}/metrics/collection/${id}/poamlabel`, this.httpOptions)
+  async getCollectionPoamLabel(id: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/collection/${id}/poamlabel`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getCollectionPoamSeverity(id: string) {
-    return this.http.get(`${this.url}/metrics/collection/${id}/poamseverity`, this.httpOptions)
+  async getCollectionPoamSeverity(id: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/collection/${id}/poamseverity`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getCollectionPoamEstimatedCompletion(id: string) {
-    return this.http.get(`${this.url}/metrics/collection/${id}/poamEstimatedCompletion`, this.httpOptions)
+  async getCollectionPoamEstimatedCompletion(id: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/collection/${id}/poamEstimatedCompletion`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getCollectionMonthlyPoamStatus(collectionId: string) {
-    return this.http.get(`${this.url}/metrics/collection/${collectionId}/monthlypoamstatus`, this.httpOptions)
+  async getCollectionMonthlyPoamStatus(collectionId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/collection/${collectionId}/monthlypoamstatus`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getPoam(id: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssets: boolean = false) {
+  async getPoam(id: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssets: boolean = false) {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignees', includeAssignees.toString())
       .set('assets', includeAssets.toString());
 
-    return this.http.get(`${this.url}/poam/${id}`, { params })
-      .pipe(catchError(this.handleError));
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/poam/${id}`, {
+      headers: headers,
+      params: params
+    }).pipe(catchError(this.handleError));
   }
 
-  getPoamsByCollection(id: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssets: boolean = false) {
+  async getPoamsByCollection(id: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssets: boolean = false) {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignees', includeAssignees.toString())
       .set('assets', includeAssets.toString());
 
-    return this.http.get(`${this.url}/poams/collection/${id}`, { params })
-      .pipe(catchError(this.handleError));
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/poams/collection/${id}`, {
+      headers: headers,
+      params: params
+    }).pipe(catchError(this.handleError));
   }
 
-  getPoamsBySubmitter(submitterId: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssets: boolean = false) {
+  async getPoamsBySubmitter(submitterId: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssets: boolean = false) {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignees', includeAssignees.toString())
       .set('assets', includeAssets.toString());
 
-    return this.http.get(`${this.url}/poams/submitter/${submitterId}`, { params })
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/poams/submitter/${submitterId}`, {
+      headers: headers,
+      params: params
+    }).pipe(catchError(this.handleError));
+  }
+
+  async getAssetsForCollection(collectionId: number) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .get<any>(`${this.url}/assets/collection/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getAssetsForCollection(collectionId: number) {
-    return this.http
-      .get<any>(`${this.url}/assets/collection/${collectionId}`)
+  async getPoamAssets(id: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/poamAssets/poam/${id}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getPoamAssets(id: string) {
-    return this.http.get(`${this.url}/poamAssets/poam/${id}`)
-      .pipe(catchError(this.handleError));
-  }
-
-  getPoamAssignees(id: string) {
-    return this.http.get(`${this.url}/poamAssignees/poam/${id}`)
+  async getPoamAssignees(id: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/poamAssignees/poam/${id}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
 
-  postPoam(poam: any) {
-    return this.http
-      .post<any>(`${this.url}/poam`, poam, this.httpOptions);
+  async postPoam(poam: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .post<any>(`${this.url}/poam`, poam, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  updatePoam(poam: any) {
-    return this.http
-      .put<any>(`${this.url}/poam`, poam, this.httpOptions);
+  async updatePoam(poam: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .put<any>(`${this.url}/poam`, poam, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  updatePoamStatus(poamId: any, poamStatusUpdate: any) {
-    return this.http
-      .put<any>(`${this.url}/poam/status/${poamId}`, poamStatusUpdate, this.httpOptions);
+  async updatePoamStatus(poamId: any, poamStatusUpdate: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .put<any>(`${this.url}/poam/status/${poamId}`, poamStatusUpdate, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  postPoamAssignee(poamAssignee: any) {
-    return this.http
-      .post<any>(`${this.url}/poamAssignee`, poamAssignee, this.httpOptions);
+  async postPoamAssignee(poamAssignee: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .post<any>(`${this.url}/poamAssignee`, poamAssignee, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  deletePoamAssignee(poamId: any, userId: any, requestorId: any) {
+  async deletePoamAssignee(poamId: any, userId: any, requestorId: any) {
     const requestBody = { requestorId: requestorId };
-
+    const headers = await this.getAuthHeaders();
     const options = {
-      ...this.httpOptions,
+      ...{ headers: headers },
       body: requestBody
     };
 
-    return this.http.delete<any>(`${this.url}/poamAssignee/poam/${poamId}/user/${userId}`, options);
+		return this.http.delete<any>(`${this.url}/poamAssignee/poam/${poamId}/user/${userId}`, options);
   }
 
-  postPoamAsset(poamAsset: any) {
-    return this.http
-      .post<any>(`${this.url}/poamAsset`, poamAsset, this.httpOptions);
+  async postPoamAsset(poamAsset: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .post<any>(`${this.url}/poamAsset`, poamAsset, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  deletePoamAsset(poamId: any, assetId: any, requestorId: any) {
+  async deletePoamAsset(poamId: any, assetId: any, requestorId: any) {
     const requestBody = { requestorId: requestorId };
-
+    const headers = await this.getAuthHeaders();
     const options = {
-      ...this.httpOptions,
+      ...{ headers: headers },
       body: requestBody
     };
-
-    return this.http.delete<any>(`${this.url}/poamAsset/poam/${poamId}/asset/${assetId}`, options);
+		return this.http.delete<any>(`${this.url}/poamAsset/poam/${poamId}/asset/${assetId}`, options);
   }
 
-  deletePoamAssetByPoamId(poamId: any) {
-    return this.http
-      .delete<any>(`${this.url}/poamAssets/poam/${poamId}`, this.httpOptions);
-  }
-
-  getPoamApprovers(id: string) {
-    return this.http.get<any>(`${this.url}/poamApprovers/${id}`)
+  async deletePoamAssetByPoamId(poamId: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .delete<any>(`${this.url}/poamAssets/poam/${poamId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getPoamApproversByCollectionUser(collectionId: string, userId: string) {
-    return this.http.get<any>(`${this.url}/poamApprovers/collection/${collectionId}/${userId}`)
+  async getPoamApprovers(id: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get<any>(`${this.url}/poamApprovers/${id}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getPoamApproversByUserId(userId: string) {
-    return this.http.get<any>(`${this.url}/poamApprovers/user/${userId}`)
+  async getPoamApproversByCollectionUser(collectionId: string, userId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get<any>(`${this.url}/poamApprovers/collection/${collectionId}/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  addPoamApprover(approver: any) {
-    return this.http
-      .post<any>(`${this.url}/poamApprover`, approver, this.httpOptions);
+  async getPoamApproversByUserId(userId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get<any>(`${this.url}/poamApprovers/user/${userId}`, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  updatePoamApprover(approver: any) {
-    return this.http
-      .put<any>(`${this.url}/poamApprover`, approver, this.httpOptions);
+  async addPoamApprover(approver: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .post<any>(`${this.url}/poamApprover`, approver, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  deletePoamApprover(poamId: any, userId: any, requestorId: any) {
+  async updatePoamApprover(approver: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .put<any>(`${this.url}/poamApprover`, approver, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async deletePoamApprover(poamId: any, userId: any, requestorId: any) {
     const requestBody = { requestorId: requestorId };
-
+    const headers = await this.getAuthHeaders();
     const options = {
-      ...this.httpOptions,
+      ...{ headers: headers },
       body: requestBody
     };
-
-    return this.http.delete<any>(`${this.url}/poamApprover/poam/${poamId}/user/${userId}`, options);
+		return this.http.delete<any>(`${this.url}/poamApprover/poam/${poamId}/user/${userId}`, options);
   }
 
-  getPoamMilestones(poamId: string) {
-    return this.http.get<any>(`${this.url}/poamMilestones/${poamId}`)
+  async getPoamMilestones(poamId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get<any>(`${this.url}/poamMilestones/${poamId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  addPoamMilestone(poamId: string, milestone: any) {
-    return this.http
-      .post<any>(`${this.url}/poamMilestones/${poamId}`, milestone, this.httpOptions);
+  async addPoamMilestone(poamId: string, milestone: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .post<any>(`${this.url}/poamMilestones/${poamId}`, milestone, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  updatePoamMilestone(poamId: string, milestoneId: string, milestone: any) {
-    return this.http
-      .put<any>(`${this.url}/poamMilestones/${poamId}/${milestoneId}`, milestone, this.httpOptions);
+  async updatePoamMilestone(poamId: string, milestoneId: string, milestone: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .put<any>(`${this.url}/poamMilestones/${poamId}/${milestoneId}`, milestone, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  deletePoamMilestone(poamId: string, milestoneId: string, requestorId: any, extension: boolean) {
+  async deletePoamMilestone(poamId: string, milestoneId: string, requestorId: any, extension: boolean) {
     const requestBody = { requestorId: requestorId, extension: extension };
-
+    const headers = await this.getAuthHeaders();
     const options = {
-      ...this.httpOptions,
+      ...{ headers: headers },
       body: requestBody
     };
-
-    return this.http.delete<any>(`${this.url}/poamMilestones/${poamId}/${milestoneId}`, options);
+		return this.http.delete<any>(`${this.url}/poamMilestones/${poamId}/${milestoneId}`, options);
   }
 
-  getLabels(collectionId: string) {
-    return this.http
-      .get(`${this.url}/labels/${collectionId}`)
+  async getLabels(collectionId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .get(`${this.url}/labels/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  postLabel(collectionId: string, label: any) {
-    return this.http
-      .post<any>(`${this.url}/label/${collectionId}`, label, this.httpOptions);
-  }
-
-  getPoamLabels(id: any) {
-    return this.http
-      .get(`${this.url}/poamLabels/${id}`)
+  async postLabel(collectionId: string, label: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .post<any>(`${this.url}/label/${collectionId}`, label, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getPoamLabelsByPoam(id: any) {
-    return this.http
-      .get(`${this.url}/poamLabels/poam/${id}`)
+  async getPoamLabels(id: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .get(`${this.url}/poamLabels/${id}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  postPoamLabel(poamLabel: any) {
-    return this.http
-      .post<any>(`${this.url}/poamLabel`, poamLabel, this.httpOptions);
+  async getPoamLabelsByPoam(id: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .get(`${this.url}/poamLabels/poam/${id}`, { headers })
+      .pipe(catchError(this.handleError));
   }
 
-  deletePoamLabel(poamId: any, labelId: any, requestorId: any) {
+  async postPoamLabel(poamLabel: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .post<any>(`${this.url}/poamLabel`, poamLabel, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async deletePoamLabel(poamId: any, labelId: any, requestorId: any) {
     const requestBody = { requestorId: requestorId };
-
+    const headers = await this.getAuthHeaders();
     const options = {
-      ...this.httpOptions,
+      ...{ headers: headers },
       body: requestBody
     };
-
-    return this.http.delete<any>(`${this.url}/poamLabel/poam/${poamId}/label/${labelId}`, options);
+		return this.http.delete<any>(`${this.url}/poamLabel/poam/${poamId}/label/${labelId}`, options);
   }
 
-  getAvailablePoamStatus(userId: string) {
-    return this.http.get(`${this.url}/metrics/available/${userId}/poamstatus`, this.httpOptions)
+  async getAvailablePoamStatus(userId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/available/${userId}/poamstatus`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getAvailablePoamLabel(userId: string) {
-    return this.http.get(`${this.url}/metrics/available/${userId}/poamlabel`, this.httpOptions)
+  async getAvailablePoamLabel(userId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/available/${userId}/poamlabel`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getAvailablePoamSeverity(userId: string) {
-    return this.http.get(`${this.url}/metrics/available/${userId}/poamseverity`, this.httpOptions)
+  async getAvailablePoamSeverity(userId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/available/${userId}/poamseverity`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getAvailableMonthlyPoamStatus(userId: string) {
-    return this.http.get(`${this.url}/metrics/available/${userId}/monthlypoamstatus`, this.httpOptions)
+  async getAvailableMonthlyPoamStatus(userId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/available/${userId}/monthlypoamstatus`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getAvailablePoamEstimatedCompletion(userId: string) {
-    return this.http.get(`${this.url}/metrics/available/${userId}/poamEstimatedCompletion`, this.httpOptions)
+  async getAvailablePoamEstimatedCompletion(userId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/available/${userId}/poamEstimatedCompletion`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getAvailableCollectionPoamCounts(userId: any) {
-    return this.http.get(`${this.url}/metrics/available/${userId}/collectionpoamcount`, this.httpOptions)
+  async getAvailableCollectionPoamCounts(userId: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/metrics/available/${userId}/collectionpoamcount`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getAvailablePoams(userId: string) {
-    return this.http.get(`${this.url}/poams/${userId}`)
+
+  async getAvailablePoams(userId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/poams/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getAvailablePoamLabels(userId: any) {
-    return this.http
-      .get(`${this.url}/poamLabels/available/${userId}`)
+  async getAvailablePoamLabels(userId: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .get(`${this.url}/poamLabels/available/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 }

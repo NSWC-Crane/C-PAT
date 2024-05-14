@@ -11,8 +11,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NotificationService } from './notifications.service';
 import { SubSink } from 'subsink';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 
 interface Permission {
@@ -31,30 +29,24 @@ export class NotificationsComponent implements OnInit {
   filteredNotifications: any[] = [];
   filterStatus: string | null = null;
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   user: any;
   payload: any;
   private subs = new SubSink();
 
   constructor(
     private notificationService: NotificationService,
-    private readonly keycloak: KeycloakService,
     private userService: UsersService,
   ) { }
 
   async ngOnInit() {
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();
-    }
-    this.resetFilter();
+      this.resetFilter();
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
-    this.subs.sink = this.userService.getCurrentUser().subscribe({
+    this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -81,8 +73,8 @@ export class NotificationsComponent implements OnInit {
     });
   }
 
-  fetchNotifications() {
-    this.notificationService.getAllNotificationsByUserId(this.user.userId).subscribe(
+  async fetchNotifications() {
+    (await this.notificationService.getAllNotificationsByUserId(this.user.userId)).subscribe(
       notifications => {
         this.notifications = notifications;
         this.resetFilter();
@@ -106,9 +98,9 @@ export class NotificationsComponent implements OnInit {
     this.filteredNotifications = [...this.notifications];
   }
 
-  deleteNotification(notification: any) {
+  async deleteNotification(notification: any) {
     console.log(notification);
-    this.notificationService.deleteNotificationByNotificationId(notification.notificationId).subscribe(
+    (await this.notificationService.deleteNotificationByNotificationId(notification.notificationId)).subscribe(
       () => {
         const index = this.notifications.indexOf(notification);
         if (index !== -1) {
@@ -121,12 +113,12 @@ export class NotificationsComponent implements OnInit {
     );
   }
 
-  dismissAllNotifications() {
+  async dismissAllNotifications() {
     if (!this.user || !this.user.userId) {
       console.error('User ID is not available');
       return;
     }
-    this.notificationService.dismissAllNotificationsByUserId(this.user.userId).subscribe({
+    (await this.notificationService.dismissAllNotificationsByUserId(this.user.userId)).subscribe({
       next: () => {
       },
       error: (error) => {
@@ -135,12 +127,12 @@ export class NotificationsComponent implements OnInit {
     });
   }
 
-  deleteAllNotifications() {
+  async deleteAllNotifications() {
     if (!this.user || !this.user.userId) {
       console.error('User ID is not available');
       return;
     }
-    this.notificationService.deleteAllNotificationsByUserId(this.user.userId).subscribe({
+    (await this.notificationService.deleteAllNotificationsByUserId(this.user.userId)).subscribe({
       next: () => {
         console.log('All notifications have been deleted.');
       },

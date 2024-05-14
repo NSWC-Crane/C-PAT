@@ -9,9 +9,7 @@
 */
 
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { KeycloakService } from 'keycloak-angular';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { SharedService } from '../../../Shared/shared.service';
 import { ImportService } from '../../import-processing/import.service';
 import { NbDialogService } from '@nebular/theme';
@@ -34,7 +32,6 @@ export class STIGManagerAdminComponent implements OnInit {
   constructor(
     private importService: ImportService,
     private sharedService: SharedService,
-    private keycloak: KeycloakService,
     private dialogService: NbDialogService
   ) { }
 
@@ -42,23 +39,19 @@ export class STIGManagerAdminComponent implements OnInit {
     this.fetchCollections();
   }
 
-  fetchCollections() {
-    this.keycloak.getToken().then((token) => {
-      this.sharedService.getCollectionsFromSTIGMAN(token).subscribe({
-        next: (data) => {
-          this.stigmanCollections = data;
-          if (!data || data.length === 0) {
-            this.showPopup(
-              'No collections available to import. Please ensure you have access to view collections in STIG Manager.'
-            );
-          } else {
-            this.stigmanCollections = data;
-          }
-        },
-        error: () => {
-          this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
-        },
-      });
+  async fetchCollections() {
+    (await this.sharedService.getCollectionsFromSTIGMAN()).subscribe({
+      next: (data) => {
+        this.stigmanCollections = data;
+        if (!data || data.length === 0) {
+          this.showPopup(
+            'No collections available to import. Please ensure you have access to view collections in STIG Manager.'
+          );
+        }
+      },
+      error: () => {
+        this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
+      },
     });
   }
 
@@ -66,41 +59,47 @@ export class STIGManagerAdminComponent implements OnInit {
     this.selectedStigmanCollection = collectionId;
   }
 
-  importSTIGManagerCollection() {
+  async importSTIGManagerCollection() {
     if (this.selectedStigmanCollection) {
-      this.keycloak.getToken().then((token) => {
-        forkJoin({
-          collectionData: this.sharedService.selectedCollectionFromSTIGMAN(
-            this.selectedStigmanCollection,
-            token
-          ),
-          assetsData: this.sharedService.getAssetsFromSTIGMAN(
-            this.selectedStigmanCollection,
-            token
-          ),
-        }).subscribe({
-          next: (results) => {
-            const payload = {
-              collection: results.collectionData,
-              assets: results.assetsData.map(asset => {
-                const { assetId, ...rest } = asset;
-                return rest;
-              })
-            };
-            this.sendSTIGManagerCollectionImportRequest(payload);
-          },
-          error: (error) => {
-            console.error('Error fetching collection or assets data:', error);
-          },
-        });
+      forkJoin({
+        collectionData: (await this.sharedService.selectedCollectionFromSTIGMAN(this.selectedStigmanCollection)).pipe(
+          catchError(error => {
+            console.error('Error fetching collection data:', error);
+            return of(null);
+          })
+        ),
+        assetsData: (await this.sharedService.getAssetsFromSTIGMAN(this.selectedStigmanCollection)).pipe(
+          catchError(error => {
+            console.error('Error fetching assets data:', error);
+            return of([]);
+          })
+        )
+      }).pipe(
+        map(results => {
+          const payload = {
+            collection: results.collectionData,
+            assets: results.assetsData.map((asset: any) => {
+              const { assetId, ...rest } = asset;
+              return rest;
+            })
+          };
+          return payload;
+        })
+      ).subscribe({
+        next: (payload) => {
+          this.sendSTIGManagerCollectionImportRequest(payload);
+        },
+        error: (error) => {
+          console.error('Error processing collection or assets data:', error);
+        }
       });
     } else {
       console.error('No collection selected');
     }
   }
 
-  private sendSTIGManagerCollectionImportRequest(data: any) {
-    this.importService.postStigManagerCollection(data).subscribe({
+  private async sendSTIGManagerCollectionImportRequest(data: any) {
+    (await this.importService.postStigManagerCollection(data)).subscribe({
       next: () => {
         this.showPopup('Import successful');
       },
@@ -110,7 +109,6 @@ export class STIGManagerAdminComponent implements OnInit {
       }
     });
   }
-
 
   showPopup(message: string) {
     const dialogOptions: ConfirmationDialogOptions = {

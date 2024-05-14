@@ -14,7 +14,7 @@ export const appMenuItems: NbMenuItem[] = [
     {
       title: 'Home',
       icon: 'home-outline',
-      link: '/consent',
+      link: '/poam-processing',
       home: true
   },
   {

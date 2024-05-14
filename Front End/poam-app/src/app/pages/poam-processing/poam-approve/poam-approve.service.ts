@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { throwError } from 'rxjs';
+import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
@@ -10,13 +11,11 @@ import { environment } from '../../../../environments/environment';
 export class PoamApproveService {
   private url = environment.CPAT_API_URL;
 
-  httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    })
-  };
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private oidcSecurityService: OidcSecurityService
+  ) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -27,14 +26,21 @@ export class PoamApproveService {
     return throwError('Something bad happened; please try again later.');
   }
 
+  private async getAuthHeaders() {
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
+  }
 
-  getPoamApprovers(id: string) {
-    return this.http.get<any>(`${this.url}/poamApprovers/${id}`)
+  async getPoamApprovers(id: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get<any>(`${this.url}/poamApprovers/${id}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  updatePoamApprover(approver: any) {
-    return this.http
-      .put<any>(`${this.url}/poamApprover`, approver, this.httpOptions);
+  async updatePoamApprover(approver: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http
+      .put<any>(`${this.url}/poamApprover`, approver, { headers })
+      .pipe(catchError(this.handleError));
   }
 }

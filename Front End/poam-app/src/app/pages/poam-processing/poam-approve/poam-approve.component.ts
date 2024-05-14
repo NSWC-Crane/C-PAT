@@ -11,9 +11,7 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { SubSink } from 'subsink';
 import { NbDialogService } from "@nebular/theme";
-import { KeycloakService } from 'keycloak-angular'
 import { ActivatedRoute, Router } from '@angular/router';
-import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { DatePipe } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
@@ -34,7 +32,6 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   private subs = new SubSink()
   modalWindow: any;
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   poam: any;
   poamId: any;
   approvalStatus: any;
@@ -49,7 +46,6 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private router: Router,
     private dialogService: NbDialogService,
-    private readonly keycloak: KeycloakService,
     private route: ActivatedRoute,
     private userService: UsersService,
     private sharedService: SharedService,
@@ -59,26 +55,20 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('approveTemplate') approveTemplate!: TemplateRef<any>;
 
   public async ngOnInit() {
-
     this.route.params.subscribe(async params => {
       this.poamId = params['poamId'];
-
-      this.isLoggedIn = this.keycloak.isLoggedIn();
-      if (this.isLoggedIn) {
-        this.userProfile = await this.keycloak.loadUserProfile();
-        this.setPayload();
-      }
     });
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
       })
     );
+    this.setPayload();
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
-    this.userService.getCurrentUser().subscribe({
+    (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -93,8 +83,8 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  getData() {
-    this.poamApproveService.getPoamApprovers(this.poamId).subscribe({
+  async getData() {
+    (await this.poamApproveService.getPoamApprovers(this.poamId)).subscribe({
       next: (response: any) => {
         const userApproval = response.find((approval: any) => approval.userId === this.user.userId);
         if (userApproval) {
@@ -151,7 +141,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
   }
 
-  submitApprovalData() {
+  async submitApprovalData() {
     this.approvedDate = format(this.dates.approvedDate, "yyyy-MM-dd");
     const approvalData = {
       poamId: parseInt(this.poamId, 10),
@@ -162,7 +152,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       poamLog: [{ userId: this.user.userId }],
     };
 
-    this.poamApproveService.updatePoamApprover(approvalData).subscribe(
+    (await this.poamApproveService.updatePoamApprover(approvalData)).subscribe(
       () => {
         if (this.modalWindow) {
           this.modalWindow.close();

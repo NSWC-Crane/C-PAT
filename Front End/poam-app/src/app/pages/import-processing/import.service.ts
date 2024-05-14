@@ -10,9 +10,9 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { catchError, throwError } from 'rxjs';
+import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { KeycloakService } from 'keycloak-angular';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
@@ -20,35 +20,40 @@ import { KeycloakService } from 'keycloak-angular';
 export class ImportService {
   private url = environment.CPAT_API_URL;
 
-  httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    })
-  };
-
-  constructor(private http: HttpClient, private keycloak: KeycloakService) { }
+  constructor(
+    private http: HttpClient,
+    private oidcSecurityService: OidcSecurityService
+  ) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(`Backend returned code ${error.status}, ` + ` body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
     return throwError('Something bad happened; please try again later.');
   }
 
-  updatePoamAssetsWithStigManagerData(poamAsset: any) {
-    return this.http.put(`${this.url}/update/stigmanager/poamassets`, poamAsset, this.httpOptions)
+  private async getAuthHeaders() {
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
+  }
+
+  async updatePoamAssetsWithStigManagerData(poamAsset: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http.put(`${this.url}/update/stigmanager/poamassets`, poamAsset, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  postStigManagerAssets(assets: any) {
-    return this.http.post(`${this.url}/import/stigmanager/assets`, assets, this.httpOptions)
+  async postStigManagerAssets(assets: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http.post(`${this.url}/import/stigmanager/assets`, assets, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  postStigManagerCollection(data: any) {
-    return this.http.post(`${this.url}/import/stigmanager/collection`, data, this.httpOptions)
+  async postStigManagerCollection(data: any) {
+        const headers = await this.getAuthHeaders();
+		return this.http.post(`${this.url}/import/stigmanager/collection`, data, { headers })
       .pipe(catchError(this.handleError));
   }
 }

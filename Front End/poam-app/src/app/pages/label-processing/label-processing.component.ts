@@ -9,10 +9,7 @@
 */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { Observable, Subscription } from 'rxjs';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component';
@@ -51,7 +48,6 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   users: any;
   user: any;
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   labels: any;
   label: any={};
   data: any= [];
@@ -73,8 +69,6 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   constructor( 
     private labelService: LabelService,
     private dialogService: NbDialogService,
-    private router: Router,
-    private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private sharedService: SharedService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
@@ -85,23 +79,19 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-      this.isLoggedIn = this.keycloak.isLoggedIn();
-      if (this.isLoggedIn) {
-        this.userProfile = await this.keycloak.loadUserProfile();
-        this.setPayload();
-      }
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
       })
     );
+    this.setPayload();
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
 
-    this.subs.sink = this.userService.getCurrentUser().subscribe(
+    this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -126,10 +116,10 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     );
   }
 
-  getLabelData() {
+  async getLabelData() {
     this.isLoading = true;
     this.labels = null;
-    this.labelService.getLabels(this.selectedCollection).subscribe((result: any) => {
+    (await this.labelService.getLabels(this.selectedCollection)).subscribe((result: any) => {
 
       this.data = result.sort((a: { labelId: number; }, b: { labelId: number; }) => a.labelId - b.labelId);
       this.labels = this.data;

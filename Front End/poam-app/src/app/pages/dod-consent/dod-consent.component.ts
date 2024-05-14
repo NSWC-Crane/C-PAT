@@ -9,43 +9,29 @@
 */
 
 import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
-import { SubSink } from 'subsink';
 import { NbDialogService } from "@nebular/theme";
-import { KeycloakService } from 'keycloak-angular'
 import { Router } from '@angular/router';
-import { UsersService } from '../admin-processing/user-processing/users.service';
 
 @Component({
   selector: 'cpat-consent',
   templateUrl: './dod-consent.component.html',
 })
 export class DoDConsentComponent implements AfterViewInit {
-  private subs = new SubSink()
   modalWindow: any;
-  public isLoggedIn = false;
 
   constructor(
     private router: Router,
     private dialogService: NbDialogService,
-    private readonly keycloak: KeycloakService,
-    private login: UsersService,
-  ) {}
+  ) { }
 
   @ViewChild('consentTemplate') consentTemplate!: TemplateRef<any>;
 
-
   async ngAfterViewInit() {
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.modalWindow = this.dialogService.open(this.consentTemplate)
-    } else {
-      this.router.navigateByUrl("/poam-processing");
-    } 
+    this.modalWindow = this.dialogService.open(this.consentTemplate);
   }
 
-  consentOk() {    
-    this.login.loginOut("logIn").subscribe(() =>{
-      this.router.navigateByUrl("/poam-processing");
-    })    
+  async consentOk() {
+      this.router.navigate(['/poam-processing']);
   }
+
 }

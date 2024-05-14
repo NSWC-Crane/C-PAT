@@ -45,7 +45,7 @@ export class CollectionComponent implements OnDestroy {
     this.dialogService.open(dialog)
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (!this.validData()) return;
 
     const collection = {
@@ -59,7 +59,7 @@ export class CollectionComponent implements OnDestroy {
     if (collection.collectionId == "ADDCOLLECTION") {
       delete collection.collectionId;
 
-      this.subs.sink = this.collectionService.addCollection(collection).subscribe(
+      this.subs.sink = (await this.collectionService.addCollection(collection)).subscribe(
         data => {
           this.collectionchange.emit('submit');
         }, () => {
@@ -67,7 +67,7 @@ export class CollectionComponent implements OnDestroy {
         }
       );
     } else {
-      this.collectionService.updateCollection(collection).subscribe(data => {
+      (await this.collectionService.updateCollection(collection)).subscribe(data => {
         this.collection = data;
         this.collectionchange.emit('submit');
       });

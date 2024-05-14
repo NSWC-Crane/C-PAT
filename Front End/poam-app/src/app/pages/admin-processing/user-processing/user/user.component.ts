@@ -133,13 +133,13 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     private cdr: ChangeDetectorRef
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.isLoading = true;
 
     if (this.user && this.user.userId) {
       this.loadUserData(this.user.userId);
     } else {
-      this.userService.getCurrentUser().subscribe(
+      (await this.userService.getCurrentUser()).subscribe(
         currentUser => {
           this.user = currentUser;
           this.loadCollections();
@@ -154,8 +154,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  private loadUserData(userId: number): void {
-    this.userService.getUser(userId).subscribe(
+  private async loadUserData(userId: number) {
+    (await this.userService.getUser(userId)).subscribe(
       userData => {
         this.user = userData;
         this.loadCollections();
@@ -171,10 +171,10 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     );
   }
 
-  private loadCollections(): void {
-    this.userService.getCurrentUser().subscribe(
-      currentUser => {
-        this.collectionsService.getCollections(currentUser.userName).subscribe(
+  private async loadCollections() {
+    (await this.userService.getCurrentUser()).subscribe(
+      async currentUser => {
+        (await this.collectionsService.getCollections(currentUser.userName)).subscribe(
           (response: any) => {
             this.collectionList = [];
             response.forEach((collection: { collectionName: any; collectionId: { toString: () => any; }; }) => {
@@ -216,9 +216,9 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   } 
 
 
-  onSubmit() {
+  async onSubmit() {
     this.isLoading = true;
-    this.userService.updateUser(this.user).subscribe(() => {
+    (await this.userService.updateUser(this.user)).subscribe(() => {
       this.userchange.emit();
     });
   }
@@ -254,27 +254,23 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  confirmCreate(event: any) {
+  async confirmCreate(event: any) {
     if (this.user.userId && event.newData.collectionId && event.newData.accessLevel) {
-
       const collection_index = this.collectionList.findIndex((e: any) => e.collectionId == event.newData.collectionId);
-
       if (!collection_index && collection_index != 0) {
         this.invalidData("Unable to resolve collection");
         event.confirm.reject();
         return;
       }
-
       const collectionPermission = {
         userId: this.user.userId,
         collectionId: parseInt(event.newData.collectionId, 10),
         accessLevel: parseInt(event.newData.accessLevel, 10),
       }
-
       this.isLoading = true;
-      this.userService.postPermission(collectionPermission).subscribe({
-        next: () => {
-          this.userService.getUser(this.user.userId).subscribe(
+      (await this.userService.postPermission(collectionPermission)).subscribe({
+        next: async () => {
+          (await this.userService.getUser(this.user.userId)).subscribe(
             userData => {
               this.user = userData;
               this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
@@ -303,29 +299,26 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  confirmEdit(event: any) {
+  async confirmEdit(event: any) {
     if (this.user.userId && event.newData.collectionId) {
       const collection_index = this.collectionList.findIndex(
         (e: any) => e.collectionId == event.newData.collectionId
       );
-
       if (!collection_index && collection_index != 0) {
         this.invalidData("Unable to resolve collection");
         event.confirm.reject();
         return;
       }
-
       const collectionPermission = {
         userId: this.user.userId,
         oldCollectionId: parseInt(event.data.collectionId, 10),
         newCollectionId: parseInt(event.newData.collectionId, 10),
         accessLevel: parseInt(event.newData.accessLevel, 10),
       };
-
       this.isLoading = true;
-      this.userService.updatePermission(collectionPermission).subscribe(
-        () => {
-          this.userService.getUser(this.user.userId).subscribe(
+      (await this.userService.updatePermission(collectionPermission)).subscribe(
+        async () => {
+          (await this.userService.getUser(this.user.userId)).subscribe(
             (userData) => {
               this.user = userData;
               this.collectionPermissions = this.user.permissions.map(
@@ -356,11 +349,11 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  confirmDelete(event: any) {
+  async confirmDelete(event: any) {
     this.isLoading = true;
-    this.userService.deletePermission(this.user.userId, event.data.collectionId).subscribe(
-      () => {
-        this.userService.getUser(this.user.userId).subscribe(
+    (await this.userService.deletePermission(this.user.userId, event.data.collectionId)).subscribe(
+      async () => {
+        (await this.userService.getUser(this.user.userId)).subscribe(
           (userData) => {
             this.user = userData;
             this.collectionPermissions = this.user.permissions.map(

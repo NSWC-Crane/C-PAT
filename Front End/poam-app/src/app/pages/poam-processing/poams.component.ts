@@ -13,8 +13,6 @@ import { SubSink } from 'subsink';
 import { PoamService } from './poams.service';
 import { forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../admin-processing/user-processing/users.service';
 
 interface Permission {
@@ -38,7 +36,6 @@ interface LabelInfo {
 export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   private subs = new SubSink();
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   poams: any[] = [];
   user: any;
   payload: any;
@@ -46,18 +43,13 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private poamService: PoamService,
     private router: Router,
-    private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private cdr: ChangeDetectorRef
   ) {
   }
 
   async ngOnInit() {
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();
-    }
   }
 
   ngAfterViewInit(): void {
@@ -65,10 +57,10 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
-    this.subs.sink = this.userService.getCurrentUser().subscribe({
+    this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -95,12 +87,12 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  getPoamData() {
+  async getPoamData() {
     this.subs.sink = forkJoin([
-      this.poamService.getPoamsByCollection(
+      await this.poamService.getPoamsByCollection(
         this.payload.lastCollectionAccessedId
       ),
-      this.poamService.getPoamLabels(
+      await this.poamService.getPoamLabels(
         this.payload.lastCollectionAccessedId
       )
     ]).subscribe(([poams, poamLabelResponse]: any) => {

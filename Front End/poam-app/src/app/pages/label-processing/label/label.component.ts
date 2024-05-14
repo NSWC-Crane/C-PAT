@@ -56,7 +56,7 @@ export class LabelComponent implements OnInit, OnDestroy {
     );
   }
 
-  onSubmit() {
+  async onSubmit() {
 
     if (!this.validData()) return;
 
@@ -70,7 +70,7 @@ export class LabelComponent implements OnInit, OnDestroy {
     if (this.label.labelId == "ADDLABEL") {
       this.label.labelId = "";
 
-      this.subs.sink = this.labelService.addLabel(this.selectedCollection, label).subscribe(
+      this.subs.sink = (await this.labelService.addLabel(this.selectedCollection, label)).subscribe(
         (data: any) => {
           this.labelchange.emit(data.labelId);
         },
@@ -82,7 +82,7 @@ export class LabelComponent implements OnInit, OnDestroy {
 
     } else {
 
-      this.subs.sink = this.labelService.updateLabel(this.selectedCollection, label).subscribe(data => {
+      this.subs.sink = (await this.labelService.updateLabel(this.selectedCollection, label)).subscribe(data => {
         this.label = data;
         this.labelchange.emit();
       });

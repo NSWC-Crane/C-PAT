@@ -10,9 +10,10 @@
 
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable, firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
@@ -20,14 +21,10 @@ import { environment } from '../../../environments/environment';
 export class NotificationService {
   private url = environment.CPAT_API_URL;
 
-  httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    })
-  };
-
-  constructor(private http: HttpClient) { }
-
+  constructor(
+    private http: HttpClient,
+    private oidcSecurityService: OidcSecurityService
+  ) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -38,38 +35,50 @@ export class NotificationService {
     return throwError('Something bad happened; please try again later.');
   }
 
-  getAllNotificationsByUserId(userId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.url}/notifications/all/${userId}`)
+  private async getAuthHeaders() {
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
+  }
+
+  async getAllNotificationsByUserId(userId: number) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get<any[]>(`${this.url}/notifications/all/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getUnreadNotificationsByUserId(userId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.url}/notifications/unread/${userId}`)
+  async getUnreadNotificationsByUserId(userId: number) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get<any[]>(`${this.url}/notifications/unread/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getUnreadNotificationCountByUserId(userId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.url}/notifications/unread/count/${userId}`)
+  async getUnreadNotificationCountByUserId(userId: number) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get<any[]>(`${this.url}/notifications/unread/count/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  dismissNotificationByNotificationId(notificationId: number): Observable<any> {
-    return this.http.put<any>(`${this.url}/notifications/dismiss/${notificationId}`, null, this.httpOptions)
+  async dismissNotificationByNotificationId(notificationId: number) {
+        const headers = await this.getAuthHeaders();
+		return this.http.put<any>(`${this.url}/notifications/dismiss/${notificationId}`, null, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  dismissAllNotificationsByUserId(userId: number): Observable<any> {
-    return this.http.put<any>(`${this.url}/notifications/all/dismiss/${userId}`, null, this.httpOptions)
+  async dismissAllNotificationsByUserId(userId: number) {
+        const headers = await this.getAuthHeaders();
+		return this.http.put<any>(`${this.url}/notifications/all/dismiss/${userId}`, null, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  deleteNotificationByNotificationId(notificationId: number): Observable<any> {
-    return this.http.delete<any>(`${this.url}/notifications/delete/${notificationId}`)
+  async deleteNotificationByNotificationId(notificationId: number) {
+        const headers = await this.getAuthHeaders();
+		return this.http.delete<any>(`${this.url}/notifications/delete/${notificationId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  deleteAllNotificationsByUserId(userId: number): Observable<any> {
-    return this.http.delete<any>(`${this.url}/notifications/all/delete/${userId}`)
+  async deleteAllNotificationsByUserId(userId: number) {
+        const headers = await this.getAuthHeaders();
+		return this.http.delete<any>(`${this.url}/notifications/all/delete/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 }

@@ -8,22 +8,33 @@
 !########################################################################
 */
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FileUploadService {
   private url = environment.CPAT_API_URL;
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private oidcSecurityService: OidcSecurityService
+  ) { }
 
-  upload(file: File, userId: string) {
+  private async getAuthHeaders() {
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
+  }
+
+  async upload(file: File, userId: string) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('userId', userId);
-    return this.http.post(`${this.url}/import/poams`, formData, {
+
+		return this.http.post(`${this.url}/import/poams`, formData, {
       reportProgress: true,
       observe: 'events'
     });

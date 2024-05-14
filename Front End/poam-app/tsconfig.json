@@ -28,6 +28,7 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": [ "node" ]
   }
 }

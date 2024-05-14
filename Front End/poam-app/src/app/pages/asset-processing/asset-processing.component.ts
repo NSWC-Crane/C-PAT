@@ -14,8 +14,6 @@ import { forkJoin, Observable } from 'rxjs';
 import { NbDialogService, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../admin-processing/user-processing/users.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { Assets } from './asset.model';
@@ -102,11 +100,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   sortDirection: NbSortDirection = NbSortDirection.NONE;
 
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
-
   users: any;
   user: any;
-
   availableAssets: any[] = [];
   selectedAssets: string[] = [];
   collections: any[] = [];
@@ -135,7 +130,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     private assetService: AssetService,
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
-    private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
     Chart.register(...registerables);
@@ -146,12 +140,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   async ngOnInit() {
-    this.getAssetData();
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
-      this.setPayload();
-    }
+        this.getAssetData();
+        this.setPayload();
   }
 
   ngAfterViewInit() {
@@ -194,11 +184,11 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     });
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
 
-    this.subs.sink = this.userService.getCurrentUser().subscribe(
+    this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -211,7 +201,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
                 accessLevel: permission.accessLevel,
               }))
             };
-
             this.getAssetData();
           }
         } else {

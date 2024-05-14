@@ -15,8 +15,6 @@ import { CollectionsService } from '../../admin-processing/collection-processing
 import { SharedService } from '../../../Shared/shared.service';
 import { Subscription, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 
 interface Permission {
@@ -42,7 +40,6 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   approvalColumns = ['POAM ID', 'Adjusted Severity', 'Approval Status', 'Manage'];
   private subs = new SubSink();
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   public monthlyPoamStatus: any[] = [];
   public poamCountData: any[] = [];
   approvalData: any[] = [];
@@ -66,30 +63,25 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     private poamService: PoamService,
     private sharedService: SharedService,
     private router: Router,
-    private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private cdr: ChangeDetectorRef,
   ) {
   }
 
   async ngOnInit() {
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
-      this.setPayload();
-    }
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
       })
     );
+    this.setPayload();
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
 
-    this.userService.getCurrentUser().subscribe({
+    (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -118,15 +110,15 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  getPoamData() {
+  async getPoamData() {
     this.subs.sink = forkJoin([
-      this.poamService.getPoamsByCollection(
+      await this.poamService.getPoamsByCollection(
         this.payload.lastCollectionAccessedId, true, true, false
       ),
-      this.poamService.getPoamLabels(
+      await this.poamService.getPoamLabels(
         this.payload.lastCollectionAccessedId
       ),
-      this.collectionService.getCollectionBasicList()
+      await this.collectionService.getCollectionBasicList()
     ]).subscribe(([poams, poamLabelResponse, basicListData]: any) => {
       if (!Array.isArray(poamLabelResponse)) {
         console.error(

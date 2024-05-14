@@ -12,8 +12,6 @@ import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewC
 import { NbTreeGridDataSource, NbTreeGridDataSourceBuilder, NbDialogService } from '@nebular/theme';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedService } from '../../../Shared/shared.service';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { Subscription } from 'rxjs';
 import { PoamLogService } from './poam-log.service';
 
@@ -42,8 +40,6 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
   modalWindow: any;
   poamId: any;
   selectedCollection: any;
-  public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   private subscriptions = new Subscription();
 
   constructor(
@@ -52,7 +48,6 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
     private router: Router,
     private sharedService: SharedService,
     private route: ActivatedRoute,
-    private keycloak: KeycloakService,
     private poamLogService: PoamLogService,
     private changeDetectorRef: ChangeDetectorRef,
   ) { }
@@ -64,11 +59,6 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
       this.poamId = params['poamId'];
       if (this.poamId) {
         this.fetchPoamLog(this.poamId);
-      }
-
-      this.isLoggedIn = this.keycloak.isLoggedIn();
-      if (this.isLoggedIn) {
-        this.userProfile = await this.keycloak.loadUserProfile();
       }
     });
 
@@ -83,8 +73,8 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
     this.openModal();
 }
 
-  private fetchPoamLog(poamId: string) {
-    this.poamLogService.getPoamLogByPoamId(poamId).subscribe({
+  private async fetchPoamLog(poamId: string) {
+    (await this.poamLogService.getPoamLogByPoamId(poamId)).subscribe({
       next: (response: any) => {
         const poamLog = response;
         const data: TreeNode<FSEntry>[] = poamLog.map((log: FSEntry) => ({

@@ -11,10 +11,10 @@
 import { Injectable } from '@angular/core';
 import { PoamService } from '../../../poam-processing/poams.service';
 import { SharedService } from '../../../../Shared/shared.service';
-import { KeycloakService } from 'keycloak-angular';
 import { forkJoin, of } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { ImportService } from '../../import.service';
+
 interface Poam {
   poamId: number;
   collectionId: number;
@@ -31,20 +31,18 @@ export class PoamAssetUpdateService {
     private importService: ImportService,
     private poamService: PoamService,
     private sharedService: SharedService,
-    private keycloak: KeycloakService
   ) { }
 
   updateOpenPoamAssets(collectionId: string, stigManagerCollectionId: string, user: number) {
-    this.keycloak.getToken().then((token) => {
       forkJoin([
         this.poamService.getPoamsByCollection(collectionId),
-        this.sharedService.getAffectedAssetsFromSTIGMAN(token, stigManagerCollectionId)
+        this.sharedService.getAffectedAssetsFromSTIGMAN(stigManagerCollectionId)
       ]).pipe(
         map(([poams, assets]) => {
-          const poamAssetsData = (poams as Poam[])
+          const poamAssetsData = (poams as unknown as Poam[])
             .filter(poam => poam.status !== 'Closed' && poam.vulnerabilitySource === 'STIG')
             .map(poam => {
-              const filteredAssets = (assets as any[]).filter(entry => entry.groupId === poam.vulnerabilityId);
+              const filteredAssets = (assets as unknown as any[]).filter(entry => entry.groupId === poam.vulnerabilityId);
               if (filteredAssets.length > 0) {
                 const assetList = filteredAssets[0].assets.map((asset: { name: any; assetId: string; }) => ({
                   assetName: asset.name,
@@ -75,7 +73,6 @@ export class PoamAssetUpdateService {
         (error) => {
           console.error('Error in POAM Asset update:', error);
         }
-      );
-    });
+      );    
   }
 }

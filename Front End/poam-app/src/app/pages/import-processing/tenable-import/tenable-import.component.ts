@@ -8,16 +8,11 @@
 !########################################################################
 */
 
-import { HttpClient } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { Observable } from 'rxjs';
-import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../../Shared/shared.service';
-
 
 
 @Component({
@@ -27,22 +22,15 @@ import { SharedService } from '../../../Shared/shared.service';
 })
 export class TenableImportComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
-  userProfile: KeycloakProfile | null = null;
   scanResults: string = '';
   scans: any = [];
-  private subs = new SubSink()
+
   constructor(
     private sharedService: SharedService,
     private dialogService: NbDialogService,
-    private http: HttpClient,
-    private keycloak: KeycloakService
   ) { }
 
   async ngOnInit() {
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
-    }
   }
 
 
