@@ -10,8 +10,6 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { Observable, forkJoin } from 'rxjs';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
@@ -54,7 +52,6 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   allColumns = [this.customColumn, ...this.defaultColumns];
   dataSource!: NbTreeGridDataSource<any>;
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   user: any;
   userCollections: any[] = [];
   availableAssets: any[] = [];
@@ -79,7 +76,6 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   constructor(
     private collectionService: CollectionsService,
     private dialogService: NbDialogService,
-    private readonly keycloak: KeycloakService,
     private userService: UsersService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>
   ) { }
@@ -89,11 +85,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
       this.setPayload();
-    }
   }
 
   showPopup(message: string) {
@@ -111,11 +103,11 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     });
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
     this.showSelect = true;
-    this.subs.sink = this.userService.getCurrentUser().subscribe(
+    this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -159,11 +151,11 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     }
   }
 
-  getCollectionData() {
+  async getCollectionData() {
     this.isLoading = true;
     this.collections = null;
-    this.collectionService
-      .getCollections(this.payload.userName)
+    (await this.collectionService
+          .getCollections(this.payload.userName))
       .subscribe((result: any) => {
         this.data = result;
         this.collections = this.data;
@@ -216,10 +208,10 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     });
   }
 
-  setExportCollection(collectionId: any) {
+  async setExportCollection(collectionId: any) {
     this.exportCollectionId = collectionId;
-    this.collectionService
-      .getPoamsByCollection(collectionId)
+    (await this.collectionService
+          .getPoamsByCollection(collectionId))
       .subscribe((response: any) => {
         this.poams = response;
       });

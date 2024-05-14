@@ -45,14 +45,14 @@ import { NotificationsComponent } from './notifications/notifications.component'
   declarations: [
     ConfirmationDialogComponent,
     NotFoundComponent,
-    NotificationsComponent,
+    NotificationsComponent,    
     NotificationsPanelComponent,
     StatusDialogComponent,
     SmartTableDatepickerComponent,
     SmartTableInputComponent,
     SmartTableInputDisabledComponent,
     SmartTableSelectComponent,
-    SmartTableTextareaComponent,
+    SmartTableTextareaComponent,    
   ],
   imports: [
     CommonModule,
@@ -75,7 +75,7 @@ import { NotificationsComponent } from './notifications/notifications.component'
     NbSpinnerModule,
     NbTreeGridModule,
     NbThemeModule,
-    NbWindowModule.forChild(),
+    NbWindowModule.forChild(),    
     Angular2SmartTableModule, 
   ],
   exports: [

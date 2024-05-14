@@ -857,29 +857,26 @@ paths:
           application/json:
             schema:
               type: array
-              properties:
-                assets:
-                  type: object
-                  items:
-                    type: object
-                    required:
-                      - assetName
-                      - collectionId
-                      - poamId
-                    properties:
-                      assetName:
-                        type: string
-                      collectionId:
-                        type: integer
-                      poamId:
-                        type: integer
-                      poamLog:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            userId:
-                              type: integer
+              items:
+                type: object
+                required:
+                  - assetName
+                  - collectionId
+                  - poamId
+                properties:
+                  assetName:
+                    type: string
+                  collectionId:
+                    type: integer
+                  poamId:
+                    type: integer
+                  poamLog:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        userId:
+                          type: integer
       responses:
         '200':
           description: Poam Assets updated with stigman data
@@ -1909,7 +1906,7 @@ paths:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
 
   '/poamApprovers/user/{userId}':
     parameters:

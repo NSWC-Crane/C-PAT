@@ -9,13 +9,11 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NbDialogService, NbWindowRef } from '@nebular/theme';
 import { Settings } from 'angular2-smart-table';
 import { addDays, format, isAfter, parseISO } from 'date-fns';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { Observable, Subscription, forkJoin, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { SmartTableDatepickerComponent } from 'src/app/Shared/components/smart-table/smart-table-datepicker.component';
@@ -30,6 +28,7 @@ import { UsersService } from '../../admin-processing/user-processing/users.servi
 import { PoamService } from '../poams.service';
 import { AssetService } from '../../asset-processing/assets.service';
 import { ImportService } from '../../import-processing/import.service';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 interface Permission {
   userId: number;
@@ -45,7 +44,6 @@ interface Permission {
 })
 export class PoamDetailsComponent implements OnInit, OnDestroy {
   public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
   labelList: any;
   poamLabels: any[] = [];
   users: any;
@@ -53,7 +51,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   poam: any;
   poamId: string = "";
   payload: any;
-  token: any;
   dates: any = {};
   collectionUsers: any;
   collectionSubmitters: any[] = [];
@@ -399,6 +396,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   private subs = new SubSink()
 
   constructor(
+    private cdr: ChangeDetectorRef,
     private collectionService: CollectionsService,
     private poamService: PoamService,
     private route: ActivatedRoute,
@@ -406,7 +404,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     private router: Router,
     private dialogService: NbDialogService,
     private datePipe: DatePipe,
-    private readonly keycloak: KeycloakService,
+    private oidcSecurityService: OidcSecurityService,
     private userService: UsersService,
     private assetService: AssetService,
     private importService: ImportService
@@ -417,25 +415,21 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.route.params.subscribe(async params => {
       this.stateData = history.state;
-      this.poamId = params['poamId'];
-      this.isLoggedIn = this.keycloak.isLoggedIn();
-      if (this.isLoggedIn) {
-        this.userProfile = await this.keycloak.loadUserProfile();
-        this.setPayload();
-      }
+      this.poamId = params['poamId'];        
     });
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
       })
     );
+    this.setPayload();
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
 
-    this.userService.getCurrentUser().subscribe({
+    (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -480,10 +474,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         console.error('An error occurred:', error);
       }
     });
+    this.cdr.detectChanges();
   }
 
 
-  getData() {
+  async getData() {
     this.getLabelData();
     if (this.poamId == undefined || !this.poamId) return;
     if (this.poamId === "ADDPOAM") {
@@ -536,8 +531,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.poamLabels = poamLabels;
         this.setChartSelectionData();
       });
-      this.keycloak.getToken().then((token) => {
-        this.sharedService.getSTIGsFromSTIGMAN(token).subscribe({
+        (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
           next: (data) => {
             this.stigmanSTIGs = data.map((stig: any) => ({
               title: stig.title,
@@ -549,18 +543,17 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             }
           },
         });
-      });
     }
   }
 
-  createNewPoam() {
+  async createNewPoam() {
     this.canModifySubmitter = true;
 
     forkJoin([
       this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
       this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
       this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
-    ]).subscribe(([collection, users, collectionAssets]: any) => {
+    ]).subscribe(async ([collection, users, collectionAssets]: any) => {
       this.poam = {
         poamId: "ADDPOAM",
         collectionId: this.payload.lastCollectionAccessedId,
@@ -600,9 +593,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         });
       }
       this.setChartSelectionData();
-
-      this.keycloak.getToken().then((token) => {
-        this.sharedService.getSTIGsFromSTIGMAN(token).subscribe({
+        (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
           next: (data) => {
             this.stigmanSTIGs = data.map((stig: any) => ({
               title: stig.title,
@@ -630,19 +621,18 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             }
           },
         });
-      });
     });
   }
 
-  getLabelData() {
-    this.subs.sink = this.poamService.getLabels(this.selectedCollection).subscribe((labels: any) => {
+  async getLabelData() {
+    this.subs.sink = (await this.poamService.getLabels(this.selectedCollection)).subscribe((labels: any) => {
       this.labelList = labels;
       this.updateLabelEditorConfig();
     });
   }
 
-  getPoamLabels() {
-    this.subs.sink = this.poamService.getPoamLabelsByPoam(this.poamId).subscribe((poamLabels: any) => {
+  async getPoamLabels() {
+    this.subs.sink = (await this.poamService.getPoamLabelsByPoam(this.poamId)).subscribe((poamLabels: any) => {
       this.poamLabels = poamLabels;
     });
   }
@@ -667,7 +657,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.poamLabelsSettings = Object.assign({}, labelSettings);
   }
 
-  addDefaultApprovers() {
+  async addDefaultApprovers() {
     this.collectionApprovers.forEach(async (collectionApprover: any) => {
       const approver: any = {
         poamId: +this.poamId,
@@ -676,7 +666,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         approvalStatus: 'Not Reviewed',
         poamLog: [{ userId: this.user.userId }],
       }
-      await this.poamService.addPoamApprover(approver).subscribe(() => {
+      await (await this.poamService.addPoamApprover(approver)).subscribe(() => {
         approver.fullName = collectionApprover.fullName;
         approver.firstName = collectionApprover.firstName;
         approver.lastName = collectionApprover.lastName;
@@ -820,7 +810,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.savePoam();
   }
 
-  savePoam() {
+  async savePoam() {
     if (!this.validateData()) return;
     this.poam.scheduledCompletionDate = format(this.dates.scheduledCompletionDate, "yyyy-MM-dd");
     this.poam.submittedDate = format(this.dates.submittedDate, "yyyy-MM-dd");
@@ -858,7 +848,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         }));
       }
 
-      this.poamService.postPoam(this.poam).subscribe({
+      (await this.poamService.postPoam(this.poam)).subscribe({
         next: (res) => {
           if (res.null || res.null == "null") {
             this.showConfirmation("unexpected error adding poam", "Information", "warning");
@@ -881,7 +871,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.poam.assets = assets;
       }
 
-      this.subs.sink = this.poamService.updatePoam(this.poam).subscribe(data => {
+      this.subs.sink = (await this.poamService.updatePoam(this.poam)).subscribe(data => {
         this.poam = data;
         this.showConfirmation("Updated POAM", "Success", "info", true, false);
       });
@@ -896,16 +886,15 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.poam.stigBenchmarkId = stig.benchmarkId;
   }
 
-  validateStigManagerCollection() {
-    this.keycloak.getToken().then((token) => {
+  async validateStigManagerCollection() {
       forkJoin([
-        this.sharedService.getCollectionsFromSTIGMAN(token).pipe(
+        (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
           catchError((err) => {
             console.error('Failed to fetch from STIGMAN:', err);
             return of([]);
           })
         ),
-        this.collectionService.getCollectionBasicList().pipe(
+        (await this.collectionService.getCollectionBasicList()).pipe(
           catchError((err) => {
             console.error('Failed to fetch basic collection list:', err);
             return of([]);
@@ -926,15 +915,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         }
 
         const stigmanCollectionId = stigmanCollection.collectionId;
-        this.updateAssetSettings(token, stigmanCollectionId);
+        this.updateAssetSettings(stigmanCollectionId);
       });
-    });
   }
 
-  updateAssetSettings(token: string, stigmanCollectionId: string) {
-    this.sharedService.getAffectedAssetsFromSTIGMAN(token, stigmanCollectionId).pipe(
+  async updateAssetSettings(stigmanCollectionId: string) {
+    (await this.sharedService.getAffectedAssetsFromSTIGMAN(stigmanCollectionId)).pipe(
       map(data => data.filter(entry => entry.groupId === this.poam.vulnerabilityId)),
-      switchMap(filteredData => {
+      switchMap(async filteredData => {
         if (filteredData.length > 0) {
           this.assetList = filteredData[0].assets.map((assets: { name: any; assetId: string; }) => ({
             assetName: assets.name,
@@ -942,15 +930,15 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           }));
 
           if (this.poamId !== "ADDPOAM" && this.stateData.vulnerabilitySource === 'STIG') {
-            return this.assetService.deleteAssetsByPoamId(+this.poamId).pipe(
+            return (await this.assetService.deleteAssetsByPoamId(+this.poamId)).pipe(
               switchMap(() => this.poamService.deletePoamAssetByPoamId(+this.poamId)),
               switchMap(() => {
                 const assetDetailsObservables = this.assetList.map(asset =>
-                  this.sharedService.selectedAssetsFromSTIGMAN(asset.assetId, token)
+                  this.sharedService.selectedAssetsFromSTIGMAN(asset.assetId)
                 );
                 return forkJoin(assetDetailsObservables);
               }),
-              switchMap((assetDetails: any[]) => {
+              switchMap(async (assetDetails: any[]) => {
                 const assets = assetDetails.map(asset => {
                   const { assetId, ...rest } = asset;
                   return rest;
@@ -958,7 +946,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
                 const requestBody = { assets: assets };
 
-                return this.importService.postStigManagerAssets(requestBody).pipe(
+                return (await this.importService.postStigManagerAssets(requestBody)).pipe(
                   tap((response: any) => {
                     const importedAssets = response.assets;
                     this.assetList = this.assetList.map(asset => {
@@ -997,7 +985,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         }
       })
     ).subscribe({
-      next: (filteredData) => {
+      next: (filteredData: any) => {
         if (filteredData.length > 0) {
           this.poamAssets = this.assetList;
           this.showConfirmation("Asset list updated with STIG Manager findings.", "Information", "warning");
@@ -1114,7 +1102,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       }
 
 
-      await this.poamService.addPoamMilestone(this.poam.poamId, milestone).subscribe((res: any) => {
+      await (await this.poamService.addPoamMilestone(this.poam.poamId, milestone)).subscribe((res: any) => {
         if (res.null) {
           this.showConfirmation("Unable to insert row, please try again.", "Information", "warning");
           event.confirm.reject();
@@ -1135,7 +1123,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  confirmEditMilestone(event: any) {
+  async confirmEditMilestone(event: any) {
     if (this.poam.poamId === "ADDPOAM") {
       event.confirm.resolve();
       return;
@@ -1172,7 +1160,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       poamLog: [{ userId: this.user.userId }],
     };
 
-    this.poamService.updatePoamMilestone(this.poam.poamId, event.data.milestoneId, milestoneUpdate).subscribe({
+    (await this.poamService.updatePoamMilestone(this.poam.poamId, event.data.milestoneId, milestoneUpdate)).subscribe({
       next: () => {
         event.confirm.resolve();
       },
@@ -1196,7 +1184,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.poamService.deletePoamMilestone(this.poam.poamId, event.data.milestoneId, this.user.userId, false).subscribe(() => {
+    (await this.poamService.deletePoamMilestone(this.poam.poamId, event.data.milestoneId, this.user.userId, false)).subscribe(() => {
       const index = this.poamMilestones.findIndex((e: any) => e.poamId == event.data.poamId && e.milestoneId == event.data.milestoneId);
 
       if (index > -1) {
@@ -1208,7 +1196,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   async confirmDeleteApprover(event: any) {
     if (this.poam.poamId !== "ADDPOAM" && this.poam.status === "Draft") {
-      this.poamService.deletePoamApprover(event.data.poamId, event.data.userId, this.user.userId).subscribe(() => {
+      (await this.poamService.deletePoamApprover(event.data.poamId, event.data.userId, this.user.userId)).subscribe(() => {
         const index = this.poamApprovers.findIndex((e: any) => e.poamId == event.data.poamId && e.userId == event.data.userId);
         if (index > -1) {
           this.poamApprovers.splice(index, 1);
@@ -1235,9 +1223,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         poamLog: [{ userId: this.user.userId }],
       };
 
-      this.poamService.addPoamApprover(approver).subscribe(() => {
+      (await this.poamService.addPoamApprover(approver)).subscribe(async () => {
         event.confirm.resolve();
-        this.poamService.getPoamApprovers(this.poamId).subscribe((poamApprovers: any) => {
+        (await this.poamService.getPoamApprovers(this.poamId)).subscribe((poamApprovers: any) => {
           this.poamApprovers = poamApprovers;
         })
       });
@@ -1249,7 +1237,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  confirmCreateLabel(event: any) {
+  async confirmCreateLabel(event: any) {
     if (this.poam.poamId === "ADDPOAM") {
       this.showConfirmation("You may not assign a label until after the POAM has been saved.", "Information", "warning");
       event.confirm.reject();
@@ -1270,7 +1258,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         poamLog: [{ userId: this.user.userId }],
       };
 
-      this.poamService.postPoamLabel(poamLabel).subscribe(() => {
+      (await this.poamService.postPoamLabel(poamLabel)).subscribe(() => {
         event.confirm.resolve();
         this.getPoamLabels();
       });
@@ -1280,7 +1268,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  confirmDeleteLabel(event: any) {
+  async confirmDeleteLabel(event: any) {
     if (this.poam.poamId === "ADDPOAM") {
       event.confirm.resolve();
       return;
@@ -1294,7 +1282,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.showConfirmation("Unable to resolve assigned label.", "Information", "warning");
       event.confirm.reject();
     } else {
-      this.poamService.deletePoamLabel(+event.data.poamId, +event.data.labelId, this.user.userId).subscribe(() => {
+      (await this.poamService.deletePoamLabel(+event.data.poamId, +event.data.labelId, this.user.userId)).subscribe(() => {
         event.confirm.resolve();
         this.poamLabels.splice(label_index, 1);
         this.poamLabels = [...this.poamLabels];
@@ -1302,7 +1290,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  confirmCreate(data: any) {
+  async confirmCreate(data: any) {
     if (this.poam.poamId === "ADDPOAM") {
       data.confirm.resolve();
       return;
@@ -1322,11 +1310,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         poamId: +this.poam.poamId,
         userId: +data.newData.userId,
         poamLog: [{ userId: this.user.userId }],
-      }
-
-      this.poamService.postPoamAssignee(poamAssignee).subscribe(() => {
+      };
+      (await this.poamService.postPoamAssignee(poamAssignee)).subscribe(async () => {
         data.confirm.resolve();
-        this.poamService.getPoamAssignees(this.poamId).subscribe((poamAssignees: any) => {
+        (await this.poamService.getPoamAssignees(this.poamId)).subscribe((poamAssignees: any) => {
           this.poamAssignees = poamAssignees;
         })
       })
@@ -1344,10 +1331,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         poamId: +this.poam.poamId,
         assetId: +data.newData.assetId,
         poamLog: [{ userId: this.user.userId }],
-      }
-      this.poamService.postPoamAsset(poamAsset).subscribe(() => {
+      };
+      (await this.poamService.postPoamAsset(poamAsset)).subscribe(async () => {
         data.confirm.resolve();
-        this.poamService.getPoamAssets(this.poamId).subscribe((poamAssets: any) => {
+        (await this.poamService.getPoamAssets(this.poamId)).subscribe((poamAssets: any) => {
           this.poamAssets = poamAssets;
         })
       })
@@ -1358,7 +1345,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  confirmDelete(assigneeData: any) {
+  async confirmDelete(assigneeData: any) {
     if (this.poam.poamId === "ADDPOAM") {
       assigneeData.confirm.resolve();
       return;
@@ -1373,7 +1360,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.showConfirmation("Unable to resolve user assigned", "Information", "warning")
         assigneeData.confirm.reject();
       } else {
-        this.poamService.deletePoamAssignee(+assigneeData.data.poamId, +assigneeData.data.userId, this.user.userId).subscribe(() => {
+        (await this.poamService.deletePoamAssignee(+assigneeData.data.poamId, +assigneeData.data.userId, this.user.userId)).subscribe(() => {
           assigneeData.confirm.resolve();
           this.getData();
         });
@@ -1392,7 +1379,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.poamAssets = this.poamAssets.filter((asset: any) => asset.assetId !== assigneeData.data.assetId);
         assigneeData.confirm.resolve();
       } else {
-        this.poamService.deletePoamAsset(+assigneeData.data.poamId, +assigneeData.data.assetId, this.user.userId).subscribe(() => {
+        (await this.poamService.deletePoamAsset(+assigneeData.data.poamId, +assigneeData.data.assetId, this.user.userId)).subscribe(() => {
           assigneeData.confirm.resolve();
           this.getData();
         });
@@ -1403,14 +1390,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  convertPoamToDraft() {
+  async convertPoamToDraft() {
     const poamStatusUpdate = {
       poamId: this.poam.poamId,
       status: 'Draft',
       poamLog: [{ userId: this.user.userId }],
     };
 
-    this.poamService.updatePoamStatus(this.poam.poamId, poamStatusUpdate).subscribe(() => {
+    (await this.poamService.updatePoamStatus(this.poam.poamId, poamStatusUpdate)).subscribe(() => {
     });
     this.poam.status = 'Draft';
   }

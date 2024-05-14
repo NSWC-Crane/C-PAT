@@ -12,8 +12,6 @@ import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { NbDialogService, NbMenuItem, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { Subject, Subscription, filter, takeUntil } from 'rxjs';
 import { SubSink } from 'subsink';
 import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
@@ -26,6 +24,7 @@ import { accessControlList } from './access-control-list';
 import { appMenuItems } from './app-menu';
 import { CollectionsService } from './pages/admin-processing/collection-processing/collections.service';
 import { UsersService } from './pages/admin-processing/user-processing/users.service';
+import { AuthService } from './auth/auth.service';
 
 
 interface Permission {
@@ -42,15 +41,13 @@ interface Permission {
 
 export class AppComponent implements OnInit, OnDestroy {
   @Output() resetRole: EventEmitter<any> = new EventEmitter();
-  public isLoggedIn = false;
-  public userProfile: KeycloakProfile | null = null;
+  userProfile: any = null;
   classificationCode: string = 'U';
   classification: string = 'UNCLASSIFIED';
   classificationColorCode: string = '#5cb85c;'
   users: any = null;
   menuItems: any = appMenuItems;
   selectedTheme: any;
-  isSettingWorkspace: boolean = true;
   selectCollectionMsg: boolean = false;
   collections: any = [];
   notificationCount: any = null;
@@ -71,10 +68,12 @@ export class AppComponent implements OnInit, OnDestroy {
   public detailedPoam: any;
   private subs = new SubSink()
   private destroy$ = new Subject<void>();
+  isLoggedIn: boolean = false;
 
   userMenu = ['Notification 1', 'Notification 2'];
 
   constructor(
+    private authService: AuthService,
     private dialogService: NbDialogService,
     public sidebarService: NbSidebarService,
     private menuService: NbMenuService,
@@ -84,7 +83,6 @@ export class AppComponent implements OnInit, OnDestroy {
     private collectionService: CollectionsService,
     private userService: UsersService,
     private poamService: PoamService,
-    private readonly keycloak: KeycloakService,
     private fileUploadService: FileUploadService,
     private notificationService: NotificationService,
   ) {
@@ -97,38 +95,43 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public async ngOnInit() {
+    try {
+      await this.authService.initializeAuthentication();
+      this.userProfile = await this.authService.getUserData('cpat');        
+    } catch (error) {
+      console.error('Authentication Error:', error);
+    }
+
+    if (this.userProfile) {
+      this.setPayload();
+    } else {
+      setTimeout(() => this.ngOnInit(), 1000);
+    }
+
     this.menuService.onItemClick().subscribe((event) => {
       if (event.item.title === 'eMASS Excel Import') {
         this.triggerFileInput();
       }
-
       if (event.item.title === 'Logout') {
-        this.logOut();
+        this.authService.logout('cpat');
       }
     });
 
     this.classification = environment.classification;
     this.classificationCode = environment.classificationCode;
     this.classificationColorCode = environment.classificationColorCode;
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
-      this.setPayload();
-    }
 
     this.poamService.onNewPoam.subscribe({
       next: () => {
         this.getPoamsForCollection();
       }
-    })
-    this.isSettingWorkspace = false;
+    });
   }
 
-  setPayload() {
+  async setPayload() {
     this.user = null;
     this.payload = null;
-
-    this.subs.sink = this.userService.getCurrentUser().subscribe({
+    this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         this.user = response;
         this.fullName = response.fullName
@@ -154,16 +157,16 @@ export class AppComponent implements OnInit, OnDestroy {
           alert('Your account status is not Active, contact your system administrator');
         }
       },
-      error: (error) => {
+      error: async (error) => {
         if (error.status === 404 || !this.user) {
           const newUser = {
-            userName: this.userProfile?.username,
-            firstName: this.userProfile?.firstName,
-            lastName: this.userProfile?.lastName,
+            userName: this.userProfile?.preferred_username,
+            firstName: this.userProfile?.given_name,
+            lastName: this.userProfile?.family_name,
             email: this.userProfile?.email,
           };
 
-          this.userService.postUser(newUser).subscribe({
+          (await this.userService.postUser(newUser)).subscribe({
             next: () => {
               console.log("User name: " + newUser.userName + " has been added, account status is PENDING");
               this.user = newUser;
@@ -177,9 +180,9 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  getCollections() {
+  async getCollections() {
     const userName = this.payload.userName;
-    this.subs.sink = this.collectionService.getCollections(userName).subscribe((result: any) => {
+    this.subs.sink = (await this.collectionService.getCollections(userName)).subscribe((result: any) => {
 
       this.collections = result;
       this.selectedTheme = (this.user.defaultTheme) ? this.user.defaultTheme : 'default'
@@ -199,15 +202,15 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  getNotificationCount() {
-    this.subs.sink = this.notificationService.getUnreadNotificationCountByUserId(this.user.userId).subscribe((result: any) => {
+  async getNotificationCount() {
+    this.subs.sink = (await this.notificationService.getUnreadNotificationCountByUserId(this.user.userId)).subscribe((result: any) => {
       (result > 0) ? (this.notificationCount = result) : null;
     });
   }
 
-  getPoamsForCollection() {
+  async getPoamsForCollection() {
     if (this.payload.lastCollectionAccessedId) {
-      this.subs.sink = this.poamService.getPoamsByCollection(this.payload.lastCollectionAccessedId).subscribe((poams: any) => {
+      this.subs.sink = (await this.poamService.getPoamsByCollection(this.payload.lastCollectionAccessedId)).subscribe((poams: any) => {
         this.poams = poams;
         this.poamItems = [];
         const treeArray: any[] = []
@@ -247,7 +250,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.router.navigateByUrl("/poam-processing/poam-details/" + +poam.poamId);
   }
 
-  onSelectedThemeChange(theme: any) {
+  async onSelectedThemeChange(theme: any) {
     if (!this.user) {
       console.error("User data is not available");
       return;
@@ -267,13 +270,13 @@ export class AppComponent implements OnInit, OnDestroy {
       isAdmin: this.user.isAdmin,
       updateSettingsOnly: 1
     }
-
-    this.userService.updateUser(userUpdate).subscribe((result: any) => {
+    console.log(userUpdate);
+    (await this.userService.updateUser(userUpdate)).subscribe((result: any) => {
       this.user = result;
     });
   }
 
-  resetWorkspace(selectedCollection: any) {
+  async resetWorkspace(selectedCollection: any) {
     this.selectedCollection = selectedCollection;
     this.selectCollectionMsg = false;
     this.sharedService.setSelectedCollection(parseInt(this.selectedCollection, 10));
@@ -318,7 +321,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.payload.role = myRole;
     this.userService.changeRole(this.payload);
 
-    this.userService.updateUser(userUpdate).subscribe((result: any) => {
+    (await this.userService.updateUser(userUpdate)).subscribe((result: any) => {
       this.user = result;
       this.authMenuItems();
     });
@@ -334,7 +337,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
 
-  onFileSelect(event: Event) {
+  async onFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length) {
       const file = input.files[0];
@@ -348,7 +351,7 @@ export class AppComponent implements OnInit, OnDestroy {
         context: { progress: 0, message: '' }
       });
 
-      this.fileUploadService.upload(file, this.user.userId).subscribe({
+      (await this.fileUploadService.upload(file, this.user.userId)).subscribe({
         next: (event) => {
           if (event.type === HttpEventType.UploadProgress) {
             const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
@@ -365,12 +368,6 @@ export class AppComponent implements OnInit, OnDestroy {
         },
       });
     }
-  }
-
-  logOut() {
-    this.userService.loginOut("logOut").subscribe(() => {
-      this.keycloak.logout();
-    })
   }
 
   changeDetailsView(poam: any) {

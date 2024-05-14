@@ -13,8 +13,6 @@ import { Router } from '@angular/router';
 import { NbDialogService, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { Chart, ChartData, registerables } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { KeycloakService } from 'keycloak-angular';
-import { KeycloakProfile } from 'keycloak-js';
 import { Observable, Subscription, catchError, forkJoin, of } from 'rxjs';
 import { SubSink } from "subsink";
 import { ImportService } from '../../import-processing/import.service';
@@ -23,6 +21,7 @@ import { SharedService } from '../../../Shared/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { PoamAssetUpdateService } from '../../import-processing/stigmanager-import/stigmanager-update/stigmanager-update.service';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 
 interface Asset {
@@ -52,7 +51,6 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
   sortColumn: string = '';
   sortDirection: NbSortDirection = NbSortDirection.NONE;
   isLoggedIn = false;
-  userProfile: KeycloakProfile | null = null;
   availableAssets: Asset[] = [];
   selectedAssets: string[] = [];
   selectedFindings: string = '';
@@ -118,7 +116,7 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     private userService: UsersService,
     private dialogService: NbDialogService,
     private importService: ImportService,
-    private keycloak: KeycloakService,
+    private oidcSecurityService: OidcSecurityService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<AssetEntry>
   ) {
     this.dataSource = this.dataSourceBuilder.create(this.treeData);
@@ -126,18 +124,12 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
   }
 
   async ngOnInit() {
-    this.isLoggedIn = this.keycloak.isLoggedIn();
-
-    if (this.isLoggedIn) {
-      this.userProfile = await this.keycloak.loadUserProfile();
-    }
-
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
       })
     );
-    this.userService.getCurrentUser().subscribe({
+    (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response && response.userId) {
           this.user = response;
@@ -268,9 +260,8 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     }, 150);
   }
 
-  fetchAssetsFromAPI(collectionId: string) {
-    this.keycloak.getToken().then(token => {
-      this.sharedService.getAssetsFromSTIGMAN(collectionId, token).subscribe({
+  async fetchAssetsFromAPI(collectionId: string) {
+      (await this.sharedService.getAssetsFromSTIGMAN(collectionId)).subscribe({
         next: (data) => {
           if (!data || data.length === 0) {
             this.showPopup('No assets found for the selected collection.');
@@ -282,27 +273,24 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
           this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
         }
       });
-    });
   }
 
-  fetchAssetDetails() {
-    this.keycloak.getToken().then(token => {
-      const assetDetailsObservables = this.selectedAssets.map(assetId =>
-        this.sharedService.selectedAssetsFromSTIGMAN(assetId, token)
+  async fetchAssetDetails() {
+      const assetDetailsObservables = this.selectedAssets.map(async assetId =>
+        await this.sharedService.selectedAssetsFromSTIGMAN(assetId)
       );
       forkJoin(assetDetailsObservables).subscribe(results => {
         this.importAssets(results);
       });
-    });
   }
 
-  importAssets(assetDetails: any[]) {
+  async importAssets(assetDetails: any[]) {
     const assets = assetDetails.map(asset => {
       const { assetId, ...rest } = asset;
       return rest;
     });
     const requestBody = { assets: assets };
-    this.importService.postStigManagerAssets(requestBody).subscribe({
+    (await this.importService.postStigManagerAssets(requestBody)).subscribe({
       next: () => {
         this.showPopup('Import successful');
       },
@@ -313,16 +301,15 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     });
   }
 
-  validateStigManagerCollection() {
-    this.keycloak.getToken().then((token) => {
+  async validateStigManagerCollection() {
       forkJoin([
-        this.sharedService.getCollectionsFromSTIGMAN(token).pipe(
+        (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
           catchError(err => {
             console.error('Failed to fetch from STIGMAN:', err);
             return of([]);
           })
         ),
-        this.collectionService.getCollectionBasicList().pipe(
+        (await this.collectionService.getCollectionBasicList()).pipe(
           catchError(err => {
             console.error('Failed to fetch basic collection list:', err);
             return of([]);
@@ -340,13 +327,12 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
           return;
         }
         this.fetchAssetsFromAPI(this.stigmanCollection.collectionId);
-        this.getAffectedAssetGrid(token, this.stigmanCollection.collectionId);
+        this.getAffectedAssetGrid(this.stigmanCollection.collectionId);
       });
-    });
   }
 
-  getAffectedAssetGrid(token: string, stigmanCollection: string) {
-    this.sharedService.getAffectedAssetsFromSTIGMAN(token, stigmanCollection).subscribe({
+  async getAffectedAssetGrid(stigmanCollection: string) {
+    (await this.sharedService.getAffectedAssetsFromSTIGMAN(stigmanCollection)).subscribe({
       next: (data) => {
         const mappedData = data.map(item => ({
           data: {
@@ -405,8 +391,8 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
   }
 
 
-  filterFindings() {
-    this.sharedService.getExistingVulnerabilityPoams().subscribe({
+  async filterFindings() {
+    (await this.sharedService.getExistingVulnerabilityPoams()).subscribe({
         next: (response: any) => {
           const existingPoams = response;
           this.updateChartAndGrid(existingPoams);
@@ -457,12 +443,10 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     this.updateFindingsChartData(findings);
   }
 
-  addPoam(row: any) {
+  async addPoam(row: any) {
     const ruleId = row.data['ruleId'];
-
-    this.keycloak.getToken().then((token) => {
-      this.sharedService.getRuleDataFromSTIGMAN(token, ruleId).subscribe({
-        next: (ruleData: any) => {
+      (await this.sharedService.getRuleDataFromSTIGMAN(ruleId)).subscribe({
+        next: async (ruleData: any) => {
           const ruleDataString = `# Rule data from STIGMAN
 ## Discussion
 ${ruleData.detail.vulnDiscussion}
@@ -476,7 +460,7 @@ ${ruleData.check.content}
 ${ruleData.fix.text}
 ---`;
 
-          this.sharedService.getPoamsByVulnerabilityId(row.data['Group ID']).subscribe({
+          (await this.sharedService.getPoamsByVulnerabilityId(row.data['Group ID'])).subscribe({
             next: (response: any) => {
               if (response && response.length > 0) {
                 const poam = response[0];
@@ -512,10 +496,6 @@ ${ruleData.fix.text}
           this.showPopup("Error retrieving rule data. Please try again.");
         }
       });
-    }).catch((error) => {
-      console.error('Error fetching token:', error);
-      this.showPopup("Error fetching token. Please try again.");
-    });
   }
 
   showPopup(message: string) {

@@ -1,0 +1,7 @@
+<script>
+window.onload = function () {
+  const parent = window.parent;
+  const event = new CustomEvent('oidc-silent-renew-message', { detail: window.location });
+  parent.dispatchEvent(event);
+};
+</script>

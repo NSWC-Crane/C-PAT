@@ -14,8 +14,6 @@
     <div class="container">
       <img src="../assets/cpat.png" alt="C-PAT (Crane POAM Automation Tool)" (click)="reloadPage()" (keyup.enter)="reloadPage()" tabindex="0" style="cursor: pointer;">
     </div>
-    <div class="col" style="margin-top: 10px;" [nbSpinner]="isSettingWorkspace" nbSpinnerStatus="success" nbSpinnerSize="medium" nbSpinnerMessage="Loading work space, please wait...">
-    </div>
     <nb-user class="userIcon" size="large" [name]="this.fullName" [title]="this.userRole" picture="../assets/user.png" [badgeText]="notificationCount" badgeStatus="info" badgePosition="bottom right" color="#4A4A4A" [nbPopover]="notificationsPanel" nbPopoverTrigger="click">
     </nb-user>
     <ng-template #notificationsPanel>

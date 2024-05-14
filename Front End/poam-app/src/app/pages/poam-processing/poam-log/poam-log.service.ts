@@ -9,10 +9,11 @@
 */
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { throwError } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
 	providedIn: 'root'
@@ -20,13 +21,10 @@ import { environment } from '../../../../environments/environment';
 export class PoamLogService {
 	private url = environment.CPAT_API_URL;
 
-	httpOptions = {
-		headers: new HttpHeaders({
-			'Content-Type': 'application/json'
-		})
-	};
-
-	constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private oidcSecurityService: OidcSecurityService
+  ) { }
 
 	private handleError(error: HttpErrorResponse) {
 		if (error.error instanceof ErrorEvent) {
@@ -35,10 +33,16 @@ export class PoamLogService {
 			console.error(`Backend returned code ${error.status}, ` + `body was: ${error.error}`);
 		}
 		return throwError('Something bad happened; please try again later.');
-	}
+  }
 
-  getPoamLogByPoamId(poamId: string) {
-    return this.http.get(`${this.url}/poamLog/${poamId}`)
-			.pipe(catchError(this.handleError));
-	}
+  private async getAuthHeaders() {
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
+  }
+
+  async getPoamLogByPoamId(poamId: string) {
+        const headers = await this.getAuthHeaders();
+		return this.http.get(`${this.url}/poamLog/${poamId}`, { headers })
+      .pipe(catchError(this.handleError));
+  }
 }

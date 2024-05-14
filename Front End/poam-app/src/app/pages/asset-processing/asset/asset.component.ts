@@ -113,7 +113,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     this.getData();
   }
 
-  onSubmit() {
+  async onSubmit() {
     const asset = {
       assetId: (this.asset.assetId == "ADDASSET") ? 0 : this.asset.assetId,
       assetName: this.asset.assetName,
@@ -135,7 +135,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       }
       this.asset.labels = labels
 
-      this.subs.sink = this.assetService.postAsset(asset).subscribe(
+      this.subs.sink = (await this.assetService.postAsset(asset)).subscribe(
         data => {
           this.assetchange.emit(data.assetId);
       }, err => {
@@ -146,7 +146,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
     } else {
     
-      this.subs.sink = this.assetService.updateAsset(asset).subscribe(data => {
+      this.subs.sink = (await this.assetService.updateAsset(asset)).subscribe(data => {
         this.asset = data;        
         this.assetchange.emit();
       });
@@ -174,16 +174,16 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
   
-  getLabelData() {
-    this.subs.sink = this.assetService.getLabels(this.selectedCollection).subscribe((labels: any) => {
+  async getLabelData() {
+    this.subs.sink = (await this.assetService.getLabels(this.selectedCollection)).subscribe((labels: any) => {
       this.labelList = labels;
       this.updateLabelEditorConfig();
     });
   }
   
-  getCollectionData() {
+  async getCollectionData() {
     const userName = this.payload.userName;
-    this.subs.sink = this.assetService.getCollections(userName).subscribe((collections: any) => {
+    this.subs.sink = (await this.assetService.getCollections(userName)).subscribe((collections: any) => {
       this.collectionList = collections;
       if (this.asset.collectionId) {
         this.setCollection(this.asset.collectionId);
@@ -191,8 +191,8 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
   
-  getAssetLabels() {
-    this.subs.sink = this.assetService.getAssetLabels(this.asset.assetId).subscribe(
+  async getAssetLabels() {
+    this.subs.sink = (await this.assetService.getAssetLabels(this.asset.assetId)).subscribe(
       (assetLabels: any) => {
         this.assetLabels = assetLabels;
       },
@@ -239,7 +239,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
   }
   
 
-  confirmCreate(event: any) {
+  async confirmCreate(event: any) {
 
     if (this.asset.assetId === "ADDASSET") {
       event.confirm.resolve();
@@ -265,7 +265,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
       }
 
       this.isLoading = true;
-      this.assetService.postAssetLabel(assetLabel).subscribe(() => {
+      (await this.assetService.postAssetLabel(assetLabel)).subscribe(() => {
         this.isLoading = false;
         event.confirm.resolve();
         this.getData();
@@ -277,7 +277,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
     }
   }
 
-  confirmDelete(event: any) {
+  async confirmDelete(event: any) {
     if (this.asset.assetId === "ADDASSET") {
       event.confirm.resolve();
       return;
@@ -295,7 +295,7 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
 
 
       this.isLoading = true;
-      this.assetService.deleteAssetLabel(+event.data.assetId, +event.data.labelId).subscribe(() => {       
+      (await this.assetService.deleteAssetLabel(+event.data.assetId, +event.data.labelId)).subscribe(() => {       
         event.confirm.resolve();
         this.getData();
       });

@@ -7,11 +7,11 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-
+import { firstValueFrom, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -19,87 +19,95 @@ import { environment } from '../../../environments/environment';
 })
 export class AssetService {
   private url = environment.CPAT_API_URL;
-  httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    })
-  };
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private oidcSecurityService: OidcSecurityService
+  ) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(`Backend returned code ${error.status}, ` + `body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, ` + ` body was: ${error.error}`);
     }
     return throwError('Something bad happened; please try again later.');
   }
 
-  getAssets() {
-    return this.http
-          .get<any>(`${this.url}/assets`)
-          .pipe(catchError(this.handleError));
+  private async getAuthHeaders() {
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
-  getAssetsByCollection(collectionId: number) {
-    return this.http
-      .get<any>(`${this.url}/assets/collection/${collectionId}`)
+  async getAssets() {
+    const headers = await this.getAuthHeaders();
+    return this.http.get<any>(`${this.url}/assets`, { headers })
+    .pipe(catchError(this.handleError));
+  }
+
+  async getAssetsByCollection(collectionId: number) {
+        const headers = await this.getAuthHeaders();
+        return this.http.get<any>(`${this.url}/assets/collection/${collectionId}`, { headers })
+          .pipe(catchError(this.handleError));
+      }
+
+  async getLabels(collectionId: any) {
+            const headers = await this.getAuthHeaders();
+    return this.http.get(`${this.url}/labels/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  getLabels(collectionId: any) {
-    return this.http
-      .get(`${this.url}/labels/${collectionId}`)
+  async getAssetLabels(id: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http.get(`${this.url}/assetLabels/asset/${id}`, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async getCollection(collectionId: any, userName: string) {
+        const headers = await this.getAuthHeaders();
+        return this.http.get<any>(`${this.url}/collection/${collectionId}/user/${userName}`, { headers })
           .pipe(catchError(this.handleError));
   }
 
-  getAssetLabels(id: any) {
-    return this.http
-          .get(`${this.url}/assetLabels/asset/${id}`)
-          .pipe(catchError(this.handleError));
-  }
-
-  getCollection(collectionId: any, userName: string) {
-    return this.http
-          .get<any>(`${this.url}/collection/${collectionId}/user/${userName}`, this.httpOptions)
-          .pipe(catchError(this.handleError));
-  }
-
-  getCollections(userName: string) {
+  async getCollections(userName: string) {
     const url = `${this.url}/collections/${userName}`;
-    return this.http
-      .get(url)
-      .pipe(catchError(this.handleError));
+        const headers = await this.getAuthHeaders();
+        return this.http.get(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  getCollectionAssetLabel(id: string) {
-    return this.http.get(`${this.url}/metrics/collection/${id}/assetlabel`, this.httpOptions)
-      .pipe(catchError(this.handleError));
+  async getCollectionAssetLabel(id: string) {
+        const headers = await this.getAuthHeaders();
+        return this.http.get(`${this.url}/metrics/collection/${id}/assetlabel`, { headers })
+          .pipe(catchError(this.handleError));
   }
 
-  postAssetLabel(assetLabel: any) {
-    return this.http
-    .post<any>(`${this.url}/assetLabel`, assetLabel, this.httpOptions);
+  async postAssetLabel(assetLabel: any) {
+        const headers = await this.getAuthHeaders();
+        return this.http.post<any>(`${this.url}/assetLabel`, assetLabel, { headers })
+          .pipe(catchError(this.handleError));
   }
 
-  postAsset(asset: any) {
-    return this.http
-    .post<any>(`${this.url}/asset`, asset, this.httpOptions);
+  async postAsset(asset: any) {
+        const headers = await this.getAuthHeaders();
+        return this.http.post<any>(`${this.url}/asset`, asset, { headers })
+          .pipe(catchError(this.handleError));
   }
 
-  updateAsset(asset: any) {
-    return this.http
-    .put<any>(`${this.url}/asset`, asset, this.httpOptions);
+  async updateAsset(asset: any) {
+        const headers = await this.getAuthHeaders();
+        return this.http.put<any>(`${this.url}/asset`, asset, { headers })
+          .pipe(catchError(this.handleError));
   }
 
-  deleteAssetLabel(assetId: any, labelId: any) {
-    return this.http
-          .delete<any>(`${this.url}/assetLabel/asset/${assetId}/label/${labelId}`, this.httpOptions);
+  async deleteAssetLabel(assetId: any, labelId: any) {
+        const headers = await this.getAuthHeaders();
+        return this.http.delete<any>(`${this.url}/assetLabel/asset/${assetId}/label/${labelId}`, { headers })
+          .pipe(catchError(this.handleError));
   }
 
-  deleteAssetsByPoamId(poamId: number) {
-    return this.http
-      .delete<any>(`${this.url}/assets/${poamId}`, this.httpOptions);
+  async deleteAssetsByPoamId(poamId: number) {
+        const headers = await this.getAuthHeaders();
+        return this.http.delete<any>(`${this.url}/assets/${poamId}`, { headers })
+          .pipe(catchError(this.handleError));
   }
 }

@@ -7,60 +7,78 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-
+import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
 import { APP_BASE_HREF } from "@angular/common";
 import { HttpClientModule } from '@angular/common/http';
-import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbAuthModule, NbAuthOAuth2Token, NbOAuth2AuthStrategy, NbOAuth2GrantType, NbOAuth2ResponseType } from '@nebular/auth';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { NbSecurityModule } from '@nebular/security';
 import { NbAccordionModule, NbActionsModule, NbAlertModule, NbAutocompleteModule, NbButtonModule, NbCardModule, NbCheckboxModule, NbDatepickerModule, NbDialogModule, NbFormFieldModule, NbIconModule, NbInputModule, NbLayoutModule, NbListModule, NbMenuModule, NbPopoverModule, NbSelectModule, NbSidebarModule, NbSpinnerModule, NbStepperModule, NbThemeModule, NbToggleModule, NbTooltipModule, NbUserModule } from '@nebular/theme';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TreeGridModule } from '@syncfusion/ej2-angular-treegrid';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
-import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { environment } from 'src/environments/environment';
 import { CoreModule } from '../app/@core/core.module';
 import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
 import { SharedModule } from './Shared/shared.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-
-function initializeKeycloak(keycloak: KeycloakService) {
-  return () =>
-    keycloak.init({
-      config: {
-        url: environment.OIDC_PROVIDER_URL,
-        realm: 'RMFTools',
-        clientId: 'c-pat'
-      },
-      initOptions: {
-        redirectUri: `${environment.CPAT_FRONTEND_URL}/consent`,
-        checkLoginIframe: false
-      }
-    })
-}
-
+import { environment } from '../environments/environment';
+import { NgParticlesModule } from 'ng-particles';
+import { UnauthorizedComponent } from './Shared/components/unauthorized/unauthorized.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    UnauthorizedComponent,
   ],
   providers: [
-    KeycloakService,
     { provide: APP_BASE_HREF, useValue: "/" },
-    KeycloakService,
-    { provide: APP_INITIALIZER, useFactory: initializeKeycloak, multi: true, deps: [KeycloakService] },
     FileUploadService,
     provideCharts(withDefaultRegisterables()),
   ],
   bootstrap: [AppComponent],
   exports: [],
   imports: [
+    AuthModule.forRoot({
+      config: [
+        {
+          configId: 'cpat',
+          postLoginRoute: '/consent',
+          authority: environment.oauth.authority,
+          redirectUrl: window.location.origin + '/consent',
+          postLogoutRedirectUri: window.location.origin,
+          clientId: environment.oauth.clientId,
+          scope: `${environment.oauth.scopePrefix}c-pat:read ${environment.oauth.scopePrefix}c-pat:op openid profile email`,
+          responseType: 'code',
+          silentRenew: true,
+          silentRenewUrl: `${window.location.origin}/silent-renew.html`,
+          renewTimeBeforeTokenExpiresInSeconds: 60,
+          useRefreshToken: true,
+          autoUserInfo: true,
+          ignoreNonceAfterRefresh: true,
+          triggerRefreshWhenIdTokenExpired: false,
+        },
+        {
+          configId: 'stigman',
+          authority: environment.oauth.authority,
+          redirectUrl: window.location.origin + '/consent',
+          postLogoutRedirectUri: window.location.origin,
+          clientId: environment.oauth.stigmanClientId,
+          scope: `${environment.oauth.scopePrefix}stig-manager:stig ${environment.oauth.scopePrefix}stig-manager:stig:read ${environment.oauth.scopePrefix}stig-manager:collection ${environment.oauth.scopePrefix}stig-manager:user ${environment.oauth.scopePrefix}stig-manager:user:read ${environment.oauth.scopePrefix}stig-manager:op openid`,
+          responseType: 'code',
+          silentRenew: true,
+          silentRenewUrl: `${window.location.origin}/silent-renew.html`,
+          renewTimeBeforeTokenExpiresInSeconds: 60,
+          useRefreshToken: true,
+          ignoreNonceAfterRefresh: true,
+          triggerRefreshWhenIdTokenExpired: false,
+        },
+      ],
+    }),
     TreeGridModule,
     AppRoutingModule,
     SharedModule,
@@ -70,7 +88,6 @@ function initializeKeycloak(keycloak: KeycloakService) {
     HttpClientModule,
     NbAccordionModule,
     NbActionsModule,
-    NbAuthModule,
     NbAlertModule,
     NbAutocompleteModule,
     NbButtonModule,
@@ -91,7 +108,6 @@ function initializeKeycloak(keycloak: KeycloakService) {
     NbUserModule,
     NgbModule,
     Angular2SmartTableModule,
-    KeycloakAngularModule,
     CoreModule,
     NbDialogModule.forChild(),
     NbDatepickerModule.forRoot(),
@@ -99,29 +115,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
     NbMenuModule.forRoot(),
     NbSecurityModule.forRoot(),
     NbSidebarModule.forRoot(),
-    NbAuthModule.forRoot({
-      strategies: [
-        NbOAuth2AuthStrategy.setup({
-          name: environment.OIDC_PROVIDER_NAME,
-          clientId: 'c-pat',
-          authorize: {
-            endpoint: `${environment.OIDC_PROVIDER_URL}/realms/RMFTools/protocol/openid-connect/auth`,
-            responseType: NbOAuth2ResponseType.CODE,
-            redirectUri: `${environment.CPAT_FRONTEND_URL}/callback`,
-            params: {
-              p: '',
-            },
-          },
-          token: {
-            endpoint: `${environment.OIDC_PROVIDER_URL}/realms/RMFTools/protocol/openid-connect/token`,
-            grantType: NbOAuth2GrantType.AUTHORIZATION_CODE,
-            redirectUri: `${environment.CPAT_FRONTEND_URL}/callback`,
-            class: NbAuthOAuth2Token,
-          },
-        }),
-      ],
-      forms: {},
-    }),
+    NgParticlesModule,
   ]
 })
 export class AppModule { }
