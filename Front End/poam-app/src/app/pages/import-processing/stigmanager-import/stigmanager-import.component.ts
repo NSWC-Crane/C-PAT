@@ -58,7 +58,10 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
   treeData: any[] = [];
   originalTreeData: any[] = [];
   selectedCollection: any;
-  stigmanCollection: { name: string; description: string;  collectionId: string; } | undefined;
+  stigmanCollection: { name: string; description: string; collectionId: string; } | undefined;
+  updatePoamColumnTitle = 'Create POAM';
+  updatePoamButtonIcon = 'plus-square-outline';
+  updatePoamButtonTooltip = '';
   user: any;
   private subs = new SubSink();
   private subscriptions = new Subscription();
@@ -74,9 +77,9 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
   barChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    indexAxis: 'y' as const,
     scales: {
-      x: { grid: { display: true } },
-      y: {
+      x: {
         beginAtZero: true,
         grace: '5%',
         grid: {
@@ -87,6 +90,11 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
             weight: 600,
           },
         }
+      },
+      y: {
+        grid: {
+          display: true
+        },
       },
     },
     plugins: {
@@ -116,7 +124,6 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     private userService: UsersService,
     private dialogService: NbDialogService,
     private importService: ImportService,
-    private oidcSecurityService: OidcSecurityService,
     private dataSourceBuilder: NbTreeGridDataSourceBuilder<AssetEntry>
   ) {
     this.dataSource = this.dataSourceBuilder.create(this.treeData);
@@ -402,7 +409,16 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
           this.showPopup("Error retrieving existing POAMs. Please try again.");
       }
     });
-  }
+    if (this.selectedFindings === 'Has Existing POAM') {
+      this.updatePoamColumnTitle = 'Update POAM';
+      this.updatePoamButtonIcon = 'sync-outline';
+      this.updatePoamButtonTooltip = 'Navigate to the POAM and update the affected asset list with live data.';
+    } else if (this.selectedFindings === 'No Existing POAM') {
+      this.updatePoamColumnTitle = 'Create POAM';
+      this.updatePoamButtonIcon = 'plus-square-outline';
+      this.updatePoamButtonTooltip = '';
+    }
+  }  
 
   updateChartAndGrid(existingPoams: any[]) {
     const filteredTreeData = this.treeData.map(item => {

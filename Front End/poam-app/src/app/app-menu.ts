@@ -43,6 +43,10 @@ export const appMenuItems: NbMenuItem[] = [
         link: '/admin-processing/stigmanager-admin',
         data: { permission: 'create', resource: 'user' },
       },
+      {
+        title: 'eMASS Excel Import',
+        icon: 'upload-outline',
+      }
     ]
   },
   {
@@ -81,10 +85,6 @@ export const appMenuItems: NbMenuItem[] = [
         icon: 'swap-outline',
         link: 'import-processing/tenable-import'
       },
-      {
-        title: 'eMASS Excel Import',
-        icon: 'upload-outline',
-      }
     ]
   },
     {

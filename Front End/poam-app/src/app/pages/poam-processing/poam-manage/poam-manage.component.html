@@ -31,24 +31,30 @@
   <div class="col-xxxl-4">
     <nb-card class="ngx-poam-assigned-grid">
       <nb-tabset>
-        <nb-tab tabTitle="Pending POAMs">
-          <cpat-poam-assigned-grid [assignedData]="this.pendingPoams"
-                                  [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'Manage']"
-                                  (managePoam)="managePoam($event)">
+        <nb-tab tabTitle="All POAMs">
+          <cpat-poam-assigned-grid [assignedData]="this.allPoams"
+                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'Manage']"
+                                   (managePoam)="managePoam($event)">
+          </cpat-poam-assigned-grid>
+        </nb-tab>
+        <nb-tab tabTitle="Needs Attention">
+          <cpat-poam-assigned-grid [assignedData]="this.poamsNeedingAttention"
+                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'Manage']"
+                                   (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </nb-tab>
         <nb-tab *ngIf="this.userPermissions.accessLevel >= 2" tabTitle="My POAMs">
           <cpat-poam-assigned-grid [assignedData]="this.submittedPoams"
-                                  [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'Manage']"
-                                  (managePoam)="managePoam($event)">
+                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'Manage']"
+                                   (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </nb-tab>
 
         <nb-tab *ngIf="this.userPermissions.accessLevel >= 3" tabTitle="Pending Approval">
           <cpat-poam-assigned-grid [assignedData]="this.poamsPendingApproval"
-                                  [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Approval Status', 'Manage']"
-                                  [userId]="this.user.userId"
-                                  (managePoam)="managePoam($event)">
+                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Approval Status', 'Manage']"
+                                   [userId]="this.user.userId"
+                                   (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </nb-tab>
       </nb-tabset>

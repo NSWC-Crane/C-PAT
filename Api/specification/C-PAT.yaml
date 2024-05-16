@@ -1275,19 +1275,19 @@ paths:
         - oauth:
             - 'c-pat:read'
   
-  '/metrics/collection/{collectionId}/poamEstimatedCompletion':
+  '/metrics/collection/{collectionId}/poamScheduledCompletion':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
     get:
-      summary: Get POAM estimated completion counts by Collection
-      operationId: getCollectionPoamEstimatedCompletion
+      summary: Get POAM scheduled completion counts by Collection
+      operationId: getCollectionPoamScheduledCompletion
       responses:
         '200':
-          description: POAM estimated completion counts retrieved successfully
+          description: POAM scheduled completion counts retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamEstimatedCompletion'
+                $ref: '#/components/schemas/poamScheduledCompletion'
         '204':
           description: No Content
         '500':
@@ -1491,19 +1491,19 @@ paths:
         - oauth:
             - 'c-pat:op'
   
-  '/metrics/available/{userId}/poamEstimatedCompletion':
+  '/metrics/available/{userId}/poamScheduledCompletion':
     parameters:
       - $ref: '#/components/parameters/userIdPath'
     get:
-      summary: Get all POAM estimated completion and estimated completion counts available to the user
-      operationId: getAvailablePoamEstimatedCompletion
+      summary: Get all POAM scheduled completion and scheduled completion counts available to the user
+      operationId: getAvailablePoamScheduledCompletion
       responses:
         '200':
-          description: POAM estimated completion counts retrieved successfully
+          description: POAM scheduled completion counts retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamEstimatedCompletion'
+                $ref: '#/components/schemas/poamScheduledCompletion'
         '204':
           description: No Content
         '500':
@@ -4440,12 +4440,12 @@ components:
         severityCount:
           type: integer
 
-    poamEstimatedCompletion:
+    poamScheduledCompletion:
       type: object
       properties:
-        estimatedCompletion:
+        scheduledCompletion:
           type: string
-        estimatedCompletionCount:
+        scheduledCompletionCount:
           type: integer
 
     collectionPoamCounts:

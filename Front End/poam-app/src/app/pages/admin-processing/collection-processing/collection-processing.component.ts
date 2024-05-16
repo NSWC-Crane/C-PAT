@@ -62,7 +62,6 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   data: any = [];
   showSelect: boolean = true;
   canModifyCollection = false;
-  isLoading = true;
   selected: any;
   payload: any;
   private subs = new SubSink();
@@ -152,7 +151,6 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   }
 
   async getCollectionData() {
-    this.isLoading = true;
     this.collections = null;
     (await this.collectionService
           .getCollections(this.payload.userName))
@@ -160,7 +158,6 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         this.data = result;
         this.collections = this.data;
         this.getCollectionsGrid();
-        this.isLoading = false;
         this.checkModifyPermission(this.data);
       });
   }

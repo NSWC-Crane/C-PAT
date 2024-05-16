@@ -30,15 +30,4 @@ export const environment = {
   TENNABLE_URL: 'http://0.0.0.0:9000', //placeholder
   tenableAccessKey: 'placeholder',
   tenableSecretKey: 'placeholder',
-  classification: 'UNCLASSIFIED',
-  classificationCode: 'U',
-  classificationColorCode: '#5cb85c'
 };
-
-// Set classification to one of:
-//  classification    classificationCode    ClassificatonColorCode
-//  'UNCLASSIFIED'            'U '                '#5cb85c'
-//  'CONFIDENTIAL'            'C'                 '#286090'
-//  'SECRET'                  'S'                 '#d9534f'
-//  'TOP SECRET'              'T'                 '#f0ad4e'
-// 

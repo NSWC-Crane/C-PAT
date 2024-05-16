@@ -37,7 +37,6 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   @Input() payload: any;
   @Output() assetchange = new EventEmitter();
 
-  isLoading: boolean = true;
   labelList: any;
   collectionList: any;
   collection: any;
@@ -167,7 +166,6 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       );
     }
     this.getLabelData();
-    this.isLoading = false;
   
     if (this.asset.assetId !== "ADDASSET") {
       this.getAssetLabels();
@@ -262,11 +260,9 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
         assetId: +this.asset.assetId,
         collectionId: this.selectedCollection,
         labelId: +event.newData.labelId,
-      }
+      };
 
-      this.isLoading = true;
       (await this.assetService.postAssetLabel(assetLabel)).subscribe(() => {
-        this.isLoading = false;
         event.confirm.resolve();
         this.getData();
       })
@@ -293,8 +289,6 @@ this.assetLabelsSettings = Object.assign({}, labelSettings);
       event.confirm.reject();
     } else {
 
-
-      this.isLoading = true;
       (await this.assetService.deleteAssetLabel(+event.data.assetId, +event.data.labelId)).subscribe(() => {       
         event.confirm.resolve();
         this.getData();

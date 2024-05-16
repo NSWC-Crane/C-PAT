@@ -69,9 +69,9 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionPoamEstimatedCompletion(id: string) {
+  async getCollectionPoamScheduledCompletion(id: string) {
         const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.url}/metrics/collection/${id}/poamEstimatedCompletion`, { headers })
+		return this.http.get(`${this.url}/metrics/collection/${id}/poamScheduledCompletion`, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -344,9 +344,9 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async getAvailablePoamEstimatedCompletion(userId: string) {
+  async getAvailablePoamScheduledCompletion(userId: string) {
         const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.url}/metrics/available/${userId}/poamEstimatedCompletion`, { headers })
+		return this.http.get(`${this.url}/metrics/available/${userId}/poamScheduledCompletion`, { headers })
       .pipe(catchError(this.handleError));
   }
 

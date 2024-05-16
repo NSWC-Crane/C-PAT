@@ -56,8 +56,8 @@
           </div>
         </nb-tab>
 
-        <!--POAM Estimated Completion Tab-->
-        <nb-tab tabTitle="POAM Estimated Completion">
+        <!--POAM Scheduled Completion Tab-->
+        <nb-tab tabTitle="POAM Scheduled Completion">
           <div class="row">
             <div class="col">
               <nb-form-field>
@@ -71,10 +71,10 @@
             </div>
           </div>
           <div class="canvas" id="canvas" [style.max-height]="canvasHeight" [style.max-width]="canvasWidth">
-            <button nbButton ghost class="export-button" (click)="exportChart(estimatedCompletionChart, 'C-PAT POAM Estimated Completion Chart')">
+            <button nbButton ghost class="export-button" (click)="exportChart(scheduledCompletionChart, 'C-PAT POAM Scheduled Completion Chart')">
               <nb-icon icon="download-outline"></nb-icon>
             </button>
-            <canvas #poamEstimatedCompletionChart></canvas>
+            <canvas #poamScheduledCompletionChart></canvas>
           </div>
         </nb-tab>
 
@@ -123,9 +123,9 @@
               <nb-option *ngFor="let severity of poamSeverities" [value]="'severity:' + severity.value" [disabled]="isOptionDisabled('severity', severity.value)">{{ severity.label }}</nb-option>
             </nb-option-group>
 
-            <!-- POAM Estimated Completion -->
-            <nb-option-group title="POAM Estimated Completion">
-              <nb-option *ngFor="let estimatedCompletion of poamEstimatedCompletions" [value]="'estimatedCompletion:' + estimatedCompletion.value" [disabled]="isOptionDisabled('estimatedCompletion', estimatedCompletion.value)">{{ estimatedCompletion.label }}</nb-option>
+            <!-- POAM Scheduled Completion -->
+            <nb-option-group title="POAM Scheduled Completion">
+              <nb-option *ngFor="let scheduledCompletion of poamScheduledCompletions" [value]="'scheduledCompletion:' + scheduledCompletion.value" [disabled]="isOptionDisabled('scheduledCompletion', scheduledCompletion.value)">{{ scheduledCompletion.label }}</nb-option>
             </nb-option-group>
 
             <!-- POAM Label -->

@@ -42,9 +42,6 @@ interface Permission {
 export class AppComponent implements OnInit, OnDestroy {
   @Output() resetRole: EventEmitter<any> = new EventEmitter();
   userProfile: any = null;
-  classificationCode: string = 'U';
-  classification: string = 'UNCLASSIFIED';
-  classificationColorCode: string = '#5cb85c;'
   users: any = null;
   menuItems: any = appMenuItems;
   selectedTheme: any;
@@ -116,10 +113,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.authService.logout('cpat');
       }
     });
-
-    this.classification = environment.classification;
-    this.classificationCode = environment.classificationCode;
-    this.classificationColorCode = environment.classificationColorCode;
 
     this.poamService.onNewPoam.subscribe({
       next: () => {

@@ -110,10 +110,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   asset: any = {};
   data: any = [];
   collectionList: any;
-
   allowSelectAssets = true;
-  isLoading = true;
-
   selected: any
   selectedRole: string = 'admin';
   payload: any;
@@ -214,8 +211,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   getAssetData() {
-    this.isLoading = true;
-
     if (this.payload == undefined) return;
 
     this.subs.sink = forkJoin(
@@ -224,7 +219,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     ).subscribe(([assetData, assetLabelResponse]: any) => {
       if (!Array.isArray(assetData)) {
         console.error('Unexpected response format:', assetData);
-        this.isLoading = false;
       } else if (!Array.isArray(assetLabelResponse.assetLabel)) {
         console.error('assetLabelResponse.assetLabel is not an array', assetLabelResponse.assetLabel);
         return;
@@ -244,10 +238,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       }));
 
       this.updateDataSource();
-      this.isLoading = false;
     }, error => {
       console.error('Failed to fetch assets by collection', error);
-      this.isLoading = false;
     });
   }
 

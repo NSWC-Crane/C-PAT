@@ -54,6 +54,12 @@
             <input type="text" nbInput fullWidth placeholder="AA Package..." [(ngModel)]="poam.aaPackage" name='aaPackage' id="aaPackage">
           </div>
 
+          <!-- Vuln Restricted Id -->
+          <div class="form-group">
+            <label for="vulnIdRestricted">Vulnerability Restricted - ID #: </label>
+            <input type="text" nbInput fullWidth placeholder="Vulnerability Restricted ID..." [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted' id="vulnIdRestricted">
+          </div>
+
           <!-- Source -->
           <div class="form-group">
             <label for="vulnerabilitySource">Source Identifying Control Vulnerability: <span class="text-danger">*</span></label>
@@ -104,16 +110,10 @@
             <label for="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
             <nb-form-field>
               <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId' id="vulnerabilityId">
-              <button nbSuffix nbButton ghost (click)="validateStigManagerCollection()" nbTooltip="Update POAM Asset list with STIG Manager findings for the provided Vulnerability ID." nbTooltipPlacement="top" nbTooltipStatus="basic" [disabled]="!poam.vulnerabilityId">
-                <nb-icon icon="download-outline"></nb-icon>
-              </button>
             </nb-form-field>
-          </div>
-
-          <!-- Vuln Restricted Id -->
-          <div class="form-group">
-            <label for="vulnIdRestricted">Vulnerability Restricted - ID #: </label>
-            <input type="text" nbInput fullWidth placeholder="Vulnerability Restricted ID..." [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted' id="vulnIdRestricted">
+            <button nbButton outline fullwidth style="margin-top: 20px; width: 20rem;" status="info" (click)="validateStigManagerCollection()" nbTooltip="Update POAM Asset list with STIG Manager findings for the provided Vulnerability ID." nbTooltipPlacement="top" nbTooltipStatus="basic" [disabled]="!poam.vulnerabilityId">
+              Synchronize POAM Asset List
+            </button>
           </div>
 
           <!-- IAVM # -->

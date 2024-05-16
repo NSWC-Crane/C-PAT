@@ -56,10 +56,13 @@
               </ng-container>
 
               <ng-container [nbTreeGridColumnDef]="'Update POAM'">
-                <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="15">Update or Create POAM</th>
+                <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="15">{{ updatePoamColumnTitle }}</th>
                 <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="15">
-                  <button class="update-POAM-button" nbButton ghost *ngIf="row.children" (click)="addPoam(row)">
+                  <button class="update-POAM-button" nbButton ghost *ngIf="row.children && selectedFindings !== 'Has Existing POAM'" (click)="addPoam(row)">
                     <nb-icon icon="plus-square-outline"></nb-icon>
+                  </button>
+                  <button class="update-POAM-button" nbButton ghost *ngIf="row.children && selectedFindings === 'Has Existing POAM'" nbTooltip="Navigate to the POAM and update the affected asset list with live data." nbTooltipPlacement="top" nbTooltipStatus="basic" (click)="addPoam(row)">
+                    <nb-icon icon="sync-outline"></nb-icon>
                   </button>
                 </td>
               </ng-container>
@@ -73,7 +76,6 @@
             <nb-select fullWidth class="findings-filter" outline status="primary" placeholder="Filter Findings..."
                        [(ngModel)]="selectedFindings" name="findingsFilter" id="findingsFilter"
                        (ngModelChange)='filterFindings()'>
-              <nb-option value="All">All</nb-option>
               <nb-option value="Has Existing POAM">Has Existing POAM</nb-option>
               <nb-option value="No Existing POAM">No Existing POAM</nb-option>
             </nb-select>

@@ -170,17 +170,11 @@ exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoam
     }
 };
 
-exports.getCollectionPoamEstimatedCompletion = async function getCollectionPoamEstimatedCompletion(req, res, next) {
+exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT
-                    scheduledCompletionDate,
-                    extensionTimeAllowed,
-                    DATEDIFF(
-                        DATE_ADD(scheduledCompletionDate, INTERVAL IFNULL(extensionTimeAllowed, 0) DAY),
-                        CURDATE()
-                    ) AS daysUntilCompletion
+                SELECT scheduledCompletionDate,
                 FROM poam
                 WHERE collectionId = ?
             `;
@@ -198,7 +192,7 @@ exports.getCollectionPoamEstimatedCompletion = async function getCollectionPoamE
             };
 
             rows.forEach(row => {
-                let days = row.daysUntilCompletion;
+                let days = row.scheduledCompletionDate;
                 if (days <= 0) buckets["OVERDUE"]++;
                 else if (days <= 30) buckets["< 30 Days"]++;
                 else if (days <= 60) buckets["30-60 Days"]++;
@@ -208,16 +202,16 @@ exports.getCollectionPoamEstimatedCompletion = async function getCollectionPoamE
                 else if (days > 365) buckets["> 365 Days"]++;
             });
 
-            let poamEstimatedCompletion = Object.keys(buckets).map(key => ({
-                estimatedCompletion: key,
-                estimatedCompletionCount: buckets[key],
+            let poamScheduledCompletion = Object.keys(buckets).map(key => ({
+                scheduledCompletion: key,
+                scheduledCompletionCount: buckets[key],
             }));
 
-            return { poamEstimatedCompletion };
+            return { poamScheduledCompletion };
         });
     } catch (error) {
-        console.error("Error fetching POAM estimated completion data:", error);
-        return { "error": "Failed to fetch POAM estimated completion data" };
+        console.error("Error fetching POAM scheduled completion data:", error);
+        return { "error": "Failed to fetch POAM scheduled completion data" };
     }
 }
 
@@ -566,7 +560,7 @@ exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoam
     }
 };
 
-exports.getAvailablePoamEstimatedCompletion = async function getAvailablePoamEstimatedCompletion(req, res, next) {
+exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             const userId = req.params.userId;
@@ -597,7 +591,7 @@ exports.getAvailablePoamEstimatedCompletion = async function getAvailablePoamEst
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
                 if (collectionIds.length === 0) {
-                    return { poamEstimatedCompletion: [] };
+                    return { poamScheduledCompletion: [] };
                 }
 
                 sql += " WHERE collectionId IN (?)";
@@ -627,15 +621,15 @@ exports.getAvailablePoamEstimatedCompletion = async function getAvailablePoamEst
                 else if (days > 365) buckets["> 365 Days"]++;
             });
 
-            let poamEstimatedCompletion = Object.keys(buckets).map(key => ({
-                estimatedCompletion: key,
-                estimatedCompletionCount: buckets[key],
+            let poamScheduledCompletion = Object.keys(buckets).map(key => ({
+                scheduledCompletion: key,
+                scheduledCompletionCount: buckets[key],
             }));
 
-            return { poamEstimatedCompletion };
+            return { poamScheduledCompletion };
         });
     } catch (error) {
-        console.error("Error fetching POAM estimated completion data:", error);
-        return { "error": "Failed to fetch POAM estimated completion data" };
+        console.error("Error fetching POAM scheduled completion data:", error);
+        return { "error": "Failed to fetch POAM scheduled completion data" };
     }
 }
