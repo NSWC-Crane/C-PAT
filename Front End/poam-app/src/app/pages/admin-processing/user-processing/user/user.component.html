@@ -53,11 +53,6 @@
 <nb-card-body>
           <div class="row">
             <div class="container" style="padding-top: 15px;">
-              <div class="row" [nbSpinner]="isLoading"
-                   nbSpinnerStatus="success"
-                   nbSpinnerSize="medium"
-                   nbSpinnerMessage="Updating/loading data, please wait...">
-
                 <div class="col">
                   <angular2-smart-table [settings]="collectionPermissionsSettings"
                                         [source]="collectionPermissions"
@@ -66,7 +61,6 @@
                                         (deleteConfirm)="confirmDelete($event)">
                   </angular2-smart-table>
                 </div>
-              </div>
             </div>
 
           </div>

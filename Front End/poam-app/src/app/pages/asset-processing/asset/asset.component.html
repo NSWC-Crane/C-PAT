@@ -32,10 +32,7 @@
      <input nbInput type="text" name="macAddress" [(ngModel)]="asset.macAddress" placeholder="Mac Address">
   </div>
 
-  <div class="row" [nbSpinner]="isLoading"
-     nbSpinnerStatus="success"
-     nbSpinnerSize="medium"
-     nbSpinnerMessage="Updating/loading data, please wait...">
+
      <div class="col">
         <br>
         <angular2-smart-table [settings]="assetLabelsSettings" [source]="assetLabels" mode="inline"
@@ -43,7 +40,6 @@
         (deleteConfirm)="confirmDelete($event)">
         </angular2-smart-table>
      </div>
-  </div>
 
   <div class="buttons">
      <button nbButton outline status="info" [disabled]="!form.valid">Submit</button>

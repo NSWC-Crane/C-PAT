@@ -11,10 +11,11 @@
 .table-container {
   height: 58rem;
   overflow-y: auto;
+  width: 100%;
 }
 
 .poam-table {
-  width: 100rem;
+  max-width: 100%;
 }
 
 .search-input {

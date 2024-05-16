@@ -47,7 +47,6 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   user: any = {};
   data: any = [];
   allowSelectCollections = true;
-  isLoading = true;
   selected: any;
   selectedRole: string = 'admin';
   payload: any;
@@ -108,7 +107,6 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   async getUserData() {
-    this.isLoading = true;
     this.users = [];
     forkJoin([
       await this.userService.getUsers(),
@@ -121,7 +119,6 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
         collectionName: collection.collectionName
       }));
       this.getUsersGrid();
-      this.isLoading = false;
     });
   }
 

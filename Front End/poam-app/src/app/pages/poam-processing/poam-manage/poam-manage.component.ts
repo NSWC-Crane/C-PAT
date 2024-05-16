@@ -16,6 +16,7 @@ import { SharedService } from '../../../Shared/shared.service';
 import { Subscription, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
+import { formatISO } from 'date-fns';
 
 interface Permission {
   userId: number;
@@ -53,7 +54,8 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   collection: any;
   selectedCollection: any;
   selectedCollectionName: any;
-  pendingPoams: any[] = [];
+  allPoams: any[] = [];
+  poamsNeedingAttention: any[] = [];
   submittedPoams: any[] = [];
   poamsPendingApproval: any[] = [];
   private subscriptions = new Subscription();
@@ -164,15 +166,24 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateGridData() {
-    this.pendingPoams = this.poams.filter(poam => (
-      poam.status === 'Submitted' ||
-      poam.status === 'Approved' ||
-      poam.status === 'Rejected' ||
-      poam.status === 'Expired' ||
-      poam.status === 'Extension Requested'
-    ));
+    this.allPoams = this.poams;
 
-    this.submittedPoams = this.poams.filter(poam => poam.status === 'Submitted' || poam.status === 'Extension Requested');
+    const currentDate = new Date();
+    const thirtyDaysFromNow = new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+    this.poamsNeedingAttention = this.poams.filter(poam => {
+      if (!poam.scheduledCompletionDate) {
+        console.warn(`Poam with ID ${poam.id} has a null or empty scheduled completion date.`);
+        return false;
+      }
+      const scheduledCompletionDate = new Date(poam.scheduledCompletionDate);
+      if (isNaN(scheduledCompletionDate.getTime())) {        
+        console.warn(`Poam with ID ${poam.id} has an invalid scheduled completion date format.`);
+        return false;
+      }
+      return scheduledCompletionDate <= thirtyDaysFromNow && poam.status != 'Closed' && poam.status != 'Draft';
+    });
+
+    this.submittedPoams = this.poams.filter(poam => poam.status != 'Closed' && poam.submitterId === this.user.userId);
 
     this.poamsPendingApproval = this.poams.filter(poam => poam.status === 'Submitted' || poam.status === 'Extension Requested');
   }

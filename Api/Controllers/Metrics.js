@@ -66,10 +66,10 @@ module.exports.getCollectionPoamSeverity = async function getCollectionPoamSever
     }
 };
 
-module.exports.getCollectionPoamEstimatedCompletion = async function getCollectionPoamEstimatedCompletion(req, res, next) {
+module.exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(req, res, next) {
     try {
-        const getMetrics = await metricsService.getCollectionPoamEstimatedCompletion(req, res, next);
-        if (getMetrics && getMetrics.poamEstimatedCompletion) {
+        const getMetrics = await metricsService.getCollectionPoamScheduledCompletion(req, res, next);
+        if (getMetrics && getMetrics.poamScheduledCompletion) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -192,10 +192,10 @@ module.exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthl
     }
 };
 
-module.exports.getAvailablePoamEstimatedCompletion = async function getAvailablePoamEstimatedCompletion(req, res, next) {
+module.exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(req, res, next) {
     try {
-        const getMetrics = await metricsService.getAvailablePoamEstimatedCompletion(req, res, next);
-        if (getMetrics && getMetrics.poamEstimatedCompletion) {
+        const getMetrics = await metricsService.getAvailablePoamScheduledCompletion(req, res, next);
+        if (getMetrics && getMetrics.poamScheduledCompletion) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();

@@ -52,7 +52,6 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   label: any={};
   data: any= [];
   allowSelectLabels = true;
-  isLoading = true;
   selected: any
   selectedRole: string = 'admin';
   payload: any;
@@ -117,14 +116,12 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   async getLabelData() {
-    this.isLoading = true;
     this.labels = null;
     (await this.labelService.getLabels(this.selectedCollection)).subscribe((result: any) => {
 
       this.data = result.sort((a: { labelId: number; }, b: { labelId: number; }) => a.labelId - b.labelId);
       this.labels = this.data;
       this.getLabelsGrid();
-      this.isLoading = false;
     });
 
   }

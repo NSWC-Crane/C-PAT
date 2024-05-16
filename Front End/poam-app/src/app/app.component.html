@@ -12,22 +12,19 @@
   <input type="file" #fileInput style="display: none;" (change)="onFileSelect($event)" accept=".xls, .xlsx, .xlsm">
   <nb-layout-header fixed>
     <div class="container">
-      <img src="../assets/cpat.png" alt="C-PAT (Crane POAM Automation Tool)" (click)="reloadPage()" (keyup.enter)="reloadPage()" tabindex="0" style="cursor: pointer;">
+      <img src="../assets/cpat.png" alt="C-PAT" (click)="reloadPage()" (keyup.enter)="reloadPage()" tabindex="0" style="cursor: pointer;">
     </div>
     <nb-user class="userIcon" size="large" [name]="this.fullName" [title]="this.userRole" picture="../assets/user.png" [badgeText]="notificationCount" badgeStatus="info" badgePosition="bottom right" color="#4A4A4A" [nbPopover]="notificationsPanel" nbPopoverTrigger="click">
     </nb-user>
     <ng-template #notificationsPanel>
       <cpat-notifications-popover></cpat-notifications-popover>
     </ng-template>
-  </nb-layout-header>
-  <nb-layout-header subheader>
-    <a (click)="toggleSidebar()" (keyup.enter)="toggleSidebar()" tabindex="0" class="sidebar-toggle">
+    <a (click)="toggleSidebar()" (keyup.enter)="toggleSidebar()" tabindex="0" class="sidebar-toggle" style="margin-left: 20px;">
       <nb-icon icon="collapse-outline"></nb-icon>
     </a>
-    <div [style.background-color]="classificationColorCode" style="width: 100%; text-align: center; margin-left: 5px;">
-      {{ classification }}
-    </div>
   </nb-layout-header>
+
+
   <nb-sidebar class="menu-sidebar" tag="menu-sidebar" responsive start>
     <div *ngIf="this.sidebarExpanded" class="sidebar-header">
       <nb-actions size="tiny" style="padding-bottom: 10px">
@@ -48,6 +45,8 @@
       <nb-menu [items]="menuItems" id="menuItems" autoCollapse="true"></nb-menu>
     </div>
   </nb-sidebar>
+
+
   <nb-layout-column>
     <router-outlet>
       <nb-alert *ngIf="selectCollectionMsg" role="alert">
@@ -56,9 +55,4 @@
       </nb-alert>
     </router-outlet>
   </nb-layout-column>
-  <nb-layout-footer fixed>
-    <div [style.background-color]="classificationColorCode" style="width: 100%;text-align: center;">
-      {{ classification }}
-    </div>
-  </nb-layout-footer>
 </nb-layout>

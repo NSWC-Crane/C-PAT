@@ -28,7 +28,6 @@ import { UsersService } from '../../admin-processing/user-processing/users.servi
 import { PoamService } from '../poams.service';
 import { AssetService } from '../../asset-processing/assets.service';
 import { ImportService } from '../../import-processing/import.service';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 interface Permission {
   userId: number;
@@ -403,8 +402,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     private sharedService: SharedService,
     private router: Router,
     private dialogService: NbDialogService,
-    private datePipe: DatePipe,
-    private oidcSecurityService: OidcSecurityService,
     private userService: UsersService,
     private assetService: AssetService,
     private importService: ImportService
@@ -412,13 +409,13 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   onDeleteConfirm() { }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.route.params.subscribe(async params => {
       this.stateData = history.state;
       this.poamId = params['poamId'];        
     });
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      await this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
       })
     );
@@ -485,15 +482,15 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.createNewPoam();
     } else {
       forkJoin([
-        this.poamService.getPoam(this.poamId),
-        this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
-        this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-        this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
-        this.poamService.getPoamAssets(this.poamId),
-        this.poamService.getPoamAssignees(this.poamId),
-        this.poamService.getPoamApprovers(this.poamId),
-        this.poamService.getPoamMilestones(this.poamId),
-        this.poamService.getPoamLabelsByPoam(this.poamId)
+        await this.poamService.getPoam(this.poamId),
+        await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
+        await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+        await this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
+        await this.poamService.getPoamAssets(this.poamId),
+        await this.poamService.getPoamAssignees(this.poamId),
+        await this.poamService.getPoamApprovers(this.poamId),
+        await this.poamService.getPoamMilestones(this.poamId),
+        await this.poamService.getPoamLabelsByPoam(this.poamId)
       ]).subscribe(([poam, collection, users, collectionAssets, poamAssets, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
         this.poam = { ...poam };
         this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? parseISO(this.poam.scheduledCompletionDate.substr(0, 10)) : '';
@@ -550,9 +547,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.canModifySubmitter = true;
 
     forkJoin([
-      this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
-      this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-      this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
+      await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
+      await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+      await this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
     ]).subscribe(async ([collection, users, collectionAssets]: any) => {
       this.poam = {
         poamId: "ADDPOAM",
@@ -928,13 +925,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             assetName: assets.name,
             assetId: parseInt(assets.assetId, 10),
           }));
-
           if (this.poamId !== "ADDPOAM" && this.stateData.vulnerabilitySource === 'STIG') {
             return (await this.assetService.deleteAssetsByPoamId(+this.poamId)).pipe(
               switchMap(() => this.poamService.deletePoamAssetByPoamId(+this.poamId)),
               switchMap(() => {
-                const assetDetailsObservables = this.assetList.map(asset =>
-                  this.sharedService.selectedAssetsFromSTIGMAN(asset.assetId)
+                const assetDetailsObservables = this.assetList.map(async asset =>
+                  await this.sharedService.selectedAssetsFromSTIGMAN(asset.assetId)
                 );
                 return forkJoin(assetDetailsObservables);
               }),
@@ -965,7 +961,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
                 );
               }),
               switchMap(() => {
-                const poamAssetObservables = this.assetList.map(asset => {
+                const poamAssetObservables = this.assetList.map(async asset => {
                   const poamAsset = {
                     poamId: +this.poamId,
                     assetId: asset.assetId,
@@ -983,9 +979,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         } else {
           return of([]);
         }
-      })
+      }),
+      switchMap(filteredData => filteredData)
     ).subscribe({
-      next: (filteredData: any) => {
+      next: async (filteredData: any[]) => {
         if (filteredData.length > 0) {
           this.poamAssets = this.assetList;
           this.showConfirmation("Asset list updated with STIG Manager findings.", "Information", "warning");

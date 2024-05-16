@@ -28,14 +28,14 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   @ViewChild('poamStatusChart') poamStatusChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('poamLabelChart') poamLabelChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('poamSeverityChart') poamSeverityChart!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('poamEstimatedCompletionChart') poamEstimatedCompletionChart!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('poamScheduledCompletionChart') poamScheduledCompletionChart!: ElementRef<HTMLCanvasElement>;
 
   poamsForChart: any[] = [];
   public poamLabel: any[] = [];
   public selectedStatus: any = null;
   public selectedLabel: any = null;
   public selectedSeverity: any = null;
-  public selectedEstimatedCompletion: any = null;
+  public selectedScheduledCompletion: any = null;
   selectedOptionsValues: string[] = [];
   selectedPoamId: any;
   poamStatuses = [
@@ -54,7 +54,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     { value: 'CAT III - Low', label: 'CAT III - Low' }
   ];
 
-  poamEstimatedCompletions = [
+  poamScheduledCompletions = [
     { value: 'OVERDUE', label: 'OVERDUE' },
     { value: '< 30 Days', label: '< 30 Days' },
     { value: '30-60 Days', label: '30-60 Days' },
@@ -77,8 +77,8 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     labels: [''],
     datasets: [],
   };
-  estimatedCompletionChart!: Chart;
-  estimatedCompletionChartData: ChartData<'bar'> = {
+  scheduledCompletionChart!: Chart;
+  scheduledCompletionChartData: ChartData<'bar'> = {
     labels: [''],
     datasets: [],
   };
@@ -131,6 +131,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   async ngOnInit() {
     if (this.poams) {
       this.initializeChart();
+      this.initializePoamLabel();
     }
   }
 
@@ -140,6 +141,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
       if (this.statusChart) {
         this.updateCharts();
       }
+      this.initializePoamLabel();
     }
   }
 
@@ -192,10 +194,10 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
       console.error('Unable to initialize chart: Element not available.');
     }
 
-    if (this.poamEstimatedCompletionChart?.nativeElement) {
-      this.estimatedCompletionChart = new Chart(this.poamEstimatedCompletionChart.nativeElement, {
+    if (this.poamScheduledCompletionChart?.nativeElement) {
+      this.scheduledCompletionChart = new Chart(this.poamScheduledCompletionChart.nativeElement, {
         type: 'bar',
-        data: this.estimatedCompletionChartData,
+        data: this.scheduledCompletionChartData,
         plugins: [ChartDataLabels],
         options: this.barChartOptions,
       });
@@ -204,12 +206,26 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     }
   }
 
+  initializePoamLabel(): void {
+    const labelSet = new Set<string>();
+    this.poams.forEach(poam => {
+      if (poam.labels && poam.labels.length > 0) {
+        poam.labels.forEach((label: string) => {
+          if (label) {
+            labelSet.add(label);
+          }
+        });
+      }
+    });
+    this.poamLabel = Array.from(labelSet).map(label => ({ label }));
+  }
+
 
   updateCharts(): void {
     this.updateStatusChart();
     this.updateLabelChart();
     this.updateSeverityChart();
-    this.updateEstimatedCompletionChart();
+    this.updateScheduledCompletionChart();
   }
 
   updateStatusChart(): void {
@@ -259,19 +275,19 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     this.severityChart.update();
   }
 
-  updateEstimatedCompletionChart(): void {
-    if (!this.estimatedCompletionChart) {
-      console.warn("POAM Estimated Completion chart is not initialized.");
+  updateScheduledCompletionChart(): void {
+    if (!this.scheduledCompletionChart) {
+      console.warn("POAM Scheduled Completion chart is not initialized.");
       return;
     }
-    const filteredPoamEstimatedCompletion = this.applyFilters('estimatedCompletion');
-    const datasets = filteredPoamEstimatedCompletion.map((item) => ({
-      label: item.estimatedCompletion,
-      data: [item.estimatedCompletionCount],
+    const filteredPoamScheduledCompletion = this.applyFilters('scheduledCompletion');
+    const datasets = filteredPoamScheduledCompletion.map((item) => ({
+      label: item.scheduledCompletion,
+      data: [item.scheduledCompletionCount],
       datalabels: {},
     }));
-    this.estimatedCompletionChart.data.datasets = datasets;
-    this.estimatedCompletionChart.update();
+    this.scheduledCompletionChart.data.datasets = datasets;
+    this.scheduledCompletionChart.update();
   }
 
   applyFilters(filterType: string): any[] {
@@ -289,8 +305,8 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
       filteredPoams = filteredPoams.filter(poam => poam.rawSeverity === this.selectedOptions['severity']);
     }
 
-    if (this.selectedOptions['estimatedCompletion'] !== null) {
-      filteredPoams = filteredPoams.filter(poam => this.filterPoamsByEstimatedCompletion(poam));
+    if (this.selectedOptions['scheduledCompletion'] !== null) {
+      filteredPoams = filteredPoams.filter(poam => this.filterPoamsByScheduledCompletion(poam));
     }
 
     this.poamsForChart = filteredPoams.map((poam: any) => ({
@@ -307,8 +323,8 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
         return this.generateChartDataForLabel(filteredPoams);
       case 'severity':
         return this.generateChartDataForSeverity(filteredPoams);
-      case 'estimatedCompletion':
-        return this.generateChartDataForEstimatedCompletion(filteredPoams);
+      case 'scheduledCompletion':
+        return this.generateChartDataForScheduledCompletion(filteredPoams);
       default:
         return [];
     }
@@ -384,36 +400,36 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     }
   }
 
-  generateChartDataForEstimatedCompletion(filteredPoams: any[]): any[] {
-    const estimatedCompletionCounts: { [estimatedCompletion: string]: number } = {};
+  generateChartDataForScheduledCompletion(filteredPoams: any[]): any[] {
+    const scheduledCompletionCounts: { [scheduledCompletion: string]: number } = {};
     filteredPoams.forEach(poam => {
       const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionTimeAllowed);
-      const estimatedCompletion = this.getEstimatedCompletionLabel(days);
-      estimatedCompletionCounts[estimatedCompletion] = (estimatedCompletionCounts[estimatedCompletion] || 0) + 1;
+      const scheduledCompletion = this.getScheduledCompletionLabel(days);
+      scheduledCompletionCounts[scheduledCompletion] = (scheduledCompletionCounts[scheduledCompletion] || 0) + 1;
     });
 
-    if (this.selectedEstimatedCompletion === null) {
-      return Object.entries(estimatedCompletionCounts).map(([estimatedCompletion, estimatedCompletionCount]) => ({
-        estimatedCompletion,
-        estimatedCompletionCount,
+    if (this.selectedScheduledCompletion === null) {
+      return Object.entries(scheduledCompletionCounts).map(([scheduledCompletion, scheduledCompletionCount]) => ({
+        scheduledCompletion,
+        scheduledCompletionCount,
       }));
     } else {
       return [
         {
-          estimatedCompletion: this.selectedEstimatedCompletion,
-          estimatedCompletionCount: estimatedCompletionCounts[this.selectedEstimatedCompletion] || 0,
+          scheduledCompletion: this.selectedScheduledCompletion,
+          scheduledCompletionCount: scheduledCompletionCounts[this.selectedScheduledCompletion] || 0,
         },
       ];
     }
   }
 
-  filterPoamsByEstimatedCompletion = (poam: any) => {
+  filterPoamsByScheduledCompletion = (poam: any) => {
     const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionTimeAllowed);
-    const estimatedCompletion = this.getEstimatedCompletionLabel(days);
-    return estimatedCompletion === this.selectedOptions['estimatedCompletion'];
+    const scheduledCompletion = this.getScheduledCompletionLabel(days);
+    return scheduledCompletion === this.selectedOptions['scheduledCompletion'];
   };
 
-  getEstimatedCompletionLabel(days: number): string {
+  getScheduledCompletionLabel(days: number): string {
     if (days < 0) {
       return 'OVERDUE';
     } else if (days <= 30) {
@@ -441,7 +457,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   selectedOptions: { [key: string]: string | null } = {
     status: null,
     severity: null,
-    estimatedCompletion: null,
+    scheduledCompletion: null,
     label: null
   };
 
@@ -449,7 +465,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     this.selectedOptions = {
       status: null,
       severity: null,
-      estimatedCompletion: null,
+      scheduledCompletion: null,
       label: null
     };
 
@@ -473,7 +489,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     this.selectedOptions = {
       status: null,
       severity: null,
-      estimatedCompletion: null,
+      scheduledCompletion: null,
       label: null
     };
     this.selectedOptionsValues = [];
@@ -495,8 +511,8 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     if (this.selectedOptions['severity'] !== null) {
       filterSelections.push(`Severity: ${this.selectedOptions['severity']}`);
     }
-    if (this.selectedOptions['estimatedCompletion'] !== null) {
-      filterSelections.push(`Estimated Completion: ${this.selectedOptions['estimatedCompletion']}`);
+    if (this.selectedOptions['scheduledCompletion'] !== null) {
+      filterSelections.push(`Scheduled Completion: ${this.selectedOptions['scheduledCompletion']}`);
     }
     if (this.selectedOptions['label'] !== null) {
       filterSelections.push(`Label: ${this.selectedOptions['label']}`);

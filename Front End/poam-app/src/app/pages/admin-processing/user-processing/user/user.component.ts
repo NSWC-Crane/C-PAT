@@ -42,7 +42,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   @Input() payload: any;
   @Output() userchange = new EventEmitter();
   checked: boolean = false;
-  isLoading: boolean = true;
   collectionList: any;
   collectionPermissions: any[] = [];
   data: any = [];
@@ -134,8 +133,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   ) { }
 
   async ngOnInit() {
-    this.isLoading = true;
-
     if (this.user && this.user.userId) {
       this.loadUserData(this.user.userId);
     } else {
@@ -144,11 +141,9 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           this.user = currentUser;
           this.loadCollections();
           this.getData();
-          this.isLoading = false;
         },
         error => {
           console.error('Error fetching current user', error);
-          this.isLoading = false;
         }
       );
     }
@@ -159,14 +154,12 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       userData => {
         this.user = userData;
         this.loadCollections();
-        this.isLoading = false;
         if (this.user.isAdmin == 1) {
           this.checked = true;
         }
       },
       error => {
         console.error('Error fetching user data', error);
-        this.isLoading = false;
       }
     );
   }
@@ -217,7 +210,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
 
   async onSubmit() {
-    this.isLoading = true;
     (await this.userService.updateUser(this.user)).subscribe(() => {
       this.userchange.emit();
     });
@@ -266,8 +258,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         userId: this.user.userId,
         collectionId: parseInt(event.newData.collectionId, 10),
         accessLevel: parseInt(event.newData.accessLevel, 10),
-      }
-      this.isLoading = true;
+      };
       (await this.userService.postPermission(collectionPermission)).subscribe({
         next: async () => {
           (await this.userService.getUser(this.user.userId)).subscribe(
@@ -277,19 +268,16 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
                 collectionId: permission.collectionId.toString(),
                 accessLevel: permission.accessLevel,
               }));
-              this.isLoading = false;
               event.confirm.resolve();
             },
             error => {
               console.error('Error fetching user data', error);
-              this.isLoading = false;
               event.confirm.reject();
             }
           );
         },
         error: (error) => {
           console.error('Error creating permission', error);
-          this.isLoading = false;
           event.confirm.reject();
         }
       });
@@ -315,7 +303,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         newCollectionId: parseInt(event.newData.collectionId, 10),
         accessLevel: parseInt(event.newData.accessLevel, 10),
       };
-      this.isLoading = true;
       (await this.userService.updatePermission(collectionPermission)).subscribe(
         async () => {
           (await this.userService.getUser(this.user.userId)).subscribe(
@@ -327,19 +314,16 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
                   accessLevel: permission.accessLevel,
                 })
               );
-              this.isLoading = false;
               event.confirm.resolve();
             },
             (error) => {
               console.error("Error fetching user data", error);
-              this.isLoading = false;
               event.confirm.reject();
             }
           );
         },
         (error) => {
           console.error("Error updating permission", error);
-          this.isLoading = false;
           event.confirm.reject();
         }
       );
@@ -350,7 +334,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async confirmDelete(event: any) {
-    this.isLoading = true;
     (await this.userService.deletePermission(this.user.userId, event.data.collectionId)).subscribe(
       async () => {
         (await this.userService.getUser(this.user.userId)).subscribe(
@@ -362,19 +345,16 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
                 accessLevel: permission.accessLevel,
               })
             );
-            this.isLoading = false;
             event.confirm.resolve();
           },
           (error) => {
             console.error("Error fetching user data", error);
-            this.isLoading = false;
             event.confirm.reject();
           }
         );
       },
       (error) => {
         console.error("Error during deletePermission: ", error);
-        this.isLoading = false;
         event.confirm.reject();
       }
     );

@@ -7,13 +7,8 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-
-<div *ngIf="(selectedRole === 'admin'); else dontshowcollections">
-  <div class="row" *ngIf="allowSelectCollections">
-    <div class="col-md-10" [nbSpinner]="isLoading"
-         nbSpinnerStatus="success"
-         nbSpinnerSize="medium"
-         nbSpinnerMessage="Loading data, please wait...">
+<div class="col-12 row" *ngIf="(selectedRole === 'admin'); else unauthorized">
+  <div class="col" *ngIf="allowSelectCollections">
       <nb-card>
         <nb-card-body class="scrollable-users">
           <h3>Users</h3>
@@ -43,16 +38,15 @@
           </table>
         </nb-card-body>
       </nb-card>
-    </div>
   </div>
 
-  <div class="row">
-    <div class="col-md-10">
+  <div class="col-12 row">
+    <div class="col">
       <nb-card>
         <nb-card-header>Select User to Modify</nb-card-header>
         <nb-card-body>
-          <div class="row" *ngIf="allowSelectCollections">
-            <div *ngIf="user?.userId" class="col-md-5">
+          <div *ngIf="allowSelectCollections">
+            <div *ngIf="user?.userId">
               <nb-form-field>
                 <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
                 <nb-select fullWidth style="max-width: 50rem;" outlineid="collectionid" name="collection" [(ngModel)]="user.userId"
@@ -66,10 +60,8 @@
           </div>
 
           <div *ngIf="!allowSelectCollections">
-
             <cpat-user [user]="user" [users]="users" [payload]="payload" (userchange)="resetData();"></cpat-user>
           </div>
-
         </nb-card-body>
       </nb-card>
     </div>
@@ -87,9 +79,9 @@
   </nb-card>
 </ng-template>
 
-<ng-template #dontshowcollections>
+<ng-template #unauthorized>
   <h1 style>
-    Collections processing requires may  role of admin.
+    User processing requires the admin role.
     <br /><br />
   </h1>
 </ng-template>

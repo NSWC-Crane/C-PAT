@@ -26,7 +26,6 @@ export class CollectionComponent implements OnDestroy {
   @Input() payload: any;
   @Input() poams: any;
   @Output() collectionchange = new EventEmitter();
-  isLoading: boolean = false;
   modalWindow: NbWindowRef | undefined
   errorMessage: string = '';
   data: any = [];
