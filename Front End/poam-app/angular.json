@@ -3,11 +3,15 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "poam-app": {
+    "cpat": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
+          "prefix": "cpat",
           "style": "scss"
+        },
+        "@schematics/angular:directive": {
+          "prefix": "cpat"
         }
       },
       "root": "",
@@ -17,6 +21,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
+            "preserveSymlinks": true,
             "allowedCommonJsDependencies": [
               "eva-icons",
               "base64-js",
@@ -26,7 +31,7 @@
               "rfdc",
               "exceljs"
             ],
-            "outputPath": "dist/poam-app",
+            "outputPath": "dist/cpat",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -39,11 +44,13 @@
             ],
             "styles": [
               "node_modules/@nebular/theme/styles/prebuilt/default.css",
-              "src/themes.scss",
-              "src/styles.scss"
+              "node_modules/bootstrap/dist/css/bootstrap.css",
+              "src/app/theme/styles/themes.scss",
+              "src/app/theme/styles/styles.scss",
+              "node_modules/pace-js/templates/pace-theme-flash.tmpl.css"
             ],
             "scripts": [
-              
+              "node_modules/pace-js/pace.min.js"
             ]
           },
           "configurations": {
@@ -66,14 +73,20 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
-              "outputHashing": "all"
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true
             },
             "development": {
-              "buildOptimizer": false,
-              "optimization": false,
               "vendorChunk": true,
               "extractLicenses": false,
+              "buildOptimizer": false,
               "sourceMap": true,
+              "optimization": false,
               "namedChunks": true
             }
           },
@@ -83,10 +96,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "poam-app:build:production"
+              "browserTarget": "cpat:build:production"
             },
             "development": {
-              "browserTarget": "poam-app:build:development"
+              "browserTarget": "cpat:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -94,7 +107,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "poam-app:build"
+            "browserTarget": "cpat:build"
           }
         },
         "test": {
@@ -110,9 +123,15 @@
               "src/assets"
             ],
             "styles": [
-              "src/styles.scss"
+              "node_modules/@nebular/theme/styles/prebuilt/default.css",
+              "node_modules/bootstrap/dist/css/bootstrap.css",
+              "src/app/theme/styles/themes.scss",
+              "src/app/theme/styles/styles.scss",
+              "node_modules/pace-js/templates/pace-theme-flash.tmpl.css"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/pace-js/pace.min.js"
+            ]
           }
         },
         "lint": {

@@ -19,7 +19,7 @@ module.exports = function (config) {
       suppressAll: true
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/poam-app'),
+      dir: require('path').join(__dirname, './coverage/cpat'),
       subdir: '.',
       reporters: [
         { type: 'html' },

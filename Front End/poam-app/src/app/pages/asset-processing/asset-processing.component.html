@@ -49,15 +49,12 @@
         <div class="row" *ngIf="allowSelectAssets">
 
           <div class="col-md-5" style="width: auto;">
-            <nb-form-field>
-              <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
               <nb-select fullWidth style="width: auto" outlineid="assetid" name="asset"
                          [(ngModel)]="asset.assetId" (selectedChange)="setAsset($event)" placeholder="Select Asset to Modify" required>
                 <nb-option *ngFor="let asset of data" [value]="asset.assetId">
                   {{ asset?.assetId }} - {{ asset?.assetName }}
                 </nb-option>
               </nb-select>
-            </nb-form-field>
           </div>
 
 

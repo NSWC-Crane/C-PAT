@@ -33,15 +33,12 @@
             </nb-card-body>
 
           <nb-card-body>
-            <nb-form-field>
-              <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
               <nb-select fullWidth outlineid="labelid" name="label" [(ngModel)]="label.labelId"
                          (selectedChange)="setLabel($event)" placeholder="Select Label to Modify..." required>
                 <nb-option *ngFor="let label of data" [value]="label.labelId">
                   {{ label.labelId }} - {{ label.labelName }} - {{ label.description }}
                 </nb-option>
               </nb-select>
-            </nb-form-field>
 
             <button nbButton fullWidth outline status="info" size="small" style="margin-top: 20px;" (click)="addLabel()">Add Label</button>
             <div [ngStyle]="hideCollectionEntry">

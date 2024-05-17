@@ -10,8 +10,8 @@
 <div class="col-12 row" *ngIf="(selectedRole === 'admin'); else unauthorized">
   <div class="col" *ngIf="allowSelectCollections">
       <nb-card>
+        <nb-card-header>Users</nb-card-header>
         <nb-card-body class="scrollable-users">
-          <h3>Users</h3>
           <table [nbTreeGrid]="dataSource">
             <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
             <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
@@ -47,15 +47,12 @@
         <nb-card-body>
           <div *ngIf="allowSelectCollections">
             <div *ngIf="user?.userId">
-              <nb-form-field>
-                <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
                 <nb-select fullWidth style="max-width: 50rem;" outlineid="collectionid" name="collection" [(ngModel)]="user.userId"
                            (selectedChange)="setUser($event)" placeholder="Select User to Modify..." required>
                   <nb-option *ngFor="let user of data" [value]="user.userId">
                     {{ user.firstName }} {{ user.lastName }} - {{ user.officeOrg }} - {{ user.accountStatus }}
                   </nb-option>
                 </nb-select>
-              </nb-form-field>
             </div>
           </div>
 
