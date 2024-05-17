@@ -43,8 +43,6 @@
       <nb-card-body>
         <div class="row" *ngIf="showSelect">
           <div class="col-md-5" style="width: auto;">
-            <nb-form-field>
-              <nb-icon nbPrefix icon="edit-2-outline"></nb-icon>
               <nb-select fullWidth style="width: auto" outlineid="collectionid" name="collection"
                          [(ngModel)]="collection.collectionId" (selectedChange)="setCollection($event)" placeholder="Select Collection"
                          required>
@@ -52,7 +50,6 @@
                   {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
                 </nb-option>
               </nb-select>
-            </nb-form-field>
           </div>
 
           <div class="col-md-5" style="width: auto;">
@@ -76,14 +73,11 @@
       <nb-card-body>
         <div class="row">
           <div class="col-md-5" style="width: auto;">
-            <nb-form-field>
-              <nb-icon nbPrefix icon="download-outline"></nb-icon>
               <nb-select [(ngModel)]="exportCollectionId" (collectionchange)="onCollectionChange($event)" (selectedChange)="setExportCollection($event)" placeholder="Select Collection" required>
                 <nb-option *ngFor="let collection of data" [value]="collection.collectionId">
                   {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
                 </nb-option>
               </nb-select>
-            </nb-form-field>
           </div>
           <div class="col-md-5" style="width: auto;">
             <button nbButton outline status="info" type="button" class="export-button" (click)="exportAll()">Export POAMS</button>

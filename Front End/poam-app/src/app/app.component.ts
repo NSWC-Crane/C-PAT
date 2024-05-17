@@ -11,7 +11,7 @@
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { NbDialogService, NbMenuItem, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
+import { NbDialogService, NbIconLibraries, NbMenuItem, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
 import { Subject, Subscription, filter, takeUntil } from 'rxjs';
 import { SubSink } from 'subsink';
 import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
@@ -57,7 +57,7 @@ export class AppComponent implements OnInit, OnDestroy {
   fullName: any;
   userRole: any;
   token: any;
-  title = 'poam-app';
+  title = 'cpat';
   buttonClass = 'btn-outline-primary';
   poams: any;
   poamItems: any;
@@ -70,6 +70,7 @@ export class AppComponent implements OnInit, OnDestroy {
   userMenu = ['Notification 1', 'Notification 2'];
 
   constructor(
+    private iconLibraries: NbIconLibraries,
     private authService: AuthService,
     private dialogService: NbDialogService,
     public sidebarService: NbSidebarService,
@@ -83,6 +84,10 @@ export class AppComponent implements OnInit, OnDestroy {
     private fileUploadService: FileUploadService,
     private notificationService: NotificationService,
   ) {
+    this.iconLibraries.registerFontPack('font-awesome-solid', { packClass: 'fas', iconClassPrefix: 'fa' });
+    this.iconLibraries.registerFontPack('font-awesome-brands', { packClass: 'fab', iconClassPrefix: 'fa' });
+    this.iconLibraries.registerFontPack('font-awesome-regular', { packClass: 'far', iconClassPrefix: 'fa' });
+
     this.sidebarSubscription = this.sidebarService.onToggle()
       .subscribe(({ tag }) => {
         if (tag === 'menu-sidebar') {
