@@ -17,6 +17,7 @@ import { UsersService } from '../users.service'
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service'
 import { ListEditorSettings, Settings } from 'angular2-smart-table';
 import { SmartTableSelectComponent } from '../../../../Shared/components/smart-table/smart-table-select.component';
+import { format, parseISO } from 'date-fns';
 
 interface Permission {
   userId: number;
@@ -208,15 +209,18 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     this.collectionPermissionsSettings = Object.assign({}, collectionSettings);
   } 
 
-
   async onSubmit() {
-    (await this.userService.updateUser(this.user)).subscribe(() => {
-      this.userchange.emit();
-    });
-  }
-  ngOnChanges() {
-    this.getData();
-  }
+    const date = new Date(this.user.lastAccess);
+    const utcDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+    const formattedLastAccess = format(utcDate, "yyyy-MM-dd HH:mm:ss");
+  this.user.lastAccess = formattedLastAccess;
+  (await this.userService.updateUser(this.user)).subscribe(() => {
+    this.userchange.emit();
+  });
+}
+ngOnChanges() {
+  this.getData();
+}
 
   getData() {
     if (this.user && Array.isArray(this.user.permissions)) {

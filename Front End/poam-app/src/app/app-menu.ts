@@ -21,33 +21,8 @@ export const appMenuItems: NbMenuItem[] = [
     title: 'Admin Portal',
     icon: 'people-outline',
     link: '/admin-processing',
-    data: { permission: 'create', resource: 'user' },
+    data: { permission: 'delete', resource: 'user' },
     hidden: true,
-    children: [
-      {
-        title: 'User Management',
-        icon: 'people-outline',
-        link: '/admin-processing/user-processing',
-        data: { permission: 'create', resource: 'collection' },
-      },
-      {
-        title: 'Collection Management',
-        icon: { icon: 'archive-outline', pack: 'eva' },
-        link: '/admin-processing/collection-processing',
-        data: { permission: 'view', resource: 'collection' },
-        hidden: true,
-      },
-      {
-        title: 'STIG Manager',
-        icon: 'flag-outline',
-        link: '/admin-processing/stigmanager-admin',
-        data: { permission: 'create', resource: 'user' },
-      },
-      {
-        title: 'eMASS Excel Import',
-        icon: 'upload-outline',
-      }
-    ]
   },
   {
     title: 'POAMs',
@@ -60,7 +35,7 @@ export const appMenuItems: NbMenuItem[] = [
         title: 'Manage POAMs',
         icon: 'list-outline',
         link: '/poam-processing/poam-manage',
-        data: { permission: 'approve', resource: 'poam' },
+        data: { permission: 'view', resource: 'poam' },
       },
       {
         title: 'Add POAM',

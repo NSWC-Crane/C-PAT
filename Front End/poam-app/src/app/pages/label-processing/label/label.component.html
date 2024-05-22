@@ -8,31 +8,28 @@
 !########################################################################
 -->
 
-<ng-container>
   <form (ngSubmit)="onSubmit()" #form="ngForm">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-10">
-          <label style="margin-right: 1%" for="labelname">*Label Name: </label>
-          <input nbInput type="text" fullWidth name="labelname" [(ngModel)]="label.labelName" placeholder="Label Name"
-                 required>
+    <nb-card>
+      <nb-card-header>Label Details</nb-card-header>
+      <nb-card-body>
+        <div class="row">
+          <label for="labelname">Label Name: </label>
+          <input nbInput type="text" fullWidth name="labelname" [(ngModel)]="label.labelName" placeholder="Label Name" required>
         </div>
-      </div>
-      <br />
-      <div class="row">
-        <div class="col-md-10">
-          <label id="description">Description:  </label>
+        <br />
+        <div class="row">
+          <label for="description">Description:  </label>
           <input nbInput type="text" fullWidth name="description" id="description" [(ngModel)]="label.description" placeholder="Description">
         </div>
-      </div>
-      <br>
-      <div class="row">
-        <div class="container">
-          <button nbButton outline status="info" class="mr-3" [disabled]="!form.valid">Submit</button>
-          <button style="margin-left:20px;" nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
-          <!--<button style="margin-left:20px;" nbButton outline status="warning" type="button" class="mr-3" (click)="deleteLabel()">Delete Label</button>-->
+      </nb-card-body>
+      <nb-card-footer>
+        <div class="row">
+          <div class="button-container">
+            <button nbButton outline status="info" class="mr-3" [disabled]="!form.valid">Submit</button>
+            <button style="margin-left:20px;" nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
+            <!--<button style="margin-left:20px;" nbButton outline status="warning" type="button" class="mr-3" (click)="deleteLabel()">Delete Label</button>-->
+          </div>
         </div>
-      </div>
-    </div>
+      </nb-card-footer>
+    </nb-card>
   </form>
-</ng-container>

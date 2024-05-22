@@ -8,11 +8,30 @@
 !########################################################################
 */
 
-.grid-nb-card {
-    border: none;
+.table-container {
+  height: 58rem;
+  overflow-y: auto;
+  width: 100%;
 }
+
+.search-input {
+  margin-bottom: 1rem;
+}
+
+.nb-tab {
+  padding-inline-end: 0;
+  padding-inline-start: 0;
+  overflow: hidden;
+}
+
+.grid-nb-card {
+  border: none;
+  padding-inline-end: 0;
+  padding-inline-start: 0;
+}
+
 .grid {
-  overflow: auto;
+  overflow: hidden;
   width: 100%;
 }
 

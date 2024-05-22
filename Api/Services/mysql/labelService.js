@@ -14,8 +14,7 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -25,7 +24,6 @@ async function withConnection(callback) {
 
 exports.getLabels = async function getLabels(req, res, next) {
     if (!req.params.collectionId) {
-        console.info('getLabel collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -49,14 +47,12 @@ exports.getLabels = async function getLabels(req, res, next) {
             return labels;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        next(error);
     }
 }
 
 exports.getLabel = async function getLabel(req, res, next) {
     if (!req.params.labelId) {
-        console.info('getLabel labelId not provided.');
         return next({
             status: 400,
             errors: {
@@ -64,7 +60,6 @@ exports.getLabel = async function getLabel(req, res, next) {
             }
         });
     } else if (!req.params.collectionId) {
-        console.info('getLabel collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -83,14 +78,12 @@ exports.getLabel = async function getLabel(req, res, next) {
             return { label };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.postLabel = async function postLabel(req, res, next) {
     if (!req.params.collectionId) {
-        console.info('getLabel collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -98,7 +91,6 @@ exports.postLabel = async function postLabel(req, res, next) {
             }
         });
     } else if (!req.body.labelName) {
-        console.info('postLabel labelName not provided.');
         return next({
             status: 400,
             errors: {
@@ -124,14 +116,12 @@ exports.postLabel = async function postLabel(req, res, next) {
             return message;
         });
     } catch (error) {
-        console.error("Error in postLabel: ", error);
-        throw error;
+        return { error: error.message };
     }
 }
 
 exports.putLabel = async function putLabel(req, res, next) {
     if (!req.params.collectionId) {
-        console.info('getLabel collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -139,7 +129,6 @@ exports.putLabel = async function putLabel(req, res, next) {
             }
         });
     } else if (!req.body.labelId) {
-        console.info('putLabel labelId not provided.');
         return next({
             status: 400,
             errors: {
@@ -147,7 +136,6 @@ exports.putLabel = async function putLabel(req, res, next) {
             }
         });
     } else if (!req.body.labelName) {
-        console.info('putLabels labelName not provided.');
         return next({
             status: 400,
             errors: {
@@ -172,14 +160,12 @@ exports.putLabel = async function putLabel(req, res, next) {
             return message;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.deleteLabel = async function deleteLabel(req, res, next) {
     if (!req.params.labelId) {
-        console.info('getLabel labelId not provided.');
         return next({
             status: 400,
             errors: {
@@ -187,7 +173,6 @@ exports.deleteLabel = async function deleteLabel(req, res, next) {
             }
         });
     } else if (!req.params.collectionId) {
-        console.info('getLabel collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -204,7 +189,6 @@ exports.deleteLabel = async function deleteLabel(req, res, next) {
             return { label: [] };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }

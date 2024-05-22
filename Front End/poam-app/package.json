@@ -22,6 +22,7 @@
     "@angular/platform-browser": "^17.3.9",
     "@angular/platform-browser-dynamic": "^17.3.9",
     "@angular/router": "^17.3.9",
+    "@fortawesome/fontawesome-free": "^6.5.2",
     "@nebular/eva-icons": "^13.0.0",
     "@nebular/security": "^13.0.0",
     "@nebular/theme": "^13.0.0",
@@ -32,7 +33,7 @@
     "angular-auth-oidc-client": "^17.0.0",
     "angular2-smart-table": "^3.2.0",
     "bootstrap": "^5.3.3",
-    "chart.js": "^4.4.2",
+    "chart.js": "^4.4.3",
     "chartjs-plugin-datalabels": "^2.2.0",
     "classlist.js": "^1.1.20150312",
     "date-fns": "^3.6.0",
@@ -47,7 +48,7 @@
     "rxjs": "^7.8.1",
     "subsink": "^1.0.2",
     "web-animations-js": "^2.3.2",
-    "zone.js": "^0.14.5"
+    "zone.js": "^0.14.6"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^17.3.7",

@@ -19,14 +19,11 @@ export const environment = {
     scopePrefix: '',
     extraScopes: '',
     scope: '',
-    redirectUri: 'http://localhost:4200/',
+    redirectUri: 'http://localhost:4200',
   },
 
-  OIDC_PROVIDER_NAME: 'keycloak',
-  OIDC_PROVIDER_URL: 'http://localhost:2020',
-  CPAT_FRONTEND_URL: 'http://localhost:4200/',
-  CPAT_API_URL: 'http://localhost:8086',
-  STIGMANAGER_URL: 'http://localhost:54000',
+  CPAT_API_URL: 'http://localhost:8086/api',
+  STIGMANAGER_URL: 'http://localhost:54000/api',
   TENNABLE_URL: 'http://0.0.0.0:9000', //placeholder
   tenableAccessKey: 'placeholder',
   tenableSecretKey: 'placeholder',

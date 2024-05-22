@@ -16,9 +16,9 @@ const dbUtils = require('./utils');
 const mysql = require('mysql2');
 const { parse, format } = require('date-fns');
 const { Poam, Collection } = require('../../utils/sequelize.js');
+
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -146,8 +146,6 @@ async function processPoamWorksheet(worksheet, userId) {
                             const dateParts = cellValue.split('/').map(part => parseInt(part, 10));
                             const dateObject = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
                             poamEntry[dbColumn] = format(dateObject, "yyyy-MM-dd");
-                        } else {
-                            console.log(`Unhandled date format: ${cellValue}`);
                         }
                     } else if (dbColumn === 'rawSeverity' || dbColumn === 'adjSeverity') {
                         poamEntry[dbColumn] = mapValueToCategory(cellValue, dbColumn);
@@ -283,7 +281,6 @@ async function processMilestones(poamId, milestone) {
             milestoneComments: milestoneText
         });
     } else {
-        console.warn(`No date found in milestone: adding milestone.`);
         await db.poamMilestone.create({
             poamId: poamId,
             milestoneComments: milestone
@@ -446,7 +443,6 @@ exports.postStigManagerCollection = async function postStigManagerCollection(col
 
 exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWithStigManagerData(req, res, next) {
     if (!Array.isArray(req.body) || req.body.length === 0) {
-        console.log('Invalid request body');
         return next({
             status: 400,
             errors: {
@@ -515,7 +511,6 @@ exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWit
             return results;
         });
     } catch (error) {
-        console.error('An error occurred:', error);
-        throw error;
+        return { error: error.message };
     }
 };

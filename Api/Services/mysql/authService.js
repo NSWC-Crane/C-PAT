@@ -12,13 +12,11 @@
 const config = require('../../utils/config');
 const dbUtils = require('./utils');
 const passport = require('passport');
-const tokenGenerator = require('../../utils/token-generator');
-const refreshPayload = require('../../utils/refresh_payload');
-const writeLog = require('../../utils/poam_logger');
+const jwt = require('jsonwebtoken');
+const logger = require('../../utils/logger');
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -27,31 +25,25 @@ async function withConnection(callback) {
 }
 
 exports.changeWorkspace = async (req, res, next) => {
-    console.log("authService changeWorkspace req.body: ", req.body);
     if (!req.body.token) {
-        console.info('Post node-api change-workspace: token not provided.');
         return res.status(400).json({ message: 'token not provided' });
     }
 
     try {
-        const token = await tokenGenerator.refresh(req.body.token, {
-            verify: { algorithms: ['HS256'] },
-            mergePayload: { user: req.body.user },
-            refreshPayload: refreshPayload,
-        });
-        console.log("tokenGenerator token returned: ", token);
+        const payload = jwt.verify(req.body.token, process.env.JWT_SECRET_KEY, { algorithms: ['HS256'] });
+        payload.user = req.body.user;
+        const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, { algorithm: 'HS256', expiresIn: '2 days' });
         res.json({ token: token });
     } catch (err) {
-        console.error('Post node-api change-workspace err: ' + JSON.stringify(err));
-        next(err);
+        return { error: error.message };
     }
 };
 
-exports.generateJWT = async function (previousPayload, jwtSignOptions, user, req) {
-    let payload = Object.assign({}, previousPayload, {
+exports.generateJWT = function (user, jwtSignOptions) {
+    const payload = {
         userId: user.userId,
         userName: user.userName,
-        userEmail: user.userEmail,
+        email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
         created: user.created,
@@ -61,48 +53,19 @@ exports.generateJWT = async function (previousPayload, jwtSignOptions, user, req
         fullName: user.fullName,
         officeOrg: user.officeOrg,
         defaultTheme: user.defaultTheme
-    });
+    };
 
-    if (payload.collections) {
-        try {
-            const permissions = "";
-            if (!permissions) {
-                console.log("deleting payload.collection...");
-                delete payload.collections;
-            } else {
-                for (let permission in permissions) {
-                    let assignedCollections = {
-                        collectionId: permission.collectionId,
-                        accessLevel: permission.accessLevel,
-                    };
-                    payload.collections.push(assignedCollections);
-                }
-            }
-        } catch (err) {
-            console.log("ERROR: collections is missing from payload.");
-            console.log(err);
-            throw err;
-        }
-    } else if (this.lastCollectionAccessedId) {
-        payload.lastCollectionAccessedId = this.lastCollectionAccessedId;
-    } else if (user.accountStatus === 'Pending') {
-        console.log("User account is pending, not setting payload...");
-    } else {
-        writeLog.writeLog(4, "usersService", 'info', payload.username, payload.displayName, { event: 'No lastCollectionAccessedId, not setting payload.lastCollectionAccessedId.' });
-    }
-
-    return tokenGenerator.sign(payload, jwtSignOptions);
+    return jwt.sign(payload, process.env.JWT_SECRET_KEY, { ...jwtSignOptions, algorithm: 'HS256', expiresIn: '2 days' });
 };
 
 exports.login = async (req, res, next) => {
     if (!req.body.email) {
-        console.info('Post authService login: email or username not provided.');
         return next({ status: 400, errors: { email: 'is required' } });
     }
 
     try {
         const rowUser = await withConnection(async (connection) => {
-            const sql = "SELECT * FROM user WHERE userEmail = ?";
+            const sql = "SELECT * FROM user WHERE email = ?";
             const [result] = await connection.query(sql, [req.body.email]);
             return result[0];
         });
@@ -116,33 +79,28 @@ exports.login = async (req, res, next) => {
 
         return await passport.authenticate('local', { session: false }, async (err, user, info) => {
             if (err) {
-                console.error('Post node-api login err: ' + JSON.stringify(err));
                 return next(err);
             }
             if (!user) {
                 return next({ status: 400, message: info.message });
             }
-            console.log('login successful!', 'user:', user);
-            const token = await exports.generateJWT('', '', user);
+            const token = exports.generateJWT(user, {});
             await withConnection(async (connection) => {
-                const sql = "UPDATE user SET lastAccess = NOW() WHERE userEmail = ?";
+                const sql = "UPDATE user SET lastAccess = NOW() WHERE email = ?";
                 await connection.query(sql, [req.body.email]);
             });
             return res.status(201).json({ token: token });
         })(req, res, next);
     } catch (error) {
-        console.info('Post authService login: user login failed.', error);
-        return next({ status: 400, message: "Login failed" });
+        return next({ status: 400, message: `Login failed: ${error}` });
     }
 };
 
 exports.logout = async (req, res, next) => {
     req.session.destroy((err) => {
         if (err) {
-            console.log("Session NOT destroyed.");
-            console.log(err);
+            logger.writeError("Session NOT destroyed: ", err);
         } else {
-            console.log("Session has been destroyed.");
             return res.status(201).send({ success: true });
         }
     });
@@ -150,32 +108,27 @@ exports.logout = async (req, res, next) => {
 
 exports.register = async (req, res, next) => {
     try {
-        console.log('authService register incoming req.body:', req.body);
-
         if (!req.body.email) {
-            console.log('Post node-api register: email address required.');
             return next({ status: 400, message: 'Missing email', stack: new Error().stack });
         }
 
         if (!req.body.userName) {
-            console.log('Post node-api register: userName required.');
             return next({ status: 400, message: 'Missing userName', stack: new Error().stack });
         }
 
         const existingUser = await withConnection(async (connection) => {
-            let sql = "SELECT * FROM user WHERE userEmail = ? OR userName = ?";
+            let sql = "SELECT * FROM user WHERE email = ? OR userName = ?";
             let [result] = await connection.query(sql, [req.body.email, req.body.userName]);
             return result[0];
         });
 
         if (existingUser) {
-            const field = existingUser.userEmail === req.body.email ? 'email' : 'userName';
-            console.info(`Post node-api register: ${field} exists.`, existingUser[field]);
+            const field = existingUser.email === req.body.email ? 'email' : 'userName';
             return next({ status: 500, message: `An account with this ${field} already exists`, stack: new Error().stack });
         }
 
         const user = await withConnection(async (connection) => {
-            let sql = "INSERT INTO user (userName, userEmail, created, firstName, lastName, " +
+            let sql = "INSERT INTO user (userName, email, created, firstName, lastName, " +
                 "lastCollectionAccessedId, accountStatus, fullName, officeOrg, defaultTheme) VALUES (?, ?, CURDATE(), ?, ?, 0 , 'PENDING', ?, ?, 'dark' )";
             await connection.query(sql, [
                 req.body.userName,
@@ -192,7 +145,6 @@ exports.register = async (req, res, next) => {
         });
 
         if (!user) {
-            console.info('Post node-api register: failed to create user.');
             return next({ status: 500, message: 'Failed to create user', stack: new Error().stack });
         }
 
@@ -205,23 +157,9 @@ exports.register = async (req, res, next) => {
             });
         }
 
-        const token = await exports.generateJWT('', '', user);
+        const token = exports.generateJWT(user, {});
         return res.status(201).json({ token: token });
     } catch (err) {
-        console.error('Post node-api register err: ' + JSON.stringify(err));
-        next(err);
+        return { error: error.message };
     }
-};
-
-exports.refreshToken = async (req, res, next) => {
-    if (!req.body.token) {
-        console.info('Post node-api refresh-token: token not provided.');
-        return res.status(401).json({ error: 'No token available' });
-    }
-    console.log('POST /refresh-token');
-    try {
-        const token = await tokenGenerator.refresh(req.body.token, {
-            verify: { algorithms: ["HS256"], ignoreExpiration: true }, refreshPayload: refreshPayload
-        }); return res.status(200).json({ token: token });
-    } catch (err) { console.error('Post node-api refresh-token err: ' + JSON.stringify(err)); next(err); }
 };

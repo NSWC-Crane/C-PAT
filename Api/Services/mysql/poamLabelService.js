@@ -14,8 +14,7 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -26,8 +25,12 @@ async function withConnection(callback) {
 exports.getPoamLabels = async function getPoamLabels(collectionId) {
     try {
         if (!collectionId) {
-            console.info('getPoamLabels collectionId not provided.');
-            throw new Error('Collection ID is required');
+            return next({
+                status: 400,
+                errors: {
+                    collectionId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -48,8 +51,7 @@ exports.getPoamLabels = async function getPoamLabels(collectionId) {
             return poamLabels;
         });
     } catch (error) {
-        console.error("Error fetching POAM labels: ", error);
-        throw error;
+        return { error: error.message };
     }
 }
 
@@ -57,9 +59,13 @@ exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res,
     try {
         const userId = req.params.userId;
 
-        if (!userId) {
-            console.info('getAvailablePoamLabels userId not provided.');
-            throw new Error('User ID is required');
+        if (!req.params.userId) {
+            return next({
+                status: 400,
+                errors: {
+                    userId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -104,16 +110,19 @@ exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res,
             return poamLabels;
         });
     } catch (error) {
-        console.error("Error fetching POAM labels: ", error);
-        throw error;
+        return { error: error.message };
     }
 };
 
 exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
     try {
         if (!poamId) {
-            console.info('getPoamLabelsByPoam poamId not provided.');
-            throw new Error('POAM ID is required');
+            return next({
+                status: 400,
+                errors: {
+                    poamId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -134,16 +143,19 @@ exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
             return poamLabels;
         });
     } catch (error) {
-        console.error(error);
-        throw error;
+        return { error: error.message };
     }
 }
 
 exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
     try {
         if (!labelId) {
-            console.info('getPoamLabelByLabel labelId not provided.');
-            throw new Error('Label ID is required');
+            return next({
+                status: 400,
+                errors: {
+                    labelId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -164,16 +176,26 @@ exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
             return { poamLabels };
         });
     } catch (error) {
-        console.error(error);
-        throw error;
+        return { error: error.message };
     }
 }
 
 exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
     try {
-        if (!poamId || !labelId) {
-            console.info('getPoamLabel poamId or labelId not provided.');
-            throw new Error('POAM ID and Label ID are required');
+        if (!poamId) {
+            return next({
+                status: 400,
+                errors: {
+                    poamId: 'is required',
+                }
+            });
+        } else if (!labelId) {
+            return next({
+                status: 400,
+                errors: {
+                    labelId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -190,30 +212,25 @@ exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
             return { poamLabel };
         });
     } catch (error) {
-        console.error(error);
-        throw error;
+        return { error: error.message };
     }
 }
 
 exports.postPoamLabel = async function postPoamLabel(req, res, next) {
     if (!req.body.poamId) {
-        console.info('postPoamLabel poamId not provided.');
-        throw {
+        return next({
             status: 400,
             errors: {
                 poamId: 'is required',
             }
-        };
-    }
-
-    if (!req.body.labelId) {
-        console.info('postPoamLabel labelId not provided.');
-        throw {
+        });
+    } else if (!req.body.labelId) {
+        return next({
             status: 400,
             errors: {
                 labelId: 'is required',
             }
-        };
+        });
     }
 
     try {
@@ -251,31 +268,26 @@ exports.postPoamLabel = async function postPoamLabel(req, res, next) {
             });
         }
         else {
-            console.error("error: ", error);
-            throw { status: 500, message: "Unable to create POAM label" };
+            return { error: error.message };
         }
     }
 }
 
 exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
     if (!req.params.poamId) {
-        console.info('deletePoamLabel poamId not provided.');
-        throw {
+        return next({
             status: 400,
             errors: {
                 poamId: 'is required',
             }
-        };
-    }
-
-    if (!req.params.labelId) {
-        console.info('deletePoamLabel labelId not provided.');
-        throw {
+        });
+    } else if (!req.params.labelId) {
+        return next({
             status: 400,
             errors: {
                 labelId: 'is required',
             }
-        };
+        });
     }
 
     try {
@@ -295,7 +307,6 @@ exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
             return {};
         });
     } catch (error) {
-        console.error(error);
-        throw { status: 500, message: "Unable to delete POAM label" };
+        return { error: error.message };
     }
 }

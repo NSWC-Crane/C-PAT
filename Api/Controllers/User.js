@@ -21,8 +21,8 @@ module.exports.getUsers = async function getUsers(req, res, next) {
 
 module.exports.getCurrentUser = async function getCurrentUser(req, res, next) {
     try {
-        const userEmail = req.userObject.email;
-        const user = await userService.getCurrentUser(userEmail);
+        const email = req.userObject.email;
+        const user = await userService.getCurrentUser(email);
         res.status(200).json(user);
     } catch (error) {
         if (error.message === "User not found") {
@@ -37,6 +37,21 @@ module.exports.getUserByUserID = async function getUserByUserID(req, res, next) 
     try {
         const userId = req.params.userId;
         const user = await userService.getUserByUserID(userId);
+        res.status(200).json(user);
+    } catch (error) {
+        if (error.message === "User not found") {
+            res.status(200).json(user);
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
+
+
+module.exports.getUserByUserName = async function getUserByUserName(req, res, next) {
+    try {
+        const userName = req.params.userName;
+        const user = await userService.getUserByUserName(userName);
         res.status(200).json(user);
     } catch (error) {
         if (error.message === "User not found") {
@@ -63,9 +78,7 @@ module.exports.getBasicUserByUserID = async function getBasicUserByUserID(req, r
 
 module.exports.updateUser = async function updateUser(req, res, next) {
     try {
-        const userId = req.body.userId;
-        const userData = req.body;
-        const updatedUser = await userService.updateUser(userId, userData);
+        const updatedUser = await userService.updateUser(req, res, next);
         res.status(200).json(updatedUser);
     } catch (error) {
         if (error.message === "User update failed") {

@@ -11,7 +11,7 @@
 export interface Users {
   userId: number;
   userName: string;
-  userEmail: string;
+  email: string;
   firstName: string;
   lastName: string;
   created: string;

@@ -14,8 +14,7 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -25,7 +24,6 @@ async function withConnection(callback) {
 
 exports.getAssetLabels = async function getAssetLabels(req, res, next) {
     if (!req.params.collectionId) {
-        console.info('getAssetLabels collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -53,15 +51,18 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
             return assetLabels.assetLabel;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, next) {
     if (!req.params.assetId) {
-        console.info('getAssetLabelByAsset assetId not provided.');
-        throw new Error('assetId is required');
+        return next({
+            status: 400,
+            errors: {
+                assetId: 'is required',
+            }
+        });
     }
 
     try {
@@ -85,14 +86,12 @@ exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, n
             return assetLabels;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, next) {
     if (!req.params.labelId) {
-        console.info('getAssetLabelByLabel labelId not provided.');
         return next({
             status: 400,
             errors: {
@@ -120,14 +119,12 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, n
             return assetLabels.assetLabels;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     if (!req.params.assetId) {
-        console.info('getAssetLabel assetId not provided.');
         return next({
             status: 400,
             errors: {
@@ -136,7 +133,6 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
         });
     }
     if (!req.params.labelId) {
-        console.info('getAssetLabel labelId not provided.');
         return next({
             status: 400,
             errors: {
@@ -158,21 +154,34 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
             return assetLabel.assetLabel;
         });
     } catch (error) {
-        console.error(error);
-        throw error;
+        return { error: error.message };
     }
 }
 
 exports.postAssetLabel = async function postAssetLabel(req, res, next) {
     if (!req.body.assetId) {
-        console.info('postAssetLabel assetId not provided.');
-        throw new Error('assetId is required');
-    } else if (!req.body.labelId) {
-        console.info('postAssetLabel labelId not provided.');
-        throw new Error('labelId is required');
-    } else if (!req.body.collectionId) {
-        console.info('postAssetLabel collectionId not provided.');
-        throw new Error('collectionId is required');
+        return next({
+            status: 400,
+            errors: {
+                assetId: 'is required',
+            }
+        });
+    }
+    if (!req.body.labelId) {
+        return next({
+            status: 400,
+            errors: {
+                labelId: 'is required',
+            }
+        });
+    }
+    if (!req.body.collectionId) {
+        return next({
+            status: 400,
+            errors: {
+                collectionId: 'is required',
+            }
+        });
     }
 
     try {
@@ -194,14 +203,12 @@ exports.postAssetLabel = async function postAssetLabel(req, res, next) {
             return (assetLabel);
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
     if (!req.params.assetId) {
-        console.info('deleteAssetLabel assetId not provided.');
         return next({
             status: 400,
             errors: {
@@ -210,7 +217,6 @@ exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
         });
     }
     if (!req.params.labelId) {
-        console.info('deleteAssetLabel labelId not provided.');
         return next({
             status: 400,
             errors: {
@@ -228,7 +234,6 @@ exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
             return { assetLabel: [] };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }

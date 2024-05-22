@@ -57,19 +57,14 @@ export class LabelComponent implements OnInit, OnDestroy {
   }
 
   async onSubmit() {
-
     if (!this.validData()) return;
-
     const label = {
-      labelId: (this.label.labelId == "ADDLABEL") ? 0 : this.label.labelId,
+      labelId: (this.label.labelId == "ADDLABEL" || !this.label.labelId) ? 0 : this.label.labelId,
       collectionId: this.selectedCollection,
       labelName: this.label.labelName,
       description: this.label.description,
     }
-
-    if (this.label.labelId == "ADDLABEL") {
-      this.label.labelId = "";
-
+    if (label.labelId === 0) {
       this.subs.sink = (await this.labelService.addLabel(this.selectedCollection, label)).subscribe(
         (data: any) => {
           this.labelchange.emit(data.labelId);
@@ -79,36 +74,23 @@ export class LabelComponent implements OnInit, OnDestroy {
           console.error(err);
         }
       );
-
     } else {
-
       this.subs.sink = (await this.labelService.updateLabel(this.selectedCollection, label)).subscribe(data => {
         this.label = data;
         this.labelchange.emit();
       });
-
     }
   }
 
-  deleteLabel() {
-    //Temporarily removing this feature.
-    //this.subs.sink = this.labelService.deleteLabel(this.selectedCollection, this.label.labelId).subscribe((data: any) => {
-    //});
-    //this.labelchange.emit();
-  }
-
-  setLabelData() {
-
-  }
+  //async deleteLabel() {
+  //  this.subs.sink = (await this.labelService.deleteLabel(this.selectedCollection, this.label.labelId)).subscribe((data: any) => {
+  //  });
+  //  this.labelchange.emit();
+  //}
 
   resetData() {
-    this.label.labelId= "LABEL";
+    this.label.labelId= "";
     this.labelchange.emit();
-  }
-
-  addCollection() {
-    this.label = [];
-    this.label.labelId = "LABEL";
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
@@ -154,5 +136,4 @@ export class LabelComponent implements OnInit, OnDestroy {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
   }
-
 }

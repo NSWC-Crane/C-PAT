@@ -9,7 +9,6 @@
 -->
 
 <nb-layout>
-  <input type="file" #fileInput style="display: none;" (change)="onFileSelect($event)" accept=".xls, .xlsx, .xlsm">
   <nb-layout-header fixed>
     <div class="container">
       <img src="../assets/cpat.png" alt="C-PAT" (click)="reloadPage()" (keyup.enter)="reloadPage()" tabindex="0" style="cursor: pointer;">
@@ -31,8 +30,10 @@
         <nb-action icon="moon-outline" (click)="onSelectedThemeChange('dark')"></nb-action>
         <nb-action icon="star-outline" (click)="onSelectedThemeChange('cosmic')"></nb-action>
         <nb-action icon="brush-outline" (click)="onSelectedThemeChange('material-dark')"></nb-action>
-        <!--<nb-action icon="bulb-outline" (click)="onSelectedThemeChange('material-light')"></nb-action>-->
         <nb-action icon="sun-outline" (click)="onSelectedThemeChange('corporate')"></nb-action>
+        <!--<nb-action icon="***********" (click)="onSelectedThemeChange('material-light')"></nb-action>-->
+        <!--<nb-action icon="***********" (click)="onSelectedThemeChange('default')"></nb-action>-->
+        <!--<nb-action icon="***********" (click)="onSelectedThemeChange('aquamarine')"></nb-action>-->
       </nb-actions>
     </div>
     <div *ngIf="this.sidebarExpanded" class="sidebar-top" style="margin-top:10px; display: flex; justify-content: center; align-items: center;">

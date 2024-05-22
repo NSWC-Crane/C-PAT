@@ -14,8 +14,7 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -30,8 +29,7 @@ exports.getAllNotificationsByUserId = async function getAllNotificationsByUserId
             return rows;
         });
     } catch (error) {
-        console.error('Error in getAllNotificationsByUserId:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -43,8 +41,7 @@ exports.getUnreadNotificationsByUserId = async function getUnreadNotificationsBy
             return rows;
         });
     } catch (error) {
-        console.error('Error in getUnreadNotificationsByUserId:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -57,8 +54,7 @@ exports.getUnreadNotificationCountByUserId = async function getUnreadNotificatio
             return notificationCount;
         });
     } catch (error) {
-        console.error('Error in getUnreadNotificationCountByUserId:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -77,8 +73,7 @@ exports.dismissNotificationByNotificationId = async function dismissNotification
             return unreadNotifications;
         });
     } catch (error) {
-        console.error('Error in dismissNotificationByNotificationId:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -90,8 +85,7 @@ exports.dismissAllNotificationsByUserId = async function dismissAllNotifications
             return result.affectedRows > 0;
         });
     } catch (error) {
-        console.error('Error in dismissAllNotificationsByUserId:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -103,8 +97,7 @@ exports.deleteNotificationByNotificationId = async function deleteNotificationBy
             return result.affectedRows > 0;
         });
     } catch (error) {
-        console.error('Error in deleteNotificationByNotificationId:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -116,7 +109,6 @@ exports.deleteAllNotificationsByUserId = async function deleteAllNotificationsBy
             return result.affectedRows > 0;
         });
     } catch (error) {
-        console.error('Error in deleteAllNotificationsByUserId:', error);
-        throw error;
+        return { error: error.message };
     }
 };

@@ -37,5 +37,5 @@
 }
 
 html, body {
-  @include custom-scrollbar( #3B3B3B, #313131 );
+  @include custom-scrollbar( nb-theme(background-basic-color-2), nb-theme(background-basic-color-4) );
 }

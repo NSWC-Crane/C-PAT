@@ -52,7 +52,7 @@ import { NotificationsComponent } from './notifications/notifications.component'
     SmartTableInputComponent,
     SmartTableInputDisabledComponent,
     SmartTableSelectComponent,
-    SmartTableTextareaComponent,    
+    SmartTableTextareaComponent,
   ],
   imports: [
     CommonModule,
@@ -95,6 +95,6 @@ import { NotificationsComponent } from './notifications/notifications.component'
     DecimalPipe,
     PercentPipe,
     AsyncPipe,
-  ]
+  ],
 })
 export class SharedModule { }

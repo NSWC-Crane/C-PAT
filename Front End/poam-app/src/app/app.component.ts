@@ -8,16 +8,12 @@
 !########################################################################
 */
 
-import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { NbDialogService, NbIconLibraries, NbMenuItem, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
+import { NbIconLibraries, NbMenuItem, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
 import { Subject, Subscription, filter, takeUntil } from 'rxjs';
 import { SubSink } from 'subsink';
-import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
 import { PoamService } from '../app/pages/poam-processing/poams.service';
-import { environment } from '../environments/environment';
-import { StatusDialogComponent } from './Shared/components/status-dialog/status-dialog.component';
 import { NotificationService } from './Shared/notifications/notifications.service';
 import { SharedService } from './Shared/shared.service';
 import { accessControlList } from './access-control-list';
@@ -25,6 +21,7 @@ import { appMenuItems } from './app-menu';
 import { CollectionsService } from './pages/admin-processing/collection-processing/collections.service';
 import { UsersService } from './pages/admin-processing/user-processing/users.service';
 import { AuthService } from './auth/auth.service';
+import { format } from 'date-fns';
 
 
 interface Permission {
@@ -63,16 +60,16 @@ export class AppComponent implements OnInit, OnDestroy {
   poamItems: any;
   viewingfulldetails: boolean = false;
   public detailedPoam: any;
-  private subs = new SubSink()
+  private subs = new SubSink();
   private destroy$ = new Subject<void>();
   isLoggedIn: boolean = false;
+  evaIcons: any = [];
 
   userMenu = ['Notification 1', 'Notification 2'];
 
   constructor(
     private iconLibraries: NbIconLibraries,
     private authService: AuthService,
-    private dialogService: NbDialogService,
     public sidebarService: NbSidebarService,
     private menuService: NbMenuService,
     private themeService: NbThemeService,
@@ -81,13 +78,10 @@ export class AppComponent implements OnInit, OnDestroy {
     private collectionService: CollectionsService,
     private userService: UsersService,
     private poamService: PoamService,
-    private fileUploadService: FileUploadService,
     private notificationService: NotificationService,
   ) {
-    this.iconLibraries.registerFontPack('font-awesome-solid', { packClass: 'fas', iconClassPrefix: 'fa' });
-    this.iconLibraries.registerFontPack('font-awesome-brands', { packClass: 'fab', iconClassPrefix: 'fa' });
-    this.iconLibraries.registerFontPack('font-awesome-regular', { packClass: 'far', iconClassPrefix: 'fa' });
-
+    this.iconLibraries.registerFontPack('fa', { packClass: 'fas', iconClassPrefix: 'fa' });
+    this.iconLibraries.setDefaultPack('eva');
     this.sidebarSubscription = this.sidebarService.onToggle()
       .subscribe(({ tag }) => {
         if (tag === 'menu-sidebar') {
@@ -103,19 +97,11 @@ export class AppComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Authentication Error:', error);
     }
-
-    if (this.userProfile) {
-      this.setPayload();
-    } else {
-      setTimeout(() => this.ngOnInit(), 1000);
-    }
+    this.userProfile ? this.setPayload() : setTimeout(() => this.ngOnInit(), 1000);
 
     this.menuService.onItemClick().subscribe((event) => {
-      if (event.item.title === 'eMASS Excel Import') {
-        this.triggerFileInput();
-      }
       if (event.item.title === 'Logout') {
-        this.authService.logout('cpat');
+        this.authService.logout();
       }
     });
 
@@ -181,22 +167,23 @@ export class AppComponent implements OnInit, OnDestroy {
   async getCollections() {
     const userName = this.payload.userName;
     this.subs.sink = (await this.collectionService.getCollections(userName)).subscribe((result: any) => {
-
-      this.collections = result;
-      this.selectedTheme = (this.user.defaultTheme) ? this.user.defaultTheme : 'default'
-      this.themeService.changeTheme(this.selectedTheme);
-      this.selectedCollection = (this.user.lastCollectionAccessedId) ? +this.user.lastCollectionAccessedId : null;
-
-      if (this.selectedCollection) {
-        this.resetWorkspace(this.selectedCollection);
+    this.collections = result;
+      if (this.user.defaultTheme) {
+        this.selectedTheme = this.user.defaultTheme
+      } else {
+        this.selectedTheme = 'dark';
+        this.themeService.changeTheme(this.selectedTheme);
       }
 
-      if ((!this.payload.lastCollectionAccessedId) || this.payload.lastCollectionAccessedId == undefined) {
+      if (this.user.lastCollectionAccessedId) {
+        this.selectedCollection = +this.user.lastCollectionAccessedId;
+        this.resetWorkspace(this.selectedCollection);
+      } else if ((!this.payload.lastCollectionAccessedId) || this.payload.lastCollectionAccessedId == undefined) {
+        this.selectedCollection = null;
         this.selectCollectionMsg = true;
       } else {
         this.getPoamsForCollection();
       }
-
     });
   }
 
@@ -254,11 +241,13 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
     this.themeService.changeTheme(theme);
-
+    let now = new Date();
+    let formattedNow = format(now, 'yyyy-MM-dd HH:mm:ss');
     const userUpdate = {
       userId: this.user.userId,
       userName: this.user.userName,
-      userEmail: this.user.userEmail,
+      email: this.user.email,
+      lastAccess: formattedNow,
       firstName: this.user.firstName,
       lastName: this.user.lastName,
       lastCollectionAccessedId: this.user.lastCollectionAccessedId,
@@ -266,9 +255,7 @@ export class AppComponent implements OnInit, OnDestroy {
       officeOrg: this.user.officeOrg,
       defaultTheme: theme,
       isAdmin: this.user.isAdmin,
-      updateSettingsOnly: 1
-    }
-    console.log(userUpdate);
+    };
     (await this.userService.updateUser(userUpdate)).subscribe((result: any) => {
       this.user = result;
     });
@@ -287,12 +274,13 @@ export class AppComponent implements OnInit, OnDestroy {
         att.textContent = "Collection - " + collection.collectionName
       }
     }
-
-
+    let now = new Date();
+    let formattedNow = format(now, 'yyyy-MM-dd HH:mm:ss');
     const userUpdate = {
       userId: this.user.userId,
       userName: this.user.userName,
-      userEmail: this.user.userEmail,
+      email: this.user.email,
+      lastAccess: formattedNow,
       firstName: this.user.firstName,
       lastName: this.user.lastName,
       lastCollectionAccessedId: parseInt(selectedCollection),
@@ -300,7 +288,6 @@ export class AppComponent implements OnInit, OnDestroy {
       officeOrg: this.user.officeOrg,
       defaultTheme: (this.user.defaultTheme) ? this.user.defaultTheme : 'default',
       isAdmin: this.user.isAdmin,
-      updateSettingsOnly: 1
     }
     const selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == selectedCollection)
     let myRole = ''
@@ -319,58 +306,22 @@ export class AppComponent implements OnInit, OnDestroy {
     this.payload.role = myRole;
     this.userService.changeRole(this.payload);
 
-    (await this.userService.updateUser(userUpdate)).subscribe((result: any) => {
-      this.user = result;
-      this.authMenuItems();
-    });
     if (this.user.lastCollectionAccessedId !== selectedCollection) {
-      window.location.reload();
-    }
-  }
-
-  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef;
-
-  triggerFileInput() {
-    this.fileInput.nativeElement.click();
-  }
-
-
-  async onFileSelect(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length) {
-      const file = input.files[0];
-
-      if (!this.user) {
-        console.error('User information or lastCollectionAccessedId is not available');
-        return;
+      try {
+        const result = await (await this.userService.updateUser(userUpdate)).toPromise();
+        this.user = result;
+        this.authMenuItems();
+        window.location.reload();
+      } catch (error) {
+        console.error('Error updating user:', error);
       }
-
-      const dialogRef = this.dialogService.open(StatusDialogComponent, {
-        context: { progress: 0, message: '' }
-      });
-
-      (await this.fileUploadService.upload(file, this.user.userId)).subscribe({
-        next: (event) => {
-          if (event.type === HttpEventType.UploadProgress) {
-            const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-            dialogRef.componentRef.instance.progress = progress;
-          } else if (event instanceof HttpResponse) {
-            dialogRef.componentRef.instance.uploadComplete = true;
-            dialogRef.componentRef.instance.message = 'Upload successful!';
-            setTimeout(() => dialogRef.close(), 1500);
-          }
-        },
-        error: (error) => {
-          console.error('Error during file upload:', error);
-          dialogRef.componentRef.instance.message = 'An error occurred during upload.';
-        },
-      });
+    } else {
+      this.authMenuItems();
     }
   }
 
   changeDetailsView(poam: any) {
     this.viewingfulldetails = !this.viewingfulldetails
-
     this.poamItems.forEach((item: { checked: boolean; }) => {
       if (item.checked) item.checked = false;
     })
@@ -388,7 +339,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   authMenuItem(menuItem: NbMenuItem) {
     menuItem.hidden = true;
-
     if (menuItem.data && menuItem.data['permission'] && menuItem.data['resource'] && this.payload.role != "none") {
       if (this.accessChecker(menuItem.data['permission'], menuItem.data['resource'])) {
         menuItem.hidden = false;
@@ -412,15 +362,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   accessChecker(permission: string, resource: string): boolean {
     const rolePermissions = accessControlList.accessControl[this.payload.role] || {};
-
     if (!permission) return false;
 
     const resourcesWithPermission = rolePermissions[permission];
-
     if (resourcesWithPermission && Array.isArray(resourcesWithPermission)) {
       return resourcesWithPermission.includes(resource) || resourcesWithPermission.includes("*");
     }
-
     return false;
   }
 

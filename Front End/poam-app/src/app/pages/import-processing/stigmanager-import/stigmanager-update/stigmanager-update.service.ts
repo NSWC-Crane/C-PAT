@@ -33,16 +33,16 @@ export class PoamAssetUpdateService {
     private sharedService: SharedService,
   ) { }
 
-  updateOpenPoamAssets(collectionId: string, stigManagerCollectionId: string, user: number) {
+  async updateOpenPoamAssets(collectionId: string, stigManagerCollectionId: string, user: number) {
       forkJoin([
-        this.poamService.getPoamsByCollection(collectionId),
-        this.sharedService.getAffectedAssetsFromSTIGMAN(stigManagerCollectionId)
+        await this.poamService.getPoamsByCollection(collectionId),
+        await this.sharedService.getAffectedAssetsFromSTIGMAN(stigManagerCollectionId)
       ]).pipe(
         map(([poams, assets]) => {
-          const poamAssetsData = (poams as unknown as Poam[])
+          const poamAssetsData = (poams as Poam[])
             .filter(poam => poam.status !== 'Closed' && poam.vulnerabilitySource === 'STIG')
             .map(poam => {
-              const filteredAssets = (assets as unknown as any[]).filter(entry => entry.groupId === poam.vulnerabilityId);
+              const filteredAssets = (assets as any[]).filter(entry => entry.groupId === poam.vulnerabilityId);
               if (filteredAssets.length > 0) {
                 const assetList = filteredAssets[0].assets.map((asset: { name: any; assetId: string; }) => ({
                   assetName: asset.name,
@@ -60,8 +60,8 @@ export class PoamAssetUpdateService {
             .filter(data => data !== null);
           return poamAssetsData;
         }),
-        switchMap((poamAssetsData) => {
-          return this.importService.updatePoamAssetsWithStigManagerData(poamAssetsData);
+        switchMap(async (poamAssetsData) => {
+          return (await this.importService.updatePoamAssetsWithStigManagerData(poamAssetsData)).subscribe();
         }),
         catchError((error) => {
           console.error('Failed to update POAM assets:', error);

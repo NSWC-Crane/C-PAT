@@ -16,7 +16,8 @@ info:
     name: Christian Rodriguez
     email: christian.a.rodriguez8.ctr@us.navy.mil
   version: '1.1'
-
+servers:
+  - url: 'http://localhost:8086/api'
 paths:
   /assets:
     get:
@@ -860,12 +861,12 @@ paths:
               items:
                 type: object
                 required:
-                  - assetName
+                  - assets
                   - collectionId
                   - poamId
                 properties:
-                  assetName:
-                    type: string
+                  assets:
+                    type: array
                   collectionId:
                     type: integer
                   poamId:
@@ -3718,6 +3719,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
+  '/user/name/{userName}':
+    parameters:
+      - in: path
+        name: userName
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - User
+      security:
+        - oauth:
+            - 'c-pat:op'        
+      summary: Return a User by userName
+      operationId: getUserByUserName
+      responses:
+        '200':
+          description: User response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
   '/user/basic/{userId}':
     parameters:
       - in: path
@@ -4493,7 +4523,7 @@ components:
       required:
         - userId
         - userName
-        - userEmail
+        - email
         - fullName
         - created
         - lastAccess
@@ -4507,7 +4537,7 @@ components:
           type: string
           maxLength: 255
           readOnly: true
-        userEmail:
+        email:
           type: string
           readOnly: true
         fullName:
@@ -4530,14 +4560,14 @@ components:
       type: object
       required:
         - userId
-        - userEmail
+        - email
         - fullName
       additionalProperties: true
       properties:
         userId:
           type: integer
           readOnly: true
-        userEmail:
+        email:
           type: string
           readOnly: true
         firstName:
@@ -4560,7 +4590,7 @@ components:
       required:
         - userId
         - userName
-        - userEmail
+        - email
         - firstName
         - lastName
         - created
@@ -4581,7 +4611,7 @@ components:
           type: string
           maxLength: 20
           readOnly: true
-        userEmail:
+        email:
           type: string
           maxLength: 100
           readOnly: true
@@ -4635,7 +4665,7 @@ components:
       required:
         - userId
         - userName
-        - userEmail
+        - email
         - firstName
         - lastName
         - created
@@ -4655,7 +4685,7 @@ components:
           type: string
           maxLength: 20
           readOnly: true
-        userEmail:
+        email:
           type: string
           maxLength: 100
           readOnly: true
@@ -4693,7 +4723,7 @@ components:
       type: object
       required:
         - userId
-        - userEmail
+        - email
         - firstName
         - lastName
         - accountStatus
@@ -4705,8 +4735,11 @@ components:
       properties:
         userId:
           type: integer
-        userEmail:
+        email:
           type: string
+        lastAccess:
+          type: string
+          nullable: true
         firstName:
           type: string
           maxLength: 50
@@ -4725,8 +4758,6 @@ components:
           type: string
           maxLength: 20
         isAdmin:
-          type: integer
-        updateSettingsOnly:
           type: integer
           
     user_Login:
@@ -4758,7 +4789,7 @@ components:
       required:
         - userId
         - userName
-        - userEmail
+        - email
         - firstName
         - lastName
         - lastCollectionAccessedId
@@ -4773,7 +4804,7 @@ components:
         userName:
           type: string
           maxLength: 20
-        userEmail:
+        email:
           type: string
         firstName:
           type: string
@@ -4816,7 +4847,7 @@ components:
           type: string
         fullName:
           type: string
-        userEmail:
+        email:
           type: string
 
     update_user_Permissions:
@@ -4842,13 +4873,13 @@ components:
           type: string
         fullName:
           type: string
-        userEmail:
+        email:
           type: string
 
     userCreateOrReplace:
       required:
         - userName
-        - userEmail
+        - email
         - firstName
         - lastName
         - lastCollectionAccessedId
@@ -4861,7 +4892,7 @@ components:
       properties:
         userName:
           type: string
-        userEmail:
+        email:
           type: string
         firstName:
           type: string

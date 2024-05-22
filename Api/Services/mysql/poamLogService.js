@@ -15,8 +15,7 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -27,8 +26,12 @@ async function withConnection(callback) {
 exports.getPoamLogByPoamId = async function getPoamLogByPoamId(poamId) {
     try {
         if (!poamId) {
-            console.info('getPoamLogByPoamId poamId not provided.');
-            throw new Error('POAM ID is required');
+            return next({
+                status: 400,
+                errors: {
+                    poamId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -47,7 +50,6 @@ exports.getPoamLogByPoamId = async function getPoamLogByPoamId(poamId) {
             return poamLog;
         });
     } catch (error) {
-        console.error("Error fetching POAM log:", error);
-        throw error;
+        return { error: error.message };
     }
 };

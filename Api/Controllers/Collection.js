@@ -15,7 +15,6 @@ module.exports.getCollectionPermissions = async function getCollectionPermission
         const permissions = await collectionService.getCollectionPermissions(req, res, next);
         res.status(200).json(permissions);
     } catch (error) {
-        console.error(error);
         if (error.message === 'collectionId is required') {
             res.status(400).json({ error: 'Validation Error', detail: 'collectionId is required' });
         } else {
@@ -33,7 +32,6 @@ module.exports.getCollection = async function getCollection(req, res, next) {
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -43,7 +41,6 @@ module.exports.getCollectionBasicList = async function getCollectionBasicList(re
         const getCollection = await collectionService.getCollectionBasicList(req, res, next);
         res.status(200).json(getCollection);
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: 'An error occurred while fetching collection details.' });
     }
 };
@@ -57,7 +54,6 @@ module.exports.getCollections = async function getCollections(req, res, next) {
             res.status(200).json(getCollections);
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -71,7 +67,6 @@ module.exports.postCollection = async function postCollection(req, res, next) {
             res.status(201).json(collection);
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -85,7 +80,6 @@ module.exports.putCollection = async function putCollection(req, res, next) {
             res.status(200).json(collection);
         }
     } catch (error) {
-        console.error(error);
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
         } else {

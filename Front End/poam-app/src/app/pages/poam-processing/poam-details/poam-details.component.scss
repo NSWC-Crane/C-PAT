@@ -47,6 +47,17 @@
     background-color: nb-theme(background-basic-color-2);
   }
 
+.custom-badge {
+  display: inline-block;
+  width: auto;
+  padding: 2px 4px;
+  border-radius: 6px;
+  background-color: rgba(128, 128, 128, 0.35);
+  color: #ffffff;
+  font-size: 12px;
+  margin-right: 8px;
+}
+
 
 .form-container {
   display: flex;
@@ -73,10 +84,8 @@
   align-items: center;
 }
 
-.status-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.status-header {
+    border-bottom: none;
 }
 
 .button-group {

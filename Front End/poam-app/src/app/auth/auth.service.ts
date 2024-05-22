@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { LoginResponse, LogoutAuthOptions, OidcSecurityService } from 'angular-auth-oidc-client';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Observable, firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -18,8 +18,6 @@ export class AuthService {
 
   async initializeAuthentication(): Promise<void> {    
     const authResult = await firstValueFrom(this.oidcSecurityService.checkAuthMultiple());
-    await this.usersService.loginOut("logIn");
-
     const isAuthenticatedStigman = authResult.find(auth => auth.configId === 'stigman')?.isAuthenticated;
     const isAuthenticatedCpat = authResult.find(auth => auth.configId === 'cpat')?.isAuthenticated;
 
@@ -28,6 +26,7 @@ export class AuthService {
     } else if (!isAuthenticatedCpat) {
       await this.oidcSecurityService.authorize('cpat');
     } else {
+      (await this.usersService.loginOut("logIn")).subscribe((result: any) => console.log("[C-PAT] ", result.message));
       this.router.navigate(['/poam-processing']);
     }
   }
@@ -51,7 +50,9 @@ export class AuthService {
     this.oidcSecurityService.authorize(configId);
   }
 
-  logout(configId: string): void {
-    this.oidcSecurityService.logoff(configId, undefined).subscribe((result) => console.log(result));
+  async logout() {
+    await (await this.usersService.loginOut("logOut")).subscribe((result: any) => console.log("[C-PAT] ", result.message));
+    await this.oidcSecurityService.logoff('stigman', undefined);
+    await this.oidcSecurityService.logoff('cpat', undefined).subscribe((result) => console.log(result));
   }
 }

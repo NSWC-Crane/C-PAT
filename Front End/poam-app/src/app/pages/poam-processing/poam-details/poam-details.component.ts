@@ -667,7 +667,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         approver.fullName = collectionApprover.fullName;
         approver.firstName = collectionApprover.firstName;
         approver.lastName = collectionApprover.lastName;
-        approver.userEmail = collectionApprover.userEmail;
+        approver.email = collectionApprover.email;
 
         if (approver) {
           this.poamApprovers.push(approver);
@@ -1376,7 +1376,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.poamAssets = this.poamAssets.filter((asset: any) => asset.assetId !== assigneeData.data.assetId);
         assigneeData.confirm.resolve();
       } else {
-        (await this.poamService.deletePoamAsset(+assigneeData.data.poamId, +assigneeData.data.assetId, this.user.userId)).subscribe(() => {
+        (await this.poamService.deletePoamAsset(+assigneeData.data.poamId, +assigneeData.data.assetId, +this.user.userId)).subscribe(() => {
           assigneeData.confirm.resolve();
           this.getData();
         });

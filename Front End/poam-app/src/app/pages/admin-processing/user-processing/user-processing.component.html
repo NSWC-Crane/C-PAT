@@ -7,63 +7,58 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-<div class="col-12 row" *ngIf="(selectedRole === 'admin'); else unauthorized">
-  <div class="col" *ngIf="allowSelectCollections">
-      <nb-card>
-        <nb-card-header>Users</nb-card-header>
-        <nb-card-body class="scrollable-users">
-          <table [nbTreeGrid]="dataSource">
-            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
-            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-            <ng-container [nbTreeGridColumnDef]="customColumn">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">
-                <nb-tree-grid-row-toggle [expanded]="row.expanded" *ngIf="row.data['user']">
-                </nb-tree-grid-row-toggle>
-                {{row.data[customColumn]}}
-              </td>
-            </ng-container>
-            <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{ column }}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">
-                <ng-container *ngIf="row.data[column]">{{ row.data[column] }}</ng-container>
-                <ng-container *ngIf="!row.data[column] && column === 'Collection'">
-                  <nb-icon icon="chevron-down"></nb-icon>
-                </ng-container>
-                <ng-container *ngIf="!row.data[column] && column === 'Access Level'">
-                  <nb-icon icon="chevron-down"></nb-icon>
-                </ng-container>
-              </td>
-            </ng-container>
-          </table>
-        </nb-card-body>
-      </nb-card>
+<div *ngIf="(selectedRole === 'admin'); else unauthorized">
+  <div *ngIf="allowSelect">
+    <nb-card class="nb-card">
+      <nb-card-header>Users</nb-card-header>
+      <nb-card-body class="scrollable-users">
+        <table [nbTreeGrid]="dataSource">
+          <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+          <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+          <ng-container [nbTreeGridColumnDef]="customColumn">
+            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
+            <td nbTreeGridCell *nbTreeGridCellDef="let row">
+              <nb-tree-grid-row-toggle [expanded]="row.expanded" *ngIf="row.data['user']">
+              </nb-tree-grid-row-toggle>
+              {{row.data[customColumn]}}
+            </td>
+          </ng-container>
+          <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
+            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{ column }}</th>
+            <td nbTreeGridCell *nbTreeGridCellDef="let row">
+              <ng-container *ngIf="row.data[column]">{{ row.data[column] }}</ng-container>
+              <ng-container *ngIf="!row.data[column] && column === 'Collection'">
+                <nb-icon icon="chevron-down"></nb-icon>
+              </ng-container>
+              <ng-container *ngIf="!row.data[column] && column === 'Access Level'">
+                <nb-icon icon="chevron-down"></nb-icon>
+              </ng-container>
+            </td>
+          </ng-container>
+        </table>
+      </nb-card-body>
+    </nb-card>
   </div>
-
-  <div class="col-12 row">
-    <div class="col">
-      <nb-card>
+      <nb-card class="nb-card">
         <nb-card-header>Select User to Modify</nb-card-header>
         <nb-card-body>
-          <div *ngIf="allowSelectCollections">
+          <div *ngIf="allowSelect">
             <div *ngIf="user?.userId">
-                <nb-select fullWidth style="max-width: 50rem;" outlineid="collectionid" name="collection" [(ngModel)]="user.userId"
-                           (selectedChange)="setUser($event)" placeholder="Select User to Modify..." required>
-                  <nb-option *ngFor="let user of data" [value]="user.userId">
-                    {{ user.firstName }} {{ user.lastName }} - {{ user.officeOrg }} - {{ user.accountStatus }}
-                  </nb-option>
-                </nb-select>
+              <nb-select fullWidth outlineid="collectionid" name="collection" [(ngModel)]="user.userId"
+                         (selectedChange)="setUser($event)" placeholder="Select User to Modify..." required>
+                <nb-option *ngFor="let user of data" [value]="user.userId">
+                  {{ user.firstName }} {{ user.lastName }} - {{ user.officeOrg }} - {{ user.accountStatus }}
+                </nb-option>
+              </nb-select>
             </div>
           </div>
 
-          <div *ngIf="!allowSelectCollections">
+          <div *ngIf="!allowSelect">
             <cpat-user [user]="user" [users]="users" [payload]="payload" (userchange)="resetData();"></cpat-user>
           </div>
         </nb-card-body>
       </nb-card>
     </div>
-  </div>
-</div>
 
 <ng-template #dialog let-data let-ref="dialogRef">
   <nb-card>

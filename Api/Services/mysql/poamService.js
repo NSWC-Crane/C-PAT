@@ -15,9 +15,9 @@ const mysql = require('mysql2');
 const poamApproverService = require('./poamApproverService')
 const poamAssetService = require('./poamAssetService')
 const poamAssigneeService = require('./poamAssigneeService')
+
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -94,14 +94,12 @@ exports.getAvailablePoams = async function getAvailablePoams(req, res, next) {
             return poams;
         });
     } catch (error) {
-        console.error(error);
-        return null;
+        return { error: error.message };
     }
 };
 
 exports.getPoam = async function getPoam(req, res, next) {
     if (!req.params.poamId) {
-        console.info('getPoam poamId not provided.');
         return next({
             status: 400,
             errors: {
@@ -140,14 +138,12 @@ exports.getPoam = async function getPoam(req, res, next) {
             return poam || null;
         });
     } catch (error) {
-        console.error(error);
-        return null;
+        return { error: error.message };
     }
 };
 
 exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res, next) {
     if (!req.params.collectionId) {
-        console.info('getPoamByCollectionId collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -190,14 +186,12 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
             return poams || null;
         });
     } catch (error) {
-        console.error(error);
-        return null;
+        return { error: error.message };
     }
 };
 
 exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, next) {
     if (!req.params.submitterId) {
-        console.info('getPoamBySubmitterId submitterId not provided.');
         return next({
             status: 400,
             errors: {
@@ -240,8 +234,7 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
             return poams || null;
         });
     } catch (error) {
-        console.error(error);
-        return null;
+        return { error: error.message };
     }
 };
 
@@ -249,7 +242,6 @@ exports.postPoam = async function postPoam(req) {
     const requiredFields = ['collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'submitterId'];
     for (let field of requiredFields) {
         if (!req.body[field]) {
-            console.info(`postPoam ${field} not provided.`);
             return { status: 400, errors: { [field]: 'is required' } };
         }
     }
@@ -268,12 +260,12 @@ exports.postPoam = async function postPoam(req) {
     try {
         return await withConnection(async (connection) => {
             if (!req.body.officeOrg) {
-                let userSql = "SELECT officeOrg, fullName, userEmail FROM cpat.user WHERE userId = ?";
+                let userSql = "SELECT officeOrg, fullName, email FROM cpat.user WHERE userId = ?";
                 let [userRows] = await connection.query(userSql, [req.body.submitterId]);
 
                 if (userRows.length > 0) {
-                    const { officeOrg, fullName, userEmail } = userRows[0];
-                    req.body.officeOrg = `${officeOrg}, ${fullName}, ${userEmail}`;
+                    const { officeOrg, fullName, email } = userRows[0];
+                    req.body.officeOrg = `${officeOrg}, ${fullName}, ${email}`;
                 }
             }
 
@@ -297,7 +289,6 @@ exports.postPoam = async function postPoam(req) {
                 let assignees = req.body.assignees;
                 for (let user of assignees) {
                     if (!user.userId) {
-                        console.info(`postPoam assignee userId not provided.`);
                         return { status: 400, errors: { "assignees.userId": "is required" } };
                     }
                     let sql_query = `INSERT INTO cpat.poamassignees (poamId, userId) values (?, ?)`;
@@ -309,7 +300,6 @@ exports.postPoam = async function postPoam(req) {
                 let approvers = req.body.approvers;
                 for (let user of approvers) {
                     if (!user.userId) {
-                        console.info(`postPoam approver userId not provided.`);
                         return { status: 400, errors: { "approvers.userId": "is required" } };
                     }
                     let sql_query = `INSERT INTO cpat.poamapprovers (poamId, userId) values (?, ?)`;
@@ -351,8 +341,7 @@ exports.postPoam = async function postPoam(req) {
             return poam;
         });
     } catch (error) {
-        console.error("error: ", error);
-        return { error: "An error occurred while adding the POAM." };
+        return { error: error.message };
     }
 };
 
@@ -360,7 +349,6 @@ exports.putPoam = async function putPoam(req, res, next) {
     const requiredFields = ['poamId', 'collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'submitterId'];
     let missingField = requiredFields.find(field => !req.body[field]);
     if (missingField) {
-        console.info(`putPoam ${missingField} not provided.`);
         return { status: 400, errors: { [missingField]: 'is required' } };
     }
 
@@ -411,12 +399,12 @@ exports.putPoam = async function putPoam(req, res, next) {
             };
 
             if (!req.body.officeOrg) {
-                let userSql = "SELECT officeOrg, fullName, userEmail FROM cpat.user WHERE userId = ?";
+                let userSql = "SELECT officeOrg, fullName, email FROM cpat.user WHERE userId = ?";
                 let [userRows] = await connection.query(userSql, [req.body.submitterId]);
 
                 if (userRows.length > 0) {
-                    const { officeOrg, fullName, userEmail } = userRows[0];
-                    req.body.officeOrg = `${officeOrg}, ${fullName}, ${userEmail}`;
+                    const { officeOrg, fullName, email } = userRows[0];
+                    req.body.officeOrg = `${officeOrg}, ${fullName}, ${email}`;
                 }
             }
 
@@ -458,7 +446,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                 let action = `POAM Updated. POAM Status: ${req.body.status}, Severity: ${req.body.adjSeverity ? req.body.adjSeverity : req.body.rawSeverity}.<br> ${(modifiedFields.length > 0) ? "Fields modified: " + modifiedFieldFullNames.join(', ') + "." : "No POAM fields modified."}`;
                 let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]).catch(error => {
-                    console.error("Failed to insert POAM update log:", error);
+                    next(error);
                 });
             }
 
@@ -516,118 +504,120 @@ exports.putPoam = async function putPoam(req, res, next) {
             return updatedPoam;
         });
     } catch (error) {
-        console.error("error: ", error);
-        return null;
+        return { error: error.message };
     }
 };
 
 exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
     if (!req.params.poamId) {
-        console.info(`updatePoamStatus poamId not provided.`);
-        return res.status(400).json({ errors: 'poamId is required' });
-    }
-
-    if (!req.body.status) {
-        console.info(`updatePoamStatus status not provided.`);
-        return res.status(400).json({ errors: 'status is required' });
-    }
-
-    try {
-        return await withConnection(async (connection) => {
-            const [existingPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.params.poamId]);
-
-            if (existingPoamRow.length === 0) {
-                return res.status(404).json({ errors: 'POAM not found' });
-            }
-
-            const existingPoam = existingPoamRow[0];
-
-            const existingPoamNormalized = {
-                ...existingPoam,
-                submittedDate: normalizeDate(existingPoam.submittedDate) || null,
-                scheduledCompletionDate: normalizeDate(existingPoam.scheduledCompletionDate) || null,
-                closedDate: normalizeDate(existingPoam.closedDate) || null,
-                iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate) || null,
-            };
-
-            const sqlUpdatePoam = `UPDATE cpat.poam SET status = ? WHERE poamId = ?`;
-            await connection.query(sqlUpdatePoam, [req.body.status, req.params.poamId]);
-
-            const [updatedPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.params.poamId]);
-
-            const updatedPoam = updatedPoamRow.map(row => ({
-                ...row,
-                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
-                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
-                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-            }))[0];
-
-            if (req.body.poamLog && req.body.poamLog.length > 0) {
-                let poamId = req.params.poamId;
-                let userId = req.body.poamLog[0].userId;
-                let action = `POAM Status Updated. POAM Status: ${req.body.status}.`;
-                let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-
-                await connection.query(logSql, [poamId, action, userId]).catch(error => {
-                    console.error("Failed to insert POAM update log:", error);
-                });
-            }
-
-            if (req.body.status === 'Submitted') {
-                let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ?";
-                let [rows] = await connection.query(sql, [req.params.poamId]);
-
-                const poamApprovers = rows.map(row => ({ ...row }));
-
-                const notificationPromises = poamApprovers.map(async (approver) => {
-                    const notification = {
-                        title: 'POAM Pending Approval',
-                        message: `POAM ${req.params.poamId} has been submitted and is pending Approver review.`,
-                        userId: approver.userId
-                    };
-
-                    const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(notificationSql, [approver.userId, notification.title, notification.message]);
-                });
-
-                await Promise.all(notificationPromises);
-            }
-
-            return updatedPoam;
-        });
-    } catch (error) {
-        console.error("Error: ", error);
-        return res.status(500).json({ errors: 'Internal Server Error' });
-    }
-};
-
-exports.deletePoam = async function deletePoam(req, res, next) {
-    if (!req.params.poamId) {
-        console.info('deletePoam: poamId not provided.');
         return next({
             status: 400,
             errors: {
                 poamId: 'is required',
             }
         });
-    }
-
-    try {
-        await withConnection(async (connection) => {
-            await connection.beginTransaction();
-
-            let sqlDeleteAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?;";
-            await connection.query(sqlDeleteAssets, [req.params.poamId]);
-
-            let sqlDeletePoam = "DELETE FROM cpat.poam WHERE poamId = ?;";
-            await connection.query(sqlDeletePoam, [req.params.poamId]);
-
-            await connection.commit();
+    } else if (!req.body.status) {
+        return next({
+            status: 400,
+            errors: {
+                status: 'is required',
+            }
         });
-        return {};
-    } catch (error) {
-        console.error('deletePoam error:', error);
-        return { error: "An error occurred during deletion." };
     }
-};
+
+        try {
+            return await withConnection(async (connection) => {
+                const [existingPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.params.poamId]);
+
+                if (existingPoamRow.length === 0) {
+                    return res.status(404).json({ errors: 'POAM not found' });
+                }
+
+                const existingPoam = existingPoamRow[0];
+
+                const existingPoamNormalized = {
+                    ...existingPoam,
+                    submittedDate: normalizeDate(existingPoam.submittedDate) || null,
+                    scheduledCompletionDate: normalizeDate(existingPoam.scheduledCompletionDate) || null,
+                    closedDate: normalizeDate(existingPoam.closedDate) || null,
+                    iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate) || null,
+                };
+
+                const sqlUpdatePoam = `UPDATE cpat.poam SET status = ? WHERE poamId = ?`;
+                await connection.query(sqlUpdatePoam, [req.body.status, req.params.poamId]);
+
+                const [updatedPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.params.poamId]);
+
+                const updatedPoam = updatedPoamRow.map(row => ({
+                    ...row,
+                    scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                    submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                    closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                    iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                }))[0];
+
+                if (req.body.poamLog && req.body.poamLog.length > 0) {
+                    let poamId = req.params.poamId;
+                    let userId = req.body.poamLog[0].userId;
+                    let action = `POAM Status Updated. POAM Status: ${req.body.status}.`;
+                    let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+
+                    await connection.query(logSql, [poamId, action, userId]).catch(error => {
+                        next(error);
+                    });
+                }
+
+                if (req.body.status === 'Submitted') {
+                    let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ?";
+                    let [rows] = await connection.query(sql, [req.params.poamId]);
+
+                    const poamApprovers = rows.map(row => ({ ...row }));
+
+                    const notificationPromises = poamApprovers.map(async (approver) => {
+                        const notification = {
+                            title: 'POAM Pending Approval',
+                            message: `POAM ${req.params.poamId} has been submitted and is pending Approver review.`,
+                            userId: approver.userId
+                        };
+
+                        const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                        await connection.query(notificationSql, [approver.userId, notification.title, notification.message]);
+                    });
+
+                    await Promise.all(notificationPromises);
+                }
+
+                return updatedPoam;
+            });
+        } catch (error) {
+            return res.status(500).json({ errors: 'Internal Server Error' });
+        }
+    };
+
+    exports.deletePoam = async function deletePoam(req, res, next) {
+        if (!req.params.poamId) {
+            return next({
+                status: 400,
+                errors: {
+                    poamId: 'is required',
+                }
+            });
+        }
+
+        try {
+            await withConnection(async (connection) => {
+                await connection.beginTransaction();
+
+                let sqlDeleteAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?;";
+                await connection.query(sqlDeleteAssets, [req.params.poamId]);
+
+                let sqlDeletePoam = "DELETE FROM cpat.poam WHERE poamId = ?;";
+                await connection.query(sqlDeletePoam, [req.params.poamId]);
+
+                await connection.commit();
+            });
+            return {};
+        } catch (error) {
+            return { error: error.message };
+        }
+    };

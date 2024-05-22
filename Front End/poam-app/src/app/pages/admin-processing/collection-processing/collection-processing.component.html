@@ -8,8 +8,6 @@
 !########################################################################
 -->
 
-<div class="row">
-  <div class="col-md-10">
     <nb-card>
       <nb-card-body>
         <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Collections">
@@ -33,28 +31,20 @@
         </div>
       </nb-card-body>
     </nb-card>
-  </div>
-</div>
 
-<div class="row" *ngIf="canModifyCollection">
-  <div class="col-md-10">
+<div *ngIf="canModifyCollection">
     <nb-card>
       <nb-card-header>Select Collection to Modify/Delete</nb-card-header>
       <nb-card-body>
-        <div class="row" *ngIf="showSelect">
-          <div class="col-md-5" style="width: auto;">
-              <nb-select fullWidth style="width: auto" outlineid="collectionid" name="collection"
+        <div *ngIf="showSelect">
+              <nb-select fullWidth style="width: 30vw; margin-right: 20px;" outlineid="collectionid" name="collection"
                          [(ngModel)]="collection.collectionId" (selectedChange)="setCollection($event)" placeholder="Select Collection"
                          required>
                 <nb-option *ngFor="let collection of userCollections" [value]="collection.collectionId">
                   {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
                 </nb-option>
               </nb-select>
-          </div>
-
-          <div class="col-md-5" style="width: auto;">
-            <button nbButton outline status="info" style="float: right;" (click)="addCollection()">Add Collection</button>
-          </div>
+            <button nbButton outline status="info" (click)="addCollection()">Add Collection</button>
         </div>
 
         <div [ngStyle]="hideCollectionEntry">
@@ -63,30 +53,20 @@
         </div>
       </nb-card-body>
     </nb-card>
-  </div>
 </div>
 
-<div class="row">
-  <div class="col-md-10">
-    <nb-card>
+    <nb-card class="nb-card">
       <nb-card-header>Export POAMs by Collection</nb-card-header>
       <nb-card-body>
-        <div class="row">
-          <div class="col-md-5" style="width: auto;">
-              <nb-select [(ngModel)]="exportCollectionId" (collectionchange)="onCollectionChange($event)" (selectedChange)="setExportCollection($event)" placeholder="Select Collection" required>
+              <nb-select fullWidth style="width: 30vw; margin-right: 20px;" [(ngModel)]="exportCollectionId" (collectionchange)="onCollectionChange($event)" (selectedChange)="setExportCollection($event)" placeholder="Select Collection" required>
                 <nb-option *ngFor="let collection of data" [value]="collection.collectionId">
                   {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
                 </nb-option>
               </nb-select>
-          </div>
-          <div class="col-md-5" style="width: auto;">
             <button nbButton outline status="info" type="button" class="export-button" (click)="exportAll()">Export POAMS</button>
-          </div>
-        </div>
       </nb-card-body>
     </nb-card>
-  </div>
-</div>
+
 
 <ng-template #dialog let-data let-ref="dialogRef">
   <nb-card>

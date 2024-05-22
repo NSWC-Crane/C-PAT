@@ -14,8 +14,7 @@ const dbUtils = require('./utils');
 const mysql = require('mysql2');
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -32,8 +31,12 @@ function normalizeDate(date) {
 exports.getPoamMilestones = async function getPoamMilestones(poamId) {
     try {
         if (!poamId) {
-            console.info("getPoamMilestones poamId not provided.");
-            throw new Error('POAM ID is required');
+            return next({
+                status: 400,
+                errors: {
+                    poamId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -43,21 +46,19 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
             return { poamMilestones };
         });
     } catch (error) {
-        console.error(error);
-        throw error;
+        return { error: error.message };
     }
 };
 
 exports.postPoamMilestone = async function postPoamMilestone(poamId, requestBody) {
     try {
         if (!poamId) {
-            console.info("postPoamMilestone poamId not provided.");
-            throw {
+            return next({
                 status: 400,
                 errors: {
-                    poamId: "is required",
-                },
-            };
+                    poamId: 'is required',
+                }
+            });
         }
 
         requestBody.milestoneDate = normalizeDate(requestBody.milestoneDate);
@@ -90,31 +91,26 @@ Milestone Comment: ${requestBody.milestoneComments}`;
             return { poamMilestone };
         });
     } catch (error) {
-        console.error("error: ", error);
-        throw error;
+        return { error: error.message };
     }
 };
 
 exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, requestBody) {
     try {
         if (!poamId) {
-            console.info("putPoamMilestone poamId not provided.");
-            throw {
+            return next({
                 status: 400,
                 errors: {
-                    poamId: "is required",
-                },
-            };
-        }
-
-        if (!milestoneId) {
-            console.info("putCollectionMilestone milestoneId not provided.");
-            throw {
+                    poamId: 'is required',
+                }
+            });
+        } else if (!milestoneId) {
+            return next({
                 status: 400,
                 errors: {
-                    milestoneId: "is required",
-                },
-            };
+                    milestoneId: 'is required',
+                }
+            });
         }
 
         requestBody.milestoneDate = normalizeDate(requestBody.milestoneDate);
@@ -166,31 +162,26 @@ New Milestone Status: ${requestBody.milestoneStatus}`);
             return { poamMilestone };
         });
     } catch (error) {
-        console.error("error: ", error);
-        throw error;
+        return { error: error.message };
     }
 };
 
 exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milestoneId, requestBody) {
     try {
         if (!poamId) {
-            console.info("deleteCollectionMilestone poamId not provided.");
-            throw {
+            return next({
                 status: 400,
                 errors: {
-                    poamId: "is required",
-                },
-            };
-        }
-
-        if (!milestoneId) {
-            console.info("deleteCollectionMilestone milestoneId not provided.");
-            throw {
+                    poamId: 'is required',
+                }
+            });
+        } else if (!milestoneId) {
+            return next({
                 status: 400,
                 errors: {
-                    milestoneId: "is required",
-                },
-            };
+                    milestoneId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -211,7 +202,6 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
             return {};
         });
     } catch (error) {
-        console.error("error: ", error);
-        throw error;
+        return { error: error.message };
     }
 };

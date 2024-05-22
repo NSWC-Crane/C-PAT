@@ -15,6 +15,7 @@ import { RouterModule } from '@angular/router';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import {
   NbAutocompleteModule,
+  NbBadgeModule,
   NbButtonModule,
   NbCardModule,
   NbDatepickerModule,
@@ -65,6 +66,7 @@ import { PoamProcessingRoutingModule } from './poam-processing-routing.module';
     FormsModule,
     RouterModule,
     NbAutocompleteModule,
+    NbBadgeModule,
     NbButtonModule,
     NbCardModule,
     NbDatepickerModule,
