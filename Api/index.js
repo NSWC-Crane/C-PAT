@@ -34,6 +34,7 @@ const swaggerUi = require('swagger-ui-express');
 const jsyaml = require('js-yaml');
 const fs = require('fs');
 const writer = require('./utils/writer.js');
+var RateLimit = require('express-rate-limit');
 const { middleware: openApiMiddleware, resolvers } = require('express-openapi-validator');
 
 const eovPath = path.dirname(require.resolve('express-openapi-validator'))
@@ -47,11 +48,14 @@ process.on('unhandledRejection', (reason, promise) => {
 })
 
 const app = express();
+
+
 const limiter = RateLimit({
     windowMs: 10 * 60 * 1000,
     max: 100,
     message: 'Too many requests from this IP, please try again after 15 minutes'
 });
+
 app.use(limiter);
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json({
@@ -215,7 +219,7 @@ const CPAT = {
     }
 }
 
-app.get('*', (req, res) => {
+app.get('*', limiter, (req, res) => {
     res.sendFile(path.join(__dirname, config.client.directory, 'index.html'));
 });
 
