@@ -14,8 +14,7 @@ const dbUtils = require('./utils');
 const mysql = require('mysql2');
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -50,7 +49,7 @@ exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(poamI
 
     return await withConnection(async (connection) => {
         let sql = `
-            SELECT t1.userId, t2.firstName, t2.lastName, t2.fullName, t2.userEmail, t1.poamId, t3.status
+            SELECT t1.userId, t2.firstName, t2.lastName, t2.fullName, t2.email, t1.poamId, t3.status
             FROM cpat.poamassignees t1
             INNER JOIN cpat.user t2 ON t1.userId = t2.userId
             INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
@@ -178,8 +177,7 @@ exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
                 });
             }
             else {
-                console.error("error: ", error);
-                return { null: "null" };
+                return { error: error.message };
             }
         }
     });

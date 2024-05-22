@@ -8,6 +8,7 @@
 !########################################################################
 */
 
+
 button[nbTreeGridRowToggle] {
     background: transparent;
     border: none;
@@ -54,6 +55,21 @@ button[nbTreeGridRowToggle] {
       width: 23%;
     }
   }
+.form-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group nb-select {
+  width: 100%;
+}
   
 ::ng-deep {
 

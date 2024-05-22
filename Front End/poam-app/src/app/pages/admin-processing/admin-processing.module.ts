@@ -36,6 +36,8 @@ import { UserComponent } from './user-processing/user/user.component';
 import { AdminProcessingRoutingModule } from './admin-processing-routing.module';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { CollectionComponent } from './collection-processing/collection/collection.component';
+import { AdminProcessingComponent } from './admin-processing.component';
+import { StatusCardComponent } from '../../Shared/components/status-card/status-card.component';
 
 @NgModule({
   declarations: [
@@ -44,6 +46,8 @@ import { CollectionComponent } from './collection-processing/collection/collecti
     STIGManagerAdminComponent,
     UserProcessingComponent,
     UserComponent,
+    AdminProcessingComponent,
+    StatusCardComponent,
   ],
   imports: [
     AdminProcessingRoutingModule,
@@ -68,5 +72,12 @@ import { CollectionComponent } from './collection-processing/collection/collecti
     SharedModule,
   ],
   providers: [],
+  exports: [
+    CollectionProcessingComponent,
+    CollectionComponent,
+    STIGManagerAdminComponent,
+    UserProcessingComponent,
+    UserComponent,
+  ],
 })
 export class AdminProcessingModule { }

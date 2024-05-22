@@ -33,8 +33,9 @@ export class FileUploadService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('userId', userId);
-
-		return this.http.post(`${this.url}/import/poams`, formData, {
+    const headers = await this.getAuthHeaders();
+    return this.http.post(`${this.url}/import/poams`, formData, {
+      headers,
       reportProgress: true,
       observe: 'events'
     });

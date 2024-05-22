@@ -14,8 +14,7 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -40,16 +39,19 @@ exports.getAssets = async function getAssets(req, res, next) {
             return { assets };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
     try {
         if (!req.params.collectionId) {
-            console.info('getAssetsByCollection collectionId not provided.');
-            throw new Error('Collection ID is required');
+            return next({
+                status: 400,
+                errors: {
+                    collectionId: 'is required',
+                }
+            });
         }
         return await withConnection(async (connection) => {
             const sql = "SELECT * FROM cpat.asset WHERE collectionId = ? ORDER BY assetName;";
@@ -66,8 +68,7 @@ exports.getAssetsByCollection = async function getAssetsByCollection(req, res, n
             return { assets };
         });
     } catch (error) {
-        console.error("Error in getAssetsByCollection: ", error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -135,7 +136,6 @@ exports.getAssetByName = async function getAssetByName(req, res, next) {
 
 exports.postAsset = async function postAsset(req, res, next) {
     if (!req.body.assetName) {
-        console.info('postAsset assetName not provided.');
         return next({
             status: 400,
             errors: {
@@ -144,7 +144,6 @@ exports.postAsset = async function postAsset(req, res, next) {
         });
     }
     if (!req.body.collectionId) {
-        console.info('postAsset collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -153,7 +152,6 @@ exports.postAsset = async function postAsset(req, res, next) {
         });
     }
     if (!req.body.ipAddress) {
-        console.info('postAsset ipAddressnot provided.');
         return next({
             status: 400,
             errors: {
@@ -188,14 +186,12 @@ exports.postAsset = async function postAsset(req, res, next) {
             return rowAsset[0];
         });
     } catch (error) {
-        console.error("error: ", error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.putAsset = async function putAsset(req, res, next) {
     if (!req.body.assetId) {
-        console.info('putAsset assetId not provided.');
         return next({
             status: 400,
             errors: {
@@ -204,7 +200,6 @@ exports.putAsset = async function putAsset(req, res, next) {
         });
     }
     if (!req.body.assetName) {
-        console.info('putAsset assetName not provided.');
         return next({
             status: 400,
             errors: {
@@ -213,7 +208,6 @@ exports.putAsset = async function putAsset(req, res, next) {
         });
     }
     if (!req.body.collectionId) {
-        console.info('putAsset collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -222,7 +216,6 @@ exports.putAsset = async function putAsset(req, res, next) {
         });
     }
     if (!req.body.ipAddress) {
-        console.info('putAsset ipAddress not provided.');
         return next({
             status: 400,
             errors: {
@@ -260,14 +253,12 @@ exports.putAsset = async function putAsset(req, res, next) {
             return message;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.deleteAsset = async function deleteAsset(req, res, next) {
     if (!req.params.assetId) {
-        console.info('deleteAsset assetId not provided.');
         return next({
             status: 400,
             errors: {
@@ -282,14 +273,12 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
             return { asset: [] };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, next) {
     if (!req.params.poamId) {
-        console.info('deleteAssetsByPoamId poamId not provided.');
         throw {
             status: 400,
             errors: {
@@ -310,7 +299,6 @@ exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, nex
             }
         });
     } catch (error) {
-        console.error(error);
-        throw error;
+        return { error: error.message };
     }
 };

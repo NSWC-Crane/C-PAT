@@ -14,8 +14,7 @@ const dbUtils = require('./utils');
 const mysql = require('mysql2');
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -32,8 +31,12 @@ function normalizeDate(date) {
 exports.getPoamExtensionMilestones = async function getPoamExtensionMilestones(poamId) {
     try {
         if (!poamId) {
-            console.info("getPoamExtensionMilestones poamId not provided.");
-            throw new Error('POAM ID is required');
+            return next({
+                status: 400,
+                errors: {
+                    poamId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -43,21 +46,19 @@ exports.getPoamExtensionMilestones = async function getPoamExtensionMilestones(p
             return { poamExtensionMilestones };
         });
     } catch (error) {
-        console.error(error);
-        throw error;
+        return { error: error.message };
     }
 };
 
 exports.postPoamExtensionMilestone = async function postPoamExtensionMilestone(poamId, requestBody) {
     try {
         if (!poamId) {
-            console.info("postPoamExtensionMilestone poamId not provided.");
-            throw {
+            return next({
                 status: 400,
                 errors: {
-                    poamId: "is required",
-                },
-            };
+                    poamId: 'is required',
+                }
+            });
         }
 
         requestBody.ExtensionMilestoneDate = normalizeDate(requestBody.ExtensionMilestoneDate);
@@ -90,33 +91,27 @@ ExtensionMilestone Comment: ${requestBody.ExtensionMilestoneComments}`;
             return { poamExtensionMilestone };
         });
     } catch (error) {
-        console.error("error: ", error);
-        throw error;
+        return { error: error.message };
     }
 };
 
 exports.putPoamExtensionMilestone = async function putPoamExtensionMilestone(poamId, ExtensionMilestoneId, requestBody) {
     try {
         if (!poamId) {
-            console.info("putPoamExtensionMilestone poamId not provided.");
-            throw {
+            return next({
                 status: 400,
                 errors: {
-                    poamId: "is required",
-                },
-            };
-        }
-
-        if (!ExtensionMilestoneId) {
-            console.info("putCollectionExtensionMilestone ExtensionMilestoneId not provided.");
-            throw {
+                    poamId: 'is required',
+                }
+            });
+        } else if (!ExtensionMilestoneId) {
+            return next({
                 status: 400,
                 errors: {
-                    ExtensionMilestoneId: "is required",
-                },
-            };
+                    ExtensionMilestoneId: 'is required',
+                }
+            });
         }
-
         requestBody.ExtensionMilestoneDate = normalizeDate(requestBody.ExtensionMilestoneDate);
         if (!requestBody.ExtensionMilestoneComments) requestBody.ExtensionMilestoneComments = null;
         if (!requestBody.ExtensionMilestoneStatus) requestBody.ExtensionMilestoneStatus = null;
@@ -166,31 +161,26 @@ New ExtensionMilestone Status: ${requestBody.ExtensionMilestoneStatus}`);
             return { poamExtensionMilestone };
         });
     } catch (error) {
-        console.error("error: ", error);
-        throw error;
+        return { error: error.message };
     }
 };
 
 exports.deletePoamExtensionMilestone = async function deletePoamExtensionMilestone(poamId, ExtensionMilestoneId, requestBody) {
     try {
         if (!poamId) {
-            console.info("deleteCollectionExtensionMilestone poamId not provided.");
-            throw {
+            return next({
                 status: 400,
                 errors: {
-                    poamId: "is required",
-                },
-            };
-        }
-
-        if (!ExtensionMilestoneId) {
-            console.info("deleteCollectionExtensionMilestone ExtensionMilestoneId not provided.");
-            throw {
+                    poamId: 'is required',
+                }
+            });
+        } else if (!ExtensionMilestoneId) {
+            return next({
                 status: 400,
                 errors: {
-                    ExtensionMilestoneId: "is required",
-                },
-            };
+                    ExtensionMilestoneId: 'is required',
+                }
+            });
         }
 
         return await withConnection(async (connection) => {
@@ -211,7 +201,6 @@ exports.deletePoamExtensionMilestone = async function deletePoamExtensionMilesto
             return {};
         });
     } catch (error) {
-        console.error("error: ", error);
-        throw error;
+        return { error: error.message };
     }
 };

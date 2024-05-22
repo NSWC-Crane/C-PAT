@@ -8,6 +8,9 @@
 !########################################################################
 */
 
+.nb-card {
+    margin-bottom: 0;
+}
 button[nbTreeGridRowToggle] {
     background: transparent;
     border: none;
@@ -56,21 +59,12 @@ button[nbTreeGridRowToggle] {
   }
   
 ::ng-deep {
-
   body {
-
     min-height: 20rem;
-
   }
-
-
 
   .nb-tree-grid-header-cell,
-
   .nb-tree-grid-header-cell button {
-
     text-transform: capitalize;
-
   }
-
 }

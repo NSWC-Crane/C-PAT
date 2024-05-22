@@ -14,8 +14,7 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -25,7 +24,6 @@ async function withConnection(callback) {
 
 exports.postPermission = async function postPermission(req, res, next) {
     if (!req.body.userId) {
-        console.info('postPermissions userId not provided.');
         return next({
             status: 400,
             errors: {
@@ -35,7 +33,6 @@ exports.postPermission = async function postPermission(req, res, next) {
     }
 
     if (!req.body.collectionId) {
-        console.info('postPermission collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -45,7 +42,6 @@ exports.postPermission = async function postPermission(req, res, next) {
     }
 
     if (!req.body.accessLevel) {
-        console.info('postPermission accessLevel not provided.');
         return next({
             status: 400,
             errors: {
@@ -75,15 +71,13 @@ exports.postPermission = async function postPermission(req, res, next) {
             });
         }
         else {
-            console.error("error: ", error);
-            return { null: "null" };
+            return { error: error.message };
         }
     }
 }
 
 exports.putPermission = async function putPermission(req, res, next) {
     if (!req.body.userId) {
-        console.info('postPermissions userId not provided.');
         return next({
             status: 400,
             errors: {
@@ -93,7 +87,6 @@ exports.putPermission = async function putPermission(req, res, next) {
     }
 
     if (!req.body.oldCollectionId) {
-        console.info('putPermissions oldCollectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -103,7 +96,6 @@ exports.putPermission = async function putPermission(req, res, next) {
     }
 
     if (!req.body.accessLevel) {
-        console.info('postPermission accessLevel not provided.');
         return next({
             status: 400,
             errors: {
@@ -125,14 +117,12 @@ exports.putPermission = async function putPermission(req, res, next) {
             return message;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.deletePermission = async function deletePermission(req, res, next) {
     if (!req.params.userId) {
-        console.info('getPermissions_UserCollection userId not provided.');
         return next({
             status: 400,
             errors: {
@@ -142,7 +132,6 @@ exports.deletePermission = async function deletePermission(req, res, next) {
     }
 
     if (!req.params.collectionId) {
-        console.info('getPermissions_UserCollection collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -159,7 +148,6 @@ exports.deletePermission = async function deletePermission(req, res, next) {
             return { permissions: [] };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }

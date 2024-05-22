@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { NotificationService } from '../notifications.service';
 import { SubSink } from 'subsink';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';

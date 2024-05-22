@@ -210,12 +210,12 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     );
   }
 
-  getAssetData() {
+  async getAssetData() {
     if (this.payload == undefined) return;
 
     this.subs.sink = forkJoin(
-      this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
-      this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
+      await this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
+      await this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
     ).subscribe(([assetData, assetLabelResponse]: any) => {
       if (!Array.isArray(assetData)) {
         console.error('Unexpected response format:', assetData);

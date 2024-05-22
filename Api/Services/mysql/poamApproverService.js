@@ -12,9 +12,9 @@
 const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
+
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -24,7 +24,6 @@ async function withConnection(callback) {
 
 exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
     if (!req.params.poamId) {
-        console.info('getPoamApprovers poamId not provided.');
         return next({
             status: 400,
             errors: {
@@ -36,7 +35,7 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
                 FROM cpat.poamapprovers T1
                 INNER JOIN cpat.user T2 ON T1.userId = T2.userId
                 WHERE poamId = ?;
@@ -49,14 +48,12 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
             return poamApprovers;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req, res, next) {
     if (!req.params.collectionId) {
-        console.info('getPoamApproversByCollection collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -68,7 +65,7 @@ exports.getPoamApproversByCollection = async function getPoamApproversByCollecti
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
                 FROM cpat.poamapprovers T1
                 INNER JOIN cpat.user T2 ON T1.userId = T2.userId
                 INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
@@ -82,14 +79,12 @@ exports.getPoamApproversByCollection = async function getPoamApproversByCollecti
             return poamApprovers;
         });
     } catch (error) {
-        console.error("error: ", error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getPoamApproversByCollectionUser = async function getPoamApproversByCollectionUser(req, res, next) {
     if (!req.params.collectionId) {
-        console.info('getPoamApproversByCollectionUser collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -98,7 +93,6 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
         });
     }
     if (!req.params.userId) {
-        console.info('getPoamApprovers userId not provided.');
         return next({
             status: 400,
             errors: {
@@ -110,7 +104,7 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
                 FROM cpat.poamapprovers T1
                 INNER JOIN cpat.user T2 ON T1.userId = T2.userId
                 INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
@@ -124,14 +118,12 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
             return poamApprovers;
         });
     } catch (error) {
-        console.error("error: ", error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, res, next) {
     if (!req.params.userId) {
-        console.info('getPoamApproversByUserId userId not provided.');
         return next({
             status: 400,
             errors: {
@@ -143,7 +135,7 @@ exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, 
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
                 FROM cpat.poamapprovers T1
                 INNER JOIN cpat.user T2 ON T1.userId = T2.userId
                 INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
@@ -157,14 +149,12 @@ exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, 
             return poamApprovers;
         });
     } catch (error) {
-        console.error("error: ", error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.postPoamApprover = async function postPoamApprover(req, res, next) {
     if (!req.body.poamId) {
-        console.info('postPoamApprover poamId not provided.');
         return next({
             status: 400,
             errors: {
@@ -173,7 +163,6 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
         });
     }
     if (!req.body.userId) {
-        console.info('postCollectionApprover userId not provided.');
         return next({
             status: 400,
             errors: {
@@ -212,9 +201,7 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
                     };
                     const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
                     await connection.query(notificationSql, [req.body.userId, notification.title, notification.message]);
-            } else {
-                console.warn("No poamLog information provided for logging.");
-            }
+            } 
             let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
             let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
             var poamApprover = row.map(row => ({
@@ -233,15 +220,13 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
             });
         }
         else {
-            console.error("error: ", error);
-            return { null: "null" };
+            return { error: error.message };
         }
     }
 };
 
 exports.putPoamApprover = async function putPoamApprover(req, res, next) {
     if (!req.body.poamId) {
-        console.info('putPoamApprover poamId not provided.');
         return next({
             status: 400,
             errors: {
@@ -250,7 +235,6 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
         });
     }
     if (!req.body.userId) {
-        console.info('putCollectionApprover userId not provided.');
         return next({
             status: 400,
             errors: {
@@ -375,14 +359,12 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
             return poamApprover;
         });
     } catch (error) {
-        console.error("error: ", error);
-        return { null: "null" };
+        return { error: error.message };
     }
 };
 
 exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
     if (!req.params.poamId) {
-        console.info('deleteCollectionApprover poamId not provided.');
         return next({
             status: 400,
             errors: {
@@ -391,7 +373,6 @@ exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
         });
     }
     if (!req.params.userId) {
-        console.info('deleteCollectionApprover userId not provided.');
         return next({
             status: 400,
             errors: {
@@ -424,7 +405,6 @@ exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
             return { delete: 'Success' };
         });
     } catch (error) {
-        console.error("error: ", error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }

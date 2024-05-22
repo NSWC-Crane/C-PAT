@@ -19,7 +19,6 @@ module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -33,7 +32,6 @@ module.exports.getCollectionPoamLabel = async function getCollectionPoamLabel(re
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -47,7 +45,6 @@ module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -61,7 +58,6 @@ module.exports.getCollectionPoamSeverity = async function getCollectionPoamSever
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -75,7 +71,6 @@ module.exports.getCollectionPoamScheduledCompletion = async function getCollecti
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -89,7 +84,6 @@ module.exports.getCollectionMonthlyPoamStatus = async function getCollectionMont
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -103,7 +97,6 @@ module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(re
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -117,7 +110,6 @@ module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req,
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -131,7 +123,6 @@ module.exports.getAvailableCollectionPoamCounts = async function getAvailableCol
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -145,7 +136,6 @@ module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(re
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -159,7 +149,6 @@ module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverit
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -173,7 +162,6 @@ module.exports.getAvailableMonthlyPoamSeverity = async function getAvailableMont
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -187,7 +175,6 @@ module.exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthl
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
@@ -201,7 +188,6 @@ module.exports.getAvailablePoamScheduledCompletion = async function getAvailable
             res.status(204).send();
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };

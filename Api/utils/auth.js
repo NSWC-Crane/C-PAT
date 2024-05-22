@@ -8,31 +8,173 @@
 !########################################################################
 */
 
-const { expressjwt: jwt } = require('express-jwt');
+const config = require('../utils/config');
+const logger = require('./logger')
+const jwksClient = require('jwks-rsa');
+const jwt = require('jsonwebtoken');
+const retry = require('async-retry');
+const _ = require('lodash');
+const { promisify } = require('util');
+const User = require('../Services/mysql/usersService')
+const axios = require('axios');
+const SmError = require('./error');
+const { format, isAfter  } = require('date-fns');
 
+let jwksUri;
+let client;
 
-const getTokenFromHeaders = function(req) {
-  const { headers: { authorization }} = req;
-  if (authorization && authorization.split(' ')[0] === 'Bearer') {
-    return authorization.split(' ')[1];
-  }
-  return null;
-}
+const privilegeGetter = new Function("obj", "return obj?." + config.oauth.claims.privileges + " || [];");
 
-const auth = {
-   optional: jwt({
-     secret: process.env.JWT_SECRET_KEY,
-     userProperty: 'payload',
-     getToken: getTokenFromHeaders,
-     credentialsRequired: false,
-     algorithms: ['HS256']
-   }),
-   required: jwt({
-     secret: process.env.JWT_SECRET_KEY,
-     userProperty: 'payload',
-     getToken: getTokenFromHeaders,
-     algorithms: ['HS256']
-   }),
+const verifyRequest = async function (req, requiredScopes, securityDefinition) {
+    const token = getBearerToken(req);
+    if (!token) {
+        throw new SmError.AuthorizeError("OIDC bearer token must be provided");
+    }
+
+    const options = { algorithms: ['RS256'] };
+    const decoded = await verifyAndDecodeToken(token, getKey, options);
+    req.access_token = decoded;
+    req.bearer = token;
+
+    const email = decoded[config.oauth.claims.email] || 'None Provided';
+    if (!email) {
+        logger.writeError('verifyRequest', 'missingClaim', { message: 'Email claim is missing or undefined', decoded });
+        throw new SmError.AuthorizeError("Email claim is missing or undefined");
+    }
+    req.userObject = {
+        userName: decoded[config.oauth.claims.username] || decoded[config.oauth.claims.servicename] || 'null',
+        email: email
+    };
+
+    const usernamePrecedence = [config.oauth.claims.username, "preferred_username", config.oauth.claims.servicename, "azp", "client_id", "clientId"];
+    req.userObject.userName = decoded[usernamePrecedence.find(element => !!decoded[element])];
+
+    if (req.userObject.userName === undefined) {
+        throw new SmError.PrivilegeError("No token claim mappable to username found");
+    }
+
+    req.userObject.displayName = decoded[config.oauth.claims.name] || req.userObject.userName;
+
+    let scopeClaim;
+    if (decoded[config.oauth.claims.scope]) {
+        scopeClaim = decoded[config.oauth.claims.scope];
+    } else if (decoded.scope) {
+        scopeClaim = decoded.scope;
+    } else {
+        scopeClaim = null;
+    }
+
+    let grantedScopes = [];
+
+    if (typeof scopeClaim === 'string') {
+        grantedScopes = scopeClaim.split(' ');
+    } else if (Array.isArray(scopeClaim)) {
+        grantedScopes = scopeClaim;
+    } else {
+        logger.writeError('verifyRequest', 'invalidScopeType', { scopeClaim, grantedScopes });
+    }
+    const commonScopes = _.intersectionWith(grantedScopes, requiredScopes, function (gs, rs) {
+        if (gs === rs) return gs
+        let gsTokens = gs.split(":").filter(i => i.length)
+        let rsTokens = rs.split(":").filter(i => i.length)
+        if (gsTokens.length === 0) {
+            return false
+        }
+        else {
+            return gsTokens.every((t, i) => rsTokens[i] === t)
+        }
+    });
+
+    if (commonScopes.length == 0) {
+        throw (new SmError.PrivilegeError("Not in scope"))
+    } else {  
+        const permissions = {};
+        permissions.canAdmin = privilegeGetter(decoded).includes('admin');
+        const response = await User.getUserByUserName(req.userObject.userName);
+        req.userObject = response || null;
+
+        let now = new Date();
+        let formattedNow = format(now, 'yyyy-MM-dd HH:mm:ss');
+
+        if (!response.lastAccess) {
+            req.userObject.lastAccess = formattedNow;
+        } else {
+            let lastAccessDate = new Date(response.lastAccess);
+            if (isAfter(now, lastAccessDate)) {
+                req.userObject.lastAccess = formattedNow;
+            }
+        }
+
+        if (req.userObject.userName) {
+            const userResponse = await User.updateUser(req.userObject);
+            const userId = userResponse.userId;
+            if (userId !== req.userObject.userId) {
+                req.userObject.userId = userId;
+            }
+        }
+
+        if ('elevate' in req.query && req.query.elevate === 'true' && !permissions.canAdmin) {
+            throw new SmError.PrivilegeError("User has insufficient privilege to complete this request.");
+        }
+        return true;
+    }
 };
 
-module.exports = auth;
+const verifyAndDecodeToken = promisify(jwt.verify);
+
+const getBearerToken = req => {
+    if (!req.headers.authorization) return;
+    const headerParts = req.headers.authorization.split(' ');
+    if (headerParts[0].toLowerCase() === 'bearer') return headerParts[1];
+}
+
+function getKey(header, callback) {
+    try {
+        client.getSigningKey(header.kid, function (err, key) {
+            if (!err) {
+                var signingKey = key.publicKey || key.rsaPublicKey;
+                callback(null, signingKey);
+            } else {
+                callback(err, null);
+            }
+        });
+    } catch (error) {
+        callback(error, null);
+    }
+}
+
+let initAttempt = 0
+async function initializeAuth() {
+    const retries = 24
+    const wellKnown = `${config.oauth.authority}/.well-known/openid-configuration`
+    async function getJwks() {
+        logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, attempt: ++initAttempt })
+
+        const openidConfig = (await axios.get(wellKnown)).data
+
+        logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, metadata: openidConfig })
+        if (!openidConfig.jwks_uri) {
+            throw (new Error('No jwks_uri property found'))
+        }
+        jwksUri = openidConfig.jwks_uri
+        client = jwksClient({
+            jwksUri: jwksUri
+        })
+    }
+    await retry(getJwks, {
+        retries,
+        factor: 1,
+        minTimeout: 5 * 1000,
+        maxTimeout: 5 * 1000,
+        onRetry: (error) => {
+            logger.writeError('oidc', 'discovery', { success: false, metadataUri: wellKnown, message: error.message })
+        }
+    })
+    logger.writeInfo('oidc', 'discovery', { success: true, metadataUri: wellKnown, jwksUri: jwksUri })
+}
+
+
+module.exports = {
+    verifyRequest,
+    initializeAuth,
+};

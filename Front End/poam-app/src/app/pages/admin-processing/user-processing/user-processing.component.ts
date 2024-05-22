@@ -46,7 +46,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   users: any;
   user: any = {};
   data: any = [];
-  allowSelectCollections = true;
+  allowSelect = true;
   selected: any;
   selectedRole: string = 'admin';
   payload: any;
@@ -159,7 +159,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
       mydata.push({
         data: {
           user: userData[i].userId, 'Status': userData[i].accountStatus, 'First Name': userData[i].firstName, 'Last Name': userData[i].lastName,
-          'Email': userData[i].userEmail
+          'Email': userData[i].email
         }, children: tchild
       });
     }
@@ -173,14 +173,14 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     const selectedData = this.data.filter((user: { userId: any; }) => user.userId === userId);
 
     this.user = selectedData[0];
-    this.allowSelectCollections = false;
+    this.allowSelect = false;
   }
 
   resetData() {
     this.user = [];
     this.getUserData();
     this.user.userId = "USER";
-    this.allowSelectCollections = true;
+    this.allowSelect = true;
   }
 
   ngOnDestroy() {

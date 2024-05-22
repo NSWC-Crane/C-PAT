@@ -12,11 +12,10 @@
 const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
-const writeLog = require('../../utils/poam_logger')
+const logger = require('../../utils/logger')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -45,8 +44,7 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, re
             return { assetLabel };
         });
     } catch (error) {
-        console.error("Error fetching asset label counts: ", error);
-        throw new Error("Unable to fetch asset label counts");
+        return { error: error.message };
     }
 }
 
@@ -95,8 +93,7 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res,
             return { poamLabel };
         });
     } catch (error) {
-        console.error("Error fetching POAM label counts: ", error);
-        throw new Error("Unable to fetch POAM label counts");
+        return { error: error.message };
     }
 }
 
@@ -210,8 +207,7 @@ exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamS
             return { poamScheduledCompletion };
         });
     } catch (error) {
-        console.error("Error fetching POAM scheduled completion data:", error);
-        return { "error": "Failed to fetch POAM scheduled completion data" };
+        return { error: error.message };
     }
 }
 
@@ -261,8 +257,7 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res,
             return { assetLabel };
         });
     } catch (error) {
-        console.error("Error fetching asset label counts: ", error);
-        throw new Error("Unable to fetch asset label counts");
+        return { error: error.message };
     }
 }
 
@@ -426,8 +421,7 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res, n
             return { poamLabel };
         });
     } catch (error) {
-        console.error("Error fetching POAM label counts: ", error);
-        throw new Error("Unable to fetch POAM label counts");
+        return { error: error.message };
     }
 }
 
@@ -466,8 +460,7 @@ exports.getAvailableCollectionPoamCounts = async function getAvailableCollection
             return { collectionPoamCounts };
         });
     } catch (error) {
-        console.error("Error fetching collection POAM counts: ", error);
-        throw new Error("Unable to fetch collection POAM counts");
+        return { error: error.message };
     }
 };
 
@@ -629,7 +622,6 @@ exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamSch
             return { poamScheduledCompletion };
         });
     } catch (error) {
-        console.error("Error fetching POAM scheduled completion data:", error);
-        return { "error": "Failed to fetch POAM scheduled completion data" };
+        return { error: error.message };
     }
 }

@@ -9,11 +9,10 @@
 */
 
 const dbUtils = require('./utils');
-const writeLog = require('../../utils/poam_logger');
+const logger = require('../../utils/logger');
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -40,7 +39,7 @@ exports.getUsers = async function getUsers() {
                 return {
                     userId: user.userId,
                     userName: user.userName,
-                    userEmail: user.userEmail,
+                    email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     created: user.created,
@@ -58,16 +57,15 @@ exports.getUsers = async function getUsers() {
             return users;
         });
     } catch (error) {
-        console.error('Error in getUsers:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
-exports.getCurrentUser = async function getCurrentUser(userEmail) {
+exports.getCurrentUser = async function getCurrentUser(email) {
     try {
         return await withConnection(async (connection) => {
-            const sqlUser = "SELECT * FROM user WHERE userEmail = ?";
-            const [userRows] = await connection.query(sqlUser, [userEmail]);
+            const sqlUser = "SELECT * FROM user WHERE email = ?";
+            const [userRows] = await connection.query(sqlUser, [email]);
 
             if (userRows.length === 0) {
                 throw new Error("User not found");
@@ -87,7 +85,7 @@ exports.getCurrentUser = async function getCurrentUser(userEmail) {
             return {
                 userId: user.userId,
                 userName: user.userName,
-                userEmail: user.userEmail,
+                email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 created: user.created,
@@ -102,8 +100,7 @@ exports.getCurrentUser = async function getCurrentUser(userEmail) {
             };
         });
     } catch (error) {
-        console.error('Error in getCurrentUser:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -131,7 +128,7 @@ exports.getUserByUserID = async function getUserByUserID(userId) {
             return {
                 userId: user.userId,
                 userName: user.userName,
-                userEmail: user.userEmail,
+                email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 created: user.created,
@@ -146,7 +143,50 @@ exports.getUserByUserID = async function getUserByUserID(userId) {
             };
         });
     } catch (error) {
-        console.error('Error in getUser:', error);
+        return { error: error.message };
+    }
+};
+
+exports.getUserByUserName = async function getUserByUserName(userName) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = "SELECT * FROM user WHERE userName = ?";
+            const [userRows] = await connection.query(sql, [userName]);
+
+            if (userRows.length === 0) {
+                throw new Error("User not found");
+            }
+
+            const user = userRows[0];
+            const sqlPermissions = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
+            const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
+
+            const permissions = permissionRows.map(permission => ({
+                userId: permission.userId,
+                collectionId: permission.collectionId,
+                accessLevel: permission.accessLevel,
+            }));
+
+            const userObject = {
+                userId: user.userId,
+                userName: user.userName,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                created: user.created,
+                lastAccess: user.lastAccess,
+                lastCollectionAccessedId: user.lastCollectionAccessedId,
+                accountStatus: user.accountStatus,
+                fullName: user.fullName,
+                officeOrg: user.officeOrg,
+                defaultTheme: user.defaultTheme,
+                isAdmin: user.isAdmin,
+                permissions: permissions
+            };
+            return userObject;
+        });
+    } catch (error) {
+        logger.writeError('Error in getUserByUserName:', error);
         throw error;
     }
 };
@@ -165,7 +205,7 @@ exports.getBasicUserByUserID = async function getBasicUserByUserID(userId) {
 
             return {
                 userId: user.userId,
-                userEmail: user.userEmail,
+                email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 fullName: user.fullName,
@@ -173,44 +213,36 @@ exports.getBasicUserByUserID = async function getBasicUserByUserID(userId) {
             };
         });
     } catch (error) {
-        console.error('Error in getUser:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
-exports.updateUser = async function updateUser(userId, userData) {
+exports.updateUser = async function updateUser(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "UPDATE user SET firstName = ?, lastName = ?, userEmail = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, isAdmin = ? WHERE userId = ?";
+            let sql = "UPDATE user SET firstName = ?, lastName = ?, email = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, isAdmin = ? WHERE userId = ?";
 
             await connection.query(sql, [
-                userData.firstName,
-                userData.lastName,
-                userData.userEmail,
-                userData.lastCollectionAccessedId,
-                userData.accountStatus,
-                `${userData.firstName} ${userData.lastName}`,
-                userData.officeOrg,
-                userData.defaultTheme,
-                userData.isAdmin,
-                userId
+                req.body.firstName,
+                req.body.lastName,
+                req.body.email,
+                req.body.lastAccess,
+                req.body.lastCollectionAccessedId,
+                req.body.accountStatus,
+                `${req.body.firstName} ${req.body.lastName}`,
+                req.body.officeOrg,
+                req.body.defaultTheme,
+                req.body.isAdmin,
+                req.body.userId
             ]);
 
             sql = "SELECT * FROM user WHERE userId = ?";
-            let [updatedUser] = await connection.query(sql, [userId]);
-
-            if (updatedUser.length === 0) {
-                throw new Error("User update failed");
-            }
-
-            writeLog.writeLog(3, "usersService", 'log', userData.userName, userData.fullName, { event: 'modified account', userId: userId });
-            writeLog.writeLog(3, "usersService", 'notification', userData.userName, userData.fullName, { event: 'modified account', userId: userId });
+            let [updatedUser] = await connection.query(sql, [req.body.userId]);
 
             return updatedUser[0];
         });
     } catch (error) {
-        console.error('Error in updateUser:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -220,24 +252,23 @@ exports.deleteUserByUserID = async function deleteUserByUserID(userId, username,
             let sql = 'DELETE FROM `user` WHERE `userId`= ?';
             await connection.query(sql, [userId]);
 
-            writeLog.writeLog(3, "usersService", 'log', username, displayName, { event: 'removed account', userId: userId });
-            writeLog.writeLog(3, "usersService", 'notification', username, displayName, { event: 'removed account', userId: userId });
+            logger.writeInfo("usersService", 'log', { event: 'removed account', userId: userId });
+            logger.writeInfo("usersService", 'notification', { event: 'removed account', userId: userId });
 
             return { message: "User deleted" };
         });
     } catch (error) {
-        console.error('Error in deleteUserByUserID:', error);
-        throw error;
+        return { error: error.message };
     }
 };
 
 exports.loginout = async function loginout(req, res, next) {
     let message = { message: "" };
     if (req.body.inout == 'logIn') {
-        writeLog.writeLog(4, "usersService", 'info', req.userObject.username, req.userObject.displayName, { event: 'logged in' });
+        logger.writeInfo("usersService", 'info', { event: 'Logged In' });
         message.message = "Login Success";
     } else {
-        writeLog.writeLog(4, "usersService", 'info', req.userObject.username, req.userObject.displayName, { event: 'logged out' });
+        logger.writeInfo("usersService", 'info', { event: 'Logged Out' });
         message.message = "Logout Success";
     }
     return message;
@@ -248,8 +279,8 @@ module.exports.deleteUserByUserID = async function deleteUserByUserID(userId, re
         let sql_query = 'DELETE FROM `user` WHERE `id`=' + userId;
         await connection.query(sql_query);
 
-        writeLog.writeLog(3, "usersService", 'log', req.userObject.username, req.userObject.displayName, { event: 'removed account', userId: userId });
-        writeLog.writeLog(3, "usersService", 'notification', req.userObject.username, req.userObject.displayName, { event: 'removed account', userId: userId });
+        logger.writeInfo("usersService", 'log', { event: 'removed account', userId: userId });
+        logger.writeInfo("usersService", 'notification', { event: 'removed account', userId: userId });
 
         let messageReturned = new Object();
         messageReturned.text = "User deleted";

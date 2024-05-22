@@ -8,8 +8,8 @@
 !########################################################################
 */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { NbDialogRef, NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { Observable, Subscription } from 'rxjs';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component';
@@ -40,6 +40,8 @@ interface FSEntry {
   styleUrls: ['./label-processing.component.scss']
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
+  @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;
+  labelDialogRef!: NbDialogRef<any>;
   customColumn = 'label';
   defaultColumns = [ 'Name', 'Description' ];
   allColumns = [ this.customColumn, ...this.defaultColumns ];
@@ -144,17 +146,16 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
 
   setLabel(labelId: any) {
     this.label = null;
-
     const selectedData = this.data.filter((label: { labelId: any; }) => label.labelId === labelId)
-
     this.label = selectedData[0];
     this.allowSelectLabels = false;
+    this.openLabelPopup();
   }
 
   resetData() {
     this.label = [];
     this.getLabelData();
-    this.label.labelId = "LABEL";
+    this.label.labelId = "ADDLABEL";
     this.allowSelectLabels = true;
   }
 
@@ -163,6 +164,20 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     this.label.labelName = "";
     this.label.description = ""
     this.allowSelectLabels = false;
+  }
+
+  openLabelPopup() {
+    this.labelDialogRef = this.dialogService.open(this.labelPopup, {
+      hasBackdrop: true,
+      closeOnBackdropClick: true,
+      closeOnEsc: true,
+      hasScroll: true,
+      dialogClass: 'modal-dialog',
+    });
+  }
+
+  closePopup() {
+    this.labelDialogRef.close();
   }
 
   ngOnDestroy() {

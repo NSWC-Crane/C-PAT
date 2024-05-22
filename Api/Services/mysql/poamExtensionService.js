@@ -12,8 +12,7 @@
 const dbUtils = require('./utils');
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-	const connection = await pool.getConnection();
+	const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {

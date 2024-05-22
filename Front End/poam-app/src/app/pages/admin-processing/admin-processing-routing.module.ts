@@ -13,9 +13,11 @@ import { RouterModule, Routes } from '@angular/router';
 import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
+import { AdminProcessingComponent } from './admin-processing.component';
 import { AuthGuard } from '../../auth/auth.guard'
 
 const routes: Routes = [
+  { path: '', canActivate: [AuthGuard], component: AdminProcessingComponent },
   { path: 'stigmanager-admin', canActivate: [AuthGuard], component: STIGManagerAdminComponent },
   { path: 'user-processing', canActivate: [AuthGuard], component: UserProcessingComponent },
   { path: 'collection-processing', canActivate: [AuthGuard], component: CollectionProcessingComponent },

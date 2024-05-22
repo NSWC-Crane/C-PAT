@@ -19,7 +19,6 @@ exports.getPoamExtension = async function (req, res, next) {
             res.status(200).json(poamExtensions);
         }
     } catch (error) {
-        console.error("Error retrieving POAM extension:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -29,7 +28,6 @@ exports.putPoamExtension = async function (req, res, next) {
         const updatedPoamExtension = await poamExtensionService.putPoamExtension(req.body);
         res.status(200).json(updatedPoamExtension);
     } catch (error) {
-        console.error("Error updating POAM extension:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -39,7 +37,6 @@ exports.deletePoamExtension = async function (req, res, next) {
         await poamExtensionService.deletePoamExtension(req.params.poamId);
         res.status(200).json({ message: "POAM extension deleted successfully" });
     } catch (error) {
-        console.error("Error deleting POAM extension:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };

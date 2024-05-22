@@ -7,103 +7,82 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
+
 require('dotenv').config();
 const package = require("../package.json")
 
 let config = {
     version: package.version,
-    commit: {
-        branch: process.env.COMMIT_BRANCH,
-        sha: process.env.COMMIT_SHA,
-        tag: process.env.COMMIT_TAG,
-        describe: process.env.COMMIT_DESCRIBE
-    },
     settings: {
-        setClassification: process.env.POAM_CLASSIFICATION,
-        lastAccessResolution: 60,
-        responseValidation: process.env.POAM_DEV_RESPONSE_VALIDATION
+        setClassification: process.env.CPAT_CLASSIFICATION,
+        responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || "none"
 
     },
-    cpat: {
-        host: process.env.CPAT_HOST,
-        port: process.env.CPAT_PORT,
-    },
     client: {
-        clientId: process.env.POAM_CLIENT_ID,
-        authority: process.env.POAM_CLIENT_OIDC_PROVIDER || process.env.POAM_OIDC_PROVIDER,
-        apiBase: process.env.POAM_CLIENT_API_BASE,
-        disabled: process.env.POAM_CLIENT_DISABLED,
-        directory: process.env.POAM_CLIENT_DIRECTORY,
-        extraScopes: process.env.POAM_CLIENT_EXTRA_SCOPES,
-        scopePrefix: process.env.POAM_CLIENT_SCOPE_PREFIX,
+        clientId: process.env.CPAT_CLIENT_ID || "c-pat",
+        authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:2020/auth/realms/RMFTools",
+        apiBase: process.env.CPAT_CLIENT_API_BASE || "api",
+        disabled: process.env.CPAT_CLIENT_DISABLED === "true",
+        directory: process.env.CPAT_CLIENT_DIRECTORY || '../Front End/poam-app/dist',
+        extraScopes: process.env.CPAT_CLIENT_EXTRA_SCOPES,
+        scopePrefix: process.env.CPAT_CLIENT_SCOPE_PREFIX,
         refreshToken: {
-            disabled: process.env.POAM_CLIENT_REFRESH_DISABLED ? process.env.POAM_CLIENT_REFRESH_DISABLED === "true" : false,
+            disabled: process.env.CPAT_CLIENT_REFRESH_DISABLED ? process.env.CPAT_CLIENT_REFRESH_DISABLED === "true" : false,
         },
-        welcome: {
-            image: process.env.POAM_CLIENT_WELCOME_IMAGE,
-            message: process.env.POAM_CLIENT_WELCOME_MESSAGE,
-            title: process.env.POAM_CLIENT_WELCOME_TITLE,
-            link: process.env.POAM_CLIENT_WELCOME_LINK
-        }
     },
     docs: {
-        disabled: process.env.POAM_DOCS_DISABLED,
-        docsDirectory: process.env.POAM_DOCS_DIRECTORY,
-    },    
+        disabled: process.env.CPAT_DOCS_DISABLED === "true",
+        docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../../docs/_build/html',
+    },
     http: {
-        address: process.env.POAM_API_ADDRESS,
-        port: process.env.POAM_API_PORT,
-        maxJsonBody: process.env.POAM_API_MAX_JSON_BODY,
-        maxUpload: process.env.POAM_API_MAX_UPLOAD
+        address: process.env.CPAT_API_ADDRESS || "localhost",
+        port: process.env.CPAT_API_PORT || 8086,
+        maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "31457280",
+        maxUpload: process.env.CPAT_API_MAX_UPLOAD || "1073741824"
     },
     database: {
-        type: process.env.DB_TYPE,
-        dialect: process.env.DB_DIALECT,
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT,
-        schema: process.env.DB_SCHEMA,
-        username: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        maxConnections: process.env.DB_MAX_CONNECTIONS, 
-        minConnections: process.env.DB_MIN_CONNECTIONS,   
-        acquire: process.env.DB_ACQUIRE,
-        idle: process.env.DB_IDLE,   
+        acquire: process.env.CPAT_DB_ACQUIRE || 30000,
+        dialect: process.env.CPAT_DB_DIALECT || "mysql",
+        host: process.env.CPAT_DB_HOST || "localhost",
+        idle: process.env.CPAT_DB_IDLE || 10000,
+        port: process.env.CPAT_DB_PORT || 3306,
+        schema: process.env.CPAT_DB_SCHEMA || "cpat",
+        password: process.env.CPAT_DB_PASSWORD,
+        username: process.env.CPAT_DB_USER || "root",
+        maxConnections: process.env.CPAT_DB_MAX_CONNECTIONS || 25,
+        minConnections: process.env.CPAT_DB_MIN_CONNECTIONS || 0,
         tls: {
-            ca_file: process.env.DB_TLS_CA_FILE,
-            cert_file: process.env.DB_TLS_CERT_FILE,
-            key_file: process.env.DB_TLS_KEY_FILE
+            ca_file: process.env.CPAT_DB_TLS_CA_FILE,
+            cert_file: process.env.CPAT_DB_TLS_CERT_FILE,
+            key_file: process.env.CPAT_DB_TLS_KEY_FILE
         },
-        revert: process.env.DB_REVERT,
+        revert: process.env.CPAT_DB_REVERT === "true",
         toJSON: function () {
-            let {password, ...props} = this
+            let { password, ...props } = this
             props.password = !!password
-            return props          
+            return props
         }
     },
-    init: {
-        importStigs: process.env.POAM_INIT_IMPORT_STIGS,
-        importScap: process.env.POAM_INIT_IMPORT_SCAP
-    },
     swaggerUi: {
-        enabled: process.env.POAM_SWAGGER_ENABLED, 
-        authority: process.env.POAM_SWAGGER_OIDC_PROVIDER, 
-        server: process.env.POAM_SWAGGER_SERVER,
-        oauth2RedirectUrl: process.env.POAM_SWAGGER_REDIRECT
+        enabled: process.env.CPAT_SWAGGER_ENABLED === "true",
+        authority: process.env.CPAT_SWAGGER_OIDC_PROVIDER || process.env.CPAT_SWAGGER_AUTHORITY || process.env.CPAT_OIDC_PROVIDER || "http://localhost:2020/auth/realms/RMFTools",
+        server: process.env.CPAT_SWAGGER_SERVER || "http://localhost:8086/api",
+        oauth2RedirectUrl: process.env.CPAT_SWAGGER_REDIRECT || "http://localhost:8086/api-docs/oauth2-redirect.html"
     },
     oauth: {
-        authority: process.env.POAM_OIDC_PROVIDER || process.env.POAM_API_AUTHORITY,
+        authority: process.env.CPAT_OIDC_PROVIDER || process.env.CPAT_API_AUTHORITY || "http://localhost:2020/auth/realms/RMFTools",
         claims: {
-            scope: process.env.POAM_JWT_SCOPE_CLAIM,
-            username: process.env.POAM_JWT_USERNAME_CLAIM,
-            servicename: process.env.POAM_JWT_SERVICENAME_CLAIM,
-            name: process.env.POAM_JWT_NAME_CLAIM || process.env.POAM_JWT_USERNAME_CLAIM,
-            privileges: formatChain(process.env.POAM_JWT_PRIVILEGES_CLAIM || "realm_access.roles"),
-            email: process.env.POAM_JWT_EMAIL_CLAIM
+            scope: process.env.CPAT_JWT_SCOPE_CLAIM || "scope",
+            username: process.env.CPAT_JWT_USERNAME_CLAIM,
+            servicename: process.env.CPAT_JWT_SERVICENAME_CLAIM,
+            name: process.env.CPAT_JWT_NAME_CLAIM || process.env.CPAT_JWT_USERNAME_CLAIM || "name",
+            privileges: formatChain(process.env.CPAT_JWT_PRIVILEGES_CLAIM || "realm_access.roles"),
+            email: process.env.CPAT_JWT_EMAIL_CLAIM || "email"
         }
     },
     log: {
-        level: parseInt(process.env.POAM_LOG_LEVEL) || 3,
-        mode: process.env.POAM_LOG_MODE
+        level: parseInt(process.env.CPAT_LOG_LEVEL) || 3,
+        mode: process.env.CPAT_LOG_MODE || 'combined'
     }
 }
 

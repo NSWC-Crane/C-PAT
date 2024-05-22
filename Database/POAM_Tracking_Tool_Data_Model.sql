@@ -12,7 +12,7 @@
 CREATE TABLE `cpat`.`user` (
    `userId` int NOT NULL AUTO_INCREMENT,
    `userName` varchar(20) NOT NULL,
-   `userEmail` varchar(100) NOT NULL,
+   `email` varchar(100) NOT NULL,
    `firstName` varchar(50) NOT NULL,
    `lastName` varchar(50) NOT NULL,
    `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -24,7 +24,7 @@ CREATE TABLE `cpat`.`user` (
    `defaultTheme` varchar(20) DEFAULT 'dark',
    `isAdmin` int NOT NULL DEFAULT '0',
    PRIMARY KEY (`userId`),
-   UNIQUE KEY `userEmail_UNIQUE` (`userEmail`) USING BTREE,
+   UNIQUE KEY `email_UNIQUE` (`email`) USING BTREE,
    UNIQUE KEY `userName_UNIQUE` (`userName`)
  );
 

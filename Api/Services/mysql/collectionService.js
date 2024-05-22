@@ -12,11 +12,10 @@
 const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
-const writeLog = require('../../utils/poam_logger')
+const logger = require('../../utils/logger')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-    const connection = await pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -26,13 +25,17 @@ async function withConnection(callback) {
 
 exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
     if (!req.params.collectionId) {
-        console.info('getCollectionPermissions collectionId not provided.');
-        throw new Error('collectionId is required');
+        return next({
+            status: 400,
+            errors: {
+                collectionId: 'is required',
+            }
+        });
     }
 
     try {
         const permissions = await withConnection(async (connection) => {
-            let sql = "SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.userEmail FROM cpat.collectionpermissions T1 " +
+            let sql = "SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email FROM cpat.collectionpermissions T1 " +
                 "INNER JOIN cpat.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
 
             let [rowPermissions] = await connection.query(sql, req.params.collectionId);
@@ -43,8 +46,7 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
 
         return permissions;
     } catch (error) {
-        console.error(error);
-        throw error;
+        return { error: error.message };
     }
 }
 
@@ -70,8 +72,7 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
                 return user;
             });
         } catch (error) {
-            console.error(error);
-            return { "error": "An error occurred while fetching collections for Registrant" };
+            return { error: error.message };
         }
     }
     let userId = 0
@@ -125,8 +126,7 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
         });
     }
     catch (error) {
-        console.error(error);
-        return { "error": "An error occurred while fetching user information" };
+        return { error: error.message };
     }
 }
 
@@ -171,8 +171,7 @@ exports.getCollection = async function getCollection(userName, collectionId, req
 
         return collection;
     } catch (error) {
-        console.error(error);
-        return { error: "An error occurred while fetching the collection" };
+        return { error: error.message };
     }
 }
 
@@ -184,8 +183,7 @@ exports.getCollectionBasicList = async function getCollectionBasicList(req, res,
             return rows;
         });
     } catch (error) {
-        console.error(error);
-        throw error;
+        return { error: error.message };
     }
 };
 
@@ -206,15 +204,12 @@ exports.postCollection = async function postCollection(req, res, next) {
             return (collection)
         });
     } catch (error) {
-        let errorResponse = { error: "An error occurred while attempting to add a collection." };
-        console.error(error);
-        return errorResponse;
+        return { error: error.message };
     }
 }
 
 exports.putCollection = async function putCollection(req, res, next) {
     if (!req.body.collectionId) {
-        console.info('postPermissions collectionId not provided.');
         return next({
             status: 400,
             errors: {
@@ -248,8 +243,6 @@ exports.putCollection = async function putCollection(req, res, next) {
         });
     }
     catch (error) {
-        let errorResponse = { null: "null" };
-        console.error(error);
-        return errorResponse;
+        return { error: error.message };
     }
 }

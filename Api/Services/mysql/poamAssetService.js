@@ -14,8 +14,7 @@ const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
 async function withConnection(callback) {
-    const pool = dbUtils.getPool();
-	const connection = await pool.getConnection();
+	const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -40,14 +39,12 @@ exports.getPoamAssets = async function getPoamAssets(req, res, next) {
             return { poamAssets };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, next) {
     if (!req.params.poamId) {
-        console.info('getPoamAssetsByPoamIs poamId not provided.');
         return next({
             status: 400,
             errors: {
@@ -73,14 +70,12 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
             return poamAssets;
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res, next) {
     if (!req.params.poamId) {
-        console.info('deletePoamAssetByPoamId poamId not provided.');
         return next({
             status: 400,
             errors: {
@@ -96,14 +91,12 @@ exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, re
             return { poamAsset: [] };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res, next) {
     if (!req.params.assetId) {
-        console.info('getPoamAssetsByAssetId assetId not provided.');
         return next({
             status: 400,
             errors: {
@@ -129,14 +122,12 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res,
             return { poamAssets };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     if (!req.params.assetId) {
-        console.info('getAssetLabel assetId not provided.');
         return next({
             status: 400,
             errors: {
@@ -146,7 +137,6 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     }
 
     if (!req.params.labelId) {
-        console.info('getAssetLabel labelId not provided.');
         return next({
             status: 400,
             errors: {
@@ -170,14 +160,12 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
             return { assetLabel };
         });
     } catch (error) {
-        console.error(error);
-        return { null: "null" };
+        return { error: error.message };
     }
 }
 
 exports.postPoamAsset = async function postPoamAsset(req, res, next) {
     if (!req.body.assetId || !req.body.poamId) {
-        console.info('postPoamAsset: assetId and poamId are required.');
         return next({
             status: 400,
             errors: {
@@ -210,7 +198,6 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
             }
-            console.log("poamAsset: ", poamAsset)
             return poamAsset;
         });
     } catch (error) {
@@ -222,15 +209,13 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
             });
         }
         else {
-            console.error("error: ", error);
-            return { null: "null" };
+            return { error: error.message };
         }
     }
 };
 
 exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
     if (!req.params.assetId || !req.params.poamId) {
-        console.info('deletePoamAsset: assetId and poamId are required.');
         return next({
             status: 400,
             errors: {
@@ -259,7 +244,6 @@ exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
             return { poamAsset: [] };
         });
     } catch (error) {
-        console.error("Error in deletePoamAsset:", error);
-        return { null: "null" };
+        return { error: error.message };
     }
 };
