@@ -47,6 +47,12 @@ process.on('unhandledRejection', (reason, promise) => {
 })
 
 const app = express();
+const limiter = RateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests from this IP, please try again after 15 minutes'
+});
+app.use(limiter);
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json({
     strict: false,
