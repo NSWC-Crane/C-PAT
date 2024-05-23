@@ -1,0 +1,73 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
+<ng-template #extendTemplate let-ref="dialogRef">
+  <div class="container" *ngIf="poam">
+        <nb-card style="width: 60vw; height: auto; max-height: 80vh; overflow-y: auto;">
+          <nb-card-header>Extend POAM</nb-card-header>
+          <nb-card-body>
+
+          <!-- Extension Time Allowed -->
+          <div class="form-group">
+            <label for="extensionTimeAllowed">Extension Time Allowed:</label>
+            <nb-select fullWidth placeholder="Extension Time Allowed" [(ngModel)]="poam.extensionTimeAllowed" name="extensionTimeAllowed" (selectedChange)="computeDeadlineWithExtension()">
+              <nb-option [value]="0">0 Days</nb-option>
+              <nb-option [value]="30">30 Days</nb-option>
+              <nb-option [value]="60">60 Days</nb-option>
+              <nb-option [value]="90">90 Days</nb-option>
+              <nb-option [value]="180">180 Days</nb-option>
+              <nb-option [value]="365">365 Days</nb-option>
+            </nb-select>
+          </div>
+
+          <!-- Deadline With Extension -->
+          <div class="form-group">
+            <label for="extensionDeadline">Deadline With Extension:</label>
+            <input type="text" nbInput fullWidth status="basic"
+                   [value]="this.completionDateWithExtension"
+                   name="extensionDeadline" disabled>
+          </div>
+
+          <!-- Justification for Extension -->
+          <div class="form-group">
+            <label for="extensionJustification">Justification for Extension:</label>
+            <input nbInput
+                   fullWidth
+                   placeholder="Select from the available options or provide a custom justification"
+                   [nbAutocomplete]="auto"
+                   [(ngModel)]="extensionJustification"
+                   [value]="poam.extensionJustification">
+
+            <nb-autocomplete #auto>
+              <nb-option *ngFor="let justification of justifications" [value]="justification">
+                {{ justification }}
+              </nb-option>
+            </nb-autocomplete>
+          </div>
+
+          <!-- New Milestones to Achieve Completion -->
+          <div class="milestoneSmartTable">
+            <label for="newMilestones">New Milestones to Achieve Completion:</label>
+          </div>
+          <div class="milestoneSmartTable">
+            <angular2-smart-table [settings]="poamExtensionMilestoneSettings" [source]="poamExtensionMilestones" mode="inline"
+            (createConfirm)="confirmCreateMilestone($event)" (editConfirm)="confirmEditMilestone($event)" (deleteConfirm)="confirmDeleteMilestone($event)">
+            </angular2-smart-table>
+            </div>
+        </nb-card-body>
+
+        <!-- Buttons -->
+        <nb-card-footer>
+          <button nbButton outline status="info" (click)="submitPoamExtension()">Save</button>
+          <button nbButton outline status="warning" style="margin-left: 20px;" (click)="cancelExtension()">Cancel</button>
+        </nb-card-footer>
+        </nb-card>
+      </div>
+</ng-template>

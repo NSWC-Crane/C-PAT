@@ -1,0 +1,90 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+@import '@nebular/theme/styles/theming';
+@import '@nebular/theme/styles/themes';
+
+::ng-deep angular2-smart-table table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid nb-theme(border-basic-color-3);
+  }
+
+::ng-deep angular2-smart-table-pager .angular2-smart-page-item .angular2-smart-page-link {
+  background-color: nb-theme(background-basic-color-2);
+  color: nb-theme(text-basic-color);
+  border: 1px solid nb-theme(border-basic-color-3);
+}
+  
+  ::ng-deep angular2-smart-table table, 
+  ::ng-deep angular2-smart-table th, 
+  ::ng-deep angular2-smart-table td {
+    border: 1px solid nb-theme(border-basic-color-3);
+    padding: 0.5rem;
+    text-align: left;
+  }
+  
+  ::ng-deep angular2-smart-table thead {
+    background-color: nb-theme(background-basic-color-2);
+  }
+  
+  ::ng-deep angular2-smart-table tbody tr:nth-child(odd) {
+    background-color: nb-theme(background-basic-color-2);
+  }
+  
+  ::ng-deep angular2-smart-table tbody tr:hover {
+    background-color: nb-theme(background-basic-color-3);
+  }
+
+  :host ::ng-deep angular2-smart-table input[type="text"] {
+    color: nb-theme(text-basic-color);
+    font-weight: bold;
+    padding: nb-theme(padding);
+    border: 1px solid nb-theme(border-basic-color-1);
+    border-radius: nb-theme(border-radius);
+    background-color: nb-theme(background-basic-color-3);
+
+    &:focus {
+      background-color: nb-theme(background-basic-color-1);
+      box-shadow: 0 0 0 0.2rem rgba(nb-theme(primary-light-color), 0.25);
+    }
+  }
+
+  :host ::ng-deep angular2-smart-table .form-control {
+    color: nb-theme(text-basic-color);
+    font-weight: bold;
+    padding: nb-theme(padding);
+    border: 1px solid nb-theme(border-basic-color-3);
+    border-radius: nb-theme(border-radius);
+    background-color: nb-theme(background-basic-color-1);
+
+    &:focus {
+      background-color: nb-theme(background-basic-color-1);
+      box-shadow: 0 0 0 0.2rem rgba(nb-theme(primary-light-color), 0.25);
+    }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+  }
+  
+  .form-group label {
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-group input, .form-group nb-select {
+    margin-bottom: 0.5rem;
+  }
+  
+  .buttons {
+    padding-top: 1rem;
+  }

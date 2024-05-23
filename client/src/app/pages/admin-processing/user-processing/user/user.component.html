@@ -1,0 +1,78 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
+<form (ngSubmit)="onSubmit()" #form="ngForm">
+  <nb-card>
+    <nb-card-header>
+        <div class="row">
+          <label style="margin-right: 1%" for="userName">First Name: </label>
+          <input nbInput type="text" fullWidth name="userName" [(ngModel)]="user.firstName" placeholder="First Name" required>
+
+          <label for="lastName" style="padding-top: 15px;">Last Name: </label>
+          <input nbInput type="text" fullWidth name="lastName" [(ngModel)]="user.lastName" placeholder="Last Name">
+
+          <label for="fullName" style="padding-top: 15px;">Full Name: </label>
+          <input nbInput type="text" fullWidth name="fullName" [(ngModel)]="user.fullName" placeholder="Full Name">
+        </div>
+        <br />
+
+        <div class="row">
+          <label for="email">*Email: </label>
+          <input nbInput type="text" fullWidth name="email" [(ngModel)]="user.email" placeholder="Email">
+
+          <label for="officeOrg" style="padding-top: 15px;">Office/Organization: </label>
+          <input nbInput
+                 fullWidth
+                 type="text"
+                 placeholder="Office/Org..."
+                 [(ngModel)]="user.officeOrg"
+                 [nbAutocomplete]="autoOfficeOrg"
+                 name="officeOrg"
+                 id="officeOrg">
+          <nb-autocomplete #autoOfficeOrg>
+            <nb-option value="NAVSEA">NAVSEA</nb-option>
+          </nb-autocomplete>
+
+          <label for="accountStatus" style="padding-top: 15px;">Status: </label>
+          <nb-select outline status="info" placeholder="Select Status" [(ngModel)]="user.accountStatus" name="accountStatus">
+            <nb-option value="PENDING">Pending</nb-option>
+            <nb-option value="ACTIVE">Active</nb-option>
+            <nb-option value="EXPIRED">Expired</nb-option>
+          </nb-select>
+
+          <nb-toggle [checked]="checked" (checkedChange)="toggleAdmin($event)" style="padding-top: 15px;">Grant Admin Privileges</nb-toggle>
+        </div>
+        </nb-card-header>
+<nb-card-body>
+          <div class="row">
+            <div class="container" style="padding-top: 15px;">
+                <div class="col">
+                  <angular2-smart-table [settings]="collectionPermissionsSettings"
+                                        [source]="collectionPermissions"
+                                        (createConfirm)="confirmCreate($event)"
+                                        (editConfirm)="confirmEdit($event)"
+                                        (deleteConfirm)="confirmDelete($event)">
+                  </angular2-smart-table>
+                </div>
+            </div>
+
+          </div>
+          <br>
+          <div class="row">
+            <div class="container">
+
+              <button nbButton outline status="info" class="mr-3" (editConfirm)="confirmEdit($event)" [disabled]="!form.valid">Submit</button>
+              <button nbButton outline style="margin-left: 20px;" status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
+
+            </div>
+          </div>
+</nb-card-body>
+  </nb-card>
+</form>
