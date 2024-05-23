@@ -8,54 +8,82 @@
 !########################################################################
 */
 
-const collectionService = require('../Services/mysql/collectionService')
+const collectionService = require('../Services/mysql/collectionService');
 
-module.exports.getCollection = async function getCollection(req, res, next){
-		let userName = req.params.userName;
-		let collectionId = req.params.collectionId
-		// console.log("getCollection() userNam: ",userName, ", collectionId: ",collectionId)
+module.exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
+    try {
+        const permissions = await collectionService.getCollectionPermissions(req, res, next);
+        res.status(200).json(permissions);
+    } catch (error) {
+        if (error.message === 'collectionId is required') {
+            res.status(400).json({ error: 'Validation Error', detail: 'collectionId is required' });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
 
-		var getCollection = await collectionService.getCollection(userName, collectionId, req, res, next)
+module.exports.getCollection = async function getCollection(req, res, next) {
+    try {
+        const getCollection = await collectionService.getCollection(req.params.userName, req.params.collectionId, req, res, next);
+        if (getCollection) {
+            res.status(200).json(getCollection);
+        } else {
+            res.status(204).send();
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
 
-		res.status(201).json(getCollection)
-}
+module.exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
+    try {
+        const getCollection = await collectionService.getCollectionBasicList(req, res, next);
+        res.status(200).json(getCollection);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: 'An error occurred while fetching collection details.' });
+    }
+};
 
-module.exports.getCollectionPoamStats = async function getCollectionPoamStats(req, res, next){
-		//let collectionId = req.params.collectionId
-		//console.log(userName)
-		// console.log("getCollectionPoamStats")
+module.exports.getCollections = async function getCollections(req, res, next) {
+    try {
+        const getCollections = await collectionService.getCollections(req.params.userName);
+        if (getCollections.error) {
+            res.status(500).json({ error: 'Internal Server Error', detail: getCollections.error });
+        } else {
+            res.status(200).json(getCollections);
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
 
-		var getCollection = await collectionService.getCollectionPoamStats(req, res, next)
+module.exports.postCollection = async function postCollection(req, res, next) {
+    try {
+        const collection = await collectionService.postCollection(req, res, next);
+        if (collection.error) {
+            res.status(500).json({ error: 'Internal Server Error', detail: collection.error });
+        } else {
+            res.status(201).json(collection);
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
 
-		res.status(201).json(getCollection)
-}
-
-module.exports.getCollections = async function getCollections(req, res, next){
-
-
-	let userName = req.query.userName
-		// console.log("getcollections: ", userName)
-		
-
-	var getCollections = await collectionService.getCollections(userName)
-
-	res.status(201).json(getCollections)
-}
-
-module.exports.postCollection = async function postCollection(req, res, next){
-		//res.status(201).json({message: "postPoamApprover Method called successfully"});
-		var collection = await collectionService.postCollection(req,res,next); 
-		//console.log("returning poamApprover: ", poamApprover)
-		res.status(201).json(collection)
-}
-
-module.exports.putCollection = async function putCollection(req, res, next){
-		// console.log("putCollection()...")
-		var collection = await collectionService.putCollection(req,res,next); 
-		res.status(201).json(collection)
-}
-
-module.exports.deleteCollection = async function deleteCollection(req, res, next){
-		res.status(201).json({message: "deleteCollection Method called successfully"})
-}
-
+module.exports.putCollection = async function putCollection(req, res, next) {
+    try {
+        const collection = await collectionService.putCollection(req, res, next);
+        if (collection.null) {
+            res.status(500).json({ error: 'Internal Server Error', detail: 'An error occurred while updating the collection.' });
+        } else {
+            res.status(200).json(collection);
+        }
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};

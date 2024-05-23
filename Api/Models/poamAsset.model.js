@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true
         },
         assetId: {
-            type: DataTypes.STRING(50),
+            type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true
         },
@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         freezeTableName: true,
         timestamps: false,
     });
+
+    poamAsset.associate = function (models) {
+        poamAsset.belongsTo(models.Asset, { foreignKey: 'assetId' });
+    };
 
     return poamAsset;
 };

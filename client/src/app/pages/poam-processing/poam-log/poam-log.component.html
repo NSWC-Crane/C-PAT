@@ -1,0 +1,44 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
+<ng-template #logTemplate let-ref="dialogRef">
+  <div class="container">
+    <nb-card style="width: 60vw; height: auto; max-height: 80vh; overflow-y: auto;">
+      <nb-card-header>
+        POAM History
+      </nb-card-header>
+      <nb-card-body>
+        <table [nbTreeGrid]="dataSource" nbTreeGridRowComponent>
+          <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns; let columns"></tr>
+          <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+
+          <ng-container nbTreeGridColumnDef="Timestamp">
+            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef style="width: 20%;">Timestamp</th>
+            <td nbTreeGridCell *nbTreeGridCellDef="let row" style="width: 20%;">{{ row.data.Timestamp }}</td>
+          </ng-container>
+
+          <ng-container nbTreeGridColumnDef="User">
+            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef style="width: 20%;">User</th>
+            <td nbTreeGridCell *nbTreeGridCellDef="let row" style="width: 20%;">{{ row.data.User }}</td>
+          </ng-container>
+
+          <ng-container nbTreeGridColumnDef="Action">
+            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef style="width: 60%;">Action</th>
+            <td nbTreeGridCell *nbTreeGridCellDef="let row" style="width: 60%;" [innerHTML]="row.data.Action"></td>
+          </ng-container>
+
+        </table>
+      </nb-card-body>
+      <nb-card-footer>
+        <button nbButton outline status="info" (click)="closeModal()">Close</button>
+      </nb-card-footer>
+    </nb-card>
+  </div>
+</ng-template>

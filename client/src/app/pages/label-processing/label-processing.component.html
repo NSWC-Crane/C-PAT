@@ -1,0 +1,49 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+<div class="col-12 row">
+  <div class="col">
+    <nb-card>
+      <nb-card-body>
+        <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Labels">
+        <div class="scrollable-labels">
+          <table [nbTreeGrid]="dataSource">
+            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+
+            <ng-container [nbTreeGridColumnDef]="customColumn">
+              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
+              <td nbTreeGridCell *nbTreeGridCellDef="let row">
+                {{row.data[customColumn]}}
+              </td>
+            </ng-container>
+
+            <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
+              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
+              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
+            </ng-container>
+          </table>
+        </div>
+      </nb-card-body>
+      <nb-card-body>
+        <nb-select fullWidth outlineid="labelid" name="label" [(ngModel)]="label.labelId"
+                   (selectedChange)="setLabel($event)" placeholder="Select Label to Modify..." required>
+          <nb-option *ngFor="let label of data" [value]="label.labelId">
+            {{ label.labelId }} - {{ label.labelName }} - {{ label.description }}
+          </nb-option>
+        </nb-select>
+        <button nbButton fullWidth outline status="info" style="margin-top: 20px;" (click)="openLabelPopup()">Add Label</button>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>
+
+<ng-template #labelPopup let-data let-ref="dialogRef">
+      <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData(); closePopup();"></cpat-label>
+</ng-template>

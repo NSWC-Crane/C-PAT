@@ -8,47 +8,59 @@
 !########################################################################
 */
 
-const poamAssigneeService = require('../Services/mysql/poamAssigneeService')
+const poamAssigneeService = require('../Services/mysql/poamAssigneeService');
 
-module.exports.getPoamAssignees = async function getPoamAssignees(req, res, next){
-        // res.status(201).json({message: "getPoamAssignees Method called successfully"})
-        var poamAssignees = await poamAssigneeService.getPoamAssignees(req,res,next); 
-        res.status(201).json(poamAssignees)
-}
+exports.getPoamAssignees = async function getPoamAssignees(req, res, next) {
+    try {
+        const result = await poamAssigneeService.getPoamAssignees();
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).json({ error: "An error occurred while retrieving POAM assignees" });
+    }
+};
 
-module.exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(req, res, next){
-        //res.status(201).json({message: "getPoamAssigneesByPoamId Method called successfully"});
-        var poamAssignees = await poamAssigneeService.getPoamAssigneesByPoamId(req,res,next); 
-        res.status(201).json(poamAssignees)
-}
+exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(req, res, next) {
+    try {
+        const result = await poamAssigneeService.getPoamAssigneesByPoamId(req.params.poamId);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).json({ error: "An error occurred while retrieving POAM assignees by poamId" });
+    }
+};
 
-module.exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(req, res, next){
-        //res.status(201).json({message: "getPoamAssigneesByUserId Method called successfully"});
-        var poamAssignees = await poamAssigneeService.getPoamAssigneesByUserId(req,res,next); 
-        res.status(201).json(poamAssignees)
-}
 
-module.exports.getPoamAssignee = async function getPoamAssignee(req, res, next){
-        //res.status(201).json({message: "getPoamAssignee Method called successfully"});
-        var poamAssignee = await poamAssigneeService.getPoamAssignee(req,res,next); 
-        res.status(201).json(poamAssignee)
-}
+exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(req, res, next) {
+    try {
+        const result = await poamAssigneeService.getPoamAssigneesByUserId(req, res, next);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).json({ error: "An error occurred while retrieving POAM assignees by userId" });
+    }
+};
 
-module.exports.postPoamAssignee = async function postPoamAssignee(req, res, next){
-        //res.status(201).json({message: "postPoamAssignee Method called successfully"});
-        var poamAssignee = await poamAssigneeService.postPoamAssignee(req,res,next); 
-        res.status(201).json(poamAssignee)
-}
+exports.getPoamAssignee = async function getPoamAssignee(req, res, next) {
+    try {
+        const result = await poamAssigneeService.getPoamAssignee(req, res, next);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).json({ error: "An error occurred while retrieving the POAM assignee" });
+    }
+};
 
-module.exports.putPoamAssignee = async function putPoamAssignee(req, res, next){
-        res.status(201).json({message: "putPoamAssignee Method called successfully, There is only a unique index on asset and label id's, nothing to update!!!"});
-        // var poamAssignee = await poamAssigneeService.putPoamAssignee(req,res,next); 
-        // res.status(201).json(poamAssignee)
-}
+exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
+    try {
+        const assignee = await poamAssigneeService.postPoamAssignee(req, res, next);
+        return res.status(201).json(assignee);
+    } catch (error) {
+        return res.status(500).json({ error: "An error occurred while creating the POAM assignee" });
+    }
+};
 
-module.exports.deletePoamAssignee = async function deletePoamAssignee(req, res, next){
-        //res.status(201).json({message: "deletePoamAssignee Method called successfully"});
-        var poamAssignee = await poamAssigneeService.deletePoamAssignee(req,res,next); 
-        res.status(201).json(poamAssignee)
-}
-
+exports.deletePoamAssignee = async function deletePoamAssignee(req, res, next) {
+    try {
+        await poamAssigneeService.deletePoamAssignee(req, res, next);
+        return res.status(204).send();
+    } catch (error) {
+        return res.status(500).json({ error: "An error occurred while deleting the POAM assignee" });
+    }
+};

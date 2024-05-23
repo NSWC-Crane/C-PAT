@@ -1,0 +1,41 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+@use 'themes' as *;
+@use '@nebular/theme/styles/globals' as *;
+@import 'node_modules/bootstrap/scss/_functions.scss';
+@import 'node_modules/bootstrap/scss/_variables.scss';
+@import 'node_modules/bootstrap/scss/_mixins.scss';
+@import 'node_modules/bootstrap/scss/bootstrap.scss';
+@import 'node_modules/bootstrap/scss/_grid.scss';
+@import '../material/_angular-material.scss';
+@import './_layout.scss';
+@import './_pace-theme.scss';
+@import './_overrides.scss';
+@import './_scrollbar.scss';
+@import '../material/_material-overrides.scss';
+
+
+@include nb-install() {
+  @include nb-theme-global();
+  @include angular-material();
+  @include ngx-layout();
+  @include ngx-pace-theme();
+  @include nb-overrides();
+  @include material-overrides();
+
+  * {
+    @include custom-scrollbar( nb-theme(background-basic-color-2), nb-theme(background-basic-color-4) );
+  }
+}
+
+html, body {
+  @include custom-scrollbar( nb-theme(background-basic-color-2), nb-theme(background-basic-color-4) );
+}

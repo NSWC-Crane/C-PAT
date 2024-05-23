@@ -9,334 +9,208 @@
 */
 
 'use strict';
-const config = require('../../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
-exports.getPoamAssignees = async function getPoamAssignees(req, res, next) {
-        //console.log("getPoamAssignees (Service) ...");
-
-        try {
-                let connection
-                connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT t1.userId, t2.fullName, t1.poamId, t3.description FROM  poamtracking.poamassignees t1 " +
-                        "INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId " +
-                        "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
-                        "ORDER BY t2.fullName"
-                //console.log("getLabels sql: ", sql)
-
-                let [rowPoamAssignees] = await connection.query(sql)
-                console.log("rowPoamAssignees: ", rowPoamAssignees[0])
-                await connection.release()
-
-                var size = Object.keys(rowPoamAssignees).length
-
-                var poamAssignees = []
-
-                for (let counter = 0; counter < size; counter++) {
-                        // console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-                        poamAssignees.push({
-                                "userId": rowPoamAssignees[counter].userId,
-                                "fullName": rowPoamAssignees[counter].fullName,
-                                "poamId": rowPoamAssignees[counter].poamId,
-                                "description": rowPoamAssignees[counter].description,
-                        });
-                }
-
-                return { poamAssignees };
-
-        }
-        catch (error) {
-                let errorResponse = { null: "null" }
-                //await connection.release()
-                return errorResponse;
-        }
+async function withConnection(callback) {
+    const connection = await dbUtils.pool.getConnection();
+    try {
+        return await callback(connection);
+    } finally {
+        await connection.release();
+    }
 }
 
-exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(req, res, next) {
-        //console.log("getPoamAssigneesByPoamId (Service) ...");
-        if (!req.params.poamId) {
-                console.info('getPoamAssigneesByPoamId poamId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                poamId: 'is required',
-                        }
-                });
-        }
+exports.getPoamAssignees = async function getPoamAssignees() {
+    return await withConnection(async (connection) => {
+        let sql = `
+            SELECT t1.userId, t2.fullName, t1.poamId, t3.status
+            FROM cpat.poamassignees t1
+            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
+            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
+            ORDER BY t2.fullName
+        `;
+        let [rowPoamAssignees] = await connection.query(sql);
+        var poamAssignees = rowPoamAssignees.map(row => ({
+            userId: row.userId,
+            fullName: row.fullName,
+            poamId: row.poamId,
+            status: row.status,
+        }));
+        return { poamAssignees };
+    });
+};
 
-        try {
-                let connection
-                connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT t1.userId, t2.firstName, t2.lastName, t2.fullName, t2.phoneNumber, t2.userEmail, t1.poamId, t3.description " +
-                        "FROM  poamtracking.poamassignees t1 " +
-                        "INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId " +
-                        "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
-                        "WHERE t1.poamId = " + req.params.poamId + " ORDER BY t2.fullName"
-                //console.log("getAssetLabelsByAsset sql: ", sql)
+exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(poamId) {
+    if (!poamId) {
+        throw new Error('getPoamAssigneesByPoamId: poamId is required');
+    }
 
-                let [rowPoamAssignees] = await connection.query(sql)
-                console.log("rowPoamAssignees: ", rowPoamAssignees[0])
-                await connection.release()
-
-                var size = Object.keys(rowPoamAssignees).length
-
-                var poamAssignees = []
-
-                for (let counter = 0; counter < size; counter++) {
-                        // console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-                        poamAssignees.push({
-                                "userId": rowPoamAssignees[counter].userId,
-                                "fullName": rowPoamAssignees[counter].fullName,
-                                "poamId": rowPoamAssignees[counter].poamId,
-                                "description": rowPoamAssignees[counter].description,
-                        });
-                }
-
-                return { poamAssignees };
-
-        }
-        catch (error) {
-                let errorResponse = { null: "null" }
-                //await connection.release()
-                return errorResponse;
-        }
-}
+    return await withConnection(async (connection) => {
+        let sql = `
+            SELECT t1.userId, t2.firstName, t2.lastName, t2.fullName, t2.email, t1.poamId, t3.status
+            FROM cpat.poamassignees t1
+            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
+            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
+            WHERE t1.poamId = ?
+            ORDER BY t2.fullName
+        `;
+        let [rowPoamAssignees] = await connection.query(sql, [poamId]);
+        var poamAssignees = rowPoamAssignees.map(row => ({
+            userId: row.userId,
+            fullName: row.fullName,
+            poamId: row.poamId,
+            poamStatus: row.status,
+        }));
+        return poamAssignees;
+    });
+};
 
 exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(req, res, next) {
-        //console.log("getPoamAssigneesByUserId (Service) ...");
-        if (!req.params.userId) {
-                console.info('getPoamAssigneesByUserId userId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                userId: 'is required',
-                        }
-                });
-        }
+    if (!req.params.userId) {
+        throw new Error('getPoamAssigneesByUserId: userId is required');
+    }
 
-        try {
-                let connection
-                connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT t1.userId, t2.fullName, t1.poamId, t3.description FROM  poamtracking.poamassignees t1 " +
-                        "INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId " +
-                        "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
-                        "WHERE t1.userId = " + req.params.userId + " ORDER BY t2.fullName"
-                //console.log("getAssetLabelsByAsset sql: ", sql)
-
-                let [rowPoamAssignees] = await connection.query(sql)
-                console.log("rowPoamAssignees: ", rowPoamAssignees[0])
-                await connection.release()
-
-                var size = Object.keys(rowPoamAssignees).length
-
-                var poamAssignees = []
-
-                for (let counter = 0; counter < size; counter++) {
-                        // console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-                        poamAssignees.push({
-                                "userId": rowPoamAssignees[counter].userId,
-                                "fullName": rowPoamAssignees[counter].fullName,
-                                "poamId": rowPoamAssignees[counter].poamId,
-                                "description": rowPoamAssignees[counter].description,
-                        });
-                }
-
-                return { poamAssignees };
-
-        }
-        catch (error) {
-                let errorResponse = { null: "null" }
-                //await connection.release()
-                return errorResponse;
-        }
-}
+    return await withConnection(async (connection) => {
+        let sql = `
+            SELECT t1.userId, t2.fullName, t1.poamId, t3.status
+            FROM cpat.poamassignees t1
+            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
+            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
+            WHERE t1.userId = ?
+            ORDER BY t2.fullName
+        `;
+        let [rowPoamAssignees] = await connection.query(sql, [req.params.userId]);
+        var poamAssignees = rowPoamAssignees.map(row => ({
+            userId: row.userId,
+            fullName: row.fullName,
+            poamId: row.poamId,
+            poamStatus: row.status,
+        }));
+        return { poamAssignees };
+    });
+};
 
 exports.getPoamAssignee = async function getPoamAssignee(req, res, next) {
-        // res.status(201).json({ message: "getPoamAssignee (Service) Method called successfully" });
+    if (!req.params.userId) {
+        throw new Error('getPoamAssignee: userId is required');
+    }
+    if (!req.params.poamId) {
+        throw new Error('getPoamAssignee: poamId is required');
+    }
 
-        if (!req.params.poamId) {
-                console.info('getPoamAssignee poamId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                poamId: 'is required',
-                        }
-                });
-        }
-
-        if (!req.params.userId) {
-                console.info('getPoamAssignee userId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                userId: 'is required',
-                        }
-                });
-        }
-
-        try {
-                let connection
-                connection = await dbUtils.pool.getConnection()
-                let sql = "SELECT t1.userId, t2.fullName, t1.poamId, t3.description FROM  poamtracking.poamassignees t1 " +
-                        "INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId " +
-                        "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
-                        "WHERE t1.userId = " + req.params.userId + " AND t1.poamId = " + req.params.poamId +
-                        " ORDER BY t2.fullName"
-                console.log("getAssetLabelsByAsset sql: ", sql)
-
-                let [rowPoamAssignee] = await connection.query(sql)
-                console.log("rowPoamAssignee: ", rowPoamAssignee[0])
-                await connection.release()
-
-                var poamAssignee = [rowPoamAssignee[0]]
-
-                return { poamAssignee };
-        }
-        catch (error) {
-                let errorResponse = { null: "null" }
-                //await connection.release()
-                return errorResponse;
-        }
-}
+    return await withConnection(async (connection) => {
+        let sql = `
+            SELECT t1.userId, t2.fullName, t1.poamId, t3.status
+            FROM cpat.poamassignees t1
+            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
+            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
+            WHERE t1.userId = ? AND t1.poamId = ?
+            ORDER BY t2.fullName
+        `;
+        let [rowPoamAssignees] = await connection.query(sql, [req.params.userId, req.params.poamId]);
+        var poamAssignees = rowPoamAssignees.map(row => ({
+            userId: row.userId,
+            fullName: row.fullName,
+            poamId: row.poamId,
+            poamStatus: row.status,
+        }));
+        var poamAssignee = poamAssignees.length > 0 ? [poamAssignees[0]] : [];
+        return { poamAssignee };
+    });
+};
 
 exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
-        // res.status(201).json({ message: "postPoamAssignee (Service) Method called successfully" });
+    if (!req.body.userId) {
+        throw new Error('postPoamAssignee: userId is required');
+    }
 
-        if (!req.body.userId) {
-                console.info('postPoamAssignee userId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                userId: 'is required',
-                        }
-                });
-        }
+    if (!req.body.poamId) {
+        throw new Error('postPoamAssignee: poamId is required');
+    }
 
-        if (!req.body.poamId) {
-                console.info('postPoamAssignee poamId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                poamId: 'is required',
-                        }
-                });
-        }
-
-
+    return await withConnection(async (connection) => {
         try {
-                let connection
-                connection = await dbUtils.pool.getConnection()
+            let fetchSql = "SELECT poamId, userId FROM cpat.poamassignees WHERE userId = ? AND poamId = ?";
+            const [existingAssignee] = await connection.query(fetchSql, [req.body.userId, req.body.poamId]);
 
-                let sql_query = `INSERT INTO poamtracking.poamassignees (userId, poamId) 
-                        values (?, ?)`
+            if (existingAssignee.length > 0) {
+                return existingAssignee[0];
+            }
 
-                await connection.query(sql_query, [req.body.userId, req.body.poamId])
-                await connection.release()
+            let addSql = "INSERT INTO cpat.poamassignees (poamId, userId) VALUES (?, ?)";
+            await connection.query(addSql, [req.body.poamId, req.body.userId]);
 
-                let sql = "SELECT t1.userId, t2.fullName, t1.poamId, t3.description FROM  poamtracking.poamassignees t1 " +
-                        "INNER JOIN poamtracking.user t2 ON t1.userId = t2.userId " +
-                        "INNER JOIN poamtracking.poam t3 ON t1.poamId = t3.poamId " +
-                        "WHERE t1.userId = " + req.body.userId + " AND t1.poamId = " + req.body.poamId +
-                        " ORDER BY t2.fullName"
-                let [rowPoamAssignee] = await connection.query(sql)
-                console.log("rowPoamAssignee: ", rowPoamAssignee[0])
-                await connection.release()
+            let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
+            const [user] = await connection.query(userSql, [req.body.userId]);
+            const fullName = user[0] ? user[0].fullName : "Unknown User";
 
-                var poamAssignee = [rowPoamAssignee[0]]
+            if (req.body.poamLog[0].userId) {
+                let action = `${fullName} was added to the Assignee List.`;
+                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+            }
 
-                return { poamAssignee };
-        }
-        catch (error) {
-                console.log("error: ", error)
-                let errorResponse = { null: "null" }
-                //await connection.release()
-                return errorResponse;
-        }
-}
+            const notification = {
+                title: 'Added as POAM Assignee',
+                message: `You have been added as an Assignee for POAM ${req.body.poamId}.`,
+                userId: req.body.userId
+            };
+            const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+            await connection.query(notificationSql, [req.body.userId, notification.title, notification.message]);
 
-exports.putPoamAssignee = async function putPoamAssignee(req, res, next) {
-        // res.status(201).json({ message: "putPoamAssignee (Service) Method called successfully" });
+            let fetchNewSql = "SELECT poamId, userId FROM cpat.poamassignees WHERE userId = ? AND poamId = ?";
+            const [newAssignee] = await connection.query(fetchNewSql, [req.body.userId, req.body.poamId]);
 
-        if (!req.body.userId) {
-                console.info('putPoamAssignee userId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                userId: 'is required',
-                        }
+            if (newAssignee.length > 0) {
+                return newAssignee[0];
+            } else {
+                throw new Error('Assignee not found after insertion');
+            }
+        } catch (error) {
+            if (error.code === 'ER_DUP_ENTRY') {
+                return await withConnection(async (connection) => {
+                    let fetchSql = "SELECT poamId, userId FROM cpat.poamassignees WHERE userId = ? AND poamId = ?";
+                    const [existingAssignee] = await connection.query(fetchSql, [req.body.userId, req.body.poamId]);
+                    return existingAssignee[0];
                 });
+            }
+            else {
+                return { error: error.message };
+            }
         }
-
-        if (!req.body.poamId) {
-                console.info('putPoamAssignee poamId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                poamId: 'is required',
-                        }
-                });
-        }
-
-        try {
-                // Noting to update, only unique index, if we get here, just return what was sent in.
-
-                const message = new Object()
-                message.userId = req.body.userId
-                message.poamId = req.body.poamId
-
-                return (message)
-        }
-        catch (error) {
-                let errorResponse = { null: "null" }
-                await connection.release()
-                return errorResponse;
-        }
-}
+    });
+};
 
 exports.deletePoamAssignee = async function deletePoamAssignee(req, res, next) {
-        // res.status(201).json({ message: "deletePoamAssignee (Service) Method called successfully" });
-        if (!req.params.userId) {
-                console.info('deletePoamAssignee userId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                userId: 'is required',
-                        }
-                });
+    if (!req.params.userId) {
+        throw new Error('deletePoamAssignee: userId is required');
+    }
+    if (!req.params.poamId) {
+        throw new Error('deletePoamAssignee: poamId is required');
+    }
+
+    await withConnection(async (connection) => {
+        const userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
+        const [user] = await connection.query(userSql, [req.params.userId]);
+        const fullName = user[0] ? user[0].fullName : "Unknown User";
+
+        let sql = "DELETE FROM cpat.poamassignees WHERE userId = ? AND poamId = ?";
+        await connection.query(sql, [req.params.userId, req.params.poamId]);
+
+        if (req.body.requestorId) {
+            let action = `${fullName} was removed from the Assignee List.`;
+            let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
         }
 
-        if (!req.params.poamId) {
-                console.info('deletePoamAssignee poamId not provided.');
-                return next({
-                        status: 422,
-                        errors: {
-                                poamId: 'is required',
-                        }
-                });
-        }
-
-        try {
-                let connection
-                connection = await dbUtils.pool.getConnection()
-                let sql = "DELETE FROM  poamtracking.poamassignees WHERE userId=" + req.params.userId +
-                        " AND poamId = " + req.params.poamId + ";"
-                //console.log("deleteLabel sql: ", sql)
-
-                await connection.query(sql)
-               
-                await connection.release()
-
-                var poamAssignee = []
-
-                return { poamAssignee };
-        }
-        catch (error) {
-                let errorResponse = { null: "null" }
-                await connection.release()
-                return errorResponse;
-        }
-}
+        const notification = {
+            title: 'Removed from POAM Assignee list',
+            message: `You have been removed from the Assignee list for POAM ${req.params.poamId}.`,
+            userId: req.params.userId
+        };
+        const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+        await connection.query(notificationSql, [req.params.userId, notification.title, notification.message]);
+    });
+};

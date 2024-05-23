@@ -13,293 +13,398 @@ const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
 
-exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
-	//console.log("getPoamApprovers (Service) ...");
-	if (!req.params.poamId) {
-		console.info('getPoamApprovers poamId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				poamId: 'is required',
-			}
-		});
-	}
-	let connection
-	try {
-
-		connection = await dbUtils.pool.getConnection()
-		let sql = "SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.phoneNumber, T2.userEmail FROM  poamtracking.poamapprovers T1 " +
-			"INNER JOIN poamtracking.user T2 ON t1.userId = t2.userId WHERE poamId = ?;"
-		//console.log("getLabels sql: ", sql)
-
-		let [rows] = await connection.query(sql, req.params.poamId)
-
-		//console.log("rows: ", rows[0])
-		await connection.release()
-
-		var size = Object.keys(rows).length
-
-		var poamApprovers = []
-
-		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-			poamApprovers.push({
-				...rows[counter]
-			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
-		}
-
-		return { poamApprovers };
-
-	}
-	catch (error) {
-		let errorResponse = { null: "null" }
-		//await connection.release()
-		return errorResponse;
-	}
+async function withConnection(callback) {
+    const connection = await dbUtils.pool.getConnection();
+    try {
+        return await callback(connection);
+    } finally {
+        await connection.release();
+    }
 }
 
-exports.postPoamApprover = async function postPoamApprover(req, res, next) {
-	// res.status(201).json({ message: "postPermission (Service) Method called successfully" });
-	//console.log("postPoamAprover req.body: ", req.body)
+exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
+    if (!req.params.poamId) {
+        return next({
+            status: 400,
+            errors: {
+                poamId: 'is required',
+            }
+        });
+    }
 
-	if (!req.body.poamId) {
-		console.info('postPoamApprover poamId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				poamId: 'is required',
-			}
-		});
-	}
-	if (!req.body.userId) {
-		console.info('postCollectionApprover userId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				userId: 'is required',
-			}
-		});
-	}
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
+                FROM cpat.poamapprovers T1
+                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
+                WHERE poamId = ?;
+            `;
+            let [rows] = await connection.query(sql, [req.params.poamId]);
+            var poamApprovers = rows.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }));
+            return poamApprovers;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+}
 
-	if (!req.body.approved) req.body.approved = 'Not Reviewed';
-	if (!req.body.approvedDate) req.body.approvedDate = null;
-	if (!req.body.comments) req.body.comments = null;
-	let connection
-	try {
+exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req, res, next) {
+    if (!req.params.collectionId) {
+        return next({
+            status: 400,
+            errors: {
+                collectionId: 'is required',
+            }
+        });
+    }
 
-		connection = await dbUtils.pool.getConnection()
-
-		let sql_query = `INSERT INTO poamtracking.poamapprovers (poamId, userId, approved, approvedDate, comments) values (?, ?, ?, ?, ?)`
-
-		//await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.poamCount])
-		//await connection.release()
-		await connection.query(sql_query, [req.body.poamId, req.body.userId, req.body.approved, req.body.approvedDate, req.body.comments])
-		await connection.release()
-
-		let sql = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = " + req.body.poamId + " AND userId = " + req.body.userId + ";"
-		let [row] = await connection.query(sql)
-		//console.log("row: ", row[0])
-		await connection.release()
-
-
-		var size = Object.keys(row).length
-
-		var poamApprover = []
-
-		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-			poamApprover.push({
-				...row[counter]
-			});
-
-		}
-		return ({ poamApprover })
-	}
-	catch (error) {
-		console.log("error: ", error);
-		let errorResponse = { null: "null" }
-		await connection.release()
-		return errorResponse;
-	}
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
+                FROM cpat.poamapprovers T1
+                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
+                INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
+                WHERE T3.collectionId = ?
+            `;
+            let [rows] = await connection.query(sql, [req.params.collectionId]);
+            var poamApprovers = rows.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }));
+            return poamApprovers;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
 }
 
 exports.getPoamApproversByCollectionUser = async function getPoamApproversByCollectionUser(req, res, next) {
-	//console.log("getPoamApprovers (Service) ...");
-	if (!req.params.collectionId) {
-		console.info('getPoamApproversByCollectionUser colectionId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				collectionId: 'is required',
-			}
-		});
-	}
-	if (!req.params.userId) {
-		console.info('getPoamApprovers userId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				userId: 'is required',
-			}
-		});
-	}
-	let connection
-	try {
+    if (!req.params.collectionId) {
+        return next({
+            status: 400,
+            errors: {
+                collectionId: 'is required',
+            }
+        });
+    }
+    if (!req.params.userId) {
+        return next({
+            status: 400,
+            errors: {
+                userId: 'is required',
+            }
+        });
+    }
 
-		connection = await dbUtils.pool.getConnection()
-		let sql = `SELECT T1.*,T2.firstName, T2.lastName, T2.fullName, T2.phoneNumber, T2.userEmail FROM  poamtracking.poamapprovers T1 ` +
-			`INNER JOIN poamtracking.user T2 ON T1.userId = T2.userId ` +
-			`INNER JOIN poamtracking.poam T3 ON T1.poamId = T3.poamId WHERE T3.collectionId = ? AND T1. userId = ?`
-		//console.log("getLabels sql: ", sql)
-
-		let [rows] = await connection.query(sql, [req.params.collectionId, req.params.userId])
-
-		console.log("rows: ", rows[0])
-		await connection.release()
-
-		var size = Object.keys(rows).length
-
-		var poamApprovers = []
-
-		for (let counter = 0; counter < size; counter++) {
-			// console.log("Before setting permissions size: ", size, ", counter: ",counter);
-
-			poamApprovers.push({
-				...rows[counter]
-			});
-			// console.log("After setting permissions size: ", size, ", counter: ",counter);
-			// if (counter + 1 >= size) break;
-		}
-
-		return { poamApprovers };
-
-	}
-	catch (error) {
-		console.log("error: ", error)
-		let errorResponse = { null: "null" }
-		//await connection.release()
-		return errorResponse;
-	}
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
+                FROM cpat.poamapprovers T1
+                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
+                INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
+                WHERE T3.collectionId = ? AND T1.userId = ?
+            `;
+            let [rows] = await connection.query(sql, [req.params.collectionId, req.params.userId]);
+            var poamApprovers = rows.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }));
+            return poamApprovers;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
 }
+
+exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, res, next) {
+    if (!req.params.userId) {
+        return next({
+            status: 400,
+            errors: {
+                userId: 'is required',
+            }
+        });
+    }
+
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
+                FROM cpat.poamapprovers T1
+                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
+                INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
+                WHERE T1.userId = ?
+            `;
+            let [rows] = await connection.query(sql, [req.params.userId]);
+            var poamApprovers = rows.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }));
+            return poamApprovers;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+}
+
+exports.postPoamApprover = async function postPoamApprover(req, res, next) {
+    if (!req.body.poamId) {
+        return next({
+            status: 400,
+            errors: {
+                poamId: 'is required',
+            }
+        });
+    }
+    if (!req.body.userId) {
+        return next({
+            status: 400,
+            errors: {
+                userId: 'is required',
+            }
+        });
+    }
+
+    if (!req.body.approvalStatus) req.body.approvalStatus = 'Not Reviewed';
+    if (!req.body.approvedDate) req.body.approvedDate = null;
+    if (!req.body.comments) req.body.comments = null;
+
+    try {
+        return await withConnection(async (connection) => {
+            let sql_query = `
+                INSERT INTO cpat.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments)
+                VALUES (?, ?, ?, ?, ?)
+            `;
+            await connection.query(sql_query, [
+                req.body.poamId, req.body.userId, req.body.approvalStatus,
+                req.body.approvedDate, req.body.comments
+            ]);
+
+            if (req.body.poamLog[0].userId) {
+                let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
+                const [user] = await connection.query(userSql, [req.body.userId]);
+                const fullName = user[0] ? user[0].fullName : "Unknown User";
+                let action = `${fullName} was added to the Approver List.`;
+                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+
+                    const notification = {
+                        title: 'Added to Approver List',
+                        message: `You have been assigned as an approver for POAM ${req.body.poamId}.`,
+                        userId: req.body.userId
+                    };
+                    const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    await connection.query(notificationSql, [req.body.userId, notification.title, notification.message]);
+            } 
+            let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
+            let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
+            var poamApprover = row.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }))[0];
+
+            return poamApprover;
+        });
+    } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            return await withConnection(async (connection) => {
+                let fetchSql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
+                const [existingApprover] = await connection.query(fetchSql, [req.body.poamId, req.body.userId]);
+                return existingApprover[0];
+            });
+        }
+        else {
+            return { error: error.message };
+        }
+    }
+};
 
 exports.putPoamApprover = async function putPoamApprover(req, res, next) {
-	// res.status(201).json({ message: "putPermission (Service) Method called successfully" });
-	// console.log("putPoamApprover req.body: ", req.body)
-	if (!req.body.poamId) {
-		console.info('putPoamApprover poamId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				poamId: 'is required',
-			}
-		});
-	}
-	if (!req.body.userId) {
-		console.info('putCollectionApprover userId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				userId: 'is required',
-			}
-		});
-	}
+    if (!req.body.poamId) {
+        return next({
+            status: 400,
+            errors: {
+                poamId: 'is required',
+            }
+        });
+    }
+    if (!req.body.userId) {
+        return next({
+            status: 400,
+            errors: {
+                userId: 'is required',
+            }
+        });
+    }
 
-	if (!req.body.approved) req.body.approved = 'Not Reviewed';
-	if (!req.body.approvedDate) req.body.approvedDate = null;
-	if (!req.body.comments) req.body.comments = null;
+    if (!req.body.approvalStatus) req.body.approvalStatus = 'Not Reviewed';
+    if (!req.body.approvedDate) req.body.approvedDate = null;
+    if (!req.body.comments) req.body.comments = null;
 
-	let connection
-	try {
+    try {
+        return await withConnection(async (connection) => {
+            let sql_query = `
+                UPDATE cpat.poamapprovers
+                SET approvalStatus = ?, approvedDate = ?, comments = ?
+                WHERE poamId = ? AND userId = ?;
+            `;
+            await connection.query(sql_query, [
+                req.body.approvalStatus, req.body.approvedDate, req.body.comments,
+                req.body.poamId, req.body.userId
+            ]);
 
-		connection = await dbUtils.pool.getConnection()
+            let fullName = "Unknown User";
+            let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
+            const [user] = await connection.query(userSql, [req.body.userId]);
+            if (user[0]) {
+                fullName = user[0].fullName;
+            }
 
-		let sql_query = "UPDATE poamtracking.poamapprovers SET approved= ?, approvedDate = ?, comments = ? WHERE poamId = " + req.body.poamId + " AND userId = " + req.body.userId + ";"
+            if (req.body.approvalStatus === 'Rejected') {
+                sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?;";
+                await connection.query(sql_query, ["Rejected", req.body.poamId]);
+                const poamSql = "SELECT submitterId FROM cpat.poam WHERE poamId = ?";
+                const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
+                const submitterId = poamResult[0].submitterId;
 
-		await connection.query(sql_query, [req.body.approved, req.body.approvedDate, req.body.comments])
+                const notification = {
+                    title: 'POAM Rejected',
+                    message: `POAM ${req.body.poamId} has been rejected by ${fullName}. Approver Comments: ${req.body.comments}.`,
+                    userId: submitterId
+                };
+                const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
 
-		if (req.body.approved === 'Rejected') {
-			// If one approver rejects, we must reject the POAM
-			sql_query = "UPDATE poamtracking.poam SET status = ? WHERE poamId = ?;"
-			await connection.query(sql_query, ["Rejected", req.body.poamId])
-		} else {
-			// if all approvers Approved, then we approve the POAM
-			sql_query = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND approved != 'Approved';"
-			let [rows] = await connection.query(sql_query, [req.body.poamId])
-			if (Object.keys(rows).length == 0) {
-				sql_query = "UPDATE poamtracking.poam SET status = ? WHERE poamId = ?;"
-				await connection.query(sql_query, ["Approved", req.body.poamId])
-			}
-		}
+                if (req.body.poamLog[0].userId) {
+                    let action = `POAM ${req.body.poamId} has been rejected by ${fullName}. Approver Comments: ${req.body.comments}.`;
+                    let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                    await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                }
+            } else if (req.body.approvalStatus === 'Approved') {
+                const poamSql = "SELECT submitterId, rawSeverity, collectionId FROM cpat.poam WHERE poamId = ?";
+                const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
+                const submitterId = poamResult[0].submitterId;
+                const rawSeverity = poamResult[0].rawSeverity;
+                const collectionId = poamResult[0].collectionId;
 
-		// return the updated row
-		sql_query = "SELECT * FROM poamtracking.poamapprovers WHERE poamId = ? AND userId = ?;"
-		let [rows] = await connection.query(sql_query, [req.body.poamId, req.body.userId])
+                const notification = {
+                    title: `POAM Approved by ${fullName}`,
+                    message: `POAM ${req.body.poamId} has been marked approved by ${fullName}.`,
+                    userId: submitterId
+                };
+                const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
 
-		await connection.release()
+                if (req.body.poamLog[0].userId) {
+                    let action = `POAM ${req.body.poamId} has been approved by ${fullName}. Approver Comments: ${req.body.comments}.`;
+                    let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                    await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                }
 
-		var size = Object.keys(rows).length
-		var poamApprover = []
+                const permissionSql = "SELECT userId FROM cpat.collectionpermissions WHERE collectionId = ? AND accessLevel = 4";
+                const [permissionResult] = await connection.query(permissionSql, [collectionId]);
+                const cat1ApproverId = permissionResult[0].userId;
 
-		for (let counter = 0; counter < size; counter++) {
+                if (rawSeverity === "CAT I - Critical/High") {
+                    const cat1Notification = {
+                        title: 'CAT-I POAM Pending Approval',
+                        message: `POAM ${req.body.poamId} has been marked approved and is pending CAT-I Approver review.`,
+                        userId: cat1ApproverId
+                    };
+                    const cat1NotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    await connection.query(cat1NotificationSql, [cat1ApproverId, cat1Notification.title, cat1Notification.message]);
+                } else {
+                    sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?";
+                    await connection.query(sql_query, ["Approved", req.body.poamId]);
 
-			poamApprover.push({ ...rows[counter] });
-		}
+                    const notification = {
+                        title: `POAM status changed to Approved`,
+                        message: `POAM ${req.body.poamId} has met the approval requirements. POAM Status has changed to Approved.`,
+                        userId: submitterId
+                    };
+                    const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                    await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
 
-		return ({ poamApprover })
+                    if (req.body.poamLog[0].userId) {
+                        let action = `POAM ${req.body.poamId} has met the approval requirements. POAM Status has changed to Approved.`;
+                        let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                        await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                    }
+                }
+            } else {
+                if (req.body.poamLog[0].userId && req.body.approvalStatus === 'Not Reviewed') {
+                    let action = `${fullName} has changed approval status to 'Not Reviewed'.`;
+                    let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                    await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                }
+                else if(req.body.poamLog[0].userId) {
+                    let action = `${fullName} was added to the Approver List.`;
+                    let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                    await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                }               
+            }
+            let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
+            let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
+            var poamApprover = row.map(row => ({
+                ...row,
+                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+            }))[0];
 
-	}
-	catch (error) {
-		console.log("error: ", error);
-		let errorResponse = { null: "null" }
-		await connection.release()
-		return errorResponse;
-	}
-}
+            return poamApprover;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
 
-exports.deletePoamAprover = async function deletePoamApprover(req, res, next) {
-	// res.status(201).json({ message: "deleteColectionApprover (Service) Method called successfully" });
-	if (!req.params.poamId) {
-		console.info('deleteCollectionApprover poamId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				poamId: 'is required',
-			}
-		});
-	}
-	if (!req.params.userId) {
-		console.info('deleteCollectionApprover userId not provided.');
-		return next({
-			status: 422,
-			errors: {
-				userId: 'is required',
-			}
-		});
-	}
-	let connection
-	try {
+exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
+    if (!req.params.poamId) {
+        return next({
+            status: 400,
+            errors: {
+                poamId: 'is required',
+            }
+        });
+    }
+    if (!req.params.userId) {
+        return next({
+            status: 400,
+            errors: {
+                userId: 'is required',
+            }
+        });
+    }
 
-		connection = await dbUtils.pool.getConnection()
-		let sql = "DELETE FROM  poamtracking.poamapprovers WHERE poamId=" + req.params.poamId + " AND userId = " + req.params.userId + ";"
-		//console.log("deleteLabel sql: ", sql)
+    try {
+        return await withConnection(async (connection) => {
+            let sql = "DELETE FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
+            await connection.query(sql, [req.params.poamId, req.params.userId]);
 
-		await connection.query(sql)
-		// console.log("rowPermissions: ", rowPermissions[0])
-		await connection.release()
+            if (req.body.requestorId) {
+                let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
+                const [user] = await connection.query(userSql, [req.params.userId]);
+                const fullName = user[0] ? user[0].fullName : "Unknown User";
+                let action = `${fullName} was removed from the Approver List.`;
+                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
 
-
-		var poamApprover = { delete: 'Success' }
-
-		return poamApprover;
-	}
-	catch (error) {
-		console.log("error: ", error);
-		let errorResponse = { null: "null" }
-		await connection.release()
-		return errorResponse;
-	}
+                const notification = {
+                    title: 'Removed from POAM Approver list',
+                    message: `You have been removed from the Approver list for POAM ${req.params.poamId}.`,
+                    userId: req.params.userId
+                };
+                const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                await connection.query(notificationSql, [req.params.userId, notification.title, notification.message]);
+            }
+            return { delete: 'Success' };
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
 }

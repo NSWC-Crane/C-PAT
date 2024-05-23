@@ -1,3 +1,4 @@
+
 module.exports = (sequelize, DataTypes) => {
     const Poam = sequelize.define("poam", {
         poamId: {
@@ -6,12 +7,26 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
+        milestones: {
+            type: DataTypes.VIRTUAL,
+        },
+        "milestoneChanges": {
+            type: DataTypes.VIRTUAL,
+        },
         collectionId: {
             type: DataTypes.INTEGER,
             defaultValue: 0
         },
         vulnerabilitySource: {
             type: DataTypes.STRING(255),
+            defaultValue: ''
+        },
+        stigTitle: {
+            type: DataTypes.STRING(255),
+            defaultValue: ''
+        },
+        iavmNumber: {
+            type: DataTypes.STRING(50),
             defaultValue: ''
         },
         aaPackage: {
@@ -38,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATEONLY,
             defaultValue: '1900-01-01'
         },
-        ownerId: {
+        submitterId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 0
@@ -49,13 +64,7 @@ module.exports = (sequelize, DataTypes) => {
         requiredResources: {
             type: DataTypes.TEXT
         },
-        milestones: {
-            type: DataTypes.TEXT
-        },
         residualRisk: {
-            type: DataTypes.TEXT
-        },
-        businessImpact: {
             type: DataTypes.TEXT
         },
         notes: {
@@ -66,11 +75,6 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: 'Draft'
         },
-        poamType: {
-            type: DataTypes.STRING(10),
-            allowNull: false,
-            defaultValue: ''
-        },
         vulnIdRestricted: {
             type: DataTypes.STRING(255),
             defaultValue: ''
@@ -79,7 +83,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATEONLY,
             defaultValue: '1900-01-01' 
         },
-        poamitemid: {
+        emassPoamId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 0
@@ -116,22 +120,22 @@ module.exports = (sequelize, DataTypes) => {
         },
         likelihood: {
             type: DataTypes.STRING(15),
-            allowNull: false,
             defaultValue: ''
         },
-        impactDescription: {
-            type: DataTypes.STRING(2000),
+        businessImpactRating: {
+            type: DataTypes.STRING(15),
             defaultValue: ''
         },
-        recommendations: {
-            type: DataTypes.STRING(2000),
-            defaultValue: ''
+        businessImpactDescription: {
+            type: DataTypes.TEXT
         },
-        devicesAffected: {
-            type: DataTypes.STRING(255),
-            allowNull: false,
-            defaultValue: ''
+        extensionTimeAllowed: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
         },
+        extensionJustification: {
+            type: DataTypes.TEXT
+        }
     }, {
         freezeTableName: true,
         timestamps: false,

@@ -1,0 +1,58 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+:host ::ng-deep {
+  nb-card {
+    width: 60vw;
+    height: auto;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h3 {
+      margin: 0;
+    }
+
+    nb-select {
+      width: 300px;
+    }
+  }
+
+  .log-container {
+    min-height: 200px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .nb-tree-grid-header-cell,
+  .nb-tree-grid-cell {
+    &:nth-child(1) {
+      width: 15%;
+    }
+
+    &:nth-child(2) {
+      width: 15%;
+    }
+
+    &:nth-child(3) {
+      width: 70%;
+    }
+  }
+
+  nb-card-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+}

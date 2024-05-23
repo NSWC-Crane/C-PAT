@@ -10,45 +10,80 @@
 
 const assetLabelService = require('../Services/mysql/assetLabelService')
 
-module.exports.getAssetLabels = async function getAssetLabels(req, res, next){
-        // res.status(201).json({message: "getAssetLabels Method called successfully"})
-        var assetLabels = await assetLabelService.getAssetLabels(req,res,next); 
-        res.status(201).json(assetLabels)
+module.exports.getAssetLabels = async function getAssetLabels(req, res, next) {
+    try {
+        const assetLabels = await assetLabelService.getAssetLabels(req, res, next);
+        res.status(200).json(assetLabels);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
+
+module.exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, next) {
+    try {
+        const assetLabels = await assetLabelService.getAssetLabelsByAsset(req, res, next);
+        res.status(200).json(assetLabels);
+    } catch (error) {
+        if (error.message === 'assetId is required') {
+            res.status(400).json({ error: 'Validation Error', detail: error.message });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
 }
 
-module.exports.getAssetLabelByAsset = async function getAssetLabelByAsset(req, res, next){
-        // res.status(201).json({message: "getAsseLabelByAsset Method called successfully"});
-        var assetLabels = await assetLabelService.getAssetLabelsByAsset(req,res,next); 
-        res.status(201).json(assetLabels)
-}
+module.exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, next) {
+    try {
+        const assetLabels = await assetLabelService.getAssetLabelsByLabel(req, res, next);
+        res.status(200).json(assetLabels);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
 
-module.exports.getAssetLabelByLabel = async function getAssetLabelByLabel(req, res, next){
-        //res.status(201).json({message: "getAsseLabelByLabel Method called successfully"});
-        var assetLabels = await assetLabelService.getAssetLabelsByLabel(req,res,next); 
-        res.status(201).json(assetLabels)
-}
+module.exports.getAssetLabel = async function getAssetLabel(req, res, next) {
+    try {
+        const assetLabel = await assetLabelService.getAssetLabel(req, res, next);
+        res.status(200).json(assetLabel);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
 
-module.exports.getAssetLabel = async function getAssetLabel(req, res, next){
-        // res.status(201).json({message: "getAsseLabel Method called successfully"});
-        var assetLabel = await assetLabelService.getAssetLabel(req,res,next); 
-        res.status(201).json(assetLabel)
-}
+module.exports.postAssetLabel = async function postAssetLabel(req, res, next) {
+    try {
+        const result = await assetLabelService.postAssetLabel(req, res, next);
+        res.status(201).json(result);
+    } catch (error) {
+        if (error.message === 'assetId is required' || error.message === 'labelId is required' || error.message === 'collectionId is required') {
+            res.status(400).json({ error: 'Validation Error', detail: error.message });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
 
-module.exports.postAssetLabel = async function postAssetLabel(req, res, next){
-        // res.status(201).json({message: "post:AssetLabel Method called successfully"});
-        var assetLabel = await assetLabelService.postAssetLabel(req,res,next); 
-        res.status(201).json(assetLabel)
-}
-
-module.exports.putAssetLabel = async function putAssetLabel(req, res, next){
-        res.status(201).json({message: "putAssetLabel Method called successfully, There is only a unique index on asset and label id's, nothing to update!!!"});
-        // var assetLabel = await assetLabelService.putAsset(req,res,next); 
-        // res.status(201).json(assetLabel)
-}
-
-module.exports.deleteAssetLabel= async function deleteAssetLabel(req, res, next){
-        //res.status(201).json({message: "deleteAssetLabel Method called successfully"});
-        var assetLabel = await assetLabelService.deleteAssetLabel(req,res,next); 
-        res.status(201).json(assetLabel)
-}
-
+module.exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
+    try {
+        await assetLabelService.deleteAssetLabel(req, res, next);
+        res.status(204).send();
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};

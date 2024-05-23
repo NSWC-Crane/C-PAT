@@ -10,45 +10,60 @@
 
 const poamAssetService = require('../Services/mysql/poamAssetService')
 
-module.exports.getPoamAssets = async function getPoamAssets(req, res, next){
-        //res.status(201).json({message: "getPoamAssets Method called successfully"})
-        var poamAssets = await poamAssetService.getPoamAssets(req,res,next); 
-        res.status(201).json(poamAssets)
-}
+module.exports.getPoamAssets = async function getPoamAssets(req, res, next) {
+    try {
+        var poamAssets = await poamAssetService.getPoamAssets(req, res, next);
+        res.status(200).json(poamAssets);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
-module.exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, next){
-        // res.status(201).json({message: "getPoamAssetsByPoamId Method called successfully"});
-        var poamAssets = await poamAssetService.getPoamAssetsByPoamId(req,res,next); 
-        res.status(201).json(poamAssets)
-}
+module.exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, next) {
+    try {
+        var poamAssets = await poamAssetService.getPoamAssetsByPoamId(req, res, next);
+            res.status(200).json(poamAssets);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
-module.exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res, next){
-        // res.status(201).json({message: "getPoamAssetsByAssetId Method called successfully"});
-        var poamAssets = await poamAssetService.getPoamAssetsByAssetId(req,res,next); 
-        res.status(201).json(poamAssets)
-}
+module.exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res, next) {
+    try {
+        await poamAssetService.deletePoamAssetByPoamId(req, res, next);
+        res.status(204).send();
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
-module.exports.getPoamAsset = async function getPoamAsset(req, res, next){
-        res.status(201).json({message: "getPoamAsset Method called successfully"});
-        // var poamAsset = await poamAssetService.getPoamAsset(req,res,next); 
-        // res.status(201).json(poamAsset)
-}
+module.exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res, next) {
+    try {
+        var poamAssets = await poamAssetService.getPoamAssetsByAssetId(req, res, next);
+            res.status(200).json(poamAssets);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
-module.exports.postPoamAsset = async function postPoamAsset(req, res, next){
-        // res.status(201).json({message: "postPoamAsset Method called successfully"});
-        var poamAsset = await poamAssetService.postPoamAsset(req,res,next); 
-        res.status(201).json(poamAsset)
-}
+module.exports.postPoamAsset = async function postPoamAsset(req, res, next) {
+    try {
+        var poamAsset = await poamAssetService.postPoamAsset(req, res, next);
+        if (poamAsset === null) {
+            res.status(400).json({ error: 'Failed to create PoamAsset' });
+        } else {
+            res.status(201).json(poamAsset);
+        }
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
-module.exports.putPoamAsset = async function putPoamAsset(req, res, next){
-        res.status(201).json({message: "putPoamAsset Method called successfully, There is only a unique index on poamId and assetId, nothing to update!!!"});
-        // var poamAsset = await poamAssetService.putAsset(req,res,next); 
-        // res.status(201).json(poamAsset)
-}
-
-module.exports.deletePoamAsset = async function deletePoamAsset(req, res, next){
-        // res.status(201).json({message: "deletePoamAsset Method called successfully"});
-        var poamAsset = await poamAssetService.deletePoamAsset(req,res,next); 
-        res.status(201).json(poamAsset)
-}
-
+module.exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
+    try {
+        await poamAssetService.deletePoamAsset(req, res, next);
+        res.status(204).send();
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};

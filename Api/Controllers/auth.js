@@ -8,47 +8,41 @@
 !########################################################################
 */
 
-const authService = require('../Services/mysql/authService')
+const authService = require('../Services/mysql/authService');
 const auth = require('../utils/auth');
+const logger = require('../utils/logger');
 
-module.exports.authLogin = async function authLogin(req, res, next){
+module.exports = {
+    authLogin: async (req, res, next) => {
+        try {
+            await authService.login(req, res, next);
+        } catch (error) {
+            logger.writeError('auth', 'authLogin', error);
+        }
+    },
 
-	console.log("authLogin req.body: ",req.body);
-	await authService.login(req,res,next);
+    authLogout: async (req, res, next) => {
+        try {
+        const userLogout = await authService.logout(req, res, next);
+            res.status(201).json(userLogout);
+        } catch (error) {
+            logger.writeError('auth', 'authLogout', error);
+        }
+    },
 
-}
+    authRegister: async (req, res, next) => {
+        try {
+            await authService.register(req, res, next);
+        } catch (error) {
+            logger.writeError('auth', 'authRegister', error);
+        }
+    },
 
-module.exports.authLogout = async function authLogout(req, res, next){
-
-	console.log("authLogout...")
-
-	var userLogout = await authService.logout(req,res,next)
-	res.status(201).json(userLogout)
-}
-
-module.exports.authRegister = async function authRegister(req, res, next){
-
-	console.log("authRegister req.body: ", req.body);
-	await authService.register(req,res,next); 
-}
-
-module.exports.changeWorkspace = async function changeWorkspace(req, res, next){
-	console.log("changeWorkspace...req.body: ", req.body)
-	// var userAuth = await authService.login(req,res,next)
-	// //let test = {userID: '1' ,userName: "tyler.forajter", email: 't1@ttt.com'}
-	// console.log("controller login returning userAuth: ",userAuth)
-	// console.log("controller login returning res: ",res.body)
-	// res.status(201).json(userAuth)
-
-	// await await authService.changeWorkspace(req,res,(err,token) => {
-	// 	console.log("authService.changeWorkspace err: ", err)
-	// 	console.log("authService.changeWorkspace token: ", token)
-	// 	// if (err) { 
-	// 	//   console.log('passport.use user.authentication err: ' + JSON.stringify(err));
-	// 	//   return done(null, false, err);
-	// 	// }
-	// 	res.status(201).json(token)
-	// });
-
-	await authService.changeWorkspace(req, res, next);
-}
+    changeWorkspace: async (req, res, next) => {
+        try {
+            await authService.changeWorkspace(req, res, next);
+        } catch (error) {
+            logger.writeError('auth', 'changeWorkspace', error);
+        }
+    }
+};

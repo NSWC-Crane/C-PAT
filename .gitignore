@@ -2,3 +2,7 @@
 
 node_modules/
 /.vs
+.nx
+.angular
+.vscode
+.gitignore
