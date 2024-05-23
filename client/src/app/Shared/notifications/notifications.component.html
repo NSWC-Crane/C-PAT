@@ -1,0 +1,54 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
+<nb-card class="notifications-container">
+  <nb-card-header class="combined-header">
+    <div class="top-row">
+      <h5>Notifications</h5>
+    </div>
+    <div class="bottom-row">
+      <div class="filter-actions">
+        <nb-select fullWidth outline status="info" style="width: 20rem;" [(ngModel)]="filterStatus" (ngModelChange)="filterNotifications()" placeholder="Filter by status...">
+          <nb-option value="Read">Read</nb-option>
+          <nb-option value="Unread">Unread</nb-option>
+        </nb-select>
+        <button nbButton ghost style="margin-left: 10px;" (click)="resetFilter()">
+          <nb-icon icon="refresh-outline"></nb-icon>
+        </button>
+      </div>
+      <div class="header-actions">
+        <button nbButton outline status="info" (click)="dismissAllNotifications()">
+          <nb-icon icon="checkmark-outline"></nb-icon>Mark all as read
+        </button>
+        <button nbButton outline status="danger" (click)="deleteAllNotifications()">
+          <nb-icon icon="trash-outline"></nb-icon>Erase all Notifications
+        </button>
+      </div>
+    </div>
+  </nb-card-header>
+
+  <nb-card-body>
+    <nb-list>
+      <nb-list-item *ngFor="let notification of filteredNotifications" [class.unread]="notification.read === 0">
+        <div class="notification-content">
+          <div class="notification-body-header">
+            <div class="notification-icon">
+              <nb-icon [icon]="notification.icon"></nb-icon>
+            </div>
+            <h6>{{ notification.title }}</h6>
+            <button nbButton outline size="small" status="danger" *ngIf="notification.notificationId" class="delete-icon" (click)="deleteNotification(notification)"><nb-icon icon="trash-2-outline"></nb-icon></button>
+          </div>
+          <p>{{ notification.message }}</p>
+          <small>{{ notification.timestamp | date:'short' }}</small>
+        </div>
+      </nb-list-item>
+    </nb-list>
+  </nb-card-body>
+</nb-card>

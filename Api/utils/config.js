@@ -23,7 +23,7 @@ let config = {
         authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:2020/auth/realms/RMFTools",
         apiBase: process.env.CPAT_CLIENT_API_BASE || "api",
         disabled: process.env.CPAT_CLIENT_DISABLED === "true",
-        directory: process.env.CPAT_CLIENT_DIRECTORY || '../Front End/poam-app/dist',
+        directory: process.env.CPAT_CLIENT_DIRECTORY || '../../../client/dist',
         extraScopes: process.env.CPAT_CLIENT_EXTRA_SCOPES,
         scopePrefix: process.env.CPAT_CLIENT_SCOPE_PREFIX,
         refreshToken: {

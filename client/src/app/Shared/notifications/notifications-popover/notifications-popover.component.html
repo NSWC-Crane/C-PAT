@@ -1,0 +1,41 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
+<nb-card class="notifications-popover">
+  <nb-card-header>
+    <h5>Notifications</h5>
+    <div class="header-actions">
+      <button nbButton outline size="tiny" status="basic" (click)="dismissAllNotifications()">Mark all as read</button>
+    </div>
+  </nb-card-header>
+
+  <nb-card-body>
+    <nb-list>
+      <nb-list-item *ngFor="let notification of notifications">
+        <div class="notification-content">
+          <div class="notification-header">
+            <div class="notification-icon">
+              <nb-icon [icon]="notification.icon"></nb-icon>
+            </div>
+            <h6>{{ notification.title }}</h6>
+            <nb-icon *ngIf="notification.notificationId" class="dismiss-icon" icon="close" (click)="dismissNotification(notification)"></nb-icon>
+          </div>
+          <p>{{ notification.message }}</p>
+          <small>{{ notification.timestamp | date:'short' }}</small>
+        </div>
+      </nb-list-item>
+    </nb-list>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton fullWidth outline size="tiny" status="basic" (click)="viewAllNotifications()">See all notifications</button>
+  </nb-card-footer>
+</nb-card>
+

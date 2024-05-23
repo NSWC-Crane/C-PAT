@@ -1,0 +1,136 @@
+<!-- View STIG Manager Findings and Create POAM -->
+<nb-card>
+  <nb-card-header>STIG Manager Findings</nb-card-header>
+  <nb-card-body>
+    <nb-tabset>
+      <nb-tab class="nb-tab" tabTitle="Findings Grid" [badgeText]="findingsCount.toString()" badgeStatus="warning">
+        <nb-card class="grid-nb-card">
+            <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search...">
+            <div class="table-container">
+              <table [nbTreeGrid]="dataSource" [nbSort]="dataSource" (sort)="updateSort($event)">
+                <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+                <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+
+                <ng-container [nbTreeGridColumnDef]="customColumn">
+                  <th nbTreeGridHeaderCell [nbSortHeader]="getSortDirection(customColumn)" *nbTreeGridHeaderCellDef [style.width.%]="15">
+                    {{customColumn}}
+                  </th>
+                  <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="15">
+                    <nb-tree-grid-row-toggle [expanded]="row.expanded"></nb-tree-grid-row-toggle>
+                    {{row.data[customColumn]}}
+                  </td>
+                </ng-container>
+
+                <ng-container [nbTreeGridColumnDef]="'Rule Title'">
+                  <th nbTreeGridHeaderCell [nbSortHeader]="getSortDirection('Rule Title')" *nbTreeGridHeaderCellDef [style.width.%]="20">
+                    Rule Title
+                  </th>
+                  <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="20">{{row.data['Rule Title'] || '-'}}</td>
+                </ng-container>
+
+                <ng-container [nbTreeGridColumnDef]="'Benchmark ID'">
+                  <th nbTreeGridHeaderCell [nbSortHeader]="getSortDirection('Benchmark ID')" *nbTreeGridHeaderCellDef [style.width.%]="20">
+                    Benchmark ID
+                  </th>
+                  <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="20">{{row.data['Benchmark ID'] || '-'}}</td>
+                </ng-container>
+
+                <ng-container [nbTreeGridColumnDef]="'Severity'">
+                  <th nbTreeGridHeaderCell [nbSortHeader]="getSortDirection('Severity')" *nbTreeGridHeaderCellDef [style.width.%]="15">
+                    Severity
+                  </th>
+                  <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="15" [class.severity-cell]="true"
+                      [class.cat-i]="row.data['Severity'] === 'CAT I - Critical/High'"
+                      [class.cat-ii]="row.data['Severity'] === 'CAT II - Medium'"
+                      [class.cat-iii]="row.data['Severity'] === 'CAT III - Low'">
+                    {{row.data['Severity'] || '-'}}
+                  </td>
+                </ng-container>
+
+                <ng-container [nbTreeGridColumnDef]="'Asset Count'">
+                  <th nbTreeGridHeaderCell [nbSortHeader]="getSortDirection('Asset Count')" *nbTreeGridHeaderCellDef [style.width.%]="15">
+                    Asset Count
+                  </th>
+                  <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="15">{{row.data['Asset Count'] || '-'}}</td>
+                </ng-container>
+
+                <ng-container [nbTreeGridColumnDef]="'Update POAM'">
+                  <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="15">{{ updatePoamColumnTitle }}</th>
+                  <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="15">
+                    <button class="update-POAM-button" nbButton ghost *ngIf="row.children && selectedFindings !== 'Has Existing POAM'" (click)="addPoam(row)">
+                      <nb-icon icon="plus-square-outline"></nb-icon>
+                    </button>
+                    <button class="update-POAM-button" nbButton ghost *ngIf="row.children && selectedFindings === 'Has Existing POAM'" nbTooltip="Navigate to the POAM and update the affected asset list with live data." nbTooltipPlacement="top" nbTooltipStatus="basic" (click)="addPoam(row)">
+                      <nb-icon icon="sync-outline"></nb-icon>
+                    </button>
+                  </td>
+                </ng-container>
+              </table>
+            </div>
+        </nb-card>
+
+        <div class="filter-container">
+          <div class="row" style="margin-top: 20px;">
+            <label for="findingsFilter">Filter Findings:</label>
+            <nb-select fullWidth class="findings-filter" outline status="primary" placeholder="Filter Findings..."
+                       [(ngModel)]="selectedFindings" name="findingsFilter" id="findingsFilter"
+                       (ngModelChange)='filterFindings()'>
+              <nb-option value="Has Existing POAM">Has Existing POAM</nb-option>
+              <nb-option value="No Existing POAM">No Existing POAM</nb-option>
+            </nb-select>
+          </div>
+        </div>
+      </nb-tab>
+
+      <nb-tab tabTitle="Findings Chart">
+        <div class="canvas" id="canvas" style="margin-top: 20px;">
+          <button nbButton ghost class="export-button" (click)="exportChart(findingsChart, 'STIG Manager Findings Chart')">
+            <nb-icon icon="download-outline"></nb-icon>
+          </button>
+          <canvas #findingChart class="findings-chart"></canvas>
+        </div>
+
+        <div class="row" style="padding-top: 20px;">
+          <label style="margin-top: 20px;" id="findingsFilter">Filter Findings:</label>
+          <nb-select fullWidth class="findings-filter" outline status="info" placeholder="Filter Findings..."
+                     [(ngModel)]="selectedFindings" name="findingsFilter" for="findingsFilter"
+                     (ngModelChange)='filterFindings()'>
+            <nb-option value="All">All</nb-option>
+            <nb-option value="Has Existing POAM">Has Existing POAM</nb-option>
+            <nb-option value="No Existing POAM">No Existing POAM</nb-option>
+          </nb-select>
+        </div>
+      </nb-tab>
+    </nb-tabset>
+  </nb-card-body>
+</nb-card>
+
+<div class="row">
+  <div class="col-xxxl-6">
+    <nb-card>
+      <nb-card-header>
+        Synchronize Existing POAMs With STIG Manager Assets
+      </nb-card-header>
+      <button nbButton outline status="info" (click)="stigManagerAssetSync()" class="sync-button">
+        Synchronize POAMs with STIG Manager
+      </button>
+    </nb-card>
+  </div>
+  <div class="col-xxxl-6">
+    <nb-card>
+      <nb-card-header>
+        Manually Import STIG Manager Assets
+      </nb-card-header>
+      <div class="import-section">
+        <nb-select fullWidth id="assetsSelect" class="assets-select" placeholder="Select STIG Manager Assets" [(ngModel)]="selectedAssets" multiple>
+          <nb-option *ngFor="let asset of availableAssets" [value]="asset.assetId">
+            {{ asset.name }}
+          </nb-option>
+        </nb-select>
+        <button nbButton outline status="info" (click)="fetchAssetDetails();" class="import-button">
+          Import
+        </button>
+      </div>
+    </nb-card>
+  </div>
+</div>

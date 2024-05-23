@@ -1,0 +1,52 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+<nb-card-body>
+  <input nbInput [nbFilterInput]="assignedDataSource" id="search" class="search-input" placeholder="Search...">
+  <div class="table-container">
+    <table class="poam-table" [nbTreeGrid]="assignedDataSource">
+      <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="assignedColumns"></tr>
+      <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: assignedColumns"></tr>
+
+      <ng-container [nbTreeGridColumnDef]="'POAM ID'">
+        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="15">POAM ID</th>
+        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="15">{{row.data.poamId}}</td>
+      </ng-container>
+
+      <ng-container [nbTreeGridColumnDef]="'Adjusted Severity'">
+        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="22">Adjusted Severity</th>
+        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="22">{{row.data.adjSeverity}}</td>
+      </ng-container>
+
+      <ng-container [nbTreeGridColumnDef]="'Poam Status'">
+        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="20">POAM Status</th>
+        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="20">{{row.data.status}}</td>
+      </ng-container>
+
+      <ng-container [nbTreeGridColumnDef]="'Submitter'">
+        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="25">Submitted By</th>
+        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="25">{{row.data.submitter}}</td>
+      </ng-container>
+
+      <ng-container [nbTreeGridColumnDef]="'Approval Status'">
+        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="25">Approval Status</th>
+        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="25">{{row.data.approvalStatus}}</td>
+      </ng-container>
+
+      <ng-container [nbTreeGridColumnDef]="'Manage'">
+        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="18">Manage</th>
+        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="18">
+          <button class="manage-POAM-button" nbButton ghost (click)="managePoam(row)">
+            <nb-icon icon="plus-square-outline"></nb-icon>
+          </button>
+        </td>
+      </ng-container>
+    </table>
+  </div>
+</nb-card-body>
