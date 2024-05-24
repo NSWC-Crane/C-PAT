@@ -89,7 +89,7 @@ paths:
         schema:
           type: string
     get:
-      summary: Return details on a specific asset
+      summary: Return an asset by userName
       operationId: getAssetByName
       responses:
         '200':
@@ -129,7 +129,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return details on a specific asset
+      summary: Return an asset by assetId
       operationId: getAsset
       responses:
         '200':
@@ -192,7 +192,7 @@ paths:
         schema:
           type: integer
     delete:
-      summary: Delete an Asset by assetId
+      summary: Delete assets by poamId
       operationId: deleteAssetsByPoamId
       responses:
         '204':
@@ -291,7 +291,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return all assets with labels for a specific collection
+      summary: Return all asset labels and corresponding assets for a specific collection
       operationId: getAssetLabels
       responses:
         '200':
@@ -328,7 +328,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return a asset label by assetId
+      summary: Return an asset label by assetId
       operationId: getAssetLabelsByAsset
       responses:
         '200':
@@ -365,7 +365,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return a asset label by labelId
+      summary: Return an asset label by labelId
       operationId: getAssetLabelsByLabel
       responses:
         '200':
@@ -407,7 +407,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return a asset label by assetId and labelId
+      summary: Return an asset label by assetId and labelId
       operationId: getAssetLabel
       responses:
         '200':
@@ -436,7 +436,7 @@ paths:
         - oauth:
             - 'c-pat:read'
     delete:
-      summary: Delete a Asset by assetId
+      summary: Delete an asset label by assetId and labelId
       operationId: deleteAssetLabel
       responses:
         '204':
@@ -465,7 +465,7 @@ paths:
             
   /assetLabel:
     post:
-      summary: Add a asset label
+      summary: Add an asset label
       operationId: postAssetLabel
       requestBody:
         required: true
@@ -498,133 +498,51 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /auth/changeWorkspace:
-    summary: Changeworkspace
-    description: changeworkspace
-    post:
-      summary: changeWorkspace
-      description: ''
-      operationId: changeWorkspace
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/change_Workspace'
+  /collections/basiclist:
+    get:
+      tags:
+        - Collection
+      summary: Return a list of collection names and corresponding C-PAT collectionIds
+      operationId: getCollectionBasicList
       responses:
-        '201':
-          description: Change Workspace response
+        '200':
+          description: Collection list retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/change_Workspace_Response'
-        default:
-          description: unexpected error
+                type: array
+                items:
+                  $ref: '#/components/schemas/collectionNameAndId'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+  
+  '/collections/{userName}':
+    get:
       tags:
-        - Auth
-      security:
-        - oauth:
-            - 'c-pat:read'  
-            
-  /auth/login:
-    summary: Login
-    description: Login
-    post:
-      summary: Login
-      description: ''
-      operationId: authLogin
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/user_Login'
+        - Collection
+      summary: Get a list of collections accessible to the user
+      operationId: getCollections
+      parameters:
+        - $ref: '#/components/parameters/collectionAuth'
       responses:
-        '201':
-          description: User login response
+        '200':
+          description: Collection list retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_Login_Response'
-        default:
-          description: unexpected error
+                type: array
+                items:
+                  $ref: '#/components/schemas/collection'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-      tags:
-        - Auth
-      security:
-        - oauth:
-            - 'c-pat:read'
-        
-  /auth/logout:
-    summary: Logout
-    description: Llogout
-    post:
-      summary: Logout
-      description: ''
-      operationId: authLogout
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/error'
-      responses:
-        '201':
-          description: User logout response
-          content:
-            application/json:
-              schema:
-                 $ref: '#/components/schemas/error'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Auth    
-      security:
-        - oauth:
-            - 'c-pat:read'
-            
-  /auth/register:
-    summary: Register
-    description: Register
-    post:
-      summary: Register
-      description: ''
-      operationId: authRegister
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/register'
-      responses:
-        '201':
-          description: Register response
-          content:
-            application/json:
-              schema:
-                 $ref: '#/components/schemas/register_Response'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Auth 
-      security:
-        - oauth:
-            - 'c-pat:read'
 
   /collection:
     post:
@@ -688,115 +606,6 @@ paths:
                 $ref: '#/components/schemas/error'
       tags: 
         - Collection
-  
-  '/collection/{collectionId}/user/{userName}':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-      - in: path
-        name: userName
-        required: true
-        schema:
-          type: string
-    get:
-      tags:
-        - Collection
-      summary: Get a Collection
-      operationId: getCollection
-      responses:
-        '200':
-          description: Collection retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/collection'
-        '204':
-          description: No Content
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-  
-  /collections/basiclist:
-    get:
-      tags:
-        - Collection
-      summary: Get a list of collection names and IDs
-      operationId: getCollectionBasicList
-      responses:
-        '200':
-          description: Collection list retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/collectionNameAndId'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-  
-  '/collections/{userName}':
-    get:
-      tags:
-        - Collection
-      summary: Get a list of collections accessible to the user
-      operationId: getCollections
-      parameters:
-        - $ref: '#/components/parameters/collectionAuth'
-      responses:
-        '200':
-          description: Collection list retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/collection'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-  
-  '/collection/permissions/{collectionId}':
-    parameters:
-      - in: path
-        name: collectionId
-        required: true
-        schema:
-          type: integer
-    get:
-      summary: Get all permissions for a specific collection
-      operationId: getCollectionPermissions
-      responses:
-        '200':
-          description: Collection permissions retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/user_Permissions'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Collection
 
   '/import/poams':
     post:
@@ -845,65 +654,7 @@ paths:
         - Import
       security:
         - oauth:
-            - 'c-pat:read'
-
-  '/update/stigmanager/poamassets':
-    put:
-      summary: Update POAM Assets with STIG Manager Data
-      operationId: updatePoamAssetsWithStigManagerData
-      description: Updates the POAM Assets based on the STIG Manager data.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: object
-                required:
-                  - assets
-                  - collectionId
-                  - poamId
-                properties:
-                  assets:
-                    type: array
-                  collectionId:
-                    type: integer
-                  poamId:
-                    type: integer
-                  poamLog:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        userId:
-                          type: integer
-      responses:
-        '200':
-          description: Poam Assets updated with stigman data
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/stigmanPoamAssetUpdate'
-        '400':
-          description: Bad request - invalid data format or missing data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Import
-      security:
-        - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
   
   '/import/stigmanager/collection':
     post:
@@ -993,6 +744,64 @@ paths:
                 $ref: '#/components/schemas/error'
       tags:
         - Import
+
+  '/update/stigmanager/poamassets':
+    put:
+      summary: Endpoint to receive updated asset data from STIG Manager
+      operationId: updatePoamAssetsWithStigManagerData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - assets
+                  - collectionId
+                  - poamId
+                properties:
+                  assets:
+                    type: array
+                    items: {}
+                  collectionId:
+                    type: integer
+                  poamId:
+                    type: integer
+                  poamLog:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        userId:
+                          type: integer
+      responses:
+        '200':
+          description: Poam Assets updated with stigman data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/stigmanPoamAssetUpdate'
+        '400':
+          description: Bad request - invalid data format or missing data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Import
+      security:
+        - oauth:
+            - 'c-pat:read'
 
   '/labels/{collectionId}':
     get:
@@ -1637,6 +1446,68 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /notifications/delete/{notificationId}:
+    parameters:
+      - in: path
+        name: notificationId
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Delete a notification
+      operationId: deleteNotificationByNotificationId
+      responses:
+        '204':
+          description: Notification dismissed successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Notification
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /notifications/all/delete/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Delete a notification
+      operationId: deleteAllNotificationsByUserId
+      responses:
+        '204':
+          description: Notification dismissed successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Notification
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   /notifications/dismiss/{notificationId}:
     parameters:
       - in: path
@@ -1705,21 +1576,56 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /notifications/delete/{notificationId}:
+  '/collection/{collectionId}/user/{userName}':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
+      - in: path
+        name: userName
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Permissions
+      summary: Return collection permissions for a user
+      operationId: getCollectionPermission
+      responses:
+        '200':
+          description: Collection retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/collection'
+        '204':
+          description: No Content
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
+  '/collection/permissions/{collectionId}':
     parameters:
       - in: path
-        name: notificationId
+        name: collectionId
         required: true
         schema:
           type: integer
-    delete:
-      summary: Delete a notification
-      operationId: deleteNotificationByNotificationId
+    get:
+      summary: Get all permissions for a specific collection
+      operationId: getCollectionPermissions
       responses:
-        '204':
-          description: Notification dismissed successfully
-        '404':
-          description: Notification not found
+        '200':
+          description: Collection permissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user_Permissions'
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -1731,26 +1637,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - Notification
-      security:
-        - oauth:
-            - 'c-pat:read'
+        - Permissions
 
-  /notifications/all/delete/{userId}:
+  '/permission/{userId}/{collectionId}':
     parameters:
       - in: path
         name: userId
         required: true
         schema:
           type: integer
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
     delete:
-      summary: Delete a notification
-      operationId: deleteAllNotificationsByUserId
+      summary: Delete a collection permission by userId and collectionId
+      operationId: deletePermission
       responses:
         '204':
-          description: Notification dismissed successfully
-        '404':
-          description: Notification not found
+          description: Permission deleted successfully
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -1762,10 +1670,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - Notification
+        - Permissions
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
 
   '/permission':
     post:
@@ -1818,42 +1726,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/user_Permissions'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Permissions
-      security:
-        - oauth:
-            - 'c-pat:op'
-  
-  '/permission/{userId}/{collectionId}':
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
-      - in: path
-        name: collectionId
-        required: true
-        schema:
-          type: integer
-    delete:
-      summary: Delete a collection permission by userId and collectionId
-      operationId: deletePermission
-      responses:
-        '204':
-          description: Permission deleted successfully
         '400':
           description: Bad Request
           content:
@@ -2147,6 +2019,43 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
+
+  '/poamAssets/assets/{assetId}':
+    get:
+      summary: Return poamsAssets by assetId
+      operationId: getPoamAssetsByAssetId
+      parameters:
+        - in: path
+          name: assetId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PoamAssets array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamAssets_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssets
+      security:
+        - oauth:
+            - 'c-pat:read'
   
   '/poamAssets/poam/{poamId}':
     get:
@@ -2196,43 +2105,6 @@ paths:
       responses:
         '204':
           description: No content
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamAssets
-      security:
-        - oauth:
-            - 'c-pat:read'
-  
-  '/poamAssets/assets/{assetId}':
-    get:
-      summary: Return poamsAssets by assetId
-      operationId: getPoamAssetsByAssetId
-      parameters:
-        - in: path
-          name: assetId
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: PoamAssets array response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poamAssets_Object'
         '400':
           description: Bad request
           content:
@@ -2549,36 +2421,6 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /poamExtension:
-    put:
-      summary: Add or update POAM extension
-      operationId: putPoamExtension
-      tags:
-        - PoamExtension
-      security:
-        - oauth:
-          - 'c-pat:read' 
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/poamExtensionObject'
-      responses:
-        '200':
-          description: POAM extension updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/poamExtensionObject'
-        '403':
-          $ref: '#/components/responses/forbidden'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-
   /poamExtension/{poamId}:
     get:
       summary: Return POAM extension by POAM ID
@@ -2638,6 +2480,36 @@ paths:
                   message:
                     type: string
                     example: "POAM extension deleted successfully"
+        '403':
+          $ref: '#/components/responses/forbidden'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
+  /poamExtension:
+    put:
+      summary: Add or update POAM extension
+      operationId: putPoamExtension
+      tags:
+        - PoamExtension
+      security:
+        - oauth:
+          - 'c-pat:read' 
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/poamExtensionObject'
+      responses:
+        '200':
+          description: POAM extension updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamExtensionObject'
         '403':
           $ref: '#/components/responses/forbidden'
         default:
@@ -3008,6 +2880,41 @@ paths:
             - 'c-pat:read'
   
   /poamMilestones/{poamId}/{milestoneId}:
+    delete:
+      summary: Delete a specific milestone
+      description: Deletes the milestone identified by milestoneId for a given POAM.
+      operationId: deletePoamMilestone
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: milestoneId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Successfully deleted the milestone
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamMilestones
+      security:
+        - oauth:
+            - 'c-pat:read'
     put:
       summary: Update a specific milestone
       description: Updates the milestone identified by milestoneId for a given POAM.
@@ -3038,41 +2945,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PoamMilestone'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamMilestones
-      security:
-        - oauth:
-            - 'c-pat:read'
-    delete:
-      summary: Delete a specific milestone
-      description: Deletes the milestone identified by milestoneId for a given POAM.
-      operationId: deletePoamMilestone
-      parameters:
-        - in: path
-          name: poamId
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: milestoneId
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Successfully deleted the milestone
         '400':
           description: Bad request
           content:
@@ -3777,7 +3649,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
                 
-  '/user/loginout':
+  '/user/loginState':
     put:
       tags:
         - User
@@ -3785,13 +3657,13 @@ paths:
         - oauth:
             - 'c-pat:read'        
       summary: Writes stdout log to indicate login or logout
-      operationId: loginout
+      operationId: loginState
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/user_LoginOut'
+              $ref: '#/components/schemas/user_loginState'
       responses:
         '201':
           description: Login/Logout response
@@ -3875,8 +3747,208 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /op/configuration:
+    get:
+      summary: Return API version and classification
+      operationId: getConfiguration
+      responses:
+        '200':
+          description: Configuration response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiConfiguration'
+      tags:
+        - Operation
+      security: []
+    post:
+      summary: Set a configuration item
+      operationId: setConfigurationItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationItem'
+      responses:
+        '200':
+          description: Configuration item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Operation
+      security:
+        - oauth:
+            - 'c-pat:op'    
+    delete:
+      summary: Delete a configuration item
+      operationId: deleteConfigurationItem
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/String255'
+      responses:
+        '200':
+          description: Configuration item deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Operation
+      security:
+        - oauth:
+            - 'c-pat:op'
+
 components:
   schemas:
+    ApiClassification:
+      type: string
+      enum:
+        - NONE
+        - U
+        - FOUO
+        - CUI
+        - C
+        - S
+        - TS
+        - SCI
+    ApiConfiguration:
+      additionalProperties: false
+      type: object
+      properties:
+        classification:
+          $ref: '#/components/schemas/ApiClassification'
+        version:
+          $ref: '#/components/schemas/ApiVersion'
+    ApiDefinition:
+      oneOf:
+        - type: object
+        - type: array
+    ApiVersion:
+      $ref: '#/components/schemas/Version'
+    ConfigurationItem:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          $ref: '#/components/schemas/String45'
+        value:
+          $ref: '#/components/schemas/String255'
+    SuccessMessage:
+      type: object
+      properties:
+        message:
+          type: string
+    String20:
+      maxLength: 20
+      type: string
+    String20Nullable:
+      maxLength: 20
+      nullable: true
+      type: string
+    String255:
+      maxLength: 255
+      type: string
+    String255Nullable:
+      maxLength: 255
+      nullable: true
+      type: string
+    String32767:
+      maxLength: 32767
+      type: string
+    String32767Nullable:
+      maxLength: 32767
+      nullable: true
+      type: string
+    String45:
+      maxLength: 45
+      type: string
+    String45Nullable:
+      maxLength: 45
+      nullable: true
+      type: string
+    String511:
+      maxLength: 511
+      type: string
+    String511Nullable:
+      maxLength: 511
+      nullable: true
+      type: string
+    StringDate:
+      format: date
+      type: string
+    StringDateNullable:
+      format: date
+      nullable: true
+      type: string
+    StringDateTime:
+      format: date-time
+      type: string
+    StringDateTimeNullable:
+      format: date-time
+      nullable: true
+      type: string
+    StringHexColor:
+      example: aa33cc
+      pattern: ^[a-fA-F0-9]{6}$
+      type: string
+    StringIntId:
+      maxLength: 10
+      minLength: 1
+      pattern: ^[0-9]{1,10}$
+      type: string
+    StringIntIdNullable:
+      nullable: true
+      pattern: ^[0-9]{1,10}$
+      type: string
+    StringIntIdReadOnly:
+      pattern: ^[0-9]{1,10}$
+      readOnly: true
+      type: string
+    StringMax:
+      maxLength: 16777215
+      type: string
+    StringMaxNullable:
+      maxLength: 16777215
+      nullable: true
+      type: string
+    StringUuid:
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+      type: string
+    StringUuidNullable:
+      nullable: true
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+      type: string
+    StringUuidReadOnly:
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+      readOnly: true
+      type: string
+    Version:
+      description: |
+        API version string
+      pattern: ^\d+\.\d+\.\d+$
+      type: string
+    VersionString:
+      $ref: '#/components/schemas/String255'
     STIGMANCollection:
       type: object
       properties:
@@ -4547,6 +4619,10 @@ components:
         officeOrg:
           type: string
           maxLength: 100
+          nullable: true
+        lastClaims:
+          type: object
+          nullable: true
         isAdmin:
           type: integer
         created:
@@ -4584,6 +4660,7 @@ components:
         officeOrg:
           type: string
           maxLength: 100
+          nullable: true
 
     current_user_Response:
       type: object
@@ -4598,7 +4675,6 @@ components:
         - lastCollectionAccessedId
         - accountStatus
         - fullName
-        - officeOrg
         - defaultTheme
         - isAdmin
         - permissions
@@ -4639,9 +4715,13 @@ components:
         officeOrg:
           type: string
           maxLength: 100
+          nullable: true
         defaultTheme:
           type: string
           maxLength: 20
+        lastClaims:
+          type: object
+          nullable: true
         isAdmin:
           type: integer
         permissions:
@@ -4672,7 +4752,6 @@ components:
         - lastAccess
         - lastCollectionAccessedId
         - accountStatus
-        - officeOrg
         - fullName
         - defaultTheme
         - isAdmin
@@ -4713,9 +4792,13 @@ components:
         officeOrg:
           type: string
           maxLength: 100
+          nullable: true
         defaultTheme:
           type: string
           maxLength: 20
+        lastClaims:
+          type: object
+          nullable: true
         isAdmin:
           type: integer
 
@@ -4727,7 +4810,6 @@ components:
         - firstName
         - lastName
         - accountStatus
-        - officeOrg
         - lastCollectionAccessedId
         - defaultTheme
         - isAdmin
@@ -4752,11 +4834,15 @@ components:
         officeOrg:
           type: string
           maxLength: 100
+          nullable: true
         lastCollectionAccessedId:
           type: integer
         defaultTheme:
           type: string
           maxLength: 20
+        lastClaims:
+          type: object
+          nullable: true
         isAdmin:
           type: integer
           
@@ -4769,13 +4855,13 @@ components:
         email:
           type: string
           
-    user_LoginOut:
+    user_loginState:
       required:
-        - inout
+        - loginState
       type: object
       additionalProperties: false
       properties:
-        inout:
+        loginState:
           type: string           
 
     user_Login_Response:
@@ -4795,7 +4881,6 @@ components:
         - lastCollectionAccessedId
         - accountStatus
         - fullName
-        - officeOrg
         - defaultTheme
       additionalProperties: false
       properties:
@@ -4823,6 +4908,7 @@ components:
         officeOrg:
           type: string
           maxLength: 100
+          nullable: true
         defaultTheme:
           type: string
           maxLength: 20
@@ -4885,7 +4971,6 @@ components:
         - lastCollectionAccessedId
         - accountStatus
         - fullName
-        - officeOrg
         - defaultTheme
       type: object
       additionalProperties: false
@@ -4906,6 +4991,7 @@ components:
           type: string
         officeOrg:
           type: string
+          nullable: true
         defaultTheme:
           type: string
 
@@ -4968,7 +5054,6 @@ components:
       required: true
       schema:
         type: string
-
     collectionAuth:
       name: userName
       in: path

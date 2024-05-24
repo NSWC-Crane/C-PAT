@@ -14,7 +14,7 @@ const package = require("../package.json")
 let config = {
     version: package.version,
     settings: {
-        setClassification: process.env.CPAT_CLASSIFICATION,
+        setClassification: process.env.CPAT_CLASSIFICATION || "U",
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || "none"
 
     },
@@ -75,7 +75,9 @@ let config = {
             scope: process.env.CPAT_JWT_SCOPE_CLAIM || "scope",
             username: process.env.CPAT_JWT_USERNAME_CLAIM,
             servicename: process.env.CPAT_JWT_SERVICENAME_CLAIM,
-            name: process.env.CPAT_JWT_NAME_CLAIM || process.env.CPAT_JWT_USERNAME_CLAIM || "name",
+            fullname: process.env.CPAT_JWT_FULL_NAME_CLAIM || process.env.CPAT_JWT_USERNAME_CLAIM || "name",
+            firstname: process.env.CPAT_JWT_FIRST_NAME_CLAIM || "given_name",
+            lastname: process.env.CPAT_JWT_LAST_NAME_CLAIM || "family_name",
             privileges: formatChain(process.env.CPAT_JWT_PRIVILEGES_CLAIM || "realm_access.roles"),
             email: process.env.CPAT_JWT_EMAIL_CLAIM || "email"
         }

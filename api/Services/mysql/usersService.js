@@ -10,7 +10,7 @@
 
 const dbUtils = require('./utils');
 const logger = require('../../utils/logger');
-
+const _this = this
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
     try {
@@ -49,6 +49,7 @@ exports.getUsers = async function getUsers() {
                     fullName: user.fullName,
                     officeOrg: user.officeOrg,
                     defaultTheme: user.defaultTheme,
+                    lastClaims: user.lastClaims,
                     isAdmin: user.isAdmin,
                     permissions: permissions
                 };
@@ -68,7 +69,7 @@ exports.getCurrentUser = async function getCurrentUser(email) {
             const [userRows] = await connection.query(sqlUser, [email]);
 
             if (userRows.length === 0) {
-                throw new Error("User not found");
+                return userRows[0];
             }
 
             const user = userRows[0];
@@ -95,6 +96,7 @@ exports.getCurrentUser = async function getCurrentUser(email) {
                 fullName: user.fullName,
                 officeOrg: user.officeOrg,
                 defaultTheme: user.defaultTheme,
+                lastClaims: user.lastClaims,
                 isAdmin: user.isAdmin,
                 permissions: permissions
             };
@@ -111,7 +113,7 @@ exports.getUserByUserID = async function getUserByUserID(userId) {
             const [userRows] = await connection.query(sql, [userId]);
 
             if (userRows.length === 0) {
-                throw new Error("User not found");
+                return userRows[0];
             }
 
             const user = userRows[0];
@@ -138,6 +140,7 @@ exports.getUserByUserID = async function getUserByUserID(userId) {
                 fullName: user.fullName,
                 officeOrg: user.officeOrg,
                 defaultTheme: user.defaultTheme,
+                lastClaims: user.lastClaims,
                 isAdmin: user.isAdmin,
                 permissions: permissions
             };
@@ -154,7 +157,7 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
             const [userRows] = await connection.query(sql, [userName]);
 
             if (userRows.length === 0) {
-                throw new Error("User not found");
+                return userRows[0];
             }
 
             const user = userRows[0];
@@ -180,6 +183,7 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
                 fullName: user.fullName,
                 officeOrg: user.officeOrg,
                 defaultTheme: user.defaultTheme,
+                lastClaims: user.lastClaims,
                 isAdmin: user.isAdmin,
                 permissions: permissions
             };
@@ -198,7 +202,7 @@ exports.getBasicUserByUserID = async function getBasicUserByUserID(userId) {
             const [userRows] = await connection.query(sql, [userId]);
 
             if (userRows.length === 0) {
-                throw new Error("User not found");
+                return userRows[0];
             }
 
             const user = userRows[0];
@@ -246,6 +250,54 @@ exports.updateUser = async function updateUser(req, res, next) {
     }
 };
 
+exports.setUserData = async function setUserData(userObject) {
+    try {
+        return await withConnection(async (connection) => {
+            let insertColumns = ['userName', 'email', 'firstName', 'lastName', 'fullName', 'lastClaims', 'isAdmin'];
+            let updateColumns = ['userId = LAST_INSERT_ID(userId)', 'firstName = VALUES(firstName)', 'lastName = VALUES(lastName)', 'fullName = VALUES(fullName)', 'lastClaims = VALUES(lastClaims)', 'isAdmin = VALUES(isAdmin)'];
+
+            let lastClaimsSerialized = JSON.stringify(userObject.lastClaims);
+
+            let binds = [userObject.userName, userObject.email, userObject.firstName, userObject.lastName, userObject.fullName, lastClaimsSerialized, userObject.isAdmin];
+
+            let sql = `
+                INSERT INTO cpat.user (${insertColumns.join(', ')})
+                VALUES (${insertColumns.map(() => '?').join(', ')})
+                ON DUPLICATE KEY UPDATE ${updateColumns.join(', ')}
+            `;
+            const [result] = await connection.query(sql, binds);
+            let userId = userObject.userId;
+            if (!userId && result.insertId) {
+                userId = result.insertId;
+            }
+
+            sql = "SELECT * FROM user WHERE userId = ?";
+            let [updatedUser] = await connection.query(sql, [userId]);
+
+            if (updatedUser[0]) {
+                updatedUser[0].lastClaims = JSON.parse(updatedUser[0].lastClaims);
+            }
+
+            return updatedUser[0];
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+
+exports.setLastAccess = async function (userId, timestamp) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `UPDATE user SET lastAccess = ? where userId = ?`;
+            await connection.query(sql, [timestamp, userId]);
+            return true
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
 exports.deleteUserByUserID = async function deleteUserByUserID(userId, username, displayName) {
     try {
         return await withConnection(async (connection) => {
@@ -262,9 +314,9 @@ exports.deleteUserByUserID = async function deleteUserByUserID(userId, username,
     }
 };
 
-exports.loginout = async function loginout(req, res, next) {
+exports.loginState = async function loginState(req, res, next) {
     let message = { message: "" };
-    if (req.body.inout == 'logIn') {
+    if (req.body.loginState == 'logIn') {
         logger.writeInfo("usersService", 'info', { event: 'Logged In' });
         message.message = "Login Success";
     } else {
@@ -285,13 +337,5 @@ module.exports.deleteUserByUserID = async function deleteUserByUserID(userId, re
         let messageReturned = new Object();
         messageReturned.text = "User deleted";
         return messageReturned;
-    });
-};
-
-exports.refresh = async function refresh(userId, body, projection, userObject) {
-    return await withConnection(async (connection) => {
-        let sql = "SELECT * FROM user WHERE userId = ?";
-        let [row] = await connection.query(sql, [userId]);
-        return row[0];
     });
 };

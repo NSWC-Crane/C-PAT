@@ -99,9 +99,9 @@ module.exports.deleteUser = async function deleteUser(req, res, next) {
     }
 };
 
-module.exports.loginout = async function loginout(req, res, next) {
+module.exports.loginState = async function loginState(req, res, next) {
     try {
-        const message = await userService.loginout(req, res, next);
+        const message = await userService.loginState(req, res, next);
         res.status(201).json(message);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });

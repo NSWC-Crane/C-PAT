@@ -53,6 +53,11 @@ export class SharedService {
     this._selectedCollection.next(collection);
   }
 
+  getApiConfig() {
+    return this.http.get(`${this.url}/op/configuration`)
+      .pipe(catchError(this.handleError));
+  }
+
   async getPoamsByVulnerabilityId(vulnerabilityId: string) {
         const headers = await this.getAuthHeaders();
 		return this.http.get(`${this.url}/vulnerability/poam/${vulnerabilityId}`, { headers })

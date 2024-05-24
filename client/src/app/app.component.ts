@@ -22,6 +22,7 @@ import { CollectionsService } from './pages/admin-processing/collection-processi
 import { UsersService } from './pages/admin-processing/user-processing/users.service';
 import { AuthService } from './auth/auth.service';
 import { format } from 'date-fns';
+import { Classification } from './Shared/models/classification.model';
 
 
 interface Permission {
@@ -37,6 +38,7 @@ interface Permission {
 })
 
 export class AppComponent implements OnInit, OnDestroy {
+  classification: Classification | undefined;
   @Output() resetRole: EventEmitter<any> = new EventEmitter();
   userProfile: any = null;
   users: any = null;
@@ -64,7 +66,6 @@ export class AppComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoggedIn: boolean = false;
   evaIcons: any = [];
-
   userMenu = ['Notification 1', 'Notification 2'];
 
   constructor(
@@ -113,6 +114,17 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   async setPayload() {
+    try {
+      const apiConfig = await this.sharedService.getApiConfig().toPromise();
+      if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {
+        const apiClassification = (apiConfig as { classification: string }).classification;
+        this.classification = new Classification(apiClassification);
+      } else {
+        console.error('Invalid API configuration response');
+      }
+    } catch (error) {
+      console.error('Error retrieving API configuration:', error);
+    }
     this.user = null;
     this.payload = null;
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
@@ -142,24 +154,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       },
       error: async (error) => {
-        if (error.status === 404 || !this.user) {
-          const newUser = {
-            userName: this.userProfile?.preferred_username,
-            firstName: this.userProfile?.given_name,
-            lastName: this.userProfile?.family_name,
-            email: this.userProfile?.email,
-          };
-
-          (await this.userService.postUser(newUser)).subscribe({
-            next: () => {
-              console.log("User name: " + newUser.userName + " has been added, account status is PENDING");
-              this.user = newUser;
-            },
-            error: (error) => console.error('An error occurred:', error.message)
-          });
-        } else {
-          console.error('An error occurred:', error.message);
-        }
+        console.error('An error occurred:', error.message);
       }
     });
   }

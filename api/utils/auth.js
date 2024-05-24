@@ -36,14 +36,13 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
     req.access_token = decoded;
     req.bearer = token;
 
-    const email = decoded[config.oauth.claims.email] || 'None Provided';
-    if (!email) {
-        logger.writeError('verifyRequest', 'missingClaim', { message: 'Email claim is missing or undefined', decoded });
-        throw new SmError.AuthorizeError("Email claim is missing or undefined");
-    }
     req.userObject = {
-        userName: decoded[config.oauth.claims.username] || decoded[config.oauth.claims.servicename] || 'null',
-        email: email
+        userName: decoded[config.oauth.claims.username],
+        firstName: decoded[config.oauth.claims.firstname] || 'null',
+        lastName: decoded[config.oauth.claims.lastname] || 'null',
+        fullName: decoded[config.oauth.claims.fullname] || 'null',
+        email: decoded[config.oauth.claims.email],
+        lastClaims: req.access_token,
     };
 
     const usernamePrecedence = [config.oauth.claims.username, "preferred_username", config.oauth.claims.servicename, "azp", "client_id", "clientId"];
@@ -52,8 +51,6 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
     if (req.userObject.userName === undefined) {
         throw new SmError.PrivilegeError("No token claim mappable to username found");
     }
-
-    req.userObject.displayName = decoded[config.oauth.claims.name] || req.userObject.userName;
 
     let scopeClaim;
     if (decoded[config.oauth.claims.scope]) {
@@ -90,23 +87,32 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
     } else {  
         const permissions = {};
         permissions.canAdmin = privilegeGetter(decoded).includes('admin');
+        req.userObject.isAdmin = permissions.canAdmin ? 1 : 0;
         const response = await User.getUserByUserName(req.userObject.userName);
-        req.userObject = response || null;
+
+        req.userObject.userId = response?.userId || null;
 
         let now = new Date();
         let formattedNow = format(now, 'yyyy-MM-dd HH:mm:ss');
 
-        if (!response.lastAccess) {
+        if (!response?.lastAccess) {
             req.userObject.lastAccess = formattedNow;
         } else {
             let lastAccessDate = new Date(response.lastAccess);
             if (isAfter(now, lastAccessDate)) {
                 req.userObject.lastAccess = formattedNow;
+            } else {
+                req.userObject.lastAccess = response.lastAccess;
             }
+        }
+        if (!response?.lastClaims || decoded.jti !== response?.lastClaims?.jti) {
+            req.userObject.lastClaims = decoded
+        } else {
+            req.userObject.lastClaims = response.lastClaims
         }
 
         if (req.userObject.userName) {
-            const userResponse = await User.updateUser(req.userObject);
+            const userResponse = await User.setUserData(req.userObject);
             const userId = userResponse.userId;
             if (userId !== req.userObject.userId) {
                 req.userObject.userId = userId;
@@ -144,7 +150,7 @@ function getKey(header, callback) {
 }
 
 let initAttempt = 0
-async function initializeAuth() {
+async function initializeAuth(depStatus) {
     const retries = 24
     const wellKnown = `${config.oauth.authority}/.well-known/openid-configuration`
     async function getJwks() {
@@ -171,6 +177,7 @@ async function initializeAuth() {
         }
     })
     logger.writeInfo('oidc', 'discovery', { success: true, metadataUri: wellKnown, jwksUri: jwksUri })
+    depStatus.auth = 'up'
 }
 
 

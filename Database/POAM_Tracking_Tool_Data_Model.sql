@@ -8,6 +8,11 @@
 !########################################################################
 */
 
+CREATE TABLE `cpat`.`config` (
+  `key` VARCHAR(45) NOT NULL,
+  `value` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`key`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `cpat`.`user` (
    `userId` int NOT NULL AUTO_INCREMENT,
@@ -18,10 +23,11 @@ CREATE TABLE `cpat`.`user` (
    `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
    `lastAccess` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
    `lastCollectionAccessedId` int NOT NULL DEFAULT '0',
-   `accountStatus` varchar(25) NOT NULL DEFAULT 'Pending',
-   `officeOrg` varchar(100) NOT NULL,
+   `accountStatus` varchar(25) NOT NULL DEFAULT 'PENDING',
+   `officeOrg` VARCHAR(100) NULL DEFAULT 'UNKNOWN',
    `fullName` varchar(100) DEFAULT NULL,
    `defaultTheme` varchar(20) DEFAULT 'dark',
+   `lastClaims` json DEFAULT ('{}'),
    `isAdmin` int NOT NULL DEFAULT '0',
    PRIMARY KEY (`userId`),
    UNIQUE KEY `email_UNIQUE` (`email`) USING BTREE,
