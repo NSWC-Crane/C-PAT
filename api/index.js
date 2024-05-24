@@ -33,8 +33,15 @@ const auth = require('./utils/auth');
 const swaggerUi = require('swagger-ui-express');
 const jsyaml = require('js-yaml');
 const fs = require('fs');
+const multer = require('multer');
 const writer = require('./utils/writer.js');
+const OperationSvc = require('./Services/mysql/operationService');
 const { middleware: openApiMiddleware, resolvers } = require('express-openapi-validator');
+const db = require(`./Services/mysql/utils`);
+const depStatus = {
+    db: 'waiting',
+    auth: 'waiting'
+}
 
 const eovPath = path.dirname(require.resolve('express-openapi-validator'))
 const eovErrors = require(path.join(eovPath, 'framework', 'types.js'))
@@ -47,6 +54,13 @@ process.on('unhandledRejection', (reason, promise) => {
 })
 
 const app = express();
+let storage = multer.memoryStorage()
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: parseInt(config.http.maxUpload)
+    }
+});
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json({
     strict: false,
@@ -62,6 +76,18 @@ app.use(compression({
         return compression.filter(req, res)
     }
 }));
+
+app.use((req, res, next) => {
+    try {
+        if ((depStatus.db === 'up' && depStatus.auth === 'up') || req.url.startsWith('/api/op/definition')) {
+            next()
+        } else {
+            res.status(503).json({ status: depStatus })
+        }
+    } catch (e) {
+        next(e)
+    }
+})
 
 const apiSpecPath = path.join(__dirname, './specification/C-PAT.yaml');
 app.use(
@@ -90,45 +116,6 @@ app.use(
     })
 );
 
-if (config.swaggerUi.enabled) {
-    let spec = fs.readFileSync(apiSpecPath, 'utf8')
-    let oasDoc = jsyaml.load(spec)
-    oasDoc.info.version = config.version
-    if (oasDoc.servers && oasDoc.servers.length > 0) {
-        oasDoc.servers[0].url = config.swaggerUi.server;
-    } else {
-        logger.writeError('index', 'openapi', { message: 'Missing or empty servers array in OpenAPI specification' });
-    }
-    oasDoc.components.securitySchemes.oauth.openIdConnectUrl = `${config.client.authority}/.well-known/openid-configuration`
-    config.definition = oasDoc
-
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(oasDoc, null, {
-        oauth2RedirectUrl: config.swaggerUi.oauth2RedirectUrl,
-        oauth: {
-            usePkceWithAuthorizationCodeGrant: true
-        }
-    }))
-    app.get(['/swagger.json', '/openapi.json'], function (req, res) {
-        res.json(oasDoc);
-    })
-    logger.writeDebug('index', 'client', { message: 'succeeded setting up swagger-ui' })
-}
-
-if (!config.docs.disabled) {
-    app.use('/docs', express.static(path.join(__dirname, config.docs.docsDirectory)))
-    logger.writeDebug('index', 'client', { message: 'succeeded setting up documentation' })
-} else {
-    logger.writeDebug('index', 'client', { message: 'documentation disabled' })
-}
-
-app.use(express.static(path.join(__dirname, config.client.directory), {
-    setHeaders: (res, path) => {
-        if (path.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
-        }
-    }
-}));
-
 app.use((err, req, res, next) => {
     if (!(err instanceof smErrors.SmError) && !(err instanceof eovErrors.HttpError)) {
         logger.writeError('rest', 'error', {
@@ -146,6 +133,7 @@ app.use((err, req, res, next) => {
     }
 })
 
+
 run()
 
 async function run() {
@@ -156,6 +144,36 @@ async function run() {
         }
         else {
             logger.writeDebug('index', 'client', { message: 'client disabled' })
+        }
+        if (!config.docs.disabled) {
+            app.use('/docs', express.static(path.join(__dirname, config.docs.docsDirectory)))
+            logger.writeDebug('index', 'client', { message: 'succeeded setting up documentation' })
+        } else {
+            logger.writeDebug('index', 'client', { message: 'documentation disabled' })
+        }
+
+        let spec = fs.readFileSync(apiSpecPath, 'utf8')
+        let oasDoc = jsyaml.load(spec)
+        oasDoc.info.version = config.version
+        if (oasDoc.servers && oasDoc.servers.length > 0) {
+            oasDoc.servers[0].url = config.swaggerUi.server;
+        } else {
+            logger.writeError('index', 'openapi', { message: 'Missing or empty servers array in OpenAPI specification' });
+        }
+        oasDoc.components.securitySchemes.oauth.openIdConnectUrl = `${config.client.authority}/.well-known/openid-configuration`
+        config.definition = oasDoc
+
+        if (config.swaggerUi.enabled) {
+            app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(oasDoc, null, {
+                oauth2RedirectUrl: config.swaggerUi.oauth2RedirectUrl,
+                oauth: {
+                    usePkceWithAuthorizationCodeGrant: true
+                }
+            }))
+            app.get(['/swagger.json', '/openapi.json'], function (req, res) {
+                res.json(oasDoc);
+            })
+            logger.writeDebug('index', 'client', { message: 'succeeded setting up swagger-ui' })
         }
         startServer(app)
     }
@@ -185,7 +203,9 @@ const CPAT = {
           scope: "${config.oauth.claims.scope}",
           username: "${config.oauth.claims.username}",
           servicename: "${config.oauth.claims.servicename}",
-          name: "${config.oauth.claims.name}",
+          fullname: "${config.oauth.claims.fullname}",
+          firstname: "${config.oauth.claims.firstname}",
+          lastname: "${config.oauth.claims.lastname}",
           privileges: "${config.oauth.claims.privileges}",
           email: "${config.oauth.claims.email}"
         }
@@ -198,6 +218,13 @@ const CPAT = {
             writer.writeWithContentType(res, { payload: envJS, contentType: "application/javascript" })
         })
         logger.writeDebug('index', 'client', { client_static: path.join(__dirname, directory) })
+        app.use(express.static(path.join(__dirname, directory), {
+            setHeaders: (res, path) => {
+                if (path.endsWith('.js')) {
+                    res.setHeader('Content-Type', 'application/javascript');
+                }
+            }
+        }));
         const expressStatic = express.static(path.join(__dirname, directory))
         app.use('*', (req, res, next) => {
             req.component = 'static'
@@ -209,25 +236,36 @@ const CPAT = {
     }
 }
 
+
 async function startServer(app) {
-    let db = require(`./Services/mysql/utils`)
-    try {
-        await Promise.all([auth.initializeAuth(), db.initializeDatabase()])
-    }
-    catch (e) {
-        logger.writeError('index', 'shutdown', { message: 'Failed to setup dependencies', error: serializeError(e) });
-        process.exit(1);
-    }
-    const server = http.createServer(app).listen(config.http.port, function () {
-        const endTime = process.hrtime.bigint()
-        logger.writeInfo('index', 'started', {
-            durationS: Number(endTime - startTime) / 1e9,
+    const server = http.createServer(app)
+        server.listen(config.http.port, function () {
+        logger.writeInfo('index', 'listening', {
             port: config.http.port,
             api: '/api',
             client: config.client.disabled ? undefined : '/',
             documentation: config.docs.disabled ? undefined : '/docs',
             swagger: config.swaggerUi.enabled ? '/api-docs' : undefined
         })
+    })
+
+    try {
+        await Promise.all([auth.initializeAuth(depStatus), db.initializeDatabase(depStatus)])
+    }
+    catch (e) {
+        logger.writeError('index', 'shutdown', { message: 'Failed to setup dependencies', error: serializeError(e) });
+        process.exit(1);
+    }
+
+    if (config.settings.setClassification) {
+        await OperationSvc.setConfigurationItem('classification', config.settings.setClassification)
+    }
+    if (config.version) {
+        await OperationSvc.setConfigurationItem('version', config.version)
+    }
+    const endTime = process.hrtime.bigint()
+    logger.writeInfo('index', 'started', {
+        durationS: Number(endTime - startTime) / 1e9
     })
 }
 
@@ -262,4 +300,3 @@ function buildResponseValidationConfig() {
         return false
     }
 }
-

@@ -22,6 +22,78 @@ async function withConnection(callback) {
     }
 }
 
+exports.getCollectionPermission = async function getCollectionPermission(userName, collectionId, req, res, next) {
+    function collectionObj(collectionId, collectionName, description, created, poamCount) {
+        this.collectionId = collectionId
+        this.collectionName = collectionName
+        this.description = description
+        this.created = created
+        this.poamCount = poamCount
+    }
+
+    try {
+        let userInfo = await withConnection(async (connection) => {
+            let sql = "SELECT * FROM user WHERE userName = ?";
+            let [row] = await connection.query(sql, [userName]);
+            let userId = row[0].userId;
+            let isAdmin = row[0].isAdmin;
+
+            try {
+                let sql = "SELECT * FROM collectionpermissions WHERE userId = ? AND collectionId = ?";
+                let [row] = await connection.query(sql, [userId, collectionId]);
+                let userName = row[0].userName;
+                return { userId, isAdmin, userName };
+            } catch (error) {
+                if (!isAdmin) {
+                    return { error: "User does not have access to this collection." };
+                }
+                return { userId, isAdmin };
+            }
+        });
+
+        if (userInfo.error) {
+            return { error: userInfo.error };
+        }
+
+        let collection = await withConnection(async (connection) => {
+            let sql = "SELECT * FROM collection WHERE collectionId = ?";
+            let [row] = await connection.query(sql, [collectionId]);
+            return { ...row[0] };
+        });
+
+        return collection;
+    } catch (error) {
+        return { error: error.message };
+    }
+}
+
+exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
+    if (!req.params.collectionId) {
+        return next({
+            status: 400,
+            errors: {
+                collectionId: 'is required',
+            }
+        });
+    }
+
+    try {
+        const permissions = await withConnection(async (connection) => {
+            let sql = "SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email FROM cpat.collectionpermissions T1 " +
+                "INNER JOIN cpat.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
+
+            let [rowPermissions] = await connection.query(sql, req.params.collectionId);
+            return rowPermissions.map(permission => ({
+                ...permission
+            }));
+        });
+
+        return permissions;
+    } catch (error) {
+        return { error: error.message };
+    }
+}
+
 exports.postPermission = async function postPermission(req, res, next) {
     if (!req.body.userId) {
         return next({

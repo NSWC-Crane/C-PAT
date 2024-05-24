@@ -26,7 +26,7 @@ export class AuthService {
     } else if (!isAuthenticatedCpat) {
       await this.oidcSecurityService.authorize('cpat');
     } else {
-      (await this.usersService.loginOut("logIn")).subscribe((result: any) => console.log("[C-PAT] ", result.message));
+      (await this.usersService.loginState("logIn")).subscribe((result: any) => console.log("[C-PAT] ", result.message));
       this.router.navigate(['/poam-processing']);
     }
   }
@@ -51,7 +51,7 @@ export class AuthService {
   }
 
   async logout() {
-    await (await this.usersService.loginOut("logOut")).subscribe((result: any) => console.log("[C-PAT] ", result.message));
+    await (await this.usersService.loginState("logOut")).subscribe((result: any) => console.log("[C-PAT] ", result.message));
     await this.oidcSecurityService.logoff('stigman', undefined);
     await this.oidcSecurityService.logoff('cpat', undefined).subscribe((result) => console.log(result));
   }

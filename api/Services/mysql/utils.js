@@ -21,6 +21,12 @@ const minMySqlVersion = '8.0.14';
 let _this = this;
 let initAttempt = 0;
 
+module.exports.WRITE_ACTION = {
+    CREATE: 0,
+    REPLACE: 1,
+    UPDATE: 2
+}
+
 module.exports.testConnection = async function () {
     logger.writeDebug('mysql', 'preflight', { attempt: ++initAttempt })
     let [result] = await _this.pool.query('SELECT VERSION() as version')
@@ -84,18 +90,15 @@ function getPoolConfig() {
     return poolConfig
 }
 
-module.exports.initializeDatabase = async function () {
-    // Create the connection pool
+module.exports.initializeDatabase = async function (depStatus) {
     const poolConfig = getPoolConfig()
     logger.writeDebug('mysql', 'poolConfig', { ...poolConfig })
     _this.pool = mysql.createPool(poolConfig)
     module.exports.pool = _this.pool;
-    // Set common session variables
     _this.pool.on('connection', function (connection) {
         connection.query('SET SESSION group_concat_max_len=10000000')
     })
 
-    // Call the pool destruction methods on SIGTERM and SEGINT
     async function closePoolAndExit(signal) {
         logger.writeInfo('app', 'shutdown', { signal })
         try {
@@ -112,7 +115,6 @@ module.exports.initializeDatabase = async function () {
     process.on('SIGTERM', closePoolAndExit)
     process.on('SIGINT', closePoolAndExit)
 
-    // Preflight the pool every 5 seconds
     const { detectedTables, detectedMySqlVersion } = await retry(_this.testConnection, {
         retries: 24,
         factor: 1,
@@ -140,7 +142,6 @@ module.exports.initializeDatabase = async function () {
             logger.writeInfo('mysql', 'setup', { message: 'Database setup complete.' })
             return
         }
-        // Perform migrations
         const umzug = new Umzug({
             migrations: {
                 path: path.join(__dirname, '../migrations'),
@@ -172,9 +173,11 @@ module.exports.initializeDatabase = async function () {
         else {
             logger.writeInfo('mysql', 'migration', { message: `MySQL schema is up to date` })
         }
+        depStatus.db = 'up'
     }
     catch (error) {
         logger.writeError('mysql', 'initalization', { message: error.message })
+        depStatus.db = 'failed'
         throw new Error('Failed during database initialization or migration.')
     }
 }

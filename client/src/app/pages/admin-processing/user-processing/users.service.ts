@@ -45,11 +45,11 @@ export class UsersService {
   }
 
 
-  async loginOut(inOut: string) {
-    const logInOut = { inout: inOut };
+  async loginState(state: string) {
+    const loginState = { loginState: state };
     const headers = await this.getAuthHeaders();
     return this.http
-      .put<any>(`${this.url}/user/loginout`, logInOut, { headers })
+      .put<any>(`${this.url}/user/loginState`, loginState, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -117,20 +117,6 @@ export class UsersService {
   async getCollections(userName: string) {
         const headers = await this.getAuthHeaders();
 		return this.http.get<CollectionsResponse>(`${this.url}/collections/${userName}`, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
-  async postUser(user: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http
-      .post<any>(`${this.url}/auth/register`, user, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
-  async changeWorkspace(data: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http
-      .post<any>(`${this.url}/auth/changeWorkspace`, data, { headers })
       .pipe(catchError(this.handleError));
   }
 
