@@ -9,10 +9,10 @@
 */
 
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from './auth.service';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, from, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -23,13 +23,38 @@ export class AuthGuard implements CanActivate {
     private router: Router
   ) { }
 
-  canActivate(): Observable<boolean> {
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+    const guardType = route.data['guardType'];
+
+    if (guardType === 'admin') {
+      return this.canAdmin();
+    } else {
+      return this.authService.isAuthenticated('cpat').pipe(
+        map(isAuthenticated => {
+          if (!isAuthenticated) {
+            return false;
+          }
+          return true;
+        })
+      );
+    }
+  }
+
+  canAdmin(): Observable<boolean> {
     return this.authService.isAuthenticated('cpat').pipe(
-      map(isAuthenticated => {
+      switchMap(isAuthenticated => {
         if (!isAuthenticated) {
-          return false;
+          return of(false);
         }
-        return true;
+        return this.authService.getUserData('cpat').pipe(
+          map(userData => {
+            if (userData && userData.isAdmin) {
+              return true;
+            }
+            this.router.navigate(['/unauthorized']);
+            return false;
+          })
+        );
       })
     );
   }

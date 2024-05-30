@@ -11,20 +11,4 @@
 export const environment = {
   production: false,
   environment: 'local',
-
-  oauth: {
-    authority: 'http://localhost:2020/realms/RMFTools',
-    clientId: 'c-pat',
-    stigmanClientId: 'stig-manager',
-    scopePrefix: '',
-    extraScopes: '',
-    scope: '',
-    redirectUri: 'http://localhost:4200',
-  },
-
-  CPAT_API_URL: 'http://localhost:8086/api',
-  STIGMANAGER_URL: 'http://localhost:54000/api',
-  TENNABLE_URL: 'http://0.0.0.0:9000', //placeholder
-  tenableAccessKey: 'placeholder',
-  tenableSecretKey: 'placeholder',
 };

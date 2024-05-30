@@ -15,7 +15,7 @@ import { AuthGuard } from './auth/auth.guard'
 import { UnauthorizedComponent } from './Shared/components/unauthorized/unauthorized.component';
 
 const routes: Routes = [
-  { path: 'admin-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/admin-processing/admin-processing.module').then(m => m.AdminProcessingModule) },
+  { path: 'admin-processing', canActivate: [AuthGuard], data: { guardType: 'admin' }, loadChildren: () => import('./pages/admin-processing/admin-processing.module').then(m => m.AdminProcessingModule) },
   { path: 'asset-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/asset-processing/asset-processing.module').then(m => m.AssetProcessingModule) },
   { path: 'consent', canActivate: [AuthGuard], loadChildren: () => import('./pages/dod-consent/dod-consent.module').then(m => m.DoDConsentModule) },
   { path: 'import-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/import-processing/import-processing.module').then(m => m.ImportProcessingModule) },

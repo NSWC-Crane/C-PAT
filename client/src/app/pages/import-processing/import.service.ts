@@ -11,14 +11,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImportService {
-  private url = environment.CPAT_API_URL;
+  private cpatApiBase = CPAT.Env.apiBase;
 
   constructor(
     private http: HttpClient,
@@ -41,19 +40,19 @@ export class ImportService {
 
   async updatePoamAssetsWithStigManagerData(poamAsset: any) {
         const headers = await this.getAuthHeaders();
-		return this.http.put(`${this.url}/update/stigmanager/poamassets`, poamAsset, { headers })
+		return this.http.put(`${this.cpatApiBase}/update/stigmanager/poamassets`, poamAsset, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async postStigManagerAssets(assets: any) {
         const headers = await this.getAuthHeaders();
-		return this.http.post(`${this.url}/import/stigmanager/assets`, assets, { headers })
+		return this.http.post(`${this.cpatApiBase}/import/stigmanager/assets`, assets, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async postStigManagerCollection(data: any) {
         const headers = await this.getAuthHeaders();
-		return this.http.post(`${this.url}/import/stigmanager/collection`, data, { headers })
+		return this.http.post(`${this.cpatApiBase}/import/stigmanager/collection`, data, { headers })
       .pipe(catchError(this.handleError));
   }
 }

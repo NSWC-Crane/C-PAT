@@ -47,7 +47,6 @@ export class AppComponent implements OnInit, OnDestroy {
   selectCollectionMsg: boolean = false;
   collections: any = [];
   notificationCount: any = null;
-  nbSelectorStatus = "success"
   selectedCollection: any = null;
   sidebarExpanded = true;
   private sidebarSubscription: Subscription;
@@ -55,18 +54,13 @@ export class AppComponent implements OnInit, OnDestroy {
   user: any;
   fullName: any;
   userRole: any;
-  token: any;
-  title = 'cpat';
-  buttonClass = 'btn-outline-primary';
   poams: any;
   poamItems: any;
   viewingfulldetails: boolean = false;
   public detailedPoam: any;
   private subs = new SubSink();
   private destroy$ = new Subject<void>();
-  isLoggedIn: boolean = false;
-  evaIcons: any = [];
-  userMenu = ['Notification 1', 'Notification 2'];
+  userMenu = [{ title: 'Profile' }, { title: 'Log Out' }];
 
   constructor(
     private iconLibraries: NbIconLibraries,
@@ -101,7 +95,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.userProfile ? this.setPayload() : setTimeout(() => this.ngOnInit(), 1000);
 
     this.menuService.onItemClick().subscribe((event) => {
-      if (event.item.title === 'Logout') {
+      if (event.item.title === 'Log Out') {
         this.authService.logout();
       }
     });

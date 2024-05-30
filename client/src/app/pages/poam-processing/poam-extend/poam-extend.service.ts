@@ -1,15 +1,24 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PoamExtensionService {
-  private url = environment.CPAT_API_URL;
+  private cpatApiBase = CPAT.Env.apiBase;
 
   constructor(
     private http: HttpClient,
@@ -32,39 +41,39 @@ export class PoamExtensionService {
 
   async getPoamExtension(poamId: string) {
         const headers = await this.getAuthHeaders();
-		return this.http.get<any>(`${this.url}/poamExtension/${poamId}`, { headers })
+		return this.http.get<any>(`${this.cpatApiBase}/poamExtension/${poamId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async putPoamExtension(extensionData: any) {
         const headers = await this.getAuthHeaders();
-		return this.http.put<any>(`${this.url}/poamExtension`, extensionData, { headers })
+		return this.http.put<any>(`${this.cpatApiBase}/poamExtension`, extensionData, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async deletePoamExtension(poamId: string) {
         const headers = await this.getAuthHeaders();
-		return this.http.delete<any>(`${this.url}/poamExtension/${poamId}`, { headers })
+		return this.http.delete<any>(`${this.cpatApiBase}/poamExtension/${poamId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getPoamExtensionMilestones(poamId: string) {
         const headers = await this.getAuthHeaders();
-		return this.http.get<any>(`${this.url}/poamExtensionMilestones/${poamId}`, { headers })
+		return this.http.get<any>(`${this.cpatApiBase}/poamExtensionMilestones/${poamId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async addPoamExtensionMilestone(poamId: string, milestone: any) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .post<any>(`${this.url}/poamExtensionMilestones/${poamId}`, milestone, { headers })
+      .post<any>(`${this.cpatApiBase}/poamExtensionMilestones/${poamId}`, milestone, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async updatePoamExtensionMilestone(poamId: string, milestoneId: string, milestone: any) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .put<any>(`${this.url}/poamExtensionMilestones/${poamId}/${milestoneId}`, milestone, { headers })
+      .put<any>(`${this.cpatApiBase}/poamExtensionMilestones/${poamId}/${milestoneId}`, milestone, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -75,6 +84,6 @@ export class PoamExtensionService {
       ...{ headers },
       body: requestBody
     };
-		return this.http.delete<any>(`${this.url}/poamExtensionMilestones/${poamId}/${milestoneId}`, options);
+		return this.http.delete<any>(`${this.cpatApiBase}/poamExtensionMilestones/${poamId}/${milestoneId}`, options);
   }
 }

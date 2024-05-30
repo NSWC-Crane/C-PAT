@@ -47,17 +47,12 @@
     background-color: nb-theme(background-basic-color-2);
   }
 
-.custom-badge {
+.label-tags {
   display: inline-block;
   width: auto;
   padding: 2px 4px;
-  border-radius: 6px;
-  background-color: rgba(128, 128, 128, 0.35);
-  color: #ffffff;
-  font-size: 12px;
   margin-right: 8px;
 }
-
 
 .form-container {
   display: flex;

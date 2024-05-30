@@ -1,0 +1,13 @@
+.git
+.gitignore
+.svn
+.DS_Store
+.vscode
+*.log
+*.tmp
+*.swp
+**/README.md
+**/node_modules
+client/dist
+client/.angular
+client/.nx

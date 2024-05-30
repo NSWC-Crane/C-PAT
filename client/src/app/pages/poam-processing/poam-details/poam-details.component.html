@@ -15,15 +15,19 @@
         <div class="status-container">
           <div class="row" style="display: flex; align-items: center; margin-left: 2px; margin-top: 2px;">
             POAM ID: {{poam.poamId}} &nbsp; &nbsp;
-            <div class="custom-badge" *ngFor="let label of poamLabels">{{label.labelName}}</div>
+            <div class="label-tags" *ngFor="let label of poamLabels">
+              <nb-tag-list>
+                <nb-tag status="info" appearance="outline" size="small" text="{{label.labelName}}"></nb-tag>
+              </nb-tag-list>
+            </div>
           </div>
 
-          <div class="button-group">
-            <button nbButton outline status="basic" (click)="poamLog()">Poam History</button>
-            <button nbButton outline status="warning" (click)="extendPoam()">Extend Poam</button>
-            <button nbButton outline status="success" *ngIf="showSubmit" (click)="submitPoam()" nbTooltip="Update POAM Status to Submitted" nbTooltipPlacement="top" nbTooltipStatus="basic">Submit Poam</button>
-            <button nbButton outline status="primary" *ngIf="showApprove" (click)="poamApproval()">POAM Approval</button>
-          </div>
+            <div class="button-group">
+              <button nbButton outline status="basic" (click)="poamLog()">Poam History</button>
+              <button nbButton outline status="warning" (click)="extendPoam()">Extend Poam</button>
+              <button nbButton outline status="success" *ngIf="showSubmit" (click)="submitPoam()" nbTooltip="Update POAM Status to Submitted" nbTooltipPlacement="top" nbTooltipStatus="basic">Submit Poam</button>
+              <button nbButton outline status="primary" *ngIf="showApprove" (click)="poamApproval()">POAM Approval</button>
+            </div>
         </div>
       </nb-card-header>
 

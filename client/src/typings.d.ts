@@ -8,10 +8,4 @@
 !########################################################################
 */
 
-.nb-card {
-  margin-bottom: 0;
-}
-
-.stigmanCollectionSelect {
-    margin-bottom: 20px;
-}
+declare var CPAT: any;

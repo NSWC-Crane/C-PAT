@@ -10,9 +10,8 @@
 
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { EventEmitter, Injectable, Output } from '@angular/core';
-import { Observable, firstValueFrom, throwError } from 'rxjs';
+import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
 import { CollectionsResponse } from './user/user.component';
 import { Users } from './users.model';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
@@ -22,7 +21,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 })
 export class UsersService {
   @Output() resetRole: EventEmitter<any> = new EventEmitter();
-  private url = environment.CPAT_API_URL;
+  private cpatApiBase = CPAT.Env.apiBase;
 
   constructor(
     private http: HttpClient,
@@ -49,74 +48,74 @@ export class UsersService {
     const loginState = { loginState: state };
     const headers = await this.getAuthHeaders();
     return this.http
-      .put<any>(`${this.url}/user/loginState`, loginState, { headers })
+      .put<any>(`${this.cpatApiBase}/user/loginState`, loginState, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getUser(id: any) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .get(`${this.url}/user/${id}`, { headers })
+      .get(`${this.cpatApiBase}/user/${id}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getCurrentUser() {
         const headers = await this.getAuthHeaders();
-		return this.http.get<Users>(`${this.url}/user`, { headers })
+		return this.http.get<Users>(`${this.cpatApiBase}/user`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getUsers() {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .get<any>(`${this.url}/users`, { headers })
+      .get<any>(`${this.cpatApiBase}/users`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async deletePermission(userId: any, collectionId: any) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .delete<any>(`${this.url}/permission/${userId}/${collectionId}`, { headers })
+      .delete<any>(`${this.cpatApiBase}/permission/${userId}/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async postPermission(userPermission: any) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .post<any>(`${this.url}/permission`, userPermission, { headers })
+      .post<any>(`${this.cpatApiBase}/permission`, userPermission, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async updatePermission(userPermission: any) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .put<any>(`${this.url}/permission`, userPermission, { headers })
+      .put<any>(`${this.cpatApiBase}/permission`, userPermission, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getBasicUserByUserId(userId: any) {
         const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.url}/user/basic/${userId}`, { headers })
+		return this.http.get(`${this.cpatApiBase}/user/basic/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async updateUser(userData: any) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .put<Users>(`${this.url}/user`, userData, { headers })
+      .put<Users>(`${this.cpatApiBase}/user`, userData, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getCollection(collectionId: any, userName: string) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .get<any>(`${this.url}/collection/${collectionId}/user/${userName}`, { headers })
+      .get<any>(`${this.cpatApiBase}/collection/${collectionId}/user/${userName}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getCollections(userName: string) {
         const headers = await this.getAuthHeaders();
-		return this.http.get<CollectionsResponse>(`${this.url}/collections/${userName}`, { headers })
+		return this.http.get<CollectionsResponse>(`${this.cpatApiBase}/collections/${userName}`, { headers })
       .pipe(catchError(this.handleError));
   }
 

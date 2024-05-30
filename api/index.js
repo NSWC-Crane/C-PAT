@@ -191,6 +191,12 @@ const CPAT = {
   Env: {
     version: "${config.version}",
     apiBase: "${config.client.apiBase}",
+        commit: {
+        branch: "${config.commit.branch}",
+        sha: "${config.commit.sha}",
+        tag: "${config.commit.tag}",
+        describe: "${config.commit.describe}"
+    },
     oauth: {
         authority:  "${config.client.authority}",
         clientId: "${config.client.clientId}",
@@ -209,11 +215,19 @@ const CPAT = {
           privileges: "${config.oauth.claims.privileges}",
           email: "${config.oauth.claims.email}"
         }
+    },
+    stigman: {
+        clientId: "${config.stigman.clientId}",
+        host: "${config.stigman.host}",
+        port: "${config.stigman.port}",
+        apiBase: "${config.stigman.apiBase}",
+        scopePrefix: "${config.stigman.scopePrefix ?? ''}",
+        extraScopes: "${config.stigman.extraScopes ?? ''}",
     }
   }
 }    
 `
-        app.get('/js/Env.js', function (req, res) {
+        app.get('/cpat/Env.js', function (req, res) {
             req.component = 'static'
             writer.writeWithContentType(res, { payload: envJS, contentType: "application/javascript" })
         })

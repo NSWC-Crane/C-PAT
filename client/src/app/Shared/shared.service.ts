@@ -12,15 +12,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 
 @Injectable({ providedIn: 'root' })
 export class SharedService {
-  private url = environment.CPAT_API_URL;
-  private STIGMANAGER_URL = environment.STIGMANAGER_URL;
-  private TENNABLE_URL = environment.TENNABLE_URL;
+  private cpatApiBase = CPAT.Env.apiBase;
+  private STIGMANAGER_URL = `${CPAT.Env.stigman.host}:${CPAT.Env.stigman.port}/${CPAT.Env.stigman.apiBase}`;
+  private TENNABLE_URL = "PLACEHOLDER";
   private _selectedCollection = new BehaviorSubject<any>(null);
   public readonly selectedCollection = this._selectedCollection.asObservable();
   constructor(
@@ -54,19 +53,19 @@ export class SharedService {
   }
 
   getApiConfig() {
-    return this.http.get(`${this.url}/op/configuration`)
+    return this.http.get(`${this.cpatApiBase}/op/configuration`)
       .pipe(catchError(this.handleError));
   }
 
   async getPoamsByVulnerabilityId(vulnerabilityId: string) {
         const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.url}/vulnerability/poam/${vulnerabilityId}`, { headers })
+		return this.http.get(`${this.cpatApiBase}/vulnerability/poam/${vulnerabilityId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getExistingVulnerabilityPoams() {
         const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.url}/vulnerability/existingPoams`, { headers })
+		return this.http.get(`${this.cpatApiBase}/vulnerability/existingPoams`, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -125,8 +124,8 @@ export class SharedService {
   }
 
   getTenableScanResults(scanId: string, fields?: string) {
-    const tenableAccessKey = environment.tenableAccessKey;
-    const tenableSecretKey = environment.tenableSecretKey;
+    const tenableAccessKey = "This will be removed and handled securely";
+    const tenableSecretKey = "This will be removed and handled securely";
     const endpoint = `${this.TENNABLE_URL}/scanResult/${scanId}`;
     const url = fields ? `${endpoint}?fields=${fields}` : endpoint;
 
@@ -141,8 +140,8 @@ export class SharedService {
   }
 
   getTenableScans(fields?: string) {
-    const tenableAccessKey = environment.tenableAccessKey;
-    const tenableSecretKey = environment.tenableSecretKey;
+    const tenableAccessKey = "This will be removed and handled securely";
+    const tenableSecretKey = "This will be removed and handled securely";
     const endpoint = `${this.TENNABLE_URL}/scanResult`;
     const url = fields ? `${endpoint}?fields=${fields}` : endpoint;
 

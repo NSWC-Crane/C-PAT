@@ -10,16 +10,15 @@
 
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, firstValueFrom, throwError } from 'rxjs';
+import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
-  private url = environment.CPAT_API_URL;
+  private cpatApiBase = CPAT.Env.apiBase;
 
   constructor(
     private http: HttpClient,
@@ -42,43 +41,43 @@ export class NotificationService {
 
   async getAllNotificationsByUserId(userId: number) {
         const headers = await this.getAuthHeaders();
-		return this.http.get<any[]>(`${this.url}/notifications/all/${userId}`, { headers })
+		return this.http.get<any[]>(`${this.cpatApiBase}/notifications/all/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getUnreadNotificationsByUserId(userId: number) {
         const headers = await this.getAuthHeaders();
-		return this.http.get<any[]>(`${this.url}/notifications/unread/${userId}`, { headers })
+		return this.http.get<any[]>(`${this.cpatApiBase}/notifications/unread/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getUnreadNotificationCountByUserId(userId: number) {
         const headers = await this.getAuthHeaders();
-		return this.http.get<any[]>(`${this.url}/notifications/unread/count/${userId}`, { headers })
+		return this.http.get<any[]>(`${this.cpatApiBase}/notifications/unread/count/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async dismissNotificationByNotificationId(notificationId: number) {
         const headers = await this.getAuthHeaders();
-		return this.http.put<any>(`${this.url}/notifications/dismiss/${notificationId}`, null, { headers })
+		return this.http.put<any>(`${this.cpatApiBase}/notifications/dismiss/${notificationId}`, null, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async dismissAllNotificationsByUserId(userId: number) {
         const headers = await this.getAuthHeaders();
-		return this.http.put<any>(`${this.url}/notifications/all/dismiss/${userId}`, null, { headers })
+		return this.http.put<any>(`${this.cpatApiBase}/notifications/all/dismiss/${userId}`, null, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async deleteNotificationByNotificationId(notificationId: number) {
         const headers = await this.getAuthHeaders();
-		return this.http.delete<any>(`${this.url}/notifications/delete/${notificationId}`, { headers })
+		return this.http.delete<any>(`${this.cpatApiBase}/notifications/delete/${notificationId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async deleteAllNotificationsByUserId(userId: number) {
         const headers = await this.getAuthHeaders();
-		return this.http.delete<any>(`${this.url}/notifications/all/delete/${userId}`, { headers })
+		return this.http.delete<any>(`${this.cpatApiBase}/notifications/all/delete/${userId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 }

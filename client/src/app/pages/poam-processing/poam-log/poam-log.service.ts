@@ -12,14 +12,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
 	providedIn: 'root'
 })
 export class PoamLogService {
-	private url = environment.CPAT_API_URL;
+	private cpatApiBase = CPAT.Env.apiBase;
 
   constructor(
     private http: HttpClient,
@@ -42,7 +41,7 @@ export class PoamLogService {
 
   async getPoamLogByPoamId(poamId: string) {
         const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.url}/poamLog/${poamId}`, { headers })
+		return this.http.get(`${this.cpatApiBase}/poamLog/${poamId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 }

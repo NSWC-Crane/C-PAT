@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { Observable, firstValueFrom } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, firstValueFrom, forkJoin, from } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { UsersService } from '../pages/admin-processing/user-processing/users.service';
+import { Users } from '../pages/admin-processing/user-processing/users.model';
 
 @Injectable({
   providedIn: 'root',
@@ -42,8 +43,20 @@ export class AuthService {
     return this.oidcSecurityService.isAuthenticated(configId);
   }
 
-  async getUserData(configId: string) {
-    return firstValueFrom(this.oidcSecurityService.getUserData(configId));
+  getUserData(configId: string): Observable<any> {
+    return this.oidcSecurityService.getUserData(configId).pipe(
+      switchMap(oidcUserData => {
+        return from(this.usersService.getCurrentUser()).pipe(
+          switchMap((currentUserObservable: Observable<Users>) => {
+            return currentUserObservable.pipe(
+              map(currentUser => {
+                return { ...oidcUserData, ...currentUser };
+              })
+            );
+          })
+        );
+      })
+    );
   }
 
   login(configId: string): void {
