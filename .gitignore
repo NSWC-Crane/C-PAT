@@ -6,3 +6,5 @@ node_modules/
 .angular
 .vscode
 .gitignore
+.env
+/api/.env
