@@ -13,29 +13,42 @@ const package = require("../package.json")
 
 let config = {
     version: package.version,
+    commit: {
+        branch: process.env.COMMIT_BRANCH || 'na',
+        sha: process.env.COMMIT_SHA || 'na',
+        tag: process.env.COMMIT_TAG || 'na',
+        describe: process.env.COMMIT_DESCRIBE || 'na'
+    },
     settings: {
         setClassification: process.env.CPAT_CLASSIFICATION || "U",
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || "none"
-
     },
     client: {
         clientId: process.env.CPAT_CLIENT_ID || "c-pat",
         authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:2020/auth/realms/RMFTools",
         apiBase: process.env.CPAT_CLIENT_API_BASE || "api",
         disabled: process.env.CPAT_CLIENT_DISABLED === "true",
-        directory: process.env.CPAT_CLIENT_DIRECTORY || '../../../client/dist',
+        directory: process.env.CPAT_CLIENT_DIRECTORY || '../client/dist',
         extraScopes: process.env.CPAT_CLIENT_EXTRA_SCOPES,
         scopePrefix: process.env.CPAT_CLIENT_SCOPE_PREFIX,
         refreshToken: {
             disabled: process.env.CPAT_CLIENT_REFRESH_DISABLED ? process.env.CPAT_CLIENT_REFRESH_DISABLED === "true" : false,
         },
     },
+    stigman: {
+        clientId: process.env.STIGMAN_CLIENT_ID || "stig-manager",
+        host: process.env.STIGMAN_HOST || "localhost",
+        port: process.env.STIGMAN_PORT || "54000",
+        apiBase: process.env.STIGMAN_API_BASE || "api",
+        scopePrefix: process.env.STIGMAN_SCOPE_PREFIX,
+        extraScopes: process.env.STIGMAN_EXTRA_SCOPES,
+    },
     docs: {
         disabled: process.env.CPAT_DOCS_DISABLED === "true",
-        docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../../docs/_build/html',
+        docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../docs/_build/html',
     },
     http: {
-        address: process.env.CPAT_API_ADDRESS || "localhost",
+        address: process.env.CPAT_API_ADDRESS || "0.0.0.0",
         port: process.env.CPAT_API_PORT || 8086,
         maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "31457280",
         maxUpload: process.env.CPAT_API_MAX_UPLOAD || "1073741824"
@@ -48,7 +61,7 @@ let config = {
         port: process.env.CPAT_DB_PORT || 3306,
         schema: process.env.CPAT_DB_SCHEMA || "cpat",
         password: process.env.CPAT_DB_PASSWORD,
-        username: process.env.CPAT_DB_USER || "root",
+        username: process.env.CPAT_DB_USER,
         maxConnections: process.env.CPAT_DB_MAX_CONNECTIONS || 25,
         minConnections: process.env.CPAT_DB_MIN_CONNECTIONS || 0,
         tls: {
@@ -73,8 +86,8 @@ let config = {
         authority: process.env.CPAT_OIDC_PROVIDER || process.env.CPAT_API_AUTHORITY || "http://localhost:2020/auth/realms/RMFTools",
         claims: {
             scope: process.env.CPAT_JWT_SCOPE_CLAIM || "scope",
-            username: process.env.CPAT_JWT_USERNAME_CLAIM,
-            servicename: process.env.CPAT_JWT_SERVICENAME_CLAIM,
+            username: process.env.CPAT_JWT_USERNAME_CLAIM || "preferred_username",
+            servicename: process.env.CPAT_JWT_SERVICENAME_CLAIM || "clientId",
             fullname: process.env.CPAT_JWT_FULL_NAME_CLAIM || process.env.CPAT_JWT_USERNAME_CLAIM || "name",
             firstname: process.env.CPAT_JWT_FIRST_NAME_CLAIM || "given_name",
             lastname: process.env.CPAT_JWT_LAST_NAME_CLAIM || "family_name",

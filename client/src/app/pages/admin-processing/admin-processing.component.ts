@@ -18,6 +18,7 @@ import { FileUploadService } from '../import-processing/emass-import/file-upload
 import { UsersService } from './user-processing/users.service';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { SubSink } from 'subsink';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'cpat-admin-processing',
@@ -58,6 +59,7 @@ export class AdminProcessingComponent implements OnInit {
     private dialogService: NbDialogService,
     private fileUploadService: FileUploadService,
     private userService: UsersService,
+    private router: Router
   ) { }
 
   async ngOnInit() {
@@ -75,31 +77,13 @@ export class AdminProcessingComponent implements OnInit {
   openModal(component?: string) {
     switch (component) {
       case 'cpat-user-processing':
-        this.dialogService.open(UserProcessingComponent, {
-          hasBackdrop: true,
-          closeOnBackdropClick: true,
-          closeOnEsc: true,
-          hasScroll: false,
-          dialogClass: 'modal-dialog',
-        });
+        this.router.navigate(['/admin-processing/user-processing']);
         break;
       case 'cpat-collection-processing':
-        this.dialogService.open(CollectionProcessingComponent, {
-          hasBackdrop: true,
-          closeOnBackdropClick: true,
-          closeOnEsc: true,
-          hasScroll: false,
-          dialogClass: 'modal-dialog',
-        });
+        this.router.navigate(['/admin-processing/collection-processing']);
         break;
       case 'cpat-stigmanager-admin':
-        this.dialogService.open(STIGManagerAdminComponent, {
-          hasBackdrop: true,
-          closeOnBackdropClick: true,
-          closeOnEsc: true,
-          hasScroll: false,
-          dialogClass: 'modal-dialog',
-        });
+        this.router.navigate(['/admin-processing/stigmanager-admin']);
         break;
       default:
         break;

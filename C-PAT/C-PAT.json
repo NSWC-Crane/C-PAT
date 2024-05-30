@@ -1,7 +1,7 @@
 {
-  "name": "C-PAT™",
+  "name": "C-PATï¿½",
   "organization": "Naval Surface Warfare Center Crane Division, IN (NSWC-Crane)",
-  "description": "C-PAT™ is an API and web client developed through Naval Surface Warfare Center Crane Division that aims to automate vulnerability documentation and tracking.",
+  "description": "C-PATï¿½ is an API and web client developed through Naval Surface Warfare Center Crane Division that aims to automate vulnerability documentation and tracking.",
   "tags": [
     "Plan of Action and Milestones",
     "POAM",
@@ -26,14 +26,14 @@
     "licenses": [
       {
         "URL": "https://github.com/NSWC-Crane/C-PAT/blob/main/LICENSE.md",
-        "name": "C-PAT™ SOFTWARE OPEN SOURCE LICENSE AGREEMENT"
+        "name": "C-PATï¿½ SOFTWARE OPEN SOURCE LICENSE AGREEMENT"
       }
     ],
     "usageType": "openSource",
     "exemptionText": null
   },
   "laborHours": 3000,
-  "version": "1.55.0-alpha",
+  "version": "0.2.0-alpha",
   "date": {
     "created": "2023-06-01",
     "lastModified": "2024-04-24",

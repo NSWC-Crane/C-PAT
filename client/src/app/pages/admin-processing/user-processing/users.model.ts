@@ -23,4 +23,5 @@ export interface Users {
   officeOrg: string;
   defaultTheme: string;
   isAdmin: number;
+  lastClaims: any;
 }

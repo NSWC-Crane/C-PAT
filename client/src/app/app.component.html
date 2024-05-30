@@ -13,17 +13,32 @@
     <div class="container">
       <img src="../assets/cpat.png" alt="C-PAT" (click)="reloadPage()" (keyup.enter)="reloadPage()" tabindex="0" style="cursor: pointer;">
     </div>
-    <nb-user class="userIcon" size="large" [name]="this.fullName" [title]="this.userRole" picture="../assets/user.png" [badgeText]="notificationCount" badgeStatus="info" badgePosition="bottom right" color="#4A4A4A" [nbPopover]="notificationsPanel" nbPopoverTrigger="click">
-    </nb-user>
-    <ng-template #notificationsPanel>
+    <nb-actions size="small">
+      <nb-action icon="bell-outline"
+                 status="basic"
+                 [badgeDot]="notificationCount > 0"
+                 badgePosition="top right"
+                 badgeStatus="info"
+                 [nbPopover]="notificationsPanel"
+                 nbPopoverTrigger="hover">
+      </nb-action>
+      <nb-action icon="collapse-outline" (click)="toggleSidebar()" (keyup.enter)="toggleSidebar()"></nb-action>
+      <nb-action>
+        <nb-user class="userIcon"
+                 size="large"
+                 [nbContextMenu]="userMenu"
+                 [name]="this.fullName"
+                 [title]="this.userRole"
+                 picture="../assets/user.png"
+                 nbContextMenuTrigger="hover"></nb-user>
+      </nb-action>
+    </nb-actions>
+      <ng-template #notificationsPanel>
       <cpat-notifications-popover></cpat-notifications-popover>
     </ng-template>
-    <a (click)="toggleSidebar()" (keyup.enter)="toggleSidebar()" tabindex="0" class="sidebar-toggle" style="margin-left: 20px;">
-      <nb-icon icon="collapse-outline"></nb-icon>
-    </a>
   </nb-layout-header>
   <nb-layout-header subheader *ngIf="classification?.showBanner">
-    <div [style.background-color]="classification?.classificationColorCode" style="width: 100%;text-align: center; font-weight:550;">
+    <div [style.background-color]="classification?.classificationColorCode" style="width: 100%;text-align: center; font-weight:500;">
       {{ classification?.classificationText }}
     </div>
   </nb-layout-header>
@@ -62,7 +77,7 @@
     </router-outlet>
   </nb-layout-column>
   <nb-layout-footer fixed *ngIf="classification?.showBanner">
-    <div [style.background-color]="classification?.classificationColorCode" style="width: 100%; text-align: center; font-weight: 550;">
+    <div [style.background-color]="classification?.classificationColorCode" style="width: 100%; text-align: center; font-weight: 500;">
       {{ classification?.classificationText }}
     </div>
   </nb-layout-footer>

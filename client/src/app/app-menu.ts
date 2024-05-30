@@ -77,8 +77,8 @@ export const appMenuItems: NbMenuItem[] = [
       hidden: true,
     },
     {
-      title: 'Logout',
-      icon: { icon: 'log-out-outline', pack: 'eva' },
+      title: 'Log Out',
+      icon: 'log-out-outline',
       link: '',
       hidden: false,
     },

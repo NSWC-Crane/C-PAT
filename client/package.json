@@ -29,7 +29,7 @@
     "@ng-bootstrap/ng-bootstrap": "^16.0.0",
     "@popperjs/core": "^2.11.8",
     "@swimlane/ngx-charts": "^20.5.0",
-    "@syncfusion/ej2-angular-treegrid": "^25.2.5",
+    "@syncfusion/ej2-angular-treegrid": "^25.2.6",
     "angular-auth-oidc-client": "^17.0.0",
     "angular2-smart-table": "^3.2.0",
     "bootstrap": "^5.3.3",

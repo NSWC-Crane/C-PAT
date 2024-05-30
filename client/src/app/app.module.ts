@@ -7,7 +7,7 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
+import { AuthModule } from 'angular-auth-oidc-client';
 import { APP_BASE_HREF } from "@angular/common";
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
@@ -16,7 +16,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { NbSecurityModule } from '@nebular/security';
-import { NbAccordionModule, NbActionsModule, NbAlertModule, NbAutocompleteModule, NbButtonModule, NbCardModule, NbCheckboxModule, NbDatepickerModule, NbDialogModule, NbFormFieldModule, NbIconModule, NbInputModule, NbLayoutModule, NbListModule, NbMenuModule, NbPopoverModule, NbSelectModule, NbSidebarModule, NbSpinnerModule, NbStepperModule, NbThemeModule, NbToggleModule, NbTooltipModule, NbUserModule } from '@nebular/theme';
+import { NbAccordionModule, NbActionsModule, NbAlertModule, NbAutocompleteModule, NbButtonModule, NbCardModule, NbCheckboxModule, NbContextMenuModule, NbDatepickerModule, NbDialogModule, NbFormFieldModule, NbIconModule, NbInputModule, NbLayoutModule, NbListModule, NbMenuModule, NbPopoverModule, NbSelectModule, NbSidebarModule, NbSpinnerModule, NbStepperModule, NbThemeModule, NbToggleModule, NbTooltipModule, NbUserModule } from '@nebular/theme';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TreeGridModule } from '@syncfusion/ej2-angular-treegrid';
 import { Angular2SmartTableModule } from 'angular2-smart-table';
@@ -26,9 +26,42 @@ import { FileUploadService } from '../app/pages/import-processing/emass-import/f
 import { SharedModule } from './Shared/shared.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { environment } from '../environments/environment';
 import { NgParticlesModule } from 'ng-particles';
 import { UnauthorizedComponent } from './Shared/components/unauthorized/unauthorized.component';
+
+function getScopeStr(configId: string) {
+  const cpatScopePrefix = CPAT.Env.oauth.scopePrefix;
+  const stigmanScopePrefix = CPAT.Env.stigman.scopePrefix;
+  let scopes: string[] = [];
+
+  if (configId === 'cpat') {
+    scopes = [
+      `${cpatScopePrefix}c-pat:read`,
+      `${cpatScopePrefix}c-pat:op`,
+      'openid',
+      'profile',
+      'email'
+    ];
+  } else if (configId === 'stigman') {
+    scopes = [
+      `${stigmanScopePrefix}stig-manager:stig`,
+      `${stigmanScopePrefix}stig-manager:stig:read`,
+      `${stigmanScopePrefix}stig-manager:collection`,
+      `${stigmanScopePrefix}stig-manager:user`,
+      `${stigmanScopePrefix}stig-manager:user:read`,
+      `${stigmanScopePrefix}stig-manager:op`,
+      'openid'
+    ];
+  }
+
+  if (CPAT.Env.oauth.extraScopes && configId === 'cpat') {
+    scopes.push(...CPAT.Env.oauth.extraScopes.split(' '));
+  } else if (CPAT.Env.stigman.extraScopes && configId === 'stigman') {
+    scopes.push(...CPAT.Env.stigman.extraScopes.split(' '));
+  }
+
+  return scopes.join(' ');
+}
 
 @NgModule({
   declarations: [
@@ -48,11 +81,11 @@ import { UnauthorizedComponent } from './Shared/components/unauthorized/unauthor
         {
           configId: 'cpat',
           postLoginRoute: '/consent',
-          authority: environment.oauth.authority,
+          authority: CPAT.Env.oauth.authority,
           redirectUrl: window.location.origin + '/consent',
           postLogoutRedirectUri: window.location.origin,
-          clientId: environment.oauth.clientId,
-          scope: `${environment.oauth.scopePrefix}c-pat:read ${environment.oauth.scopePrefix}c-pat:op openid profile email`,
+          clientId: CPAT.Env.oauth.clientId,
+          scope: getScopeStr('cpat'),
           responseType: 'code',
           silentRenew: true,
           silentRenewUrl: `${window.location.origin}/silent-renew.html`,
@@ -64,11 +97,11 @@ import { UnauthorizedComponent } from './Shared/components/unauthorized/unauthor
         },
         {
           configId: 'stigman',
-          authority: environment.oauth.authority,
+          authority: CPAT.Env.oauth.authority,
           redirectUrl: window.location.origin + '/consent',
           postLogoutRedirectUri: window.location.origin,
-          clientId: environment.oauth.stigmanClientId,
-          scope: `${environment.oauth.scopePrefix}stig-manager:stig ${environment.oauth.scopePrefix}stig-manager:stig:read ${environment.oauth.scopePrefix}stig-manager:collection ${environment.oauth.scopePrefix}stig-manager:user ${environment.oauth.scopePrefix}stig-manager:user:read ${environment.oauth.scopePrefix}stig-manager:op openid`,
+          clientId: CPAT.Env.stigman.clientId,
+          scope: getScopeStr('stigman'),
           responseType: 'code',
           silentRenew: true,
           silentRenewUrl: `${window.location.origin}/silent-renew.html`,
@@ -92,6 +125,7 @@ import { UnauthorizedComponent } from './Shared/components/unauthorized/unauthor
     NbAutocompleteModule,
     NbButtonModule,
     NbCardModule,
+    NbContextMenuModule,
     NbToggleModule,
     NbCheckboxModule,
     NbEvaIconsModule,

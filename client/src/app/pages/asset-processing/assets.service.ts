@@ -12,13 +12,12 @@ import { catchError } from 'rxjs/operators';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AssetService {
-  private url = environment.CPAT_API_URL;
+  private cpatApiBase = CPAT.Env.apiBase;
 
   constructor(
     private http: HttpClient,
@@ -41,73 +40,73 @@ export class AssetService {
 
   async getAssets() {
     const headers = await this.getAuthHeaders();
-    return this.http.get<any>(`${this.url}/assets`, { headers })
+    return this.http.get<any>(`${this.cpatApiBase}/assets`, { headers })
     .pipe(catchError(this.handleError));
   }
 
   async getAssetsByCollection(collectionId: number) {
         const headers = await this.getAuthHeaders();
-        return this.http.get<any>(`${this.url}/assets/collection/${collectionId}`, { headers })
+        return this.http.get<any>(`${this.cpatApiBase}/assets/collection/${collectionId}`, { headers })
           .pipe(catchError(this.handleError));
       }
 
   async getLabels(collectionId: any) {
             const headers = await this.getAuthHeaders();
-    return this.http.get(`${this.url}/labels/${collectionId}`, { headers })
+    return this.http.get(`${this.cpatApiBase}/labels/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getAssetLabels(id: any) {
     const headers = await this.getAuthHeaders();
-    return this.http.get(`${this.url}/assetLabels/asset/${id}`, { headers })
+    return this.http.get(`${this.cpatApiBase}/assetLabels/asset/${id}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getCollection(collectionId: any, userName: string) {
         const headers = await this.getAuthHeaders();
-        return this.http.get<any>(`${this.url}/collection/${collectionId}/user/${userName}`, { headers })
+        return this.http.get<any>(`${this.cpatApiBase}/collection/${collectionId}/user/${userName}`, { headers })
           .pipe(catchError(this.handleError));
   }
 
   async getCollections(userName: string) {
-    const url = `${this.url}/collections/${userName}`;
+    const url = `${this.cpatApiBase}/collections/${userName}`;
         const headers = await this.getAuthHeaders();
         return this.http.get(url, { headers }).pipe(catchError(this.handleError));
   }
 
   async getCollectionAssetLabel(id: string) {
         const headers = await this.getAuthHeaders();
-        return this.http.get(`${this.url}/metrics/collection/${id}/assetlabel`, { headers })
+        return this.http.get(`${this.cpatApiBase}/metrics/collection/${id}/assetlabel`, { headers })
           .pipe(catchError(this.handleError));
   }
 
   async postAssetLabel(assetLabel: any) {
         const headers = await this.getAuthHeaders();
-        return this.http.post<any>(`${this.url}/assetLabel`, assetLabel, { headers })
+        return this.http.post<any>(`${this.cpatApiBase}/assetLabel`, assetLabel, { headers })
           .pipe(catchError(this.handleError));
   }
 
   async postAsset(asset: any) {
         const headers = await this.getAuthHeaders();
-        return this.http.post<any>(`${this.url}/asset`, asset, { headers })
+        return this.http.post<any>(`${this.cpatApiBase}/asset`, asset, { headers })
           .pipe(catchError(this.handleError));
   }
 
   async updateAsset(asset: any) {
         const headers = await this.getAuthHeaders();
-        return this.http.put<any>(`${this.url}/asset`, asset, { headers })
+        return this.http.put<any>(`${this.cpatApiBase}/asset`, asset, { headers })
           .pipe(catchError(this.handleError));
   }
 
   async deleteAssetLabel(assetId: any, labelId: any) {
         const headers = await this.getAuthHeaders();
-        return this.http.delete<any>(`${this.url}/assetLabel/asset/${assetId}/label/${labelId}`, { headers })
+        return this.http.delete<any>(`${this.cpatApiBase}/assetLabel/asset/${assetId}/label/${labelId}`, { headers })
           .pipe(catchError(this.handleError));
   }
 
   async deleteAssetsByPoamId(poamId: number) {
         const headers = await this.getAuthHeaders();
-        return this.http.delete<any>(`${this.url}/assets/${poamId}`, { headers })
+        return this.http.delete<any>(`${this.cpatApiBase}/assets/${poamId}`, { headers })
           .pipe(catchError(this.handleError));
   }
 }

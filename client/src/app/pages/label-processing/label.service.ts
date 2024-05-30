@@ -12,7 +12,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
 import { Label } from './label.model';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
@@ -20,7 +19,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
   providedIn: 'root'
 })
 export class LabelService {
-  private url = environment.CPAT_API_URL;
+  private cpatApiBase = CPAT.Env.apiBase;
 
   constructor(
     private http: HttpClient,
@@ -44,35 +43,35 @@ export class LabelService {
   async getLabels(collectionId: string) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .get(`${this.url}/labels/${collectionId}`, { headers })
+      .get(`${this.cpatApiBase}/labels/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getLabel(collectionId: string, labelId: string) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .get(`${this.url}/label/${collectionId}/${labelId}`, { headers })
+      .get(`${this.cpatApiBase}/label/${collectionId}/${labelId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async addLabel(collectionId: string, label: any) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .post<Label>(`${this.url}/label/${collectionId}`, label, { headers })
+      .post<Label>(`${this.cpatApiBase}/label/${collectionId}`, label, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async updateLabel(collectionId: string, label: any) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .put<Label>(`${this.url}/label/${collectionId}`, label, { headers })
+      .put<Label>(`${this.cpatApiBase}/label/${collectionId}`, label, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async deleteLabel(collectionId: string, labelId: string) {
         const headers = await this.getAuthHeaders();
 		return this.http
-      .delete<Label>(`${this.url}/label/${collectionId}/${labelId}`, { headers })
+      .delete<Label>(`${this.cpatApiBase}/label/${collectionId}/${labelId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 }

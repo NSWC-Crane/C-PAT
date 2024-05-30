@@ -10,7 +10,6 @@
 
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '../../../../environments/environment';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { firstValueFrom } from 'rxjs';
 
@@ -18,7 +17,7 @@ import { firstValueFrom } from 'rxjs';
   providedIn: 'root'
 })
 export class FileUploadService {
-  private url = environment.CPAT_API_URL;
+  private cpatApiBase = CPAT.Env.apiBase;
   constructor(
     private http: HttpClient,
     private oidcSecurityService: OidcSecurityService
@@ -34,7 +33,7 @@ export class FileUploadService {
     formData.append('file', file);
     formData.append('userId', userId);
     const headers = await this.getAuthHeaders();
-    return this.http.post(`${this.url}/import/poams`, formData, {
+    return this.http.post(`${this.cpatApiBase}/import/poams`, formData, {
       headers,
       reportProgress: true,
       observe: 'events'
