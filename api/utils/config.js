@@ -25,7 +25,7 @@ let config = {
     },
     client: {
         clientId: process.env.CPAT_CLIENT_ID || "c-pat",
-        authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:2020/auth/realms/RMFTools",
+        authority: process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
         apiBase: process.env.CPAT_CLIENT_API_BASE || "api",
         disabled: process.env.CPAT_CLIENT_DISABLED === "true",
         directory: process.env.CPAT_CLIENT_DIRECTORY || '../client/dist',
@@ -48,7 +48,7 @@ let config = {
         docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../docs/_build/html',
     },
     http: {
-        address: process.env.CPAT_API_ADDRESS || "0.0.0.0",
+        address: process.env.CPAT_API_ADDRESS || "127.0.0.1",
         port: process.env.CPAT_API_PORT || 8086,
         maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "31457280",
         maxUpload: process.env.CPAT_API_MAX_UPLOAD || "1073741824"
@@ -78,12 +78,12 @@ let config = {
     },
     swaggerUi: {
         enabled: process.env.CPAT_SWAGGER_ENABLED === "true",
-        authority: process.env.CPAT_SWAGGER_OIDC_PROVIDER || process.env.CPAT_SWAGGER_AUTHORITY || process.env.CPAT_OIDC_PROVIDER || "http://localhost:2020/auth/realms/RMFTools",
+        authority: process.env.CPAT_SWAGGER_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
         server: process.env.CPAT_SWAGGER_SERVER || "http://localhost:8086/api",
         oauth2RedirectUrl: process.env.CPAT_SWAGGER_REDIRECT || "http://localhost:8086/api-docs/oauth2-redirect.html"
     },
     oauth: {
-        authority: process.env.CPAT_OIDC_PROVIDER || process.env.CPAT_API_AUTHORITY || "http://localhost:2020/auth/realms/RMFTools",
+        authority: process.env.CPAT_OIDC_PROVIDER || "http://129.168.1.101:8080/auth/realms/RMFTools",
         claims: {
             scope: process.env.CPAT_JWT_SCOPE_CLAIM || "scope",
             username: process.env.CPAT_JWT_USERNAME_CLAIM || "preferred_username",

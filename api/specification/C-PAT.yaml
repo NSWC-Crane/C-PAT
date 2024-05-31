@@ -3835,6 +3835,8 @@ components:
       properties:
         classification:
           $ref: '#/components/schemas/ApiClassification'
+        commit:
+          $ref: '#/components/schemas/CommitObject'
         version:
           $ref: '#/components/schemas/ApiVersion'
     ApiDefinition:
@@ -3853,6 +3855,26 @@ components:
           $ref: '#/components/schemas/String45'
         value:
           $ref: '#/components/schemas/String255'
+    CommitBranch:
+      type: string
+    CommitDescribe:
+      type: string
+    CommitObject:
+      type: object
+      additionalProperties: false
+      properties:
+        branch:
+          $ref: '#/components/schemas/CommitBranch'
+        describe:
+          $ref: '#/components/schemas/CommitDescribe'
+        sha:
+          $ref: '#/components/schemas/CommitSha'
+        tag:
+          $ref: '#/components/schemas/CommitTag'
+    CommitSha:
+      type: string
+    CommitTag:
+      type: string
     SuccessMessage:
       type: object
       properties:
@@ -5065,5 +5087,5 @@ components:
   securitySchemes:
       oauth:
         type: openIdConnect
-        openIdConnectUrl: https://localhost:2020/realms/RMFTools/.well-known/openid-configuration    
+        openIdConnectUrl: https://localhost:8080/realms/RMFTools/.well-known/openid-configuration    
 
