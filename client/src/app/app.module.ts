@@ -40,7 +40,8 @@ function getScopeStr(configId: string) {
       `${cpatScopePrefix}c-pat:op`,
       'openid',
       'profile',
-      'email'
+      'email',
+      'offline_access'
     ];
   } else if (configId === 'stigman') {
     scopes = [
@@ -50,7 +51,8 @@ function getScopeStr(configId: string) {
       `${stigmanScopePrefix}stig-manager:user`,
       `${stigmanScopePrefix}stig-manager:user:read`,
       `${stigmanScopePrefix}stig-manager:op`,
-      'openid'
+      'openid',
+      'offline_access'
     ];
   }
 
@@ -83,7 +85,7 @@ function getScopeStr(configId: string) {
           postLoginRoute: '/consent',
           authority: CPAT.Env.oauth.authority,
           redirectUrl: window.location.origin + '/consent',
-          postLogoutRedirectUri: window.location.origin,
+          postLogoutRedirectUri: window.location.origin + '/consent',
           clientId: CPAT.Env.oauth.clientId,
           scope: getScopeStr('cpat'),
           responseType: 'code',
@@ -99,7 +101,7 @@ function getScopeStr(configId: string) {
           configId: 'stigman',
           authority: CPAT.Env.oauth.authority,
           redirectUrl: window.location.origin + '/consent',
-          postLogoutRedirectUri: window.location.origin,
+          postLogoutRedirectUri: window.location.origin + '/consent',
           clientId: CPAT.Env.stigman.clientId,
           scope: getScopeStr('stigman'),
           responseType: 'code',

@@ -191,7 +191,7 @@ const CPAT = {
   Env: {
     version: "${config.version}",
     apiBase: "${config.client.apiBase}",
-        commit: {
+    commit: {
         branch: "${config.commit.branch}",
         sha: "${config.commit.sha}",
         tag: "${config.commit.tag}",
