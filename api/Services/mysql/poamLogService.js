@@ -10,7 +10,7 @@
 
 'use strict';
 
-const config = require('../utils/config')
+const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
 

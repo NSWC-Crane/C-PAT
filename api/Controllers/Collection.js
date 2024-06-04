@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const collectionService = require('../Services/collectionService');
+const collectionService = require('../Services/mysql/collectionService');
 
 
 module.exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {

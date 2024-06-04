@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const operationService = require('../Services/operationService');
+const operationService = require('../Services/mysql/operationService');
 const config = require('../utils/config');
 
 module.exports.getConfiguration = async function getConfiguration(req, res, next) {

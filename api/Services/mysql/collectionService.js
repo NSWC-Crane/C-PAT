@@ -9,10 +9,10 @@
 */
 
 'use strict';
-const config = require('../utils/config')
+const config = require('../../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
-const logger = require('../utils/logger')
+const logger = require('../../utils/logger')
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();

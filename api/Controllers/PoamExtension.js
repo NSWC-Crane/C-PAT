@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const poamExtensionService = require('../Services/poamExtensionService');
+const poamExtensionService = require('../Services/mysql/poamExtensionService');
 
 exports.getPoamExtension = async function (req, res, next) {
     try {

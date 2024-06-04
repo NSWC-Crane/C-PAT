@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const notificationService = require('../Services/notificationService');
+const notificationService = require('../Services/mysql/notificationService');
 
 module.exports.getAllNotificationsByUserId = async function getAllNotificationsByUserId(req, res, next) {
     try {

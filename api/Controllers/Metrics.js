@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const metricsService = require('../Services/metricsService');
+const metricsService = require('../Services/mysql/metricsService');
 
 module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res, next) {
     try {

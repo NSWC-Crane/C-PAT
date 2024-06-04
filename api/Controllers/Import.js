@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const importService = require('../Services/importService');
+const importService = require('../Services/mysql/importService');
 
 module.exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWithStigManagerData(req, res, next) {
     try {

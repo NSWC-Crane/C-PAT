@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const labelService = require('../Services/labelService');
+const labelService = require('../Services/mysql/labelService');
 
 module.exports.getLabels = async function getLabels(req, res, next) {
     try {

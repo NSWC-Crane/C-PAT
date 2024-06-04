@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const poamAssigneeService = require('../Services/poamAssigneeService');
+const poamAssigneeService = require('../Services/mysql/poamAssigneeService');
 
 exports.getPoamAssignees = async function getPoamAssignees(req, res, next) {
     try {

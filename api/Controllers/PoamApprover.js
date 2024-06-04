@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const poamApproverService = require('../Services/poamApproverService')
+const poamApproverService = require('../Services/mysql/poamApproverService')
 
 module.exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
     try {

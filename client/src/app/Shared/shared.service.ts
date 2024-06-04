@@ -18,7 +18,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 @Injectable({ providedIn: 'root' })
 export class SharedService {
   private cpatApiBase = CPAT.Env.apiBase;
-  private STIGMANAGER_URL = `http://${CPAT.Env.stigman.host}:${CPAT.Env.stigman.port}/${CPAT.Env.stigman.apiBase}`;
+  private STIGMANAGER_URL = `${CPAT.Env.stigman.host}:${CPAT.Env.stigman.port}/${CPAT.Env.stigman.apiBase}`;
   private TENNABLE_URL = "PLACEHOLDER";
   private _selectedCollection = new BehaviorSubject<any>(null);
   public readonly selectedCollection = this._selectedCollection.asObservable();

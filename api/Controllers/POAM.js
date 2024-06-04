@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const poamService = require('../Services/poamService');
+const poamService = require('../Services/mysql/poamService');
 
 module.exports.getAvailablePoams = async function getAvailablePoams(req, res, next) {
     try {
