@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const userService = require('../Services/mysql/usersService');
+const userService = require('../Services/usersService');
 
 module.exports.getUsers = async function getUsers(req, res, next) {
     try {

@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const assetService = require('../Services/mysql/assetService')
+const assetService = require('../Services/assetService')
 
 module.exports.getAssets = async function getAssets(req, res, next) {
     try {

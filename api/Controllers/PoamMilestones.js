@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const poamMilestoneService = require('../Services/mysql/poamMilestoneService')
+const poamMilestoneService = require('../Services/poamMilestoneService')
 
 module.exports.getPoamMilestones = async function getPoamMilestones(req, res, next) {
     try {

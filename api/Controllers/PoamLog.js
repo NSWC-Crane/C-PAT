@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const poamLogService = require('../Services/mysql/poamLogService')
+const poamLogService = require('../Services/poamLogService')
 
 module.exports.getPoamLogByPoamId = async function getPoamLogByPoamId(req, res, next) {
     try {
