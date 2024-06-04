@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const permissionService = require('../Services/mysql/permissionsService');
+const permissionService = require('../Services/permissionsService');
 
 module.exports.getCollectionPermission = async function getCollectionPermission(req, res, next) {
     try {

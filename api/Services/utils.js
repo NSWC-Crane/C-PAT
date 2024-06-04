@@ -9,23 +9,17 @@
 */
 
 const mysql = require('mysql2/promise');
-const config = require('../../utils/config');
-const logger = require('../../utils/logger');
+const config = require('../utils/config');
+const logger = require('../utils/logger');
 const retry = require('async-retry');
 const Umzug = require('umzug');
 const path = require('path');
 const fs = require("fs");
 const semverLt = require('semver/functions/lt');
-const Importer = require('../migrations/lib/mysql-import.js');
+const Importer = require('./migrations/lib/mysql-import.js');
 const minMySqlVersion = '8.0.14';
 let _this = this;
 let initAttempt = 0;
-
-module.exports.WRITE_ACTION = {
-    CREATE: 0,
-    REPLACE: 1,
-    UPDATE: 2
-}
 
 module.exports.testConnection = async function () {
     logger.writeDebug('mysql', 'preflight', { attempt: ++initAttempt })
@@ -144,10 +138,10 @@ module.exports.initializeDatabase = async function (depStatus) {
         }
         const umzug = new Umzug({
             migrations: {
-                path: path.join(__dirname, '../migrations'),
+                path: path.join(__dirname, './migrations'),
                 params: [_this.pool]
             },
-            storage: path.join(__dirname, '../migrations/lib/umzug-mysql-storage'),
+            storage: path.join(__dirname, './migrations/lib/umzug-mysql-storage'),
             storageOptions: {
                 pool: _this.pool
             }
@@ -180,4 +174,60 @@ module.exports.initializeDatabase = async function (depStatus) {
         depStatus.db = 'failed'
         throw new Error('Failed during database initialization or migration.')
     }
+}
+
+module.exports.uuidToSqlString = function (uuid) {
+    return {
+        toSqlString: function () {
+            return `UUID_TO_BIN(${mysql.escape(uuid)},1)`
+        }
+    }
+}
+
+module.exports.makeQueryString = function ({ ctes = [], columns, joins, predicates, groupBy, orderBy }) {
+    const query = `
+${ctes.length ? 'WITH ' + ctes.join(',  \n') : ''}
+SELECT
+  ${columns.join(',\n  ')}
+FROM
+  ${joins.join('\n  ')}
+${predicates?.statements.length ? 'WHERE\n  ' + predicates.statements.join(' and\n  ') : ''}
+${groupBy?.length ? 'GROUP BY\n  ' + groupBy.join(',\n  ') : ''}
+${orderBy?.length ? 'ORDER BY\n  ' + orderBy.join(',\n  ') : ''}
+`
+    return query
+}
+
+module.exports.CONTEXT_ALL = 'all'
+module.exports.CONTEXT_DEPT = 'department'
+module.exports.CONTEXT_USER = 'user'
+
+module.exports.WRITE_ACTION = {
+    CREATE: 0,
+    REPLACE: 1,
+    UPDATE: 2
+}
+
+module.exports.retryOnDeadlock = async function (fn, statusObj = {}) {
+    const retryFunction = async function (bail) {
+        try {
+            return await fn()
+        }
+        catch (e) {
+            if (e.code === 'ER_LOCK_DEADLOCK') {
+                throw (e)
+            }
+            bail(e)
+        }
+    }
+    statusObj.retries = 0
+    return await retry(retryFunction, {
+        retries: 15,
+        factor: 1,
+        minTimeout: 200,
+        maxTimeout: 200,
+        onRetry: () => {
+            ++statusObj.retries
+        }
+    })
 }

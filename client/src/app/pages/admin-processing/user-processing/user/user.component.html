@@ -47,7 +47,7 @@
             <nb-option value="EXPIRED">Expired</nb-option>
           </nb-select>
 
-          <nb-toggle [checked]="checked" (checkedChange)="toggleAdmin($event)" style="padding-top: 15px;">Grant Admin Privileges</nb-toggle>
+          <nb-toggle [checked]="checked" (checkedChange)="toggleAdmin($event)" style="padding-top: 15px;">Grant Admin Privileges <button nbTooltip="The user must also be assigned the admin role within the OIDC provider or permissions will be automatically reverted upon token validation." nbTooltipPlacement="top" nbTooltipStatus="basic" nbButton ghost status="basic"><nb-icon icon="info-outline"></nb-icon></button></nb-toggle>
         </div>
         </nb-card-header>
 <nb-card-body>

@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const assetLabelService = require('../Services/mysql/assetLabelService')
+const assetLabelService = require('../Services/assetLabelService')
 
 module.exports.getAssetLabels = async function getAssetLabels(req, res, next) {
     try {

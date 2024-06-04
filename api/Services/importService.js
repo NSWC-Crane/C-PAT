@@ -10,12 +10,12 @@
 
 const multer = require("multer");
 const ExcelJS = require('exceljs');
-const config = require('../../utils/config');
-const db = require('../../utils/sequelize');
+const config = require('../utils/config');
+const db = require('../utils/sequelize');
 const dbUtils = require('./utils');
 const mysql = require('mysql2');
 const { parse, format } = require('date-fns');
-const { Poam, Collection } = require('../../utils/sequelize.js');
+const { Poam, Collection } = require('../utils/sequelize.js');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();

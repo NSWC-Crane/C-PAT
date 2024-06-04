@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const poamAssetService = require('../Services/mysql/poamAssetService')
+const poamAssetService = require('../Services/poamAssetService')
 
 module.exports.getPoamAssets = async function getPoamAssets(req, res, next) {
     try {

@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-const poamLabelService = require('../Services/mysql/poamLabelService')
+const poamLabelService = require('../Services/poamLabelService')
 
 module.exports.getPoamLabels = async function getPoamLabels(req, res, next) {
     try {

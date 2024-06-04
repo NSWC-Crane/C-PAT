@@ -35,9 +35,9 @@ const jsyaml = require('js-yaml');
 const fs = require('fs');
 const multer = require('multer');
 const writer = require('./utils/writer.js');
-const OperationSvc = require('./Services/mysql/operationService');
+const OperationSvc = require('./Services/operationService');
 const { middleware: openApiMiddleware, resolvers } = require('express-openapi-validator');
-const db = require(`./Services/mysql/utils`);
+const db = require(`./Services/utils`);
 const depStatus = {
     db: 'waiting',
     auth: 'waiting'

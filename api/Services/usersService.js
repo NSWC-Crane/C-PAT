@@ -9,7 +9,7 @@
 */
 
 const dbUtils = require('./utils');
-const logger = require('../../utils/logger');
+const logger = require('../utils/logger');
 const _this = this
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
