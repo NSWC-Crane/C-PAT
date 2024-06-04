@@ -1,0 +1,92 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+
+nb-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+
+    a {
+      margin-right: 1rem;
+    }
+  }
+}
+
+.notification-content {
+  flex-grow: 1;
+  position: relative;
+  padding-right: 1px;
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+}
+
+.notification-icon {
+  margin-right: 1rem;
+}
+
+h6 {
+  margin-bottom: 0.5rem;
+}
+
+.dismiss-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+}
+
+nb-list-item {
+  display: block;
+  padding: 1rem;
+  border-bottom: 1px solid black;
+}
+
+nb-list-item:last-child {
+  border-bottom: none;
+}
+
+.notifications-popover {
+  width: 20vw;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+nb-card-header {
+  flex-shrink: 0;
+}
+
+nb-card-body {
+  padding: 0;
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+nb-list {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+nb-card-footer {
+  padding: 1rem;
+  text-align: center;
+}

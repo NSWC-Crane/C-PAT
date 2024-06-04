@@ -1,0 +1,35 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
+  <form (ngSubmit)="onSubmit()" #form="ngForm">
+    <nb-card>
+      <nb-card-header>Label Details</nb-card-header>
+      <nb-card-body>
+        <div class="row">
+          <label for="labelname">Label Name: </label>
+          <input nbInput type="text" fullWidth name="labelname" [(ngModel)]="label.labelName" placeholder="Label Name" required>
+        </div>
+        <br />
+        <div class="row">
+          <label for="description">Description:  </label>
+          <input nbInput type="text" fullWidth name="description" id="description" [(ngModel)]="label.description" placeholder="Description">
+        </div>
+      </nb-card-body>
+      <nb-card-footer>
+        <div class="row">
+          <div class="button-container">
+            <button nbButton outline status="info" class="mr-3" [disabled]="!form.valid">Submit</button>
+            <button style="margin-left:20px;" nbButton outline status="info" type="button" class="mr-3" (click)="resetData()">Cancel</button>
+            <!--<button style="margin-left:20px;" nbButton outline status="warning" type="button" class="mr-3" (click)="deleteLabel()">Delete Label</button>-->
+          </div>
+        </div>
+      </nb-card-footer>
+    </nb-card>
+  </form>

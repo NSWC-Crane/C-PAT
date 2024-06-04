@@ -1,0 +1,10 @@
+<div class="row">
+  <div class="col-xxxl-3 col-md-6" *ngFor="let statusCard of statusCards">
+    <ngx-status-card [title]="statusCard.title" [type]="statusCard.type"
+                     (click)="statusCard.component ? openModal(statusCard.component) : triggerFileInput()">
+      <nb-icon class="icon" [icon]="statusCard.icon.icon"></nb-icon>
+    </ngx-status-card>
+  </div>
+</div>
+
+<input type="file" #fileInput style="display: none;" (change)="onFileSelect($event)" accept=".xls, .xlsx, .xlsm">

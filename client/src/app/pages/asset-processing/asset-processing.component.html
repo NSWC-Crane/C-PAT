@@ -1,0 +1,83 @@
+
+<div class="col-12 row">
+  <div class="col">
+    <nb-card>
+      <nb-card-body>
+        <nb-tabset fullWidth>
+          <nb-tab tabTitle="Asset Management">
+            <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Assets">
+            <div class="scrollable-assets">
+              <table [nbTreeGrid]="dataSource">
+                <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
+                <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
+
+                <ng-container [nbTreeGridColumnDef]="customColumn">
+                  <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
+                  <td nbTreeGridCell *nbTreeGridCellDef="let row">
+                    {{row.data[customColumn]}}
+                  </td>
+                </ng-container>
+
+                <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
+                  <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
+                  <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '-'}}</td>
+                </ng-container>
+              </table>
+            </div>
+          </nb-tab>
+
+          <nb-tab tabTitle="Asset Chart">
+            <div class="canvas" id="canvas" style="margin-top: 20px;">
+              <button nbButton ghost class="export-button" (click)="exportChart(assetLabelChart, 'C-PAT Asset Label Chart')">
+                <nb-icon icon="download-outline"></nb-icon>
+              </button>
+              <canvas #assetLabelsChart class="asset-label-chart"></canvas>
+            </div>
+            <hr />
+          </nb-tab>
+        </nb-tabset>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>
+
+<div class="col-12 row">
+  <div class="col">
+    <nb-card>
+      <nb-card-header>Manage Assets</nb-card-header>
+      <nb-card-body>
+        <div class="row" *ngIf="allowSelectAssets">
+
+          <div class="col-md-5" style="width: auto;">
+              <nb-select fullWidth style="width: auto" outlineid="assetid" name="asset"
+                         [(ngModel)]="asset.assetId" (selectedChange)="setAsset($event)" placeholder="Select Asset to Modify" required>
+                <nb-option *ngFor="let asset of data" [value]="asset.assetId">
+                  {{ asset?.assetId }} - {{ asset?.assetName }}
+                </nb-option>
+              </nb-select>
+          </div>
+
+
+          <div class="col-md-5" style="width: auto;">
+            <button nbButton outline status="info" style="float: right;" (click)="addAsset()">Add Asset</button>
+          </div>
+        </div>
+
+        <div *ngIf="!allowSelectAssets">
+          <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData();"></cpat-asset>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>
+
+<ng-template #dialog let-data let-ref="dialogRef">
+  <nb-card>
+    <nb-card-header>Delete Row</nb-card-header>
+    <nb-card-body>Are you sure you want to delete this item?</nb-card-body>
+    <nb-card-footer>
+      <button nbButton status="danger">Delete</button>
+      <button nbButton outline status="primary" style="float: right;" (click)="ref.close()">Cancel</button>
+    </nb-card-footer>
+  </nb-card>
+</ng-template>
