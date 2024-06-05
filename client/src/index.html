@@ -16,7 +16,48 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script type="text/javascript" src="cpat/Env.js"></script>
+  <!--<script type="text/javascript" src="cpat/Env.js"></script>-->
+  <script>
+  const CPAT = {
+      Env: {
+        version: "0.2.0",
+        apiBase: "http://localhost:8086/api",
+        commit: {
+          branch: "na",
+          sha: "na",
+          tag: "na",
+          describe: "na"
+        },
+        oauth: {
+          authority: "http://localhost:8080/realms/RMFTools",
+          clientId: "c-pat",
+          refreshToken: {
+            disabled: false
+          },
+          extraScopes: "",
+          scopePrefix: "",
+          claims: {
+            scope: "c-pat:read c-pat:op openid profile offline_access",
+            username: "preferred_username",
+            servicename: "clientId",
+            fullname: "name",
+            firstname: "given_name",
+            lastname: "family_name",
+            privileges: "['realm_access']?.['roles']",
+            email: "email"
+          }
+        },
+        stigman: {
+          clientId: "stig-manager",
+          host: "localhost",
+          port: "54000",
+          apiBase: "api",
+          scopePrefix: "",
+          extraScopes: "",
+        }
+      }
+    }
+  </script>
 </head>
 <body>
   <cpat-app></cpat-app>

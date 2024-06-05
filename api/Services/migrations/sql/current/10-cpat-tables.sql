@@ -53,7 +53,9 @@ CREATE TABLE `assetlabels` (
   `assetId` int NOT NULL,
   `collectionId` int NOT NULL,
   `labelId` int NOT NULL,
-  PRIMARY KEY (`assetId`,`labelId`)
+  PRIMARY KEY (`assetId`, `labelId`),
+  CONSTRAINT `fk_assetlabels_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_assetlabels_collection` FOREIGN KEY (`collectionId`) REFERENCES `collection` (`collectionId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -247,7 +249,7 @@ DROP TABLE IF EXISTS `poamassets`;
 CREATE TABLE `poamassets` (
   `poamId` int NOT NULL,
   `assetId` int NOT NULL,
-  PRIMARY KEY (`poamId`,`assetId`),
+  PRIMARY KEY (`poamId`, `assetId`),
   KEY `idx_poamassets_assetId` (`assetId`),
   KEY `idx_poamassets_poamId` (`poamId`),
   CONSTRAINT `fk_poamassets_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE
