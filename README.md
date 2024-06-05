@@ -11,5 +11,5 @@
   
 
   ## Sample
-<img src="https://i.imgur.com/rbEbnls.png" width="1000" height="495" />
-<img src="https://i.imgur.com/tJWNX19.png" width="1000" height="300" />
+<img src="https://i.imgur.com/OBSigWP.gif" />
+<img src="https://i.imgur.com/fqU0UQb.gif" />
