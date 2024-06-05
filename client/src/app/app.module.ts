@@ -7,6 +7,7 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
+
 import { AuthModule } from 'angular-auth-oidc-client';
 import { APP_BASE_HREF } from "@angular/common";
 import { HttpClientModule } from '@angular/common/http';
@@ -40,7 +41,6 @@ function getScopeStr(configId: string) {
       `${cpatScopePrefix}c-pat:op`,
       'openid',
       'profile',
-      'email',
       'offline_access'
     ];
   } else if (configId === 'stigman') {
@@ -61,7 +61,6 @@ function getScopeStr(configId: string) {
   } else if (CPAT.Env.stigman.extraScopes && configId === 'stigman') {
     scopes.push(...CPAT.Env.stigman.extraScopes.split(' '));
   }
-
   return scopes.join(' ');
 }
 

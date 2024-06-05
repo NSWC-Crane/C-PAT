@@ -16,6 +16,7 @@ const dbUtils = require('./utils');
 const mysql = require('mysql2');
 const { parse, format } = require('date-fns');
 const { Poam, Collection } = require('../utils/sequelize.js');
+const logger = require('../utils/logger');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -363,80 +364,95 @@ exports.postStigManagerAssets = async function postStigManagerAssets(assets) {
 
 exports.postStigManagerCollection = async function postStigManagerCollection(collection, assets) {
     await withConnection(async (connection) => {
-        const collectionData = {
-            collectionName: collection.name,
-            description: collection.description || '',
-            collectionOrigin: 'STIG Manager'
-        };
+        await connection.beginTransaction();
 
-        let [existingCollection] = await connection.query('SELECT * FROM cpat.collection WHERE collectionName = ?', [collection.name]);
-
-        let collectionId;
-
-        if (existingCollection.length) {
-            collectionId = existingCollection[0].collectionId;
-            await connection.query('UPDATE cpat.collection SET ? WHERE collectionId = ?', [collectionData, collectionId]);
-        } else {
-            const [result] = await connection.query('INSERT INTO cpat.collection SET ?', collectionData);
-            collectionId = result.insertId;
-        }
-
-        if (collection.labels && Array.isArray(collection.labels)) {
-            for (const label of collection.labels) {
-                const labelData = {
-                    collectionId: collectionId,
-                    labelName: label.name,
-                    description: label.description,
-                    stigmanLabelId: label.labelId,
-                };
-
-                const [existingLabel] = await connection.query('SELECT * FROM cpat.label WHERE stigmanLabelId = ? AND collectionId = ?', [label.labelId, collectionId]);
-
-                if (!existingLabel.length) {
-                    await connection.query('INSERT INTO cpat.label SET ?', labelData);
-                }
-            }
-        }
-
-        for (const asset of assets) {
-            const assetData = {
-                assetName: asset.name,
-                fullyQualifiedDomainName: asset.fqdn || '',
-                description: asset.description || '',
-                ipAddress: asset.ip || '',
-                macAddress: asset.mac || '',
-                nonComputing: asset.noncomputing ? 1 : 0,
-                collectionId: collectionId,
-                assetOrigin: 'STIG Manager'
+        try {
+            const collectionData = {
+                collectionName: collection.name,
+                description: collection.description || '',
+                collectionOrigin: 'STIG Manager'
             };
 
-            const [existingAsset] = await connection.query('SELECT * FROM cpat.asset WHERE assetName = ? AND collectionId = ?', [asset.name, collectionId]);
+            let [existingCollection] = await connection.query('SELECT * FROM cpat.collection WHERE collectionName = ?', [collection.name]);
 
-            let assetId;
+            let collectionId;
 
-            if (existingAsset.length) {
-                assetId = existingAsset[0].assetId;
-                await connection.query('UPDATE cpat.asset SET ? WHERE assetId = ?', [assetData, assetId]);
+            if (existingCollection.length) {
+                collectionId = existingCollection[0].collectionId;
+                await connection.query('UPDATE cpat.collection SET ? WHERE collectionId = ?', [collectionData, collectionId]);
             } else {
-                const [result] = await connection.query('INSERT INTO cpat.asset SET ?', assetData);
-                assetId = result.insertId;
+                const [result] = await connection.query('INSERT INTO cpat.collection SET ?', collectionData);
+                collectionId = result.insertId;
             }
 
-            if (asset.labelIds && Array.isArray(asset.labelIds)) {
-                await connection.query('DELETE FROM cpat.assetlabels WHERE assetId = ?', [assetId]);
+            if (collection.labels && Array.isArray(collection.labels)) {
+                for (const label of collection.labels) {
+                    const labelData = {
+                        collectionId: collectionId,
+                        labelName: label.name,
+                        description: label.description,
+                        stigmanLabelId: label.labelId,
+                    };
+                    const [existingLabel] = await connection.query('SELECT * FROM cpat.label WHERE stigmanLabelId = ? AND collectionId = ?', [label.labelId, collectionId]);
 
-                for (const labelId of asset.labelIds) {
-                    const [labelRecord] = await connection.query('SELECT * FROM cpat.label WHERE stigmanLabelId = ? AND collectionId = ?', [labelId, collectionId]);
-
-                    if (labelRecord.length) {
-                        await connection.query('INSERT INTO cpat.assetlabels (assetId, labelId, collectionId) VALUES (?, ?, ?)', [
-                            assetId,
-                            labelRecord[0].labelId,
-                            collectionId
-                        ]);
+                    if (!existingLabel.length) {
+                        try {
+                            await connection.query('INSERT INTO cpat.label SET ?', labelData);
+                        } catch (error) {
+                            if (error.code === 'ER_DUP_ENTRY') {
+                                logger.writeDebug(`Duplicate label entry attempted, skipping insert for label: ${labelData.labelName}`);
+                            } else {
+                                throw error;
+                            }
+                        }
                     }
                 }
             }
+
+            for (const asset of assets) {
+                const assetData = {
+                    assetName: asset.name,
+                    fullyQualifiedDomainName: asset.fqdn || '',
+                    description: asset.description || '',
+                    ipAddress: asset.ip || '',
+                    macAddress: asset.mac || '',
+                    nonComputing: asset.noncomputing ? 1 : 0,
+                    collectionId: collectionId,
+                    assetOrigin: 'STIG Manager'
+                };
+                const [existingAsset] = await connection.query('SELECT * FROM cpat.asset WHERE assetName = ? AND collectionId = ?', [asset.name, collectionId]);
+
+                let assetId;
+
+                if (existingAsset.length) {
+                    assetId = existingAsset[0].assetId;
+                    await connection.query('UPDATE cpat.asset SET ? WHERE assetId = ?', [assetData, assetId]);
+                } else {
+                    const [result] = await connection.query('INSERT INTO cpat.asset SET ?', assetData);
+                    assetId = result.insertId;
+                }
+
+                if (asset.labelIds && Array.isArray(asset.labelIds)) {
+                    await connection.query('DELETE FROM cpat.assetlabels WHERE assetId = ?', [assetId]);
+
+                    for (const labelId of asset.labelIds) {
+                        const [labelRecord] = await connection.query('SELECT * FROM cpat.label WHERE stigmanLabelId = ? AND collectionId = ?', [labelId, collectionId]);
+
+                        if (labelRecord.length) {
+                            await connection.query('INSERT INTO cpat.assetlabels (assetId, labelId, collectionId) VALUES (?, ?, ?)', [
+                                assetId,
+                                labelRecord[0].labelId,
+                                collectionId
+                            ]);
+                        }
+                    }
+                }
+            }
+            await connection.commit();
+
+        } catch (error) {
+            await connection.rollback();
+            throw error;
         }
     });
 };
