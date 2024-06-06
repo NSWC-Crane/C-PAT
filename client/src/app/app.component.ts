@@ -157,12 +157,8 @@ export class AppComponent implements OnInit, OnDestroy {
     const userName = this.payload.userName;
     this.subs.sink = (await this.collectionService.getCollections(userName)).subscribe((result: any) => {
     this.collections = result;
-      if (this.user.defaultTheme) {
-        this.selectedTheme = this.user.defaultTheme
-      } else {
-        this.selectedTheme = 'dark';
-        this.themeService.changeTheme(this.selectedTheme);
-      }
+      this.selectedTheme = (this.user.defaultTheme) ? this.user.defaultTheme : 'dark'
+      this.themeService.changeTheme(this.selectedTheme);
 
       if (this.user.lastCollectionAccessedId) {
         this.selectedCollection = +this.user.lastCollectionAccessedId;

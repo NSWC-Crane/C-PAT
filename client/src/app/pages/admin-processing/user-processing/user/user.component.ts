@@ -49,6 +49,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   editedRows: any[] = [];
   modalWindow: NbWindowRef | undefined
   dialog!: TemplateRef<any>;
+  showLastClaims: boolean = false;
 
   collectionPermissionsSettings: Settings = {
     add: {
@@ -154,6 +155,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     (await this.userService.getUser(userId)).subscribe(
       userData => {
         this.user = userData;
+        console.log(this.user);
         this.loadCollections();
         if (this.user.isAdmin == 1) {
           this.checked = true;
