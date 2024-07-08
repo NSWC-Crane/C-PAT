@@ -9,9 +9,9 @@
 */
 
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { NbDialogRef, NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
+import { DialogService } from 'primeng/dynamicdialog';
 import { Observable, Subscription } from 'rxjs';
-import { SubSink } from "subsink";
+import { SubSink } from 'subsink';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../Shared/shared.service';
 import { UsersService } from '../admin-processing/user-processing/users.service';
@@ -22,58 +22,47 @@ interface Permission {
   collectionId: number;
   accessLevel: number;
 }
-interface TreeNode<T> {
-  data: T;
-  children?: TreeNode<T>[];
-  expanded?: boolean;
-}
-
-interface FSEntry {
-  labelId?: string;
-  labelName?: string;
-  description?: string;
+interface LabelEntry {
+  labelId: string;
+  labelName: string;
+  description: string;
 }
 
 @Component({
   selector: 'cpat-label-processing',
   templateUrl: './label-processing.component.html',
-  styleUrls: ['./label-processing.component.scss']
+  styleUrls: ['./label-processing.component.scss'],
+  providers: [DialogService]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;
-  labelDialogRef!: NbDialogRef<any>;
+  labelDialogVisible: boolean = false;
   customColumn = 'label';
-  defaultColumns = [ 'Name', 'Description' ];
-  allColumns = [ this.customColumn, ...this.defaultColumns ];
-  dataSource!: NbTreeGridDataSource<any>;
+  defaultColumns = ['Name', 'Description'];
+  allColumns = [this.customColumn, ...this.defaultColumns];
+  data: LabelEntry[] = [];
+  filterValue: string = '';
 
   users: any;
   user: any;
   public isLoggedIn = false;
-  labels: any;
-  label: any={};
-  data: any= [];
+  labels: LabelEntry[] = [];
+  label: LabelEntry = { labelId: '', labelName: '', description: '' };
   allowSelectLabels = true;
-  selected: any
+  selected: any;
   selectedRole: string = 'admin';
   payload: any;
   selectedCollection: any;
+  selectedLabels: LabelEntry[] = [];
   private subscriptions = new Subscription();
-  get hideCollectionEntry() {
-    return (this.label.labelId && this.label.labelId != "LABEL")
-      ? { display: 'block' }
-      : { display: 'none' }
-  }
+  private subs = new SubSink();
 
-  private subs = new SubSink()
-
-  constructor( 
+  constructor(
     private labelService: LabelService,
-    private dialogService: NbDialogService,
+    private dialogService: DialogService,
     private userService: UsersService,
-    private sharedService: SharedService,
-    private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
-     }
+    private sharedService: SharedService) {
+  }
 
   onSubmit() {
     this.resetData();
@@ -118,66 +107,56 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   async getLabelData() {
-    this.labels = null;
-    (await this.labelService.getLabels(this.selectedCollection)).subscribe((result: any) => {
-
-      this.data = result.sort((a: { labelId: number; }, b: { labelId: number; }) => a.labelId - b.labelId);
+    this.labels = [];
+    this.subs.sink = (await this.labelService.getLabels(this.selectedCollection)).subscribe((result: any) => {
+      this.data = (result as LabelEntry[]).map(label => ({
+        ...label,
+        labelId: String(label.labelId)
+      })).sort((a, b) => a.labelId.localeCompare(b.labelId));
       this.labels = this.data;
-      this.getLabelsGrid();
+    }, error => {
+      console.error('Error fetching labels:', error);
     });
-
   }
 
-  getLabelsGrid() {
-    const labelData = this.data;
-
-    const treeViewData: TreeNode<FSEntry>[] = labelData.map((label: { labelId: number | any[]; labelName: any; 
-        description: any;}) => {
-      const myChildren: never[] = [];
-
-      return {
-
-        data: { label: label.labelId, 'Name': label.labelName, 'Description': label.description},
-        children: myChildren
-      };
-    })
-    this.dataSource = this.dataSourceBuilder.create(treeViewData);
+  setLabel(labelId: string) {
+    const selectedData = this.data.find(label => label.labelId === labelId);
+    if (selectedData) {
+      this.label = { ...selectedData };
+      this.labelDialogVisible = true;
+    } else {
+      this.label = { labelId: '', labelName: '', description: '' };
+    }
   }
 
-  setLabel(labelId: any) {
-    this.label = null;
-    const selectedData = this.data.filter((label: { labelId: any; }) => label.labelId === labelId)
-    this.label = selectedData[0];
-    this.allowSelectLabels = false;
-    this.openLabelPopup();
+  openLabelPopup() {
+    this.labelDialogVisible = true;
   }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.data = this.labels.filter(label =>
+      label.labelName.toLowerCase().includes(filterValue) ||
+      label.description.toLowerCase().includes(filterValue) ||
+      label.labelId.toLowerCase().includes(filterValue)
+    );
+  }
+
 
   resetData() {
-    this.label = [];
+    this.label = { labelId: '', labelName: '', description: '' };
     this.getLabelData();
     this.label.labelId = "ADDLABEL";
     this.allowSelectLabels = true;
   }
 
   addLabel() {
-    this.label.labelId = "ADDLABEL";
-    this.label.labelName = "";
-    this.label.description = ""
-    this.allowSelectLabels = false;
+    this.label = { labelId: 'ADDLABEL', labelName: '', description: '' };
+    this.labelDialogVisible = true;
   }
 
-  openLabelPopup() {
-    this.labelDialogRef = this.dialogService.open(this.labelPopup, {
-      hasBackdrop: true,
-      closeOnBackdropClick: true,
-      closeOnEsc: true,
-      hasScroll: true,
-      dialogClass: 'modal-dialog',
-    });
-  }
-
-  closePopup() {
-    this.labelDialogRef.close();
+  closeLabelPopup() {
+    this.labelDialogVisible = false;
   }
 
   ngOnDestroy() {
@@ -186,11 +165,9 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-  this.dialogService.open(ConfirmationDialogComponent, {
-    hasBackdrop: true,
-    closeOnBackdropClick: true,
-    context: {
-      options: dialogOptions,
-    },
-  }).onClose;
+    this.dialogService.open(ConfirmationDialogComponent, {
+      data: {
+        options: dialogOptions,
+      },
+    }).onClose;
 }

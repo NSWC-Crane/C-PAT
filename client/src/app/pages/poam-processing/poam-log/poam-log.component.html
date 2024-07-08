@@ -8,37 +8,27 @@
 !########################################################################
 -->
 
-<ng-template #logTemplate let-ref="dialogRef">
+<p-dialog header="POAM History" [(visible)]="displayModal" [style]="{width: '60vw', 'max-height': '80vh'}" [modal]="true" [closable]="true" (onHide)="closeModal()">
   <div class="container">
-    <nb-card style="width: 60vw; height: auto; max-height: 80vh; overflow-y: auto;">
-      <nb-card-header>
-        POAM History
-      </nb-card-header>
-      <nb-card-body>
-        <table [nbTreeGrid]="dataSource" nbTreeGridRowComponent>
-          <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns; let columns"></tr>
-          <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-
-          <ng-container nbTreeGridColumnDef="Timestamp">
-            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef style="width: 20%;">Timestamp</th>
-            <td nbTreeGridCell *nbTreeGridCellDef="let row" style="width: 20%;">{{ row.data.Timestamp }}</td>
-          </ng-container>
-
-          <ng-container nbTreeGridColumnDef="User">
-            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef style="width: 20%;">User</th>
-            <td nbTreeGridCell *nbTreeGridCellDef="let row" style="width: 20%;">{{ row.data.User }}</td>
-          </ng-container>
-
-          <ng-container nbTreeGridColumnDef="Action">
-            <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef style="width: 60%;">Action</th>
-            <td nbTreeGridCell *nbTreeGridCellDef="let row" style="width: 60%;" [innerHTML]="row.data.Action"></td>
-          </ng-container>
-
-        </table>
-      </nb-card-body>
-      <nb-card-footer>
-        <button nbButton outline status="info" (click)="closeModal()">Close</button>
-      </nb-card-footer>
-    </nb-card>
+    <p-table [value]="dataSource" [scrollable]="true" scrollHeight="flex" [style]="{'max-height':'60vh'}">
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="Timestamp" style="width: 20%;">Timestamp <p-sortIcon field="Timestamp"></p-sortIcon></th>
+          <th pSortableColumn="User" style="width: 20%;">User <p-sortIcon field="User"></p-sortIcon></th>
+          <th pSortableColumn="Action" style="width: 60%;">Action <p-sortIcon field="Action"></p-sortIcon></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td style="width: 20%;">{{ row.Timestamp }}</td>
+          <td style="width: 20%;">{{ row.User }}</td>
+          <td style="width: 60%;" [innerHTML]="row.Action"></td>
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
-</ng-template>
+  <p-footer>
+    <button pButton type="button" label="Close" icon="pi pi-times" class="ui-button-info" (click)="closeModal()"></button>
+  </p-footer>
+</p-dialog>
+

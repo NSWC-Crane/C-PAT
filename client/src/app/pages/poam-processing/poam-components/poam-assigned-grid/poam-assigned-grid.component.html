@@ -7,46 +7,38 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-<nb-card-body>
-  <input nbInput [nbFilterInput]="assignedDataSource" id="search" class="search-input" placeholder="Search...">
-  <div class="table-container">
-    <table class="poam-table" [nbTreeGrid]="assignedDataSource">
-      <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="assignedColumns"></tr>
-      <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: assignedColumns"></tr>
 
-      <ng-container [nbTreeGridColumnDef]="'POAM ID'">
-        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="15">POAM ID</th>
-        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="15">{{row.data.poamId}}</td>
-      </ng-container>
-
-      <ng-container [nbTreeGridColumnDef]="'Adjusted Severity'">
-        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="22">Adjusted Severity</th>
-        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="22">{{row.data.adjSeverity}}</td>
-      </ng-container>
-
-      <ng-container [nbTreeGridColumnDef]="'Poam Status'">
-        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="20">POAM Status</th>
-        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="20">{{row.data.status}}</td>
-      </ng-container>
-
-      <ng-container [nbTreeGridColumnDef]="'Submitter'">
-        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="25">Submitted By</th>
-        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="25">{{row.data.submitter}}</td>
-      </ng-container>
-
-      <ng-container [nbTreeGridColumnDef]="'Approval Status'">
-        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="25">Approval Status</th>
-        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="25">{{row.data.approvalStatus}}</td>
-      </ng-container>
-
-      <ng-container [nbTreeGridColumnDef]="'Manage'">
-        <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="18">Manage</th>
-        <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="18">
-          <button class="manage-POAM-button" nbButton ghost (click)="managePoam(row)">
-            <nb-icon icon="plus-square-outline"></nb-icon>
-          </button>
+  <p-table [value]="filteredData"
+           [scrollable]="true"
+           scrollHeight="63rem">
+    <ng-template pTemplate="caption">
+        <p-iconField iconPosition="left" class="ml-auto">
+          <p-inputIcon>
+            <i class="pi pi-search"></i>
+          </p-inputIcon>
+          <input pInputText type="text" [(ngModel)]="globalFilter" (input)="onFilterChange($event)" placeholder="Search..." />
+        </p-iconField>
+    </ng-template>
+    <ng-template pTemplate="header">
+      <tr>
+        <th *ngFor="let col of assignedColumns">
+          {{ col }}
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td *ngFor="let col of assignedColumns">
+          <span *ngIf="col !== 'Manage'">{{ row[getColumnKey(col)] }}</span>
+          <span *ngIf="col === 'Manage'">
+            <button pButton type="button" icon="pi pi-plus" class="p-button-text" (click)="managePoam(row)"></button>
+          </span>
         </td>
-      </ng-container>
-    </table>
-  </div>
-</nb-card-body>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td [attr.colspan]="assignedColumns.length" style="text-align: center;">No POAMs found.</td>
+      </tr>
+    </ng-template>
+  </p-table>

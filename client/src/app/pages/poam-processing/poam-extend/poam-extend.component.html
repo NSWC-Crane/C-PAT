@@ -7,67 +7,101 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-
-<ng-template #extendTemplate let-ref="dialogRef">
+<p-dialog header="Extend POAM" [(visible)]="displayExtensionDialog" [modal]="true" [style]="{width: '60vw', height: '80vh'}" [draggable]="false" [resizable]="false">
   <div class="container" *ngIf="poam">
-        <nb-card style="width: 60vw; height: auto; max-height: 80vh; overflow-y: auto;">
-          <nb-card-header>Extend POAM</nb-card-header>
-          <nb-card-body>
-
-          <!-- Extension Time Allowed -->
-          <div class="form-group">
-            <label for="extensionTimeAllowed">Extension Time Allowed:</label>
-            <nb-select fullWidth placeholder="Extension Time Allowed" [(ngModel)]="poam.extensionTimeAllowed" name="extensionTimeAllowed" (selectedChange)="computeDeadlineWithExtension()">
-              <nb-option [value]="0">0 Days</nb-option>
-              <nb-option [value]="30">30 Days</nb-option>
-              <nb-option [value]="60">60 Days</nb-option>
-              <nb-option [value]="90">90 Days</nb-option>
-              <nb-option [value]="180">180 Days</nb-option>
-              <nb-option [value]="365">365 Days</nb-option>
-            </nb-select>
-          </div>
-
-          <!-- Deadline With Extension -->
-          <div class="form-group">
-            <label for="extensionDeadline">Deadline With Extension:</label>
-            <input type="text" nbInput fullWidth status="basic"
-                   [value]="this.completionDateWithExtension"
-                   name="extensionDeadline" disabled>
-          </div>
-
-          <!-- Justification for Extension -->
-          <div class="form-group">
-            <label for="extensionJustification">Justification for Extension:</label>
-            <input nbInput
-                   fullWidth
-                   placeholder="Select from the available options or provide a custom justification"
-                   [nbAutocomplete]="auto"
-                   [(ngModel)]="extensionJustification"
-                   [value]="poam.extensionJustification">
-
-            <nb-autocomplete #auto>
-              <nb-option *ngFor="let justification of justifications" [value]="justification">
-                {{ justification }}
-              </nb-option>
-            </nb-autocomplete>
-          </div>
-
-          <!-- New Milestones to Achieve Completion -->
-          <div class="milestoneSmartTable">
-            <label for="newMilestones">New Milestones to Achieve Completion:</label>
-          </div>
-          <div class="milestoneSmartTable">
-            <angular2-smart-table [settings]="poamExtensionMilestoneSettings" [source]="poamExtensionMilestones" mode="inline"
-            (createConfirm)="confirmCreateMilestone($event)" (editConfirm)="confirmEditMilestone($event)" (deleteConfirm)="confirmDeleteMilestone($event)">
-            </angular2-smart-table>
-            </div>
-        </nb-card-body>
-
-        <!-- Buttons -->
-        <nb-card-footer>
-          <button nbButton outline status="info" (click)="submitPoamExtension()">Save</button>
-          <button nbButton outline status="warning" style="margin-left: 20px;" (click)="cancelExtension()">Cancel</button>
-        </nb-card-footer>
-        </nb-card>
+    <div class="p-grid">
+      <!-- Extension Time Allowed -->
+      <div class="p-col-12">
+        <div class="p-field">
+          <label for="extensionTimeAllowed">Extension Time Allowed:</label>
+          <p-dropdown [options]="extensionTimeOptions" [(ngModel)]="poam.extensionTimeAllowed" (onChange)="computeDeadlineWithExtension()" placeholder="Extension Time Allowed" [showClear]="true" [style]="{'width':'100%'}"></p-dropdown>
+        </div>
       </div>
-</ng-template>
+      <!-- Deadline With Extension -->
+      <div class="p-col-12">
+        <div class="p-field">
+          <label for="extensionDeadline">Deadline With Extension:</label>
+          <input type="text" pInputText [value]="completionDateWithExtension" name="extensionDeadline" disabled [style]="{'width':'100%'}">
+        </div>
+      </div>
+      <!-- Justification for Extension -->
+      <div class="p-col-12">
+        <div class="p-field">
+          <label for="extensionJustification">Justification for Extension:</label>
+          <p-autoComplete [(ngModel)]="extensionJustification"
+                          [dropdown]="true"
+                          [suggestions]="filteredJustifications"
+                          (completeMethod)="filterJustifications($event)"
+                          [placeholder]="extensionJustificationPlaceholder"
+                          [style]="{'width':'100%'}">
+          </p-autoComplete>
+        </div>
+      </div>
+      <!-- New Milestones to Achieve Completion -->
+      <div class="p-col-12">
+        <label for="newMilestones">New Milestones to Achieve Completion:</label>
+        <p-table [value]="poamExtensionMilestones" editMode="row" dataKey="milestoneId">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Milestone Comments</th>
+              <th>Milestone Date</th>
+              <th>Milestone Status</th>
+              <th><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()"></button></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-milestone let-editing="editing" let-ri="rowIndex">
+            <tr [pEditableRow]="milestone">
+              <td>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <textarea pInputTextarea [(ngModel)]="milestone.extensionMilestoneComments"></textarea>
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{milestone.extensionMilestoneComments}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <p-calendar [(ngModel)]="milestone.extensionMilestoneDate" [showIcon]="true" dateFormat="yy-mm-dd" appendTo="body"></p-calendar>
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{milestone.extensionMilestoneDate | date:'yyyy-MM-dd'}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <p-dropdown [options]="milestoneStatusOptions" [(ngModel)]="milestone.extensionMilestoneStatus" [style]="{'width':'100%'}" appendTo="body"></p-dropdown>
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{milestone.extensionMilestoneStatus}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td style="text-align:center">
+                <button *ngIf="!editing" pButton type="button" pInitEditableRow icon="pi pi-pencil" class="p-button-text" (click)="onRowEditInit(milestone)"></button>
+                <button *ngIf="editing" pButton type="button" pSaveEditableRow icon="pi pi-check" class="p-button-text" style="margin-right: .5em" (click)="onRowEditSave(milestone, ri)"></button>
+                <button *ngIf="editing" pButton type="button" pCancelEditableRow icon="pi pi-times" class="p-button-text" (click)="onRowEditCancel(milestone, ri)"></button>
+                <button *ngIf="!editing" pButton type="button" icon="pi pi-trash" class="p-button-text" (click)="deleteMilestone(milestone, ri)"></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4" style="text-align:center">No Data to Display</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Save" class="p-button-outlined" (click)="submitPoamExtension()"></button>
+    <button pButton label="Cancel" class="p-button-outlined p-button-secondary" (click)="cancelExtension()"></button>
+  </ng-template>
+</p-dialog>
+<p-toast></p-toast>
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>

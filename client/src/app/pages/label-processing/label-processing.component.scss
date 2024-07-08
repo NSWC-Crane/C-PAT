@@ -8,61 +8,62 @@
 !########################################################################
 */
 
-button[nbTreeGridRowToggle] {
-    background: transparent;
-    border: none;
-    padding: 0;
-  }
+button[pTreeTableToggler] {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
 
 .scrollable-labels {
   max-height: 60vh;
   overflow-y: auto;
 }
-  
-  .search-label {
-    display: block;
+
+.search-label {
+  display: block;
+}
+
+.search-input {
+  margin-bottom: 1rem;
+}
+
+.p-column-name {
+  width: 100%;
+}
+
+@media screen and (min-width: 400px) {
+  .p-column-name,
+  .p-column-size {
+    width: 50%;
   }
-  .search-input {
-    margin-bottom: 1rem;
+}
+
+@media screen and (min-width: 500px) {
+  .p-column-name,
+  .p-column-size,
+  .p-column-kind {
+    width: 33.333%;
   }
-  
-  .nb-column-name {
-    width: 100%;
+}
+
+@media screen and (min-width: 600px) {
+  .p-column-name {
+    width: 31%;
   }
-  
-  @media screen and (min-width: 400px) {
-    .nb-column-name,
-    .nb-column-size {
-      width: 50%;
-    }
+  .p-column-size,
+  .p-column-kind,
+  .p-column-items {
+    width: 23%;
   }
-  
-  @media screen and (min-width: 500px) {
-    .nb-column-name,
-    .nb-column-size,
-    .nb-column-kind {
-      width: 33.333%;
-    }
-  }
-  
-  @media screen and (min-width: 600px) {
-    .nb-column-name {
-      width: 31%;
-    }
-    .nb-column-size,
-    .nb-column-kind,
-    .nb-column-items {
-      width: 23%;
-    }
-  }
-  
+}
+
 ::ng-deep {
   body {
     min-height: 20rem;
   }
 
-  .nb-tree-grid-header-cell,
-  .nb-tree-grid-header-cell button {
+  .p-treetable-header,
+  .p-treetable-header button {
     text-transform: capitalize;
   }
 }

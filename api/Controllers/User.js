@@ -89,6 +89,32 @@ module.exports.updateUser = async function updateUser(req, res, next) {
     }
 };
 
+module.exports.updateUserTheme = async function updateUserTheme(req, res, next) {
+    try {
+        const result = await userService.updateUserTheme(req, res, next);
+        if (result.success) {
+            res.status(200).json(result.message);
+        } else {
+            res.status(400).json(result.message);
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
+
+module.exports.updateUserPoints = async function updateUserPoints(req, res, next) {
+    try {
+        const result = await userService.updateUserPoints(req, res, next);
+        if (result.success) {
+            res.status(200).json(result.message);
+        } else {
+            res.status(400).json(result.message);
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
+
 module.exports.deleteUser = async function deleteUser(req, res, next) {
     try {
         const userId = req.params.userId;

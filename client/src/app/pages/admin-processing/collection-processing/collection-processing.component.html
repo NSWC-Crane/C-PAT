@@ -7,74 +7,118 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-
-    <nb-card>
-      <nb-card-body>
-        <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Collections">
-        <div class="scrollable-collections">
-          <table [nbTreeGrid]="dataSource">
-            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
-            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-
-            <ng-container [nbTreeGridColumnDef]="customColumn">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">
-                {{row.data[customColumn]}}
+<div class="grid" *ngIf="canModifyCollection; else unauthorized">
+  <div class="col-12">
+    <p-card>
+      <div class="scrollable-collections">
+        <p-treeTable #dt [value]="collectionTreeData" [columns]="allColumns" [filterDelay]="0" [globalFilterFields]="['data']">
+          <ng-template pTemplate="caption">
+            <p-iconField iconPosition="left">
+              <p-inputIcon>
+                <i class="pi pi-search"></i>
+              </p-inputIcon>
+              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections" class="search-input">
+            </p-iconField>
+          </ng-template>
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th *ngFor="let col of columns">
+                {{col}}
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
+            <tr>
+              <td *ngFor="let col of columns; let i = index">
+                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
+                {{rowData[col]}}
               </td>
-            </ng-container>
-
-            <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
-            </ng-container>
-          </table>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" style="text-align:center">No Data to Display</td>
+            </tr>
+          </ng-template>
+        </p-treeTable>
+      </div>
+    </p-card>
+  </div>
+  <div *ngIf="showCollectionSelect" class="col-12">
+    <p-card>
+        <div *ngIf="collections && collections.length > 0">
+          <p-dropdown [options]="collections"
+                      name="selectedCollection"
+                      [(ngModel)]="selectedCollection"
+                      (onChange)="setCollection()"
+                      placeholder="Select Collection to Modify..."
+                      optionLabel="collectionName"
+                      [showClear]="true"
+                      autoWidth="false"
+                      [style]="{'width': '30vw', 'margin-right': '20px'}"
+                      appendTo="body">
+            <ng-template let-collection pTemplate="item">
+              {{collection.collectionId}} - {{collection.collectionName}} - {{collection.description}}
+            </ng-template>
+          </p-dropdown>
+          <button pButton
+                  type="button"
+                  label="ADD COLLECTION"
+                  styleClass="p-button-primary p-button-outlined"
+                  (click)="addCollection()"
+                  [outlined]="true">
+          </button>
         </div>
-      </nb-card-body>
-    </nb-card>
-
-<div *ngIf="canModifyCollection">
-    <nb-card>
-      <nb-card-header>Select Collection to Modify/Delete</nb-card-header>
-      <nb-card-body>
-        <div *ngIf="showSelect">
-              <nb-select fullWidth style="width: 30vw; margin-right: 20px;" outlineid="collectionid" name="collection"
-                         [(ngModel)]="collection.collectionId" (selectedChange)="setCollection($event)" placeholder="Select Collection"
-                         required>
-                <nb-option *ngFor="let collection of userCollections" [value]="collection.collectionId">
-                  {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
-                </nb-option>
-              </nb-select>
-            <button nbButton outline status="info" (click)="addCollection()">Add Collection</button>
-        </div>
-
-        <div [ngStyle]="hideCollectionEntry">
-          <cpat-collection [collection]="collection" [collections]="collections"
-                          payload="payload" [poams]="poams" (collectionchange)="resetData();"></cpat-collection>
-        </div>
-      </nb-card-body>
-    </nb-card>
+    </p-card>
+  </div>
+  <div *ngIf="!showCollectionSelect" class="col-12">
+    <p-card>
+      <cpat-collection [collection]="collection"
+                       [collections]="collections"
+                       [payload]="payload"
+                       (collectionchange)="onCollectionChange($event)">
+      </cpat-collection>
+    </p-card>
+  </div>
+  <div class="col-12">
+    <p-card>
+      <p-dropdown [options]="collections"
+                  [(ngModel)]="exportCollectionId"
+                  (onChange)="setExportCollection($event.value)"
+                  placeholder="{{ collectionToExport }}"
+                  optionLabel="collectionName"
+                  [style]="{'width': '30vw', 'margin-right': '20px'}"
+                  appendTo="body"
+                  require>
+        <ng-template let-collection pTemplate="item">
+          {{collection.collectionId}} - {{collection.collectionName}} - {{collection.description}}
+        </ng-template>
+      </p-dropdown>
+      <button pButton
+              type="button"
+              label="DOWNLOAD"
+              styleClass="p-button-primary p-button-outlined"
+              icon="pi pi-download"
+              (click)="exportAll()"
+              [outlined]="true">
+      </button>
+    </p-card>
+  </div>
 </div>
-
-    <nb-card class="nb-card">
-      <nb-card-header>Export POAMs by Collection</nb-card-header>
-      <nb-card-body>
-              <nb-select fullWidth style="width: 30vw; margin-right: 20px;" [(ngModel)]="exportCollectionId" (collectionchange)="onCollectionChange($event)" (selectedChange)="setExportCollection($event)" placeholder="Select Collection" required>
-                <nb-option *ngFor="let collection of data" [value]="collection.collectionId">
-                  {{ collection.collectionId }} - {{ collection.collectionName }} - {{ collection.description }}
-                </nb-option>
-              </nb-select>
-            <button nbButton outline status="info" type="button" class="export-button" (click)="exportAll()">Export POAMS</button>
-      </nb-card-body>
-    </nb-card>
-
-
 <ng-template #dialog let-data let-ref="dialogRef">
-  <nb-card>
-    <nb-card-header>Delete Row</nb-card-header>
-    <nb-card-body>Are you sure you want to delete this item?</nb-card-body>
-    <nb-card-footer>
-      <button nbButton status="danger">Delete</button>
-      <button nbButton outline status="primary" style="float: right;" (click)="ref.close()">Cancel</button>
-    </nb-card-footer>
-  </nb-card>
+  <p-card>
+    <p-header>Delete Row</p-header>
+    <div class="p-card-body">Are you sure you want to delete this item?</div>
+    <p-footer>
+      <button pButton type="button" label="Delete" class="p-button-danger"></button>
+      <button pButton type="button" label="Cancel" class="p-button-secondary" (click)="ref.close()"></button>
+    </p-footer>
+  </p-card>
 </ng-template>
+<ng-template #unauthorized>
+  <h1>
+    Collection processing requires appropriate permissions.
+    <br /><br />
+  </h1>
+</ng-template>
+<p-toast></p-toast>

@@ -34,6 +34,9 @@ let config = {
         refreshToken: {
             disabled: process.env.CPAT_CLIENT_REFRESH_DISABLED ? process.env.CPAT_CLIENT_REFRESH_DISABLED === "true" : false,
         },
+        features: {
+            marketplaceDisabled: process.env.CPAT_MARKETPLACE_DISABLED ? process.env.CPAT_MARKETPLACE_DISABLED === "true" : false,
+        }
     },
     stigman: {
         clientId: process.env.STIGMAN_CLIENT_ID || "stig-manager",

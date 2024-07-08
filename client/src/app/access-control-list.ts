@@ -33,7 +33,7 @@ export const accessControlList: any = {
     },
     viewer: {
       view: ['poam', 'asset', 'label', 'collection'],
-      create: ['poam', 'asset', 'collection'],
+      create: [],
       approve: [],
       modify: [],
       delete: [],

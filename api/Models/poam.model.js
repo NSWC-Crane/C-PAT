@@ -135,7 +135,11 @@ module.exports = (sequelize, DataTypes) => {
         },
         extensionJustification: {
             type: DataTypes.TEXT
-        }
+        },
+        hqs: {
+            type: DataTypes.TINYINT(1),
+            allowNull: true,
+        },
     }, {
         freezeTableName: true,
         timestamps: false,

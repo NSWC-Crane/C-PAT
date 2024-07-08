@@ -8,34 +8,17 @@
 !########################################################################
 */
 
-@use 'themes' as *;
-@use '@nebular/theme/styles/globals' as *;
-@import 'node_modules/bootstrap/scss/_functions.scss';
-@import 'node_modules/bootstrap/scss/_variables.scss';
-@import 'node_modules/bootstrap/scss/_mixins.scss';
-@import 'node_modules/bootstrap/scss/bootstrap.scss';
-@import 'node_modules/bootstrap/scss/_grid.scss';
-@import '../material/_angular-material.scss';
-@import './_layout.scss';
+@import 'node_modules/primeicons/primeicons.css';
+@import 'node_modules/primeflex/primeflex.scss';
 @import './_pace-theme.scss';
-@import './_overrides.scss';
 @import './_scrollbar.scss';
-@import '../material/_material-overrides.scss';
 
-
-@include nb-install() {
-  @include nb-theme-global();
-  @include angular-material();
-  @include ngx-layout();
-  @include ngx-pace-theme();
-  @include nb-overrides();
-  @include material-overrides();
-
+@include ngx-pace-theme();
   * {
-    @include custom-scrollbar( nb-theme(background-basic-color-2), nb-theme(background-basic-color-4) );
+    @include custom-scrollbar( var(--surface-c), var(--surface-b) );
   }
-}
+
 
 html, body {
-  @include custom-scrollbar( nb-theme(background-basic-color-2), nb-theme(background-basic-color-4) );
+  @include custom-scrollbar( var(--surface-c), var(--surface-b) );
 }

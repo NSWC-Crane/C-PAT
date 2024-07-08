@@ -8,353 +8,488 @@
 !########################################################################
 -->
 
-<div class="col-12 row">
-  <div class="col" *ngIf="poam">
-    <nb-card>
-      <nb-card-header class="status-header">
-        <div class="status-container">
-          <div class="row" style="display: flex; align-items: center; margin-left: 2px; margin-top: 2px;">
-            POAM ID: {{poam.poamId}} &nbsp; &nbsp;
-            <div class="label-tags" *ngFor="let label of poamLabels">
-              <nb-tag-list>
-                <nb-tag status="info" appearance="outline" size="small" text="{{label.labelName}}"></nb-tag>
-              </nb-tag-list>
-            </div>
-          </div>
-
-            <div class="button-group">
-              <button nbButton outline status="basic" (click)="poamLog()">Poam History</button>
-              <button nbButton outline status="warning" (click)="extendPoam()">Extend Poam</button>
-              <button nbButton outline status="success" *ngIf="showSubmit" (click)="submitPoam()" nbTooltip="Update POAM Status to Submitted" nbTooltipPlacement="top" nbTooltipStatus="basic">Submit Poam</button>
-              <button nbButton outline status="primary" *ngIf="showApprove" (click)="poamApproval()">POAM Approval</button>
-            </div>
+<div class="col-12 row" *ngIf="poam">
+  <p-card>
+    <div class="status-container">
+      <div class="row" style="display: flex; align-items: center; font-weight: 600;">
+        POAM ID: {{poam.poamId}} &nbsp; &nbsp;
+        <div class="label-tags" *ngFor="let label of poamLabels">
+          <p-tag value="{{label.labelName}}" severity="info" styleClass="p-mr-2"></p-tag>
         </div>
-      </nb-card-header>
+      </div>
 
-      <nb-card-body>
-        <div class="form-container">
-          <div *ngIf="poam.stigCheckData?.length > 0" class="form-group">
-            <nb-toggle [(ngModel)]="showCheckData">View STIG Manager Check Data</nb-toggle>
-            <textarea *ngIf="showCheckData" nbInput fullWidth style="font-weight: normal;" [(ngModel)]="poam.stigCheckData" name="stigCheckData" cols="180" rows="10" maxlength="4000"></textarea>
+      <div class="button-group">
+        <button pButton type="button" label="Poam History" class="p-button-outlined p-button-secondary" (click)="poamLog()"></button>
+        <button pButton type="button" label="Extend Poam" class="p-button-outlined p-button-warning" *ngIf="showSubmit" (click)="extendPoam()"></button>
+        <button pButton type="button" label="Submit Poam" class="p-button-outlined p-button-success" *ngIf="showSubmit" (click)="submitPoam()" pTooltip="Update POAM Status to Submitted" tooltipPosition="top"></button>
+        <button pButton type="button" label="POAM Approval" class="p-button-outlined p-button-primary" *ngIf="showApprove" (click)="poamApproval()"></button>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="form-container">
+        <div *ngIf="poam.stigCheckData?.length > 0" class="form-group">
+          <div class="switch-container">
+            <p-inputSwitch id="stigCheckData" [(ngModel)]="showCheckData"></p-inputSwitch>
+            <label for="stigCheckData">View STIG Manager Check Data</label>
           </div>
-
-          <!-- Status -->
           <div class="form-group">
-            <label for="status">POAM Status: <span class="text-danger">*</span></label>
-            <nb-select outline fullWidth class="status-select" status="basic" placeholder="POAM Status..." [(ngModel)]="poam.status" id="status" name="status">
-              <nb-option value="Draft">Draft</nb-option>
-              <nb-option value="Closed">Closed</nb-option>
-              <nb-option value="Expired">Expired</nb-option>
-              <nb-option value="Submitted" disabled>Submitted</nb-option>
-              <nb-option value="Approved" disabled>Approved</nb-option>
-              <nb-option value="Rejected" disabled>Rejected</nb-option>
-              <nb-option value="Extension Requested" disabled>Extension Requested</nb-option>
-            </nb-select>
-          </div>
-
-          <!-- Description -->
-          <div class="form-group">
-            <label for='description'>Description of the POAM: <span class="text-danger">*</span></label>
-            <textarea nbInput fullWidth placeholder="Description..." rows="8" [(ngModel)]="poam.description" id='description' name='description' maxlength="2000"></textarea>
-          </div>
-
-          <!-- AA Package -->
-          <div class="form-group">
-            <label for="aaPackage">A&A Package: <span class="text-danger">*</span></label>
-            <input type="text" nbInput fullWidth placeholder="AA Package..." [(ngModel)]="poam.aaPackage" name='aaPackage' id="aaPackage">
-          </div>
-
-          <!-- Vuln Restricted Id -->
-          <div class="form-group">
-            <label for="vulnIdRestricted">Vulnerability Restricted - ID #: </label>
-            <input type="text" nbInput fullWidth placeholder="Vulnerability Restricted ID..." [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted' id="vulnIdRestricted">
-          </div>
-
-          <!-- Source -->
-          <div class="form-group">
-            <label for="vulnerabilitySource">Source Identifying Control Vulnerability: <span class="text-danger">*</span></label>
-            <input nbInput
-                   fullWidth
-                   type="text"
-                   placeholder="Vulnerability Source..."
-                   [(ngModel)]="poam.vulnerabilitySource"
-                   [nbAutocomplete]="autoNgModel"
-                   name="vulnerabilitySource"
-                   id="vulnerabilitySource">
-
-            <nb-autocomplete #autoNgModel>
-              <nb-option *ngFor="let source of vulnerabilitySources" [value]="source">
-                {{ source }}
-              </nb-option>
-            </nb-autocomplete>
-          </div>
-
-          <!-- STIG Title -->
-          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
-            <label for="stigInput">STIG Title:</label>
-            <input nbInput
-                   fullWidth
-                   type="text"
-                   placeholder="Select STIG..."
-                   [value]="selectedStigTitle"
-                   [nbAutocomplete]="autoStigTitle"
-                   name="stigInput">
-
-            <nb-autocomplete #autoStigTitle (selectedChange)="onStigSelected($event)">
-              <nb-option *ngFor="let stig of stigmanSTIGs" [value]="stig">
-                {{ stig.title }}
-              </nb-option>
-            </nb-autocomplete>
-          </div>
-
-          <!-- Source Identifying Control Vulnerability - ID # for ACAS/EXORD-->
-          <div class="form-group" *ngIf="poam.vulnerabilitySource !== 'STIG'">
-            <label for="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
-            <nb-form-field>
-              <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId' id="vulnerabilityId">
-            </nb-form-field>
-          </div>
-
-          <!-- Source Identifying Control Vulnerability - ID # for STIG-->
-          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
-            <label for="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
-            <nb-form-field>
-              <input type="text" nbInput fullWidth placeholder="Vulnerability ID..." [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId' id="vulnerabilityId">
-            </nb-form-field>
-            <button nbButton outline fullwidth style="margin-top: 20px; width: 20rem;" status="info" (click)="validateStigManagerCollection()" nbTooltip="Update POAM Asset list with STIG Manager findings for the provided Vulnerability ID." nbTooltipPlacement="top" nbTooltipStatus="basic" [disabled]="!poam.vulnerabilityId">
-              Synchronize POAM Asset List
-            </button>
-          </div>
-
-          <!-- IAVM # -->
-          <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
-            <label for="iavmNumber">IAVM #: </label>
-            <nb-form-field>
-              <input type="text" nbInput fullWidth placeholder="IAVM #..." [(ngModel)]="poam.iavmNumber" name='iavmNumber'>
-              <a href="https://vram.navy.mil/standalone_pages/iav_display?notice_number={{poam.iavmNumber}}" target="_blank" nbTooltip="View IAV Release Details" nbTooltipPlacement="top" nbTooltipStatus="basic" nbSuffix nbButton ghost [disabled]="!poam.iavmNumber"><nb-icon icon="link-2-outline"></nb-icon></a>
-            </nb-form-field>
-          </div>
-
-          <!-- IAV Comply By Date -->
-          <div class="form-group" *ngIf="poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)">
-            <label for="iavComplyByDate">IAV Comply By Date: <span class="text-danger">*</span></label>
-            <input nbInput
-                   placeholder="IAV Comply By Date..."
-                   [nbDatepicker]="iavComplyByDatePicker"
-                   [(ngModel)]="dates.iavComplyByDate"
-                   name="iavComplyByDate">
-            <nb-datepicker #iavComplyByDatePicker></nb-datepicker>
-          </div>
-
-          <!-- Raw Severity -->
-          <div class="form-group">
-            <label for="rawSeverity">Raw Severity Value: <span class="text-danger">*</span></label>
-            <nb-select placeholder="Raw Severity..." [(ngModel)]="poam.rawSeverity" name='rawSeverity' id="rawSeverity">
-              <nb-option value="CAT I - Critical/High">CAT I - Critical/High</nb-option>
-              <nb-option value="CAT II - Medium">CAT II - Medium</nb-option>
-              <nb-option value="CAT III - Low">CAT III - Low</nb-option>
-            </nb-select>
-          </div>
-
-          <!-- Adj Severity -->
-          <div class="form-group">
-            <label for="adjSeverity">Adjusted Severity Value: </label>
-            <nb-select placeholder="Adjusted Severity..." [(ngModel)]="poam.adjSeverity" name='adjSeverity' id="adjSeverity" [disabled]="poam.status !== 'Draft' && !showApprove">
-              <nb-option value="CAT I - Critical/High">CAT I - Critical/High</nb-option>
-              <nb-option value="CAT II - Medium">CAT II - Medium</nb-option>
-              <nb-option value="CAT III - Low">CAT III - Low</nb-option>
-            </nb-select>
-          </div>
-
-          <!-- Submitter -->
-          <div class="form-group">
-            <label for="submitterId">POAM Submitted By: <span class="text-danger">*</span></label>
-            <nb-select maxlength="6" outlineid="submitterId" name="submitterId" id="submitterId" [(ngModel)]="poam.submitterId" placeholder="Submitted By..." required>
-              <nb-option *ngFor="let user of collectionSubmitters" [value]="user.userId">
-                {{ user.fullName }}
-              </nb-option>
-            </nb-select>
-          </div>
-
-          <!-- Scheduled Completion Date -->
-          <div class="form-group">
-            <label for="scheduledCompletionDate">Scheduled Completion Date: <span class="text-danger">*</span></label>
-            <input nbInput
-                   placeholder="Scheduled Completion Date..."
-                   [nbDatepicker]="scheduledCompletionDatePicker"
-                   [(ngModel)]="dates.scheduledCompletionDate"
-                   name="scheduledCompletionDate">
-            <nb-datepicker #scheduledCompletionDatePicker></nb-datepicker>
-          </div>
-
-          <!-- Submitted Date -->
-          <div class="form-group">
-            <label for="submittedDate">Submitted Date: </label>
-            <input nbInput placeholder="Submitted Date..."
-                   [nbDatepicker]="submittedDatePicker"
-                   [(ngModel)]="dates.submittedDate"
-                   name="submittedDate">
-            <nb-datepicker #submittedDatePicker></nb-datepicker>
+            <textarea *ngIf="showCheckData" pInputTextarea class="w-full" [rows]="10" [(ngModel)]="poam.stigCheckData" name="stigCheckData" [maxlength]="4000" style="font-weight: normal;"></textarea>
           </div>
         </div>
-      </nb-card-body>
 
-      <nb-card-footer>
-        <nb-stepper orientation="horizontal">
+        <!-- Status -->
+        <div class="form-group">
+          <label for="status">POAM Status: <span class="text-danger">*</span></label>
+          <p-dropdown [options]="statusOptions" [(ngModel)]="poam.status" id="status" name="status" placeholder="POAM Status..." optionLabel="label" optionValue="value" [style]="{'width':'100%'}">
+            <ng-template let-option pTemplate="item">
+              <span [ngClass]="{'ui-state-disabled': option.disabled}">{{option.label}}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
 
+        <!-- Description -->
+        <div class="form-group">
+          <label for='description'>Description of the POAM: <span class="text-danger">*</span></label>
+          <textarea pInputTextarea class="w-full" [rows]="8" [(ngModel)]="poam.description" id='description' name='description' [maxlength]="2000" placeholder="Description..."></textarea>
+        </div>
 
-          <!-- Assignees -->
-          <nb-step label="Assignees">
-            <div class="col">
-              <angular2-smart-table [settings]="poamAssigneesSettings" [source]="poamAssignees" mode="inline"
-                                    (createConfirm)="confirmCreate($event)" (deleteConfirm)="confirmDelete($event)">
-              </angular2-smart-table>
+        <!-- AA Package -->
+        <div class="form-group">
+          <label for="aaPackage">A&A Package: <span class="text-danger">*</span></label>
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.aaPackage" name='aaPackage' id="aaPackage" placeholder="AA Package...">
+        </div>
+
+        <!-- Vuln Restricted Id -->
+        <div class="form-group">
+          <label for="vulnIdRestricted">Vulnerability Restricted - ID #: </label>
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnIdRestricted" name='vulnIdRestricted' id="vulnIdRestricted" placeholder="Vulnerability Restricted ID...">
+        </div>
+
+        <!-- Source -->
+        <div class="form-group">
+          <label for="vulnerabilitySource">Source Identifying Control Vulnerability: <span class="text-danger">*</span></label>
+          <p-autoComplete class="w-full" [(ngModel)]="poam.vulnerabilitySource" [suggestions]="filteredVulnerabilitySources" (completeMethod)="searchVulnerabilitySources($event)" placeholder="Vulnerability Source..." name="vulnerabilitySource" id="vulnerabilitySource" [dropdown]="true" [style]="{'width':'100%'}"></p-autoComplete>
+        </div>
+
+        <!-- STIG Title -->
+        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
+          <label for="stigInput">STIG Title:</label>
+          <p-autoComplete [(ngModel)]="selectedStigTitle" [suggestions]="filteredStigmanSTIGs" (completeMethod)="searchStigTitles($event)" (onSelect)="onStigSelected($event)" name="stigInput" placeholder="Select STIG..." [dropdown]="true" field="title" [style]="{'width':'100%'}"></p-autoComplete>
+        </div>
+
+        <!-- Source Identifying Control Vulnerability - ID # for ACAS/EXORD-->
+        <div class="form-group" *ngIf="poam.vulnerabilitySource !== 'STIG'">
+          <label for="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId' id="vulnerabilityId" placeholder="Vulnerability ID...">
+        </div>
+
+        <!-- Source Identifying Control Vulnerability - ID # for STIG-->
+        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
+          <label for="vulnerabilityId">Source Identifying Control Vulnerability - ID #: </label>
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId' id="vulnerabilityId" placeholder="Vulnerability ID...">
+          <button pButton type="button" label="Synchronize POAM Asset List" class="p-button-outlined p-button-info" (click)="validateStigManagerCollection()" pTooltip="Update POAM Asset list with STIG Manager findings for the provided Vulnerability ID." tooltipPosition="top" [disabled]="!poam.vulnerabilityId" [style]="{'width':'25rem', 'margin-top':'20px'}"></button>
+        </div>
+
+        <!-- IAVM # -->
+        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
+          <label for="iavmNumber">IAVM #: </label>
+          <div class="p-inputgroup">
+            <input type="text" pInputText class="w-full" [(ngModel)]="poam.iavmNumber" name='iavmNumber' placeholder="IAVM #...">
+            <button type="button" pButton class="w-full" icon="pi pi-external-link" (click)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber" [style]="{'width':'25rem', 'margin-top':'20px'}"></button>
+          </div>
+        </div>
+
+        <!-- IAV Comply By Date -->
+        <div class="form-group" *ngIf="poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)">
+          <label for="iavComplyByDate">IAV Comply By Date: <span class="text-danger">*</span></label>
+          <p-calendar [(ngModel)]="dates.iavComplyByDate" name="iavComplyByDate" placeholder="IAV Comply By Date..." [showIcon]="true" [style]="{'width':'25rem'}"></p-calendar>
+        </div>
+
+        <!-- Raw Severity -->
+        <div class="form-group">
+          <label for="rawSeverity">Raw Severity Value: <span class="text-danger">*</span></label>
+          <p-dropdown [options]="rawSeverityOptions" [(ngModel)]="poam.rawSeverity" name='rawSeverity' id="rawSeverity" placeholder="Raw Severity..." optionLabel="label" optionValue="value" [style]="{'width':'25rem'}"></p-dropdown>
+        </div>
+
+        <!-- Adj Severity -->
+        <div class="form-group">
+          <label for="adjSeverity">Adjusted Severity Value: </label>
+          <p-dropdown [options]="adjSeverityOptions" [(ngModel)]="poam.adjSeverity" name='adjSeverity' id="adjSeverity" placeholder="Adjusted Severity..." optionLabel="label" optionValue="value" [disabled]="poam.status !== 'Draft' && !showApprove" [style]="{'width':'25rem'}"></p-dropdown>
+        </div>
+
+        <!-- Submitter -->
+        <div class="form-group">
+          <label for="submitterId">POAM Submitted By: <span class="text-danger">*</span></label>
+          <p-dropdown [options]="collectionSubmitters" [(ngModel)]="poam.submitterId" id="submitterId" name="submitterId" placeholder="Submitted By..." optionLabel="fullName" optionValue="userId" [style]="{'width':'25rem'}"></p-dropdown>
+        </div>
+
+        <!-- Scheduled Completion Date -->
+        <div class="form-group">
+          <label for="scheduledCompletionDate">Scheduled Completion Date: <span class="text-danger">*</span></label>
+          <p-calendar [(ngModel)]="dates.scheduledCompletionDate" name="scheduledCompletionDate" placeholder="Scheduled Completion Date..." [showIcon]="true" [style]="{'width':'25rem'}"></p-calendar>
+        </div>
+
+        <!-- Submitted Date -->
+        <div class="form-group">
+          <label for="submittedDate">Submitted Date: </label>
+          <p-calendar [(ngModel)]="dates.submittedDate" name="submittedDate" placeholder="Submitted Date..." [showIcon]="true" [style]="{'width':'25rem'}"></p-calendar>
+        </div>
+      </div>
+    </div>
+
+    <p-footer>
+      <p-stepper>
+        <!-- Assignees -->
+        <p-stepperPanel header="Assignees">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons first-panel">
+                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <p-table [value]="poamAssignees" [paginator]="false">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th>Members Assigned</th>
+                      <th style="width: 8rem">
+                        <button pButton icon="pi pi-plus" (click)="addAssignee()" class="p-button-rounded p-button-text"></button>
+                      </th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-assignee let-rowIndex="rowIndex">
+                    <tr>
+                      <td>
+                        <span *ngIf="!assignee.isNew">{{getAssigneeName(assignee.userId)}}</span>
+                        <p-dropdown *ngIf="assignee.isNew" [options]="collectionUsers" [(ngModel)]="assignee.userId" optionLabel="fullName" optionValue="userId" [style]="{'width':'100%'}" (onChange)="onAssigneeChange(assignee, rowIndex)" appendTo="body"></p-dropdown>
+                      </td>
+                      <td>
+                        <button pButton icon="pi pi-trash" (click)="deleteAssignee(assignee, rowIndex)" class="p-button-rounded p-button-text p-button-danger"></button>
+                      </td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td colspan="2" style="text-align:center">No Data to Display</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
             </div>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious disabled>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
+          </ng-template>
+        </p-stepperPanel>
 
-          <!-- Approvers -->
-          <nb-step label="Approvers">
-            <div class="col">
-              <angular2-smart-table [settings]="poamApproverSettings" [source]="poamApprovers" mode="inline"
-                                    (createConfirm)="confirmCreateApprover($event)" (deleteConfirm)="confirmDeleteApprover($event)">
-              </angular2-smart-table>
+        <!-- Approvers -->
+        <p-stepperPanel header="Approvers">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons">
+                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <p-table [value]="poamApprovers">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th>Approver</th>
+                      <th>Approval Status</th>
+                      <th>Approved Date</th>
+                      <th>Comments</th>
+                      <th style="width: 8rem">
+                        <button pButton icon="pi pi-plus" (click)="addApprover()" class="p-button-rounded p-button-text"></button>
+                      </th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-approver let-rowIndex="rowIndex">
+                    <tr>
+                      <td>
+                        <span *ngIf="!approver.isNew">{{getApproverName(approver.userId)}}</span>
+                        <p-dropdown *ngIf="approver.isNew" [options]="collectionApprovers" [(ngModel)]="approver.userId" optionLabel="fullName" optionValue="userId" [style]="{'width':'100%'}" (onChange)="onApproverChange(approver, rowIndex)" appendTo="body"></p-dropdown>
+                      </td>
+                      <td>{{approver.approvalStatus}}</td>
+                      <td>{{approver.approvedDate ? (approver.approvedDate | date) : 'Not Reviewed'}}</td>
+                      <td>
+                        <span *ngIf="!approver.isNew">{{approver.comments}}</span>
+                        <textarea *ngIf="approver.isNew" pInputTextarea class="w-full" [(ngModel)]="approver.comments" [rows]="3"></textarea>
+                      </td>
+                      <td>
+                        <button *ngIf="poam.status === 'Draft'" pButton icon="pi pi-trash" (click)="deleteApprover(approver, rowIndex)" class="p-button-rounded p-button-text p-button-danger"></button>
+                      </td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td colspan="5" style="text-align:center">No Data to Display</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
             </div>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
+          </ng-template>
+        </p-stepperPanel>
 
-          <!-- Assets -->
-          <nb-step label="Assets">
-            <div class="col">
-              <angular2-smart-table [settings]="poamAssetsSettings" [source]="poamAssets" mode="inline"
-                                    (createConfirm)="confirmCreate($event)" (deleteConfirm)="confirmDelete($event)">
-              </angular2-smart-table>
+        <!-- Assets -->
+        <p-stepperPanel header="Assets">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons">
+                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <p-table [value]="poamAssets" [paginator]="false">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th>Asset</th>
+                      <th style="width: 8rem">
+                        <button pButton icon="pi pi-plus" (click)="addAsset()" class="p-button-rounded p-button-text"></button>
+                      </th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-asset let-rowIndex="rowIndex">
+                    <tr>
+                      <td>
+                        <span *ngIf="!asset.isNew">{{getAssetName(asset.assetId)}}</span>
+                        <p-dropdown *ngIf="asset.isNew" [options]="assetList" [(ngModel)]="asset.assetId" optionLabel="assetName" optionValue="assetId" [style]="{'width':'100%'}" (onChange)="onAssetChange(asset, rowIndex)" appendTo="body"></p-dropdown>
+                      </td>
+                      <td>
+                        <button pButton icon="pi pi-trash" (click)="deleteAsset(asset, rowIndex)" class="p-button-rounded p-button-text p-button-danger"></button>
+                      </td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td colspan="2" style="text-align:center">No Data to Display</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
             </div>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
+          </ng-template>
+        </p-stepperPanel>
 
-          <!-- Predisposing Conditions -->
-          <nb-step label="Predisposing Conditions">
-            <textarea nbInput fullWidth [(ngModel)]="poam.predisposingConditions" placehoder="Predisposing conditions..."
-                      name='predisposingConditions' cols="180" rows="10" maxlength="2000"></textarea>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
-
-          <!-- Mitigations -->
-          <nb-step label="Mitigations">
-            <textarea nbInput fullWidth [(ngModel)]="poam.mitigations" placehoder="Mitigations..." name='mitigations' cols="180"
-                      rows="10" maxlength="2000"></textarea>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
-
-          <!-- Required Resources -->
-          <nb-step label="Required Resources">
-            <textarea nbInput fullWidth [(ngModel)]="poam.requiredResources" placehoder="Required Resources..." name='mitigations' cols="180"
-                      rows="10" maxlength="2000"></textarea>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
-
-          <!-- Residual Risk -->
-          <nb-step label="Residual Risk">
-            <nb-select fullWidth placeholder="Residual Risk..." [(ngModel)]="poam.residualRisk" name='residualRisk'>
-              <nb-option value="Very Low">Very Low</nb-option>
-              <nb-option value="Low">Low</nb-option>
-              <nb-option value="Moderate">Moderate</nb-option>
-              <nb-option value="High">High</nb-option>
-              <nb-option value="Very High">Very High</nb-option>
-            </nb-select>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
-
-          <!-- Business Impact -->
-          <nb-step label="Business Impact">
-            <div class="form-group">
-              <label for="likelihood">Likelihood:</label>
-              <nb-select fullWidth outlineid="likelihood" name="likelihood" id="likelihood" [(ngModel)]="poam.likelihood" placeholder="Likelihood..." required>
-                <nb-option value="Very Low">Very Low</nb-option>
-                <nb-option value="Low">Low</nb-option>
-                <nb-option value="Moderate">Moderate</nb-option>
-                <nb-option value="High">High</nb-option>
-                <nb-option value="Very High">Very High</nb-option>
-              </nb-select>
+        <!-- Predisposing Conditions -->
+        <p-stepperPanel header="Predisposing Conditions">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons">
+                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.predisposingConditions" name='predisposingConditions' [rows]="16" [maxlength]="2000" placeholder="Predisposing conditions..."></textarea>
+              </div>
             </div>
+          </ng-template>
+        </p-stepperPanel>
 
-            <div class="form-group">
-              <label for="relevanceOfThreat">Relevance of Threat:</label>
-              <nb-select fullWidth outlineid="relevanceOfThreat" name="relevanceOfThreat" id="relevanceOfThreat" [(ngModel)]="poam.relevanceOfThreat" placeholder="Relevance of Threat..." required>
-                <nb-option value="Very Low">Very Low</nb-option>
-                <nb-option value="Low">Low</nb-option>
-                <nb-option value="Moderate">Moderate</nb-option>
-                <nb-option value="High">High</nb-option>
-                <nb-option value="Very High">Very High</nb-option>
-              </nb-select>
+        <!-- Mitigations -->
+        <p-stepperPanel header="Mitigations">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons">
+                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.mitigations" name='mitigations' [rows]="16" [maxlength]="2000" placeholder="Mitigations..."></textarea>
+              </div>
             </div>
+          </ng-template>
+        </p-stepperPanel>
 
-            <div class="form-group">
-              <label for="businessImpactRating">Business Impact Rating: </label>
-              <nb-select fullWidth placeholder="Business Impact..." [(ngModel)]="poam.businessImpactRating" name='businessImpactRating'>
-                <nb-option value="Very Low">Very Low</nb-option>
-                <nb-option value="Low">Low</nb-option>
-                <nb-option value="Moderate">Moderate</nb-option>
-                <nb-option value="High">High</nb-option>
-                <nb-option value="Very High">Very High</nb-option>
-              </nb-select>
+        <!-- Required Resources -->
+        <p-stepperPanel header="Required Resources">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons">
+                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.requiredResources" name='requiredResources' [rows]="16" [maxlength]="2000" placeholder="Required Resources..."></textarea>
+              </div>
             </div>
+          </ng-template>
+        </p-stepperPanel>
 
-            <div class="form-group">
-              <label *ngIf="poam.businessImpactRating === 'Moderate' || poam.businessImpactRating === 'High' || poam.businessImpactRating === 'Very High'" for="businessImpactDescription">Business Impact Description: </label>
-              <textarea *ngIf="poam.businessImpactRating === 'Moderate' || poam.businessImpactRating === 'High' || poam.businessImpactRating === 'Very High'"
-                        nbInput fullWidth [(ngModel)]="poam.businessImpactDescription"
-                        placeholder="Business Impact Description..." name='businessImpactDescription' cols="180" rows="10"></textarea>
+        <!-- Risk & Impact -->
+        <p-stepperPanel header="Risk & Impact">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons">
+                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <div class="form-group">
+                  <label for="residualRisk">Residual Risk:</label>
+                  <p-dropdown [options]="residualRiskOptions" [(ngModel)]="poam.residualRisk" name='residualRisk' placeholder="Residual Risk..." optionLabel="label" optionValue="value" [style]="{'width':'100%'}"></p-dropdown>
+                </div>
+
+                <div class="form-group">
+                  <label for="likelihood">Likelihood:</label>
+                  <p-dropdown [options]="likelihoodOptions" [(ngModel)]="poam.likelihood" id="likelihood" name="likelihood" placeholder="Likelihood..." optionLabel="label" optionValue="value" [style]="{'width':'100%'}"></p-dropdown>
+                </div>
+
+                <div class="form-group">
+                  <label for="relevanceOfThreat">Relevance of Threat:</label>
+                  <p-dropdown [options]="relevanceOfThreatOptions" [(ngModel)]="poam.relevanceOfThreat" id="relevanceOfThreat" name="relevanceOfThreat" placeholder="Relevance of Threat..." optionLabel="label" optionValue="value" [style]="{'width':'100%'}"></p-dropdown>
+                </div>
+
+                <div class="form-group">
+                  <label for="businessImpactRating">Business Impact Rating: </label>
+                  <p-dropdown [options]="businessImpactRatingOptions" [(ngModel)]="poam.businessImpactRating" name='businessImpactRating' placeholder="Business Impact..." optionLabel="label" optionValue="value" [style]="{'width':'100%'}"></p-dropdown>
+                </div>
+
+                <div class="form-group">
+                  <label *ngIf="poam.businessImpactRating === 'Moderate' || poam.businessImpactRating === 'High' || poam.businessImpactRating === 'Very High'" for="businessImpactDescription">Business Impact Description: </label>
+                  <textarea *ngIf="poam.businessImpactRating === 'Moderate' || poam.businessImpactRating === 'High' || poam.businessImpactRating === 'Very High'" pInputTextarea class="w-full" [(ngModel)]="poam.businessImpactDescription" name='businessImpactDescription' [rows]="16" placeholder="Business Impact Description..."></textarea>
+                </div>
+              </div>
             </div>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
+          </ng-template>
+        </p-stepperPanel>
 
-          <!-- Milestones -->
-          <nb-step label="Milestones">
-            <div class="col">
-              <angular2-smart-table [settings]="poamMilestoneSettings" [source]="poamMilestones" mode="inline"
-                                    (createConfirm)="confirmCreateMilestone($event)" (editConfirm)="confirmEditMilestone($event)" (deleteConfirm)="confirmDeleteMilestone($event)">
-              </angular2-smart-table>
+        <!-- Milestones -->
+        <p-stepperPanel header="Milestones">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons">
+                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th>Milestone Comments</th>
+                      <th>Milestone Date</th>
+                      <th>Milestone Status</th>
+                      <th><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()"></button></th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-milestone let-editing="editing" let-ri="rowIndex">
+                    <tr [pEditableRow]="milestone" [class.p-highlight]="milestone.editing">
+                      <td>
+                        <p-cellEditor>
+                          <ng-template pTemplate="input">
+                            <textarea pInputTextarea class="w-full" [rows]="2" [(ngModel)]="milestone.milestoneComments"></textarea>
+                          </ng-template>
+                          <ng-template pTemplate="output">
+                            {{milestone.milestoneComments}}
+                          </ng-template>
+                        </p-cellEditor>
+                      </td>
+                      <td>
+                        <p-cellEditor>
+                          <ng-template pTemplate="input">
+                            <p-calendar [(ngModel)]="milestone.milestoneDate" [showIcon]="true" appendTo="body"></p-calendar>
+                          </ng-template>
+                          <ng-template pTemplate="output">
+                            {{milestone.milestoneDate | date}}
+                          </ng-template>
+                        </p-cellEditor>
+                      </td>
+                      <td>
+                        <p-cellEditor>
+                          <ng-template pTemplate="input">
+                            <p-dropdown [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" [style]="{'width':'100%'}" appendTo="body"></p-dropdown>
+                          </ng-template>
+                          <ng-template pTemplate="output">
+                            {{milestone.milestoneStatus}}
+                          </ng-template>
+                        </p-cellEditor>
+                      </td>
+                      <td style="text-align:center">
+                        <button *ngIf="!editing" pButton type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(milestone)" class="p-button-rounded p-button-text"></button>
+                        <button *ngIf="editing" pButton type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(milestone)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+                        <button *ngIf="editing" pButton type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(milestone, ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+                        <button *ngIf="!editing && !milestone.isNew" pButton type="button" icon="pi pi-trash" (click)="deleteMilestone(milestone, ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+                      </td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td colspan="4" style="text-align:center">No Data to Display</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
             </div>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
+          </ng-template>
+        </p-stepperPanel>
 
-          <!-- Labels -->
-          <nb-step label="POAM Labels">
-            <div class="col">
-              <angular2-smart-table [settings]="poamLabelsSettings" [source]="poamLabels" mode="inline"
-                                    (createConfirm)="confirmCreateLabel($event)"
-                                    (deleteConfirm)="confirmDeleteLabel($event)">
-              </angular2-smart-table>
+        <!-- Labels -->
+        <p-stepperPanel header="Labels">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons">
+                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <p-table [value]="poamLabels" [paginator]="false">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th>Label</th>
+                      <th style="width: 8rem">
+                        <button pButton icon="pi pi-plus" (click)="addLabel()" class="p-button-rounded p-button-text"></button>
+                      </th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-label let-rowIndex="rowIndex">
+                    <tr>
+                      <td>
+                        <span *ngIf="!label.isNew">{{label.labelName}}</span>
+                        <p-dropdown *ngIf="label.isNew" [options]="labelList" [(ngModel)]="label.labelId" optionLabel="labelName" optionValue="labelId" [style]="{'width':'100%'}" (onChange)="onLabelChange(label, rowIndex)" appendTo="body"></p-dropdown>
+                      </td>
+                      <td>
+                        <button pButton icon="pi pi-trash" (click)="deleteLabel(label, rowIndex)" class="p-button-rounded p-button-text p-button-danger"></button>
+                      </td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td colspan="2" style="text-align:center">No Data to Display</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
             </div>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext>next</button>
-          </nb-step>
+          </ng-template>
+        </p-stepperPanel>
 
-          <!-- Notes -->
-          <nb-step label="Notes">
-            <textarea nbInput fullWidth style="font-weight: normal;" [(ngModel)]="poam.notes" placehoder="Notes..." name='notes' cols="180" rows="10" maxlength="4000"></textarea>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperPrevious>prev</button>
-            <button style="margin-left:20px; margin-top:20px;" nbButton outline status="info" nbStepperNext disabled>next</button>
-          </nb-step>
-        </nb-stepper>
-      </nb-card-footer>
+        <!-- Notes -->
+        <p-stepperPanel header="Notes">
+          <ng-template pTemplate="content" let-prevCallback="prevCallback" let-index="index">
+            <div class="stepper-content-wrapper">
+              <div class="stepper-buttons">
+                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+              </div>
+              <div class="stepper-content">
+                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.notes" name='notes' [rows]="16" [maxlength]="4000" placeholder="Notes..." style="font-weight: normal;"></textarea>
+              </div>
+            </div>
+          </ng-template>
+        </p-stepperPanel>
+      </p-stepper>
+    </p-footer>
 
-      <!-- Buttons -->
-      <nb-card-footer>
-        <button style="margin-left:20px;" nbButton outline status="info" *ngIf="showSubmit" (click)="savePoam()">Save</button>
-        <button style="margin-left:20px;" nbButton outline status="info" (click)="cancelPoam()">Cancel Edit</button>
-      </nb-card-footer>
-    </nb-card>
-  </div>
+    <!-- Buttons -->
+    <p-footer>
+      <button pButton type="button" label="Save" class="p-button-outlined p-button-info" *ngIf="showSubmit" (click)="savePoam()" style="margin-left:20px;"></button>
+      <button pButton type="button" label="Cancel Edit" class="p-button-outlined p-button-secondary" (click)="cancelPoam()" style="margin-left:20px;"></button>
+    </p-footer>
+  </p-card>
 </div>
+
+<p-toast></p-toast>
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
+
+<p-dialog header="{{errorHeader}}" [(visible)]="errorDialogVisible" [modal]="true" [style]="{width: '300px'}" [baseZIndex]="10000">
+  <p>{{errorMessage}}</p>
+  <ng-template pTemplate="footer">
+    <p-button icon="pi pi-check" (click)="hideErrorDialog()" label="OK" styleClass="p-button-text"></p-button>
+  </ng-template>
+</p-dialog>

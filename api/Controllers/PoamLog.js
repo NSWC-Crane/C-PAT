@@ -13,7 +13,7 @@ const poamLogService = require('../Services/poamLogService')
 module.exports.getPoamLogByPoamId = async function getPoamLogByPoamId(req, res, next) {
     try {
         const { poamId } = req.params;
-        var poamLog = await poamLogService.getPoamLogByPoamId(poamId);
+        const poamLog = await poamLogService.getPoamLogByPoamId(poamId);
         res.status(200).json(poamLog);
     } catch (error) {
         if (error.message === 'POAM ID is required') {

@@ -8,77 +8,78 @@
 !########################################################################
 */
 
-import { NbMenuItem } from '@nebular/theme';
+import { MenuItem } from 'primeng/api';
 
-export const appMenuItems: NbMenuItem[] = [
+export const appMenuItems: MenuItem[] = [
     {
-      title: 'Home',
-      icon: 'home-outline',
-      link: '/poam-processing',
+      label: 'Home',
+    icon: 'eva eva-home-outline',
+    routerLink: ['/poam-processing'],
       home: true
   },
   {
-    title: 'Admin Portal',
-    icon: 'people-outline',
-    link: '/admin-processing',
+    label: 'Admin Portal',
+    icon: 'eva eva-people-outline',
+    routerLink: ['/admin-processing'],
     data: { permission: 'delete', resource: 'user' },
     hidden: true,
   },
   {
-    title: 'POAMs',
-    icon: 'file-text-outline',
+    label: 'POAMs',
+    icon: 'eva eva-file-text-outline',
     data: { permission: 'view', resource: 'poam' },
     hidden: true,
     expanded: true,
-    children: [
+    items: [
       {
-        title: 'Manage POAMs',
-        icon: 'list-outline',
-        link: '/poam-processing/poam-manage',
+        label: 'Manage POAMs',
+        icon: 'eva eva-list-outline',
+        routerLink: ['/poam-processing/poam-manage'],
         data: { permission: 'view', resource: 'poam' },
       },
       {
-        title: 'Add POAM',
-        icon: 'file-add-outline',
-        link: 'poam-processing/poam-details/ADDPOAM'
+        label: 'Add POAM',
+        icon: 'eva eva-file-add-outline',
+        routerLink: ['/poam-processing/poam-details/ADDPOAM'],
+        data: { permission: 'create', resource: 'poam' },
       }
     ]
   },
   {
-    title: 'Importing',
-    icon: 'swap-outline',
+    label: 'Importing',
+    icon: 'pi pi-arrow-right-arrow-left',
     data: { permission: 'create', resource: 'import' },
     hidden: true,
-    children: [
+    items: [
       {
-        title: 'STIG Manager',
-        icon: 'swap-outline',
-        link: 'import-processing/stigmanager-import',
+        label: 'STIG Manager',
+        icon: 'eva eva-swap-outline',
+        routerLink: ['/import-processing/stigmanager-import'],
       },
       {
-        title: 'Tenable',
-        icon: 'swap-outline',
-        link: 'import-processing/tenable-import'
+        label: 'Tenable',
+        icon: 'eva eva-swap-outline',
+        routerLink: ['/import-processing/tenable-import']
       },
     ]
   },
     {
-      title: 'Asset Processing',
-      icon: 'hard-drive-outline',
-      link: '/asset-processing',
+      label: 'Asset Processing',
+      icon: 'eva eva-hard-drive-outline',
+      routerLink: ['/asset-processing'],
       data: { permission: 'view', resource: 'asset' },
       hidden: true,
     },
     {
-      title: 'Label Processing',
-      icon: 'pricetags-outline',
-      link: '/label-processing',
+      label: 'Label Processing',
+      icon: 'eva eva-pricetags-outline',
+      routerLink: ['/label-processing'],
       data: { permission: 'view', resource: 'label' },
       hidden: true,
     },
     {
-      title: 'Log Out',
-      icon: 'log-out-outline',
+      label: 'Log Out',
+      icon: 'eva eva-log-out-outline',
       link: '',
       hidden: false,
     },

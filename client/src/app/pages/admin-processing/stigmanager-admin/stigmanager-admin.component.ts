@@ -12,8 +12,7 @@ import { Component, OnInit } from '@angular/core';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { SharedService } from '../../../Shared/shared.service';
 import { ImportService } from '../../import-processing/import.service';
-import { NbDialogService } from '@nebular/theme';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 interface Collection {
   collectionId: any;
@@ -32,7 +31,8 @@ export class STIGManagerAdminComponent implements OnInit {
   constructor(
     private importService: ImportService,
     private sharedService: SharedService,
-    private dialogService: NbDialogService
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
   ) { }
 
   ngOnInit() {
@@ -101,27 +101,22 @@ export class STIGManagerAdminComponent implements OnInit {
   private async sendSTIGManagerCollectionImportRequest(data: any) {
     (await this.importService.postStigManagerCollection(data)).subscribe({
       next: () => {
-        this.showPopup('Import successful');
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Import successful' });
       },
       error: (error) => {
         console.error('Error during import', error);
-        this.showPopup('Error during import: ' + error.message);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error during import: ' + error.message });
       }
     });
   }
 
   showPopup(message: string) {
-    const dialogOptions: ConfirmationDialogOptions = {
+    this.confirmationService.confirm({
+      message: message,
       header: 'Alert',
-      body: message,
-      button: { text: 'OK', status: 'info' },
-      cancelbutton: 'false'
-    };
-
-    this.dialogService.open(ConfirmationDialogComponent, {
-      context: {
-        options: dialogOptions
-      }
+      icon: 'pi pi-info-circle',
+      acceptLabel: 'OK',
+      rejectVisible: false
     });
   }
 }

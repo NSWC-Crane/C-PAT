@@ -23,7 +23,6 @@
           "options": {
             "preserveSymlinks": true,
             "allowedCommonJsDependencies": [
-              "eva-icons",
               "base64-js",
               "js-sha256",
               "lodash",
@@ -38,17 +37,23 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
+              "src/silent-renew.html",
               "src/favicon.ico",
               "src/assets",
-              "src/silent-renew.html"
+              {
+                "glob": "**/*",
+                "input": "src/assets/components/themes",
+                "output": "assets/components/themes"
+              }
             ],
             "styles": [
-              "node_modules/@nebular/theme/styles/prebuilt/default.css",
-              "node_modules/bootstrap/dist/css/bootstrap.css",
-              "src/app/theme/styles/themes.scss",
               "src/app/theme/styles/styles.scss",
+              "src/app/theme/styles/_primeng-overrides.scss",
               "node_modules/pace-js/templates/pace-theme-flash.tmpl.css",
-              "node_modules/@fortawesome/fontawesome-free/css/all.css"
+              "node_modules/@fortawesome/fontawesome-free/css/all.css",
+              "node_modules/primeng/resources/primeng.min.css",
+              "node_modules/primeicons/primeicons.css",
+              "node_modules/primeflex/primeflex.css"
             ],
             "scripts": [
               "node_modules/pace-js/pace.min.js"

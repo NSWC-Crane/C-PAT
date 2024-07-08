@@ -12,30 +12,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { NbEvaIconsModule } from '@nebular/eva-icons';
-import {
-  NbAutocompleteModule,
-  NbBadgeModule,
-  NbButtonModule,
-  NbCardModule,
-  NbDatepickerModule,
-  NbFormFieldModule,
-  NbIconModule,
-  NbInputModule,
-  NbLayoutModule,
-  NbRadioModule,
-  NbSelectModule,
-  NbStepperModule,
-  NbTabsetModule,
-  NbTagModule,
-  NbThemeModule,
-  NbToggleModule,
-  NbTooltipModule,
-  NbTreeGridModule,
-} from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { PoamAdvancedPieComponent } from './poam-components/poam-advanced-pie/poam-advanced-pie.component';
 import { PoamAssignedGridComponent } from './poam-components/poam-assigned-grid/poam-assigned-grid.component';
@@ -48,6 +25,29 @@ import { PoamLogComponent } from './poam-log/poam-log.component';
 import { PoamManageComponent } from './poam-manage/poam-manage.component';
 import { PoamsComponent } from './poams.component';
 import { PoamProcessingRoutingModule } from './poam-processing-routing.module';
+
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { ButtonModule } from 'primeng/button';
+import { CalendarModule } from 'primeng/calendar';
+import { CardModule } from 'primeng/card';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { Footer } from 'primeng/api';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { MessageService } from 'primeng/api';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { StepperModule } from 'primeng/stepper';
+import { TableModule } from 'primeng/table';
+import { TabViewModule } from 'primeng/tabview';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
 
 @NgModule({
   declarations: [
@@ -63,35 +63,36 @@ import { PoamProcessingRoutingModule } from './poam-processing-routing.module';
     PoamMainchartComponent,
   ],
   imports: [
+    AutoCompleteModule,
+    ButtonModule,
+    CalendarModule,
+    CardModule,
+    ConfirmDialogModule,
+    CheckboxModule,
+    DialogModule,
+    DropdownModule,
+    Footer,
+    InputSwitchModule,
+    InputTextModule,
+    InputTextareaModule,
+    IconFieldModule,
+    InputIconModule,
+    MultiSelectModule,
+    StepperModule,
+    TableModule,
+    TabViewModule,
+    TagModule,
+    TooltipModule,
+    ToastModule,
     CommonModule,
     FormsModule,
     RouterModule,
-    NbAutocompleteModule,
-    NbBadgeModule,
-    NbButtonModule,
-    NbCardModule,
-    NbDatepickerModule,
-    NbEvaIconsModule,
-    NbFormFieldModule,
-    NbIconModule,
-    NbInputModule,
-    NbLayoutModule,
-    NbRadioModule,
-    NbSelectModule,
-    NbStepperModule,
-    NbTabsetModule,
-    NbTagModule,
-    NbThemeModule,
-    NbToggleModule,
-    NbTooltipModule,
-    NbTreeGridModule,
-    Angular2SmartTableModule,
     NgxChartsModule,
-    InfiniteScrollModule,
     PoamProcessingRoutingModule,
   ],
   providers: [
     provideCharts(withDefaultRegisterables()),
+    MessageService,
   ],
   exports: [
     PoamAdvancedPieComponent,

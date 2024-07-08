@@ -8,44 +8,30 @@
 !########################################################################
 -->
 
-<ng-template #approveTemplate let-ref="dialogRef">
-  <div class="container">
-        <nb-card style="width: 60vw; height: auto; max-height: 80vh; overflow-y: auto;">
-          <nb-card-header>POAM Approval</nb-card-header>
-          <nb-card-body>
-
-          <!-- Approval Status -->
-          <div class="form-group">
-            <label for="approvalStatus">Approval Status:</label>
-            <nb-select fullWidth placeholder="Approval Status..." [(ngModel)]="approvalStatus" name="approvalStatus">
-              <nb-option [value]="'Not Reviewed'">Not Reviewed</nb-option>
-              <nb-option [value]="'Approved'">Approved</nb-option>
-              <nb-option [value]="'Rejected'">Rejected</nb-option>
-            </nb-select>
-          </div>
-
-          <!-- Approval Date -->
-          <div class="form-group">
-            <label for="approvedDate">Approval Date: </label>
-            <input nbInput placeholder="Approval Date..."
-                   [nbDatepicker]="approvedDatePicker"
-                   [(ngModel)]="dates.approvedDate"
-                   name="approvedDate">
-            <nb-datepicker #approvedDatePicker></nb-datepicker>
-          </div>
-
-          <!-- Approval Comments -->
-          <div class="form-group">
-            <label for="comments">Approval Comments:</label>
-            <textarea nbInput fullWidth [(ngModel)]="comments" placehoder="Comments..." name='comments' cols="180" rows="10" maxlength="2000"></textarea>
-          </div>
-        </nb-card-body>
-
-        <!-- Buttons -->
-        <nb-card-footer>
-          <button nbButton outline status="info" (click)="submitApprovalData()">Save</button>
-          <button nbButton outline status="warning" style="margin-left: 20px;" (click)="cancelApproval()">Cancel</button>
-        </nb-card-footer>
-        </nb-card>
+<p-dialog header="POAM Approval" [(visible)]="displayDialog" [modal]="true" [closable]="false" [style]="{width: '70%'}">
+  <ng-template pTemplate="content">
+    <div class="container">
+      <div class="form-group">
+        <label for="approvalStatus">Approval Status:</label>
+        <p-dropdown [options]="approvalStatusOptions" [(ngModel)]="approvalStatus" placeholder="Approval Status..." name="approvalStatus" [style]="{'width':'25rem'}"></p-dropdown>
       </div>
-</ng-template>
+      <div class="form-group">
+        <label for="approvedDate">Approval Date: </label>
+        <p-calendar [(ngModel)]="dates.approvedDate" name="approvedDate" placeholder="Approval Date..." [style]="{'width':'25rem'}"></p-calendar>
+      </div>
+      <div class="form-group">
+        <label for="comments">Approval Comments:</label>
+        <textarea pInputTextarea class="w-full" [(ngModel)]="comments" placeholder="Comments..." name="comments" [rows]="10" [maxlength]="2000"></textarea>
+      </div>
+    </div>
+  </ng-template>
+  <ng-template pTemplate="footer">
+    <div class="p-dialog-footer" style="display: flex; align-items: center; justify-content: space-between;">
+      <p-checkbox [(ngModel)]="hqsChecked" label="High-Quality Submission?"></p-checkbox>
+      <div>
+        <button pButton label="Save" icon="pi pi-check" (click)="submitApprovalData()"></button>
+        <button pButton label="Cancel" icon="pi pi-times" (click)="cancelApproval()" style="margin-left: 20px;"></button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

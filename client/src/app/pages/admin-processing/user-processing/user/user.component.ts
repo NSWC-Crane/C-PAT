@@ -8,22 +8,25 @@
 !########################################################################
 */
 
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ChangeDetectorRef, OnChanges, OnDestroy } from '@angular/core';
-import { NbDialogService, NbWindowRef } from '@nebular/theme';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { Component, EventEmitter, Input, OnInit, Output, OnChanges, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { SubSink } from 'subsink';
-import { Observable } from 'rxjs';
-import { UsersService } from '../users.service'
-import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service'
-import { ListEditorSettings, Settings } from 'angular2-smart-table';
-import { SmartTableSelectComponent } from '../../../../Shared/components/smart-table/smart-table-select.component';
-import { format, parseISO } from 'date-fns';
+import { UsersService } from '../users.service';
+import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
+import { format } from 'date-fns';
+import { ConfirmationService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 
 interface Permission {
   userId: number;
-  collectionId: number;
+  collectionId: number | null;
+  oldCollectionId?: number;
+  newCollectionId?: number;
   accessLevel: number;
+  accessLevelLabel?: string;
+  collectionName?: string;
+  editing?: boolean;
 }
+
 export interface CollectionsResponse {
   collections: Array<{
     collectionId: number;
@@ -34,132 +37,66 @@ export interface CollectionsResponse {
 @Component({
   selector: 'cpat-user',
   templateUrl: './user.component.html',
-  styleUrls: ['./user.component.scss']
+  styleUrls: ['./user.component.scss'],
+  providers: [ConfirmationService]
 })
 export class UserComponent implements OnInit, OnChanges, OnDestroy {
-
   @Input() user: any;
   @Input() users: any;
   @Input() payload: any;
-  @Output() userchange = new EventEmitter();
+  @Output() userChange = new EventEmitter<void>;
+  accessLevelOptions = [
+    { label: 'Viewer', value: 1 },
+    { label: 'Submitter', value: 2 },
+    { label: 'Approver', value: 3 },
+    { label: 'CAT-I Approver', value: 4 }
+  ];
+  cols: any[] = [];
   checked: boolean = false;
-  collectionList: any;
-  collectionPermissions: any[] = [];
-  data: any = [];
-  editedRows: any[] = [];
-  modalWindow: NbWindowRef | undefined
-  dialog!: TemplateRef<any>;
+  collectionList: any = [];
+  collectionPermissions: Permission[] = [];
+  officeOrgOptions: string[] = ['NAVSEA', 'NSWC CRANE'];
+  filteredOfficeOrgs: string[];
   showLastClaims: boolean = false;
+  marketplaceDisabled: boolean = false;
+  private subs = new SubSink();
 
-  collectionPermissionsSettings: Settings = {
-    add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',  
-      createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
-      confirmCreate: true,
-    },
-    edit: {
-      editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
-      saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
-      confirmSave: true
-    },
-    delete: {
-      deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
-      confirmDelete: true,
-    },
-    actions: {
-      columnTitle: '',
-      add: true,
-      edit: true,
-      delete: true,
-    },
-    columns: {
-      collectionId: {
-        title: 'Collections',
-        width: '47%',
-        isFilterable: false,
-        type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          if (this.collectionList && Array.isArray(this.collectionList)) {
-            const collection = this.collectionList.find((c: any) => c.value === row.value);
-            return collection ? collection.title : '';
-          }
-          return '';
-        },
-        editor: {
-          type: 'list',
-          config: {
-            list: [],
-          },
-        },
-      },
-      accessLevel: {
-        title: 'Access Level',
-        width: '47%',
-        isFilterable: false,
-        type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return row.value == 1 ? 'Viewer' :
-                 row.value === 2 ? 'Submitter' :
-                 row.value === 3 ? 'Approver' :
-                 row.value === 4 ? 'CAT-I Approver' :
-                 'none';
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableSelectComponent,
-          config: {
-            list: [
-              { value: '1', title: 'Viewer' },
-              { value: '2', title: 'Submitter' },
-              { value: '3', title: 'Approver' },
-              { value: '4', title: 'CAT-I Approver' },
-            ],
-          },
-        },
-      },
-    },
-    hideSubHeader: false,
-  };
-
-
-  private subs = new SubSink()
-  viewAllCollectionsChecked: boolean = false;
-
-
-  constructor(private dialogService: NbDialogService,
+  constructor(
     private collectionsService: CollectionsService,
     private userService: UsersService,
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) { }
 
   async ngOnInit() {
+    this.marketplaceDisabled = CPAT.Env.features.marketplaceDisabled;
     if (this.user && this.user.userId) {
-      this.loadUserData(this.user.userId);
+      await this.loadUserData(this.user.userId);
     } else {
       (await this.userService.getCurrentUser()).subscribe(
-        currentUser => {
+        async currentUser => {
           this.user = currentUser;
-          this.loadCollections();
-          this.getData();
+          await this.loadCollections();
         },
         error => {
           console.error('Error fetching current user', error);
         }
       );
     }
+    this.cols = [
+      { field: 'collectionName', header: 'Collections' },
+      { field: 'accessLevelLabel', header: 'Access Level' }
+    ];
   }
 
   private async loadUserData(userId: number) {
     (await this.userService.getUser(userId)).subscribe(
-      userData => {
+      async userData => {
         this.user = userData;
-        console.log(this.user);
-        this.loadCollections();
-        if (this.user.isAdmin == 1) {
-          this.checked = true;
-        }
+        await this.loadCollections();
+        this.getData();
+        this.checked = this.user.isAdmin === 1;
       },
       error => {
         console.error('Error fetching user data', error);
@@ -173,13 +110,13 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         (await this.collectionsService.getCollections(currentUser.userName)).subscribe(
           (response: any) => {
             this.collectionList = [];
-            response.forEach((collection: { collectionName: any; collectionId: { toString: () => any; }; }) => {
+            response.forEach((collection: { collectionName: any; collectionId: any; }) => {
               this.collectionList.push({
                 title: collection.collectionName,
-                value: collection.collectionId.toString()
+                value: collection.collectionId
               });
             });
-            this.updateCollectionSettings();
+            this.getData();
           },
           error => {
             console.error('Error fetching collections', error);
@@ -192,213 +129,163 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     );
   }
 
-  private updateCollectionSettings(): void {
-    const collectionSettings = this.collectionPermissionsSettings;
-    const collectionPermissionsList = [
-      ...this.collectionList.map((collection: any) => ({
-        title: collection.title,
-        value: collection.value
-      }))
-    ];
-
-    collectionSettings.columns['collectionId'].editor = {
-      type: 'custom',
-      component: SmartTableSelectComponent,
-      config: {
-        list: collectionPermissionsList,
-      },
-    };
-    this.collectionPermissionsSettings = Object.assign({}, collectionSettings);
-  } 
-
-  async onSubmit() {
-    const date = new Date(this.user.lastAccess);
-    const utcDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-    const formattedLastAccess = format(utcDate, "yyyy-MM-dd HH:mm:ss");
-  this.user.lastAccess = formattedLastAccess;
-  (await this.userService.updateUser(this.user)).subscribe(() => {
-    this.userchange.emit();
-  });
-}
-ngOnChanges() {
-  this.getData();
-}
+  ngOnChanges() {
+    this.getData();
+  }
 
   getData() {
     if (this.user && Array.isArray(this.user.permissions)) {
-      this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
-        collectionId: permission.collectionId.toString(),
-        accessLevel: permission.accessLevel,
-      }));
+      this.collectionPermissions = this.user.permissions.map((permission: Permission) => {
+        const collection = this.collectionList.find((c: { title: string; value: number; }) => c.value === permission.collectionId);
+        const collectionName = collection ? collection.title : '';
+        return {
+          collectionId: permission.collectionId,
+          collectionName: collectionName,
+          accessLevel: permission.accessLevel,
+          accessLevelLabel: this.getAccessLevelLabel(permission.accessLevel),
+          userId: permission.userId,
+          editing: false
+        };
+      });
+      this.cdr.detectChanges();
     } else {
       console.error('User or permissions data is not available');
     }
-
-    if (this.collectionList && Array.isArray(this.collectionList)) {
-      const settings = this.collectionPermissionsSettings;
-      const collectionIdSettings = settings.columns['collectionId'];
-      if (collectionIdSettings.editor && collectionIdSettings.editor.type === 'list') {
-        const editorConfig = collectionIdSettings.editor.config as ListEditorSettings;
-        const collectionPlaceholder = { title: 'Select a Collection...', value: '' };
-        editorConfig.list = [
-          collectionPlaceholder,
-          ...this.collectionList.map((collection: any) => ({
-            title: collection.title,
-            value: collection.value
-          }))
-        ];
-      }
-      this.collectionPermissionsSettings = Object.assign({}, settings);
-    }
   }
 
-  async confirmCreate(event: any) {
-    if (this.user.userId && event.newData.collectionId && event.newData.accessLevel) {
-      const collection_index = this.collectionList.findIndex((e: any) => e.collectionId == event.newData.collectionId);
-      if (!collection_index && collection_index != 0) {
-        this.invalidData("Unable to resolve collection");
-        event.confirm.reject();
-        return;
-      }
-      const collectionPermission = {
-        userId: this.user.userId,
-        collectionId: parseInt(event.newData.collectionId, 10),
-        accessLevel: parseInt(event.newData.accessLevel, 10),
+  onAddNewPermission() {
+    const newPermission: Permission = {
+      userId: this.user.userId,
+      collectionId: null,
+      accessLevel: 1,
+      editing: true
+    };
+    this.collectionPermissions.unshift(newPermission);
+  }
+
+  onEditPermission(permission: Permission) {
+    permission.editing = true;
+  }
+
+  async onSavePermission(permission: Permission) {
+    if (!permission.accessLevelLabel || !permission.collectionName) {
+      const newPermission: Permission = {
+        userId: permission.userId,
+        collectionId: permission.collectionId,
+        accessLevel: permission.accessLevel
       };
-      (await this.userService.postPermission(collectionPermission)).subscribe({
-        next: async () => {
-          (await this.userService.getUser(this.user.userId)).subscribe(
-            userData => {
-              this.user = userData;
-              this.collectionPermissions = this.user.permissions.map((permission: Permission) => ({
-                collectionId: permission.collectionId.toString(),
-                accessLevel: permission.accessLevel,
-              }));
-              event.confirm.resolve();
-            },
-            error => {
-              console.error('Error fetching user data', error);
-              event.confirm.reject();
-            }
-          );
+      (await this.userService.postPermission(newPermission)).subscribe(
+        (res: any) => {
+          permission.userId = res.userId;
+          permission.collectionId = res.collectionId;
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Permission added successfully.' });
+          permission.editing = false;
+          this.loadUserData(this.user.userId);
         },
-        error: (error) => {
-          console.error('Error creating permission', error);
-          event.confirm.reject();
+        (error) => {
+          console.error("Error adding permission", error);
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add the permission. Please try again.' });
         }
-      });
-    } else {
-      this.invalidData("Failed to create entry. Invalid input.");
-      event.confirm.reject();
-    }
-  }
-
-  async confirmEdit(event: any) {
-    if (this.user.userId && event.newData.collectionId) {
-      const collection_index = this.collectionList.findIndex(
-        (e: any) => e.collectionId == event.newData.collectionId
       );
-      if (!collection_index && collection_index != 0) {
-        this.invalidData("Unable to resolve collection");
-        event.confirm.reject();
-        return;
-      }
-      const collectionPermission = {
-        userId: this.user.userId,
-        oldCollectionId: parseInt(event.data.collectionId, 10),
-        newCollectionId: parseInt(event.newData.collectionId, 10),
-        accessLevel: parseInt(event.newData.accessLevel, 10),
+    } else {
+      const updatedPermission: Permission = {
+        ...permission,
+        oldCollectionId: permission.collectionId!,
+        newCollectionId: permission.collectionId!
       };
-      (await this.userService.updatePermission(collectionPermission)).subscribe(
-        async () => {
-          (await this.userService.getUser(this.user.userId)).subscribe(
-            (userData) => {
-              this.user = userData;
-              this.collectionPermissions = this.user.permissions.map(
-                (permission: Permission) => ({
-                  collectionId: permission.collectionId.toString(),
-                  accessLevel: permission.accessLevel,
-                })
-              );
-              event.confirm.resolve();
-            },
-            (error) => {
-              console.error("Error fetching user data", error);
-              event.confirm.reject();
-            }
-          );
+      (await this.userService.updatePermission(updatedPermission)).subscribe(
+        () => {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Permission updated successfully.' });
+          permission.editing = false;
+          this.loadUserData(this.user.userId);
         },
         (error) => {
           console.error("Error updating permission", error);
-          event.confirm.reject();
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update the permission. Please try again.' });
         }
       );
-    } else {
-      this.invalidData("Missing data, unable to update.");
-      event.confirm.reject();
     }
   }
 
-  async confirmDelete(event: any) {
-    (await this.userService.deletePermission(this.user.userId, event.data.collectionId)).subscribe(
-      async () => {
-        (await this.userService.getUser(this.user.userId)).subscribe(
-          (userData) => {
-            this.user = userData;
-            this.collectionPermissions = this.user.permissions.map(
-              (permission: Permission) => ({
-                collectionId: permission.collectionId.toString(),
-                accessLevel: permission.accessLevel,
-              })
-            );
-            event.confirm.resolve();
-          },
-          (error) => {
-            console.error("Error fetching user data", error);
-            event.confirm.reject();
-          }
-        );
-      },
-      (error) => {
-        console.error("Error during deletePermission: ", error);
-        event.confirm.reject();
+  onCancelEditPermission(permission: Permission) {
+    if (permission.collectionId === null) {
+      this.collectionPermissions = this.collectionPermissions.filter(p => p !== permission);
+    } else {
+      permission.editing = false;
+    }
+  }
+
+  async onDeletePermission(permission: Permission) {
+    if (permission.collectionId === null) {
+      this.collectionPermissions = this.collectionPermissions.filter(p => p !== permission);
+    } else {
+      this.confirmationService.confirm({
+        message: 'Are you sure you want to delete this permission?',
+        header: 'Delete Confirmation',
+        icon: 'pi pi-exclamation-triangle',
+        accept: async () => {
+          (await this.userService.deletePermission(this.user.userId, permission.collectionId)).subscribe(
+            () => {
+              this.collectionPermissions = this.collectionPermissions.filter(p => p.collectionId !== permission.collectionId);
+              this.loadUserData(this.user.userId);
+            },
+            (error) => {
+              console.error("Error during deletePermission: ", error);
+            }
+          );
+        }
+      });
+    }
+  }
+
+  getAccessLevelLabel(accessLevel: number): string {
+    switch (accessLevel) {
+      case 1:
+        return 'Viewer';
+      case 2:
+        return 'Submitter';
+      case 3:
+        return 'Approver';
+      case 4:
+        return 'CAT-I Approver';
+      default:
+        return '';
+    }
+  }
+
+  filterOfficeOrgs(event: any) {
+    let filtered: string[] = [];
+    let query = event.query.toLowerCase();
+
+    for (let i = 0; i < this.officeOrgOptions.length; i++) {
+      let officeOrg = this.officeOrgOptions[i];
+      if (officeOrg.toLowerCase().indexOf(query) === 0) {
+        filtered.push(officeOrg);
       }
-    );
+    }
+
+    this.filteredOfficeOrgs = filtered;
+  }
+
+  async onSubmit() {
+    const formattedLastAccess = format(new Date(this.user.lastAccess), "yyyy-MM-dd HH:mm:ss");
+    this.user.lastAccess = formattedLastAccess;
+    this.user.fullName = this.user.firstName + ' ' + this.user.lastName;
+
+    (await this.userService.updateUser(this.user)).subscribe(() => {
+      this.userChange.emit();
+    });
   }
 
   resetData() {
-    this.userchange.emit();
+    this.userChange.emit();
   }
 
-  invalidData(errMsg: string) {
-    this.confirm(
-      new ConfirmationDialogOptions({
-        header: "Invalid Data",
-        body: errMsg,
-        button: {
-          text: "ok",
-          status: "warning",
-        },
-        cancelbutton: "false",
-      }));
-  }
-
-  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-    this.dialogService.open(ConfirmationDialogComponent, {
-      hasBackdrop: true,
-      closeOnBackdropClick: true,
-      context: {
-        options: dialogOptions,
-      },
-    }).onClose;
-
-  toggleAdmin(checked: boolean) {
-    this.checked = checked;
-    this.user.isAdmin = 0;
-    if (this.checked) this.user.isAdmin = 1;
+  toggleAdmin() {
+    this.user.isAdmin = this.checked ? 1 : 0;
   }
 
   ngOnDestroy() {
-    this.subs.unsubscribe()
+    this.subs.unsubscribe();
   }
 }

@@ -9,16 +9,12 @@
 */
 
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { NbDialogService } from '@nebular/theme';
-import { UserProcessingComponent } from './user-processing/user-processing.component';
-import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
-import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
-import { StatusDialogComponent } from '../../Shared/components/status-dialog/status-dialog.component';
 import { FileUploadService } from '../import-processing/emass-import/file-upload.service';
 import { UsersService } from './user-processing/users.service';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
+import { StatusDialogComponent } from '../../Shared/components/status-dialog/status-dialog.component';
 
 @Component({
   selector: 'cpat-admin-processing',
@@ -27,36 +23,37 @@ import { Router } from '@angular/router';
 })
 export class AdminProcessingComponent implements OnInit {
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef;
+  @ViewChild(StatusDialogComponent) statusDialog!: StatusDialogComponent;
+
   user: any;
   private subs = new SubSink();
   statusCards = [
     {
       title: 'User Management',
-      icon: { icon: 'people-outline' },
+      icon: 'pi-user',
       type: 'primary',
       component: 'cpat-user-processing',
     },
     {
       title: 'Collection Management',
-      icon: { icon: 'archive-outline' },
+      icon: 'pi-inbox',
       type: 'success',
       component: 'cpat-collection-processing',
     },
     {
       title: 'STIG Manager',
-      icon: { icon: 'flag-outline' },
+      icon: 'pi-flag',
       type: 'info',
       component: 'cpat-stigmanager-admin',
     },
     {
       title: 'eMASS Excel Import',
-      icon: { icon: 'upload-outline' },
+      icon: 'pi-upload',
       type: 'warning',
     }
   ];
 
   constructor(
-    private dialogService: NbDialogService,
     private fileUploadService: FileUploadService,
     private userService: UsersService,
     private router: Router
@@ -72,7 +69,7 @@ export class AdminProcessingComponent implements OnInit {
         console.error('An error occurred:', error.message)
       }
     });
-  }  
+  }
 
   openModal(component?: string) {
     switch (component) {
@@ -89,6 +86,7 @@ export class AdminProcessingComponent implements OnInit {
         break;
     }
   }
+
   triggerFileInput() {
     this.fileInput.nativeElement.click();
   }
@@ -103,24 +101,23 @@ export class AdminProcessingComponent implements OnInit {
         return;
       }
 
-      const dialogRef = this.dialogService.open(StatusDialogComponent, {
-        context: { progress: 0, message: '' }
-      });
+      this.statusDialog.display = true;
+      this.statusDialog.progress = 0;
+      this.statusDialog.message = '';
 
       (await this.fileUploadService.upload(file, this.user.userId)).subscribe({
         next: (event) => {
           if (event.type === HttpEventType.UploadProgress) {
-            const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-            dialogRef.componentRef.instance.progress = progress;
+            this.statusDialog.progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
           } else if (event instanceof HttpResponse) {
-            dialogRef.componentRef.instance.uploadComplete = true;
-            dialogRef.componentRef.instance.message = 'Upload successful!';
-            setTimeout(() => dialogRef.close(), 1500);
+            this.statusDialog.uploadComplete = true;
+            this.statusDialog.message = 'Upload successful!';
+            setTimeout(() => this.statusDialog.display = false, 1500);
           }
         },
         error: (error) => {
           console.error('Error during file upload:', error);
-          dialogRef.componentRef.instance.message = 'An error occurred during upload.';
+          this.statusDialog.message = 'An error occurred during upload.';
         },
       });
     }

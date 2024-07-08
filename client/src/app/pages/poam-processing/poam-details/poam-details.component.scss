@@ -8,45 +8,6 @@
 !########################################################################
 */
 
-@import '@nebular/theme/styles/theming';
-@import '@nebular/theme/styles/themes';
-
-::ng-deep angular2-smart-table table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid nb-theme(border-basic-color-3);
-}
-
-::ng-deep angular2-smart-table-pager .angular2-smart-page-item .angular2-smart-page-link {
-  background-color: nb-theme(background-basic-color-2);
-  color: nb-theme(text-basic-color);
-  border: 1px solid nb-theme(border-basic-color-3);
-}
-
-::ng-deep angular2-smart-table table,
-::ng-deep angular2-smart-table th,
-::ng-deep angular2-smart-table td {
-  border: 1px solid nb-theme(border-basic-color-3);
-  padding: 0.5rem;
-  text-align: left;
-}
-  
-  ::ng-deep angular2-smart-table thead tr:nth-child(3) {
-    background-color: nb-theme(background-basic-color-1);
-  }
-
-  ::ng-deep angular2-smart-table tbody tr:hover {
-    background-color: nb-theme(background-basic-color-1);
-  }
-
-  ::ng-deep angular2-smart-table thead tr {
-    background-color: nb-theme(background-basic-color-2);
-  }
-
-  ::ng-deep angular2-smart-table tbody tr {
-    background-color: nb-theme(background-basic-color-2);
-  }
-
 .label-tags {
   display: inline-block;
   width: auto;
@@ -68,19 +29,11 @@
   margin-bottom: 5px;
 }
 
-.form-group input,
-.form-group nb-select {
-  width: 100%;
-}
-
 .status-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.status-header {
-    border-bottom: none;
+  margin-bottom: 1.5rem;
 }
 
 .button-group {
@@ -95,4 +48,49 @@ hr {
   color: black;
   height: 1px;
   border: 0;
+}
+
+.switch-container {
+  display: flex;
+  align-items: center;
+}
+
+.switch-container label {
+  margin-left: 0.5rem;
+}
+
+:host ::ng-deep {
+  .p-stepper-panel {
+    height: 100%;
+  }
+
+  .stepper-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 420px;
+  }
+
+  .stepper-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--surface-d);
+  }
+
+  .stepper-buttons {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--surface-d);
+    &.first-panel {
+      justify-content: flex-end;
+    }
+  }
+
+  .p-datatable {
+    .p-datatable-wrapper {
+      overflow-x: auto;
+    }
+  }
 }

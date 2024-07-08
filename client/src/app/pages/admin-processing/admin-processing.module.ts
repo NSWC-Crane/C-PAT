@@ -11,24 +11,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  NbAutocompleteModule,
-  NbButtonModule,
-  NbCardModule,
-  NbCheckboxModule,
-  NbFormFieldModule,
-  NbIconModule,
-  NbInputModule,
-  NbLayoutModule,
-  NbSelectModule,
-  NbSpinnerModule,
-  NbTableModule,
-  NbTabsetModule,
-  NbToggleModule,
-  NbTooltipModule,
-  NbTreeGridModule,
-} from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
+
 import { SharedModule } from '../../Shared/shared.module';
 import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
@@ -38,6 +21,28 @@ import { CollectionProcessingComponent } from './collection-processing/collectio
 import { CollectionComponent } from './collection-processing/collection/collection.component';
 import { AdminProcessingComponent } from './admin-processing.component';
 import { StatusCardComponent } from '../../Shared/components/status-card/status-card.component';
+
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ButtonModule } from 'primeng/button';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { TableModule } from 'primeng/table';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { TreeTableModule } from 'primeng/treetable';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+
 
 @NgModule({
   declarations: [
@@ -50,28 +55,33 @@ import { StatusCardComponent } from '../../Shared/components/status-card/status-
     StatusCardComponent,
   ],
   imports: [
+    CardModule,
+    InputTextModule,
+    AutoCompleteModule,
+    DialogModule,
+    ConfirmDialogModule,
+    ToastModule,
+    TooltipModule,
+    DropdownModule,
+    InputNumberModule,
+    CheckboxModule,
+    ButtonModule,
+    InputSwitchModule,
+    InputTextareaModule,
+    IconFieldModule,
+    InputIconModule,
+    TableModule,
+    ToggleButtonModule,
+    TreeTableModule,
     AdminProcessingRoutingModule,
     CommonModule,
     FormsModule,
-    NbAutocompleteModule,
-    NbButtonModule,
-    NbCardModule,
-    NbCheckboxModule,
-    NbIconModule,
-    NbInputModule,
-    NbFormFieldModule,
-    NbLayoutModule,
-    NbSelectModule,
-    NbSpinnerModule,
-    NbTableModule,
-    NbTabsetModule,
-    NbToggleModule,
-    NbTooltipModule,
-    NbTreeGridModule,
-    Angular2SmartTableModule,
     SharedModule,
   ],
-  providers: [],
+  providers: [
+    ConfirmationService,
+    MessageService
+  ],
   exports: [
     CollectionProcessingComponent,
     CollectionComponent,

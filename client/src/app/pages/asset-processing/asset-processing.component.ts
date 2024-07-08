@@ -8,17 +8,16 @@
 !########################################################################
 */
 
-import { AfterViewInit, Component, ViewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AssetService } from './assets.service';
 import { forkJoin, Observable } from 'rxjs';
-import { NbDialogService, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { SubSink } from "subsink";
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
+import { ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { UsersService } from '../admin-processing/user-processing/users.service';
 import { ChangeDetectorRef } from '@angular/core';
-import { Assets } from './asset.model';
 import { Chart, registerables, ChartData } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { DialogService } from 'primeng/dynamicdialog';
 
 interface Permission {
   userId: number;
@@ -26,37 +25,29 @@ interface Permission {
   accessLevel: number;
 }
 
-interface AssetTreeNode {
-  data: Assets;
-  children: AssetTreeNode[];
-  expanded: boolean;
-}
-
-interface FSEntry {
-  billet?: string;
-  laborcategory?: string;
-  ftehours?: string;
-  task?: string;
-  company?: string;
-
+interface AssetEntry {
+  assetId: string;
+  assetName: string;
+  description: string;
+  ipAddress: string;
+  macAddress: string;
 }
 
 @Component({
   selector: 'cpat-asset-processing',
   templateUrl: './asset-processing.component.html',
-  styleUrls: ['./asset-processing.component.scss']
+  styleUrls: ['./asset-processing.component.scss'],
+  providers: [DialogService]
 })
 export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('assetLabelsChart') assetLabelsChart!: ElementRef<HTMLCanvasElement>;
 
   public assetLabel: any[] = [];
-  public selectedLabel: any = 'All';
   assetLabelChart!: Chart;
   assetLabelChartData: ChartData<'bar'> = {
     labels: [''],
     datasets: [],
   };
-  public selectedPosition: any = 'bottom';
   barChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -81,7 +72,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       },
       legend: {
         display: true,
-        position: this.selectedPosition,
         labels: {
           font: {
             size: 13,
@@ -92,53 +82,36 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       },
     },
   };
-  customColumn = 'asset';
-  defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'Domain', 'MAC Address'];
+  customColumn = 'Asset';
+  defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'MAC Address'];
   allColumns = [this.customColumn, ...this.defaultColumns];
-  dataSource!: NbTreeGridDataSource<any>;
-  sortColumn: string | undefined;
-  sortDirection: NbSortDirection = NbSortDirection.NONE;
+  data: AssetEntry[] = [];
+  filterValue: string = '';
 
   public isLoggedIn = false;
   users: any;
   user: any;
-  availableAssets: any[] = [];
-  selectedAssets: string[] = [];
-  collections: any[] = [];
-  selectedCollection: string = '';
-  assets: any;
-  asset: any = {};
-  data: any = [];
+  assets: AssetEntry[] = [];
+  asset: AssetEntry = { assetId: '', assetName: '', description: '', ipAddress: '', macAddress: '' };
   collectionList: any;
   allowSelectAssets = true;
-  selected: any
-  selectedRole: string = 'admin';
   payload: any;
-
-  get hideUserEntry() {
-    return (this.asset.assetId && this.asset.assetId != "ASSET")
-      ? { display: 'block' }
-      : { display: 'none' }
-  }
-
-  private subs = new SubSink()
+  selectedCollection: any;
+  assetDialogVisible: boolean = false;
+  selectedAssets: AssetEntry[] = [];
+  private subs = new SubSink();
 
   constructor(
     private assetService: AssetService,
     private cdr: ChangeDetectorRef,
-    private dialogService: NbDialogService,
-    private userService: UsersService,
-    private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>) {
+    private dialogService: DialogService,
+    private userService: UsersService
+  ) {
     Chart.register(...registerables);
   }
 
-  onSubmit() {
-    this.resetData();
-  }
-
-  async ngOnInit() {
-        this.getAssetData();
-        this.setPayload();
+  ngOnInit() {
+    this.setPayload();
   }
 
   ngAfterViewInit() {
@@ -147,25 +120,38 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   private initializeChart(): void {
+    if (!this.assetLabelsChart?.nativeElement) {
+      console.error('Unable to initialize chart: Element not available.');
+      return;
+    }
+
     Chart.defaults.set('plugins.datalabels', {
       display: false,
     });
     this.cdr.detectChanges();
-    if (this.assetLabelsChart?.nativeElement) {
-      this.assetLabelChart = new Chart(this.assetLabelsChart.nativeElement, {
-        type: 'bar',
-        data: this.assetLabelChartData,
-        plugins: [ChartDataLabels],
-        options: this.barChartOptions,
-      });
-      if (this.assetLabel) {
-        this.updateLabelChartData(this.assetLabel);
-      }
-    } else {
-      console.error('Unable to initialize chart: Element not available.');
+
+    this.assetLabelChart = new Chart(this.assetLabelsChart.nativeElement, {
+      type: 'bar',
+      data: this.assetLabelChartData,
+      plugins: [ChartDataLabels],
+      options: this.barChartOptions,
+    });
+
+    if (this.assetLabel) {
+      this.updateLabelChartData(this.assetLabel);
     }
   }
 
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.data = this.assets.filter(asset =>
+      asset.assetName.toLowerCase().includes(filterValue) ||
+      asset.description.toLowerCase().includes(filterValue) ||
+      asset.ipAddress.toLowerCase().includes(filterValue) ||
+      asset.macAddress.toLowerCase().includes(filterValue) ||
+      asset.assetId.toLowerCase().includes(filterValue)
+    );
+  }
   showPopup(message: string) {
     const dialogOptions: ConfirmationDialogOptions = {
       header: 'Alert',
@@ -173,10 +159,10 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       button: { text: 'OK', status: 'info' },
       cancelbutton: 'false'
     };
-
-    this.dialogService.open(ConfirmationDialogComponent, {
-      context: {
-        options: dialogOptions
+    this.dialogService.open(ConfirmationDialogOptions, {
+      closeOnEscape: true,
+      data: {
+        options: dialogOptions,
       }
     });
   }
@@ -212,7 +198,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
   async getAssetData() {
     if (this.payload == undefined) return;
-
     this.subs.sink = forkJoin(
       await this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
       await this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
@@ -224,20 +209,14 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
         return;
       }
 
-      this.assets = assetData;
       this.assetLabel = assetLabelResponse.assetLabel;
       this.setLabelChartData(this.assetLabel);
 
-      this.data = this.assets.map((asset: any) => ({
-        assetId: asset.assetId,
-        assetName: asset.assetName,
-        description: asset.description,
-        collectionId: asset.collectionId,
-        ipAddress: asset.ipAddress,
-        macAddress: asset.macAddress,
-      }));
-
-      this.updateDataSource();
+      this.data = (assetData as AssetEntry[]).map(asset => ({
+        ...asset,
+        assetId: String(asset.assetId)
+      })).sort((a, b) => a.assetId.localeCompare(b.assetId));
+      this.assets = this.data;
     }, error => {
       console.error('Failed to fetch assets by collection', error);
     });
@@ -252,7 +231,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       console.warn("Asset Label chart is not initialized.");
       return;
     }
-    const datasets = assetLabel.map((item) => ({
+    const datasets = assetLabel.map((item: any) => ({
       label: item.label,
       data: [item.labelCount],
       datalabels: {},
@@ -260,27 +239,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     this.assetLabelChart.data.datasets = datasets;
     this.assetLabelChart.update();
   }
-
-  updateDataSource() {
-    const treeNodes: AssetTreeNode[] = this.assets.map((asset: Assets) => {
-      return {
-        data: {
-          'asset': asset.assetId,
-          'Asset Name': asset.assetName,
-          'Description': asset.description,
-          'Collection': asset.collectionId,
-          'IP Address': asset.ipAddress,
-          'Domain': asset.fullyQualifiedDomainName,
-          'MAC Address': asset.macAddress,
-        },
-        children: [],
-        expanded: true
-      };
-    });
-
-    this.dataSource = this.dataSourceBuilder.create(treeNodes);
-  }
-
   exportChart(chartInstance: Chart, chartName: string) {
     const exportDatalabelsOptions = {
       backgroundColor: function (context: any) {
@@ -300,7 +258,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       padding: 6
     };
 
-    chartInstance.data.datasets.forEach(dataset => {
+    chartInstance.data.datasets.forEach((dataset: any) => {
       if (dataset.datalabels) {
         Object.assign(dataset.datalabels, exportDatalabelsOptions);
       }
@@ -327,7 +285,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
           display: false
         };
 
-        chartInstance.data.datasets.forEach(dataset => {
+        chartInstance.data.datasets.forEach((dataset: any) => {
           if (dataset.datalabels) {
             Object.assign(dataset.datalabels, disappearDatalabelsOptions);
           }
@@ -340,53 +298,34 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
     }, 150);
   }
-
-  updateSort(sortRequest: NbSortRequest): void {
-    this.sortColumn = sortRequest.column;
-    this.sortDirection = sortRequest.direction;
-  }
-
-  getSortDirection(column: string): NbSortDirection {
-    if (this.sortColumn === column) {
-      return this.sortDirection;
+  setAsset(assetId: string) {
+    const selectedData = this.data.find(asset => asset.assetId === assetId);
+    if (selectedData) {
+      this.asset = { ...selectedData };
+      this.assetDialogVisible = true;
+    } else {
+      this.asset = { assetId: '', assetName: '', description: '', ipAddress: '', macAddress: '' };
     }
-    return NbSortDirection.NONE;
   }
-
-  setAsset(assetId: any) {
-    this.asset = null;
-    const selectedData = this.data.filter((asset: { assetId: any; }) => asset.assetId === assetId)
-    this.asset = selectedData[0];
-    this.allowSelectAssets = false;
-  }
-
   addAsset() {
-    this.asset.assetId = "ADDASSET";
-    this.asset.assetName = "";
-    this.asset.description = ""
-    this.asset.fullyQualifiedDomainName = "";
-    this.asset.collectionId = 0;
-    this.asset.ipAddress = "";
-    this.asset.macAddress = "";
-    this.allowSelectAssets = false;
+    this.asset = { assetId: 'ADDASSET', assetName: '', description: '', ipAddress: '', macAddress: '' };
+    this.assetDialogVisible = true;
   }
-
   resetData() {
-    this.asset = [];
+    this.asset = { assetId: '', assetName: '', description: '', ipAddress: '', macAddress: '' };
     this.getAssetData();
-    this.asset.assetId = "ASSET";
     this.allowSelectAssets = true;
   }
-
-  ngOnDestroy() {
-    this.subs.unsubscribe()
+  closeAssetDialog() {
+    this.assetDialogVisible = false;
   }
-
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+  }
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-    this.dialogService.open(ConfirmationDialogComponent, {
-      hasBackdrop: true,
-      closeOnBackdropClick: true,
-      context: {
+    this.dialogService.open(ConfirmationDialogOptions, {
+      closeOnEscape: true,
+      data: {
         options: dialogOptions,
       },
     }).onClose;

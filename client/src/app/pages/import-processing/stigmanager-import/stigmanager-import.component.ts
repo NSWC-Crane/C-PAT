@@ -8,9 +8,8 @@
 !########################################################################
 */
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { NbDialogService, NbSortDirection, NbSortRequest, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { Chart, ChartData, registerables } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Observable, Subscription, catchError, forkJoin, of } from 'rxjs';
@@ -21,8 +20,9 @@ import { SharedService } from '../../../Shared/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { PoamAssetUpdateService } from '../../import-processing/stigmanager-import/stigmanager-update/stigmanager-update.service';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-
+import { TreeNode } from 'primeng/api';
+import { TreeTable, TreeTableSortEvent } from 'primeng/treetable';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 interface Asset {
   assetId: any;
@@ -42,25 +42,27 @@ interface AssetEntry {
   templateUrl: './stigmanager-import.component.html',
   styleUrls: ['./stigmanager-import.component.scss']
 })
-export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDestroy {
+export class STIGManagerImportComponent implements OnInit, OnDestroy {
+  @ViewChild('stigFindingsTable') table!: TreeTable;
   @ViewChild('findingChart') findingChart!: ElementRef<HTMLCanvasElement>;
   customColumn = 'Group ID';
   defaultColumns = ['Rule Title', 'Benchmark ID', 'Severity', 'Asset Count', 'Update POAM'];
   allColumns = [this.customColumn, ...this.defaultColumns];
-  dataSource: NbTreeGridDataSource<AssetEntry>;
+  dataSource: TreeNode<AssetEntry>[] = [];
   sortColumn: string = '';
-  sortDirection: NbSortDirection = NbSortDirection.NONE;
-  isLoggedIn = false;
+  sortDirection: 'asc' | 'desc' = 'asc';
   availableAssets: Asset[] = [];
   selectedAssets: string[] = [];
   selectedFindings: string = '';
   collectionBasicList: any[] = [];
+  sortField: string = '';
+  sortOrder: number = 1;
   treeData: any[] = [];
   originalTreeData: any[] = [];
   selectedCollection: any;
   stigmanCollection: { name: string; description: string; collectionId: string; } | undefined;
   updatePoamColumnTitle = 'Create POAM';
-  updatePoamButtonIcon = 'plus-square-outline';
+  updatePoamButtonIcon = 'pi pi-plus';
   updatePoamButtonTooltip = '';
   user: any;
   private subs = new SubSink();
@@ -115,18 +117,22 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     },
   };
 
+  findingsFilterOptions = [
+    { label: 'All', value: 'All' },
+    { label: 'Has Existing POAM', value: 'Has Existing POAM' },
+    { label: 'No Existing POAM', value: 'No Existing POAM' }
+  ];
+
   constructor(
     private router: Router,
-    private cdr: ChangeDetectorRef,
     private collectionService: CollectionsService,
     private sharedService: SharedService,
     private poamAssetUpdateService: PoamAssetUpdateService,
     private userService: UsersService,
-    private dialogService: NbDialogService,
-    private importService: ImportService,
-    private dataSourceBuilder: NbTreeGridDataSourceBuilder<AssetEntry>
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService,
+    private importService: ImportService
   ) {
-    this.dataSource = this.dataSourceBuilder.create(this.treeData);
     Chart.register(...registerables);
   }
 
@@ -149,52 +155,44 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     this.validateStigManagerCollection();
   }
 
-  ngAfterViewInit() {
-    this.initializeChart();
-    this.cdr.detectChanges();
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   async stigManagerAssetSync() {
     try {
       await this.poamAssetUpdateService.updateOpenPoamAssets(this.selectedCollection, this.stigmanCollection!.collectionId, this.user.userId);
-      this.showPopup("POAM Asset Lists have been updated.");
+      this.showSuccess("POAM Asset Lists have been updated.");
     } catch (error) {
       console.error('Failed to update POAM assets:', error);
-      this.showPopup("Failed to update POAM Asset Lists. Please try again.");
+      this.showError("Failed to update POAM Asset Lists. Please try again.");
     }
   }
 
-  updateSort(sortRequest: NbSortRequest): void {
-    this.sortColumn = sortRequest.column;
-    this.sortDirection = sortRequest.direction;
-  }
-
-  getSortDirection(column: string): NbSortDirection {
-    if (this.sortColumn === column) {
-      return this.sortDirection;
-    }
-    return NbSortDirection.NONE;
+  updateSort(event: any) {
+    this.sortField = event.field;
+    this.sortOrder = event.order;
   }
 
   updateFindingsChartData(findings: any[]): void {
-    if (!this.findingsChart) {
+    if (this.findingsChart) {
+      const datasets = findings.map((item) => ({
+        label: item.severity,
+        data: [item.severityCount],
+        datalabels: {},
+      }));
+      this.findingsChart.data.datasets = datasets;
+      this.findingsChart.update();
+    } else {
       console.warn("Findings chart is not initialized.");
-      return;
     }
-    const datasets = findings.map((item) => ({
-      label: item.severity,
-      data: [item.severityCount],
-      datalabels: {},
-    }));
-    this.findingsChart.data.datasets = datasets;
-    this.findingsChart.update();
   }
 
   private initializeChart(): void {
     Chart.defaults.set('plugins.datalabels', {
       display: false,
     });
-    this.cdr.detectChanges();
     if (this.findingChart?.nativeElement) {
       this.findingsChart = new Chart(this.findingChart.nativeElement, {
         type: 'bar',
@@ -205,6 +203,11 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     } else {
       console.error('Unable to initialize chart: Element not available.');
     }
+  }
+
+  filterGlobal(event: Event) {
+    const inputValue = (event.target as HTMLInputElement)?.value || '';
+    this.table.filterGlobal(inputValue, 'contains');
   }
 
   exportChart(chartInstance: Chart, chartName: string) {
@@ -268,27 +271,27 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
   }
 
   async fetchAssetsFromAPI(collectionId: string) {
-      (await this.sharedService.getAssetsFromSTIGMAN(collectionId)).subscribe({
-        next: (data) => {
-          if (!data || data.length === 0) {
-            this.showPopup('No assets found for the selected collection.');
-          } else {
-            this.availableAssets = data;
-          }
-        },
-        error: () => {
-          this.showPopup('You are not connected to STIG Manager or the connection is not properly configured.');
+    (await this.sharedService.getAssetsFromSTIGMAN(collectionId)).subscribe({
+      next: (data) => {
+        if (!data || data.length === 0) {
+          this.showWarn('No assets found for the selected collection.');
+        } else {
+          this.availableAssets = data;
         }
-      });
+      },
+      error: () => {
+        this.showError('You are not connected to STIG Manager or the connection is not properly configured.');
+      }
+    });
   }
 
   async fetchAssetDetails() {
-      const assetDetailsObservables = this.selectedAssets.map(async assetId =>
-        await this.sharedService.selectedAssetsFromSTIGMAN(assetId)
-      );
-      forkJoin(assetDetailsObservables).subscribe(results => {
-        this.importAssets(results);
-      });
+    const assetDetailsObservables = this.selectedAssets.map(async assetId =>
+      await this.sharedService.selectedAssetsFromSTIGMAN(assetId)
+    );
+    forkJoin(assetDetailsObservables).subscribe(results => {
+      this.importAssets(results);
+    });
   }
 
   async importAssets(assetDetails: any[]) {
@@ -299,43 +302,43 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     const requestBody = { assets: assets };
     (await this.importService.postStigManagerAssets(requestBody)).subscribe({
       next: () => {
-        this.showPopup('Import successful');
+        this.showSuccess('Import successful');
       },
       error: (error) => {
         console.error('Error during import', error);
-        this.showPopup('Error during import: ' + error.message);
+        this.showError('Error during import: ' + error.message);
       }
     });
   }
 
   async validateStigManagerCollection() {
-      forkJoin([
-        (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
-          catchError(err => {
-            console.error('Failed to fetch from STIGMAN:', err);
-            return of([]);
-          })
-        ),
-        (await this.collectionService.getCollectionBasicList()).pipe(
-          catchError(err => {
-            console.error('Failed to fetch basic collection list:', err);
-            return of([]);
-          })
-        )
-      ]).subscribe(([stigmanData, basicListData]) => {
-        const stigmanCollectionsMap = new Map(stigmanData.map(collection => [collection.name, collection]));
-        const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
+    forkJoin([
+      (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
+        catchError(err => {
+          console.error('Failed to fetch from STIGMAN:', err);
+          return of([]);
+        })
+      ),
+      (await this.collectionService.getCollectionBasicList()).pipe(
+        catchError(err => {
+          console.error('Failed to fetch basic collection list:', err);
+          return of([]);
+        })
+      )
+    ]).subscribe(([stigmanData, basicListData]) => {
+      const stigmanCollectionsMap = new Map(stigmanData.map(collection => [collection.name, collection]));
+      const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
 
-        const selectedCollection = basicListCollectionsMap.get(this.user.lastCollectionAccessedId);
-        const selectedCollectionName = selectedCollection?.collectionName;
-        this.stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
-        if (!this.stigmanCollection || !selectedCollectionName) {
-          this.showPopup('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are viewing a STIG Manager collection.');
-          return;
-        }
-        this.fetchAssetsFromAPI(this.stigmanCollection.collectionId);
-        this.getAffectedAssetGrid(this.stigmanCollection.collectionId);
-      });
+      const selectedCollection = basicListCollectionsMap.get(this.user.lastCollectionAccessedId);
+      const selectedCollectionName = selectedCollection?.collectionName;
+      this.stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
+      if (!this.stigmanCollection || !selectedCollectionName) {
+        this.showWarn('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are viewing a STIG Manager collection.');
+        return;
+      }
+      this.fetchAssetsFromAPI(this.stigmanCollection.collectionId);
+      this.getAffectedAssetGrid(this.stigmanCollection.collectionId);
+    });
   }
 
   async getAffectedAssetGrid(stigmanCollection: string) {
@@ -361,7 +364,7 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
         }));
         this.originalTreeData = [...mappedData];
         this.treeData = [...mappedData];
-        this.dataSource.setData(this.treeData);
+        this.dataSource = this.convertToTreeNodes(this.treeData);
         this.findingsCount = this.treeData.length;
         const severityGroups = data.reduce((groups: any, item: any) => {
           const severity = item.severity === 'high' ? 'CAT I - Critical/High' :
@@ -387,38 +390,43 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
         });
 
         findings.sort((a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity));
-
-        this.updateFindingsChartData(findings);
-
         this.selectedFindings = 'No Existing POAM';
         this.filterFindings();
+        this.initializeChart();
+        this.updateFindingsChartData(findings);
       },
       error: (err) => console.error('Failed to fetch affected assets from STIGMAN:', err),
     });
   }
 
+  convertToTreeNodes(data: any[]): TreeNode<AssetEntry>[] {
+    return data.map(item => ({
+      data: item.data,
+      children: item.children ? this.convertToTreeNodes(item.children) : []
+    }));
+  }
 
   async filterFindings() {
     (await this.sharedService.getExistingVulnerabilityPoams()).subscribe({
-        next: (response: any) => {
-          const existingPoams = response;
-          this.updateChartAndGrid(existingPoams);
-        },
-        error: (error) => {
-          console.error('Error retrieving existing POAMs:', error);
-          this.showPopup("Error retrieving existing POAMs. Please try again.");
+      next: (response: any) => {
+        const existingPoams = response;
+        this.updateChartAndGrid(existingPoams);
+      },
+      error: (error) => {
+        console.error('Error retrieving existing POAMs:', error);
+        this.showError("Error retrieving existing POAMs. Please try again.");
       }
     });
     if (this.selectedFindings === 'Has Existing POAM') {
       this.updatePoamColumnTitle = 'Update POAM';
-      this.updatePoamButtonIcon = 'sync-outline';
+      this.updatePoamButtonIcon = 'pi pi-sync';
       this.updatePoamButtonTooltip = 'Navigate to the POAM and update the affected asset list with live data.';
     } else if (this.selectedFindings === 'No Existing POAM') {
       this.updatePoamColumnTitle = 'Create POAM';
-      this.updatePoamButtonIcon = 'plus-square-outline';
+      this.updatePoamButtonIcon = 'pi pi-plus';
       this.updatePoamButtonTooltip = '';
     }
-  }  
+  }
 
   updateChartAndGrid(existingPoams: any[]) {
     const filteredTreeData = this.treeData.map(item => {
@@ -431,7 +439,7 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
       return null;
     }).filter(item => item !== null);
 
-    this.dataSource.setData(filteredTreeData);
+    this.dataSource = this.convertToTreeNodes(filteredTreeData);
     this.findingsCount = filteredTreeData.length;
     const severityGroups = filteredTreeData.reduce((groups: any, item: any) => {
       const severity = item.data['Severity'];
@@ -459,11 +467,14 @@ export class STIGManagerImportComponent implements OnInit, AfterViewInit, OnDest
     this.updateFindingsChartData(findings);
   }
 
-  async addPoam(row: any) {
-    const ruleId = row.data['ruleId'];
-      (await this.sharedService.getRuleDataFromSTIGMAN(ruleId)).subscribe({
-        next: async (ruleData: any) => {
-          const ruleDataString = `# Rule data from STIGMAN
+  async addPoam(node: any) {
+    if (node && node.node && node.node.data) {
+      const rowData = node.node.data;
+      if (rowData['ruleId']) {
+        const ruleId = rowData['ruleId'];
+        (await this.sharedService.getRuleDataFromSTIGMAN(ruleId)).subscribe({
+          next: async (ruleData: any) => {
+            const ruleDataString = `# Rule data from STIGMAN
 ## Discussion
 ${ruleData.detail.vulnDiscussion}
 ---
@@ -476,70 +487,86 @@ ${ruleData.check.content}
 ${ruleData.fix.text}
 ---`;
 
-          (await this.sharedService.getPoamsByVulnerabilityId(row.data['Group ID'])).subscribe({
-            next: (response: any) => {
-              if (response && response.length > 0) {
-                const poam = response[0];
-                this.router.navigate(['/poam-processing/poam-details/' + poam.poamId], {
-                  state: {
-                    vulnerabilitySource: 'STIG',
-                    vulnerabilityId: row.data['Group ID'],
-                    benchmarkId: row.data['Benchmark ID'],
-                    severity: row.data['Severity'],
-                    ruleData: ruleDataString
+            if (rowData['Group ID']) {
+              (await this.sharedService.getPoamsByVulnerabilityId(rowData['Group ID'])).subscribe({
+                next: (response: any) => {
+                  if (response && response.length > 0) {
+                    const poam = response[0];
+                    this.router.navigate(['/poam-processing/poam-details/' + poam.poamId], {
+                      state: {
+                        vulnerabilitySource: 'STIG',
+                        vulnerabilityId: rowData['Group ID'],
+                        benchmarkId: rowData['Benchmark ID'],
+                        severity: rowData['Severity'],
+                        ruleData: ruleDataString
+                      }
+                    });
+                  } else {
+                    this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
+                      state: {
+                        vulnerabilitySource: 'STIG',
+                        vulnerabilityId: rowData['Group ID'],
+                        benchmarkId: rowData['Benchmark ID'],
+                        severity: rowData['Severity'],
+                        ruleData: ruleDataString
+                      }
+                    });
                   }
-                });
-              } else {
-                this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
-                  state: {
-                    vulnerabilitySource: 'STIG',
-                    vulnerabilityId: row.data['Group ID'],
-                    benchmarkId: row.data['Benchmark ID'],
-                    severity: row.data['Severity'],
-                    ruleData: ruleDataString
-                  }
-                });
-              }
-            },
-            error: (error) => {
-              console.error('Error retrieving POAM:', error);
-              this.showPopup("Error creating POAM. Please try again.");
+                },
+                error: (error) => {
+                  console.error('Error retrieving POAM:', error);
+                  this.showError("Error creating POAM. Please try again.");
+                }
+              });
+            } else {
+              console.error('Group ID not found in row data:', rowData);
+              this.showError("Error creating POAM. Please try again.");
             }
-          });
+          },
+          error: (error) => {
+            console.error('Error retrieving rule data from STIGMAN:', error);
+            this.showError("Error retrieving rule data. Please try again.");
+          }
+        });
+      } else {
+        console.error('Rule ID not found in row data:', rowData);
+        this.showError("Error creating POAM. Please try again.");
+      }
+    } else {
+      console.error('Invalid node data:', node);
+      this.showError("Error creating POAM. Please try again.");
+    }
+  }
+
+  showSuccess(message: string) {
+    this.messageService.add({ severity: 'success', summary: 'Success', detail: message });
+  }
+
+  showInfo(message: string) {
+    this.messageService.add({ severity: 'info', summary: 'Info', detail: message });
+  }
+
+  showWarn(message: string) {
+    this.messageService.add({ severity: 'warn', summary: 'Warn', detail: message });
+  }
+
+  showError(message: string) {
+    this.messageService.add({ severity: 'error', summary: 'Error', detail: message });
+  }
+
+  confirm(message: string): Observable<boolean> {
+    return new Observable<boolean>(observer => {
+      this.confirmationService.confirm({
+        message: message,
+        accept: () => {
+          observer.next(true);
+          observer.complete();
         },
-        error: (error) => {
-          console.error('Error retrieving rule data from STIGMAN:', error);
-          this.showPopup("Error retrieving rule data. Please try again.");
+        reject: () => {
+          observer.next(false);
+          observer.complete();
         }
       });
-  }
-
-  showPopup(message: string) {
-    const dialogOptions: ConfirmationDialogOptions = {
-      header: 'Alert',
-      body: message,
-      button: { text: 'OK', status: 'info' },
-      cancelbutton: 'false'
-    };
-
-    this.dialogService.open(ConfirmationDialogComponent, {
-      context: {
-        options: dialogOptions
-      }
     });
   }
-
-  ngOnDestroy() {
-    this.subs.unsubscribe();
-    this.subscriptions.unsubscribe();
-  }
-
-  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-    this.dialogService.open(ConfirmationDialogComponent, {
-      hasBackdrop: true,
-      closeOnBackdropClick: true,
-      context: {
-        options: dialogOptions,
-      },
-    }).onClose;
 }

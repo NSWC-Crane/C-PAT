@@ -223,6 +223,9 @@ const CPAT = {
         apiBase: "${config.stigman.apiBase}",
         scopePrefix: "${config.stigman.scopePrefix ?? ''}",
         extraScopes: "${config.stigman.extraScopes ?? ''}",
+    },
+    features: {
+        marketplaceDisabled: ${config.client.features.marketplaceDisabled}
     }
   }
 }    

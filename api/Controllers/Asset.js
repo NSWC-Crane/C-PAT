@@ -12,7 +12,7 @@ const assetService = require('../Services/assetService')
 
 module.exports.getAssets = async function getAssets(req, res, next) {
     try {
-        var assets = await assetService.getAssets(req, res, next);
+        const assets = await assetService.getAssets(req, res, next);
         res.status(200).json(assets);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
@@ -21,7 +21,7 @@ module.exports.getAssets = async function getAssets(req, res, next) {
 
 module.exports.getAsset = async function getAsset(req, res, next) {
     try {
-        var asset = await assetService.getAsset(req, res, next);
+        const asset = await assetService.getAsset(req, res, next);
         res.status(200).json(asset);
     } catch (error) {
         if (error.status === 400) {
@@ -34,7 +34,7 @@ module.exports.getAsset = async function getAsset(req, res, next) {
 
 module.exports.getAssetByName = async function getAssetByName(req, res, next) {
     try {
-        var asset = await assetService.getAssetByName(req, res, next);
+        const asset = await assetService.getAssetByName(req, res, next);
         res.status(200).json(asset);
     } catch (error) {
         if (error.status === 400) {
@@ -47,8 +47,8 @@ module.exports.getAssetByName = async function getAssetByName(req, res, next) {
 
 module.exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
     try {
-        var response = await assetService.getAssetsByCollection(req, res, next);
-        var assets = response.assets;
+        const response = await assetService.getAssetsByCollection(req, res, next);
+        const assets = response.assets;
         res.status(200).json(assets);
     } catch (error) {
         if (error.message === 'Collection ID is required') {
@@ -61,7 +61,7 @@ module.exports.getAssetsByCollection = async function getAssetsByCollection(req,
 
 module.exports.postAsset = async function postAsset(req, res, next) {
     try {
-        var asset = await assetService.postAsset(req, res, next);
+        const asset = await assetService.postAsset(req, res, next);
         res.status(201).json(asset);
     } catch (error) {
         if (error.status === 400) {
@@ -74,7 +74,7 @@ module.exports.postAsset = async function postAsset(req, res, next) {
 
 module.exports.putAsset = async function putAsset(req, res, next) {
     try {
-        var asset = await assetService.putAsset(req, res, next);
+        const asset = await assetService.putAsset(req, res, next);
         res.status(200).json(asset);
     } catch (error) {
         if (error.status === 400) {

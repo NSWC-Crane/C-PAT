@@ -8,85 +8,67 @@
 !########################################################################
 */
 
-
-nb-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-
-    a {
-      margin-right: 1rem;
-    }
-  }
-}
-
-.notification-content {
-  flex-grow: 1;
-  position: relative;
-  padding-right: 1px;
-}
-
-.notification-header {
-  display: flex;
-  align-items: center;
-}
-
-.notification-icon {
-  margin-right: 1rem;
-}
-
-h6 {
-  margin-bottom: 0.5rem;
-}
-
-.dismiss-icon {
-  position: absolute;
-  top: 0;
-  right: 0;
-  cursor: pointer;
-}
-
-nb-list-item {
-  display: block;
-  padding: 1rem;
-  border-bottom: 1px solid black;
-}
-
-nb-list-item:last-child {
-  border-bottom: none;
-}
-
 .notifications-popover {
-  width: 20vw;
+  width: 25vw;
   max-height: 50vh;
   display: flex;
   flex-direction: column;
   margin-bottom: 0;
-}
 
-nb-card-header {
-  flex-shrink: 0;
-}
+  .header-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem 1rem;
+  }
 
-nb-card-body {
-  padding: 0;
-  flex-grow: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
+  ::ng-deep .p-card-body {
+    padding: 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
 
-nb-list {
-  flex-grow: 1;
-  overflow-y: auto;
-}
+  ::ng-deep .p-card-content {
+    padding: 0;
+    flex-grow: 1;
+  }
 
-nb-card-footer {
-  padding: 1rem;
-  text-align: center;
+  .notification-content {
+    flex-grow: 1;
+    position: relative;
+    padding-right: 1rem;
+  }
+
+  .notification-header {
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .notification-icon {
+    margin-right: 1rem;
+  }
+
+  h4 {
+    margin-bottom: 0.2rem;
+    margin-left: -1rem;
+    flex-grow: 1;
+  }
+
+  .dismiss-icon {
+    cursor: pointer;
+  }
+
+  ::ng-deep .p-listbox-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--surface-d);
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  ::ng-deep .p-card-footer {
+    padding: 1rem;
+    text-align: center;
+  }
 }

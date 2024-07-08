@@ -8,6 +8,7 @@
 !########################################################################
 */
 
+import { AppConfigComponent } from './Shared/config/app.config.component';
 import { AuthModule } from 'angular-auth-oidc-client';
 import { APP_BASE_HREF } from "@angular/common";
 import { HttpClientModule } from '@angular/common/http';
@@ -15,21 +16,26 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbEvaIconsModule } from '@nebular/eva-icons';
-import { NbSecurityModule } from '@nebular/security';
-import { NbAccordionModule, NbActionsModule, NbAlertModule, NbAutocompleteModule, NbButtonModule, NbCardModule, NbCheckboxModule, NbContextMenuModule, NbDatepickerModule, NbDialogModule, NbFormFieldModule, NbIconModule, NbInputModule, NbLayoutModule, NbListModule, NbMenuModule, NbPopoverModule, NbSelectModule, NbSidebarModule, NbSpinnerModule, NbStepperModule, NbThemeModule, NbToggleModule, NbTooltipModule, NbUserModule } from '@nebular/theme';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { TreeGridModule } from '@syncfusion/ej2-angular-treegrid';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
+import { CardModule } from 'primeng/card';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { CoreModule } from '../app/@core/core.module';
 import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
 import { SharedModule } from './Shared/shared.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { NgParticlesModule } from 'ng-particles';
+import { NotFoundComponent } from './Shared/components/not-found/not-found.component';
 import { UnauthorizedComponent } from './Shared/components/unauthorized/unauthorized.component';
-
+import { BadgeModule } from 'primeng/badge';
+import { ButtonModule } from 'primeng/button';
+import { AvatarModule } from 'primeng/avatar';
+import { MenuModule } from 'primeng/menu';
+import { PanelMenuModule } from 'primeng/panelmenu';
+import { DropdownModule } from 'primeng/dropdown';
+import { MessagesModule } from 'primeng/messages';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { TooltipModule } from 'primeng/tooltip';
+import { PrimeNGConfig } from 'primeng/api';
 function getScopeStr(configId: string) {
   const cpatScopePrefix = CPAT.Env.oauth.scopePrefix;
   const stigmanScopePrefix = CPAT.Env.stigman.scopePrefix;
@@ -67,12 +73,14 @@ function getScopeStr(configId: string) {
 @NgModule({
   declarations: [
     AppComponent,
-    UnauthorizedComponent,
+    NotFoundComponent,
+    UnauthorizedComponent
   ],
   providers: [
     { provide: APP_BASE_HREF, useValue: "/" },
     FileUploadService,
     provideCharts(withDefaultRegisterables()),
+    PrimeNGConfig,
   ],
   bootstrap: [AppComponent],
   exports: [],
@@ -113,43 +121,24 @@ function getScopeStr(configId: string) {
         },
       ],
     }),
-    TreeGridModule,
+    AppConfigComponent,
+    BadgeModule,
+    ButtonModule,
+    AvatarModule,
+    CardModule,
+    MenuModule,
+    PanelMenuModule,
+    DropdownModule,
+    MessagesModule,
+    OverlayPanelModule,
+    SelectButtonModule,
+    TooltipModule,
     AppRoutingModule,
     SharedModule,
     BrowserModule,
     FormsModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    NbAccordionModule,
-    NbActionsModule,
-    NbAlertModule,
-    NbAutocompleteModule,
-    NbButtonModule,
-    NbCardModule,
-    NbContextMenuModule,
-    NbToggleModule,
-    NbCheckboxModule,
-    NbEvaIconsModule,
-    NbFormFieldModule,
-    NbInputModule,
-    NbIconModule,
-    NbLayoutModule,
-    NbListModule,
-    NbPopoverModule,
-    NbSelectModule,
-    NbSpinnerModule,
-    NbStepperModule,
-    NbTooltipModule,
-    NbUserModule,
-    NgbModule,
-    Angular2SmartTableModule,
-    CoreModule,
-    NbDialogModule.forChild(),
-    NbDatepickerModule.forRoot(),
-    NbThemeModule.forRoot({ name: 'dark' }),
-    NbMenuModule.forRoot(),
-    NbSecurityModule.forRoot(),
-    NbSidebarModule.forRoot(),
     NgParticlesModule,
   ]
 })

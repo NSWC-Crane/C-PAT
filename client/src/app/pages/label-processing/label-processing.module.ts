@@ -11,12 +11,19 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NbButtonModule, NbCardModule, NbFormFieldModule, NbIconModule, NbInputModule, NbSelectModule, NbSpinnerModule, NbTableModule, NbTreeGridModule } from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { SharedModule } from '../../Shared/shared.module';
 import { LabelProcessingComponent } from './label-processing.component';
 import { LabelProcessingRoutingModule } from './label-processing.routing';
 import { LabelComponent } from './label/label.component';
+
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputTextModule } from 'primeng/inputtext';
+import { RippleModule } from 'primeng/ripple';
+import { TableModule } from 'primeng/table';
+import { TreeTableModule } from 'primeng/treetable';
 
 @NgModule({
   declarations: [
@@ -24,19 +31,17 @@ import { LabelComponent } from './label/label.component';
     LabelComponent,
   ],
   imports: [
+    ButtonModule,
+    CardModule,
+    DialogModule,
+    DropdownModule,
+    InputTextModule,
+    RippleModule,
+    TableModule,
+    TreeTableModule,
     CommonModule,
     LabelProcessingRoutingModule,
     FormsModule,
-    NbButtonModule,
-    NbCardModule,
-    NbIconModule,
-    NbInputModule,
-    NbFormFieldModule,
-    NbSelectModule,
-    NbSpinnerModule,
-    NbTableModule,
-    NbTreeGridModule,
-    Angular2SmartTableModule,
     SharedModule, 
   ],
   exports: [

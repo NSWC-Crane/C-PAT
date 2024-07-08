@@ -11,14 +11,23 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NbButtonModule, NbCardModule, NbFormFieldModule, NbIconModule, NbInputModule, NbLayoutModule, NbSelectModule, NbSpinnerModule, NbTableModule, NbTabsetModule, NbTooltipModule, NbTreeGridModule } from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { SharedModule } from '../../Shared/shared.module';
 import { AssetProcessingComponent } from './asset-processing.component';
 import { AssetProcessingRoutingModule } from './asset-processing.routing';
 import { AssetComponent } from './asset/asset.component';
+
+import { TabViewModule } from 'primeng/tabview';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmationService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 
 @NgModule({
   declarations: [
@@ -26,28 +35,24 @@ import { AssetComponent } from './asset/asset.component';
     AssetComponent,
   ],
   imports: [
-    InfiniteScrollModule,
     CommonModule,
     AssetProcessingRoutingModule,
     FormsModule,
-    NbButtonModule,
-    NbTableModule,
-    NbCardModule,
-    NbInputModule,
-    NbIconModule,
-    NbFormFieldModule,
-    NbLayoutModule,
-    NbSelectModule,
-    NbSpinnerModule,
-    NbTabsetModule,
-    NbTooltipModule,
-    NbTreeGridModule,
-    Angular2SmartTableModule,
+    ButtonModule,
+    CardModule,
+    ConfirmDialogModule,
+    DropdownModule,
+    InputTextModule,
+    TableModule,
+    ToastModule,
+    TabViewModule,
+    DialogModule,
     SharedModule,
-   
   ],
-  providers: [
-    provideCharts(withDefaultRegisterables()),
+providers: [
+  provideCharts(withDefaultRegisterables()),
+  ConfirmationService,
+  MessageService,
   ],
 })
 export class AssetProcessingModule { }

@@ -9,9 +9,7 @@
 */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NbDialogService } from '@nebular/theme';
-import { Observable } from 'rxjs';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../../Shared/shared.service';
 
 
@@ -24,15 +22,24 @@ export class TenableImportComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   scanResults: string = '';
   scans: any = [];
-
+  repositoryOptions = [
+    { label: 'Placeholder 1', value: '1' },
+    { label: 'Placeholder 2', value: '2' },
+    { label: 'Placeholder 3', value: '3' },
+    { label: 'Placeholder 4', value: '4' },
+    { label: 'Placeholder 5', value: '5' }
+  ];
+  selectedRepository?: string;
   constructor(
     private sharedService: SharedService,
-    private dialogService: NbDialogService,
   ) { }
 
   async ngOnInit() {
   }
 
+  importRepository() {
+    console.log('Selected Repository:', this.selectedRepository);
+}
 
   importScans(): void {
     this.sharedService.getTenableScans('id,name')
@@ -80,23 +87,8 @@ export class TenableImportComponent implements OnInit, OnDestroy {
       button: { text: 'OK', status: 'info' },
       cancelbutton: 'false'
     };
-
-    this.dialogService.open(ConfirmationDialogComponent, {
-      context: {
-        options: dialogOptions
-      }
-    });
   }
 
   ngOnDestroy() {
   }
-
-  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-    this.dialogService.open(ConfirmationDialogComponent, {
-      hasBackdrop: true,
-      closeOnBackdropClick: true,
-      context: {
-        options: dialogOptions,
-      },
-    }).onClose;
 }

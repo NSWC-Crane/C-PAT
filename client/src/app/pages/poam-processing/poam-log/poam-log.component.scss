@@ -9,13 +9,6 @@
 */
 
 :host ::ng-deep {
-  nb-card {
-    width: 60vw;
-    height: auto;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
   .header-content {
     display: flex;
     align-items: center;
@@ -24,35 +17,11 @@
     h3 {
       margin: 0;
     }
-
-    nb-select {
-      width: 300px;
-    }
   }
 
   .log-container {
     min-height: 200px;
     max-height: 60vh;
     overflow-y: auto;
-  }
-
-  .nb-tree-grid-header-cell,
-  .nb-tree-grid-cell {
-    &:nth-child(1) {
-      width: 15%;
-    }
-
-    &:nth-child(2) {
-      width: 15%;
-    }
-
-    &:nth-child(3) {
-      width: 70%;
-    }
-  }
-
-  nb-card-footer {
-    display: flex;
-    justify-content: flex-end;
   }
 }
