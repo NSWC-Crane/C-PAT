@@ -1,19 +1,23 @@
 name: SonarCloud analysis
-
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
-
 permissions:
   pull-requests: read
-
 jobs:
   Analysis:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: List directory contents
+        run: ls -R
+      
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
         env:
@@ -23,7 +27,7 @@ jobs:
           args: >
             -Dsonar.projectKey=NSWC-Crane_C-PAT
             -Dsonar.organization=nswc-crane
-            -Dsonar.sources=client,api
+            -Dsonar.sources=./client,./api
             -Dsonar.inclusions=**/*.ts,**/*.js,**/*.html,**/*.css
             -Dsonar.exclusions=**/node_modules/**
             -Dsonar.scm.provider=git
