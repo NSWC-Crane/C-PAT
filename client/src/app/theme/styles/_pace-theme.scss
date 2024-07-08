@@ -11,11 +11,11 @@
 @mixin ngx-pace-theme() {
 
   .pace .pace-progress {
-    background: nb-theme(color-primary-default);
+    background: var(--primary-color);
   }
 
   .pace .pace-progress-inner {
-    box-shadow: 0 0 10px nb-theme(color-primary-default), 0 0 5px nb-theme(color-primary-default);
+    box-shadow: 0 0 10px var(--surface-a), 0 0 5px var(--surface-a);
   }
 
   .pace .pace-activity {

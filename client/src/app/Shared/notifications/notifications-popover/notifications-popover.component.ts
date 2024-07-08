@@ -8,11 +8,12 @@
 !########################################################################
 */
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { NotificationService } from '../notifications.service';
 import { SubSink } from 'subsink';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
 import { Router } from '@angular/router';
+import { OverlayPanel } from 'primeng/overlaypanel';
 
 interface Permission {
   userId: number;
@@ -26,6 +27,7 @@ interface Permission {
   styleUrls: ['./notifications-popover.component.scss']
 })
 export class NotificationsPanelComponent implements OnInit {
+  @Input() overlayPanel: OverlayPanel;
   notifications: any[] = [];
   public isLoggedIn = false;
   user: any;
@@ -72,12 +74,16 @@ export class NotificationsPanelComponent implements OnInit {
     });
   }
 
+  closeOverlay() {
+    if (this.overlayPanel) {
+      this.overlayPanel.hide();
+    }
+  }
+
   async fetchNotifications() {
     (await this.notificationService.getUnreadNotificationsByUserId(this.user.userId)).subscribe(
       notifications => {
-        notifications.length >= 1 ?
-          (this.notifications = notifications) :
-          (this.notifications = [{ title: "No new notifications.." }]);
+        this.notifications = notifications;
       },
       error => {
         console.error('Failed to fetch notifications:', error);
@@ -86,7 +92,6 @@ export class NotificationsPanelComponent implements OnInit {
   }
 
   async dismissNotification(notification: any) {
-    console.log(notification);
     (await this.notificationService.dismissNotificationByNotificationId(notification.notificationId)).subscribe(
       () => {
         const index = this.notifications.indexOf(notification);
@@ -102,18 +107,17 @@ export class NotificationsPanelComponent implements OnInit {
 
   async dismissAllNotifications() {
     (await this.notificationService.dismissAllNotificationsByUserId(this.user.userId)).subscribe(
-      () => {   
+      () => {
+        this.notifications = [];
       },
       error => {
-        console.error('Failed to dismiss notification:', error);
+        console.error('Failed to dismiss all notifications:', error);
       }
     );
-    this.notifications = [{
-      title: "No new notifications..",
-}];
   }
 
   viewAllNotifications() {
     this.router.navigateByUrl('/notifications');
+    this.closeOverlay();
   }
 }

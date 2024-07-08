@@ -8,54 +8,79 @@
 !########################################################################
 -->
 
-<nb-card class="poam-grid">
-  <nb-card-header>Filtered POAMs</nb-card-header>
-  <nb-card-body>
-    <div class="row">
-      <div class="col">
-        <div class="toolbar" style="display: flex; justify-content: space-between; align-items: center;">
-          <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search..." style="flex-grow: 1; margin-right: 10px;">
-          <button nbButton ghost nbTooltip="Export filtered POAMs to .xlsx" nbTooltipStatus="basic" (click)="exportAll()"><nb-icon icon="download-outline"></nb-icon></button>
+<p-card>
+  <ng-template pTemplate="content">
+        <div class="toolbar" style="display: flex; align-items: center;">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input pInputText type="text" [(ngModel)]="globalFilter" (input)="onFilterChange($event)" placeholder="Search..." />
+          </span>
+          <p-button label="Clear Filters" [outlined]="true" class="ml-auto" icon="pi pi-filter-slash" (click)="clear(dt)"></p-button>
         </div>
         <div class="table-container" (scroll)="onScroll($event)">
-          <table class="poam-table" [nbTreeGrid]="dataSource">
-            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
-            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-            <ng-container [nbTreeGridColumnDef]="'POAM ID'">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="10">POAM ID</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="10">{{row.data.poamId}}</td>
-            </ng-container>
-            <ng-container [nbTreeGridColumnDef]="'POAM Status'">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="20">POAM Status</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="20">{{row.data.status}}</td>
-            </ng-container>
-            <ng-container [nbTreeGridColumnDef]="'Adjusted Severity'">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="20">Adjusted Severity</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="20">{{row.data.adjSeverity}}</td>
-            </ng-container>
-            <ng-container [nbTreeGridColumnDef]="'Submitter'">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="20">Submitted By</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="20">{{row.data.submitter}}</td>
-            </ng-container>
-            <ng-container [nbTreeGridColumnDef]="'Submitted Date'">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="20">Submitted Date</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="20">{{row.data.submittedDate}}</td>
-            </ng-container>
-            <ng-container [nbTreeGridColumnDef]="'Scheduled Completion Date'">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="20">Scheduled Completion Date</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="20">{{row.data.scheduledCompletionDate}}</td>
-            </ng-container>
-            <ng-container [nbTreeGridColumnDef]="'Manage'">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef [style.width.%]="10">Manage</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row" [style.width.%]="10">
-                <button class="manage-POAM-button" nbButton ghost (click)="managePoam(row)">
-                  <nb-icon icon="plus-square-outline"></nb-icon>
-                </button>
-              </td>
-            </ng-container>
-          </table>
+          <p-table #dt [value]="displayedData" [scrollable]="true" scrollHeight="50rem" [paginator]="false" [globalFilterFields]="['poamId', 'status', 'adjSeverity', 'submitter', 'submittedDate', 'scheduledCompletionDate']">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="min-width:15rem">
+                  <div class="flex align-items-center">
+                    POAM ID
+                    <p-columnFilter type="text" field="poamId" display="menu"></p-columnFilter>
+                  </div>
+                </th>
+                <th style="min-width:15rem">
+                  <div class="flex align-items-center">
+                    POAM Status
+                    <p-columnFilter type="text" field="status" display="menu"></p-columnFilter>
+                  </div>
+                </th>
+                <th style="min-width:15rem">
+                  <div class="flex align-items-center">
+                    Adjusted Severity
+                    <p-columnFilter type="text" field="adjSeverity" display="menu"></p-columnFilter>
+                  </div>
+                </th>
+                <th style="min-width:15rem">
+                  <div class="flex align-items-center">
+                    Submitter
+                    <p-columnFilter type="text" field="submitter" display="menu"></p-columnFilter>
+                  </div>
+                </th>
+                <th style="min-width:15rem">
+                  <div class="flex align-items-center">
+                    Submitted Date
+                    <p-columnFilter type="text" field="submittedDate" display="menu"></p-columnFilter>
+                  </div>
+                </th>
+                <th style="min-width:15rem">
+                  <div class="flex align-items-center">
+                    Scheduled Completion Date
+                    <p-columnFilter type="text" field="scheduledCompletionDate" display="menu"></p-columnFilter>
+                  </div>
+                </th>
+                <th style="min-width:10rem">
+                  Manage
+                </th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr>
+                <td>{{ row.poamId }}</td>
+                <td>{{ row.status }}</td>
+                <td>{{ row.adjSeverity }}</td>
+                <td>{{ row.submitter }}</td>
+                <td>{{ row.submittedDate }}</td>
+                <td>{{ row.scheduledCompletionDate }}</td>
+                <td>
+                  <button pButton type="button" icon="pi pi-plus" class="p-button-text" (click)="managePoam(row)"></button>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="7">No POAMs found.</td>
+              </tr>
+            </ng-template>
+          </p-table>
         </div>
-      </div>
-    </div>
-  </nb-card-body>
-</nb-card>
+  </ng-template>
+</p-card>

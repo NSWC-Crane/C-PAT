@@ -11,6 +11,7 @@
 const dbUtils = require('./utils');
 const logger = require('../utils/logger');
 const _this = this
+
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
     try {
@@ -49,8 +50,9 @@ exports.getUsers = async function getUsers() {
                     fullName: user.fullName,
                     officeOrg: user.officeOrg,
                     defaultTheme: user.defaultTheme,
-                    lastClaims: user.lastClaims,
+                    points: user.points,
                     isAdmin: user.isAdmin,
+                    lastClaims: user.lastClaims,
                     permissions: permissions
                 };
             }));
@@ -96,8 +98,9 @@ exports.getCurrentUser = async function getCurrentUser(email) {
                 fullName: user.fullName,
                 officeOrg: user.officeOrg,
                 defaultTheme: user.defaultTheme,
-                lastClaims: user.lastClaims,
+                points: user.points,
                 isAdmin: user.isAdmin,
+                lastClaims: user.lastClaims,
                 permissions: permissions
             };
         });
@@ -140,8 +143,9 @@ exports.getUserByUserID = async function getUserByUserID(userId) {
                 fullName: user.fullName,
                 officeOrg: user.officeOrg,
                 defaultTheme: user.defaultTheme,
-                lastClaims: user.lastClaims,
+                points: user.points,
                 isAdmin: user.isAdmin,
+                lastClaims: user.lastClaims,
                 permissions: permissions
             };
         });
@@ -183,8 +187,9 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
                 fullName: user.fullName,
                 officeOrg: user.officeOrg,
                 defaultTheme: user.defaultTheme,
-                lastClaims: user.lastClaims,
+                points: user.points,
                 isAdmin: user.isAdmin,
+                lastClaims: user.lastClaims,
                 permissions: permissions
             };
             return userObject;
@@ -244,6 +249,40 @@ exports.updateUser = async function updateUser(req, res, next) {
             let [updatedUser] = await connection.query(sql, [req.body.userId]);
 
             return updatedUser[0];
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+exports.updateUserTheme = async function updateUserTheme(req, res, next) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = "UPDATE user SET defaultTheme = ? WHERE userId = ?";
+
+            await connection.query(sql, [
+                req.body.defaultTheme,
+                req.body.userId
+            ]);
+
+            return { success: true, message: 'Theme updated successfully' };
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+exports.updateUserPoints = async function updateUserPoints(req, res, next) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = "UPDATE user SET points = ? WHERE userId = ?";
+
+            await connection.query(sql, [
+                req.body.points,
+                req.body.userId
+            ]);
+
+            return { success: true, message: 'User points updated successfully' };
         });
     } catch (error) {
         return { error: error.message };

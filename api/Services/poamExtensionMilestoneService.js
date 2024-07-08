@@ -61,17 +61,17 @@ exports.postPoamExtensionMilestone = async function postPoamExtensionMilestone(p
             });
         }
 
-        requestBody.ExtensionMilestoneDate = normalizeDate(requestBody.ExtensionMilestoneDate);
-        if (!requestBody.ExtensionMilestoneComments) requestBody.ExtensionMilestoneComments = null;
-        if (!requestBody.ExtensionMilestoneStatus) requestBody.ExtensionMilestoneStatus = null;
+        requestBody.extensionMilestoneDate = normalizeDate(requestBody.extensionMilestoneDate);
+        if (!requestBody.extensionMilestoneComments) requestBody.extensionMilestoneComments = null;
+        if (!requestBody.extensionMilestoneStatus) requestBody.extensionMilestoneStatus = null;
 
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.poamExtensionMilestones (poamId, ExtensionMilestoneDate, ExtensionMilestoneComments, ExtensionMilestoneStatus) VALUES (?, ?, ?, ?)`;
+            let sql_query = `INSERT INTO cpat.poamExtensionMilestones (poamId, extensionMilestoneDate, extensionMilestoneComments, extensionMilestoneStatus) VALUES (?, ?, ?, ?)`;
             await connection.query(sql_query, [
                 poamId,
-                requestBody.ExtensionMilestoneDate,
-                requestBody.ExtensionMilestoneComments,
-                requestBody.ExtensionMilestoneStatus,
+                requestBody.extensionMilestoneDate,
+                requestBody.extensionMilestoneComments,
+                requestBody.extensionMilestoneStatus,
             ]);
 
             let sql = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ?";
@@ -81,9 +81,9 @@ exports.postPoamExtensionMilestone = async function postPoamExtensionMilestone(p
 
             if (requestBody.poamLog && requestBody.poamLog.length > 0) {
                 let userId = requestBody.poamLog[0].userId;
-                let action = `POAM ExtensionMilestone Created.<br>
-ExtensionMilestone Date: ${normalizeDate(requestBody.ExtensionMilestoneDate)}<br>
-ExtensionMilestone Comment: ${requestBody.ExtensionMilestoneComments}`;
+                let action = `POAM extensionMilestone Created.<br>
+ExtensionMilestone Date: ${normalizeDate(requestBody.extensionMilestoneDate)}<br>
+ExtensionMilestone Comment: ${requestBody.extensionMilestoneComments}`;
 
                 let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
@@ -95,7 +95,7 @@ ExtensionMilestone Comment: ${requestBody.ExtensionMilestoneComments}`;
     }
 };
 
-exports.putPoamExtensionMilestone = async function putPoamExtensionMilestone(poamId, ExtensionMilestoneId, requestBody) {
+exports.putPoamExtensionMilestone = async function putPoamExtensionMilestone(poamId, extensionMilestoneId, requestBody) {
     try {
         if (!poamId) {
             return next({
@@ -104,29 +104,29 @@ exports.putPoamExtensionMilestone = async function putPoamExtensionMilestone(poa
                     poamId: 'is required',
                 }
             });
-        } else if (!ExtensionMilestoneId) {
+        } else if (!extensionMilestoneId) {
             return next({
                 status: 400,
                 errors: {
-                    ExtensionMilestoneId: 'is required',
+                    extensionMilestoneId: 'is required',
                 }
             });
         }
-        requestBody.ExtensionMilestoneDate = normalizeDate(requestBody.ExtensionMilestoneDate);
-        if (!requestBody.ExtensionMilestoneComments) requestBody.ExtensionMilestoneComments = null;
-        if (!requestBody.ExtensionMilestoneStatus) requestBody.ExtensionMilestoneStatus = null;
+        requestBody.extensionMilestoneDate = normalizeDate(requestBody.extensionMilestoneDate);
+        if (!requestBody.extensionMilestoneComments) requestBody.extensionMilestoneComments = null;
+        if (!requestBody.extensionMilestoneStatus) requestBody.extensionMilestoneStatus = null;
 
         return await withConnection(async (connection) => {
-            let getExtensionMilestoneSql = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ? AND ExtensionMilestoneId = ?";
-            let [existingExtensionMilestone] = await connection.query(getExtensionMilestoneSql, [poamId, ExtensionMilestoneId]);
+            let getExtensionMilestoneSql = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ? AND extensionMilestoneId = ?";
+            let [existingExtensionMilestone] = await connection.query(getExtensionMilestoneSql, [poamId, extensionMilestoneId]);
 
-            let sql_query = `UPDATE cpat.poamExtensionMilestones SET ExtensionMilestoneDate = ?, ExtensionMilestoneComments = ?, ExtensionMilestoneStatus = ? WHERE poamId = ? AND ExtensionMilestoneId = ?`;
+            let sql_query = `UPDATE cpat.poamExtensionMilestones SET extensionMilestoneDate = ?, extensionMilestoneComments = ?, extensionMilestoneStatus = ? WHERE poamId = ? AND extensionMilestoneId = ?`;
             await connection.query(sql_query, [
-                requestBody.ExtensionMilestoneDate,
-                requestBody.ExtensionMilestoneComments,
-                requestBody.ExtensionMilestoneStatus,
+                requestBody.extensionMilestoneDate,
+                requestBody.extensionMilestoneComments,
+                requestBody.extensionMilestoneStatus,
                 poamId,
-                ExtensionMilestoneId,
+                extensionMilestoneId,
             ]);
 
             sql_query = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ?;";
@@ -138,19 +138,19 @@ exports.putPoamExtensionMilestone = async function putPoamExtensionMilestone(poa
                 let userId = requestBody.poamLog[0].userId;
                 let actionParts = ["POAM ExtensionMilestone Updated."];
 
-                if (normalizeDate(existingExtensionMilestone[0].ExtensionMilestoneDate) !== normalizeDate(requestBody.ExtensionMilestoneDate)) {
-                    actionParts.push(`Previous ExtensionMilestone Date: ${normalizeDate(existingExtensionMilestone[0].ExtensionMilestoneDate)}<br>
-New ExtensionMilestone Date: ${normalizeDate(requestBody.ExtensionMilestoneDate)}`);
+                if (normalizeDate(existingExtensionMilestone[0].extensionMilestoneDate) !== normalizeDate(requestBody.extensionMilestoneDate)) {
+                    actionParts.push(`Previous ExtensionMilestone Date: ${normalizeDate(existingExtensionMilestone[0].extensionMilestoneDate)}<br>
+New ExtensionMilestone Date: ${normalizeDate(requestBody.extensionMilestoneDate)}`);
                 }
 
-                if (existingExtensionMilestone[0].ExtensionMilestoneComments !== requestBody.ExtensionMilestoneComments) {
-                    actionParts.push(`Previous ExtensionMilestone Comment: ${existingExtensionMilestone[0].ExtensionMilestoneComments}<br>
-New ExtensionMilestone Comment: ${requestBody.ExtensionMilestoneComments}`);
+                if (existingExtensionMilestone[0].extensionMilestoneComments !== requestBody.extensionMilestoneComments) {
+                    actionParts.push(`Previous ExtensionMilestone Comment: ${existingExtensionMilestone[0].extensionMilestoneComments}<br>
+New ExtensionMilestone Comment: ${requestBody.extensionMilestoneComments}`);
                 }
 
-                if (existingExtensionMilestone[0].ExtensionMilestoneStatus !== requestBody.ExtensionMilestoneStatus) {
-                    actionParts.push(`Previous ExtensionMilestone Status: ${existingExtensionMilestone[0].ExtensionMilestoneStatus}<br>
-New ExtensionMilestone Status: ${requestBody.ExtensionMilestoneStatus}`);
+                if (existingExtensionMilestone[0].extensionMilestoneStatus !== requestBody.extensionMilestoneStatus) {
+                    actionParts.push(`Previous ExtensionMilestone Status: ${existingExtensionMilestone[0].extensionMilestoneStatus}<br>
+New ExtensionMilestone Status: ${requestBody.extensionMilestoneStatus}`);
                 }
 
                 let action = actionParts.join("<br>");
@@ -165,7 +165,7 @@ New ExtensionMilestone Status: ${requestBody.ExtensionMilestoneStatus}`);
     }
 };
 
-exports.deletePoamExtensionMilestone = async function deletePoamExtensionMilestone(poamId, ExtensionMilestoneId, requestBody) {
+exports.deletePoamExtensionMilestone = async function deletePoamExtensionMilestone(poamId, extensionMilestoneId, requestBody) {
     try {
         if (!poamId) {
             return next({
@@ -174,18 +174,18 @@ exports.deletePoamExtensionMilestone = async function deletePoamExtensionMilesto
                     poamId: 'is required',
                 }
             });
-        } else if (!ExtensionMilestoneId) {
+        } else if (!extensionMilestoneId) {
             return next({
                 status: 400,
                 errors: {
-                    ExtensionMilestoneId: 'is required',
+                    extensionMilestoneId: 'is required',
                 }
             });
         }
 
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM cpat.poamExtensionMilestones WHERE poamId= ? AND ExtensionMilestoneId = ?";
-            await connection.query(sql, [poamId, ExtensionMilestoneId]);
+            let sql = "DELETE FROM cpat.poamExtensionMilestones WHERE poamId= ? AND extensionMilestoneId = ?";
+            await connection.query(sql, [poamId, extensionMilestoneId]);
 
             let action = `ExtensionMilestone Deleted.`;
             if (requestBody.requestorId) {

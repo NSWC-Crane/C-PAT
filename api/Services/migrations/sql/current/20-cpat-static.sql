@@ -18,8 +18,27 @@
 
 LOCK TABLES `_migrations` WRITE;
 /*!40000 ALTER TABLE `_migrations` DISABLE KEYS */;
-INSERT INTO `_migrations` VALUES ('2024-06-04 16:27:56',NULL,'0000.js'),('2024-06-04 16:27:57',NULL,'0001.js');
 /*!40000 ALTER TABLE `_migrations` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `themes`
+--
+
+LOCK TABLES `themes` WRITE;
+/*!40000 ALTER TABLE `themes` DISABLE KEYS */;
+INSERT INTO `themes` VALUES (1,'material-dark','Material Dark','A sleek and modern dark theme with a wild pink twist. It’s like a coffee break for your eyes without the caffeine jitters.',100),(2,'material-light','Material Light','Why work in a bland office when you can have the boldness of a grape soda-can right in front of you? These purple hues will have you conquering your POAMs with a majestic flair.',100),(3,'aquamarine','Aquamarine','Designed to be a calming theme inspired by the ocean, offering a serene and relaxing visual experience while you endlessly grind away at POAMs.',100),(4,'amber','Amber','A spin on the Slate theme with a touch of color. This theme\'s dark elegance and mysterious aura will make you feel like a secret agent hacking into the mainframe.',50),(5,'breeze','Breeze','Imagine working POAMs on a crisp, sunny day with a gentle breeze ruffling your hair. This theme’s light blue accents on a gray background will make you feel like you’re working on a beachside balcony. ',50),(6,'danger','Danger','Feeling adventurous? The Danger theme’s red accents on a gray background will make every POAM feel like defusing a bomb.',50),(7,'forrest','Forrest','With green accents on a gray background, it’s like working from a cozy cabin in the woods. Just don\'t let the squirrels distract you from your POAMs!',50);
+/*!40000 ALTER TABLE `themes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `collection`
+--
+
+LOCK TABLES `collection` WRITE;
+/*!40000 ALTER TABLE `collection` DISABLE KEYS */;
+INSERT IGNORE INTO `collection` VALUES (1,'eMASS','eMASS Imports',CURRENT_TIMESTAMP,0,0,'C-PAT');
+/*!40000 ALTER TABLE `collection` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -29,4 +48,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-04 12:47:01
+-- Dump completed on 2024-06-07 15:22:02

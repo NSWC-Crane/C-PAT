@@ -9,7 +9,6 @@
 */
 
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
 import { Router } from '@angular/router';
 
 @Component({
@@ -21,13 +20,13 @@ export class PoamAssignedGridComponent implements OnChanges {
   @Input() userId!: number;
   @Input() assignedData!: any[];
   @Input() assignedColumns!: string[];
-  @Input() gridHeight!: string[];
+  @Input() gridHeight!: string;
 
-  assignedDataSource!: NbTreeGridDataSource<any>;
+  assignedDataSource: any[] = [];
+  filteredData: any[] = [];
+  globalFilter: string = '';
 
-  constructor(private router: Router, private dataSourceBuilder: NbTreeGridDataSourceBuilder<any>) {
-    this.assignedDataSource = this.dataSourceBuilder.create([]);
-  }
+  constructor(private router: Router) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['assignedData']) {
@@ -44,21 +43,49 @@ export class PoamAssignedGridComponent implements OnChanges {
       });
     }
 
-    data = data.map((item) => ({
-      data: {
-        poamId: item.poamId,
-        adjSeverity: item.adjSeverity,
-        status: item.status,
-        submitter: item.submitterName,
-        approvalStatus: item.approvers && item.approvers.find((approver: any) => approver.userId === this.userId)?.approvalStatus,
-      },
+    this.assignedDataSource = data.map((item) => ({
+      poamId: item.poamId,
+      adjSeverity: item.adjSeverity,
+      status: item.status,
+      submitter: item.submitterName,
+      approvalStatus: item.approvers && item.approvers.find((approver: any) => approver.userId === this.userId)?.approvalStatus,
     }));
-
-    this.assignedDataSource.setData(data);
+    this.filteredData = [...this.assignedDataSource];
+    this.applyFilter();
   }
 
   managePoam(row: any) {
-    const poamId = row.data.poamId;
+    const poamId = row.poamId;
     this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
+  }
+
+  applyFilter() {
+    const filterValue = this.globalFilter ? this.globalFilter.toLowerCase() : '';
+    if (!filterValue) {
+      this.filteredData = [...this.assignedDataSource];
+    } else {
+      this.filteredData = this.assignedDataSource.filter(poam =>
+        Object.values(poam).some(value =>
+          value && value.toString().toLowerCase().includes(filterValue)
+        )
+      );
+    }
+  }
+
+  onFilterChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.globalFilter = target.value;
+    this.applyFilter();
+  }
+
+  getColumnKey(col: string): string {
+    switch (col) {
+      case 'POAM ID': return 'poamId';
+      case 'Adjusted Severity': return 'adjSeverity';
+      case 'Poam Status': return 'status';
+      case 'Submitter': return 'submitter';
+      case 'Approval Status': return 'approvalStatus';
+      default: return col.toLowerCase().replace(/\s+/g, '');
+    }
   }
 }

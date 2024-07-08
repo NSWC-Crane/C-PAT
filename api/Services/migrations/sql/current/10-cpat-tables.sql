@@ -53,7 +53,8 @@ CREATE TABLE `assetlabels` (
   `assetId` int NOT NULL,
   `collectionId` int NOT NULL,
   `labelId` int NOT NULL,
-  PRIMARY KEY (`assetId`, `labelId`),
+  PRIMARY KEY (`assetId`,`labelId`),
+  KEY `fk_assetlabels_collection` (`collectionId`),
   CONSTRAINT `fk_assetlabels_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE,
   CONSTRAINT `fk_assetlabels_collection` FOREIGN KEY (`collectionId`) REFERENCES `collection` (`collectionId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -117,6 +118,23 @@ CREATE TABLE `label` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
+-- Table structure for table `marketplace`
+--
+
+DROP TABLE IF EXISTS `marketplace`;
+CREATE TABLE `marketplace` (
+  `transactionId` int NOT NULL AUTO_INCREMENT,
+  `themeId` int NOT NULL,
+  `userId` int NOT NULL,
+  `purchaseDate` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`transactionId`),
+  KEY `themeId` (`themeId`),
+  KEY `userId` (`userId`),
+  CONSTRAINT `marketplace_ibfk_1` FOREIGN KEY (`themeId`) REFERENCES `themes` (`themeId`),
+  CONSTRAINT `marketplace_ibfk_2` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
 -- Table structure for table `notification`
 --
 
@@ -174,6 +192,7 @@ CREATE TABLE `poam` (
   `extensionJustification` varchar(2000) DEFAULT '',
   `emassStatus` varchar(15) DEFAULT 'Ongoing',
   `emassPoamId` varchar(20) DEFAULT NULL,
+  `hqs` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`poamId`),
   UNIQUE KEY `poamID_UNIQUE` (`poamId`),
   UNIQUE KEY `emassPoamId_UNIQUE` (`emassPoamId`),
@@ -249,7 +268,7 @@ DROP TABLE IF EXISTS `poamassets`;
 CREATE TABLE `poamassets` (
   `poamId` int NOT NULL,
   `assetId` int NOT NULL,
-  PRIMARY KEY (`poamId`, `assetId`),
+  PRIMARY KEY (`poamId`,`assetId`),
   KEY `idx_poamassets_assetId` (`assetId`),
   KEY `idx_poamassets_poamId` (`poamId`),
   CONSTRAINT `fk_poamassets_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE
@@ -324,6 +343,20 @@ CREATE TABLE `poammilestones` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
+-- Table structure for table `themes`
+--
+
+DROP TABLE IF EXISTS `themes`;
+CREATE TABLE `themes` (
+  `themeId` int NOT NULL AUTO_INCREMENT,
+  `themeIdentifier` varchar(25) NOT NULL,
+  `themeName` varchar(50) NOT NULL,
+  `themeDescription` varchar(255) DEFAULT NULL,
+  `cost` int NOT NULL,
+  PRIMARY KEY (`themeId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
 -- Table structure for table `user`
 --
 
@@ -343,6 +376,7 @@ CREATE TABLE `user` (
   `defaultTheme` varchar(20) DEFAULT 'dark',
   `isAdmin` int NOT NULL DEFAULT '0',
   `lastClaims` json DEFAULT (_utf8mb4'{}'),
+  `points` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`userId`),
   UNIQUE KEY `userEmail_UNIQUE` (`email`) USING BTREE,
   UNIQUE KEY `userName_UNIQUE` (`userName`),
@@ -357,4 +391,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-04 12:47:01
+-- Dump completed on 2024-06-07 15:17:27

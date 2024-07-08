@@ -7,43 +7,67 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
+
 <div class="col-12 row">
   <div class="col">
-    <nb-card>
-      <nb-card-body>
-        <input nbInput [nbFilterInput]="dataSource" id="search" class="search-input" placeholder="Search Labels">
-        <div class="scrollable-labels">
-          <table [nbTreeGrid]="dataSource">
-            <tr nbTreeGridHeaderRow *nbTreeGridHeaderRowDef="allColumns"></tr>
-            <tr nbTreeGridRow *nbTreeGridRowDef="let row; columns: allColumns"></tr>
-
-            <ng-container [nbTreeGridColumnDef]="customColumn">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{customColumn}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">
-                {{row.data[customColumn]}}
-              </td>
-            </ng-container>
-
-            <ng-container *ngFor="let column of defaultColumns" [nbTreeGridColumnDef]="column">
-              <th nbTreeGridHeaderCell *nbTreeGridHeaderCellDef>{{column}}</th>
-              <td nbTreeGridCell *nbTreeGridCellDef="let row">{{row.data[column] || '0'}}</td>
-            </ng-container>
-          </table>
+    <p-card>
+      <div class="p-fluid">
+        <div class="p-field p-grid">
+          <div class="p-col col-2">
+            <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Labels">
+          </div>
         </div>
-      </nb-card-body>
-      <nb-card-body>
-        <nb-select fullWidth outlineid="labelid" name="label" [(ngModel)]="label.labelId"
-                   (selectedChange)="setLabel($event)" placeholder="Select Label to Modify..." required>
-          <nb-option *ngFor="let label of data" [value]="label.labelId">
-            {{ label.labelId }} - {{ label.labelName }} - {{ label.description }}
-          </nb-option>
-        </nb-select>
-        <button nbButton fullWidth outline status="info" style="margin-top: 20px;" (click)="openLabelPopup()">Add Label</button>
-      </nb-card-body>
-    </nb-card>
+        <div class="scrollable-labels">
+          <p-table [value]="data" selectionMode="multiple" [(selection)]="selectedLabels" [metaKeySelection]="true" dataKey="labelId">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Label ID</th>
+                <th>Name</th>
+                <th>Description</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-label let-rowIndex="rowIndex">
+              <tr [pSelectableRow]="label" [pSelectableRowIndex]="rowIndex" (click)="setLabel(label.labelId)">
+                <td>{{label.labelId}}</td>
+                <td>{{label.labelName}}</td>
+                <td>{{label.description}}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="3" style="text-align:center">No Data to Display</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+        <div class="field">
+          <p-dropdown id="labelid"
+                      [options]="data"
+                      optionLabel="labelName"
+                      [(ngModel)]="label.labelId"
+                      placeholder="Select Label to Modify..."
+                      (onChange)="setLabel($event.value.labelId)"
+                      styleClass="mt-4 w-full"
+                      required
+                      appendTo="body">
+          </p-dropdown>
+        </div>
+        <div class="field">
+          <button pButton
+                  type="button"
+                  label="Add Label"
+                  class="p-button-outlined p-button-info w-full"
+                  (click)="addLabel()">
+          </button>
+        </div>
+        </div>
+</p-card>
   </div>
 </div>
 
-<ng-template #labelPopup let-data let-ref="dialogRef">
-      <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData(); closePopup();"></cpat-label>
-</ng-template>
+<p-dialog header="Label Details" [(visible)]="labelDialogVisible" [modal]="true" [style]="{width: '50vw'}">
+  <ng-template pTemplate="content">
+    <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData(); closeLabelPopup();"></cpat-label>
+  </ng-template>
+</p-dialog>
+

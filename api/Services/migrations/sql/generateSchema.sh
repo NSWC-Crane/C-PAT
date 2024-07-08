@@ -12,7 +12,7 @@
 
 
 #List of table names for static data.
-static_data_tables="_migrations"
+static_data_tables="_migrations themes"
 
 # Export the schema of all tables in the database into a SQL file,
 # removing any AUTO_INCREMENT attribute values to prevent conflicts with existing data when imported

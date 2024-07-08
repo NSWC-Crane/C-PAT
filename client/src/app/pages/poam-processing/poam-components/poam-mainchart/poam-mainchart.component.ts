@@ -8,11 +8,13 @@
 !########################################################################
 */
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, AfterViewInit, Renderer2 } from '@angular/core';
 import { Router } from '@angular/router';
 import { Chart, ChartData, registerables } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { addDays, differenceInCalendarDays } from 'date-fns';
+import { DropdownChangeEvent } from 'primeng/dropdown';
+import { MultiSelectChangeEvent } from 'primeng/multiselect';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 @Component({
   selector: 'cpat-poam-mainchart',
@@ -23,7 +25,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   @Output() poamsChange = new EventEmitter<any[]>();
   @Input() poams!: any[];
   @Input() showAddButton: boolean = false;
-  @Input() canvasHeight = '45rem';
+  @Input() canvasHeight = '35rem';
   @Input() canvasWidth = '100rem';
   @ViewChild('poamStatusChart') poamStatusChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('poamLabelChart') poamLabelChart!: ElementRef<HTMLCanvasElement>;
@@ -62,6 +64,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     { value: '90-180 Days', label: '90-180 Days' },
     { value: '> 365 Days', label: '> 365 Days' }
   ];
+
   statusChart!: Chart;
   statusChartData: ChartData<'bar'> = {
     labels: [''],
@@ -121,17 +124,37 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     },
   };
 
+  filterOptions: any[] = [
+    {
+      label: 'Status',
+      items: this.poamStatuses.map(status => ({ label: status.label, value: `status:${status.value}` }))
+    },
+    {
+      label: 'Severity',
+      items: this.poamSeverities.map(severity => ({ label: severity.label, value: `severity:${severity.value}` }))
+    },
+    {
+      label: 'Scheduled Completion',
+      items: this.poamScheduledCompletions.map(completion => ({ label: completion.label, value: `scheduledCompletion:${completion.value}` }))
+    },
+    {
+      label: 'Label',
+      items: []
+    }
+  ];
+
   constructor(
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private renderer: Renderer2
   ) {
     Chart.register(...registerables);
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     if (this.poams) {
-      this.initializeChart();
       this.initializePoamLabel();
+      this.initializeChart();
     }
   }
 
@@ -143,6 +166,9 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
       }
       this.initializePoamLabel();
     }
+    if (changes['canvasHeight'] || changes['canvasWidth']) {
+      this.applyCanvasStyles();
+    }
   }
 
   ngAfterViewInit(): void {
@@ -150,7 +176,28 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     if (this.poams && this.poams.length > 0) {
       this.initializeChart();
     }
+    this.applyCanvasStyles();
   }
+
+  private applyCanvasStyles(): void {
+    if (this.poamStatusChart?.nativeElement) {
+      this.renderer.setStyle(this.poamStatusChart.nativeElement, 'height', this.canvasHeight);
+      this.renderer.setStyle(this.poamStatusChart.nativeElement, 'width', this.canvasWidth);
+    }
+    if (this.poamLabelChart?.nativeElement) {
+      this.renderer.setStyle(this.poamLabelChart.nativeElement, 'height', this.canvasHeight);
+      this.renderer.setStyle(this.poamLabelChart.nativeElement, 'width', this.canvasWidth);
+    }
+    if (this.poamSeverityChart?.nativeElement) {
+      this.renderer.setStyle(this.poamSeverityChart.nativeElement, 'height', this.canvasHeight);
+      this.renderer.setStyle(this.poamSeverityChart.nativeElement, 'width', this.canvasWidth);
+    }
+    if (this.poamScheduledCompletionChart?.nativeElement) {
+      this.renderer.setStyle(this.poamScheduledCompletionChart.nativeElement, 'height', this.canvasHeight);
+      this.renderer.setStyle(this.poamScheduledCompletionChart.nativeElement, 'width', this.canvasWidth);
+    }
+  }
+
 
   addPoam() {
     this.router.navigateByUrl('/poam-processing/poam-details/ADDPOAM');
@@ -204,6 +251,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     } else {
       console.error('Unable to initialize chart: Element not available.');
     }
+    this.applyCanvasStyles();
   }
 
   initializePoamLabel(): void {
@@ -217,9 +265,31 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
         });
       }
     });
-    this.poamLabel = Array.from(labelSet).map(label => ({ label }));
-  }
 
+    const newPoamLabel = Array.from(labelSet).map(label => ({ label }));
+    if (JSON.stringify(this.poamLabel) !== JSON.stringify(newPoamLabel)) {
+      this.poamLabel = newPoamLabel;
+      this.filterOptions = [
+        {
+          label: 'Status',
+          items: this.poamStatuses.map(status => ({ label: status.label, value: `status:${status.value}` }))
+        },
+        {
+          label: 'Severity',
+          items: this.poamSeverities.map(severity => ({ label: severity.label, value: `severity:${severity.value}` }))
+        },
+        {
+          label: 'Scheduled Completion',
+          items: this.poamScheduledCompletions.map(completion => ({ label: completion.label, value: `scheduledCompletion:${completion.value}` }))
+        },
+        {
+          label: 'Label',
+          items: this.poamLabel.map(label => ({ label: label.label, value: `label:${label.label}` }))
+        }
+      ];
+      this.cdr.detectChanges();
+    }
+  }
 
   updateCharts(): void {
     this.updateStatusChart();
@@ -258,7 +328,6 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     this.labelChart.data.datasets = datasets;
     this.labelChart.update();
   }
-
 
   updateSeverityChart(): void {
     if (!this.severityChart) {
@@ -445,7 +514,8 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     }
   }
 
-  onSelectPoam(poamId: number) {
+  onSelectPoam(event: DropdownChangeEvent) {
+    const poamId = event.value;
     const selectedPoam = this.poamsForChart.find((poam: any) => poam.id === poamId);
     if (selectedPoam) {
       this.router.navigateByUrl(`/poam-processing/poam-details/${selectedPoam.id}`);
@@ -461,7 +531,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     label: null
   };
 
-  onGroupSelect(selectedValues: string[]) {
+  onGroupSelect(event: MultiSelectChangeEvent) {
     this.selectedOptions = {
       status: null,
       severity: null,
@@ -469,7 +539,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
       label: null
     };
 
-    selectedValues.forEach(value => {
+    event.value.forEach((value: any) => {
       const [group, selectedValue] = value.split(':');
       this.selectedOptions[group] = selectedValue === null ? null : selectedValue;
     });

@@ -1,64 +1,98 @@
-@import '../../../theme/styles/themes.scss';
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
 
-@include nb-install-component() {
-  nb-card {
+:host ::ng-deep {
+  .p-card {
+    padding: 0;
+    height: 7.5rem;
+    display: flex;
     flex-direction: row;
     align-items: center;
-    height: 6rem;
     overflow: visible;
     cursor: pointer;
-
-    .icon-container {
-      height: 100%;
-      padding: 0.625rem;
+    transition: transform 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.03);
     }
 
-    .nb-icon {
-      width: 90.75rem;
-      height: 90.75rem;
+    .p-card-body {
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .grid {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .col-3, .col-9 {
+      height: 100%;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .icon-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      padding-left: 1rem;
     }
 
     .icon {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 5.75rem;
-      height: 4.75rem;
-      border-radius: nb-theme(card-border-radius);
-      transition: width 0.4s ease;
-      transform: translate3d(0, 0, 0);
-      -webkit-transform-style: preserve-3d;
-      -webkit-backface-visibility: hidden;
-      color: nb-theme(text-control-color);
+      width: 6rem;
+      height: 5rem;
+      border-radius: 4px;
+      transition: all 0.4s ease;
 
-      @each $status in nb-get-statuses() {
-        &.status-#{$status} {
-          $left-color: nb-theme(button-hero-#{$status}-left-background-color);
-          $right-color: nb-theme(button-hero-#{$status}-right-background-color);
-          background-image: linear-gradient(to right, $left-color, $right-color);
+      i {
+        font-size: 3rem;
+        color: var(--primary-color-text);
+      }
 
-          &:hover {
-            $left-hover-color: nb-theme(button-hero-#{$status}-hover-left-background-color);
-            $right-hover-color: nb-theme(button-hero-#{$status}-hover-right-background-color);
-            background-image: linear-gradient(to right, $left-hover-color, $right-hover-color);
-          }
+      &.status-primary {
+        background-image: linear-gradient(to right, var(--primary-500), var(--primary-600));
+        &:hover {
+          background-image: linear-gradient(to right, var(--primary-600), var(--primary-500));
         }
       }
-    }
-
-    &.off {
-      color: nb-theme(text-hint-color);
-
-      .status,
-      .title,
-      .icon {
-        color: nb-theme(text-hint-color);
+      &.status-success {
+        background-image: linear-gradient(to right, var(--green-500), var(--green-400));
+        &:hover {
+          background-image: linear-gradient(to right, var(--green-400), var(--green-300));
+        }
       }
-
-      @each $status in nb-get-statuses() {
-        .icon.status-#{$status} {
-          box-shadow: none;
-          background-image: linear-gradient(to right, transparent, transparent);
+      &.status-info {
+        background-image: linear-gradient(to right, var(--cyan-700), var(--cyan-600));
+        &:hover {
+          background-image: linear-gradient(to right, var(--cyan-600), var(--cyan-500));
+        }
+      }
+      &.status-warning {
+        background-image: linear-gradient(to right, var(--yellow-700), var(--yellow-600));
+        &:hover {
+          background-image: linear-gradient(to right, var(--yellow-600), var(--yellow-500));
+        }
+      }
+      &.status-danger {
+        background-image: linear-gradient(to right, var(--red-700), var(--red-600));
+        &:hover {
+          background-image: linear-gradient(to right, var(--red-600), var(--red-500));
         }
       }
     }
@@ -68,17 +102,16 @@
       flex-direction: column;
       justify-content: center;
       height: 100%;
-      @include nb-ltr(padding, 0 0.5rem 0 0.75rem);
-      @include nb-rtl(padding, 0 0.75rem 0 0.5rem);
-      border-left: 1px solid transparent;
+      padding: 0 1rem;
+      width: 100%;
     }
 
     .title {
       margin: 0;
-    }
-
-    .status {
-      text-transform: uppercase;
+      font-size: 1.5rem;
+      font-weight: bold;
+      line-height: 1.2;
+      text-align: left;
     }
   }
 }

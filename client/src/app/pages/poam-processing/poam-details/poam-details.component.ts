@@ -9,25 +9,22 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NbDialogService, NbWindowRef } from '@nebular/theme';
-import { Settings } from 'angular2-smart-table';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { addDays, format, isAfter, parseISO } from 'date-fns';
-import { Observable, Subscription, forkJoin, of, throwError } from 'rxjs';
+import { Subscription, forkJoin, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { SmartTableDatepickerComponent } from 'src/app/Shared/components/smart-table/smart-table-datepicker.component';
-import { SmartTableInputDisabledComponent } from 'src/app/Shared/components/smart-table/smart-table-inputDisabled.component';
-import { SmartTableSelectComponent } from 'src/app/Shared/components/smart-table/smart-table-select.component';
-import { SmartTableTextareaComponent } from 'src/app/Shared/components/smart-table/smart-table-textarea.component';
 import { SubSink } from 'subsink';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../../Shared/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { PoamService } from '../poams.service';
 import { AssetService } from '../../asset-processing/assets.service';
 import { ImportService } from '../../import-processing/import.service';
+import { MessageService } from 'primeng/api';
+import { ConfirmationService } from 'primeng/api';
+import { Table } from 'primeng/table';
 
 interface Permission {
   userId: number;
@@ -39,12 +36,35 @@ interface Permission {
   selector: 'cpat-poamdetails',
   templateUrl: './poam-details.component.html',
   styleUrls: ['./poam-details.component.scss'],
-  providers: [DatePipe]
+  providers: [
+    ConfirmationService,
+    MessageService,
+    DatePipe
+  ]
 })
 export class PoamDetailsComponent implements OnInit, OnDestroy {
-  public isLoggedIn = false;
-  labelList: any;
+  @ViewChild('dt') table: Table;
+  editingRows: { [s: string]: boolean } = {};
+  clonedAssignees: { [s: string]: any; } = {};
+  clonedMilestones: { [s: string]: any; } = {};
+  milestoneStatusOptions = [
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Complete', value: 'Complete' }
+  ];
+
+  approvalStatusOptions = [
+    { label: 'Not Reviewed', value: 'Not Reviewed' },
+    { label: 'Approved', value: 'Approved' },
+    { label: 'Rejected', value: 'Rejected' }
+  ];
+
   poamLabels: any[] = [];
+  labelList: any[] = [];
+  newLabel: any = { labelId: null };
+  errorDialogVisible: boolean = false;
+  errorMessage: string = '';
+  errorHeader: string = 'Error';
+  public isLoggedIn = false;
   users: any;
   user: any;
   poam: any;
@@ -68,6 +88,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   showCheckData: boolean = false;
   stigmanCollections: any[] = [];
   stigmanSTIGs: any;
+  filteredStigmanSTIGs: string[] = [];
   selectedStig: any = null;
   selectedStigTitle: string = '';
   selectedStigBenchmarkId: string = '';
@@ -79,332 +100,91 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     "RMF Controls",
     "EXORD",
   ];
+  filteredVulnerabilitySources: string[] =[];
+  statusOptions = [
+    { label: 'Draft', value: 'Draft', disabled: false },
+    { label: 'Closed', value: 'Closed', disabled: false },
+    { label: 'Expired', value: 'Expired', disabled: false },
+    { label: 'Submitted', value: 'Submitted', disabled: true },
+    { label: 'Approved', value: 'Approved', disabled: true },
+    { label: 'Rejected', value: 'Rejected', disabled: true },
+    { label: 'Extension Requested', value: 'Extension Requested', disabled: true },
+  ];
+
+  rawSeverityOptions = [
+    { label: 'CAT I - Critical/High', value: 'CAT I - Critical/High' },
+    { label: 'CAT II - Medium', value: 'CAT II - Medium' },
+    { label: 'CAT III - Low', value: 'CAT III - Low' },
+  ];
+
+  adjSeverityOptions = [
+    { label: 'CAT I - Critical/High', value: 'CAT I - Critical/High' },
+    { label: 'CAT II - Medium', value: 'CAT II - Medium' },
+    { label: 'CAT III - Low', value: 'CAT III - Low' },
+  ];
+
+  residualRiskOptions = [
+    { label: 'Very Low', value: 'Very Low' },
+    { label: 'Low', value: 'Low' },
+    { label: 'Moderate', value: 'Moderate' },
+    { label: 'High', value: 'High' },
+    { label: 'Very High', value: 'Very High' },
+  ];
+
+  likelihoodOptions = [
+    { label: 'Very Low', value: 'Very Low' },
+    { label: 'Low', value: 'Low' },
+    { label: 'Moderate', value: 'Moderate' },
+    { label: 'High', value: 'High' },
+    { label: 'Very High', value: 'Very High' },
+  ];
+
+  relevanceOfThreatOptions = [
+    { label: 'Very Low', value: 'Very Low' },
+    { label: 'Low', value: 'Low' },
+    { label: 'Moderate', value: 'Moderate' },
+    { label: 'High', value: 'High' },
+    { label: 'Very High', value: 'Very High' },
+  ];
+
+  businessImpactRatingOptions = [
+    { label: 'Very Low', value: 'Very Low' },
+    { label: 'Low', value: 'Low' },
+    { label: 'Moderate', value: 'Moderate' },
+    { label: 'High', value: 'High' },
+    { label: 'Very High', value: 'Very High' },
+  ];
+
+  steps = [
+    { label: 'Assignees' },
+    { label: 'Approvers' },
+    { label: 'Assets' },
+    { label: 'Predisposing Conditions' },
+    { label: 'Mitigations' },
+    { label: 'Required Resources' },
+    { label: 'Residual Risk' },
+    { label: 'Business Impact' },
+    { label: 'Milestones' },
+    { label: 'POAM Labels' },
+    { label: 'Notes' },
+  ];
   selectedCollection: any;
   private subscriptions = new Subscription();
-
-  poamAssetsSettings: Settings = {
-    add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',
-      createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
-      confirmCreate: true,
-    },
-    edit: {
-      editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
-      saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
-    },
-    delete: {
-      deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
-      confirmDelete: true,
-    },
-    actions: {
-      columnTitle: '',
-      add: true,
-      edit: false,
-      delete: true,
-    },
-    columns: {
-      assetId: {
-        title: 'Asset',
-        width: '100%',
-        isFilterable: false,
-        type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          const assetId = parseInt(row.value, 10);
-          const asset = this.assets.find((tl: { assetId: number; }) => tl.assetId === assetId);
-          return asset ? `Asset ID: ${assetId} - Asset Name: ${asset.assetName}` : `Asset ID: ${assetId}`;
-        },
-        editor: {
-          type: 'list',
-          config: {
-            list: [],
-          },
-        },
-      },
-    },
-    hideSubHeader: false,
-  };
-
-  poamApproverSettings: Settings = {
-    add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',
-      createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', confirmCreate: true,
-    },
-    delete: {
-      deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
-      confirmDelete: true,
-    },
-    actions: {
-      columnTitle: '',
-      add: true,
-      edit: false,
-      delete: false,
-    },
-    columns: {
-      userId: {
-        title: 'Approver',
-        width: '20%',
-        isFilterable: false,
-        type: 'html',
-        isEditable: false,
-        isAddable: true,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          try {
-            var userId = row.value;
-            if (userId === undefined || userId === null) {
-              return '';
-            }
-            const user = this.collectionApprovers.find((tl: any) => tl.userId === parseInt(userId, 10));
-            return user ? user.fullName : userId.toString();
-          } catch (error) {
-            console.error("Error in valuePrepareFunction: ", error);
-            return userId ? userId.toString() : '';
-          }
-        },
-        editor: {
-          type: 'list',
-          config: {
-            list: [],
-          },
-        },
-      },
-      approvalStatus: {
-        title: 'Approval Status',
-        width: '20%',
-        isFilterable: false,
-        type: 'html',
-        isAddable: false,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value : 'Not Reviewed'
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableInputDisabledComponent,
-        },
-      },
-      approvedDate: {
-        title: 'Approved Date',
-        width: '20%',
-        isFilterable: false,
-        type: 'html',
-        isEditable: false,
-        isAddable: false,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value.substr(0, 10) : 'Not Reviewed';
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableInputDisabledComponent,
-        },
-      },
-      comments: {
-        title: 'Comments',
-        width: '40%',
-        isFilterable: false,
-        editor: {
-          type: 'custom',
-          component: SmartTableTextareaComponent,
-        },
-        isEditable: true,
-        isAddable: true,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value : ' '
-        },
-      },
-    },
-    hideSubHeader: false,
-  };
-
-  poamAssigneesSettings: Settings = {
-    add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',
-      createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >', confirmCreate: true,
-    },
-    edit: {
-      editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
-      saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
-    },
-    delete: {
-      deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
-      confirmDelete: true,
-    },
-    actions: {
-      columnTitle: '',
-      add: true,
-      edit: false,
-      delete: true,
-    },
-    columns: {
-      userId: {
-        title: 'Members Assigned',
-        width: '100%',
-        isFilterable: false,
-        type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          try {
-            var userId = row.value;
-            if (userId === undefined || userId === null) {
-              return '';
-            }
-            const user = this.collectionUsers.find((tl: any) => tl.userId === userId);
-            return user ? user.fullName : userId.toString();
-          } catch (error) {
-            console.error("Error in valuePrepareFunction: ", error);
-            return userId ? userId.toString() : '';
-          }
-        },
-        editor: {
-          type: 'list',
-          config: {
-            list: [],
-          },
-        },
-      },
-    },
-    hideSubHeader: false,
-  };
-
-  poamMilestoneSettings: Settings = {
-    add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',
-      createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
-      confirmCreate: true,
-    },
-    edit: {
-      editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
-      saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
-      confirmSave: true,
-    },
-    delete: {
-      deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
-      confirmDelete: true,
-    },
-    actions: {
-      columnTitle: '',
-      add: true,
-      edit: true,
-      delete: true,
-    },
-    columns: {
-      milestoneComments: {
-        title: 'Milestone Comments',
-        width: '60%',
-        isFilterable: false,
-        editor: {
-          type: 'custom',
-          component: SmartTableTextareaComponent,
-        },
-        isEditable: true,
-        isAddable: true,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value : ' '
-        },
-      },
-      milestoneDate: {
-        title: 'Milestone Date',
-        width: '20%',
-        isFilterable: false,
-        type: 'text',
-        isEditable: true,
-        isAddable: true,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return row.value ? format(row.value, 'yyyy-MM-dd') : '';
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableDatepickerComponent,
-        },
-      },
-      milestoneStatus: {
-        title: 'Milestone Status',
-        width: '20%',
-        isFilterable: false,
-        type: 'html',
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value : 'Pending'
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableSelectComponent,
-          config: {
-            list: [
-              { value: 'Pending', title: 'Pending' },
-              { value: 'Complete', title: 'Complete' }
-            ],
-          },
-        },
-      },
-    },
-    hideSubHeader: false,
-  };
-
-  poamLabelsSettings: Settings = {
-    add: {
-      addButtonContent: '<img src="../../../../assets/icons/plus-outline.svg" width="20" height="20" >',
-      createButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
-      confirmCreate: true,
-    },
-    edit: {
-      editButtonContent: '<img src="../../../../assets/icons/edit-outline.svg" width="20" height="20" >',
-      saveButtonContent: '<img src="../../../../assets/icons/checkmark-square-2-outline.svg" width="20" height="20" >',
-      cancelButtonContent: '<img src="../../../../assets/icons/close-square-outline.svg" width="20" height="20" >',
-      confirmSave: true
-    },
-    delete: {
-      deleteButtonContent: '<img src="../../../../assets/icons/trash-2-outline.svg" width="20" height="20" >',
-      confirmDelete: true,
-    },
-    actions: {
-      columnTitle: '',
-      add: true,
-      edit: false,
-      delete: true,
-    },
-    columns: {
-      labelId: {
-        title: 'Label',
-        width: '100%',
-        isFilterable: false,
-        type: 'html',
-        valuePrepareFunction: (cell) => {
-          const label = this.poamLabels.find(l => l.labelId === cell);
-          return label ? `${label.labelName}` : `Label ID: ${cell}`;
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableSelectComponent,
-          config: {
-            list: [],
-          },
-        },
-      },
-    },
-    hideSubHeader: false,
-  };
-
-  modalWindow: NbWindowRef | undefined
-  dialog!: TemplateRef<any>;
-
-  private subs = new SubSink()
+  private subs = new SubSink();
+  private dialogRef: DynamicDialogRef;
 
   constructor(
-    private cdr: ChangeDetectorRef,
-    private collectionService: CollectionsService,
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService,
     private poamService: PoamService,
     private route: ActivatedRoute,
     private sharedService: SharedService,
     private router: Router,
-    private dialogService: NbDialogService,
     private userService: UsersService,
     private assetService: AssetService,
-    private importService: ImportService
+    private importService: ImportService,
+    private collectionService: CollectionsService,
+    private cdr: ChangeDetectorRef,
   ) { }
 
   onDeleteConfirm() { }
@@ -420,6 +200,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       })
     );
     this.setPayload();
+    this.fetchAssets();
   }
 
   async setPayload() {
@@ -460,7 +241,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             this.showClose = ['admin', 'cat1approver', 'approver', 'submitter'].includes(this.payload.role);
             this.showSubmit = ['admin', 'cat1approver', 'approver', 'submitter'].includes(this.payload.role);
             this.canModifySubmitter = ['admin', 'cat1approver', 'approver', 'submitter'].includes(this.payload.role);
-            this.updateTableSettings();
             this.getData();
           }
         } else {
@@ -492,7 +272,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         await this.poamService.getPoamMilestones(this.poamId),
         await this.poamService.getPoamLabelsByPoam(this.poamId)
       ]).subscribe(([poam, collection, users, collectionAssets, poamAssets, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
-        this.poam = { ...poam };
+        this.poam = { ...poam, hqs: poam.hqs === 1 ? true : false };
         this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? parseISO(this.poam.scheduledCompletionDate.substr(0, 10)) : '';
         this.dates.iavComplyByDate = (this.poam.iavComplyByDate) ? parseISO(this.poam.iavComplyByDate.substr(0, 10)) : '';
         this.dates.submittedDate = (this.poam.submittedDate) ? parseISO(this.poam.submittedDate.substr(0, 10)) : '';
@@ -563,6 +343,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         submitterId: this.payload.userId,
         status: "Draft",
         submittedDate: new Date().toISOString().slice(0, 10),
+        hqs: false,
       };
 
       this.dates.scheduledCompletionDate = this.poam.scheduledCompletionDate;
@@ -624,7 +405,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   async getLabelData() {
     this.subs.sink = (await this.poamService.getLabels(this.selectedCollection)).subscribe((labels: any) => {
       this.labelList = labels;
-      this.updateLabelEditorConfig();
     });
   }
 
@@ -634,25 +414,67 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateLabelEditorConfig() {
-    const labelSettings = this.poamLabelsSettings;
-
-    const labelOptionsList = [
-      ...this.labelList.map((label: any) => ({
-        title: label.labelName,
-        value: label.labelId
-      }))
-    ];
-
-    labelSettings.columns['labelId'].editor = {
-      type: 'custom',
-      component: SmartTableSelectComponent,
-      config: {
-        list: labelOptionsList,
-      },
+  addLabel() {
+    const newLabel = {
+      poamId: this.poam.poamId,
+      labelId: null,
+      isNew: true
     };
-    this.poamLabelsSettings = Object.assign({}, labelSettings);
+    this.poamLabels = [...this.poamLabels, newLabel];
   }
+
+  async onLabelChange(label: any, rowIndex: number) {
+    if (label.labelId) {
+      await this.confirmCreateLabel(label);
+      label.isNew = false;
+    } else {
+      this.poamLabels.splice(rowIndex, 1);
+    }
+  }
+
+  async deleteLabel(label: any, rowIndex: number) {
+    if (label.labelId) {
+      await this.confirmDeleteLabel(label);
+    } else {
+      this.poamLabels.splice(rowIndex, 1);
+    }
+  }
+
+  async confirmCreateLabel(event: any) {
+    if (this.poam.poamId === "ADDPOAM") {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'You may not assign a label until after the POAM has been saved.' });
+      return;
+    }
+
+    if (event.labelId) {
+      const poamLabel = {
+        poamId: +this.poam.poamId,
+        labelId: +event.labelId,
+        poamLog: [{ userId: this.user.userId }],
+      };
+
+      (await this.poamService.postPoamLabel(poamLabel)).subscribe(() => {
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Label added successfully.' });
+        this.getPoamLabels();
+      }, () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add label.' });
+      });
+    }
+  }
+
+  async confirmDeleteLabel(event: any) {
+    if (this.poam.poamId === "ADDPOAM") {
+      return;
+    }
+
+    (await this.poamService.deletePoamLabel(+event.poamId, +event.labelId, this.user.userId)).subscribe(() => {
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Label deleted successfully.' });
+      this.poamLabels = this.poamLabels.filter(l => l.labelId !== event.labelId);
+    }, () => {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete label.' });
+    });
+  }
+
 
   async addDefaultApprovers() {
     this.collectionApprovers.forEach(async (collectionApprover: any) => {
@@ -677,92 +499,13 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     })
   }
 
-  updateTableSettings() {
-
-    if (this.showApprove) {
-      this.poamApproverSettings.columns['approvalStatus'] = {
-        title: 'Approval Status',
-        width: '20%',
-        isFilterable: false,
-        isEditable: true,
-        type: 'html',
-        isAddable: false,
-        valuePrepareFunction: (_cell: any, row: any) => {
-          return (row.value) ? row.value : 'Not Reviewed'
-        },
-        editor: {
-          type: 'custom',
-          component: SmartTableInputDisabledComponent,
-          config: {
-            list: [
-              { value: 'Not Reviewed', title: 'Not Reviewed' },
-              { value: 'Approved', title: 'Approved' },
-              { value: 'Rejected', title: 'Rejected' }
-            ],
-          },
-        },
-      }
-    }
-  }
-
   setChartSelectionData() {
     this.collectionSubmitters = [];
-
     if (this.collectionUsers) {
       this.collectionUsers.forEach((user: any) => {
         if (user.accessLevel >= 2) this.collectionSubmitters.push({ ...user });
       });
     }
-
-    const assetSettings = this.poamAssetsSettings;
-    const assetList = [
-      ...this.assets.map((asset: any) => ({
-        title: asset.assetName,
-        value: asset.assetId.toString(),
-      }))
-    ];
-
-    assetSettings.columns['assetId'].editor = {
-      type: 'custom',
-      component: SmartTableSelectComponent,
-      config: {
-        list: assetList,
-      },
-    };
-    this.poamAssetsSettings = Object.assign({}, assetSettings);
-
-
-    const assigneeSettings = this.poamAssigneesSettings;
-    const assigneeList = [
-      ...this.collectionUsers.map((assignee: any) => ({
-        title: assignee.fullName,
-        value: assignee.userId.toString(),
-      }))
-    ];
-    assigneeSettings.columns['userId'].editor = {
-      type: 'custom',
-      component: SmartTableSelectComponent,
-      config: {
-        list: assigneeList,
-      },
-    };
-    this.poamAssigneesSettings = Object.assign({}, assigneeSettings);
-
-    const approverSettings = this.poamApproverSettings;
-    const approverList = [
-      ...this.collectionApprovers.map((approver: any) => ({
-        title: approver.fullName,
-        value: approver.userId.toString(),
-      }))
-    ];
-    approverSettings.columns['userId'].editor = {
-      type: 'custom',
-      component: SmartTableSelectComponent,
-      config: {
-        list: approverList,
-      },
-    };
-    this.poamApproverSettings = Object.assign({}, approverSettings);
   }
 
   async approvePoam() {
@@ -848,72 +591,73 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       (await this.poamService.postPoam(this.poam)).subscribe({
         next: (res) => {
           if (res.null || res.null == "null") {
-            this.showConfirmation("unexpected error adding poam", "Information", "warning");
+            this.showError("Unexpected error adding POAM", "Error");
           } else {
             this.poam.poamId = res.poamId;
             this.poamService.newPoam(this.poam);
-            this.showConfirmation("Added POAM: " + res.poamId, "Success", "info", true, false);
+            this.showConfirmation("Added POAM: " + res.poamId, "Success", "success");
           }
         },
         error: () => {
-          this.showConfirmation("Unexpected error adding poam", "Information", "warning");
+          this.showConfirmation("Unexpected error adding poam", "Error");
         }
       });
     } else {
       const assets: any[] = [];
-      if (this.stateData && this.stateData.vulnerabilityId) {
         this.poamAssets.forEach((asset: any) => {
           assets.push({ assetName: asset.assetName });
         });
         this.poam.assets = assets;
-      }
+      
 
       this.subs.sink = (await this.poamService.updatePoam(this.poam)).subscribe(data => {
         this.poam = data;
-        this.showConfirmation("Updated POAM", "Success", "info", true, false);
+        this.showConfirmation("Updated POAM", "Success", "success");
       });
     }
   }
 
-  onStigSelected(stig: any) {
-    this.selectedStig = stig;
-    this.selectedStigTitle = stig.title;
-    this.selectedStigBenchmarkId = stig.benchmarkId;
-    this.poam.stigTitle = stig.title;
-    this.poam.stigBenchmarkId = stig.benchmarkId;
+  onStigSelected(event: any) {
+    const selectedStig = this.stigmanSTIGs.find((stig: any) => stig.title === event);
+    if (selectedStig) {
+      this.selectedStigTitle = '';
+      this.selectedStigBenchmarkId = selectedStig.benchmarkId;
+      this.poam.stigTitle = selectedStig.title;
+      this.poam.stigBenchmarkId = selectedStig.benchmarkId;
+    }
   }
 
   async validateStigManagerCollection() {
-      forkJoin([
-        (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
-          catchError((err) => {
-            console.error('Failed to fetch from STIGMAN:', err);
-            return of([]);
-          })
-        ),
-        (await this.collectionService.getCollectionBasicList()).pipe(
-          catchError((err) => {
-            console.error('Failed to fetch basic collection list:', err);
-            return of([]);
-          })
-        )
-      ]).subscribe(([stigmanData, basicListData]) => {
-        const stigmanCollectionsMap = new Map(stigmanData.map(collection => [collection.name, collection]));
-        const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
+    forkJoin([
+      (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
+        catchError((err) => {
+          console.error('Failed to fetch from STIGMAN:', err);
+          return of([]);
+        })
+      ),
+      (await this.collectionService.getCollectionBasicList()).pipe(
+        catchError((err) => {
+          console.error('Failed to fetch basic collection list:', err);
+          return of([]);
+        })
+      )
+    ]).subscribe(([stigmanData, basicListData]) => {
+      const stigmanCollectionsMap = new Map(stigmanData.map(collection => [collection.name, collection]));
+      const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
 
-        const selectedCollection = basicListCollectionsMap.get(this.selectedCollection);
-        const selectedCollectionName = selectedCollection!.collectionName;
+      const selectedCollection = basicListCollectionsMap.get(this.selectedCollection);
+      const selectedCollectionName = selectedCollection!.collectionName;
 
-        const stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
+      const stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
 
-        if (!stigmanCollection || !selectedCollectionName) {
-          this.showConfirmation('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are creating the POAM in the correct collection.', "Information", "warning");
-          return;
-        }
+      if (!stigmanCollection || !selectedCollectionName) {
+        this.showConfirmation('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are creating the POAM in the correct collection.', "Information", "warning");
+        return;
+      }
 
-        const stigmanCollectionId = stigmanCollection.collectionId;
-        this.updateAssetSettings(stigmanCollectionId);
-      });
+      const stigmanCollectionId = stigmanCollection.collectionId;
+      this.updateAssetSettings(stigmanCollectionId);
+    });
   }
 
   async updateAssetSettings(stigmanCollectionId: string) {
@@ -927,7 +671,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           }));
           if (this.poamId !== "ADDPOAM" && this.stateData.vulnerabilitySource === 'STIG') {
             return (await this.assetService.deleteAssetsByPoamId(+this.poamId)).pipe(
-              switchMap(() => this.poamService.deletePoamAssetByPoamId(+this.poamId)),
+              switchMap(async () => await this.poamService.deletePoamAssetByPoamId(+this.poamId)),
               switchMap(() => {
                 const assetDetailsObservables = this.assetList.map(async asset =>
                   await this.sharedService.selectedAssetsFromSTIGMAN(asset.assetId)
@@ -967,7 +711,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
                     assetId: asset.assetId,
                     poamLog: [{ userId: this.user.userId }],
                   };
-                  return this.poamService.postPoamAsset(poamAsset);
+                  return await this.poamService.postPoamAsset(poamAsset);
                 });
                 return forkJoin(poamAssetObservables);
               }),
@@ -1054,30 +798,39 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     return /^\d{4}-[A-Za-z]-\d{4}$/.test(iavmNumber);
   }
 
-  async confirmCreateMilestone(event: any) {
-    if (this.poam.poamId === "ADDPOAM") {
-      event.confirm.resolve();
+  onAddNewMilestone() {
+    const newMilestone = {
+      milestoneId: this.generateTempId(),
+      milestoneComments: '',
+      milestoneDate: new Date(),
+      milestoneStatus: 'Pending',
+      isNew: true,
+      editing: true
+    };
+    this.poamMilestones = [newMilestone, ...this.poamMilestones];
+    this.onRowEditInit(newMilestone);
+    this.cdr.detectChanges();
+  }
+
+  generateTempId(): string {
+    return 'temp_' + new Date().getTime();
+  }
+
+  onRowEditInit(milestone: any) {
+    this.clonedMilestones[milestone.milestoneId] = { ...milestone };
+  }
+
+  async onRowEditSave(milestone: any) {
+    if (!milestone.milestoneComments || !milestone.milestoneDate || !milestone.milestoneStatus) {
+      this.showConfirmation("Please provide values for all columns: Milestone Comments, Milestone Date, and Milestone Status.", "Information", "warning");
       return;
     }
 
-    if (this.poam.status != "Draft") {
-      this.showConfirmation("The milestone list can only be modified if the POAM status is 'Draft'.", "Warning", "warning", false, true);
-      event.confirm.reject();
-      return;
-    }
-
-    if (!event.newData.milestoneDate) {
-      this.showConfirmation("You must provide a milestone date.", "Information", "warning");
-      event.confirm.reject();
-      return;
-    }
-
-    const milestoneDate = format(event.newData.milestoneDate, "yyyy-MM-dd");
+    const milestoneDate = format(milestone.milestoneDate, "yyyy-MM-dd");
 
     if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
       if (isAfter(milestoneDate, this.dates.scheduledCompletionDate)) {
         this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date.", "Information", "warning");
-        event.confirm.reject();
         return;
       }
     } else {
@@ -1085,364 +838,345 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       if (isAfter(milestoneDate, maxAllowedDate)) {
         this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.", "Information", "warning");
-        event.confirm.reject();
         return;
       }
     }
 
-    if (this.poam.poamId) {
-      const milestone: any = {
-        milestoneDate: format(event.newData.milestoneDate, "yyyy-MM-dd"),
-        milestoneComments: (event.newData.milestoneComments) ? event.newData.milestoneComments : ' ',
-        milestoneStatus: (event.newData.milestoneStatus) ? event.newData.milestoneStatus : 'Pending',
+    if (milestone.isNew) {
+      const newMilestone: any = {
+        milestoneDate: format(milestone.milestoneDate, "yyyy-MM-dd"),
+        milestoneComments: milestone.milestoneComments || '',
+        milestoneStatus: milestone.milestoneStatus || 'Pending',
         poamLog: [{ userId: this.user.userId }],
-      }
+      };
 
-
-      await (await this.poamService.addPoamMilestone(this.poam.poamId, milestone)).subscribe((res: any) => {
+      await (await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone)).subscribe((res: any) => {
         if (res.null) {
           this.showConfirmation("Unable to insert row, please try again.", "Information", "warning");
-          event.confirm.reject();
-          this.getData();
           return;
         } else {
-
-          event.confirm.resolve();
-          this.poamMilestones.push(milestone);
-          this.poamMilestones = [...this.poamMilestones];
-          this.getData();
+          milestone.milestoneId = res.milestoneId;
+          milestone.isNew = false;
+          delete milestone.editing;
         }
-      })
-
+      });
     } else {
-      this.showConfirmation("Failed to create POAM milestone entry. Invalid input.", "Information", "warning");
-      event.confirm.reject();
+      const milestoneUpdate = {
+        ...(milestone.milestoneDate && { milestoneDate: format(milestone.milestoneDate, "yyyy-MM-dd") }),
+        ...(milestone.milestoneComments && { milestoneComments: milestone.milestoneComments }),
+        ...(milestone.milestoneStatus && { milestoneStatus: milestone.milestoneStatus }),
+        poamLog: [{ userId: this.user.userId }],
+      };
+
+      (await this.poamService.updatePoamMilestone(this.poam.poamId, milestone.milestoneId, milestoneUpdate)).subscribe({
+        next: () => {
+          this.getData();
+        },
+        error: (error) => {
+          this.showConfirmation("Failed to update the milestone. Please try again.", "Information", "warning");
+          console.error(error);
+        }
+      });
+    }
+    delete this.clonedMilestones[milestone.milestoneId];
+  }
+
+
+  onRowEditCancel(milestone: any, index: number) {
+    if (milestone.isNew) {
+      this.poamMilestones.splice(index, 1);
+    } else if (this.clonedMilestones[milestone.milestoneId]) {
+      this.poamMilestones[index] = this.clonedMilestones[milestone.milestoneId];
+      delete this.clonedMilestones[milestone.milestoneId];
     }
   }
 
-  async confirmEditMilestone(event: any) {
-    if (this.poam.poamId === "ADDPOAM") {
-      event.confirm.resolve();
+
+  async deleteMilestone(milestone: any, index: number) {
+    if (!milestone.milestoneId) {
+      this.poamMilestones.splice(index, 1);
       return;
     }
-
-    if (this.poam.status != "Draft") {
-      this.showConfirmation("Milestones can only be modified if the POAM status is 'Draft'.", "Warning", "warning", false, true);
-      event.confirm.reject();
-      return;
-    }
-
-    const milestoneDate = format(event.newData.milestoneDate, "yyyy-MM-dd");
-
-    if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
-      if (isAfter(milestoneDate, this.dates.scheduledCompletionDate)) {
-        this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date.", "Information", "warning");
-        event.confirm.reject();
-        return;
-      }
-    } else {
-      const maxAllowedDate = addDays(this.dates.scheduledCompletionDate, this.poam.extensionTimeAllowed);
-
-      if (isAfter(milestoneDate, maxAllowedDate)) {
-        this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.", "Information", "warning");
-        event.confirm.reject();
-        return;
-      }
-    }
-
-    const milestoneUpdate = {
-      ...(event.newData.milestoneDate && { milestoneDate: format(event.newData.milestoneDate, "yyyy-MM-dd") }),
-      ...(event.newData.milestoneComments && { milestoneComments: (event.newData.milestoneComments) ? event.newData.milestoneComments : ' ' }),
-      ...(event.newData.milestoneStatus && { milestoneStatus: (event.newData.milestoneStatus) ? event.newData.milestoneStatus : 'Pending' }),
-      poamLog: [{ userId: this.user.userId }],
-    };
-
-    (await this.poamService.updatePoamMilestone(this.poam.poamId, event.data.milestoneId, milestoneUpdate)).subscribe({
-      next: () => {
-        event.confirm.resolve();
-      },
-      error: (error) => {
-        this.showConfirmation("Failed to update the milestone. Please try again.", "Information", "warning");
-        console.error(error);
-        event.confirm.reject();
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to delete this milestone?',
+      header: 'Delete Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      accept: async () => {
+        (await this.poamService.deletePoamMilestone(this.poam.poamId, milestone.milestoneId, this.user.userId, false)).subscribe(() => {
+          this.poamMilestones.splice(index, 1);
+        });
       }
     });
   }
 
-  async confirmDeleteMilestone(event: any) {
-    if (this.poam.poamId === "ADDPOAM") {
-      event.confirm.resolve();
-      return;
-    }
-
-    if (this.poam.status != "Draft") {
-      this.showConfirmation("The milestone list can only be modified if the POAM status is 'Draft'.", "Warning", "warning", false, true);
-      event.confirm.reject();
-      return;
-    }
-
-    (await this.poamService.deletePoamMilestone(this.poam.poamId, event.data.milestoneId, this.user.userId, false)).subscribe(() => {
-      const index = this.poamMilestones.findIndex((e: any) => e.poamId == event.data.poamId && e.milestoneId == event.data.milestoneId);
-
-      if (index > -1) {
-        this.poamMilestones.splice(index, 1);
-      }
-      event.confirm.resolve();
-    })
+  getApproverName(userId: number): string {
+    const user = this.collectionApprovers.find((user: any) => user.userId === userId);
+    return user ? user.fullName : '';
   }
 
-  async confirmDeleteApprover(event: any) {
-    if (this.poam.poamId !== "ADDPOAM" && this.poam.status === "Draft") {
-      (await this.poamService.deletePoamApprover(event.data.poamId, event.data.userId, this.user.userId)).subscribe(() => {
-        const index = this.poamApprovers.findIndex((e: any) => e.poamId == event.data.poamId && e.userId == event.data.userId);
-        if (index > -1) {
-          this.poamApprovers.splice(index, 1);
-          this.poamApprovers = [...this.poamApprovers];
-        }
-        event.confirm.resolve();
-      });
-    } else if (this.poam.poamId === "ADDPOAM") {
-      event.confirm.resolve();
+  addApprover() {
+    const newApprover = {
+      poamId: +this.poam.poamId,
+      userId: null,
+      approvalStatus: 'Not Reviewed',
+      approvedDate: null,
+      comments: '',
+      poamLog: [{ userId: this.user.userId }],
+      isNew: true
+    };
+    this.poamApprovers = [...this.poamApprovers, newApprover];
+  }
+
+  async onApproverChange(approver: any, rowIndex: number) {
+    if (approver.userId) {
+      await this.confirmCreateApprover(approver);
+      approver.isNew = false;
     } else {
-      this.showConfirmation("You may only remove an approver from the approver list if the POAM status is 'Draft'.", "Warning", "warning", false, true);
-      event.confirm.reject();
+      this.poamApprovers.splice(rowIndex, 1);
     }
   }
 
-  async confirmCreateApprover(event: any) {
-    if (this.poam.poamId !== "ADDPOAM" && this.poam.poamId && event.newData.userId) {
+  async deleteApprover(approver: any, rowIndex: number) {
+    if (approver.userId) {
+      await this.confirmDeleteApprover(approver);
+    } else {
+      this.poamApprovers.splice(rowIndex, 1);
+    }
+  }
+
+  async confirmCreateApprover(newApprover: any) {
+    if (this.poam.poamId !== "ADDPOAM" && this.poam.poamId && newApprover.userId) {
       const approver: any = {
         poamId: +this.poam.poamId,
-        userId: +event.newData.userId,
-        approvalStatus: 'Not Reviewed',
-        approvedDate: null,
-        comments: null,
+        userId: +newApprover.userId,
+        approvalStatus: newApprover.approvalStatus,
+        approvedDate: newApprover.approvedDate,
+        comments: newApprover.comments,
         poamLog: [{ userId: this.user.userId }],
       };
 
       (await this.poamService.addPoamApprover(approver)).subscribe(async () => {
-        event.confirm.resolve();
         (await this.poamService.getPoamApprovers(this.poamId)).subscribe((poamApprovers: any) => {
           this.poamApprovers = poamApprovers;
         })
       });
     } else if (this.poam.poamId === "ADDPOAM") {
-      event.confirm.resolve();
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Approver added' });
     } else {
       this.showConfirmation("Failed to create entry on poamApprover. Invalid input.", "Information", "warning");
-      event.confirm.reject();
     }
   }
 
-  async confirmCreateLabel(event: any) {
-    if (this.poam.poamId === "ADDPOAM") {
-      this.showConfirmation("You may not assign a label until after the POAM has been saved.", "Information", "warning");
-      event.confirm.reject();
-      return;
-    }
-
-    if (this.poam.poamId && event.newData.labelId) {
-      const label_index = this.labelList.findIndex((e: any) => e.labelId == event.newData.labelId);
-      if (label_index === -1) {
-        this.showConfirmation("Unable to resolve assigned label.", "Information", "warning");
-        event.confirm.reject();
-        return;
-      }
-
-      const poamLabel = {
-        poamId: +this.poam.poamId,
-        labelId: +event.newData.labelId,
-        poamLog: [{ userId: this.user.userId }],
-      };
-
-      (await this.poamService.postPoamLabel(poamLabel)).subscribe(() => {
-        event.confirm.resolve();
-        this.getPoamLabels();
+  async confirmDeleteApprover(approver: any) {
+    if (this.poam.poamId !== "ADDPOAM" && this.poam.status === "Draft") {
+      (await this.poamService.deletePoamApprover(approver.poamId, approver.userId, this.user.userId)).subscribe(() => {
+        this.poamApprovers = this.poamApprovers.filter((a: any) => a.userId !== approver.userId);
       });
+    } else if (this.poam.poamId === "ADDPOAM") {
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Approver removed' });
     } else {
-      this.showConfirmation("Failed to create entry. Invalid input.", "Information", "warning");
-      event.confirm.reject();
+      this.showConfirmation("You may only remove an approver from the approver list if the POAM status is 'Draft'.", "Error");
     }
   }
 
-  async confirmDeleteLabel(event: any) {
-    if (this.poam.poamId === "ADDPOAM") {
-      event.confirm.resolve();
-      return;
-    }
 
-    const label_index = this.poamLabels.findIndex((data: any) => {
-      return event.data.poamId === data.poamId && event.data.labelId === data.labelId;
-    });
+  getAssigneeName(userId: number): string {
+    const user = this.collectionUsers.find((user: any) => user.userId === userId);
+    return user ? user.fullName : '';
+  }
 
-    if (label_index === -1) {
-      this.showConfirmation("Unable to resolve assigned label.", "Information", "warning");
-      event.confirm.reject();
+  async addAssignee() {
+    const newAssignee = {
+      poamId: +this.poam.poamId,
+      userId: null,
+      poamLog: [{ userId: this.user.userId }],
+      isNew: true
+    };
+    this.poamAssignees = [...this.poamAssignees, newAssignee];
+  }
+
+  async onAssigneeChange(assignee: any, rowIndex: number) {
+    if (assignee.userId) {
+      await this.confirmCreate(assignee);
+      assignee.isNew = false;
     } else {
-      (await this.poamService.deletePoamLabel(+event.data.poamId, +event.data.labelId, this.user.userId)).subscribe(() => {
-        event.confirm.resolve();
-        this.poamLabels.splice(label_index, 1);
-        this.poamLabels = [...this.poamLabels];
-      });
+      this.poamAssignees.splice(rowIndex, 1);
     }
   }
 
-  async confirmCreate(data: any) {
-    if (this.poam.poamId === "ADDPOAM") {
-      data.confirm.resolve();
-      return;
+  async deleteAssignee(assignee: any, rowIndex: number) {
+    if (assignee.userId) {
+      await this.confirmDelete(assignee);
+    } else {
+      this.poamAssignees.splice(rowIndex, 1);
+    }
+  }
+
+  async confirmCreate(newAssignee: any) {
+    let assigneeName = '';
+
+    if (newAssignee.userId) {
+      assigneeName = this.getAssigneeName(newAssignee.userId);
     }
 
-    if (this.poam.poamId &&
-      data.newData.userId
-    ) {
-      const user_index = this.poamAssignees.findIndex((e: any) => e.userId == data.newData.userId);
-
-      if (!user_index && user_index != 0) {
-        this.showConfirmation("Unable to resolve user", "Information", "warning");
-        data.confirm.reject();
-        return;
-      }
+    if (this.poam.poamId !== "ADDPOAM" && newAssignee.userId) {
       const poamAssignee = {
         poamId: +this.poam.poamId,
-        userId: +data.newData.userId,
+        userId: +newAssignee.userId,
         poamLog: [{ userId: this.user.userId }],
       };
       (await this.poamService.postPoamAssignee(poamAssignee)).subscribe(async () => {
-        data.confirm.resolve();
         (await this.poamService.getPoamAssignees(this.poamId)).subscribe((poamAssignees: any) => {
           this.poamAssignees = poamAssignees;
-        })
-      })
-
-    } else if (this.poam.poamId && data.newData.assetId) {
-
-      const asset_index = this.poamAssets.findIndex((e: any) => e.assetId == data.newData.assetId);
-      if (!asset_index && asset_index != 0) {
-        this.showConfirmation("Unable to resolve asset", "Information", "warning");
-        data.confirm.reject();
-        return;
-      }
-
-      const poamAsset = {
-        poamId: +this.poam.poamId,
-        assetId: +data.newData.assetId,
-        poamLog: [{ userId: this.user.userId }],
-      };
-      (await this.poamService.postPoamAsset(poamAsset)).subscribe(async () => {
-        data.confirm.resolve();
-        (await this.poamService.getPoamAssets(this.poamId)).subscribe((poamAssets: any) => {
-          this.poamAssets = poamAssets;
-        })
-      })
-    }
-    else {
-      this.showConfirmation("Failed to create entry. Invalid input.", "Information", "warning");
-      data.confirm.reject();
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assigneeName} was added as an assignee` });
+        });
+      }, (error) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add assignee' });
+      });
+    } else if (this.poam.poamId === "ADDPOAM" && newAssignee.userId) {
+      this.poamAssignees = [...this.poamAssignees, newAssignee];
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assigneeName} was added as an assignee` });
+    } else {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to create entry. Invalid input.' });
     }
   }
 
   async confirmDelete(assigneeData: any) {
+    let assigneeName = '';
+
+    if (assigneeData.userId) {
+      assigneeName = this.getAssigneeName(assigneeData.userId);
+    }
+
+    if (this.poam.poamId !== "ADDPOAM" && assigneeData.userId) {
+      (await this.poamService.deletePoamAssignee(+this.poam.poamId, +assigneeData.userId, this.user.userId)).subscribe(() => {
+        this.poamAssignees = this.poamAssignees.filter((a: any) => a.userId !== assigneeData.userId);
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assigneeName} was removed as an assignee` });
+      }, (error) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to remove assignee' });
+      });
+    } else if (this.poam.poamId === "ADDPOAM" && assigneeData.userId) {
+      this.poamAssignees = this.poamAssignees.filter((a: any) => a.userId !== assigneeData.userId);
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assigneeName} was removed as an assignee` });
+    } else {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete entry. Invalid input.' });
+    }
+  }
+
+  async fetchAssets() {
+    this.subs.sink = (await this.assetService.getAssets()).subscribe((response: any) => {
+      this.assetList = response.assets.map((asset: any) => ({
+        assetId: asset.assetId,
+        assetName: asset.assetName
+      }));
+    });
+
+    this.subs.sink = (await this.poamService.getPoamAssets(this.poamId)).subscribe((poamAssets: any) => {
+      this.poamAssets = poamAssets;
+    });
+  }
+
+  addAsset() {
+    this.poamAssets = [...this.poamAssets, { poamId: this.poam.poamId, assetId: null, isNew: true }];
+  }
+
+  async onAssetChange(asset: any, rowIndex: number) {
+    if (asset.assetId) {
+      await this.confirmCreateAsset(asset);
+      asset.isNew = false;
+    } else {
+      this.poamAssets.splice(rowIndex, 1);
+    }
+  }
+
+  async deleteAsset(asset: any, rowIndex: number) {
+    if (asset.assetId) {
+      await this.confirmDeleteAsset(asset);
+    } else {
+      this.poamAssets.splice(rowIndex, 1);
+    }
+  }
+
+  getAssetName(assetId: number): string {
+    const asset = this.assetList.find((asset: any) => asset.assetId === assetId);
+    return asset ? asset.assetName : `Asset ID: ${assetId}`;
+  }
+
+  async confirmCreateAsset(event: any) {
     if (this.poam.poamId === "ADDPOAM") {
-      assigneeData.confirm.resolve();
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'You may not assign an asset until after the POAM has been saved.' });
       return;
     }
-    if (this.poam.poamId && assigneeData.data.userId) {
-      const user_index = this.poamAssignees.findIndex((data: any) => {
-        if (assigneeData.data.poamId === data.poamId && assigneeData.data.userId === data.userId) return true;
-        else return false;
-      })
 
-      if (!user_index && user_index != 0) {
-        this.showConfirmation("Unable to resolve user assigned", "Information", "warning")
-        assigneeData.confirm.reject();
-      } else {
-        (await this.poamService.deletePoamAssignee(+assigneeData.data.poamId, +assigneeData.data.userId, this.user.userId)).subscribe(() => {
-          assigneeData.confirm.resolve();
-          this.getData();
-        });
-      }
+    if (event.assetId) {
+      const poamAsset = {
+        poamId: +this.poam.poamId,
+        assetId: +event.assetId,
+        poamLog: [{ userId: this.user.userId }],
+      };
 
-    } else if (this.poam.poamId && assigneeData.data.assetId) {
-      const asset_index = this.poamAssets.findIndex((data: any) => {
-        if (assigneeData.data.poamId === data.poamId && assigneeData.data.assetId === data.assetId) return true;
-        else return false;
-      })
-
-      if (!asset_index && asset_index != 0) {
-        this.showConfirmation("Unable to resolve asset assigned", "Information", "warning")
-        assigneeData.confirm.reject();
-      } else if (this.stateData.vulnerabilitySource && this.stateData.benchmarkId) {
-        this.poamAssets = this.poamAssets.filter((asset: any) => asset.assetId !== assigneeData.data.assetId);
-        assigneeData.confirm.resolve();
-      } else {
-        (await this.poamService.deletePoamAsset(+assigneeData.data.poamId, +assigneeData.data.assetId, +this.user.userId)).subscribe(() => {
-          assigneeData.confirm.resolve();
-          this.getData();
-        });
-      }
-    } else {
-      this.showConfirmation("Failed to delete entry. Invalid input.", "Information", "warning");
-      assigneeData.confirm.reject();
+      (await this.poamService.postPoamAsset(poamAsset)).subscribe(() => {
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Asset added successfully.' });
+        this.fetchAssets();
+      }, () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add asset.' });
+      });
     }
   }
 
-  async convertPoamToDraft() {
-    const poamStatusUpdate = {
-      poamId: this.poam.poamId,
-      status: 'Draft',
-      poamLog: [{ userId: this.user.userId }],
-    };
+  async confirmDeleteAsset(event: any) {
+    if (this.poam.poamId === "ADDPOAM") {
+      return;
+    }
 
-    (await this.poamService.updatePoamStatus(this.poam.poamId, poamStatusUpdate)).subscribe(() => {
-    });
-    this.poam.status = 'Draft';
-  }
-
-  async showConfirmation(errMsg: string, header?: string, status?: string, isSuccessful: boolean = false, showConvertButton: boolean = false) {
-    const options = new ConfirmationDialogOptions({
-      header: header ? header : "Notification",
-      body: errMsg,
-      button: {
-        text: "Ok",
-        status: status ? status : "info",
-      },
-      cancelbutton: "false",
-      convertButton: showConvertButton ? { text: "Convert to Draft" } : undefined,
-    });
-
-    this.dialogService.open(ConfirmationDialogComponent, {
-      hasBackdrop: false,
-      closeOnBackdropClick: true,
-      context: {
-        options: options,
-      },
-    }).onClose.subscribe((res: boolean | { convert: boolean }) => {
-      if (typeof res === 'boolean' && res && isSuccessful) {
-        this.router.navigateByUrl('/poam-processing');
-      } else if (typeof res === 'object' && res.convert) {
-        this.convertPoamToDraft();
-      }
+    (await this.poamService.deletePoamAsset(+event.poamId, +event.assetId, this.user.userId)).subscribe(() => {
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Asset deleted successfully.' });
+      this.poamAssets = this.poamAssets.filter(a => a.assetId !== event.assetId);
+    }, () => {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete asset.' });
     });
   }
 
-  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<{ confirmed: boolean; convert: boolean }> =>
-    this.dialogService.open(ConfirmationDialogComponent, {
-      hasBackdrop: false,
-      closeOnBackdropClick: true,
-      context: {
-        options: dialogOptions,
-      },
-    }).onClose.pipe(
-      map((result: boolean | { convert: boolean }) => {
-        if (typeof result === 'boolean') {
-          return { confirmed: result, convert: false };
-        } else {
-          return { confirmed: false, convert: result.convert };
-        }
-      })
+  openIavLink(iavmNumber: string) {
+    window.open(`https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavmNumber}`, '_blank');
+  }
+
+  searchVulnerabilitySources(event: any) {
+    const query = event.query;
+    this.filteredVulnerabilitySources = this.vulnerabilitySources.filter(source =>
+      source.toLowerCase().includes(query.toLowerCase())
     );
+  }
 
+  searchStigTitles(event: any) {
+    const query = event.query;
+    this.filteredStigmanSTIGs = this.stigmanSTIGs.filter((stig: { title: string }) =>
+      stig.title.toLowerCase().includes(query.toLowerCase())
+    );
+  }
+
+  showConfirmation(message: string, header?: string, severity: string = 'warn') {
+    this.messageService.add({ severity: severity, summary: header || 'Confirmation', detail: message });
+  }
+
+  showError(message: string, header?: string) {
+    this.errorMessage = message;
+    this.errorHeader = header || 'Error';
+    this.errorDialogVisible = true;
+  }
+
+  hideErrorDialog() {
+    this.errorDialogVisible = false;
+  }
+
+  confirm(options: { header: string, message: string, accept: () => void }) {
+    this.confirmationService.confirm({
+      message: options.message,
+      header: options.header,
+      icon: 'pi pi-exclamation-triangle',
+      accept: options.accept
+    });
+  }
 
   ngOnDestroy() {
     this.subs.unsubscribe();

@@ -8,45 +8,39 @@
 !########################################################################
 */
 
-import { Component, OnInit, TemplateRef, Input, EventEmitter, Output, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, EventEmitter, Output, OnDestroy, SimpleChanges, OnChanges } from '@angular/core';
 import { LabelService } from '../label.service';
 import { Observable, Subscription } from 'rxjs';
-import { NbDialogService,  NbWindowRef } from '@nebular/theme';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../Shared/shared.service';
-
+import { DialogService } from 'primeng/dynamicdialog';
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'cpat-label',
   templateUrl: './label.component.html',
-  styleUrls: ['./label.component.scss']
+  styleUrls: ['./label.component.scss'],
+  providers: [DialogService]
 })
-export class LabelComponent implements OnInit, OnDestroy {
+export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   @Input() label: any;
   @Input() labels: any;
   @Input() payload: any;
   @Output() labelchange = new EventEmitter();
 
-  modalWindow: NbWindowRef | undefined
   errorMessage: string = '';
-  data: any= [];
+  data: any = [];
   deleteEvent: any;
   showLaborCategorySelect: boolean = false;
   selectedCollection: any;
   private subscriptions = new Subscription();
-  private subs = new SubSink()
+  private subs = new SubSink();
 
-  constructor(private labelService: LabelService,
-    private dialogService: NbDialogService,
-    private sharedService: SharedService,
-    ) {
-     }
-
-  attemptingDelete(dialog: TemplateRef<any>, event: any) {
-    this.deleteEvent = event
-    this.dialogService.open(dialog)
-  }
+  constructor(
+    private labelService: LabelService,
+    private dialogService: DialogService,
+    private sharedService: SharedService
+  ) { }
 
   ngOnInit() {
     this.subscriptions.add(
@@ -56,6 +50,12 @@ export class LabelComponent implements OnInit, OnDestroy {
     );
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['label'] && changes['label'].currentValue) {
+      this.label = { ...changes['label'].currentValue };
+    }
+  }
+
   async onSubmit() {
     if (!this.validData()) return;
     const label = {
@@ -63,7 +63,7 @@ export class LabelComponent implements OnInit, OnDestroy {
       collectionId: this.selectedCollection,
       labelName: this.label.labelName,
       description: this.label.description,
-    }
+    };
     if (label.labelId === 0) {
       this.subs.sink = (await this.labelService.addLabel(this.selectedCollection, label)).subscribe(
         (data: any) => {
@@ -82,25 +82,17 @@ export class LabelComponent implements OnInit, OnDestroy {
     }
   }
 
-  //async deleteLabel() {
-  //  this.subs.sink = (await this.labelService.deleteLabel(this.selectedCollection, this.label.labelId)).subscribe((data: any) => {
-  //  });
-  //  this.labelchange.emit();
-  //}
-
   resetData() {
-    this.label.labelId= "";
+    this.label = { labelId: '', labelName: '', description: '' };
     this.labelchange.emit();
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-  this.dialogService.open(ConfirmationDialogComponent, {
-    hasBackdrop: true,
-    closeOnBackdropClick: true,
-    context: {
-      options: dialogOptions,
-    },
-  }).onClose;
+    this.dialogService.open(ConfirmationDialogComponent, {
+      data: {
+        options: dialogOptions,
+      }
+    }).onClose;
 
   validData(): boolean {
     if (!this.label.labelName || this.label.labelName == undefined) {
@@ -129,7 +121,8 @@ export class LabelComponent implements OnInit, OnDestroy {
           status: "warning",
         },
         cancelbutton: "false",
-      }));
+      })
+    );
   }
 
   ngOnDestroy() {

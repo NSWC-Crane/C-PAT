@@ -7,8 +7,6 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-@import '@nebular/theme/styles/theming';
-@import '@nebular/theme/styles/themes';
 
 .particle-error,
 .permission_denied,
@@ -24,7 +22,7 @@
 }
 
 .permission_denied {
-  background: nb-theme(background-basic-color-3);
+  background: var(--surface-a);
 }
 
 .permission_denied a {
@@ -43,7 +41,7 @@
 
 .permission_denied h1 {
   text-align: center;
-  color: nb-theme(text-basic-color);
+  color: var(--text-color);
   opacity: 0.8;
   font-family: "Dosis", sans-serif;
   font-size: 100px;
@@ -53,7 +51,7 @@
 
 .permission_denied h3 {
   text-align: center;
-  color: nb-theme(text-basic-color);  
+  color: var(--text-color);  
   font-size: 19px;
   line-height: 23px;
   max-width: 330px;

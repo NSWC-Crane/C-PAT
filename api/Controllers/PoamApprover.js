@@ -12,7 +12,7 @@ const poamApproverService = require('../Services/poamApproverService')
 
 module.exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
     try {
-        var poamApprovers = await poamApproverService.getPoamApprovers(req, res, next);
+        const poamApprovers = await poamApproverService.getPoamApprovers(req, res, next);
         res.status(200).json(poamApprovers);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -21,7 +21,7 @@ module.exports.getPoamApprovers = async function getPoamApprovers(req, res, next
 
 module.exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req, res, next) {
     try {
-        var poamApprovers = await poamApproverService.getPoamApproversByCollection(req, res, next);
+        const poamApprovers = await poamApproverService.getPoamApproversByCollection(req, res, next);
         res.status(200).json(poamApprovers);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -30,7 +30,7 @@ module.exports.getPoamApproversByCollection = async function getPoamApproversByC
 
 module.exports.getPoamApproversByCollectionUser = async function getPoamApproversByCollectionUser(req, res, next) {
     try {
-        var poamApprovers = await poamApproverService.getPoamApproversByCollectionUser(req, res, next);
+        const poamApprovers = await poamApproverService.getPoamApproversByCollectionUser(req, res, next);
             res.status(200).json(poamApprovers);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -39,7 +39,7 @@ module.exports.getPoamApproversByCollectionUser = async function getPoamApprover
 
 module.exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, res, next) {
     try {
-        var poamApprovers = await poamApproverService.getPoamApproversByUserId(req, res, next);
+        const poamApprovers = await poamApproverService.getPoamApproversByUserId(req, res, next);
         res.status(200).json(poamApprovers);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -48,7 +48,7 @@ module.exports.getPoamApproversByUserId = async function getPoamApproversByUserI
 
 module.exports.postPoamApprover = async function postPoamApprover(req, res, next) {
     try {
-        var poamApprover = await poamApproverService.postPoamApprover(req, res, next);
+        const poamApprover = await poamApproverService.postPoamApprover(req, res, next);
         if (poamApprover === null) {
             res.status(400).json({ error: 'Failed to create Poam Approver' });
         } else {
@@ -61,7 +61,7 @@ module.exports.postPoamApprover = async function postPoamApprover(req, res, next
 
 module.exports.putPoamApprover = async function putPoamApprover(req, res, next) {
     try {
-        var poamApprover = await poamApproverService.putPoamApprover(req, res, next);
+        const poamApprover = await poamApproverService.putPoamApprover(req, res, next);
         if (poamApprover === null) {
             res.status(400).json({ error: 'Failed to update Poam Approver' });
         } else {

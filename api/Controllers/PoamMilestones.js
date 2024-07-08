@@ -13,7 +13,7 @@ const poamMilestoneService = require('../Services/poamMilestoneService')
 module.exports.getPoamMilestones = async function getPoamMilestones(req, res, next) {
     try {
         const { poamId } = req.params;
-        var poamMilestones = await poamMilestoneService.getPoamMilestones(poamId);
+        const poamMilestones = await poamMilestoneService.getPoamMilestones(poamId);
         res.status(200).json(poamMilestones);
     } catch (error) {
         if (error.message === 'POAM ID is required') {
@@ -27,7 +27,7 @@ module.exports.getPoamMilestones = async function getPoamMilestones(req, res, ne
 module.exports.postPoamMilestone = async function postPoamMilestone(req, res, next) {
     try {
         const { poamId } = req.params;
-        var poamMilestone = await poamMilestoneService.postPoamMilestone(poamId, req.body);
+        const poamMilestone = await poamMilestoneService.postPoamMilestone(poamId, req.body);
         res.status(201).json(poamMilestone);
     } catch (error) {
         if (error.status === 400) {
@@ -41,7 +41,7 @@ module.exports.postPoamMilestone = async function postPoamMilestone(req, res, ne
 module.exports.putPoamMilestone = async function putPoamMilestone(req, res, next) {
     try {
         const { poamId, milestoneId } = req.params;
-        var poamMilestone = await poamMilestoneService.putPoamMilestone(poamId, milestoneId, req.body);
+        const poamMilestone = await poamMilestoneService.putPoamMilestone(poamId, milestoneId, req.body);
         res.status(200).json(poamMilestone);
     } catch (error) {
         if (error.status === 400) {

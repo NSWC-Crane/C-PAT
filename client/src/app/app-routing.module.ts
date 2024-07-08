@@ -22,8 +22,9 @@ const routes: Routes = [
   { path: 'label-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/label-processing/label-processing.module').then(m => m.LabelProcessingModule) },
   { path: 'notifications', canActivate: [AuthGuard], component: NotificationsComponent },
   { path: 'poam-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/poam-processing/poam-processing.module').then(m => m.PoamProcessingModule) },
+  { path: 'marketplace', canActivate: [AuthGuard], loadChildren: () => import('./pages/marketplace/marketplace.module').then(m => m.MarketplaceModule) },
   { path: 'unauthorized', component: UnauthorizedComponent },
-  { path: '**' || '', redirectTo: 'consent' },
+  { path: '' || '**', redirectTo: 'consent' },
 ];
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

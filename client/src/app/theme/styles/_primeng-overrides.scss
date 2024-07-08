@@ -1,0 +1,23 @@
+.p-card-title {
+    font-size: 12pt;
+}
+
+.p-card-header {
+    font-size: 12pt;
+    font-weight: 600;
+}
+
+
+.p-tabview .p-tabview-nav li .p-tabview-nav-link {
+  font-size: var(--tabset-tab-text-font-size, 0.875rem);
+  font-weight: var(--tabset-tab-text-font-weight, 700);
+  text-transform: var(--tabset-tab-text-transform, uppercase);
+
+  .p-tabview-title {
+    font-size: .935rem;
+  }
+}
+
+.p-button {
+    text-transform: uppercase;
+}

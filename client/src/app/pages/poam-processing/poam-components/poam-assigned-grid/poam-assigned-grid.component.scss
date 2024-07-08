@@ -7,31 +7,3 @@
 ! CONDITIONS OF THE LICENSE.  
 !########################################################################
 */
-
-.table-container {
-  height: 58rem;
-  overflow-y: auto;
-  width: 100%;
-}
-
-.poam-table {
-  max-width: 100%;
-}
-
-.search-input {
-  margin-bottom: 1rem;
-}
-
-.manage-POAM-button {
-  margin: auto;
-  display: flex;
-  justify-content: center;
-}
-
-.nb-column-POAM-ID,
-.nb-column-Adjusted-Severity,
-.nb-column-Approval-Status,
-.nb-column-Submitter,
-.nb-column-Manage {
-  text-align: center !important;
-}

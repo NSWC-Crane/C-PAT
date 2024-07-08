@@ -12,6 +12,7 @@ import { Component, OnInit } from '@angular/core';
 import { NotificationService } from './notifications.service';
 import { SubSink } from 'subsink';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { firstValueFrom } from 'rxjs';
 
 interface Permission {
   userId: number;
@@ -27,11 +28,20 @@ interface Permission {
 export class NotificationsComponent implements OnInit {
   notifications: any[] = [];
   filteredNotifications: any[] = [];
-  filterStatus: string | null = null;
+  filterStatus: string = 'Unread';
   public isLoggedIn = false;
   user: any;
   payload: any;
   private subs = new SubSink();
+  layout: 'list' | 'grid' = 'list';
+  sortField: string = 'timestamp';
+  sortOrder: number = -1;
+  sortOptions = [
+    { label: 'Newest First', value: '!timestamp' },
+    { label: 'Oldest First', value: 'timestamp' },
+    { label: 'Title', value: 'title' }
+  ];
+  sortKey: string = '!timestamp';
 
   constructor(
     private notificationService: NotificationService,
@@ -39,50 +49,46 @@ export class NotificationsComponent implements OnInit {
   ) { }
 
   async ngOnInit() {
-      this.setPayload();
-      this.resetFilter();
+    await this.setPayload();
+    await this.fetchNotifications();
   }
 
   async setPayload() {
     this.user = null;
     this.payload = null;
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response && response.userId) {
-          this.user = response;
+    try {
+      const response: any = await firstValueFrom(await this.userService.getCurrentUser());
+      if (response && response.userId) {
+        this.user = response;
 
-          if (this.user.accountStatus === 'ACTIVE') {
-            this.payload = {
-              ...this.user,
-              collections: this.user.permissions.map(
-                (permission: Permission) => ({
-                  collectionId: permission.collectionId,
-                  accessLevel: permission.accessLevel,
-                })
-              ),
-            };
-            this.fetchNotifications();
-          }
-        } else {
-          console.error('User data is not available or user is not active');
+        if (this.user.accountStatus === 'ACTIVE') {
+          this.payload = {
+            ...this.user,
+            collections: this.user.permissions.map(
+              (permission: Permission) => ({
+                collectionId: permission.collectionId,
+                accessLevel: permission.accessLevel,
+              })
+            ),
+          };
+          await this.fetchNotifications();
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
+      } else {
+        console.error('User data is not available or user is not active');
       }
-    });
+    } catch (error) {
+      console.error('An error occurred:', error);
+    }
   }
 
   async fetchNotifications() {
-    (await this.notificationService.getAllNotificationsByUserId(this.user.userId)).subscribe(
-      notifications => {
-        this.notifications = notifications;
-        this.resetFilter();
-      },
-      error => {
-        console.error('Failed to fetch notifications:', error);
-      }
-    );
+    try {
+      const notifications = await firstValueFrom(await this.notificationService.getAllNotificationsByUserId(this.user.userId));
+      this.notifications = notifications;
+      this.filterNotifications();
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    }
   }
 
   filterNotifications() {
@@ -90,27 +96,28 @@ export class NotificationsComponent implements OnInit {
       this.filteredNotifications = this.notifications.filter(notification => notification.read === 1);
     } else if (this.filterStatus === 'Unread') {
       this.filteredNotifications = this.notifications.filter(notification => notification.read === 0);
+    } else {
+      this.filteredNotifications = [...this.notifications];
     }
   }
 
   resetFilter() {
-    this.filterStatus = null;
-    this.filteredNotifications = [...this.notifications];
+    this.filterStatus = 'Unread';
+    this.filterNotifications();
   }
 
+
   async deleteNotification(notification: any) {
-    console.log(notification);
-    (await this.notificationService.deleteNotificationByNotificationId(notification.notificationId)).subscribe(
-      () => {
-        const index = this.notifications.indexOf(notification);
-        if (index !== -1) {
-          this.notifications.splice(index, 1);
-        }
-      },
-      error => {
-        console.error('Failed to dismiss notification:', error);
+    try {
+      await firstValueFrom(await this.notificationService.deleteNotificationByNotificationId(notification.notificationId));
+      const index = this.notifications.indexOf(notification);
+      if (index !== -1) {
+        this.notifications.splice(index, 1);
       }
-    );
+      this.fetchNotifications();
+    } catch (error) {
+      console.error('Failed to dismiss notification:', error);
+    }
   }
 
   async dismissAllNotifications() {
@@ -118,13 +125,12 @@ export class NotificationsComponent implements OnInit {
       console.error('User ID is not available');
       return;
     }
-    (await this.notificationService.dismissAllNotificationsByUserId(this.user.userId)).subscribe({
-      next: () => {
-      },
-      error: (error) => {
-        console.error('Failed to dismiss all notifications:', error);
-      }
-    });
+    try {
+      await firstValueFrom(await this.notificationService.dismissAllNotificationsByUserId(this.user.userId));
+      this.fetchNotifications();
+    } catch (error) {
+      console.error('Failed to dismiss all notifications:', error);
+    }
   }
 
   async deleteAllNotifications() {
@@ -132,15 +138,29 @@ export class NotificationsComponent implements OnInit {
       console.error('User ID is not available');
       return;
     }
-    (await this.notificationService.deleteAllNotificationsByUserId(this.user.userId)).subscribe({
-      next: () => {
-        console.log('All notifications have been deleted.');
-      },
-      error: (error) => {
-        console.error('Failed to delete all notifications:', error);
-      }
-    });
+    try {
+      await firstValueFrom(await this.notificationService.deleteAllNotificationsByUserId(this.user.userId));
+      this.fetchNotifications();
+    } catch (error) {
+      console.error('Failed to delete all notifications:', error);
+    }
     this.notifications = [{ title: "You have no new notifications...", read: 1 }];
     this.filteredNotifications = [{ title: "You have no new notifications...", read: 1 }];
+  }
+
+  onSortChange(event: any) {
+    const value = event.value;
+
+    if (value.indexOf('!') === 0) {
+      this.sortOrder = -1;
+      this.sortField = value.substring(1, value.length);
+    } else {
+      this.sortOrder = 1;
+      this.sortField = value;
+    }
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
   }
 }

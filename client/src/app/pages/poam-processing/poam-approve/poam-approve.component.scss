@@ -22,12 +22,6 @@
   margin-bottom: 1%;
 }
 
-
-.form-group input,
-.form-group nb-select {
-  width: 100%;
-}
-
 .status-group {
   display: flex;
   align-items: center;
@@ -37,10 +31,6 @@
 
 .status-group label {
   margin-right: 1%;
-}
-
-.status-group nb-select {
-  flex-grow: 1;
 }
 
 .status-container {

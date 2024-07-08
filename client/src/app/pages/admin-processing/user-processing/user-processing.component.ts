@@ -8,13 +8,14 @@
 !########################################################################
 */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UsersService } from './users.service';
 import { Observable, forkJoin } from 'rxjs';
-import { NbDialogService, NbTreeGridDataSource, NbTreeGridDataSourceBuilder } from '@nebular/theme';
+import { ConfirmationService, TreeNode } from 'primeng/api';
 import { SubSink } from "subsink";
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { TreeTable } from 'primeng/treetable';
 
 interface Permission {
   userId: number;
@@ -22,47 +23,35 @@ interface Permission {
   accessLevel: number;
 }
 
-interface FSEntry {
-  billet?: string;
-  laborcategory?: string;
-  ftehours?: string;
-  task?: string;
-  company?: string;
-}
-
 @Component({
   selector: 'cpat-user-processing',
   templateUrl: './user-processing.component.html',
-  styleUrls: ['./user-processing.component.scss']
+  styleUrls: ['./user-processing.component.scss'],
+  providers: [ConfirmationService]
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {
+  @ViewChild('usersTable') usersTable!: TreeTable;
   public isLoggedIn = false;
-  customColumn = 'user';
+  customColumn = 'User';
   defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level'];
   allColumns = [this.customColumn, ...this.defaultColumns];
-  dataSource!: NbTreeGridDataSource<any>;
-  checked = false;
   collectionList: any[] = [];
-  users: any;
+  users: TreeNode[] = [];
   user: any = {};
   data: any = [];
-  allowSelect = true;
   selected: any;
   selectedRole: string = 'admin';
   payload: any;
+  showUserSelect: boolean = true;
+  treeData: any[] = [];
+  selectedUser: any;
 
-  get hideUserEntry() {
-    return (this.user.userId && this.user.UserId != "USER")
-      ? { display: 'block' }
-      : { display: 'none' };
-  }
   private subs = new SubSink();
 
   constructor(
     private collectionsService: CollectionsService,
     private userService: UsersService,
-    private dialogService: NbDialogService,
-    private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>
+    private confirmationService: ConfirmationService
   ) {
   }
 
@@ -71,7 +60,10 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-      this.setPayload();
+    await this.setPayload();
+    if (this.user && this.user.isAdmin === 1) {
+      await this.getUserData();
+    }
   }
 
   async setPayload() {
@@ -107,35 +99,33 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   async getUserData() {
-    this.users = [];
     forkJoin([
       await this.userService.getUsers(),
       await this.collectionsService.getCollectionBasicList()
     ]).subscribe(([userData, collectionData]: [any, any]) => {
       this.data = userData;
-      this.users = this.data;
       this.collectionList = collectionData.map((collection: any) => ({
         collectionId: collection.collectionId,
         collectionName: collection.collectionName
       }));
-      this.getUsersGrid();
+      this.getUsersTree();
     });
   }
 
-  getUsersGrid() {
+  getUsersTree() {
     const userData = this.data;
-    const mydata: any = [];
+    const treeData: any = [];
 
     for (let i = 0; i < userData.length; i++) {
-      const tchild: any = [];
       const userPermissions = userData[i].permissions;
+      const children: any = [];
 
       if (userPermissions && userPermissions.length > 0) {
         userPermissions.forEach((permission: any) => {
           const collection = this.collectionList.find(c => c.collectionId === permission.collectionId);
           const collectionName = collection ? collection.collectionName : '';
-
           let accessLevelDisplay = '';
+
           if (permission.accessLevel === 1) {
             accessLevelDisplay = 'Viewer';
           } else if (permission.accessLevel === 2) {
@@ -146,9 +136,8 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
             accessLevelDisplay = 'CAT-I Approver';
           }
 
-          tchild.push({
+          children.push({
             data: {
-              user: '', 'Status': '', 'First Name': '', 'Last Name': '', 'Email': '',
               'Collection': collectionName,
               'Access Level': accessLevelDisplay
             }
@@ -156,43 +145,52 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
         });
       }
 
-      mydata.push({
+      treeData.push({
         data: {
-          user: userData[i].userId, 'Status': userData[i].accountStatus, 'First Name': userData[i].firstName, 'Last Name': userData[i].lastName,
+          'User': userData[i].userId,
+          'Status': userData[i].accountStatus,
+          'First Name': userData[i].firstName,
+          'Last Name': userData[i].lastName,
           'Email': userData[i].email
-        }, children: tchild
+        },
+        children: children
       });
     }
 
-    this.dataSource = this.dataSourceBuilder.create(mydata);
+    this.treeData = treeData;
   }
 
-  setUser(userId: any) {
-    this.user = null;
+  filterGlobal(event: any) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.usersTable.filterGlobal(filterValue, 'contains');
+  }
 
-    const selectedData = this.data.filter((user: { userId: any; }) => user.userId === userId);
-
-    this.user = selectedData[0];
-    this.allowSelect = false;
+  setUser(selectedUser: any) {
+    this.user = selectedUser;
+    this.showUserSelect = false;
   }
 
   resetData() {
     this.user = [];
+    this.showUserSelect = true;
+    this.selectedUser = '';
     this.getUserData();
     this.user.userId = "USER";
-    this.allowSelect = true;
   }
 
   ngOnDestroy() {
     this.subs.unsubscribe();
   }
 
-  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-    this.dialogService.open(ConfirmationDialogComponent, {
-      hasBackdrop: true,
-      closeOnBackdropClick: true,
-      context: {
-        options: dialogOptions,
+  confirm = (dialogOptions: ConfirmationDialogOptions): void => {
+    this.confirmationService.confirm({
+      message: dialogOptions.body,
+      header: dialogOptions.header,
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
       },
-    }).onClose;
+      reject: () => {
+      }
+    });
+  };
 }

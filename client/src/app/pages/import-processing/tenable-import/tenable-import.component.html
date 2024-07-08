@@ -1,24 +1,24 @@
       <!-- Import Tenable Repository Section -->
 <div class="row">
   <div class="col-md-10">
-    <nb-card>
-      <nb-card-header>Import Repository:</nb-card-header>
-      <nb-card-body>
-        <div class="row">
-          <div class="col-md-5" style="width: auto;">
-            <nb-select id="tenableRepositorySelect" placeholder="Select Repository">
-              <nb-option value="1">Placeholder 1</nb-option>
-              <nb-option value="2">Placeholder 2</nb-option>
-              <nb-option value="3">Placeholder 3</nb-option>
-              <nb-option value="4">Placeholder 4</nb-option>
-              <nb-option value="5">Placeholder 5</nb-option>
-            </nb-select>
-          </div>
-          <div class="col-md-5" style="width: auto;">
-            <button nbButton outline status="info">Import</button>
+    <p-card>
+      <ng-template pTemplate="header">
+        Import Repository:
+      </ng-template>
+      <div class="p-fluid">
+        <div class="p-field p-grid">
+          <label for="tenableRepositorySelect" class="p-col-fixed" style="width: 10rem;">Select Repository</label>
+          <div class="p-col">
+            <p-dropdown id="tenableRepositorySelect" [options]="repositoryOptions" [(ngModel)]="selectedRepository" placeholder="Select Repository" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown>
           </div>
         </div>
-      </nb-card-body>
-    </nb-card>
+        <div class="p-field p-grid">
+          <div class="p-col-fixed" style="width: 10rem;"></div>
+          <div class="p-col">
+            <button pButton pRipple type="button" label="Import" class="p-button-outlined p-button-info" (click)="importRepository()"></button>
+          </div>
+        </div>
+      </div>
+    </p-card>
   </div>
 </div>

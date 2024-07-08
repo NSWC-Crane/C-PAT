@@ -8,30 +8,35 @@
 !########################################################################
 */
 
-import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
-import { NbDialogService } from "@nebular/theme";
+import { AfterViewInit, Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { ConsentDialogComponent } from './consent-dialog.component';
 
 @Component({
   selector: 'cpat-consent',
   templateUrl: './dod-consent.component.html',
+  providers: [DialogService]
 })
 export class DoDConsentComponent implements AfterViewInit {
-  modalWindow: any;
+  modalWindow: DynamicDialogRef | undefined;
 
   constructor(
     private router: Router,
-    private dialogService: NbDialogService,
+    private dialogService: DialogService
   ) { }
 
-  @ViewChild('consentTemplate') consentTemplate!: TemplateRef<any>;
-
   async ngAfterViewInit() {
-    this.modalWindow = this.dialogService.open(this.consentTemplate);
+    this.modalWindow = this.dialogService.open(ConsentDialogComponent, {
+      header: 'DoD Consent',
+      width: '70%'
+    });
   }
 
-  async consentOk() {
+  consentOk() {
+    if (this.modalWindow) {
+      this.modalWindow.close();
       this.router.navigate(['/poam-processing']);
+    }
   }
-
 }

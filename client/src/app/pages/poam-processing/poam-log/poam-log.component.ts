@@ -8,18 +8,11 @@
 !########################################################################
 */
 
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { NbTreeGridDataSource, NbTreeGridDataSourceBuilder, NbDialogService } from '@nebular/theme';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedService } from '../../../Shared/shared.service';
 import { Subscription } from 'rxjs';
 import { PoamLogService } from './poam-log.service';
-
-interface TreeNode<T> {
-  data: T;
-  children?: TreeNode<T>[];
-  expanded?: boolean;
-}
 
 interface FSEntry {
   Timestamp: string;
@@ -36,23 +29,19 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
   customColumn = 'Timestamp';
   defaultColumns = ['User', 'Action'];
   allColumns = [this.customColumn, ...this.defaultColumns];
-  dataSource!: NbTreeGridDataSource<FSEntry>;
-  modalWindow: any;
+  dataSource: FSEntry[] = [];
   poamId: any;
   selectedCollection: any;
+  displayModal: boolean = false;
   private subscriptions = new Subscription();
 
   constructor(
-    private dataSourceBuilder: NbTreeGridDataSourceBuilder<FSEntry>,
-    private dialogService: NbDialogService,
     private router: Router,
     private sharedService: SharedService,
     private route: ActivatedRoute,
     private poamLogService: PoamLogService,
     private changeDetectorRef: ChangeDetectorRef,
   ) { }
-
-  @ViewChild('logTemplate') logTemplate!: TemplateRef<any>;
 
   public ngOnInit() {
     this.route.params.subscribe(async params => {
@@ -71,16 +60,16 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.openModal();
-}
+  }
 
   private async fetchPoamLog(poamId: string) {
     (await this.poamLogService.getPoamLogByPoamId(poamId)).subscribe({
       next: (response: any) => {
-        const poamLog = response;
-        const data: TreeNode<FSEntry>[] = poamLog.map((log: FSEntry) => ({
-          data: { Timestamp: log.Timestamp, User: log.User, Action: log.Action }
+        this.dataSource = response.map((log: FSEntry) => ({
+          Timestamp: log.Timestamp,
+          User: log.User,
+          Action: log.Action
         }));
-        this.dataSource = this.dataSourceBuilder.create(data);
         this.changeDetectorRef.detectChanges();
       },
       error: (error: any) => console.error('Error fetching POAM logs:', error)
@@ -88,20 +77,11 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
   }
 
   openModal() {
-    this.modalWindow = this.dialogService.open(this.logTemplate, {
-      hasBackdrop: true,
-      closeOnEsc: false,
-      closeOnBackdropClick: true,
-    });
-
-    this.modalWindow.onClose.subscribe(() => {
-      this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
-    });
+    this.displayModal = true;
   }
 
   closeModal() {
-    if (this.modalWindow) {
-      this.modalWindow.close();
-    }
+    this.displayModal = false;
+    this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
   }
 }

@@ -11,22 +11,25 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  NbButtonModule,
-  NbCardModule,
-  NbIconModule,
-  NbInputModule,
-  NbLayoutModule,
-  NbSelectModule,
-  NbSpinnerModule,
-  NbTabsetModule,
-  NbTooltipModule,
-  NbTreeGridModule,
-} from '@nebular/theme';
+
 import { SharedModule } from '../../Shared/shared.module';
 import { STIGManagerImportComponent } from './stigmanager-import/stigmanager-import.component';
 import { TenableImportComponent } from './tenable-import/tenable-import.component';
 import { ImportProcessingRoutingModule } from './import-processing-routing.module';
+
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { ConfirmationService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
+import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { TabViewModule } from 'primeng/tabview';
+import { TreeTableModule } from 'primeng/treetable';
+import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { RippleModule } from 'primeng/ripple';
 
 @NgModule({
   declarations: [
@@ -34,21 +37,25 @@ import { ImportProcessingRoutingModule } from './import-processing-routing.modul
     TenableImportComponent,
   ],
   imports: [
+    ButtonModule,
+    CardModule,
+    TableModule,
+    ToastModule,
+    TooltipModule,
+    TabViewModule,
+    TreeTableModule,
+    InputTextModule,
+    DropdownModule,
+    MultiSelectModule,
+    RippleModule,
     CommonModule,
     FormsModule,
     ImportProcessingRoutingModule,
-    NbButtonModule,
-    NbCardModule,
-    NbInputModule,
-    NbIconModule,
-    NbLayoutModule,
-    NbSelectModule,
-    NbSpinnerModule,
-    NbTabsetModule,
-    NbTooltipModule,
-    NbTreeGridModule,
     SharedModule,
   ],
-  providers: [],
+  providers: [
+    MessageService,
+    ConfirmationService
+  ],
 })
 export class ImportProcessingModule { }

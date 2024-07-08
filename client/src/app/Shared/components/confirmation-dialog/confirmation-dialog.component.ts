@@ -9,33 +9,34 @@
 */
 
 import { Component, Input } from '@angular/core';
-import { NbDialogRef } from '@nebular/theme';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'confirmation-dialog',
   styleUrls: ['./confirmation-dialog.component.scss'],
   template: `
-    <nb-card style="width: auto; max-width: 40vw; height: auto; max-height: 20vh;">
-      <nb-card-header style="text-align: center;">
+    <p-dialog [(visible)]="visible" [modal]="true" [closable]="false" [style]="{width: 'auto', 'max-width': '40vw', height: 'auto', 'max-height': '20vh'}">
+      <p-header>
         <h3>{{ options.header }}</h3>
-      </nb-card-header>
-      <nb-card-body style="text-align: center;">
+      </p-header>
+      <div style="text-align: center;">
         <p>{{ options.body }}</p>
-      </nb-card-body>
-      <nb-card-footer>
-        <div style="text-align:center; margin-right: 0.75rem; margin-left: 0.75rem; margin-bottom: 0rem;">
-          <button nbButton style="margin-left: 10%;" outline status='warning' (click)="cancel()" *ngIf="options.cancelbutton === 'true'">Cancel</button>
-          <button nbButton style="margin-left: 5%;" outline [status]="options.button.status" (click)="confirm()">{{ options.button.text }}</button>
-          <button *ngIf="options.convertButton" (click)="convert()" nbButton style="margin-left: 5%;" outline status="warning">{{ options.convertButton.text }}</button>
+      </div>
+      <p-footer>
+        <div style="text-align:center; margin: 0 0.75rem;">
+          <button pButton type="button" label="Cancel" icon="pi pi-times" style="margin-left: 10%;" class="p-button-outlined p-button-warning" (click)="cancel()" *ngIf="options.cancelbutton === 'true'"></button>
+          <button pButton type="button" label="{{ options.button.text }}" [icon]="'pi pi-check'" style="margin-left: 5%;" [class]="'p-button-outlined p-button-' + options.button.status" (click)="confirm()"></button>
+          <button *ngIf="options.convertButton" pButton type="button" label="{{ options.convertButton.text }}" icon="pi pi-refresh" style="margin-left: 5%;" class="p-button-outlined p-button-warning" (click)="convert()"></button>
         </div>
-      </nb-card-footer>
-    </nb-card>
+      </p-footer>
+    </p-dialog>
   `,
 })
 export class ConfirmationDialogComponent {
   @Input() options!: ConfirmationDialogOptions;
+  visible: boolean = true;
 
-  constructor(protected dialogRef: NbDialogRef<ConfirmationDialogComponent>) { }
+  constructor(protected dialogRef: DynamicDialogRef) { }
 
   cancel() {
     this.dialogRef.close(false);

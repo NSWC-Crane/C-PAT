@@ -10,16 +10,15 @@
 
 import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { SubSink } from 'subsink';
-import { NbDialogService } from "@nebular/theme";
 import { ActivatedRoute, Router } from '@angular/router';
+import { PoamService } from '../poams.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { DatePipe } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from 'src/app/Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { Subscription, forkJoin } from 'rxjs';
 import { SharedService } from '../../../Shared/shared.service';
 import { PoamApproveService } from './poam-approve.service';
 import { parseISO, format } from 'date-fns';
-
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'cpat-poam-approve',
@@ -29,9 +28,9 @@ import { parseISO, format } from 'date-fns';
 })
 export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  private subs = new SubSink()
-  modalWindow: any;
+  private subs = new SubSink();
   public isLoggedIn = false;
+  hqsChecked: boolean = false;
   poam: any;
   poamId: any;
   approvalStatus: any;
@@ -41,15 +40,23 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedCollection: any;
   user: any;
   private subscriptions = new Subscription();
+  approvalStatusOptions = [
+    { label: 'Not Reviewed', value: 'Not Reviewed' },
+    { label: 'Approved', value: 'Approved' },
+    { label: 'Rejected', value: 'Rejected' }
+  ];
+  displayDialog: boolean = false;
+  displayConfirmDialog: boolean = false;
+  confirmDialogMessage: string = '';
 
-  
   constructor(
     private router: Router,
-    private dialogService: NbDialogService,
     private route: ActivatedRoute,
     private userService: UsersService,
     private sharedService: SharedService,
     private poamApproveService: PoamApproveService,
+    private poamService: PoamService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   @ViewChild('approveTemplate') approveTemplate!: TemplateRef<any>;
@@ -84,17 +91,23 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async getData() {
-    (await this.poamApproveService.getPoamApprovers(this.poamId)).subscribe({
-      next: (response: any) => {
-        const userApproval = response.find((approval: any) => approval.userId === this.user.userId);
+    forkJoin([
+      await this.poamApproveService.getPoamApprovers(this.poamId),
+      await this.poamService.getPoam(this.poamId)
+    ]).subscribe({
+      next: ([approversResponse, poamResponse]: [any, any]) => {
+        const currentDate = new Date();
+        const userApproval = approversResponse.find((approval: any) => approval.userId === this.user.userId);
         if (userApproval) {
           this.approvalStatus = userApproval.approvalStatus;
-          this.dates.approvedDate = (userApproval.approvedDate) ? parseISO(userApproval.approvedDate.substr(0, 10)) : '';
+          this.dates.approvedDate = (userApproval.approvedDate) ? parseISO(userApproval.approvedDate.substr(0, 10)) : currentDate;
           this.comments = userApproval.comments;
+          this.hqsChecked = poamResponse.hqs;
         } else {
           this.approvalStatus = null;
-          this.approvedDate = null;
+          this.dates.approvedDate = currentDate;
           this.comments = null;
+          this.hqsChecked = poamResponse.hqs;
         }
       },
       error: (error) => {
@@ -103,41 +116,22 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  confirm(message: string) {
+    this.confirmDialogMessage = message;
+    this.displayConfirmDialog = true;
+  }
 
- confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> => 
- this.dialogService.open(ConfirmationDialogComponent, {
-   hasBackdrop: false,
-   closeOnBackdropClick: true,
-   context: {
-     options: dialogOptions,
-   },
- }).onClose;
- 
   ngAfterViewInit() {
     this.openModal();
+    this.cdr.detectChanges();
   }
 
   openModal() {
-    this.modalWindow = this.dialogService.open(this.approveTemplate, {
-      hasScroll: true,
-      hasBackdrop: true,
-      closeOnEsc: false,
-      closeOnBackdropClick: true,
-    });
-
-    this.modalWindow.onClose.subscribe(() => {
-      this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
-    });
-
-    this.modalWindow.componentRef.changeDetectorRef.detectChanges();
-    const dialogElement = this.modalWindow.componentRef.location.nativeElement;
-    dialogElement.scrollTo({ top: 0, behavior: 'smooth' });
+    this.displayDialog = true;
   }
 
   cancelApproval() {
-    if (this.modalWindow) {
-      this.modalWindow.close();
-    }
+    this.displayDialog = false;
     this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
   }
 
@@ -149,15 +143,13 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       approvalStatus: this.approvalStatus,
       approvedDate: this.approvedDate,
       comments: this.comments,
+      hqs: this.hqsChecked,
       poamLog: [{ userId: this.user.userId }],
     };
 
     (await this.poamApproveService.updatePoamApprover(approvalData)).subscribe(
       () => {
-        if (this.modalWindow) {
-          this.modalWindow.close();
-        }
-
+        this.displayDialog = false;
         this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
       },
       (error) => {
@@ -166,6 +158,9 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
+  hqs(checked: boolean) {
+    this.hqsChecked = checked;
+  }
 
   ngOnDestroy() {
     this.subs.unsubscribe();

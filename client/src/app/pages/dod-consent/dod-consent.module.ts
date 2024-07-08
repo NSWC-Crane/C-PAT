@@ -11,27 +11,28 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NbButtonModule, NbCardModule, NbSelectModule, NbThemeModule } from '@nebular/theme';
-import { Angular2SmartTableModule } from 'angular2-smart-table';
 import { DoDConsentComponent } from './dod-consent.component';
+import { ConsentDialogComponent } from './consent-dialog.component';
 import { DodConsentRoutingModule } from './dod-consent.routing';
+import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
+import { DynamicDialogModule } from 'primeng/dynamicdialog';
 
 @NgModule({
-    declarations: [
-        DoDConsentComponent,
-    ],
-    exports: [
-        DoDConsentComponent,
-    ],
-    imports: [
-        CommonModule,
-        FormsModule,
-        DodConsentRoutingModule,
-        NbButtonModule,
-        NbCardModule,
-        NbThemeModule,
-        Angular2SmartTableModule,
-        NbSelectModule,
-    ]
+  declarations: [
+    DoDConsentComponent,
+    ConsentDialogComponent,
+  ],
+  exports: [
+    DoDConsentComponent,
+  ],
+  imports: [
+    CommonModule,
+    FormsModule,
+    DodConsentRoutingModule,
+    DialogModule,
+    ButtonModule,
+    DynamicDialogModule
+  ]
 })
 export class DoDConsentModule { }

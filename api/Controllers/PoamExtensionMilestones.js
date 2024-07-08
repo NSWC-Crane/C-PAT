@@ -13,7 +13,7 @@ const poamExtensionMilestoneService = require('../Services/poamExtensionMileston
 module.exports.getPoamExtensionMilestones = async function getPoamExtensionMilestones(req, res, next) {
     try {
         const { poamId } = req.params;
-        var poamExtensionMilestones = await poamExtensionMilestoneService.getPoamExtensionMilestones(poamId);
+        const poamExtensionMilestones = await poamExtensionMilestoneService.getPoamExtensionMilestones(poamId);
         res.status(200).json(poamExtensionMilestones);
     } catch (error) {
         if (error.message === 'POAM ID is required') {
@@ -27,7 +27,7 @@ module.exports.getPoamExtensionMilestones = async function getPoamExtensionMiles
 module.exports.postPoamExtensionMilestone = async function postPoamExtensionMilestone(req, res, next) {
     try {
         const { poamId } = req.params;
-        var poamExtensionMilestone = await poamExtensionMilestoneService.postPoamExtensionMilestone(poamId, req.body);
+        const poamExtensionMilestone = await poamExtensionMilestoneService.postPoamExtensionMilestone(poamId, req.body);
         res.status(201).json(poamExtensionMilestone);
     } catch (error) {
         if (error.status === 400) {
@@ -40,8 +40,8 @@ module.exports.postPoamExtensionMilestone = async function postPoamExtensionMile
 
 module.exports.putPoamExtensionMilestone = async function putPoamExtensionMilestone(req, res, next) {
     try {
-        const { poamId, ExtensionMilestoneId } = req.params;
-        var poamExtensionMilestone = await poamExtensionMilestoneService.putPoamExtensionMilestone(poamId, ExtensionMilestoneId, req.body);
+        const { poamId, extensionMilestoneId } = req.params;
+        const poamExtensionMilestone = await poamExtensionMilestoneService.putPoamExtensionMilestone(poamId, extensionMilestoneId, req.body);
         res.status(200).json(poamExtensionMilestone);
     } catch (error) {
         if (error.status === 400) {
@@ -54,8 +54,8 @@ module.exports.putPoamExtensionMilestone = async function putPoamExtensionMilest
 
 module.exports.deletePoamExtensionMilestone = async function deletePoamExtensionMilestone(req, res, next) {
     try {
-        const { poamId, ExtensionMilestoneId } = req.params;
-        await poamExtensionMilestoneService.deletePoamExtensionMilestone(poamId, ExtensionMilestoneId, req.body);
+        const { poamId, extensionMilestoneId } = req.params;
+        await poamExtensionMilestoneService.deletePoamExtensionMilestone(poamId, extensionMilestoneId, req.body);
         res.status(204).send();
     } catch (error) {
         if (error.status === 400) {

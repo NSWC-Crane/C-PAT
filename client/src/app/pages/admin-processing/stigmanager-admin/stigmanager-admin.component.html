@@ -9,14 +9,30 @@
 -->
 
 <!-- Import STIG Manager Collection Section -->
-    <nb-card class="nb-card">
-      <nb-card-header>Import or Update STIG Manager Collection</nb-card-header>
-      <nb-card-body>
-            <nb-select fullWidth class="stigmanCollectionSelect" id="stigmanCollectionSelect" placeholder="Select Collection" [(ngModel)]="selectedStigmanCollection" (selectedChange)="onSTIGManagerCollectionSelect($event)">
-              <nb-option *ngFor="let collection of stigmanCollections" [value]="collection.collectionId">
-                {{ collection.name }}
-              </nb-option>
-            </nb-select>
-            <button fullWidth nbButton outline nbTooltip="If a STIG Manager collection has previously been imported, importing again will update the collection and relative assets with current data from STIG Manager." nbTooltipPlacement="top" nbTooltipStatus="basic" status="info" (click)="importSTIGManagerCollection()">Import</button>
-      </nb-card-body>
-    </nb-card>
+<p-card>
+  <div class="field">
+    <p-dropdown [options]="stigmanCollections"
+                [(ngModel)]="selectedStigmanCollection"
+                (onChange)="onSTIGManagerCollectionSelect($event.value)"
+                placeholder="Select Collection to Import..."
+                optionLabel="name"
+                optionValue="collectionId"
+                [showClear]="true"
+                styleClass="stigmanCollectionSelect"
+                appendTo="body"
+                [style]="{'width':'100%'}">
+    </p-dropdown>
+  </div>
+  <div class="field">
+    <p-button label="Import"
+              class="import-button"
+              styleClass="p-button-info"
+              (click)="importSTIGManagerCollection()"
+              pTooltip="If a STIG Manager collection has previously been imported, importing again will update the collection and relative assets with current data from STIG Manager."
+              tooltipPosition="left"
+              [style]="{'width':'100%'}"
+              [outlined]="true">
+    </p-button>
+  </div>
+</p-card>
+<p-toast></p-toast>

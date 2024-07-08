@@ -11,7 +11,6 @@
 
 .canvas {
   position: relative;
-  margin-top: 20px;
   overflow: hidden;
 }
 
@@ -31,3 +30,12 @@ hr {
   padding: 0;
 }
 
+.row.align-items-center {
+  display: flex;
+  align-items: center;
+}
+
+.col-auto {
+  display: flex;
+  align-items: center;
+}

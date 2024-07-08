@@ -8,34 +8,33 @@
 !########################################################################
 -->
 
-<nb-card class="notifications-popover">
-  <nb-card-header>
-    <h5>Notifications</h5>
-    <div class="header-actions">
-      <button nbButton outline size="tiny" status="basic" (click)="dismissAllNotifications()">Mark all as read</button>
-    </div>
-  </nb-card-header>
-
-  <nb-card-body>
-    <nb-list>
-      <nb-list-item *ngFor="let notification of notifications">
-        <div class="notification-content">
-          <div class="notification-header">
-            <div class="notification-icon">
-              <nb-icon [icon]="notification.icon"></nb-icon>
+<div class="notifications-popover">
+  <div class="p-card-body">
+    <ng-container *ngIf="notifications.length > 0; else noNotifications">
+      <p-listbox [options]="notifications" optionLabel="title" scrollHeight="40vh">
+        <ng-template let-notification pTemplate="item">
+          <div class="notification-content">
+            <div class="notification-header">
+              <div class="notification-icon">
+                <i [class]="notification.icon"></i>
+              </div>
+              <h4>{{ notification.title }}</h4>
+              <i *ngIf="notification.notificationId" class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)"></i>
             </div>
-            <h6>{{ notification.title }}</h6>
-            <nb-icon *ngIf="notification.notificationId" class="dismiss-icon" icon="close" (click)="dismissNotification(notification)"></nb-icon>
+            <p>{{ notification.message }}</p>
+            <small>{{ notification.timestamp | date:'short' }}</small>
           </div>
-          <p>{{ notification.message }}</p>
-          <small>{{ notification.timestamp | date:'short' }}</small>
-        </div>
-      </nb-list-item>
-    </nb-list>
-  </nb-card-body>
-
-  <nb-card-footer>
-    <button nbButton fullWidth outline size="tiny" status="basic" (click)="viewAllNotifications()">See all notifications</button>
-  </nb-card-footer>
-</nb-card>
-
+        </ng-template>
+      </p-listbox>
+    </ng-container>
+    <ng-template #noNotifications>
+      <div class="p-4 text-center">
+        <i class="pi pi-inbox text-5xl mb-3" style="color: var(--text-color-secondary);"></i>
+        <p>No notifications found.</p>
+      </div>
+    </ng-template>
+  </div>
+  <div class="p-card-footer">
+    <button pButton label="See all notifications" class="p-button-outlined p-button-contrast p-button-sm w-full" (click)="viewAllNotifications(); closeOverlay()" appendTo="body"></button>
+  </div>
+</div>

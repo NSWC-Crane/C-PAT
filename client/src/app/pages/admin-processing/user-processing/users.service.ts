@@ -106,6 +106,20 @@ export class UsersService {
       .pipe(catchError(this.handleError));
   }
 
+  async updateUserTheme(userThemeData: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .put<Users>(`${this.cpatApiBase}/user/updateTheme`, userThemeData, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async updateUserPoints(userPointsData: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .put<Users>(`${this.cpatApiBase}/user/updatePoints`, userPointsData, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
   async getCollection(collectionId: any, userName: string) {
         const headers = await this.getAuthHeaders();
 		return this.http

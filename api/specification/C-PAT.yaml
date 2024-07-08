@@ -977,6 +977,125 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /marketplace/themes:
+    get:
+      summary: Get all themes
+      operationId: getAllThemes
+      responses:
+        '200':
+          description: Successfully retrieved all themes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Marketplace
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  /marketplace/purchase:
+    post:
+      summary: Purchase a theme
+      description: Purchases a theme for the user if they have enough points.
+      operationId: purchaseTheme
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseThemeRequest'
+      responses:
+        '200':
+          description: Successfully purchased the theme
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request or not enough points
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Marketplace
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  /marketplace/user-themes/{userId}:
+    get:
+      summary: Get all purchased themes for a user
+      operationId: getUserThemes
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user
+      responses:
+        '200':
+          description: Successfully retrieved purchased themes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserThemesResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Marketplace
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /marketplace/user-points/{userId}:
+    get:
+      summary: Get the available points of a user
+      operationId: getUserPoints
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user
+      responses:
+        '200':
+          description: Successfully retrieved purchased themes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPointsResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Marketplace
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   '/metrics/collection/{collectionId}/assetlabel':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
@@ -1762,7 +1881,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/poamApprover_Object'
+                  $ref: '#/components/schemas/poamApprover_Response'
         '400':
           description: Bad request
           content:
@@ -1799,7 +1918,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/poamApprover_Object'
+                  $ref: '#/components/schemas/poamApprover_Response'
         '400':
           description: Bad request
           content:
@@ -1836,7 +1955,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/poamApprover_Object'
+                  $ref: '#/components/schemas/poamApprover_Response'
         '400':
           description: Bad request
           content:
@@ -1878,7 +1997,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/poamApprover_Object'
+                  $ref: '#/components/schemas/poamApprover_Response'
         '400':
           description: Bad request
           content:
@@ -3515,6 +3634,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+
+  /user/updateTheme:
+    put:
+      summary: Updates a users default theme
+      operationId: updateUserTheme
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateThemeRequest'
+      responses:
+        '200':
+          description: Successfully updated the theme
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - User
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /user/updatePoints:
+    put:
+      summary: Updates a users points
+      operationId: updateUserPoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePointsRequest'
+      responses:
+        '200':
+          description: Successfully updated the users points
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - User
+      security:
+        - oauth:
+            - 'c-pat:read'
   
   '/users':
     get:
@@ -4121,7 +4310,13 @@ components:
         error:
           type: string
         detail:
-          type: string          
+          type: string 
+
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
 
     label_Object:
       type: object
@@ -4205,6 +4400,30 @@ components:
         - read
 
     poamApprover_Object:
+      type: object
+      required:
+        - poamId
+        - userId
+        - approvalStatus
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        userId:
+          type: integer
+        approvalStatus:
+          type: string
+        approvedDate:
+          type: string
+          nullable: true
+        comments:
+          type: string
+          nullable: true
+        hqs:
+          type: boolean
+          nullable: true
+
+    poamApprover_Response:
       type: object
       required:
         - poamId
@@ -4364,6 +4583,9 @@ components:
           nullable: true
         submittedDate:
           type: string
+        hqs:
+          type: boolean
+          nullable: true
         approvers:
           type: array
           items:
@@ -4503,22 +4725,22 @@ components:
       properties:
         poamId:
           type: integer
-        milestoneDate:
+        extensionMilestoneDate:
           type: string
-        milestoneComments:
+        extensionMilestoneComments:
           type: string
-        milestoneStatus:
+        extensionMilestoneStatus:
           type: string
 
     PoamExtensionMilestoneUpdateRequest:
       type: object
       additionalProperties: true
       properties:
-        milestoneDate:
+        extensionMilestoneDate:
           type: string
-        milestoneComments:
+        extensionMilestoneComments:
           type: string
-        milestoneStatus:
+        extensionMilestoneStatus:
           type: string
       description: Schema for updating a milestone. All fields are optional, allowing partial updates.
 
@@ -4528,6 +4750,57 @@ components:
         label:
           type: string
         labelCount:
+          type: integer
+
+    ThemeResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          themeId:
+            type: integer
+          themeIdentifier:
+            type: string
+          themeName:
+            type: string
+          themeDescription:
+            type: string
+          cost:
+            type: integer
+
+    PurchaseThemeRequest:
+      type: object
+      properties:
+        userId:
+          type: integer
+        themeId:
+          type: integer
+      required:
+        - userId
+        - themeId
+
+    UserThemesResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          themeId:
+            type: integer
+          themeIdentifier:
+            type: string
+          themeName:
+            type: string
+          themeDescription:
+            type: string
+          cost:
+            type: integer
+
+    UserPointsResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+        points:
           type: integer
 
     stigmanPoamAssetUpdate:
@@ -4645,6 +4918,9 @@ components:
         lastClaims:
           type: object
           nullable: true
+        points:
+          type: integer
+          nullable: true
         isAdmin:
           type: integer
         created:
@@ -4653,6 +4929,28 @@ components:
         lastAccess:
           type: string
           format: date
+
+    UpdateThemeRequest:
+      type: object
+      properties:
+        userId:
+          type: integer
+        defaultTheme:
+          type: string
+      required:
+        - userId
+        - defaultTheme
+
+    UpdatePointsRequest:
+      type: object
+      properties:
+        userId:
+          type: integer
+        points:
+          type: integer
+      required:
+        - userId
+        - points
 
     basic_user:
       type: object
@@ -4744,6 +5042,9 @@ components:
         lastClaims:
           type: object
           nullable: true
+        points:
+          type: integer
+          nullable: true
         isAdmin:
           type: integer
         permissions:
@@ -4821,6 +5122,9 @@ components:
         lastClaims:
           type: object
           nullable: true
+        points:
+          type: integer
+          nullable: true
         isAdmin:
           type: integer
 
@@ -4864,6 +5168,9 @@ components:
           maxLength: 20
         lastClaims:
           type: object
+          nullable: true
+        points:
+          type: integer
           nullable: true
         isAdmin:
           type: integer

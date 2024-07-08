@@ -103,7 +103,7 @@ exports.processPoamFile = async function processPoamFile(file, userId) {
             throw new Error('No worksheets found in the workbook');
         }
         const worksheet = workbook.worksheets[0];
-        await processPoamWorksheet(worksheet,userId);
+        await processPoamWorksheet(worksheet, userId);
     } catch (error) {
         throw error;
     }
@@ -113,9 +113,9 @@ async function processPoamWorksheet(worksheet, userId) {
     let headers;
     const poamData = [];
     const eMassCollection = await db.Collection.findOne({ where: { collectionName: 'eMASS' } });
-    const eMassCollectionId = eMassCollection ? eMassCollection.collectionId : null;
-
-    if (!eMassCollectionId) {
+    if (eMassCollection.collectionId) {
+        const eMassCollectionId = eMassCollection.collectionId;
+    } else {
         throw new Error("eMASS collection not found");
     }
 
@@ -472,6 +472,7 @@ exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWit
             const results = [];
 
             for (const poamAssetData of req.body) {
+                await connection.query('DELETE FROM cpat.poamassets WHERE poamId = ?', [poamAssetData.poamId]);
                 for (const asset of poamAssetData.assets) {
                     let [existingAsset] = await connection.query('SELECT * FROM cpat.asset WHERE assetName = ? AND collectionId = ?', [
                         asset.assetName,
@@ -486,18 +487,10 @@ exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWit
                         ]);
                         existingAsset = [{ assetId: result.insertId }];
                     }
-
-                    const [existingPoamAsset] = await connection.query('SELECT * FROM cpat.poamassets WHERE poamId = ? AND assetId = ?', [
-                        poamAssetData.poamId,
-                        existingAsset[0].assetId,
-                    ]);
-
-                    if (!existingPoamAsset.length) {
                         await connection.query('INSERT INTO cpat.poamassets (assetId, poamId) VALUES (?, ?)', [
                             existingAsset[0].assetId,
                             poamAssetData.poamId,
                         ]);
-                    }
                 }
 
                 const [assetsToRemove] = await connection.query(`

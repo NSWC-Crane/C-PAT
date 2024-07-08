@@ -8,11 +8,9 @@
 !########################################################################
 */
 
-import { Component, EventEmitter, Input, OnDestroy, Output, TemplateRef } from '@angular/core';
-import { NbDialogService, NbWindowRef } from '@nebular/theme';
-import { Observable } from 'rxjs';
+import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { SubSink } from 'subsink';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationService } from 'primeng/api';
 import { CollectionsService } from '../collections.service';
 
 @Component({
@@ -26,7 +24,6 @@ export class CollectionComponent implements OnDestroy {
   @Input() payload: any;
   @Input() poams: any;
   @Output() collectionchange = new EventEmitter();
-  modalWindow: NbWindowRef | undefined
   errorMessage: string = '';
   data: any = [];
   collectionUsers: any;
@@ -35,14 +32,11 @@ export class CollectionComponent implements OnDestroy {
   user: any;
   private subs = new SubSink()
 
-  constructor(private collectionService: CollectionsService,
-    private dialogService: NbDialogService,
+  constructor(
+    private collectionService: CollectionsService,
+    private confirmationService: ConfirmationService
   ) { }
 
-  attemptingDelete(dialog: TemplateRef<any>, event: any) {
-    this.deleteEvent = event
-    this.dialogService.open(dialog)
-  }
 
   async onSubmit() {
     if (!this.validData()) return;
@@ -87,15 +81,6 @@ export class CollectionComponent implements OnDestroy {
     this.collection.collectionId = "COLLECTION";
   }
 
-  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-    this.dialogService.open(ConfirmationDialogComponent, {
-      hasBackdrop: true,
-      closeOnBackdropClick: true,
-      context: {
-        options: dialogOptions,
-      },
-    }).onClose;
-
 
   validData(): boolean {
     if (!this.collection.collectionName || this.collection.collectionName == undefined) {
@@ -114,16 +99,13 @@ export class CollectionComponent implements OnDestroy {
   }
 
   invalidData(errMsg: string) {
-    this.confirm(
-      new ConfirmationDialogOptions({
-        header: "Invalid Data",
-        body: errMsg,
-        button: {
-          text: "ok",
-          status: "warning",
-        },
-        cancelbutton: "false",
-      }));
+    this.confirmationService.confirm({
+      message: errMsg,
+      header: 'Invalid Data',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'OK',
+      rejectVisible: false
+    });
   }
 
   ngOnDestroy() {

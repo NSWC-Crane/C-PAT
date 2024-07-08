@@ -451,6 +451,9 @@ exports.putPoam = async function putPoam(req, res, next) {
             }
 
             if (req.body.assets) {
+                let sqlDeletePoamAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?";
+                await connection.query(sqlDeletePoamAssets, [req.body.poamId]);
+
                 let assets = req.body.assets;
                 for (let asset of assets) {
                     if (asset.assetId) {
