@@ -20,10 +20,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          args:
+          args: >
             -Dsonar.projectKey=NSWC-Crane_C-PAT
             -Dsonar.organization=nswc-crane
+            -Dsonar.sources=client,api
+            -Dsonar.inclusions=**/*.ts,**/*.js,**/*.html,**/*.css
             -Dsonar.exclusions=**/node_modules/**
-            #-Dsonar.tests= # optional https://docs.sonarcloud.io/enriching/test-coverage/overview/
-            #-Dsonar.verbose=true
+            -Dsonar.scm.provider=git
+            -Dsonar.verbose=true
           projectBaseDir: .
