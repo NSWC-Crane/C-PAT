@@ -61,7 +61,7 @@ class Importer {
 	 * @returns {undefined}
 	 */
 	setEncoding(encoding) {
-		var supported_encodings = [
+		const supported_encodings = [
 			'utf8',
 			'ucs2',
 			'utf16le',
@@ -106,8 +106,8 @@ class Importer {
 		return new Promise(async (resolve, reject) => {
 			try {
 				await this._connect();
-				var files = await this._getSQLFilePaths(...input);
-				var error = null;
+				const files = await this._getSQLFilePaths(...input);
+				const error = null;
 				await slowLoop(files, (file, index, next) => {
 					if (error) {
 						next();
@@ -163,8 +163,8 @@ class Importer {
 					reject(err);
 					return;
 				}
-				var queries = new queryParser(queriesString).queries;
-				var error = null;
+				const queries = new queryParser(queriesString).queries;
+				const error = null;
 				slowLoop(queries, (query, index, next) => {
 					if (error) {
 						next();
@@ -260,8 +260,8 @@ class Importer {
 	 */
 	_getSQLFilePaths(...paths) {
 		return new Promise(async (resolve, reject) => {
-			var full_paths = [];
-			var error = null;
+			const full_paths = [];
+			const error = null;
 			paths = [].concat.apply([], paths); // flatten array of paths
 			await slowLoop(paths, async (filepath, index, next) => {
 				if (error) {
@@ -270,16 +270,16 @@ class Importer {
 				}
 				try {
 					await this._fileExists(filepath);
-					var stat = await this._statFile(filepath);
+					const stat = await this._statFile(filepath);
 					if (stat.isFile()) {
 						if (filepath.toLowerCase().substring(filepath.length - 4) === '.sql') {
 							full_paths.push(path.resolve(filepath));
 						}
 						next();
 					} else if (stat.isDirectory()) {
-						var more_paths = await this._readDir(filepath);
+						const more_paths = await this._readDir(filepath);
 						more_paths = more_paths.map(p => path.join(filepath, p));
-						var sql_files = await this._getSQLFilePaths(...more_paths);
+						const sql_files = await this._getSQLFilePaths(...more_paths);
 						full_paths.push(...sql_files);
 						next();
 					} else {
@@ -394,12 +394,12 @@ class queryParser {
 
 	// Check to see if a new delimiter is being assigned
 	checkNewDelimiter(char) {
-		var buffer_str = this.buffer.join('').toLowerCase().trim();
+		const buffer_str = this.buffer.join('').toLowerCase().trim();
 		if (buffer_str === 'delimiter' && !this.quoteType) {
 			this.seekingDelimiter = true;
 			this.buffer = [];
 		} else {
-			var isNewLine = char === "\n" || char === "\r";
+			const isNewLine = char === "\n" || char === "\r";
 			if (isNewLine && this.seekingDelimiter) {
 				this.seekingDelimiter = false;
 				this.delimiter = this.buffer.join('').trim();
@@ -410,7 +410,7 @@ class queryParser {
 
 	// Check if the current char is a quote
 	checkQuote(char) {
-		var isQuote = (char === '"' || char === "'") && !this.escaped;
+		const isQuote = (char === '"' || char === "'") && !this.escaped;
 		if (isQuote && this.quoteType === char) {
 			this.quoteType = false;
 		} else if (isQuote && !this.quoteType) {
@@ -420,7 +420,7 @@ class queryParser {
 
 	// Check if we're at the end of the query
 	checkEndOfQuery() {
-		var demiliterFound = false;
+		const demiliterFound = false;
 		if (!this.quoteType && this.buffer.length >= this.delimiter.length) {
 			demiliterFound = this.buffer.slice(-this.delimiter.length).join('') === this.delimiter;
 		}

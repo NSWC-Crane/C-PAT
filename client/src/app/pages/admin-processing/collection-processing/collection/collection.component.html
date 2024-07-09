@@ -59,7 +59,7 @@
   </div>
   <!-- Buttons -->
   <div class="buttons">
-    <p-button label="Submit" styleClass="p-button-primary p-button-outlined" [disabled]="!form.valid" (click)="onSubmit()"></p-button>
-    <p-button label="Cancel" styleClass="p-button-primary p-button-outlined" (click)="resetData()" [style]="{'margin-left':'20px'}"></p-button>
+    <p-button label="Submit" styleClass="p-button-primary p-button-outlined" [disabled]="!form.valid" (click)="onSubmit()" (onKeyUp)="onSubmit()"></p-button>
+    <p-button label="Cancel" styleClass="p-button-primary p-button-outlined" (click)="resetData()" (onKeyUp)="resetData()" [style]="{'margin-left':'20px'}"></p-button>
   </div>
 </form>

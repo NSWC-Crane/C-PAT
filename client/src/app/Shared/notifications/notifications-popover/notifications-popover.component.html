@@ -19,7 +19,7 @@
                 <i [class]="notification.icon"></i>
               </div>
               <h4>{{ notification.title }}</h4>
-              <i *ngIf="notification.notificationId" class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)"></i>
+              <i *ngIf="notification.notificationId" class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)" (onKeyUp)="dismissNotification(notification)"></i>
             </div>
             <p>{{ notification.message }}</p>
             <small>{{ notification.timestamp | date:'short' }}</small>

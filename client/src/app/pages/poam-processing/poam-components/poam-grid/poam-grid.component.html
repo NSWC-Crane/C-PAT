@@ -15,49 +15,49 @@
             <i class="pi pi-search"></i>
             <input pInputText type="text" [(ngModel)]="globalFilter" (input)="onFilterChange($event)" placeholder="Search..." />
           </span>
-          <p-button label="Clear Filters" [outlined]="true" class="ml-auto" icon="pi pi-filter-slash" (click)="clear(dt)"></p-button>
+          <p-button label="Clear Filters" [outlined]="true" class="ml-auto" icon="pi pi-filter-slash" (click)="clear(dt)" (onKeyUp)="clear(dt)"></p-button>
         </div>
         <div class="table-container" (scroll)="onScroll($event)">
           <p-table #dt [value]="displayedData" [scrollable]="true" scrollHeight="50rem" [paginator]="false" [globalFilterFields]="['poamId', 'status', 'adjSeverity', 'submitter', 'submittedDate', 'scheduledCompletionDate']">
             <ng-template pTemplate="header">
               <tr>
-                <th style="min-width:15rem">
+                <th scope="col" style="min-width:15rem">
                   <div class="flex align-items-center">
                     POAM ID
                     <p-columnFilter type="text" field="poamId" display="menu"></p-columnFilter>
                   </div>
                 </th>
-                <th style="min-width:15rem">
+                <th scope="col" style="min-width:15rem">
                   <div class="flex align-items-center">
                     POAM Status
                     <p-columnFilter type="text" field="status" display="menu"></p-columnFilter>
                   </div>
                 </th>
-                <th style="min-width:15rem">
+                <th scope="col" style="min-width:15rem">
                   <div class="flex align-items-center">
                     Adjusted Severity
                     <p-columnFilter type="text" field="adjSeverity" display="menu"></p-columnFilter>
                   </div>
                 </th>
-                <th style="min-width:15rem">
+                <th scope="col" style="min-width:15rem">
                   <div class="flex align-items-center">
                     Submitter
                     <p-columnFilter type="text" field="submitter" display="menu"></p-columnFilter>
                   </div>
                 </th>
-                <th style="min-width:15rem">
+                <th scope="col" style="min-width:15rem">
                   <div class="flex align-items-center">
                     Submitted Date
                     <p-columnFilter type="text" field="submittedDate" display="menu"></p-columnFilter>
                   </div>
                 </th>
-                <th style="min-width:15rem">
+                <th scope="col" style="min-width:15rem">
                   <div class="flex align-items-center">
                     Scheduled Completion Date
                     <p-columnFilter type="text" field="scheduledCompletionDate" display="menu"></p-columnFilter>
                   </div>
                 </th>
-                <th style="min-width:10rem">
+                <th scope="col" style="min-width:10rem">
                   Manage
                 </th>
               </tr>

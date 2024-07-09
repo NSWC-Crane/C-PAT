@@ -25,6 +25,21 @@ import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 
+function getRoleFromAccessLevel(accessLevel: number): string {
+  switch (accessLevel) {
+    case 1:
+      return 'viewer';
+    case 2:
+      return 'submitter';
+    case 3:
+      return 'approver';
+    case 4:
+      return 'cat1approver';
+    default:
+      return 'none';
+  }
+}
+
 interface Permission {
   userId: number;
   collectionId: number;
@@ -223,18 +238,18 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             };
 
             const selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId);
-            let myRole = '';
+            let myRole: string;
 
             if (!selectedPermissions && !this.user.isAdmin) {
               myRole = 'none';
+            } else if (this.user.isAdmin) {
+              myRole = 'admin';
+            } else if (selectedPermissions) {
+              myRole = getRoleFromAccessLevel(selectedPermissions.accessLevel);
             } else {
-              myRole = (this.user.isAdmin) ? 'admin' :
-                (selectedPermissions.accessLevel === 1) ? 'viewer' :
-                  (selectedPermissions.accessLevel === 2) ? 'submitter' :
-                    (selectedPermissions.accessLevel === 3) ? 'approver' :
-                      (selectedPermissions.accessLevel === 4) ? 'cat1approver' :
-                      'none';
+              myRole = 'none';
             }
+
             this.payload.role = myRole;
             this.showApprove = ['admin', 'cat1approver', 'approver'].includes(this.payload.role);
             this.showClose = ['admin', 'cat1approver', 'approver', 'submitter'].includes(this.payload.role);

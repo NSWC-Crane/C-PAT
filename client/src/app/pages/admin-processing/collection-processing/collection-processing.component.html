@@ -22,7 +22,7 @@
           </ng-template>
           <ng-template pTemplate="header" let-columns>
             <tr>
-              <th id="col" *ngFor="let col of columns">
+              <th scope="col" *ngFor="let col of columns">
                 {{col}}
               </th>
             </tr>

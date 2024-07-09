@@ -12,7 +12,7 @@
   <app-config></app-config>
   <div class="layout-topbar">
     <div class="layout-topbar-left">
-      <img src="../assets/cpat.png" alt="C-PAT" (click)="reloadPage()" (keyup.enter)="reloadPage()" style="cursor: pointer;">
+      <img src="../assets/cpat.png" alt="C-PAT" (click)="reloadPage()" (onKeyUp)="reloadPage()" style="cursor: pointer;">
     </div>
     <div class="layout-topbar-right">
       <button pButton type="button" icon="pi pi-palette text-2xl" class="p-button-text p-button-rounded p-button-plain" (click)="showConfig()"></button>
@@ -20,6 +20,7 @@
                 icon="pi pi-bell text-2xl"
                 [badge]="notificationCount"
                 (click)="op.toggle($event)"
+                (onKeyUp)="op.toggle($event)"
                 styleClass="p-button-text p-button-rounded p-button-plain notification-button">
       </p-button>
       <p-overlayPanel #op class="overlay" [dismissable]="true" [showCloseIcon]="false">
