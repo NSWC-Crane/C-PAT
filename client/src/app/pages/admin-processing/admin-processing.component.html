@@ -3,7 +3,8 @@
     <p-status-card [title]="statusCard.title"
                    [type]="statusCard.type"
                    [icon]="statusCard.icon"
-                   (click)="statusCard.component ? openModal(statusCard.component) : triggerFileInput()">
+                   (click)="statusCard.component ? openModal(statusCard.component) : triggerFileInput()"
+                   (onKeyUp)="statusCard.component ? openModal(statusCard.component) : triggerFileInput()">
     </p-status-card>
   </div>
 </div>

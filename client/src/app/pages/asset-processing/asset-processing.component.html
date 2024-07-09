@@ -19,7 +19,7 @@
                 <i class="pi pi-search"></i>
                 <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Assets" style="width: 300px;">
               </span>
-              <p-button label="Clear" [outlined]="true" severity="info" class="ml-auto" icon="pi pi-filter-slash" (click)="clear()"></p-button>
+              <p-button label="Clear" [outlined]="true" severity="info" class="ml-auto" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()"></p-button>
             </div>
             <div class="scrollable-assets">
               <p-table #assetTable
@@ -31,31 +31,31 @@
                        [globalFilterFields]="['assetId', 'assetName', 'description', 'ipAddress', 'macAddress']">
                 <ng-template pTemplate="header">
                   <tr>
-                    <th style="min-width:5rem">
+                    <th scope="col" style="min-width:5rem">
                       <div class="flex align-items-center">
                         Asset ID
                         <p-columnFilter type="text" field="assetId" display="menu" />
                       </div>
                     </th>
-                    <th style="min-width:15rem">
+                    <th scope="col" style="min-width:15rem">
                       <div class="flex align-items-center">
                         Asset Name
                         <p-columnFilter type="text" field="assetName" display="menu" />
                       </div>
                     </th>
-                    <th style="min-width:15rem">
+                    <th scope="col" style="min-width:15rem">
                       <div class="flex align-items-center">
                         Description
                         <p-columnFilter type="text" field="description" display="menu" />
                       </div>
                     </th>
-                    <th style="min-width:15rem">
+                    <th scope="col" style="min-width:15rem">
                       <div class="flex align-items-center">
                         IP Address
                         <p-columnFilter type="text" field="ipAddress" display="menu" />
                       </div>
                     </th>
-                    <th style="min-width:15rem">
+                    <th scope="col" style="min-width:15rem">
                       <div class="flex align-items-center">
                         MAC Address
                         <p-columnFilter type="text" field="macAddress" display="menu" />
@@ -64,7 +64,7 @@
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-asset let-rowIndex="rowIndex">
-                  <tr [pSelectableRow]="asset" [pSelectableRowIndex]="rowIndex" (click)="setAsset(asset.assetId)">
+                  <tr [pSelectableRow]="asset" [pSelectableRowIndex]="rowIndex" (click)="setAsset(asset.assetId)" (onKeyUp)="setAsset(asset.assetId)">
                     <td>{{asset.assetId}}</td>
                     <td>{{asset.assetName}}</td>
                     <td>{{asset.description}}</td>

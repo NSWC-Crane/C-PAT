@@ -24,7 +24,7 @@ const routes: Routes = [
   { path: 'poam-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/poam-processing/poam-processing.module').then(m => m.PoamProcessingModule) },
   { path: 'marketplace', canActivate: [AuthGuard], loadChildren: () => import('./pages/marketplace/marketplace.module').then(m => m.MarketplaceModule) },
   { path: 'unauthorized', component: UnauthorizedComponent },
-  { path: '' || '**', redirectTo: 'consent' },
+  { path: '**', redirectTo: 'consent' },
 ];
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

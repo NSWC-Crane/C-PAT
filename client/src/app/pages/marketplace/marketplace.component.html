@@ -24,7 +24,7 @@
         <div class="theme-card" *ngFor="let theme of themes">
           <p-card [header]="theme.themeName">
             <ng-template pTemplate="header">
-              <img [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" (click)="openImageDialog(theme)" style="cursor: pointer; width: 100%;">
+              <img [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" (click)="openImageDialog(theme)" (onKeyUp)="openImageDialog(theme)" style="cursor: pointer; width: 100%;">
             </ng-template>
             <p>{{ theme.themeDescription }}</p>
             <p-chip [label]="theme.cost + ' Points'" styleClass="p-mr-2"></p-chip>
@@ -44,7 +44,7 @@
           <div class="theme-card" *ngFor="let theme of purchasedThemes">
             <p-card [header]="theme.themeName">
               <ng-template pTemplate="header">
-                <img [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" (click)="openImageDialog(theme)" style="cursor: pointer; width: 100%;">
+                <img [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" (click)="openImageDialog(theme)" (onKeyUp)="openImageDialog(theme)" style="cursor: pointer; width: 100%;">
               </ng-template>
               <p>{{ theme.themeDescription }}</p>
               <ng-template pTemplate="footer">

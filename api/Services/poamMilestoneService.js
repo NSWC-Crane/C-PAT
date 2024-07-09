@@ -188,7 +188,7 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
             let sql = "DELETE FROM cpat.poammilestones WHERE poamId= ? AND milestoneId = ?";
             await connection.query(sql, [poamId, milestoneId]);
 
-            const action = `Milestone Deleted.`;
+            let action = `Milestone Deleted.`;
             if (requestBody.requestorId) {
                 if (requestBody.extension == true) {
                     action = `Extension milestone deleted.`;

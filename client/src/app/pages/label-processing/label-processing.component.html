@@ -17,7 +17,7 @@
             <i class="pi pi-search"></i>
             <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Labels" style="width: 300px;">
           </span>
-          <p-button label="Clear" [outlined]="true" severity="info" class="ml-auto" icon="pi pi-filter-slash" (click)="clear()"></p-button>
+          <p-button label="Clear" [outlined]="true" severity="info" class="ml-auto" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()"></p-button>
         </div>
         <div class="scrollable-labels">
           <p-table #labelTable
@@ -29,19 +29,19 @@
                    [globalFilterFields]="['labelId', 'labelName', 'description']">
             <ng-template pTemplate="header">
               <tr>
-                <th style="min-width:5rem">
+                <th scope="col" style="min-width:5rem">
                   <div class="flex align-items-center">
                     Label ID
                     <p-columnFilter type="text" field="labelId" display="menu" />
                   </div>
                 </th>
-                <th style="min-width:15rem">
+                <th scope="col" style="min-width:15rem">
                   <div class="flex align-items-center">
                     Name
                     <p-columnFilter type="text" field="labelName" display="menu" />
                   </div>
                 </th>
-                <th style="min-width:15rem">
+                <th scope="col" style="min-width:15rem">
                   <div class="flex align-items-center">
                     Description
                     <p-columnFilter type="text" field="description" display="menu" />
@@ -50,7 +50,7 @@
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-label let-rowIndex="rowIndex">
-              <tr [pSelectableRow]="label" [pSelectableRowIndex]="rowIndex" (click)="setLabel(label.labelId)">
+              <tr [pSelectableRow]="label" [pSelectableRowIndex]="rowIndex" (click)="setLabel(label.labelId)" (onKeyUp)="setLabel(label.labelId)">
                 <td>{{label.labelId}}</td>
                 <td>{{label.labelName}}</td>
                 <td>{{label.description}}</td>

@@ -13,9 +13,9 @@
     <p-table [value]="dataSource" [scrollable]="true" scrollHeight="flex" [style]="{'max-height':'60vh'}">
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="Timestamp" style="width: 20%;">Timestamp <p-sortIcon field="Timestamp"></p-sortIcon></th>
-          <th pSortableColumn="User" style="width: 20%;">User <p-sortIcon field="User"></p-sortIcon></th>
-          <th pSortableColumn="Action" style="width: 60%;">Action <p-sortIcon field="Action"></p-sortIcon></th>
+          <th scope="col" pSortableColumn="Timestamp" style="width: 20%;">Timestamp <p-sortIcon field="Timestamp"></p-sortIcon></th>
+          <th scope="col" pSortableColumn="User" style="width: 20%;">User <p-sortIcon field="User"></p-sortIcon></th>
+          <th scope="col" pSortableColumn="Action" style="width: 60%;">Action <p-sortIcon field="Action"></p-sortIcon></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-row>

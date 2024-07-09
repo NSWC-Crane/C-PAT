@@ -56,10 +56,10 @@
         <p-table [value]="assetLabels" dataKey="labelId">
           <ng-template pTemplate="header">
             <tr>
-              <th style="width:8rem">
+              <th scope="col" style="width:8rem">
                 <button pButton pRipple type="button" icon="pi pi-plus" (click)="addNewRow()" class="p-button-rounded p-button-text"></button>
               </th>
-              <th>Label</th>
+              <th scope="col">Label</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-label let-ri="rowIndex">
@@ -105,6 +105,6 @@
 <p-dialog header="Invalid Data" [(visible)]="displayInvalidDataDialog" [modal]="true" [style]="{width: '300px'}" [baseZIndex]="10000">
   <p>{{invalidDataMessage}}</p>
   <ng-template pTemplate="footer">
-    <p-button icon="pi pi-check" (click)="displayInvalidDataDialog=false" label="OK" styleClass="p-button-full p-button-info w-full"></p-button>
+    <p-button icon="pi pi-check" (click)="displayInvalidDataDialog=false" (onKeyUp)="displayInvalidDataDialog=false" label="OK" styleClass="p-button-full p-button-info w-full"></p-button>
   </ng-template>
 </p-dialog>

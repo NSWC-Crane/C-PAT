@@ -28,6 +28,7 @@
               class="import-button"
               styleClass="p-button-info"
               (click)="importSTIGManagerCollection()"
+              (onKeyUp)="importSTIGManagerCollection()"
               pTooltip="If a STIG Manager collection has previously been imported, importing again will update the collection and relative assets with current data from STIG Manager."
               tooltipPosition="left"
               [style]="{'width':'100%'}"

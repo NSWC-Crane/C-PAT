@@ -86,10 +86,10 @@
       <p-table [value]="collectionPermissions" [columns]="cols" editMode="row">
         <ng-template pTemplate="header" let-columns>
           <tr>
-            <th>
+            <th scope="col">
               <button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewPermission()"></button>
             </th>
-            <th id="col" *ngFor="let col of columns">
+            <th scope="col" *ngFor="let col of columns">
               {{col.header}}
             </th>
           </tr>

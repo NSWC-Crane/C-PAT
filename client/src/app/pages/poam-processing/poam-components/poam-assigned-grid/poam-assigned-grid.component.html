@@ -21,7 +21,7 @@
     </ng-template>
     <ng-template pTemplate="header">
       <tr>
-        <th id="col" *ngFor="let col of assignedColumns">
+        <th scope="col" *ngFor="let col of assignedColumns">
           {{ col }}
         </th>
       </tr>

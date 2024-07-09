@@ -151,8 +151,8 @@
                 <p-table [value]="poamAssignees" [paginator]="false">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Members Assigned</th>
-                      <th style="width: 8rem">
+                      <th scope="col">Members Assigned</th>
+                      <th scope="col" style="width: 8rem">
                         <button pButton icon="pi pi-plus" (click)="addAssignee()" class="p-button-rounded p-button-text"></button>
                       </th>
                     </tr>
@@ -191,11 +191,11 @@
                 <p-table [value]="poamApprovers">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Approver</th>
-                      <th>Approval Status</th>
-                      <th>Approved Date</th>
-                      <th>Comments</th>
-                      <th style="width: 8rem">
+                      <th scope="col">Approver</th>
+                      <th scope="col">Approval Status</th>
+                      <th scope="col">Approved Date</th>
+                      <th scope="col">Comments</th>
+                      <th scope="col" style="width: 8rem">
                         <button pButton icon="pi pi-plus" (click)="addApprover()" class="p-button-rounded p-button-text"></button>
                       </th>
                     </tr>
@@ -240,8 +240,8 @@
                 <p-table [value]="poamAssets" [paginator]="false">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Asset</th>
-                      <th style="width: 8rem">
+                      <th scope="col">Asset</th>
+                      <th scope="col" style="width: 8rem">
                         <button pButton icon="pi pi-plus" (click)="addAsset()" class="p-button-rounded p-button-text"></button>
                       </th>
                     </tr>
@@ -363,10 +363,10 @@
                 <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Milestone Comments</th>
-                      <th>Milestone Date</th>
-                      <th>Milestone Status</th>
-                      <th><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()"></button></th>
+                      <th scope="col">Milestone Comments</th>
+                      <th scope="col">Milestone Date</th>
+                      <th scope="col">Milestone Status</th>
+                      <th scope="col"><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()"></button></th>
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-milestone let-editing="editing" let-ri="rowIndex">
@@ -432,8 +432,8 @@
                 <p-table [value]="poamLabels" [paginator]="false">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Label</th>
-                      <th style="width: 8rem">
+                      <th scope="col">Label</th>
+                      <th scope="col" style="width: 8rem">
                         <button pButton icon="pi pi-plus" (click)="addLabel()" class="p-button-rounded p-button-text"></button>
                       </th>
                     </tr>
@@ -490,6 +490,6 @@
 <p-dialog header="{{errorHeader}}" [(visible)]="errorDialogVisible" [modal]="true" [style]="{width: '300px'}" [baseZIndex]="10000">
   <p>{{errorMessage}}</p>
   <ng-template pTemplate="footer">
-    <p-button icon="pi pi-check" (click)="hideErrorDialog()" label="OK" styleClass="p-button-text"></p-button>
+    <p-button icon="pi pi-check" (click)="hideErrorDialog()" (onKeyUp)="hideErrorDialog()" label="OK" styleClass="p-button-text"></p-button>
   </ng-template>
 </p-dialog>
