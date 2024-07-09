@@ -37,7 +37,7 @@ exports.getLabels = async function getLabels(req, res, next) {
             let sql = "SELECT * FROM cpat.label WHERE collectionId = ? ORDER BY labelName;";
             let [rowLabels] = await connection.query(sql, [req.params.collectionId]);
 
-            var labels = rowLabels.map(row => ({
+            const labels = rowLabels.map(row => ({
                 labelId: row.labelId,
                 labelName: row.labelName,
                 description: row.description,
@@ -73,7 +73,7 @@ exports.getLabel = async function getLabel(req, res, next) {
             let sql = "SELECT * FROM cpat.label WHERE labelId = ? AND collectionId = ?";
             let [rowLabel] = await connection.query(sql, [req.params.labelId, req.params.collectionId]);
 
-            var label = rowLabel.length > 0 ? [rowLabel[0]] : [];
+            const label = rowLabel.length > 0 ? [rowLabel[0]] : [];
 
             return { label };
         });

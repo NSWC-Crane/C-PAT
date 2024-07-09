@@ -9,7 +9,7 @@
               <p-treeTable #stigFindingsTable sortMode="multiple" [value]="dataSource" [filterDelay]="0" [globalFilterFields]="['Group ID', 'Rule Title', 'Benchmark ID', 'Severity']" [columns]="allColumns" [sortMode]="'single'" [sortField]="sortColumn" [sortOrder]="sortDirection === 'asc' ? 1 : -1" (onSort)="updateSort($event)">
                 <ng-template pTemplate="header">
                   <tr>
-                    <th *ngFor="let col of allColumns" [ttSortableColumn]="col">
+                    <th id="col" *ngFor="let col of allColumns" [ttSortableColumn]="col">
                       {{col}}
                       <p-treeTableSortIcon [field]="col" *ngIf="col !== 'Update POAM'"></p-treeTableSortIcon>
                     </th>

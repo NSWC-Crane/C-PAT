@@ -58,7 +58,7 @@ export class NotificationsComponent implements OnInit {
     this.payload = null;
     try {
       const response: any = await firstValueFrom(await this.userService.getCurrentUser());
-      if (response && response.userId) {
+      if (response.userId) {
         this.user = response;
 
         if (this.user.accountStatus === 'ACTIVE') {

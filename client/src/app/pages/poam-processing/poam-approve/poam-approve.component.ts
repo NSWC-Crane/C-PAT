@@ -77,7 +77,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     this.user = null;
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
           this.getData();
         } else {

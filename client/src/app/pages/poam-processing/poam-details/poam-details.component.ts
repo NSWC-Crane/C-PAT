@@ -22,8 +22,7 @@ import { UsersService } from '../../admin-processing/user-processing/users.servi
 import { PoamService } from '../poams.service';
 import { AssetService } from '../../asset-processing/assets.service';
 import { ImportService } from '../../import-processing/import.service';
-import { MessageService } from 'primeng/api';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 
 interface Permission {
@@ -209,7 +208,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
           if (this.user.accountStatus === 'ACTIVE') {
 

@@ -42,7 +42,7 @@ exports.getPoamExtensionMilestones = async function getPoamExtensionMilestones(p
         return await withConnection(async (connection) => {
             let sql = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ?;";
             let [rows] = await connection.query(sql, [poamId]);
-            var poamExtensionMilestones = rows.map(row => ({ ...row }));
+            const poamExtensionMilestones = rows.map(row => ({ ...row }));
             return { poamExtensionMilestones };
         });
     } catch (error) {
@@ -77,7 +77,7 @@ exports.postPoamExtensionMilestone = async function postPoamExtensionMilestone(p
             let sql = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ?";
             let [rows] = await connection.query(sql, [poamId]);
 
-            var poamExtensionMilestone = rows.map(row => ({ ...row }));
+            const poamExtensionMilestone = rows.map(row => ({ ...row }));
 
             if (requestBody.poamLog && requestBody.poamLog.length > 0) {
                 let userId = requestBody.poamLog[0].userId;
@@ -132,7 +132,7 @@ exports.putPoamExtensionMilestone = async function putPoamExtensionMilestone(poa
             sql_query = "SELECT * FROM cpat.poamExtensionMilestones WHERE poamId = ?;";
             let [rows] = await connection.query(sql_query, [poamId]);
 
-            var poamExtensionMilestone = rows.map(row => ({ ...row }));
+            const poamExtensionMilestone = rows.map(row => ({ ...row }));
 
             if (requestBody.poamLog && requestBody.poamLog.length > 0) {
                 let userId = requestBody.poamLog[0].userId;

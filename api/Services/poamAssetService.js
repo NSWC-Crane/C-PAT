@@ -31,7 +31,7 @@ exports.getPoamAssets = async function getPoamAssets(req, res, next) {
                 INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId
             `;
             let [rowPoamAssets] = await connection.query(sql);
-            var poamAssets = rowPoamAssets.map(row => ({
+            const poamAssets = rowPoamAssets.map(row => ({
                 assetId: row.assetId,
                 assetName: row.assetName,
                 poamId: row.poamId,
@@ -62,7 +62,7 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
                 WHERE t1.poamId = ?
             `;
             let [rowPoamAssets] = await connection.query(sql, [req.params.poamId]);
-            var poamAssets = rowPoamAssets.map(row => ({
+            const poamAssets = rowPoamAssets.map(row => ({
                 assetId: row.assetId,
                 assetName: row.assetName,
                 poamId: row.poamId,
@@ -114,7 +114,7 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res,
                 WHERE t1.assetId = ?
             `;
             let [rowPoamAssets] = await connection.query(sql, [req.params.assetId]);
-            var poamAssets = rowPoamAssets.map(row => ({
+            const poamAssets = rowPoamAssets.map(row => ({
                 assetId: row.assetId,
                 assetName: row.assetName,
                 poamId: row.poamId,
@@ -156,7 +156,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
                 ORDER BY t3.labelName
             `;
             let [rowAssetLabel] = await connection.query(sql, [req.params.assetId, req.params.labelId]);
-            var assetLabel = rowAssetLabel.length > 0 ? [rowAssetLabel[0]] : [];
+            const assetLabel = rowAssetLabel.length > 0 ? [rowAssetLabel[0]] : [];
             return { assetLabel };
         });
     } catch (error) {
@@ -186,7 +186,7 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
                 INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId
                 WHERE t1.poamId = ? AND t1.assetId = ?`;
             let [rowPoamAsset] = await connection.query(sql, [req.body.poamId, req.body.assetId]);
-            var poamAsset = rowPoamAsset.length > 0 ? rowPoamAsset[0] : [];
+            const poamAsset = rowPoamAsset.length > 0 ? rowPoamAsset[0] : [];
             if (req.body.poamLog[0].userId) {
             let assetNameQuery = `SELECT assetName FROM cpat.asset WHERE assetId = ?`;
             let [[assetNameResult]] = await connection.query(assetNameQuery, [req.body.assetId]);

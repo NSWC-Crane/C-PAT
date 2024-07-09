@@ -9,7 +9,7 @@
 */
 
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { NavigationEnd, Router, Event } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { MenuItem, PrimeNGConfig } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -30,6 +30,21 @@ interface Permission {
   userId: number;
   collectionId: number;
   accessLevel: number;
+}
+
+function getRoleFromAccessLevel(accessLevel: number): string {
+  switch (accessLevel) {
+    case 1:
+      return 'viewer';
+    case 2:
+      return 'submitter';
+    case 3:
+      return 'approver';
+    case 4:
+      return 'cat1approver';
+    default:
+      return 'none';
+  }
 }
 
 @Component({
@@ -118,8 +133,8 @@ export class AppComponent implements OnInit, OnDestroy {
     const body = document.body;
     const layoutWrapper = document.querySelector('.layout-wrapper');
 
-    body.setAttribute('data-p-theme', theme!);
-    layoutWrapper?.setAttribute('data-p-theme', theme!);
+    body.setAttribute('data-p-theme', theme);
+    layoutWrapper?.setAttribute('data-p-theme', theme);
   }
 
   setMenuItems() {
@@ -173,18 +188,19 @@ export class AppComponent implements OnInit, OnDestroy {
         this.user = response;
         this.fullName = response.fullName;
         this.userRole = this.user.isAdmin ? 'C-PAT Admin' : 'C-PAT User';
-        if (this.user && this.user.defaultTheme) {
+        if (this.user.defaultTheme) {
           this.configService.setInitialTheme(this.user.defaultTheme);
         } else {
           this.configService.setInitialTheme('aura-light-blue');
         }
         if (this.user.accountStatus === 'ACTIVE') {
-          this.payload = Object.assign({}, this.user, {
+          this.payload = {
+            ...this.user,
             collections: this.user.permissions.map((permission: Permission) => ({
               collectionId: permission.collectionId,
               accessLevel: permission.accessLevel,
             }))
-          });
+          };        
           this.getNotificationCount();
           this.getCollections();
           this.router.events.pipe(
@@ -263,8 +279,8 @@ export class AppComponent implements OnInit, OnDestroy {
     const body = document.body;
     const layoutWrapper = document.querySelector('.layout-wrapper');
 
-    body.setAttribute('data-p-theme', theme!);
-    layoutWrapper!.setAttribute('data-p-theme', theme!);
+    body.setAttribute('data-p-theme', theme);
+    layoutWrapper!.setAttribute('data-p-theme', theme);
   }
 
   async onSelectedThemeChange(theme: string) {
@@ -313,17 +329,16 @@ export class AppComponent implements OnInit, OnDestroy {
       isAdmin: this.user.isAdmin,
     };
     const selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == selectedCollection);
-    let myRole = '';
+    let myRole: string;
 
     if (!selectedPermissions && !this.user.isAdmin) {
       myRole = 'none';
+    } else if (this.user.isAdmin) {
+      myRole = 'admin';
+    } else if (selectedPermissions) {
+      myRole = getRoleFromAccessLevel(selectedPermissions.accessLevel);
     } else {
-      myRole = this.user.isAdmin ? 'admin'
-        : selectedPermissions.accessLevel === 1 ? 'viewer'
-          : selectedPermissions.accessLevel === 2 ? 'submitter'
-            : selectedPermissions.accessLevel === 3 ? 'approver'
-              : selectedPermissions.accessLevel === 4 ? 'cat1approver'
-                : 'none';
+      myRole = 'none';
     }
 
     this.payload.role = myRole;

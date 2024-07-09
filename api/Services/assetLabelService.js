@@ -42,7 +42,7 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
                 ORDER BY t3.labelName
             `;
             let [rowAssetLabels] = await connection.query(sql, [req.params.collectionId]);
-            var assetLabels = rowAssetLabels.map((row) => ({
+            const assetLabels = rowAssetLabels.map((row) => ({
                 "assetId": row.assetId,
                 "assetName": row.assetName,
                 "labelId": row.labelId,
@@ -76,7 +76,7 @@ exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, n
                 ORDER BY t3.labelName
             `;
             let [rowAssetLabels] = await connection.query(sql, [req.params.assetId]);
-            var assetLabels = rowAssetLabels.map((row) => ({
+            const assetLabels = rowAssetLabels.map((row) => ({
                 "assetId": row.assetId,
                 "assetName": row.assetName,
                 "labelId": row.labelId,
@@ -110,7 +110,7 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, n
                 ORDER BY t3.labelName
             `;
             let [rowAssetLabels] = await connection.query(sql, [req.params.labelId]);
-            var assetLabels = rowAssetLabels.map((row) => ({
+            const assetLabels = rowAssetLabels.map((row) => ({
                 "assetId": row.assetId,
                 "assetName": row.assetName,
                 "labelId": row.labelId,
@@ -150,7 +150,8 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
                 WHERE t1.assetId = ? AND t1.labelId = ?
                 ORDER BY t3.labelName
             `;
-            var assetLabel = rowAssetLabel.length > 0 ? [rowAssetLabel[0]] : [];
+            let [rowAssetLabel] = await connection.query(sql, [req.params.assetId, req.params.labelId]);
+            const assetLabel = rowAssetLabel.length > 0 ? [rowAssetLabel[0]] : [];
             return assetLabel.assetLabel;
         });
     } catch (error) {
@@ -199,7 +200,7 @@ exports.postAssetLabel = async function postAssetLabel(req, res, next) {
             `;
             let [rowAssetLabel] = await connection.query(sql, [req.body.assetId, req.body.labelId]);
 
-            var assetLabel = rowAssetLabel.length > 0 ? rowAssetLabel[0] : null;
+            const assetLabel = rowAssetLabel.length > 0 ? rowAssetLabel[0] : null;
             return (assetLabel);
         });
     } catch (error) {

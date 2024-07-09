@@ -9,10 +9,10 @@
 */
 
 require('dotenv').config();
-const package = require("../package.json")
+const cpatPackage = require("../package.json")
 
 let config = {
-    version: package.version,
+    version: cpatPackage.version,
     commit: {
         branch: process.env.COMMIT_BRANCH || 'na',
         sha: process.env.COMMIT_SHA || 'na',

@@ -10,10 +10,10 @@
 
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UsersService } from './users.service';
-import { Observable, forkJoin } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { ConfirmationService, TreeNode } from 'primeng/api';
 import { SubSink } from "subsink";
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { TreeTable } from 'primeng/treetable';
 
@@ -72,7 +72,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
 
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
 
           if (this.user.accountStatus === 'ACTIVE') {
@@ -114,27 +114,25 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
 
   getUsersTree() {
     const userData = this.data;
-    const treeData: any = [];
+    const treeData: any[] = [];
 
-    for (let i = 0; i < userData.length; i++) {
-      const userPermissions = userData[i].permissions;
-      const children: any = [];
+    for (const user of userData) {
+      const userPermissions = user.permissions;
+      const children: any[] = [];
 
       if (userPermissions && userPermissions.length > 0) {
-        userPermissions.forEach((permission: any) => {
+        for (const permission of userPermissions) {
           const collection = this.collectionList.find(c => c.collectionId === permission.collectionId);
           const collectionName = collection ? collection.collectionName : '';
-          let accessLevelDisplay = '';
 
-          if (permission.accessLevel === 1) {
-            accessLevelDisplay = 'Viewer';
-          } else if (permission.accessLevel === 2) {
-            accessLevelDisplay = 'Submitter';
-          } else if (permission.accessLevel === 3) {
-            accessLevelDisplay = 'Approver';
-          } else if (permission.accessLevel === 4) {
-            accessLevelDisplay = 'CAT-I Approver';
-          }
+          const accessLevelMap: { [key: number]: string } = {
+            1: 'Viewer',
+            2: 'Submitter',
+            3: 'Approver',
+            4: 'CAT-I Approver'
+          };
+
+          const accessLevelDisplay = accessLevelMap[permission.accessLevel] || '';
 
           children.push({
             data: {
@@ -142,16 +140,16 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
               'Access Level': accessLevelDisplay
             }
           });
-        });
+        }
       }
 
       treeData.push({
         data: {
-          'User': userData[i].userId,
-          'Status': userData[i].accountStatus,
-          'First Name': userData[i].firstName,
-          'Last Name': userData[i].lastName,
-          'Email': userData[i].email
+          'User': user.userId,
+          'Status': user.accountStatus,
+          'First Name': user.firstName,
+          'Last Name': user.lastName,
+          'Email': user.email
         },
         children: children
       });

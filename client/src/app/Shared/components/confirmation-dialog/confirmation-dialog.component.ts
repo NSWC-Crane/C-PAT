@@ -71,10 +71,10 @@ export class ConfirmationDialogOptions {
     cancelbutton?: string;
     convertButton?: { text: string };
   }) {
-    this.header = header || 'Confirmation';
-    this.body = body || 'Are you sure you wish to continue?';
+    this.header = header ?? 'Confirmation';
+    this.body = body ?? 'Are you sure you wish to continue?';
     this.button = button || { text: 'confirm', status: 'primary' };
-    this.cancelbutton = cancelbutton || 'true';
+    this.cancelbutton = cancelbutton ?? 'true';
     this.convertButton = convertButton;
   }
 }

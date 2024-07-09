@@ -27,7 +27,7 @@ exports.getAssets = async function getAssets(req, res, next) {
         return await withConnection(async (connection) => {
             let sql = "SELECT * FROM  cpat.asset ORDER BY assetName;"
             let [rowAssets] = await connection.query(sql);
-            var assets = rowAssets.map(row => ({
+            const assets = rowAssets.map(row => ({
                 "assetId": row.assetId,
                 "assetName": row.assetName,
                 "description": row.description,
@@ -56,7 +56,7 @@ exports.getAssetsByCollection = async function getAssetsByCollection(req, res, n
         return await withConnection(async (connection) => {
             const sql = "SELECT * FROM cpat.asset WHERE collectionId = ? ORDER BY assetName;";
             let [rowAssets] = await connection.query(sql, [req.params.collectionId]);
-            var assets = rowAssets.map(row => ({
+            const assets = rowAssets.map(row => ({
                 "assetId": row.assetId,
                 "assetName": row.assetName,
                 "description": row.description,
@@ -279,12 +279,12 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
 
 exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, next) {
     if (!req.params.poamId) {
-        throw {
+        return next({
             status: 400,
             errors: {
                 poamId: 'is required',
-            },
-        };
+            }
+        });
     }
     try {
         await withConnection(async (connection) => {
