@@ -15,14 +15,12 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Observable, Subscription, catchError, forkJoin, of } from 'rxjs';
 import { SubSink } from "subsink";
 import { ImportService } from '../../import-processing/import.service';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../../Shared/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { PoamAssetUpdateService } from '../../import-processing/stigmanager-import/stigmanager-update/stigmanager-update.service';
-import { TreeNode } from 'primeng/api';
-import { TreeTable, TreeTableSortEvent } from 'primeng/treetable';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { TreeTable } from 'primeng/treetable';
+import { ConfirmationService, MessageService, TreeNode } from 'primeng/api';
 
 interface Asset {
   assetId: any;
@@ -144,7 +142,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     );
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
         }
       },

@@ -16,6 +16,7 @@ import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Sh
 import { SharedService } from '../../Shared/shared.service';
 import { UsersService } from '../admin-processing/user-processing/users.service';
 import { LabelService } from './label.service';
+import { Table } from 'primeng/table';
 
 interface Permission {
   userId: number;
@@ -36,6 +37,7 @@ interface LabelEntry {
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;
+  @ViewChild('labelTable') labelTable!: Table;
   labelDialogVisible: boolean = false;
   customColumn = 'label';
   defaultColumns = ['Name', 'Description'];
@@ -83,7 +85,7 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
 
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
@@ -135,11 +137,17 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    this.data = this.labels.filter(label =>
-      label.labelName.toLowerCase().includes(filterValue) ||
-      label.description.toLowerCase().includes(filterValue) ||
-      label.labelId.toLowerCase().includes(filterValue)
-    );
+    if (this.labelTable) {
+      this.labelTable.filterGlobal(filterValue, 'contains');
+    }
+  }
+
+  clear() {
+    this.filterValue = '';
+    if (this.labelTable) {
+      this.labelTable.clear();
+    }
+    this.data = [...this.labels];
   }
 
 

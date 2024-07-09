@@ -84,7 +84,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
           if (this.user.accountStatus === 'ACTIVE') {
 

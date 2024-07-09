@@ -29,9 +29,9 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
             return await withConnection(async (connection) => {
                 let sql = "SELECT collectionId, collectionName FROM cpat.collection;"
                 let [row] = await connection.query(sql)
-                var size = Object.keys(row).length
+                const size = Object.keys(row).length
 
-                var user = {
+                const user = {
                     collections: []
                 }
 
@@ -59,13 +59,13 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
             isAdmin = row[0].isAdmin;
             userName = row[0].userName;
 
-            var user = {
+            const user = {
                 collections: []
             }
             if (isAdmin == 1) {
                 let sql2 = "SELECT * FROM collection;"
                 let [row2] = await connection.query(sql2)
-                var size = Object.keys(row2).length
+                const size = Object.keys(row2).length
 
                 for (let counter = 0; counter < size; counter++) {
                     user.collections.push({
@@ -77,8 +77,8 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
             } else {
                 let sql = "SELECT * FROM collectionpermissions WHERE userId = ?";
                 let [row2] = await connection.query(sql, [userId])
-                var numberOfCollections = Object.keys(row2).length
-                var nonAdminCollections = {
+                const numberOfCollections = Object.keys(row2).length
+                const nonAdminCollections = {
                     collections: []
                 }
                 for (let counter = 0; counter < numberOfCollections; counter++) {
@@ -128,7 +128,7 @@ exports.postCollection = async function postCollection(req, res, next) {
             let sql = "SELECT * FROM cpat.collection WHERE collectionId = LAST_INSERT_ID();"
             let [rowCollection] = await connection.query(sql)
 
-            var collection = rowCollection[0]
+            const collection = rowCollection[0]
             return (collection)
         });
     } catch (error) {

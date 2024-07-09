@@ -8,16 +8,16 @@
 !########################################################################
 */
 
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AssetService } from './assets.service';
 import { forkJoin, Observable } from 'rxjs';
 import { SubSink } from "subsink";
 import { ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
 import { UsersService } from '../admin-processing/user-processing/users.service';
-import { ChangeDetectorRef } from '@angular/core';
 import { Chart, registerables, ChartData } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { DialogService } from 'primeng/dynamicdialog';
+import { Table } from 'primeng/table';
 
 interface Permission {
   userId: number;
@@ -41,7 +41,8 @@ interface AssetEntry {
 })
 export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('assetLabelsChart') assetLabelsChart!: ElementRef<HTMLCanvasElement>;
-
+  @ViewChild('assetTable') assetTable!: Table;
+  searchValue: string = '';
   public assetLabel: any[] = [];
   assetLabelChart!: Chart;
   assetLabelChartData: ChartData<'bar'> = {
@@ -144,14 +145,27 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    this.data = this.assets.filter(asset =>
-      asset.assetName.toLowerCase().includes(filterValue) ||
-      asset.description.toLowerCase().includes(filterValue) ||
-      asset.ipAddress.toLowerCase().includes(filterValue) ||
-      asset.macAddress.toLowerCase().includes(filterValue) ||
-      asset.assetId.toLowerCase().includes(filterValue)
-    );
+    if (this.assetTable) {
+      this.assetTable.filterGlobal(filterValue, 'contains');
+    }
   }
+
+  onGlobalFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    if (this.assetTable) {
+      this.assetTable.filterGlobal(filterValue, 'contains');
+    }
+  }
+
+  clear() {
+    this.searchValue = '';
+    if (this.assetTable) {
+      this.assetTable.clear();
+    }
+    this.filterValue = '';
+    this.data = [...this.assets];
+  }
+
   showPopup(message: string) {
     const dialogOptions: ConfirmationDialogOptions = {
       header: 'Alert',
@@ -173,7 +187,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
 
           if (this.user.accountStatus === 'ACTIVE') {

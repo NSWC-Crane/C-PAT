@@ -92,14 +92,13 @@ function recordStartTime() {
 
 function requestLogger(req, res, next) {
 
-    req._startAt = undefined
-    req._startTime = undefined
-    res._startAt = undefined
-    res._startTime = undefined
-    res.svcStatus = {}
+    req._startAt = undefined;
+    req._startTime = undefined;
+    res._startAt = undefined;
+    res._startTime = undefined;
+    res.svcStatus = {};
 
-    // Response body handling for privileged requests
-    let responseBody = undefined
+    let responseBody = undefined;
     if (req.query.elevate === true || req.query.elevate === 'true') {
         responseBody = ''
         const originalSend = res.send

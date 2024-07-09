@@ -12,18 +12,41 @@
   <div class="col">
     <p-card>
       <div class="p-fluid">
-        <div class="p-field p-grid">
-          <div class="p-col col-2">
-            <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Labels">
-          </div>
+        <div class="toolbar" style="display: flex; align-items: center;">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Labels" style="width: 300px;">
+          </span>
+          <p-button label="Clear" [outlined]="true" severity="info" class="ml-auto" icon="pi pi-filter-slash" (click)="clear()"></p-button>
         </div>
         <div class="scrollable-labels">
-          <p-table [value]="data" selectionMode="multiple" [(selection)]="selectedLabels" [metaKeySelection]="true" dataKey="labelId">
+          <p-table #labelTable
+                   [value]="data"
+                   selectionMode="multiple"
+                   [(selection)]="selectedLabels"
+                   [metaKeySelection]="true"
+                   dataKey="labelId"
+                   [globalFilterFields]="['labelId', 'labelName', 'description']">
             <ng-template pTemplate="header">
               <tr>
-                <th>Label ID</th>
-                <th>Name</th>
-                <th>Description</th>
+                <th style="min-width:5rem">
+                  <div class="flex align-items-center">
+                    Label ID
+                    <p-columnFilter type="text" field="labelId" display="menu" />
+                  </div>
+                </th>
+                <th style="min-width:15rem">
+                  <div class="flex align-items-center">
+                    Name
+                    <p-columnFilter type="text" field="labelName" display="menu" />
+                  </div>
+                </th>
+                <th style="min-width:15rem">
+                  <div class="flex align-items-center">
+                    Description
+                    <p-columnFilter type="text" field="description" display="menu" />
+                  </div>
+                </th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-label let-rowIndex="rowIndex">
@@ -60,14 +83,12 @@
                   (click)="addLabel()">
           </button>
         </div>
-        </div>
-</p-card>
+      </div>
+    </p-card>
   </div>
 </div>
-
 <p-dialog header="Label Details" [(visible)]="labelDialogVisible" [modal]="true" [style]="{width: '50vw'}">
   <ng-template pTemplate="content">
     <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData(); closeLabelPopup();"></cpat-label>
   </ng-template>
 </p-dialog>
-

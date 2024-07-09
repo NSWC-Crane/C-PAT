@@ -42,7 +42,7 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
         return await withConnection(async (connection) => {
             let sql = "SELECT * FROM cpat.poammilestones WHERE poamId = ?;";
             let [rows] = await connection.query(sql, [poamId]);
-            var poamMilestones = rows.map(row => ({ ...row }));
+            const poamMilestones = rows.map(row => ({ ...row }));
             return { poamMilestones };
         });
     } catch (error) {
@@ -77,7 +77,7 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, requestBody
             let sql = "SELECT * FROM cpat.poamMilestones WHERE poamId = ?";
             let [rows] = await connection.query(sql, [poamId]);
 
-            var poamMilestone = rows.map(row => ({ ...row }));
+            const poamMilestone = rows.map(row => ({ ...row }));
 
             if (requestBody.poamLog && requestBody.poamLog.length > 0) {
                 let userId = requestBody.poamLog[0].userId;
@@ -133,7 +133,7 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
             sql_query = "SELECT * FROM cpat.poamMilestones WHERE poamId = ?;";
             let [rows] = await connection.query(sql_query, [poamId]);
 
-            var poamMilestone = rows.map(row => ({ ...row }));
+            const poamMilestone = rows.map(row => ({ ...row }));
 
             if (requestBody.poamLog && requestBody.poamLog.length > 0) {
                 let userId = requestBody.poamLog[0].userId;
@@ -188,7 +188,7 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
             let sql = "DELETE FROM cpat.poammilestones WHERE poamId= ? AND milestoneId = ?";
             await connection.query(sql, [poamId, milestoneId]);
 
-            let action = `Milestone Deleted.`;
+            const action = `Milestone Deleted.`;
             if (requestBody.requestorId) {
                 if (requestBody.extension == true) {
                     action = `Extension milestone deleted.`;

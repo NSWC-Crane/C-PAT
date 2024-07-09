@@ -140,6 +140,7 @@ export class NotFoundComponent implements OnInit {
     const isAuthenticated = await this.authService.isAuthenticated('cpat');
     const isStigmanAuthenticated = await this.authService.isAuthenticated('stigman');
     if (isAuthenticated && isStigmanAuthenticated) {
+      return;
     } else if (!isAuthenticated && isStigmanAuthenticated) {
       await this.authService.login('cpat');
     } else if (isAuthenticated && !isStigmanAuthenticated) {

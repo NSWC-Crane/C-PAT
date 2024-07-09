@@ -14,20 +14,53 @@
       <p-tabView>
         <p-tabPanel header="Asset Management">
           <div class="p-fluid">
-            <div class="p-field p-grid">
-              <div class="p-col col-2">
-                <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Assets">
-              </div>
+            <div class="toolbar" style="display: flex; align-items: center;">
+              <span class="p-input-icon-left">
+                <i class="pi pi-search"></i>
+                <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Assets" style="width: 300px;">
+              </span>
+              <p-button label="Clear" [outlined]="true" severity="info" class="ml-auto" icon="pi pi-filter-slash" (click)="clear()"></p-button>
             </div>
             <div class="scrollable-assets">
-              <p-table [value]="data" selectionMode="multiple" [(selection)]="selectedAssets" [metaKeySelection]="true" dataKey="assetId">
+              <p-table #assetTable
+                       [value]="data"
+                       selectionMode="multiple"
+                       [(selection)]="selectedAssets"
+                       [metaKeySelection]="true"
+                       dataKey="assetId"
+                       [globalFilterFields]="['assetId', 'assetName', 'description', 'ipAddress', 'macAddress']">
                 <ng-template pTemplate="header">
                   <tr>
-                    <th>Asset ID</th>
-                    <th>Asset Name</th>
-                    <th>Description</th>
-                    <th>IP Address</th>
-                    <th>MAC Address</th>
+                    <th style="min-width:5rem">
+                      <div class="flex align-items-center">
+                        Asset ID
+                        <p-columnFilter type="text" field="assetId" display="menu" />
+                      </div>
+                    </th>
+                    <th style="min-width:15rem">
+                      <div class="flex align-items-center">
+                        Asset Name
+                        <p-columnFilter type="text" field="assetName" display="menu" />
+                      </div>
+                    </th>
+                    <th style="min-width:15rem">
+                      <div class="flex align-items-center">
+                        Description
+                        <p-columnFilter type="text" field="description" display="menu" />
+                      </div>
+                    </th>
+                    <th style="min-width:15rem">
+                      <div class="flex align-items-center">
+                        IP Address
+                        <p-columnFilter type="text" field="ipAddress" display="menu" />
+                      </div>
+                    </th>
+                    <th style="min-width:15rem">
+                      <div class="flex align-items-center">
+                        MAC Address
+                        <p-columnFilter type="text" field="macAddress" display="menu" />
+                      </div>
+                    </th>
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-asset let-rowIndex="rowIndex">

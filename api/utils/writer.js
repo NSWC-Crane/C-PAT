@@ -28,16 +28,10 @@ let writeJson = exports.writeJson = function(response, arg1, arg2) {
 
   if(arg2 && Number.isInteger(arg2)) {
     code = arg2;
+  } else if(arg1 && Number.isInteger(arg1)) {
+      code = arg1;    
   }
-  else {
-    if(arg1 && Number.isInteger(arg1)) {
-      code = arg1;
-    }
-  }
-  if(code && arg1) {
-    payload = arg1;
-  }
-  else if(arg1) {
+  if(arg1) {
     payload = arg1;
   }
 

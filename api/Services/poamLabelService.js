@@ -43,7 +43,7 @@ exports.getPoamLabels = async function getPoamLabels(collectionId) {
                 ORDER BY t3.labelName
             `;
             let [rowPoamLabels] = await connection.query(sql, [collectionId]);
-            var poamLabels = rowPoamLabels.map(row => ({
+            const poamLabels = rowPoamLabels.map(row => ({
                 poamId: row.poamId,
                 labelId: row.labelId,
                 labelName: row.labelName,
@@ -135,7 +135,7 @@ exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
                 ORDER BY t3.labelName
             `;
             let [rowPoamLabels] = await connection.query(sql, [poamId]);
-            var poamLabels = rowPoamLabels.map(row => ({
+            const poamLabels = rowPoamLabels.map(row => ({
                 poamId: row.poamId,
                 labelId: row.labelId,
                 labelName: row.labelName,
@@ -168,7 +168,7 @@ exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
                 ORDER BY t3.labelName
             `;
             let [rowPoamLabels] = await connection.query(sql, [labelId]);
-            var poamLabels = rowPoamLabels.map(row => ({
+            const poamLabels = rowPoamLabels.map(row => ({
                 poamId: row.poamId,
                 labelId: row.labelId,
                 labelName: row.labelName,
@@ -208,7 +208,7 @@ exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
                 ORDER BY t3.labelName
             `;
             let [rowPoamLabel] = await connection.query(sql, [poamId, labelId]);
-            var poamLabel = rowPoamLabel.length > 0 ? rowPoamLabel[0] : {};
+            const poamLabel = rowPoamLabel.length > 0 ? rowPoamLabel[0] : {};
             return { poamLabel };
         });
     } catch (error) {
@@ -256,7 +256,7 @@ exports.postPoamLabel = async function postPoamLabel(req, res, next) {
                 ORDER BY t3.labelName
             `;
             let [rowPoamLabel] = await connection.query(sql, [req.body.poamId, req.body.labelId]);
-            var poamLabel = rowPoamLabel[0];
+            const poamLabel = rowPoamLabel[0];
             return poamLabel;
         });
     } catch (error) {

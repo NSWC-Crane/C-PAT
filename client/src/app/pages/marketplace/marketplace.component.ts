@@ -57,7 +57,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   async loadUserData() {
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       async (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
           await this.loadUserPointsAndThemes();
         }

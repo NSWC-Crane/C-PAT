@@ -42,7 +42,7 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
                 WHERE poamId = ?;
             `;
             let [rows] = await connection.query(sql, [req.params.poamId]);
-            var poamApprovers = rows.map(row => ({
+            const poamApprovers = rows.map(row => ({
                 ...row,
                 approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
             }));
@@ -73,7 +73,7 @@ exports.getPoamApproversByCollection = async function getPoamApproversByCollecti
                 WHERE T3.collectionId = ?
             `;
             let [rows] = await connection.query(sql, [req.params.collectionId]);
-            var poamApprovers = rows.map(row => ({
+            const poamApprovers = rows.map(row => ({
                 ...row,
                 approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
             }));
@@ -112,7 +112,7 @@ exports.getPoamApproversByCollectionUser = async function getPoamApproversByColl
                 WHERE T3.collectionId = ? AND T1.userId = ?
             `;
             let [rows] = await connection.query(sql, [req.params.collectionId, req.params.userId]);
-            var poamApprovers = rows.map(row => ({
+            const poamApprovers = rows.map(row => ({
                 ...row,
                 approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
             }));
@@ -143,7 +143,7 @@ exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, 
                 WHERE T1.userId = ?
             `;
             let [rows] = await connection.query(sql, [req.params.userId]);
-            var poamApprovers = rows.map(row => ({
+            const poamApprovers = rows.map(row => ({
                 ...row,
                 approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
             }));
@@ -205,7 +205,7 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
             } 
             let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
             let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
-            var poamApprover = row.map(row => ({
+            const poamApprover = row.map(row => ({
                 ...row,
                 approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
             }))[0];
@@ -395,7 +395,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
 
             let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
             let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
-            var poamApprover = row.map(row => ({
+            const poamApprover = row.map(row => ({
                 ...row,
                 approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
             }))[0];

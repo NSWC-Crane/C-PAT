@@ -1,5 +1,5 @@
 ARG BASE_IMAGE="node:lts-alpine"
-FROM ${BASE_IMAGE} as build
+FROM ${BASE_IMAGE} AS build
 ARG COMMIT_BRANCH="unspecified"
 ARG COMMIT_SHA="unspecified"
 ARG COMMIT_TAG="unspecified"

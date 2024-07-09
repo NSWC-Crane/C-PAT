@@ -32,7 +32,7 @@ exports.getPoamAssignees = async function getPoamAssignees() {
             ORDER BY t2.fullName
         `;
         let [rowPoamAssignees] = await connection.query(sql);
-        var poamAssignees = rowPoamAssignees.map(row => ({
+        const poamAssignees = rowPoamAssignees.map(row => ({
             userId: row.userId,
             fullName: row.fullName,
             poamId: row.poamId,
@@ -57,7 +57,7 @@ exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(poamI
             ORDER BY t2.fullName
         `;
         let [rowPoamAssignees] = await connection.query(sql, [poamId]);
-        var poamAssignees = rowPoamAssignees.map(row => ({
+        const poamAssignees = rowPoamAssignees.map(row => ({
             userId: row.userId,
             fullName: row.fullName,
             poamId: row.poamId,
@@ -82,7 +82,7 @@ exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(req, 
             ORDER BY t2.fullName
         `;
         let [rowPoamAssignees] = await connection.query(sql, [req.params.userId]);
-        var poamAssignees = rowPoamAssignees.map(row => ({
+        const poamAssignees = rowPoamAssignees.map(row => ({
             userId: row.userId,
             fullName: row.fullName,
             poamId: row.poamId,
@@ -110,13 +110,13 @@ exports.getPoamAssignee = async function getPoamAssignee(req, res, next) {
             ORDER BY t2.fullName
         `;
         let [rowPoamAssignees] = await connection.query(sql, [req.params.userId, req.params.poamId]);
-        var poamAssignees = rowPoamAssignees.map(row => ({
+        const poamAssignees = rowPoamAssignees.map(row => ({
             userId: row.userId,
             fullName: row.fullName,
             poamId: row.poamId,
             poamStatus: row.status,
         }));
-        var poamAssignee = poamAssignees.length > 0 ? [poamAssignees[0]] : [];
+        const poamAssignee = poamAssignees.length > 0 ? [poamAssignees[0]] : [];
         return { poamAssignee };
     });
 };

@@ -54,9 +54,9 @@ exports.getCollectionPoamStatus = async function getCollectionPoamStatus(req, re
             let sql = "SELECT status, COUNT(*) AS statusCount FROM poam WHERE collectionId = ?  GROUP BY status;"
             let [rows] = await connection.query(sql, [req.params.collectionId])
 
-            var size = Object.keys(rows).length
+            const size = Object.keys(rows).length
 
-            var poamStatus = []
+            const poamStatus = []
 
             for (let counter = 0; counter < size; counter++) {
                 poamStatus.push({
@@ -103,9 +103,9 @@ exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(req
             let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam WHERE collectionId = ?  GROUP BY rawSeverity;"
             let [rows] = await connection.query(sql, [req.params.collectionId])
 
-            var size = Object.keys(rows).length
+            const size = Object.keys(rows).length
 
-            var poamSeverity = []
+            const poamSeverity = []
 
             for (let counter = 0; counter < size; counter++) {
                 poamSeverity.push({

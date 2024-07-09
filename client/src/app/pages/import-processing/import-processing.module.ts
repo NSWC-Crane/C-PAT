@@ -19,8 +19,7 @@ import { ImportProcessingRoutingModule } from './import-processing-routing.modul
 
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ConfirmationService } from 'primeng/api';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';

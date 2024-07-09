@@ -117,7 +117,7 @@ exports.getPoam = async function getPoam(req, res, next) {
                 WHERE poamId = ?;
                 `;
             let [rowPoams] = await connection.query(sql, [req.params.poamId]);
-            var poam = rowPoams.map(row => ({
+            const poam = rowPoams.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
@@ -162,7 +162,7 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
             ORDER BY T1.poamId DESC;
             `;
             let [rowPoams] = await connection.query(sql, [req.params.collectionId]);
-            var poams = rowPoams.map(row => ({
+            const poams = rowPoams.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
@@ -210,7 +210,7 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
             ORDER BY T1.poamId DESC;
             `;
             let [rowPoams] = await connection.query(sql, [req.params.submitterId]);
-            var poams = rowPoams.map(row => ({
+            const poams = rowPoams.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
@@ -424,7 +424,7 @@ exports.putPoam = async function putPoam(req, res, next) {
             ]);
 
             const [updatedPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.body.poamId]);
-            var updatedPoam = updatedPoamRow.map(row => ({
+            const updatedPoam = updatedPoamRow.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,

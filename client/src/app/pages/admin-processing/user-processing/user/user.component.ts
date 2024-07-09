@@ -13,8 +13,7 @@ import { SubSink } from 'subsink';
 import { UsersService } from '../users.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
 import { format } from 'date-fns';
-import { ConfirmationService } from 'primeng/api';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 interface Permission {
   userId: number;

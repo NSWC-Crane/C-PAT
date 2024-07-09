@@ -95,7 +95,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     this.showCollectionSelect = true;
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
 
           if (this.user.accountStatus === 'ACTIVE') {

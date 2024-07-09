@@ -91,22 +91,17 @@ exports.processPoamFile = async function processPoamFile(file, userId) {
     if (!file) {
         throw new Error("Please upload an Excel file!");
     }
-
     if (!userId) {
         throw new Error("userId is required");
     }
 
-    try {
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(file.buffer);
-        if (workbook.worksheets.length === 0) {
-            throw new Error('No worksheets found in the workbook');
-        }
-        const worksheet = workbook.worksheets[0];
-        await processPoamWorksheet(worksheet, userId);
-    } catch (error) {
-        throw error;
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(file.buffer);
+    if (workbook.worksheets.length === 0) {
+        throw new Error('No worksheets found in the workbook');
     }
+    const worksheet = workbook.worksheets[0];
+    await processPoamWorksheet(worksheet, userId);
 };
 
 async function processPoamWorksheet(worksheet, userId) {

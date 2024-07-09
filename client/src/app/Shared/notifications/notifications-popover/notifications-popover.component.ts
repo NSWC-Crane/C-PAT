@@ -49,7 +49,7 @@ export class NotificationsPanelComponent implements OnInit {
     this.payload = null;
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response && response.userId) {
+        if (response.userId) {
           this.user = response;
 
           if (this.user.accountStatus === 'ACTIVE') {

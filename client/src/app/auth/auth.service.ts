@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { Observable, firstValueFrom, forkJoin, from } from 'rxjs';
+import { Observable, firstValueFrom, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { UsersService } from '../pages/admin-processing/user-processing/users.service';

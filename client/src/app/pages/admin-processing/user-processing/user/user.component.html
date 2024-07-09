@@ -89,7 +89,7 @@
             <th>
               <button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewPermission()"></button>
             </th>
-            <th *ngFor="let col of columns">
+            <th id="col" *ngFor="let col of columns">
               {{col.header}}
             </th>
           </tr>

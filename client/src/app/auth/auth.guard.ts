@@ -11,7 +11,7 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from './auth.service';
-import { Observable, from, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 @Injectable({
@@ -48,7 +48,7 @@ export class AuthGuard implements CanActivate {
         }
         return this.authService.getUserData('cpat').pipe(
           map(userData => {
-            if (userData && userData.isAdmin) {
+            if (userData.isAdmin) {
               return true;
             }
             this.router.navigate(['/unauthorized']);
