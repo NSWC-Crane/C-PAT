@@ -12,8 +12,8 @@ import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/c
 import { DialogService } from 'primeng/dynamicdialog';
 import { Observable, Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component';
-import { SharedService } from '../../Shared/shared.service';
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { SharedService } from '../../common/services/shared.service';
 import { UsersService } from '../admin-processing/user-processing/users.service';
 import { LabelService } from './label.service';
 import { Table } from 'primeng/table';
@@ -85,7 +85,7 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
 
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {

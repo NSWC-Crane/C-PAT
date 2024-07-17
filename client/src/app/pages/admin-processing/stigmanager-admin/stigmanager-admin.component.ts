@@ -10,7 +10,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { catchError, forkJoin, map, of } from 'rxjs';
-import { SharedService } from '../../../Shared/shared.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 

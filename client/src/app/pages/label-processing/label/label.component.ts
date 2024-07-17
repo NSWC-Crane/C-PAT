@@ -12,9 +12,9 @@ import { Component, OnInit, Input, EventEmitter, Output, OnDestroy, SimpleChange
 import { LabelService } from '../label.service';
 import { Observable, Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
-import { SharedService } from '../../../Shared/shared.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { DialogService } from 'primeng/dynamicdialog';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'cpat-label',

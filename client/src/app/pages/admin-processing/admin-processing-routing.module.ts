@@ -14,7 +14,7 @@ import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin
 import { UserProcessingComponent } from './user-processing/user-processing.component';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { AdminProcessingComponent } from './admin-processing.component';
-import { AuthGuard } from '../../auth/auth.guard';
+import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
 const routes: Routes = [
   {

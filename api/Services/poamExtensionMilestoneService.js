@@ -187,14 +187,8 @@ exports.deletePoamExtensionMilestone = async function deletePoamExtensionMilesto
             let sql = "DELETE FROM cpat.poamExtensionMilestones WHERE poamId= ? AND extensionMilestoneId = ?";
             await connection.query(sql, [poamId, extensionMilestoneId]);
 
-            let action = `ExtensionMilestone Deleted.`;
             if (requestBody.requestorId) {
-                if (requestBody.extension == true) {
-                    action = `Extension ExtensionMilestone deleted.`;
-                }
-                else {
-                    action = `POAM ExtensionMilestone deleted.`;
-                }
+                let action = `Extension Milestone deleted.`;
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [poamId, action, requestBody.requestorId]);
             }

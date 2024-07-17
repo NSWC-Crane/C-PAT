@@ -11,7 +11,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { SubSink } from "subsink";
-import { ExcelDataService } from '../../../Shared/utils/excel-data.service';
+import { ExcelDataService } from '../../../common/utils/excel-data.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { CollectionsService } from './collections.service';
 import { MessageService } from 'primeng/api';
@@ -95,7 +95,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     this.showCollectionSelect = true;
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
 
           if (this.user.accountStatus === 'ACTIVE') {

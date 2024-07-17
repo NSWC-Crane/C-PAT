@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { AppConfigComponent } from './Shared/config/app.config.component';
+import { AppConfigModule } from './layout/app.config.module';
 import { AuthModule } from 'angular-auth-oidc-client';
 import { APP_BASE_HREF } from "@angular/common";
 import { HttpClientModule } from '@angular/common/http';
@@ -19,13 +19,12 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CardModule } from 'primeng/card';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
-import { SharedModule } from './Shared/shared.module';
+import { SharedModule } from './common/shared.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { NgParticlesModule } from 'ng-particles';
-import { NotFoundComponent } from './Shared/components/not-found/not-found.component';
-import { UnauthorizedComponent } from './Shared/components/unauthorized/unauthorized.component';
-import { BadgeModule } from 'primeng/badge';
+import { NotFoundComponent } from './common/components/not-found/not-found.component';
+import { UnauthorizedComponent } from './common/components/unauthorized/unauthorized.component';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
 import { MenuModule } from 'primeng/menu';
@@ -33,8 +32,8 @@ import { PanelMenuModule } from 'primeng/panelmenu';
 import { DropdownModule } from 'primeng/dropdown';
 import { MessagesModule } from 'primeng/messages';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { RippleModule } from 'primeng/ripple';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { TooltipModule } from 'primeng/tooltip';
 import { PrimeNGConfig } from 'primeng/api';
 function getScopeStr(configId: string) {
   const cpatScopePrefix = CPAT.Env.oauth.scopePrefix;
@@ -76,15 +75,15 @@ function getScopeStr(configId: string) {
     NotFoundComponent,
     UnauthorizedComponent
   ],
-  providers: [
-    { provide: APP_BASE_HREF, useValue: "/" },
-    FileUploadService,
-    provideCharts(withDefaultRegisterables()),
-    PrimeNGConfig,
-  ],
-  bootstrap: [AppComponent],
-  exports: [],
   imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    FormsModule,
+    HttpClientModule,
+    AppRoutingModule,
+    SharedModule,
+    AppConfigModule,
+    NgParticlesModule,
     AuthModule.forRoot({
       config: [
         {
@@ -121,10 +120,9 @@ function getScopeStr(configId: string) {
         },
       ],
     }),
-    AppConfigComponent,
-    BadgeModule,
-    ButtonModule,
     AvatarModule,
+    ButtonModule,
+    RippleModule,
     CardModule,
     MenuModule,
     PanelMenuModule,
@@ -132,14 +130,13 @@ function getScopeStr(configId: string) {
     MessagesModule,
     OverlayPanelModule,
     SelectButtonModule,
-    TooltipModule,
-    AppRoutingModule,
-    SharedModule,
-    BrowserModule,
-    FormsModule,
-    BrowserAnimationsModule,
-    HttpClientModule,
-    NgParticlesModule,
-  ]
+  ],
+  providers: [
+    { provide: APP_BASE_HREF, useValue: "/" },
+    FileUploadService,
+    provideCharts(withDefaultRegisterables()),
+    PrimeNGConfig,
+  ],
+  bootstrap: [AppComponent]
 })
 export class AppModule { }

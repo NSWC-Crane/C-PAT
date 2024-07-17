@@ -14,7 +14,7 @@ import { UsersService } from './user-processing/users.service';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
-import { StatusDialogComponent } from '../../Shared/components/status-dialog/status-dialog.component';
+import { StatusDialogComponent } from '../../common/components/status-dialog/status-dialog.component';
 
 @Component({
   selector: 'cpat-admin-processing',

@@ -9,8 +9,8 @@
 */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
-import { SharedService } from '../../../Shared/shared.service';
+import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { SharedService } from '../../../common/services/shared.service';
 
 
 @Component({

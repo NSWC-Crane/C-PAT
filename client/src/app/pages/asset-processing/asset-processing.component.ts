@@ -12,7 +12,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnI
 import { AssetService } from './assets.service';
 import { forkJoin, Observable } from 'rxjs';
 import { SubSink } from "subsink";
-import { ConfirmationDialogOptions } from '../../Shared/components/confirmation-dialog/confirmation-dialog.component'
+import { ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component'
 import { UsersService } from '../admin-processing/user-processing/users.service';
 import { Chart, registerables, ChartData } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -187,7 +187,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
 
           if (this.user.accountStatus === 'ACTIVE') {

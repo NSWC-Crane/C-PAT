@@ -15,7 +15,8 @@ import { MarketplaceService } from './marketplace.service';
 import { SubSink } from 'subsink';
 import { forkJoin } from 'rxjs';
 import { UsersService } from '../admin-processing/user-processing/users.service';
-import { AppConfigService } from '../../Shared/service/appconfigservice';
+import { LayoutService } from '../../layout/services/app.layout.service';
+
 
 interface Theme {
   themeId: number;
@@ -47,7 +48,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     private dialogService: DialogService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
-    private configService: AppConfigService
+    public layoutService: LayoutService,
+
   ) { }
 
   ngOnInit() {
@@ -57,7 +59,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   async loadUserData() {
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       async (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
           await this.loadUserPointsAndThemes();
         }
@@ -143,7 +145,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     };
     (await this.userService.updateUserTheme(userThemeUpdate)).subscribe(
       (result: any) => {
-        this.configService.applyTheme(themeIdentifier);
+        this.layoutService.config.update((config) => ({ ...config, theme: themeIdentifier }));
         this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Theme updated successfully' });
       },
       (error) => {
@@ -156,7 +158,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     if (themeId === undefined) {
       return '';
     }
-    return `assets/themes/theme-${themeId}.png`;
+    return `assets/theme-previews/theme-${themeId}.png`;
   }
 
   openImageDialog(theme: Theme) {

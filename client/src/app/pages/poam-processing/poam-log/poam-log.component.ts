@@ -10,7 +10,7 @@
 
 import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SharedService } from '../../../Shared/shared.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { Subscription } from 'rxjs';
 import { PoamLogService } from './poam-log.service';
 

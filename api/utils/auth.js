@@ -138,7 +138,7 @@ function getKey(header, callback) {
     try {
         client.getSigningKey(header.kid, function (err, key) {
             if (!err) {
-                var signingKey = key.publicKey || key.rsaPublicKey;
+                let signingKey = key.publicKey || key.rsaPublicKey;
                 callback(null, signingKey);
             } else {
                 callback(err, null);

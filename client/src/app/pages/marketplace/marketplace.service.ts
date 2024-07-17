@@ -12,7 +12,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Injectable } from '@angular/core';
 import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Theme } from '../../Shared/models/themes.model';
+import { Theme } from '../../common/models/themes.model';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({

@@ -16,7 +16,7 @@ import { PoamExtendComponent } from './poam-extend/poam-extend.component';
 import { PoamLogComponent } from './poam-log/poam-log.component';
 import { PoamManageComponent } from './poam-manage/poam-manage.component';
 import { PoamsComponent } from './poams.component';
-import { AuthGuard } from '../../auth/auth.guard'
+import { AuthGuard } from '../../core/auth/guards/auth.guard'
 
 const routes: Routes = [
   { path: '', component: PoamsComponent },

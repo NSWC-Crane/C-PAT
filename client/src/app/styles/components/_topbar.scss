@@ -1,0 +1,120 @@
+.layout-topbar {
+    margin-top: 0rem !important;
+    margin-bottom: 0rem !important;
+    margin-left: -2rem !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--surface-overlay);    
+    .topbar-start {
+        display: flex;
+        align-items: center;
+
+        .topbar-menubutton {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 2rem;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            flex-shrink: 0;
+            transition: background-color var(--transition-duration);
+
+            i {
+                font-size: 1.25rem;
+                color: var(--text-color);
+                transition: color var(--transition-duration);
+            }
+
+            &:hover {
+                background-color: var(--primary-color);
+
+                i {
+                    color: var(--primary-color-text);
+                }
+            }
+        }
+    }
+
+    .topbar-menu {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            &.topbar-profile {
+                margin-left: 1.5rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                
+                img {
+                    width: 2rem;
+                    height: 2rem;
+                }
+
+                button {
+                  display: flex;
+                  align-items: center;
+                  padding: .5rem;
+                  cursor: pointer;
+                  
+                  > img {
+                    width: 50px;
+                    height: 50px;
+                    margin-right: .55rem;
+                    border-radius: 25px;
+                  }
+                  
+                  i {
+                    margin-left: .5rem;
+                    transition: transform var(--transition-duration);
+                  }
+
+                    &:focus {
+                        box-shadow: var(--focus-ring);
+                    }
+                }
+                .profile-details {
+                   display: flex;
+                   flex-direction: column;
+                   
+                   .profile-fullName {
+                     color: var(--v-menuitem-text-color);
+                     opacity: 0.9;
+                   }
+                   
+                   .profile-userRole {
+                     color: var(--v-menuitem-text-color-secondary);
+                     opacity: 0.9;
+                   }
+                    
+                }
+            }
+
+            &.topbar-search {
+                .p-inputtext {
+                    padding-top: .5rem;
+                    padding-bottom: .5rem;
+                    border-radius: 2rem;
+                }
+            }
+        }
+    }
+}
+
+.notification-button {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.notification-button .p-badge {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  background-color: var(--primary-color) !important;
+  color: black !important;
+}

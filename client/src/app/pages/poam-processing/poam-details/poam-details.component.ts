@@ -16,7 +16,7 @@ import { addDays, format, isAfter, parseISO } from 'date-fns';
 import { Subscription, forkJoin, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { SubSink } from 'subsink';
-import { SharedService } from '../../../Shared/shared.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { PoamService } from '../poams.service';
@@ -105,6 +105,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   filteredStigmanSTIGs: string[] = [];
   selectedStig: any = null;
   selectedStigTitle: string = '';
+  selectedStigObject: any = null;
   selectedStigBenchmarkId: string = '';
   assetList: any[] = [];
   stateData: any;
@@ -214,7 +215,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       })
     );
     this.setPayload();
-    this.fetchAssets();
+    if (this.poamId !== "ADDPOAM") {
+      this.fetchAssets();
+    }
   }
 
   async setPayload() {
@@ -223,7 +226,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
           if (this.user.accountStatus === 'ACTIVE') {
 
@@ -405,9 +408,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
               const selectedStig = this.stigmanSTIGs.find((stig: any) => stig.benchmarkId === benchmarkId);
               this.validateStigManagerCollection();
               if (selectedStig) {
+                this.selectedStigObject = selectedStig;
+                this.selectedStigTitle = selectedStig.title;
                 this.onStigSelected(selectedStig);
-              }
-              else {
+              } else {
                 this.poam.stigBenchmarkId = benchmarkId;
               }
             }
@@ -608,7 +612,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             this.showError("Unexpected error adding POAM", "Error");
           } else {
             this.poam.poamId = res.poamId;
-            this.poamService.newPoam(this.poam);
             this.showConfirmation("Added POAM: " + res.poamId, "Success", "success");
           }
         },
@@ -632,9 +635,15 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   onStigSelected(event: any) {
-    const selectedStig = this.stigmanSTIGs.find((stig: any) => stig.title === event);
+    let selectedStig;
+    if (typeof event === 'string') {
+      selectedStig = this.stigmanSTIGs.find((stig: any) => stig.title === event);
+    } else {
+      selectedStig = event;
+    }
+
     if (selectedStig) {
-      this.selectedStigTitle = '';
+      this.selectedStigTitle = selectedStig.title;
       this.selectedStigBenchmarkId = selectedStig.benchmarkId;
       this.poam.stigTitle = selectedStig.title;
       this.poam.stigBenchmarkId = selectedStig.benchmarkId;
@@ -1163,9 +1172,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   searchStigTitles(event: any) {
-    const query = event.query;
-    this.filteredStigmanSTIGs = this.stigmanSTIGs.filter((stig: { title: string }) =>
-      stig.title.toLowerCase().includes(query.toLowerCase())
+    const query = event.query.toLowerCase();
+    this.filteredStigmanSTIGs = this.stigmanSTIGs.filter((stig: any) =>
+      stig.title.toLowerCase().includes(query)
     );
   }
 

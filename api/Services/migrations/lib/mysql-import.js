@@ -107,7 +107,7 @@ class Importer {
 			try {
 				await this._connect();
 				const files = await this._getSQLFilePaths(...input);
-				const error = null;
+				let error = null;
 				await slowLoop(files, (file, index, next) => {
 					if (error) {
 						next();
@@ -164,7 +164,7 @@ class Importer {
 					return;
 				}
 				const queries = new queryParser(queriesString).queries;
-				const error = null;
+				let error = null;
 				slowLoop(queries, (query, index, next) => {
 					if (error) {
 						next();
@@ -261,7 +261,7 @@ class Importer {
 	_getSQLFilePaths(...paths) {
 		return new Promise(async (resolve, reject) => {
 			const full_paths = [];
-			const error = null;
+			let error = null;
 			paths = [].concat.apply([], paths); // flatten array of paths
 			await slowLoop(paths, async (filepath, index, next) => {
 				if (error) {
@@ -277,7 +277,7 @@ class Importer {
 						}
 						next();
 					} else if (stat.isDirectory()) {
-						const more_paths = await this._readDir(filepath);
+						let more_paths = await this._readDir(filepath);
 						more_paths = more_paths.map(p => path.join(filepath, p));
 						const sql_files = await this._getSQLFilePaths(...more_paths);
 						full_paths.push(...sql_files);
@@ -420,7 +420,7 @@ class queryParser {
 
 	// Check if we're at the end of the query
 	checkEndOfQuery() {
-		const demiliterFound = false;
+		let demiliterFound = false;
 		if (!this.quoteType && this.buffer.length >= this.delimiter.length) {
 			demiliterFound = this.buffer.slice(-this.delimiter.length).join('') === this.delimiter;
 		}

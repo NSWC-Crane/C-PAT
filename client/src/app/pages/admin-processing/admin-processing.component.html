@@ -1,6 +1,7 @@
 <div class="grid nested-grid">
   <div class="col-3" *ngFor="let statusCard of statusCards">
-    <p-status-card [title]="statusCard.title"
+    <p-status-card class="status-card"
+                   [title]="statusCard.title"
                    [type]="statusCard.type"
                    [icon]="statusCard.icon"
                    (click)="statusCard.component ? openModal(statusCard.component) : triggerFileInput()"

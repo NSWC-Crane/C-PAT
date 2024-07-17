@@ -13,7 +13,7 @@ import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
-import { SharedService } from '../../../Shared/shared.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { AssetService } from '../assets.service';
 
 @Component({
