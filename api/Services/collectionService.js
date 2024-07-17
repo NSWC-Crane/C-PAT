@@ -57,7 +57,6 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
             let [row] = await connection.query(sql, [userNameInput]);
             userId = row[0].userId;
             isAdmin = row[0].isAdmin;
-            userName = row[0].userName;
 
             const user = {
                 collections: []

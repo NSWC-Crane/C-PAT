@@ -12,7 +12,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '
 import { SubSink } from 'subsink';
 import { PoamService } from '../poams.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { SharedService } from '../../../Shared/shared.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { Subscription, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
@@ -84,7 +84,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
           if (this.user.accountStatus === 'ACTIVE') {
 

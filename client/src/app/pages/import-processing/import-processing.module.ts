@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { SharedModule } from '../../Shared/shared.module';
+import { SharedModule } from '../../common/shared.module';
 import { STIGManagerImportComponent } from './stigmanager-import/stigmanager-import.component';
 import { TenableImportComponent } from './tenable-import/tenable-import.component';
 import { ImportProcessingRoutingModule } from './import-processing-routing.module';

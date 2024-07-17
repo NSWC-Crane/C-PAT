@@ -98,7 +98,7 @@ function requestLogger(req, res, next) {
     res._startTime = undefined;
     res.svcStatus = {};
 
-    let responseBody = undefined;
+    let responseBody;
     if (req.query.elevate === true || req.query.elevate === 'true') {
         responseBody = ''
         const originalSend = res.send

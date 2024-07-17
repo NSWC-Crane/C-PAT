@@ -373,7 +373,7 @@ CREATE TABLE `user` (
   `accountStatus` varchar(25) NOT NULL DEFAULT 'PENDING',
   `fullName` varchar(100) DEFAULT NULL,
   `officeOrg` varchar(100) DEFAULT 'UNKNOWN',
-  `defaultTheme` varchar(20) DEFAULT 'dark',
+  `defaultTheme` varchar(50) DEFAULT 'dark',
   `isAdmin` int NOT NULL DEFAULT '0',
   `lastClaims` json DEFAULT (_utf8mb4'{}'),
   `points` int NOT NULL DEFAULT '0',

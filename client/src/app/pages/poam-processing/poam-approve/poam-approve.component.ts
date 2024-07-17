@@ -15,7 +15,7 @@ import { PoamService } from '../poams.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { DatePipe } from '@angular/common';
 import { Subscription, forkJoin } from 'rxjs';
-import { SharedService } from '../../../Shared/shared.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { PoamApproveService } from './poam-approve.service';
 import { parseISO, format } from 'date-fns';
 import { ChangeDetectorRef } from '@angular/core';
@@ -77,7 +77,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     this.user = null;
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
           this.getData();
         } else {

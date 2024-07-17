@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { SharedModule } from '../../Shared/shared.module';
+import { SharedModule } from '../../common/shared.module';
 import { AssetProcessingComponent } from './asset-processing.component';
 import { AssetProcessingRoutingModule } from './asset-processing.routing';
 import { AssetComponent } from './asset/asset.component';

@@ -10,7 +10,7 @@
 
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
-import { ExcelDataService } from '../../../../Shared/utils/excel-data.service';
+import { ExcelDataService } from '../../../../common/utils/excel-data.service';
 
 @Component({
   selector: 'cpat-poam-grid',

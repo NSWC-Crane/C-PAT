@@ -1,23 +1,6 @@
 
-    ::ng-deep .cdk-overlay-pane {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 60vw;
-    height: auto;
-    max-height: 80vh;
-    overflow-y: auto;
-    background: rgba(0, 0, 0, 0);
-    position: relative;
-    overflow: auto;
-    border-radius: 4px;
-
-    .modal-dialog {
-      width: 60vw;
-      height: auto;
-      max-height: 80vh;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-  }
+.col-3 {
+   &:hover {
+       transform: scale(1.03);
+   }
+}

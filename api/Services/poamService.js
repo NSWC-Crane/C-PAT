@@ -536,16 +536,6 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
                     return res.status(404).json({ errors: 'POAM not found' });
                 }
 
-                const existingPoam = existingPoamRow[0];
-
-                const existingPoamNormalized = {
-                    ...existingPoam,
-                    submittedDate: normalizeDate(existingPoam.submittedDate) || null,
-                    scheduledCompletionDate: normalizeDate(existingPoam.scheduledCompletionDate) || null,
-                    closedDate: normalizeDate(existingPoam.closedDate) || null,
-                    iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate) || null,
-                };
-
                 const sqlUpdatePoam = `UPDATE cpat.poam SET status = ? WHERE poamId = ?`;
                 await connection.query(sqlUpdatePoam, [req.body.status, req.params.poamId]);
 

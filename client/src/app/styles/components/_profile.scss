@@ -1,0 +1,10 @@
+.layout-profile-sidebar {
+    &.p-sidebar {
+        width: 25rem;
+
+        .p-sidebar-content {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+    }
+}

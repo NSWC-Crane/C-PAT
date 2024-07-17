@@ -1,0 +1,263 @@
+import { AuthService } from '../../core/auth/services/auth.service';
+import { NavigationEnd, Router } from '@angular/router';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { LayoutService } from '../services/app.layout.service';
+import { MenuItem } from 'primeng/api';
+import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
+import { NotificationService } from '../../common/components/notifications/notifications.service';
+import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { SubSink } from 'subsink';
+import { SharedService } from '../../common/services/shared.service';
+import { format } from 'date-fns';
+import { Subject, filter, takeUntil } from 'rxjs';
+function getRoleFromAccessLevel(accessLevel: number): string {
+  switch (accessLevel) {
+    case 1:
+      return 'viewer';
+    case 2:
+      return 'submitter';
+    case 3:
+      return 'approver';
+    case 4:
+      return 'cat1approver';
+    default:
+      return 'none';
+  }
+}
+interface Permission {
+  userId: number;
+  collectionId: number;
+  accessLevel: number;
+}
+
+@Component({
+  selector: 'app-navigation',
+  templateUrl: './app.navigation.component.html'
+})
+export class AppNavigationComponent implements OnInit, OnDestroy {
+  collections: any = [];
+  user: any;
+  payload: any;
+  fullName: any;
+  userRole: any;
+  userMenu: MenuItem[] = [{ label: 'Log Out', icon: 'pi pi-sign-out' }];
+  notificationCount: any = null;
+  selectedCollection: any = null;
+  selectCollectionMsg: boolean = false;
+  collectionName: string = 'Select Collection';
+  private subs = new SubSink();
+  timeout: any = null;
+  private destroy$ = new Subject<void>();
+
+  @ViewChild('menubutton') menuButton!: ElementRef;
+  @ViewChild('menuContainer') menuContainer!: ElementRef;
+
+  constructor(
+    private authService: AuthService,
+    private collectionService: CollectionsService,
+    public layoutService: LayoutService,
+    private sharedService: SharedService,
+    private userService: UsersService,
+    private router: Router,
+    private notificationService: NotificationService,
+    public el: ElementRef
+  ) { }
+
+  public async ngOnInit() {
+    this.layoutService.setInitialTheme('lara-dark-blue');
+    this.initializeUser();
+    this.setMenuItems();
+    this.setupUserMenuActions();
+  }
+
+  async initializeUser() {
+    try {
+      this.user = null;
+      this.payload = null;
+      this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
+        next: (response: any) => {
+          this.user = response;
+          this.fullName = response.fullName;
+          this.userRole = this.user.isAdmin ? 'C-PAT Admin' : 'C-PAT User';
+          if (this.user.defaultTheme) {
+            this.layoutService.setInitialTheme(this.user.defaultTheme);
+          } 
+          if (this.user.accountStatus === 'ACTIVE') {
+            this.payload = {
+              ...this.user,
+              collections: this.user.permissions.map((permission: Permission) => ({
+                collectionId: permission.collectionId,
+                accessLevel: permission.accessLevel,
+              }))
+            };
+            this.getNotificationCount();
+            this.getCollections();
+            this.router.events.pipe(
+              filter(event => event instanceof NavigationEnd),
+              takeUntil(this.destroy$)
+            ).subscribe(() => {
+              if (this.user.userId) {
+                this.getNotificationCount();
+              }
+            });
+          } else {
+            alert('Your account status is not Active, contact your system administrator');
+          }
+        },
+        error: (error) => {
+          console.error('An error occurred:', error.message);
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing user:', error);
+    }
+  }
+
+  async getCollections() {
+    const userName = this.payload.userName;
+    this.subs.sink = (await this.collectionService.getCollections(userName)).subscribe((result: any) => {
+      this.collections = result;
+      if (this.user.lastCollectionAccessedId) {
+        this.selectedCollection = +this.user.lastCollectionAccessedId;
+        this.resetWorkspace(this.selectedCollection);
+      } else if (!this.payload.lastCollectionAccessedId || this.payload.lastCollectionAccessedId === undefined) {
+        this.selectedCollection = null;
+        this.selectCollectionMsg = true;
+      } else {
+
+      }
+    });
+  }
+
+  async getNotificationCount() {
+    this.subs.sink = (await this.notificationService.getUnreadNotificationCountByUserId(this.user.userId)).subscribe((result: any) => {
+      this.notificationCount = result > 0 ? result : null;
+    });
+  }
+
+  setMenuItems() {
+    const marketplaceDisabled = CPAT.Env.features.marketplaceDisabled;
+    if (marketplaceDisabled) {
+      this.userMenu = [{ label: 'Log Out', icon: 'pi pi-sign-out', command: () => this.logout() }];
+    } else {
+      this.userMenu = [
+        { label: 'Marketplace', icon: 'pi pi-shopping-cart', command: () => this.goToMarketplace() },
+        { label: 'Log Out', icon: 'pi pi-sign-out', command: () => this.logout() }
+      ];
+    }
+  }
+
+  setupUserMenuActions() {
+    this.userMenu.forEach(item => {
+      if (item.label === 'Marketplace') {
+        item.command = () => this.goToMarketplace();
+      } else if (item.label === 'Log Out') {
+        item.command = () => this.logout();
+      }
+    });
+  }
+
+  goToMarketplace() {
+    this.router.navigate(['/marketplace']);
+  }
+
+  logout() {
+    this.authService.logout().then(() => {
+      this.router.navigate(['/login']);
+    });
+  }
+
+  onMenuButtonClick() {
+    this.layoutService.onMenuToggle();
+  }
+
+  showConfig() {
+    this.layoutService.showConfigSidebar();
+  }
+
+  onMouseEnter() {
+    if (!this.layoutService.state.anchored) {
+      if (this.timeout) {
+        clearTimeout(this.timeout);
+        this.timeout = null;
+      }
+      this.layoutService.state.sidebarActive = true;
+    }
+  }
+
+  onMouseLeave() {
+    if (!this.layoutService.state.anchored) {
+      if (!this.timeout) {
+        this.timeout = setTimeout(() => this.layoutService.state.sidebarActive = false, 300);
+      }
+    }
+  }
+
+  anchor() {
+    this.layoutService.state.anchored = !this.layoutService.state.anchored;
+  }
+
+  async resetWorkspace(selectedCollection: any) {
+    this.selectedCollection = selectedCollection;
+    this.selectCollectionMsg = false;
+    this.sharedService.setSelectedCollection(parseInt(this.selectedCollection, 10));
+
+    const collection = this.collections.find((x: { collectionId: any; }) => x.collectionId == this.selectedCollection);
+    this.collectionName = 'Collection: ' + collection.collectionName;
+    if (collection) {
+      const stWorkspace = document.getElementById('selectedCollection') as HTMLInputElement;
+      if (stWorkspace) {
+        const att = stWorkspace.querySelector("span");
+        if (att) {
+          att.textContent = "Collection - " + collection.collectionName;
+        }
+      }
+    }
+    const now = new Date();
+    const formattedNow = format(now, 'yyyy-MM-dd HH:mm:ss');
+    const userUpdate = {
+      userId: this.user.userId,
+      userName: this.user.userName,
+      email: this.user.email,
+      lastAccess: formattedNow,
+      firstName: this.user.firstName,
+      lastName: this.user.lastName,
+      lastCollectionAccessedId: parseInt(selectedCollection),
+      accountStatus: this.user.accountStatus,
+      officeOrg: this.user.officeOrg,
+      defaultTheme: this.user.defaultTheme || 'default',
+      isAdmin: this.user.isAdmin,
+    };
+    const selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == selectedCollection);
+    let myRole: string;
+
+    if (!selectedPermissions && !this.user.isAdmin) {
+      myRole = 'none';
+    } else if (this.user.isAdmin) {
+      myRole = 'admin';
+    } else if (selectedPermissions) {
+      myRole = getRoleFromAccessLevel(selectedPermissions.accessLevel);
+    } else {
+      myRole = 'none';
+    }
+
+    this.payload.role = myRole;
+    this.userService.changeRole(this.payload);
+
+    if (this.user.lastCollectionAccessedId !== selectedCollection) {
+      try {
+        const result = await (await this.userService.updateUser(userUpdate)).toPromise();
+        this.user = result;
+        window.location.reload();
+      } catch (error) {
+        console.error('Error updating user:', error);
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.subs.unsubscribe();
+  }
+}

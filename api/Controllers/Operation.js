@@ -15,7 +15,6 @@ module.exports.getConfiguration = async function getConfiguration(req, res, next
     try {
         let dbConfigs = await operationService.getConfiguration()
         let version = { version: config.version }
-        let commit = { commit: config.commit }
         let response = { ...version, ...dbConfigs }
         res.json(response)
     }

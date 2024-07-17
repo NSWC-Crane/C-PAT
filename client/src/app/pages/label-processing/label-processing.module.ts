@@ -11,7 +11,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SharedModule } from '../../Shared/shared.module';
+import { SharedModule } from '../../common/shared.module';
 import { LabelProcessingComponent } from './label-processing.component';
 import { LabelProcessingRoutingModule } from './label-processing.routing';
 import { LabelComponent } from './label/label.component';

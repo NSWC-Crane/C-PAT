@@ -13,7 +13,7 @@ import { UsersService } from './users.service';
 import { forkJoin } from 'rxjs';
 import { ConfirmationService, TreeNode } from 'primeng/api';
 import { SubSink } from "subsink";
-import { ConfirmationDialogOptions } from '../../../Shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { TreeTable } from 'primeng/treetable';
 
@@ -72,7 +72,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
 
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
 
           if (this.user.accountStatus === 'ACTIVE') {

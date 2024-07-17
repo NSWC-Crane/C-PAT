@@ -31,7 +31,7 @@ exports.getPoamAssets = async function getPoamAssets(req, res, next) {
                 INNER JOIN cpat.asset t2 ON t1.assetId = t2.assetId
             `;
             let [rowPoamAssets] = await connection.query(sql);
-            const poamAssets = rowPoamAssets.map(row => ({
+            var poamAssets = rowPoamAssets.map(row => ({
                 assetId: row.assetId,
                 assetName: row.assetName,
                 poamId: row.poamId,

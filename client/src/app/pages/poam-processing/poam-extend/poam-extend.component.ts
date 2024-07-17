@@ -15,7 +15,7 @@ import { Subscription, forkJoin } from 'rxjs';
 import { addDays, format, isAfter, parseISO } from 'date-fns';
 import { PoamService } from '../poams.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
-import { SharedService } from '../../../Shared/shared.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { PoamExtensionService } from '../poam-extend/poam-extend.service';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -95,7 +95,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     this.user = null;
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
           this.getData();
         } else {

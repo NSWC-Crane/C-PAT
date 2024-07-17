@@ -24,12 +24,6 @@ export class PoamService {
     private oidcSecurityService: OidcSecurityService
   ) { }
 
-  public onNewPoam = new EventEmitter<any>();
-
-  public newPoam(poam: any) {
-    this.onNewPoam.emit({ poam });
-  }
-
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);

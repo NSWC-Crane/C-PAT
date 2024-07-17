@@ -10,7 +10,7 @@
 
 import { Injectable } from '@angular/core';
 import { PoamService } from '../../../poam-processing/poams.service';
-import { SharedService } from '../../../../Shared/shared.service';
+import { SharedService } from '../../../../common/services/shared.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { ImportService } from '../../import.service';

@@ -108,12 +108,9 @@ async function processPoamWorksheet(worksheet, userId) {
     let headers;
     const poamData = [];
     const eMassCollection = await db.Collection.findOne({ where: { collectionName: 'eMASS' } });
-    if (eMassCollection.collectionId) {
-        const eMassCollectionId = eMassCollection.collectionId;
-    } else {
+    if (!eMassCollection.collectionId) {
         throw new Error("eMASS collection not found");
     }
-
     worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
         if (rowNumber === 7) {
             headers = row.values;
@@ -156,7 +153,7 @@ async function processPoamWorksheet(worksheet, userId) {
             });
 
             if (!isEmptyRow) {
-                poamEntry.collectionId = eMassCollectionId;
+                poamEntry.collectionId = eMassCollection.collectionId;
                 poamEntry.submitterId = userId;
 
                 const comments = poamEntry.notes || '';
@@ -212,7 +209,7 @@ async function processPoamWorksheet(worksheet, userId) {
                 if (!asset) {
                     asset = await db.Asset.create({
                         assetName: trimmedDeviceName,
-                        collectionId: eMassCollectionId,
+                        collectionId: eMassCollection.collectionId,
                         assetOrigin: 'eMASS'
                     });
                 }

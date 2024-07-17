@@ -15,7 +15,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Observable, Subscription, catchError, forkJoin, of } from 'rxjs';
 import { SubSink } from "subsink";
 import { ImportService } from '../../import-processing/import.service';
-import { SharedService } from '../../../Shared/shared.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { PoamAssetUpdateService } from '../../import-processing/stigmanager-import/stigmanager-update/stigmanager-update.service';
@@ -142,7 +142,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     );
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
-        if (response.userId) {
+        if (response?.userId) {
           this.user = response;
         }
       },
