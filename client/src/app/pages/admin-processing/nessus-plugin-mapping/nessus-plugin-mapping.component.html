@@ -41,7 +41,7 @@
     </ng-template>
     <ng-template pTemplate="header">
       <tr>
-        <th *ngFor="let col of cols" [style.min-width]="col.minWidth">
+        <th *ngFor="let col of cols" [style.min-width]="col.minWidth" [scope]="'col'">
           <div class="flex align-items-center">
             {{col.header}}
             <p-columnFilter [type]="getFilterType(col)" [field]="col.field" display="menu">

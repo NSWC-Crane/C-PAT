@@ -9,7 +9,8 @@
 */
 
 import { Component, OnInit } from '@angular/core';
-import { catchError, map, forkJoin } from 'rxjs';
+import { forkJoin, from, Observable, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { CollectionsService } from '../collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -51,27 +52,27 @@ export class TenableAdminComponent implements OnInit {
     this.fetchDataAndCompare();
   }
 
-  async fetchDataAndCompare() {
+  fetchDataAndCompare() {
     forkJoin({
-      repositories: (await this.importService.getTenableRepositories()).pipe(
-        map(response => response.response),
+      repositories: from(this.importService.getTenableRepositories()).pipe(
+        map((response: any) => response.response),
         catchError(error => {
           console.error('Error fetching Tenable repositories:', error);
           this.showPopup('Unable to connect to Tenable.');
-          return [];
+          return of([]);
         })
       ),
-      collections: (await this.collectionsService.getCollectionBasicList()).pipe(
+      collections: from(this.collectionsService.getCollectionBasicList()).pipe(
         catchError(error => {
           console.error('Error fetching collections:', error);
           this.showPopup('Unable to fetch existing collections.');
-          return [];
+          return of([]);
         })
       )
     }).subscribe({
       next: ({ repositories, collections }) => {
         this.tenableRepositories = repositories;
-        this.existingCollections = collections;
+        this.existingCollections = Array.isArray(collections) ? collections : [];
         this.filterRepositories();
       },
       error: (error) => {
@@ -110,21 +111,22 @@ export class TenableAdminComponent implements OnInit {
       header: 'Confirm Bulk Import',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        const importPromises = this.filteredRepositories.map(repo => this.importRepository(repo));
-        Promise.all(importPromises)
-          .then(() => {
+        const importObservables = this.filteredRepositories.map(repo => this.importRepository(repo));
+        forkJoin(importObservables).subscribe({
+          next: () => {
             this.messageService.add({ severity: 'success', summary: 'Success', detail: 'All repositories imported successfully' });
             this.fetchDataAndCompare();
-          })
-          .catch(error => {
+          },
+          error: (error) => {
             console.error('Error during bulk import', error);
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error during bulk import' });
-          });
+          }
+        });
       }
     });
   }
 
-  private importRepository(repository: TenableRepository) {
+  private importRepository(repository: TenableRepository): Observable<any> {
     const collectionData = {
       collectionName: repository.name,
       description: repository.description,
@@ -132,19 +134,17 @@ export class TenableAdminComponent implements OnInit {
       originCollectionId: +repository.id,
     };
 
-    return new Promise(async (resolve, reject) => {
-      (await this.collectionsService.addCollection(collectionData)).subscribe({
-        next: (response) => {
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: `Repository "${repository.name}" imported successfully` });
-          resolve(response);
-        },
-        error: (error) => {
-          console.error(`Error importing repository "${repository.name}"`, error);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: `Error importing repository "${repository.name}": ${error.message}` });
-          reject(error);
-        }
-      });
-    });
+    return from(this.collectionsService.addCollection(collectionData)).pipe(
+      switchMap((response) => {
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Repository "${repository.name}" imported successfully` });
+        return response;
+      }),
+      catchError((error) => {
+        console.error(`Error importing repository "${repository.name}"`, error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: `Error importing repository "${repository.name}": ${error.message}` });
+        throw error;
+      })
+    );
   }
 
   showPopup(message: string) {

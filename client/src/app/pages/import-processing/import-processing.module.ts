@@ -14,7 +14,6 @@ import { FormsModule } from '@angular/forms';
 
 import { SharedModule } from '../../common/shared.module';
 import { STIGManagerImportComponent } from './stigmanager-import/stigmanager-import.component';
-import { TenableImportComponent } from './tenable-import/tenable-import.component';
 import { ImportProcessingRoutingModule } from './import-processing-routing.module';
 
 import { AccordionModule } from 'primeng/accordion';
@@ -39,7 +38,7 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { SkeletonModule } from 'primeng/skeleton';
 import { RippleModule } from 'primeng/ripple';
 import { SidebarModule } from 'primeng/sidebar';
-import { TenableVulnerabilitiesComponent } from './tenable-import/components/TenableVulnerabilities/tenableVulnerabilities.component';
+import { TenableVulnerabilitiesComponent } from './tenable-import/tenableVulnerabilities.component';
 import { TenableSolutionsComponent } from './tenable-import/components/solutions/tenableSolutions.component';
 import { TenableIAVVulnerabilitiesComponent } from './tenable-import/components/iavVulnerabilities/tenableIAVVulnerabilities.component';
 import { TenableAssetsTableComponent } from './tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
@@ -47,7 +46,6 @@ import { TenableAssetsTableComponent } from './tenable-import/components/tenable
 @NgModule({
   declarations: [
     STIGManagerImportComponent,
-    TenableImportComponent,
     TenableVulnerabilitiesComponent,
     TenableSolutionsComponent,
     TenableIAVVulnerabilitiesComponent,

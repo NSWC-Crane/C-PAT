@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ConfirmationDialogOptions } from '../../../../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { ImportService } from '../../../import.service';
 import { Table } from 'primeng/table';
@@ -13,7 +13,7 @@ interface ExportColumn {
   templateUrl: './tenableSolutions.component.html',
   styleUrls: ['./tenableSolutions.component.scss']
 })
-export class TenableSolutionsComponent implements OnInit, OnDestroy {
+export class TenableSolutionsComponent implements OnInit {
   solutions: any[] = [];
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -187,9 +187,6 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
       button: { text: 'OK', status: 'info' },
       cancelbutton: 'false'
     };
-  }
-
-  ngOnDestroy() {
   }
 
   resetData() {
