@@ -163,7 +163,7 @@ class Importer {
 					reject(err);
 					return;
 				}
-				const queries = new queryParser(queriesString).queries;
+				const queries = new QueryParser(queriesString).queries;
 				let error = null;
 				slowLoop(queries, (query, index, next) => {
 					if (error) {
@@ -331,7 +331,7 @@ function slowLoop(items, loopBody) {
 }
 
 
-class queryParser {
+class QueryParser {
 
 	constructor(queriesString) {
 

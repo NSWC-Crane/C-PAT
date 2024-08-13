@@ -12,7 +12,8 @@
                       [text]="true"
                       [raised]="true"
                       severity="primary"
-                      (click)="toggleNavyComplyFilter()">
+                      (click)="toggleNavyComplyFilter()"
+                      (onKeyUp)="toggleNavyComplyFilter()">
             </p-button>
             <p-button [rounded]="true"
                       [text]="true"
@@ -40,12 +41,14 @@
                     [text]="true"
                     [raised]="true"
                     severity="primary"
+                    (onKeyUp)="toggleAddColumnOverlay()"
                     (click)="toggleAddColumnOverlay()">
           </p-button>
           <p-button icon="pi pi-external-link"
                     severity="secondary"
                     [rounded]="true"
                     [text]="true"
+                    (onKeyUp)="dt.exportCSV()"
                     (onClick)="dt.exportCSV()">
           </p-button>
           <p-multiSelect #ms
@@ -91,6 +94,7 @@
                     <i *ngIf="vulnerability.poam"
                        class="pi pi-check-circle"
                        style="color: green; font-size: 1.5rem; cursor: pointer;"
+                       (onKeyUp)="onPoamIconClick(vulnerability, $event)"
                        (click)="onPoamIconClick(vulnerability, $event)"
                        pTooltip="POAM Already Created. Click icon to view POAM."
                        tooltipPosition="top">
@@ -98,6 +102,7 @@
                     <i *ngIf="!vulnerability.poam"
                        class="pi pi-times-circle"
                        style="color: maroon; font-size: 1.5rem;"
+                       (onKeyUp)="onPoamIconClick(vulnerability, $event)"
                        (click)="onPoamIconClick(vulnerability, $event)"
                        pTooltip="No Existing POAM. Click icon to create draft POAM."
                        tooltipPosition="top">

@@ -25,6 +25,7 @@
                     [text]="true"
                     [raised]="true"
                     severity="primary"
+                    (onKeyUp)="toggleAddColumnOverlay()"
                     (click)="toggleAddColumnOverlay()">
           </p-button>
           <p-button icon="pi pi-external-link"

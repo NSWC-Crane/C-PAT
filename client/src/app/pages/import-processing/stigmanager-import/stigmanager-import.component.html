@@ -23,6 +23,7 @@
                            class="pi pi-check-circle"
                            style="color: green; font-size: 1.5rem; cursor: pointer;"
                            (click)="addPoam(rowNode)"
+                           (onKeyUp)="addPoam(rowNode)"
                            pTooltip="POAM Already Created. Click to update POAM."
                            tooltipPosition="top">
                         </i>
@@ -30,6 +31,7 @@
                            class="pi pi-times-circle"
                            style="color: maroon; font-size: 1.5rem; cursor: pointer;"
                            (click)="addPoam(rowNode)"
+                           (onKeyUp)="addPoam(rowNode)"
                            pTooltip="No Existing POAM. Click to create draft POAM."
                            tooltipPosition="top">
                         </i>
@@ -76,7 +78,8 @@
                   type="button"
                   label="Synchronize POAMs with STIG Manager"
                   class="p-button-outlined p-button-info sync-button w-full"
-                  (click)="stigManagerAssetSync()">
+                  (click)="stigManagerAssetSync()"
+                  (onKeyUp)="stigManagerAssetSync()">
           </button>
         </p-card>
       </div>
@@ -99,7 +102,8 @@
                       type="button"
                       label="Import"
                       class="p-button-outlined p-button-info w-full"
-                      (click)="fetchAssetDetails()">
+                      (click)="fetchAssetDetails()"
+                      (onKeyUp)="fetchAssetDetails()">
               </button>
             </div>
           </div>
