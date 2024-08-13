@@ -19,7 +19,6 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 export class SharedService {
   private cpatApiBase = CPAT.Env.apiBase;
   private STIGMANAGER_URL = `http://${CPAT.Env.stigman.host}:${CPAT.Env.stigman.port}/${CPAT.Env.stigman.apiBase}`;
-  private TENNABLE_URL = "PLACEHOLDER";
   private _selectedCollection = new BehaviorSubject<any>(null);
   public readonly selectedCollection = this._selectedCollection.asObservable();
   constructor(
@@ -121,37 +120,5 @@ export class SharedService {
     const headers = await this.getSTIGManagerAuthHeaders();
 		return this.http.get<any>(endpoint, { headers })
       .pipe(catchError(this.handleError));
-  }
-
-  getTenableScanResults(scanId: string, fields?: string) {
-    const tenableAccessKey = "This will be removed and handled securely";
-    const tenableSecretKey = "This will be removed and handled securely";
-    const endpoint = `${this.TENNABLE_URL}/scanResult/${scanId}`;
-    const url = fields ? `${endpoint}?fields=${fields}` : endpoint;
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'X-ApiKeys': `accessKey=${tenableAccessKey}; secretKey=${tenableSecretKey}`
-    });
-
-		return this.http.get(url, { headers }).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  getTenableScans(fields?: string) {
-    const tenableAccessKey = "This will be removed and handled securely";
-    const tenableSecretKey = "This will be removed and handled securely";
-    const endpoint = `${this.TENNABLE_URL}/scanResult`;
-    const url = fields ? `${endpoint}?fields=${fields}` : endpoint;
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'X-ApiKeys': `accessKey=${tenableAccessKey}; secretKey=${tenableSecretKey}`
-    });
-
-		return this.http.get(url, { headers }).pipe(
-      catchError(this.handleError)
-    );
   }
 }

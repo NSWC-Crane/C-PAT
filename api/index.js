@@ -37,6 +37,8 @@ const multer = require('multer');
 const writer = require('./utils/writer.js');
 const OperationSvc = require('./Services/operationService');
 const { middleware: openApiMiddleware, resolvers } = require('express-openapi-validator');
+const proxy = require('express-http-proxy');
+const url = require('url');
 const db = require(`./Services/utils`);
 const depStatus = {
     db: 'waiting',
@@ -89,6 +91,39 @@ app.use((req, res, next) => {
     }
 })
 
+app.use('/api/tenable', proxy(config.tenable.url, {
+    proxyReqPathResolver: function (req) {
+        const baseUrl = config.tenable.url.endsWith('/')
+            ? config.tenable.url.slice(0, -1)
+            : config.tenable.url;
+        const path = '/rest' + req.url.replace('/api/tenable', '');
+        const fullUrl = url.resolve(baseUrl, path);
+
+        return fullUrl;
+    },
+    proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
+        const headersToRemove = ['host', 'referer', 'origin', 'cookie', 'user-agent', 'authorization'];
+        headersToRemove.forEach(header => {
+            delete proxyReqOpts.headers[header.toLowerCase()];
+        });
+        proxyReqOpts.headers['x-apikey'] = `accesskey=${config.tenable.accessKey}; secretkey=${config.tenable.secretKey};`;
+        if (!proxyReqOpts.headers['Content-Type']) {
+            proxyReqOpts.headers['Content-Type'] = 'application/json';
+        }
+        proxyReqOpts.headers['User-Agent'] = 'Integration/1.0 (NAVSEA; CPAT; Build/1.0)';
+        proxyReqOpts.rejectUnauthorized = false;
+
+        return proxyReqOpts;
+    },
+    userResDecorator: function (proxyRes, proxyResData, userReq, userRes) {
+        return proxyResData;
+    },
+    proxyErrorHandler: function (err, res, next) {
+        console.error('Proxy error:', err);
+        res.status(500).send('Proxy error: ' + err.message);
+    }
+}));
+
 const apiSpecPath = path.join(__dirname, './specification/C-PAT.yaml');
 app.use(
     '/api',
@@ -111,8 +146,7 @@ app.use(
             handlers: {
                 oauth: auth.verifyRequest
             }
-        },
-        fileUploader: false
+        }
     })
 );
 
@@ -256,7 +290,7 @@ const CPAT = {
 
 async function startServer(app) {
     const server = http.createServer(app)
-        server.listen(config.http.port, function () {
+    server.listen(config.http.port, function () {
         logger.writeInfo('index', 'listening', {
             port: config.http.port,
             api: '/api',

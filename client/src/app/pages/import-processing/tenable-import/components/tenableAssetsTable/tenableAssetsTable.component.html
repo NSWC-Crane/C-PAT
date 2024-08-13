@@ -1,0 +1,177 @@
+<div class="col-12 row">
+  <div class="col">
+    <div class="p-fluid">
+      <div class="toolbar mb-3">
+        <div class="left-inputAndButton">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input pInputText type="text" class="w-12rem" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Global Search" />
+            <p-button [rounded]="true"
+                      [text]="true"
+                      [raised]="true"
+                      severity="secondary"
+                      class="ml-2"
+                      icon="pi pi-filter-slash"
+                      (click)="clear()"
+                      (onKeyUp)="clear()"
+                      pTooltip="Clear all filters">
+            </p-button>
+          </span>
+        </div>
+        <div class="right-buttons">
+          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" (onKeyUp)="resetColumnSelections()" pTooltip="Reset column selections"></p-button>
+          <p-button icon="pi pi-plus"
+                    [rounded]="true"
+                    [text]="true"
+                    [raised]="true"
+                    severity="primary"
+                    (click)="toggleAddColumnOverlay()">
+          </p-button>
+          <p-button icon="pi pi-external-link"
+                    severity="secondary"
+                    [rounded]="true"
+                    [text]="true"
+                    (onClick)="dt.exportCSV()">
+          </p-button>
+          <p-multiSelect #ms
+                         [options]="cols"
+                         [(ngModel)]="selectedColumns"
+                         optionLabel="header"
+                         styleClass="custom-multiselect"
+                         appendTo="body"
+                         filterPlaceHolder="Add columns..."
+                         [showToggleAll]="true">
+          </p-multiSelect>
+        </div>
+      </div>
+      <div class="scrollable-vulnerabilities">
+        <p-table #dt [value]="affectedAssets"
+                 [columns]="selectedColumns"
+                 [paginator]="true"
+                 [rows]="20"
+                 [totalRecords]="totalRecords"
+                 [loading]="isLoading"
+                 [showCurrentPageReport]="true"
+                 [rowsPerPageOptions]="[10,20,50]"
+                 [globalFilterFields]="['pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID']"
+                 [filterDelay]="300"
+                 [rowHover]="true"
+                 dataKey="pluginID"
+                 [resizableColumns]="true"
+                 [exportHeader]="'customExportHeader'"
+                 styleClass="p-datatable-sm p-datatable-gridlines-hidden">
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}" pResizableColumn>
+                {{col.header}}
+                <p-sortIcon [field]="col.field"></p-sortIcon>
+                <p-columnFilter [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" display="menu"></p-columnFilter>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-vulnerability let-columns="columns">
+            <tr (click)="showDetails(vulnerability)" (keyup)="showDetails(vulnerability)" style="cursor: pointer;">
+              <td *ngFor="let col of columns">
+                <ng-container [ngSwitch]="col.field">
+                  <ng-container *ngSwitchCase="'severity'">
+                    <span [class]="'severity-badge severity-' + vulnerability[col.field]">
+                      {{vulnerability[col.field]}}
+                    </span>
+                  </ng-container>
+                  <ng-container *ngSwitchDefault>
+                    {{vulnerability[col.field]}}
+                  </ng-container>
+                </ng-container>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="selectedColumns.length" style="text-align:center">No assets to display</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-dialog header="Plugin Details" class="pluginDialog" [(visible)]="displayDialog" [modal]="true" [style]="{'width': '50vw'}">
+  <ng-template pTemplate="content">
+    <div class="p-grid">
+      <div class="p-col-12"><b>Plugin ID:</b> {{selectedVulnerability.pluginID}}</div>
+      <div class="p-col-12"><b>Name:</b> {{selectedVulnerability.name}}</div>
+      <div class="p-col-12"><b>Severity:</b> {{selectedVulnerability.severity.name}}</div>
+      <div class="p-col-12"><b>VPR Score:</b> {{selectedVulnerability.vprScore}}</div>
+      <div class="p-col-12"><b>Protocol:</b> {{selectedVulnerability.protocol}}</div>
+      <div class="p-col-12"><b>Family:</b> {{selectedVulnerability.family}}</div>
+      <br />
+      <div class="p-col-12">
+        <p-table [value]="parsedVprContext" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Vulnerability Priority Rating (VPR) Key Drivers</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{ item.name }}: </td>
+              <td>
+                <span [ngSwitch]="item.type">
+                  <span *ngSwitchCase="'boolean'">{{item.value ? 'Yes' : 'No'}}</span>
+                  <span *ngSwitchDefault>{{item.value}}</span>
+                </span>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+      <div class="p-col-12">
+        <div class="description">
+          <h6>Description</h6>
+          <div class="p-col-12" [innerHTML]="formattedDescription"></div>
+          <h6>Solution</h6>
+          <div class="p-col-12">{{ pluginData.solution }}</div>
+        </div>
+        <div class="p-col-12"><b>CVSS v2 Severity:</b> {{ pluginData.riskFactor }}</div>
+        <div class="p-col-12"><b>Vulnerability Priority Rating:</b> {{ pluginData.vprScore }}</div>
+        <div class="p-col-12"><b>CVSS Base Score:</b> {{ pluginData.baseScore }}</div>
+        <div class="p-col-12"><b>CVSS Temporal Score:</b> {{ pluginData.temporalScore }}</div>
+        <div class="p-col-12"><b>CVSS v3 Base Score:</b> {{ pluginData.cvssV3BaseScore }}</div>
+        <div class="p-col-12"><b>CVSS v3 Temporal Score:</b> {{ pluginData.cvssV3TemporalScore }}</div>
+        <div class="p-col-12"><b>CVSS v3 Vector:</b> {{ pluginData.cvssV3Vector }}</div>
+        <div class="p-col-12"><b>CPE:</b> {{ pluginData.cpe }}</div>
+        <div class="p-col-12"><b>Vulnerability Publication Date: </b>{{ pluginData.pluginPubDate * 1000 | date:'MMMM d, yyyy' }}</div>
+        <div class="p-col-12"><b>Patch Publication Date: </b>{{ pluginData.patchPubDate * 1000 | date:'MMMM d, yyyy' }}</div>
+        <div class="p-col-12"><b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date:'MMMM d, yyyy' }}</div>
+        <div class="p-col-12"><b>Plugin Last Modification Date:</b> {{ pluginData.pluginModDate * 1000 | date:'MMMM d, yyyy' }}</div>
+        <div class="p-col-12"><b>Source File:</b> {{ pluginData.sourceFile }}</div>
+        <div class="p-col-12"><b>Version:</b> {{ pluginData.version }}</div>
+      </div>
+      <br />
+      <div class="p-col-12">
+        <h6>IAV References</h6>
+        <ul>
+          <li *ngFor="let ref of iavReferences">
+            <a [href]="getIavUrl(ref.value)" target="_blank">{{ ref.value }}</a>
+          </li>
+        </ul>
+        <h6>CVE References</h6>
+        <ul>
+          <li *ngFor="let ref of cveReferences">
+            <a [href]="getCveUrl(ref.value)" target="_blank">{{ ref.value }}</a>
+          </li>
+        </ul>
+        <h6 *ngIf="otherReferences.length > 0">Cross-References</h6>
+        <ul>
+          <li *ngFor="let ref of otherReferences">
+            {{ref.type}}:{{ref.value}}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-toast position="center" key="error"></p-toast>

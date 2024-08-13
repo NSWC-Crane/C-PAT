@@ -7,7 +7,7 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-<p-dialog header="Extend POAM" [(visible)]="displayExtensionDialog" [modal]="true" [style]="{width: '60vw', height: '80vh'}" [draggable]="false" [resizable]="false">
+<p-dialog header="Extend POAM" [(visible)]="displayExtensionDialog" [modal]="true" [style]="{width: '60vw', height: '80vh'}" [draggable]="false" [resizable]="false" [closable]="true" (onHide)="cancelExtension()">
   <div class="container" *ngIf="poam">
     <div class="p-grid">
       <!-- Extension Time Allowed -->
@@ -64,7 +64,7 @@
               <td>
                 <p-cellEditor>
                   <ng-template pTemplate="input">
-                    <p-calendar [(ngModel)]="milestone.extensionMilestoneDate" [showIcon]="true" dateFormat="yy-mm-dd" appendTo="body"></p-calendar>
+                    <p-calendar [(ngModel)]="milestone.extensionMilestoneDate" [showIcon]="true" dateFormat="yy-mm-dd" [readonlyInput]="true" appendTo="body"></p-calendar>
                   </ng-template>
                   <ng-template pTemplate="output">
                     {{milestone.extensionMilestoneDate | date:'yyyy-MM-dd'}}
@@ -99,8 +99,8 @@
     </div>
   </div>
   <ng-template pTemplate="footer">
-    <button pButton label="Save" class="p-button-outlined" (click)="submitPoamExtension()"></button>
-    <button pButton label="Cancel" class="p-button-outlined p-button-secondary" (click)="cancelExtension()"></button>
+    <p-button [outlined]="true" label="Save" (click)="submitPoamExtension()"></p-button>
+    <p-button class="ml-2" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()"></p-button>
   </ng-template>
 </p-dialog>
 <p-toast></p-toast>

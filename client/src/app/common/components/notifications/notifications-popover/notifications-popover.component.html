@@ -18,7 +18,7 @@
               <div class="notification-icon">
                 <i [class]="notification.icon"></i>
               </div>
-              <h4>{{ notification.title }}</h4>
+              <h5>{{ notification.title }}</h5>
               <i *ngIf="notification.notificationId" class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)" (onKeyUp)="dismissNotification(notification)"></i>
             </div>
             <p>{{ notification.message }}</p>

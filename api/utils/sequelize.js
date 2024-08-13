@@ -10,7 +10,6 @@
 
 const Sequelize = require("sequelize");
 const config = require("../utils/config");
-
 const sequelize = new Sequelize(
     config.database.schema,
     config.database.username,
@@ -27,9 +26,7 @@ const sequelize = new Sequelize(
         },
     }
 );
-
 const db = {};
-
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
@@ -40,10 +37,19 @@ db.Label = require("../Models/label.model.js")(sequelize, Sequelize.DataTypes);
 db.Poam = require("../Models/poam.model.js")(sequelize, Sequelize.DataTypes);
 db.poamAsset = require("../Models/poamAsset.model.js")(sequelize, Sequelize.DataTypes);
 db.poamMilestone = require("../Models/poamMilestone.model.js")(sequelize, Sequelize.DataTypes);
+db.IAV = require("../Models/iav.model.js")(sequelize, Sequelize.DataTypes);
+db.IAV_Plugin = require("../Models/iav_plugin.model.js")(sequelize, Sequelize.DataTypes);
+db.Config = require("../Models/config.model.js")(sequelize, Sequelize.DataTypes);
 
-db.Asset.belongsTo(db.Collection, { foreignKey: 'collectionId' });
-db.poamAsset.belongsTo(db.Asset, { foreignKey: 'assetId' });
-db.Collection.hasMany(db.Asset, { foreignKey: 'collectionId' });
+db.Asset.belongsTo(db.Collection, {
+    foreignKey: 'collectionId'
+});
+db.poamAsset.belongsTo(db.Asset, {
+    foreignKey: 'assetId'
+});
+db.Collection.hasMany(db.Asset, {
+    foreignKey: 'collectionId'
+});
 
 Object.keys(db).forEach(modelName => {
     if (db[modelName].associate) {

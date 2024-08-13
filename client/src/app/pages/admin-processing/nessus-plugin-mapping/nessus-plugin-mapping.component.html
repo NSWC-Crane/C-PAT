@@ -1,0 +1,86 @@
+<p-progressBar *ngIf="isUpdating" [value]="updateProgress"></p-progressBar>
+
+<button pButton class="p-button-outlined p-button-secondary w-full mb-4"
+        type="button"
+        label="Map Plugin IDs to IAV"
+        (click)="updatePluginIds()"
+        [disabled]="isUpdating">
+</button>
+
+<p-messages *ngIf="isUpdating"
+           severity="warn"
+           styleClass="w-full mb-4">
+  <ng-template pTemplate="content">
+    <div class="flex justify-content-between align-items-center">
+      <span>
+        Warning: Please do not close or reload the page while the update is in progress.
+        <span *ngIf="estimatedTimeRemaining">
+          Estimated time remaining: {{ estimatedTimeRemaining }}
+        </span>
+      </span>
+    </div>
+  </ng-template>
+</p-messages>
+<div class="card">
+  <p-table #dt
+           [value]="tableData"
+           dataKey="iav"
+           [rows]="10"
+           [rowsPerPageOptions]="[10, 20, 50]"
+           [loading]="loading"
+           [paginator]="true"
+           [globalFilterFields]="['iav', 'pluginID', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate', 'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins']">
+    <ng-template pTemplate="caption">
+      <div class="flex">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Global Search" />
+        </span>
+        <p-button class="ml-auto" label="Clear" [outlined]="true" icon="pi pi-filter-slash" (onClick)="clear(dt)" />
+      </div>
+    </ng-template>
+    <ng-template pTemplate="header">
+      <tr>
+        <th *ngFor="let col of cols" [style.min-width]="col.minWidth">
+          <div class="flex align-items-center">
+            {{col.header}}
+            <p-columnFilter [type]="getFilterType(col)" [field]="col.field" display="menu">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <ng-container [ngSwitch]="getFilterType(col)">
+                  <ng-container *ngSwitchCase="'text'">
+                    <input type="text" pInputText [ngModel]="value" (ngModelChange)="filter($event)">
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'numeric'">
+                    <input type="number" pInputText [ngModel]="value" (ngModelChange)="filter($event)">
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'date'">
+                    <p-calendar [ngModel]="value" (ngModelChange)="filter($event)" dateFormat="yy-mm-dd"></p-calendar>
+                  </ng-container>
+                </ng-container>
+              </ng-template>
+            </p-columnFilter>
+          </div>
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-rowData>
+      <tr>
+        <td *ngFor="let col of cols">
+          <ng-container [ngSwitch]="col.field">
+            <ng-container *ngSwitchCase="'pluginID'">
+              {{ rowData[col.field]?.join(', ') || 'N/A' }}
+            </ng-container>
+            <ng-container *ngSwitchDefault>
+              {{ rowData[col.field] }}
+            </ng-container>
+          </ng-container>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="12">No IAV data found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

@@ -1,0 +1,271 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+:host {
+  ::ng-deep {
+    .p-dialog {
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .p-accordion {
+      width: 100%;
+
+      .p-accordion-tab {
+        margin: 0 0 0.5rem;
+        border: none;
+        border-radius: 0;
+
+        &:last-child {
+          margin: 0;
+        }
+      }
+
+      .p-accordion-header {
+        margin: 0;
+        border: none;
+        border-radius: 0;
+
+        a {
+          border: none;
+          border-radius: 0;
+          border-bottom: 1px solid var(--surface-border);
+        }
+      }
+
+      .p-accordion-content {
+        border: none;
+        border-bottom: 1px solid var(--surface-border);
+        padding: 1rem;
+      }
+
+      .p-accordion-tab:last-child {
+        .p-accordion-header a,
+        .p-accordion-content {
+          border-bottom: none;
+        }
+      }
+    }
+
+    .p-tabview {
+      display: flex;
+      flex-direction: column;
+
+      &-panels {
+        flex: 1;
+        overflow-y: auto;
+      }
+    }
+    .range-input {
+      width: 4rem !important;
+
+      .p-inputnumber-input {
+        width: 100% !important;
+      }
+    }
+  }
+}
+
+.severity-badge {
+  border-radius: 2px;
+  padding: .25em .5em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .3px;
+  text-align: center;
+  width: 6rem;
+
+  &.severity-Critical {
+    background-color: #C63737;
+    color: #ffffff;
+    opacity: 0.9;
+  }
+
+  &.severity-High {
+    background-color: #FF8800;
+    color: #ffffff;
+    opacity: 0.9;
+  }
+
+  &.severity-Medium {
+    background-color: #ffcc00;
+    color: #ffffff;
+    opacity: 0.9;
+  }
+
+  &.severity-Low {
+    background-color: #47d147;
+    color: #ffffff;
+    opacity: 0.9;
+  }
+
+  &.severity-Info {
+    background-color: #007bff;
+    color: #ffffff;
+    opacity: 0.9;
+  }
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.description {
+  margin: 1rem 0;
+
+  h6 {
+    margin-bottom: 0.5rem !important;
+  }
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .left-buttons, .right-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .right-buttons {
+    position: relative;
+  }
+}
+
+:host ::ng-deep {
+  .custom-multiselect {
+    position: absolute !important;
+    visibility: hidden;
+    pointer-events: none;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    top: 3.5rem;
+    right: -2rem;
+    
+    .p-multiselect-label-container,
+    .p-multiselect-trigger {
+      display: none;
+    }
+
+    .p-multiselect-panel {
+      visibility: visible;
+      pointer-events: auto;
+      position: fixed;
+      top: 4rem;
+      right: 1rem;
+      min-width: 200px;
+      z-index: 1000;
+    }
+  }
+}
+
+.flex-container {
+  display: flex;
+  position: relative;
+}
+
+.filter-panel {
+  border-radius: 10px;
+  background-color: var(--surface-a);
+  width: 300px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+
+  &.filter-visible {
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(0);
+    left: var(--sidebar-width);
+    top: 10rem;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+    height: calc(100vh - 12rem);
+  }
+
+  &.filter-hidden {
+    transform: translateX(-100%);
+    height: 50vh;
+    top: 10rem;
+  }
+
+  .filter-header {
+    border-radius: 10px 10px 0 0;
+    padding: 2rem 2rem 0.5rem;
+    background-color: var(--surface-a);
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  .filter-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 .1rem 0 0;
+  }
+
+  .filter-footer {
+    border-radius: 0 0 10px 10px;
+    background-color: var(--surface-a);
+    border-top: 1px solid var(--surface-border);
+  }
+
+  ::ng-deep {
+    .p-accordion {
+      .p-accordion-header {
+        .p-accordion-header-link {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-right: 2.5rem;
+
+          &::after {
+            position: absolute;
+            right: 1rem;
+          }
+        }
+      }
+    }
+
+    .clearFilterButton {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1;
+
+      .p-button {
+        padding: 0.5rem;
+        height: auto;
+      }
+    }
+  }
+}
+
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s ease-in-out;
+  width: 100%;
+
+  &.content-full {
+    margin-left: 0;
+  }
+
+  &.content-shifted {
+    margin-left: 300px;
+  }
+}

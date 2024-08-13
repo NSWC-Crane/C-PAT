@@ -14,14 +14,16 @@ import { FormsModule } from '@angular/forms';
 
 import { SharedModule } from '../../common/shared.module';
 import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
+import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
 import { UserComponent } from './user-processing/user/user.component';
 import { AdminProcessingRoutingModule } from './admin-processing-routing.module';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { CollectionComponent } from './collection-processing/collection/collection.component';
 import { AdminProcessingComponent } from './admin-processing.component';
-import { StatusCardComponent } from '../../common/components/status-card/status-card.component';
-
+import { EmassImportComponent } from './emass-import/emass-import.component';
+import { VRAMImportComponent } from './vram-import/vram-import.component';
+import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plugin-mapping.component';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -41,19 +43,27 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-
+import { TabViewModule } from 'primeng/tabview';
+import { FileUploadModule } from 'primeng/fileupload';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { BadgeModule } from 'primeng/badge';
+import { MessageModule } from 'primeng/message';
 
 @NgModule({
   declarations: [
     CollectionProcessingComponent,
     CollectionComponent,
     STIGManagerAdminComponent,
+    TenableAdminComponent,
     UserProcessingComponent,
     UserComponent,
     AdminProcessingComponent,
-    StatusCardComponent,
+    EmassImportComponent,
+    VRAMImportComponent,
+    NessusPluginMappingComponent,
   ],
   imports: [
+    BadgeModule,
     CardModule,
     InputTextModule,
     AutoCompleteModule,
@@ -61,6 +71,9 @@ import { TooltipModule } from 'primeng/tooltip';
     ConfirmDialogModule,
     ToastModule,
     TooltipModule,
+    TabViewModule,
+    FileUploadModule,
+    ProgressBarModule,
     DropdownModule,
     InputNumberModule,
     CheckboxModule,
@@ -72,6 +85,7 @@ import { TooltipModule } from 'primeng/tooltip';
     TableModule,
     ToggleButtonModule,
     TreeTableModule,
+    MessageModule,
     AdminProcessingRoutingModule,
     CommonModule,
     FormsModule,

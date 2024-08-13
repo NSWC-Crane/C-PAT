@@ -44,7 +44,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   @ViewChild('stigFindingsTable') table!: TreeTable;
   @ViewChild('findingChart') findingChart!: ElementRef<HTMLCanvasElement>;
   customColumn = 'Group ID';
-  defaultColumns = ['Rule Title', 'Benchmark ID', 'Severity', 'Asset Count', 'Update POAM'];
+  defaultColumns = ['Rule Title', 'Benchmark ID', 'Severity', 'Asset Count', 'POAM'];
   allColumns = [this.customColumn, ...this.defaultColumns];
   dataSource: TreeNode<AssetEntry>[] = [];
   sortColumn: string = '';
@@ -140,17 +140,24 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         this.selectedCollection = collectionId;
       })
     );
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-        }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
+    this.initializeComponent();
+    this.selectedFindings = 'No Existing POAM';
+  }
+
+
+  private async initializeComponent() {
+    try {
+      const user = await (await this.userService.getCurrentUser()).toPromise();
+      if (user?.userId) {
+        this.user = user;
+        await this.validateStigManagerCollection();
+      } else {
+        this.showError('Failed to retrieve current user.');
       }
-    });
-    this.validateStigManagerCollection();
+    } catch (error) {
+      console.error('An error occurred:', error);
+      this.showError('An error occurred while initializing the component.');
+    }
   }
 
   ngOnDestroy() {
@@ -268,21 +275,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }, 150);
   }
 
-  async fetchAssetsFromAPI(collectionId: string) {
-    (await this.sharedService.getAssetsFromSTIGMAN(collectionId)).subscribe({
-      next: (data) => {
-        if (!data || data.length === 0) {
-          this.showWarn('No assets found for the selected collection.');
-        } else {
-          this.availableAssets = data;
-        }
-      },
-      error: () => {
-        this.showError('You are not connected to STIG Manager or the connection is not properly configured.');
-      }
-    });
-  }
-
   async fetchAssetDetails() {
     const assetDetailsObservables = this.selectedAssets.map(async assetId =>
       await this.sharedService.selectedAssetsFromSTIGMAN(assetId)
@@ -310,91 +302,111 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   async validateStigManagerCollection() {
-    forkJoin([
-      (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
-        catchError(err => {
-          console.error('Failed to fetch from STIGMAN:', err);
-          return of([]);
-        })
-      ),
-      (await this.collectionService.getCollectionBasicList()).pipe(
-        catchError(err => {
-          console.error('Failed to fetch basic collection list:', err);
-          return of([]);
-        })
-      )
-    ]).subscribe(([stigmanData, basicListData]) => {
-      const stigmanCollectionsMap = new Map(stigmanData.map(collection => [collection.name, collection]));
-      const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
+    try {
+      const [stigmanData, basicListData] = await Promise.all([
+        (await this.sharedService.getCollectionsFromSTIGMAN()).toPromise(),
+        (await this.collectionService.getCollectionBasicList()).toPromise()
+      ]);
+
+      const stigmanCollectionsMap = new Map(stigmanData?.map(collection => [collection.name, collection]));
+      const basicListCollectionsMap = new Map(basicListData?.map(collection => [collection.collectionId, collection]));
 
       const selectedCollection = basicListCollectionsMap.get(this.user.lastCollectionAccessedId);
       const selectedCollectionName = selectedCollection?.collectionName;
       this.stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
+
       if (!this.stigmanCollection || !selectedCollectionName) {
         this.showWarn('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are viewing a STIG Manager collection.');
         return;
       }
-      this.fetchAssetsFromAPI(this.stigmanCollection.collectionId);
-      this.getAffectedAssetGrid(this.stigmanCollection.collectionId);
-    });
+
+      await Promise.all([
+        this.fetchAssetsFromAPI(this.stigmanCollection.collectionId),
+        this.getAffectedAssetGrid(this.stigmanCollection.collectionId)
+      ]);
+    } catch (error) {
+      console.error('Error in validateStigManagerCollection:', error);
+      this.showError('Failed to validate STIG Manager collection. Please try again.');
+    }
+  }
+
+  async fetchAssetsFromAPI(collectionId: string) {
+    try {
+      const data = await (await this.sharedService.getAssetsFromSTIGMAN(collectionId)).toPromise();
+      if (!data || data.length === 0) {
+        this.showWarn('No assets found for the selected collection.');
+      } else {
+        this.availableAssets = data;
+      }
+    } catch (error) {
+      this.showError('You are not connected to STIG Manager or the connection is not properly configured.');
+    }
   }
 
   async getAffectedAssetGrid(stigmanCollection: string) {
-    (await this.sharedService.getAffectedAssetsFromSTIGMAN(stigmanCollection)).subscribe({
-      next: (data) => {
-        const mappedData = data.map(item => ({
-          data: {
-            'Group ID': item.groupId,
-            'Rule Title': item.rules[0].title,
-            'ruleId': item.rules[0].ruleId,
-            'Benchmark ID': item.stigs[0].benchmarkId,
-            'Severity': item.severity === 'high' ? 'CAT I - Critical/High' :
-              item.severity === 'medium' ? 'CAT II - Medium' :
-                item.severity === 'low' ? 'CAT III - Low' : item.severity,
-            'Asset Count': item.assetCount
-          },
-          children: item.assets.map((asset: { name: any; assetId: any; }) => ({
-            data: {
-              'Rule Title': asset.name,
-              'Benchmark ID': 'Asset ID: ' + asset.assetId,
-            }
-          }))
-        }));
-        this.originalTreeData = [...mappedData];
-        this.treeData = [...mappedData];
-        this.dataSource = this.convertToTreeNodes(this.treeData);
-        this.findingsCount = this.treeData.length;
-        const severityGroups = data.reduce((groups: any, item: any) => {
-          const severity = item.severity === 'high' ? 'CAT I - Critical/High' :
+    try {
+      const data = await (await this.sharedService.getAffectedAssetsFromSTIGMAN(stigmanCollection)).toPromise();
+      if (!data || data.length === 0) {
+        this.showWarn('No affected assets found.');
+        return;
+      }
+
+      const mappedData = data.map(item => ({
+        data: {
+          'Group ID': item.groupId,
+          'Rule Title': item.rules[0].title,
+          'ruleId': item.rules[0].ruleId,
+          'Benchmark ID': item.stigs[0].benchmarkId,
+          'Severity': item.severity === 'high' ? 'CAT I - Critical/High' :
             item.severity === 'medium' ? 'CAT II - Medium' :
-              item.severity === 'low' ? 'CAT III - Low' : item.severity;
-          if (!groups[severity]) {
-            groups[severity] = 0;
+              item.severity === 'low' ? 'CAT III - Low' : item.severity,
+          'Asset Count': item.assetCount
+        },
+        children: item.assets.map((asset: { name: any; assetId: any; }) => ({
+          data: {
+            'Rule Title': asset.name,
+            'Benchmark ID': 'Asset ID: ' + asset.assetId,
           }
-          groups[severity]++;
-          return groups;
-        }, {});
+        }))
+      }));
 
-        const findings = Object.entries(severityGroups).map(([severity, count]) => ({
-          severity,
-          severityCount: count
-        }));
+      this.originalTreeData = [...mappedData];
+      this.treeData = [...mappedData];
+      this.dataSource = this.convertToTreeNodes(this.treeData);
+      this.findingsCount = this.treeData.length;
 
-        const allSeverities = ['CAT I - Critical/High', 'CAT II - Medium', 'CAT III - Low'];
-        allSeverities.forEach(severity => {
-          if (!findings.find(finding => finding.severity === severity)) {
-            findings.push({ severity, severityCount: 0 });
-          }
-        });
+      const severityGroups = data.reduce((groups: any, item: any) => {
+        const severity = item.severity === 'high' ? 'CAT I - Critical/High' :
+          item.severity === 'medium' ? 'CAT II - Medium' :
+            item.severity === 'low' ? 'CAT III - Low' : item.severity;
+        if (!groups[severity]) {
+          groups[severity] = 0;
+        }
+        groups[severity]++;
+        return groups;
+      }, {});
 
-        findings.sort((a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity));
-        this.selectedFindings = 'No Existing POAM';
-        this.filterFindings();
-        this.initializeChart();
-        this.updateFindingsChartData(findings);
-      },
-      error: (err) => console.error('Failed to fetch affected assets from STIGMAN:', err),
-    });
+      const findings = Object.entries(severityGroups).map(([severity, count]) => ({
+        severity,
+        severityCount: count
+      }));
+
+      const allSeverities = ['CAT I - Critical/High', 'CAT II - Medium', 'CAT III - Low'];
+      allSeverities.forEach(severity => {
+        if (!findings.find(finding => finding.severity === severity)) {
+          findings.push({ severity, severityCount: 0 });
+        }
+      });
+
+      findings.sort((a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity));
+      this.selectedFindings = 'No Existing POAM';
+      this.filterFindings();
+      this.initializeChart();
+      this.updateFindingsChartData(findings);
+    } catch (err) {
+      console.error('Failed to fetch affected assets from STIGMAN:', err);
+      this.showError('Failed to fetch affected assets. Please try again.');
+    }
   }
 
   convertToTreeNodes(data: any[]): TreeNode<AssetEntry>[] {
@@ -426,9 +438,10 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }
   }
 
-  updateChartAndGrid(existingPoams: any[]) {
+  async updateChartAndGrid(existingPoams: any[]) {
     const filteredTreeData = this.treeData.map(item => {
       const hasExistingPoam = existingPoams.some(poam => poam.vulnerabilityId === item.data['Group ID']);
+      item.data.hasExistingPoam = hasExistingPoam;
       if (this.selectedFindings === 'All' ||
         (this.selectedFindings === 'Has Existing POAM' && hasExistingPoam) ||
         (this.selectedFindings === 'No Existing POAM' && !hasExistingPoam)) {

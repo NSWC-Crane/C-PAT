@@ -29,8 +29,8 @@
     <div class="p-dialog-footer" style="display: flex; align-items: center; justify-content: space-between;">
       <p-checkbox [(ngModel)]="hqsChecked" label="High-Quality Submission?"></p-checkbox>
       <div>
-        <button pButton label="Save" icon="pi pi-check" (click)="submitApprovalData()"></button>
-        <button pButton label="Cancel" icon="pi pi-times" (click)="cancelApproval()" style="margin-left: 20px;"></button>
+        <p-button [outlined]="true" label="Save" icon="pi pi-check" (click)="submitApprovalData()"></p-button>
+        <p-button [outlined]="true" severity="secondary" class="ml-2" label="Cancel" icon="pi pi-times" (click)="cancelApproval()" ></p-button>
       </div>
     </div>
   </ng-template>

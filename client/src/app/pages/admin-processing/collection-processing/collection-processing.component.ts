@@ -55,20 +55,16 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   collectionTreeData: TreeNode<CollectionData>[] = [];
   public isLoggedIn = false;
   user: any;
-  userCollections: any[] = [];
-  availableAssets: any[] = [];
   exportCollectionId: any;
   poams: any[] = [];
   collections: any;
   collection: any = { collectionId: '', collectionName: '', description: '', assetCount: 0, poamCount: 0 };
   collectionToExport: string = 'Select Collection to Export...';
   data: any = [];
-  showCollectionSelect: boolean = true;
-  canModifyCollection = false;
-  selected: any;
   payload: any;
-  displayDialog = false;
-  selectedCollection: any;
+  displayCollectionDialog: boolean = false;
+  dialogMode: 'add' | 'modify' = 'add';
+  editingCollection: any = {};
   private subs = new SubSink();
 
   constructor(
@@ -77,36 +73,21 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     private messageService: MessageService
   ) { }
 
-  onSubmit() {
-    this.resetData();
-  }
 
   async ngOnInit() {
     this.setPayload();
   }
 
-  showPopup(message: string) {
-    this.messageService.add({ severity: 'info', summary: 'Alert', detail: message });
-  }
-
   async setPayload() {
     this.user = null;
     this.payload = null;
-    this.showCollectionSelect = true;
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
       (response: any) => {
         if (response?.userId) {
           this.user = response;
-
           if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
               ...this.user,
-              collections: this.user.permissions.map(
-                (permission: Permission) => ({
-                  collectionId: permission.collectionId,
-                  accessLevel: permission.accessLevel,
-                })
-              ),
             };
             this.getCollectionData();
           }
@@ -120,23 +101,6 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     );
   }
 
-  checkModifyPermission(allowedCollections: any) {
-    this.canModifyCollection = this.user.isAdmin || this.user.permissions.some((permission: any) =>
-      permission.accessLevel >= 2
-    );
-
-    if (this.user.isAdmin) {
-      this.userCollections = allowedCollections;
-    } else {
-      this.userCollections = allowedCollections.filter((collection: any) =>
-        this.user.permissions.some((permission: any) =>
-          (permission.accessLevel >= 2) &&
-          permission.collectionId === collection.collectionId
-        )
-      );
-    }
-  }
-
   async getCollectionData() {
     this.collections = null;
     (await this.collectionService
@@ -145,7 +109,6 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         this.data = result;
         this.collections = this.data;
         this.getCollectionsTreeData();
-        this.checkModifyPermission(this.data);
       });
   }
 
@@ -176,57 +139,28 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     this.collectionTreeData = treeViewData;
   }
 
-  setCollection() {
-    if (this.selectedCollection) {
-      const collectionId = this.selectedCollection.collectionId;
-      this.collection = null;
-      this.poams = [];
-      const selectedData = this.data.filter(
-        (collection: { collectionId: any }) =>
-          collection.collectionId === collectionId
-      );
-      if (selectedData.length > 0) {
-        this.collection = selectedData[0];
-      } else {
-        this.collection = {};
-      }
-      this.subs.sink = forkJoin(
-        this.collectionService.getPoamsByCollection(this.collection.collectionId)
-      ).subscribe(([poams]: any) => {
-        this.poams = poams;
-      });
-      this.showCollectionSelect = false;
-    }
-  }
-
-  async setExportCollection(collection: any) {
-    this.collectionToExport = collection.collectionName || 'Select Collection to Export...';
-    this.exportCollectionId = collection.collectionId || collection;
-    if (!this.exportCollectionId) {
+  async exportCollection(collectionId: number, name: string) {
+    if (!collectionId) {
       console.error('Export collection ID is undefined');
-      return;
-    }
-    (await this.collectionService
-      .getPoamsByCollection(this.exportCollectionId))
-      .subscribe((response: any) => {
-        this.poams = response;
-      });
-  }
-
-  async exportAll() {
-    if (!this.poams || !Array.isArray(this.poams) || !this.poams.length) {
-      this.messageService.add({ severity: 'error', summary: 'No Data', detail: 'There are no POAMs to export.' });
       return;
     }
 
     try {
-      const excelData = await ExcelDataService.convertToExcel(this.poams);
+      const poams = await (await this.collectionService.getPoamsByCollection(collectionId)).toPromise();
+
+      if (!poams || !Array.isArray(poams) || !poams.length) {
+        this.messageService.add({ severity: 'error', summary: 'No Data', detail: 'There are no POAMs to export for this collection.' });
+        return;
+      }
+
+      const excelData = await ExcelDataService.convertToExcel(poams);
       const excelURL = window.URL.createObjectURL(excelData);
+      const exportName = name.replace(' ', '_');
 
       const link = document.createElement('a');
       link.id = 'download-excel';
       link.setAttribute('href', excelURL);
-      link.setAttribute('download', 'Collection_' + this.exportCollectionId + '_POAMS_Export.xlsx');
+      link.setAttribute('download', `${exportName}_CPAT_Export.xlsx`);
       document.body.appendChild(link);
 
       link.click();
@@ -235,36 +169,76 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       window.URL.revokeObjectURL(excelURL);
     } catch (error) {
       console.error('Error exporting POAMs:', error);
-      this.messageService.add({ severity: 'error', summary: 'No Data', detail: 'Failed to export POAMs, pelase try again at a later time.' });
+      this.messageService.add({ severity: 'error', summary: 'Export Failed', detail: 'Failed to export POAMs, please try again later.' });
     }
   }
 
-  onCollectionChange(event: any) {
-    if (event === 'submit') {
-      this.resetData();
-    }
-  }
-
-  resetData() {
-    this.collection = { collectionId: 'COLLECTION', collectionName: '', description: '', assetCount: 0, poamCount: 0 };
-    this.getCollectionData();
-    this.showCollectionSelect = true;
-  }
-
-  addCollection() {
-    this.collection = {
-      collectionId: 'ADDCOLLECTION',
+  showAddCollectionDialog() {
+    this.dialogMode = 'add';
+    this.editingCollection = {
+      collectionId: '',
       collectionName: '',
       description: '',
-      created: new Date().toISOString(),
-      assetCount: 0,
-      poamCount: 0,
+      assetCount: '0',
+      poamCount: '0'
     };
-    this.showCollectionSelect = false;
+    this.displayCollectionDialog = true;
   }
 
-  closeDialog() {
-    this.displayDialog = false;
+  showModifyCollectionDialog(rowData: any) {
+    this.dialogMode = 'modify';
+    this.editingCollection = {
+      collectionId: rowData['Collection ID'].toString(),
+      collectionName: rowData['Name'],
+      description: rowData['Description'],
+      assetCount: rowData['Asset Count'].toString(),
+      poamCount: rowData['POAM Count'].toString()
+    };
+    this.displayCollectionDialog = true;
+  }
+
+  hideCollectionDialog() {
+    this.displayCollectionDialog = false;
+  }
+
+  async saveCollection() {
+    if (this.editingCollection.collectionName?.trim()) {
+      if (this.dialogMode === 'add') {
+        delete this.editingCollection.collectionId;
+      } else {
+        this.editingCollection.collectionId = parseInt(this.editingCollection.collectionId || '', 10).toString();
+      }
+
+      const collectionToSave = {
+        ...this.editingCollection,
+        collectionId: parseInt(this.editingCollection.collectionId || '0', 10),
+        assetCount: parseInt(this.editingCollection.assetCount || '0', 10),
+        poamCount: parseInt(this.editingCollection.poamCount || '0', 10)
+      };
+
+      if (this.dialogMode === 'add') {
+        (await this.collectionService.addCollection(collectionToSave)).subscribe(
+          (response) => {
+            this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Collection Added', life: 3000 });
+            this.getCollectionData();
+          },
+          (error) => {
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add collection: ' + error.message, life: 3000 });
+          }
+        );
+      } else {
+        (await this.collectionService.updateCollection(collectionToSave)).subscribe(
+          (response) => {
+            this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Collection Updated', life: 3000 });
+            this.getCollectionData();
+          },
+          (error) => {
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update collection: ' + error.message, life: 3000 });
+          }
+        );
+      }
+      this.displayCollectionDialog = false;
+    }
   }
 
   filterGlobal(event: Event) {

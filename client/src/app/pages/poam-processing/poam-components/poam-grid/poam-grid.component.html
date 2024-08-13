@@ -10,77 +10,86 @@
 
 <p-card>
   <ng-template pTemplate="content">
-        <div class="toolbar" style="display: flex; align-items: center;">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search"></i>
-            <input pInputText type="text" [(ngModel)]="globalFilter" (input)="onFilterChange($event)" placeholder="Search..." />
-          </span>
-          <p-button label="Clear Filters" [outlined]="true" class="ml-auto" icon="pi pi-filter-slash" (click)="clear(dt)" (onKeyUp)="clear(dt)"></p-button>
-        </div>
-        <div class="table-container" (scroll)="onScroll($event)">
-          <p-table #dt [value]="displayedData" [scrollable]="true" scrollHeight="50rem" [paginator]="false" [globalFilterFields]="['poamId', 'status', 'adjSeverity', 'submitter', 'submittedDate', 'scheduledCompletionDate']">
-            <ng-template pTemplate="header">
-              <tr>
-                <th scope="col" style="min-width:15rem">
-                  <div class="flex align-items-center">
-                    POAM ID
-                    <p-columnFilter type="text" field="poamId" display="menu"></p-columnFilter>
-                  </div>
-                </th>
-                <th scope="col" style="min-width:15rem">
-                  <div class="flex align-items-center">
-                    POAM Status
-                    <p-columnFilter type="text" field="status" display="menu"></p-columnFilter>
-                  </div>
-                </th>
-                <th scope="col" style="min-width:15rem">
-                  <div class="flex align-items-center">
-                    Adjusted Severity
-                    <p-columnFilter type="text" field="adjSeverity" display="menu"></p-columnFilter>
-                  </div>
-                </th>
-                <th scope="col" style="min-width:15rem">
-                  <div class="flex align-items-center">
-                    Submitter
-                    <p-columnFilter type="text" field="submitter" display="menu"></p-columnFilter>
-                  </div>
-                </th>
-                <th scope="col" style="min-width:15rem">
-                  <div class="flex align-items-center">
-                    Submitted Date
-                    <p-columnFilter type="text" field="submittedDate" display="menu"></p-columnFilter>
-                  </div>
-                </th>
-                <th scope="col" style="min-width:15rem">
-                  <div class="flex align-items-center">
-                    Scheduled Completion Date
-                    <p-columnFilter type="text" field="scheduledCompletionDate" display="menu"></p-columnFilter>
-                  </div>
-                </th>
-                <th scope="col" style="min-width:10rem">
-                  Manage
-                </th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-row>
-              <tr>
-                <td>{{ row.poamId }}</td>
-                <td>{{ row.status }}</td>
-                <td>{{ row.adjSeverity }}</td>
-                <td>{{ row.submitter }}</td>
-                <td>{{ row.submittedDate }}</td>
-                <td>{{ row.scheduledCompletionDate }}</td>
-                <td>
-                  <button pButton type="button" icon="pi pi-plus" class="p-button-text" (click)="managePoam(row)"></button>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="7">No POAMs found.</td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
+    <div class="toolbar mb-3">
+      <div class="left-buttons">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input pInputText type="text" [(ngModel)]="globalFilter" (input)="onFilterChange($event)" placeholder="Search..." />
+          <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear(dt)" (onKeyUp)="clear(dt)" pTooltip="Clear all filters"></p-button>
+        </span>
+      </div>
+    </div>
+    <div class="table-container" (scroll)="onScroll($event)">
+      <p-table #dt [value]="displayedData" [resizableColumns]="true" [scrollable]="true" scrollHeight="50rem" [paginator]="false" [globalFilterFields]="['poamId', 'status', 'adjSeverity', 'submitter', 'submittedDate', 'scheduledCompletionDate']">
+        <ng-template pTemplate="header">
+          <tr>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
+                POAM ID
+                <p-columnFilter type="text" field="poamId" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
+                POAM Status
+                <p-columnFilter type="text" field="status" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
+                Vulnerability Source
+                <p-columnFilter type="text" field="source" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
+                Adjusted Severity
+                <p-columnFilter type="text" field="adjSeverity" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
+                Submitter
+                <p-columnFilter type="text" field="submitter" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
+                Submitted Date
+                <p-columnFilter type="text" field="submittedDate" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
+                Scheduled Completion
+                <p-columnFilter type="text" field="scheduledCompletionDate" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              Manage
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.poamId }}</td>
+            <td>{{ row.status }}</td>
+            <td>{{ row.source }}</td>
+            <td>{{ row.adjSeverity }}</td>
+            <td>{{ row.submitter }}</td>
+            <td>{{ row.submittedDate }}</td>
+            <td>{{ row.scheduledCompletionDate }}</td>
+            <td>
+              <button pButton type="button" icon="pi pi-plus" class="p-button-text" (click)="managePoam(row)"></button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7">No POAMs found.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
   </ng-template>
 </p-card>

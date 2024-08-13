@@ -1,14 +1,59 @@
-<div class="grid nested-grid">
-  <div class="col-3" *ngFor="let statusCard of statusCards">
-    <p-status-card class="status-card"
-                   [title]="statusCard.title"
-                   [type]="statusCard.type"
-                   [icon]="statusCard.icon"
-                   (click)="statusCard.component ? openModal(statusCard.component) : triggerFileInput()"
-                   (onKeyUp)="statusCard.component ? openModal(statusCard.component) : triggerFileInput()">
-    </p-status-card>
-  </div>
-</div>
+<div class="card">
+  <p-tabView>
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <i class="pi pi-user" style="margin-right: 0.5rem;"></i>
+        User Management
+      </ng-template>
+      <cpat-user-processing></cpat-user-processing>
+    </p-tabPanel>
 
-<input type="file" #fileInput style="display: none;" (change)="onFileSelect($event)" accept=".xls, .xlsx, .xlsm">
-<status-dialog #statusDialog></status-dialog>
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <i class="pi pi-inbox" style="margin-right: 0.5rem;"></i>
+        Collection Management
+      </ng-template>
+      <cpat-collection-processing></cpat-collection-processing>
+    </p-tabPanel>
+
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <i class="pi pi-flag" style="margin-right: 0.5rem;"></i>
+        STIG Manager
+      </ng-template>
+      <cpat-stigmanager-admin></cpat-stigmanager-admin>
+    </p-tabPanel>
+
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <i class="pi pi-star" style="margin-right: 0.5rem;"></i>
+        Tenable
+      </ng-template>
+      <cpat-tenable-admin></cpat-tenable-admin>
+    </p-tabPanel>
+
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <i class="pi pi-upload" style="margin-right: 0.5rem;"></i>
+        eMASS Import
+      </ng-template>
+      <app-emass-import></app-emass-import>
+    </p-tabPanel>
+
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <i class="pi pi-upload" style="margin-right: 0.5rem;"></i>
+        VRAM IAV Import
+      </ng-template>
+      <app-vram-import></app-vram-import>
+    </p-tabPanel>
+
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <i class="pi pi-bullseye" style="margin-right: 0.5rem;"></i>
+        Nessus Plugin Mapping
+      </ng-template>
+      <app-nessus-plugin-mapping></app-nessus-plugin-mapping>
+    </p-tabPanel>
+  </p-tabView>
+  </div>

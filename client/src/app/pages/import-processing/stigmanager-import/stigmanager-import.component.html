@@ -1,37 +1,49 @@
 <!-- View STIG Manager Findings and Create POAM -->
-
     <p-card>
       <p-tabView>
         <p-tabPanel [header]="'Findings Grid (' + findingsCount + ')'">
-          <p-card styleClass="grid-p-card">
-            <input pInputText (input)="filterGlobal($event)" id="search" class="search-input" placeholder="Search...">
-            <div class="table-container">
-              <p-treeTable #stigFindingsTable sortMode="multiple" [value]="dataSource" [filterDelay]="0" [globalFilterFields]="['Group ID', 'Rule Title', 'Benchmark ID', 'Severity']" [columns]="allColumns" [sortMode]="'single'" [sortField]="sortColumn" [sortOrder]="sortDirection === 'asc' ? 1 : -1" (onSort)="updateSort($event)">
-                <ng-template pTemplate="header">
-                  <tr>
-                    <th scope="col" *ngFor="let col of allColumns" [ttSortableColumn]="col">
-                      {{col}}
-                      <p-treeTableSortIcon [field]="col" *ngIf="col !== 'Update POAM'"></p-treeTableSortIcon>
-                    </th>
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-                  <tr>
-                    <td *ngFor="let col of allColumns; let i = index">
-                      <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-                      <span *ngIf="col !== 'Update POAM'">
-                        {{col === customColumn ? rowData[col] : (rowData[col] || '-')}}
-                      </span>
-                      <button *ngIf="col === 'Update POAM' && selectedFindings !== 'Has Existing POAM'" pButton pRipple type="button" icon="pi pi-plus" class="p-button-rounded p-button-text" (click)="addPoam(rowNode)"></button>
-                      <button *ngIf="col === 'Update POAM' && selectedFindings === 'Has Existing POAM'" pButton pRipple type="button" icon="pi pi-sync" class="p-button-rounded p-button-text" pTooltip="Navigate to the POAM and update the affected asset list with live data." tooltipPosition="top" (click)="addPoam(rowNode)"></button>
-                    </td>
-                  </tr>
-                </ng-template>
-              </p-treeTable>
-            </div>
-          </p-card>
+          <input pInputText (input)="filterGlobal($event)" id="search" class="search-input" placeholder="Search...">
+          <div class="table-container">
+            <p-treeTable #stigFindingsTable sortMode="multiple" [value]="dataSource" [filterDelay]="0" [globalFilterFields]="['Group ID', 'Rule Title', 'Benchmark ID', 'Severity']" [columns]="allColumns" [sortMode]="'single'" [sortField]="sortColumn" [sortOrder]="sortDirection === 'asc' ? 1 : -1" (onSort)="updateSort($event)" [scrollable]="true" scrollHeight="55rem">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th scope="col" *ngFor="let col of allColumns" [ttSortableColumn]="col">
+                    {{col}}
+                    <p-treeTableSortIcon [field]="col" *ngIf="col !== 'POAM'"></p-treeTableSortIcon>
+                  </th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+                <tr>
+                  <td *ngFor="let col of allColumns; let i = index">
+                    <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
+                    <ng-container [ngSwitch]="col">
+                      <ng-container *ngSwitchCase="'POAM'">
+                        <i *ngIf="rowData.hasExistingPoam"
+                           class="pi pi-check-circle"
+                           style="color: green; font-size: 1.5rem; cursor: pointer;"
+                           (click)="addPoam(rowNode)"
+                           pTooltip="POAM Already Created. Click to update POAM."
+                           tooltipPosition="top">
+                        </i>
+                        <i *ngIf="!rowData.hasExistingPoam"
+                           class="pi pi-times-circle"
+                           style="color: maroon; font-size: 1.5rem; cursor: pointer;"
+                           (click)="addPoam(rowNode)"
+                           pTooltip="No Existing POAM. Click to create draft POAM."
+                           tooltipPosition="top">
+                        </i>
+                      </ng-container>
+                      <ng-container *ngSwitchDefault>
+                        {{rowData[col] || '-'}}
+                      </ng-container>
+                    </ng-container>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-treeTable>
+          </div>
         </p-tabPanel>
-
         <p-tabPanel header="Findings Chart">
           <div class="canvas" id="canvas" style="margin-top: 20px;">
             <button pButton pRipple type="button" icon="pi pi-download" class="p-button-rounded p-button-text export-button" (click)="exportChart(findingsChart, 'STIG Manager Findings Chart')"></button>
@@ -41,7 +53,6 @@
       </p-tabView>
       <div class="formgrid grid">
         <div class="field col" style="margin-left: 2rem; margin-right: 2rem;">
-          <label for="findingsFilter">Filter Findings:</label>
           <p-dropdown id="findingsFilter"
                       [options]="findingsFilterOptions"
                       [(ngModel)]="selectedFindings"

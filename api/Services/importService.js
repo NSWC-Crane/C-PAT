@@ -14,7 +14,7 @@ const config = require('../utils/config');
 const db = require('../utils/sequelize');
 const dbUtils = require('./utils');
 const mysql = require('mysql2');
-const { parse, format } = require('date-fns');
+const { isAfter, parse, format } = require('date-fns');
 const { Poam, Collection } = require('../utils/sequelize.js');
 const logger = require('../utils/logger');
 
@@ -96,12 +96,59 @@ exports.processPoamFile = async function processPoamFile(file, userId) {
     }
 
     const workbook = new ExcelJS.Workbook();
+    try {
+        await workbook.xlsx.load(file.buffer);
+    } catch (error) {
+        throw new Error(`Failed to load Excel file: ${error.message}`);
+    }
+
+    if (workbook.worksheets.length === 0) {
+        throw new Error('No worksheets found in the workbook');
+    }
+    const worksheet = workbook.worksheets[0];
+    const expectedHeaders = [
+        "POA&M Item ID", "Control Vulnerability Description", "Security Control Number (NC/NA controls only)",
+        "Office/Org", "Security Checks", "Resources Required", "Scheduled Completion Date",
+        "Milestone with Completion Dates", "Milestone Changes", "Source Identifying Vulnerability ",
+        "Status", "Comments", " Raw Severity", "Devices Affected",
+        "Mitigations (in-house and in conjunction with the Navy CSSP)", "Predisposing Conditions",
+        "Severity", "Relevance of Threat", "Threat Description", "Likelihood", "Impact",
+        "Impact Description", "Residual Risk Level", "Recommendations",
+        "Resulting Residual Risk after Proposed Mitigations"
+    ];
+
+    const actualHeaders = worksheet.getRow(7).values.slice(1);
+    const missingHeaders = expectedHeaders.filter(header => !actualHeaders.includes(header));
+    const unexpectedHeaders = actualHeaders.filter(header => !expectedHeaders.includes(header));
+
+    if (missingHeaders.length > 0 || unexpectedHeaders.length > 0) {
+        let errorMessage = 'Invalid file format: eMASS POAM headers mismatch.\n';
+        if (missingHeaders.length > 0) {
+            errorMessage += `Missing headers: ${missingHeaders.join(', ')}\n`;
+        }
+        if (unexpectedHeaders.length > 0) {
+            errorMessage += `Unexpected headers: ${unexpectedHeaders.join(', ')}\n`;
+        }
+        errorMessage += `\nExpected headers: ${expectedHeaders.join(', ')}\n`;
+        errorMessage += `\nActual headers: ${actualHeaders.join(', ')}`;
+        throw new Error(errorMessage);
+    }
+
+    await processPoamWorksheet(worksheet, userId);
+};
+
+exports.importVRAMExcel = async function importVRAMExcel(file) {
+    if (!file) {
+        throw new Error("Please upload an Excel file!");
+    }
+
+    const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(file.buffer);
     if (workbook.worksheets.length === 0) {
         throw new Error('No worksheets found in the workbook');
     }
     const worksheet = workbook.worksheets[0];
-    await processPoamWorksheet(worksheet, userId);
+    await processVRAMWorksheet(worksheet);
 };
 
 async function processPoamWorksheet(worksheet, userId) {
@@ -111,17 +158,19 @@ async function processPoamWorksheet(worksheet, userId) {
     if (!eMassCollection.collectionId) {
         throw new Error("eMASS collection not found");
     }
+
+    let validEntriesCount = 0;
     worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
         if (rowNumber === 7) {
             headers = row.values;
             headers.shift();
         } else if (rowNumber > 7) {
             const poamEntry = {};
+            let isValidEntry = false;
             let isEmptyRow = true;
 
             row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                colNumber--;
-                const dbColumn = headers[colNumber] ? excelColumnToDbColumnMapping[headers[colNumber]] : null;
+                const dbColumn = headers[colNumber - 1] ? excelColumnToDbColumnMapping[headers[colNumber - 1]] : null;
 
                 if (dbColumn) {
                     let cellValue = cell.text && cell.text.trim();
@@ -149,10 +198,14 @@ async function processPoamWorksheet(worksheet, userId) {
                     if (cellValue) {
                         isEmptyRow = false;
                     }
+
+                    if (dbColumn === 'emassPoamId' && cellValue) {
+                        isValidEntry = true;
+                    }
                 }
             });
 
-            if (!isEmptyRow) {
+            if (!isEmptyRow && isValidEntry) {
                 poamEntry.collectionId = eMassCollection.collectionId;
                 poamEntry.submitterId = userId;
 
@@ -163,9 +216,14 @@ async function processPoamWorksheet(worksheet, userId) {
                 delete poamEntry.recommendations;
 
                 poamData.push(poamEntry);
+                validEntriesCount++;
             }
         }
     });
+
+    if (validEntriesCount === 0) {
+        throw new Error('No valid POAM entries found in the file');
+    }
 
     for (const poamEntry of poamData) {
         let poam;
@@ -449,7 +507,7 @@ exports.postStigManagerCollection = async function postStigManagerCollection(col
     });
 };
 
-exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWithStigManagerData(req, res, next) {
+exports.putPoamAssetsWithStigManagerData = async function putPoamAssetsWithStigManagerData(req, res, next) {
     if (!Array.isArray(req.body) || req.body.length === 0) {
         return next({
             status: 400,
@@ -513,5 +571,132 @@ exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWit
         });
     } catch (error) {
         return { error: error.message };
+    }
+};
+
+exports.importVRAMExcel = async function importVRAMExcel(file) {
+    if (!file) {
+        throw new Error("Please upload an Excel file!");
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    try {
+        await workbook.xlsx.load(file.buffer);
+    } catch (error) {
+        throw new Error(`Failed to load Excel file: ${error.message}`);
+    }
+
+    if (workbook.worksheets.length === 0) {
+        throw new Error('No worksheets found in the workbook');
+    }
+    const worksheet = workbook.worksheets[0];
+
+    const expectedHeaders = ['IAV', 'Status', 'Title', 'IAV CAT', 'Type', 'Release Date', 'Navy Comply Date', 'Superseded By', 'Known Exploits', 'Known DoD Incidents', 'Nessus Plugins'];
+    const actualHeaders = worksheet.getRow(2).values.slice(1);
+
+    if (!expectedHeaders.every(header => actualHeaders.includes(header))) {
+        throw new Error('Invalid file format: Expected VRAM headers not found');
+    }
+
+    const dateCell = worksheet.getCell('A1');
+    const dateMatch = dateCell.value.match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
+    if (!dateMatch) {
+        throw new Error('Unable to extract date from the file. This may not be a valid VRAM file.');
+    }
+    const fileDate = parse(dateMatch[1], 'yyyy-MM-dd HH:mm:ss', new Date());
+
+    try {
+        return await db.sequelize.transaction(async (t) => {
+            const configEntry = await db.Config.findOne({
+                where: { key: 'vramUpdate' },
+                transaction: t
+            });
+
+            if (configEntry) {
+                const storedDate = parse(configEntry.value, 'yyyy-MM-dd HH:mm:ss', new Date());
+                if (!isAfter(fileDate, storedDate)) {
+                    return { message: "File is not newer than the last update. No changes made." };
+                }
+            }
+
+            const headers = worksheet.getRow(2).values.slice(1);
+            const vramData = [];
+
+            worksheet.eachRow((row, rowNumber) => {
+                if (rowNumber > 2) {
+                    const vramEntry = {};
+                    row.eachCell((cell, colNumber) => {
+                        const header = headers[colNumber - 1];
+                        if (header && typeof header === 'string') {
+                            let value = cell.value;
+                            const columnName = header.toLowerCase().replace(/\s+/g, '');
+                            switch (columnName) {
+                                case 'iav':
+                                    vramEntry.iav = value ? value.toString() : null;
+                                    break;
+                                case 'status':
+                                    vramEntry.status = value ? value.toString() : null;
+                                    break;
+                                case 'title':
+                                    vramEntry.title = value ? value.toString() : null;
+                                    break;
+                                case 'iavcat':
+                                    vramEntry.iavCat = value ? parseInt(value) : null;
+                                    break;
+                                case 'type':
+                                    vramEntry.type = value ? value.toString() : null;
+                                    break;
+                                case 'releasedate':
+                                    vramEntry.releaseDate = value instanceof Date ? format(value, 'yyyy-MM-dd') :
+                                        (value && typeof value === 'string' ? value : null);
+                                    break;
+                                case 'navycomplydate':
+                                    vramEntry.navyComplyDate = value instanceof Date ? format(value, 'yyyy-MM-dd') :
+                                        (value && typeof value === 'string' ? value : null);
+                                    break;
+                                case 'supersededby':
+                                    vramEntry.supersededBy = value ? value.toString() : null;
+                                    break;
+                                case 'knownexploits':
+                                    vramEntry.knownExploits = value ? value.toString().slice(0, 3) : null;
+                                    break;
+                                case 'knowndodincidents':
+                                    vramEntry.knownDodIncidents = value ? value.toString().slice(0, 3) : null;
+                                    break;
+                                case 'nessusplugins':
+                                    vramEntry.nessusPlugins = value ? parseInt(value) : 0;
+                                    break;
+                            }
+                        }
+                    });
+                    if (vramEntry.iav) {
+                        vramData.push(vramEntry);
+                    }
+                }
+            });
+
+            await db.IAV.bulkCreate(vramData, {
+                updateOnDuplicate: [
+                    'iav', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate',
+                    'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins'
+                ],
+                transaction: t
+            });
+
+            if (configEntry) {
+                await configEntry.update({
+                    value: format(fileDate, 'yyyy-MM-dd HH:mm:ss')
+                }, { transaction: t });
+            } else {
+                await db.Config.create({
+                    key: 'vramUpdate',
+                    value: format(fileDate, 'yyyy-MM-dd HH:mm:ss')
+                }, { transaction: t });
+            }
+
+            return { message: "VRAM data updated successfully", rowsProcessed: vramData.length };
+        });
+    } catch (error) {
+        throw new Error(`Failed to update VRAM data in the database: ${error.message}`);
     }
 };

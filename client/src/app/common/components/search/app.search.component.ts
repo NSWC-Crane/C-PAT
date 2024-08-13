@@ -55,8 +55,6 @@ export class AppSearchComponent {
     { title: 'Manage POAMs', path: '/poam-processing/poam-manage' },
     { title: 'Marketplace', path: '/marketplace' },
     { title: 'Notifications', path: '/notifications' },
-    { title: 'STIG Manager Import', path: '/import-processing/stigmanager-import' },
-    { title: 'Tenable Import', path: '/import-processing/tenable-import' },
   ];
 
   constructor(private router: Router) { }

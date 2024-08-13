@@ -1,24 +1,3 @@
-      <!-- Import Tenable Repository Section -->
-<div class="row">
-  <div class="col-md-10">
-    <p-card>
-      <ng-template pTemplate="header">
-        Import Repository:
-      </ng-template>
-      <div class="p-fluid">
-        <div class="p-field p-grid">
-          <label for="tenableRepositorySelect" class="p-col-fixed" style="width: 10rem;">Select Repository</label>
-          <div class="p-col">
-            <p-dropdown id="tenableRepositorySelect" [options]="repositoryOptions" [(ngModel)]="selectedRepository" placeholder="Select Repository" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown>
-          </div>
-        </div>
-        <div class="p-field p-grid">
-          <div class="p-col-fixed" style="width: 10rem;"></div>
-          <div class="p-col">
-            <button pButton pRipple type="button" label="Import" class="p-button-outlined p-button-info" (click)="importRepository()"></button>
-          </div>
-        </div>
-      </div>
-    </p-card>
-  </div>
-</div>
+
+      <tenable-vulnerabilities></tenable-vulnerabilities>
+

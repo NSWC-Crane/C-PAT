@@ -123,12 +123,12 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             this.poam = {
               extensionTimeAllowed: extensionData.extensionTimeAllowed,
               extensionJustification: extensionData.extensionJustification,
-              scheduledCompletionDate: extensionData.scheduledCompletionDate
+              scheduledCompletionDate: new Date(extensionData.scheduledCompletionDate)
             };
             this.extensionJustification = this.poam.extensionJustification;
-            this.completionDate = this.poam.scheduledCompletionDate.substr(0, 10).replaceAll('-', '/');
+            this.completionDate = format(this.poam.scheduledCompletionDate, 'yyyy-MM-dd');
             this.completionDateWithExtension = format(
-              addDays(this.completionDate, this.poam.extensionTimeAllowed),
+              addDays(this.poam.scheduledCompletionDate, this.poam.extensionTimeAllowed),
               'EEE MMM dd yyyy'
             );
           } else {
@@ -142,7 +142,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           }
           this.poamExtensionMilestones = milestones.poamExtensionMilestones.map((milestone: any) => ({
             ...milestone,
-            extensionMilestoneDate: milestone.extensionMilestoneDate ? parseISO(milestone.extensionMilestoneDate) : null
+            extensionMilestoneDate: milestone.extensionMilestoneDate ? new Date(milestone.extensionMilestoneDate) : null
           }));
           this.getPoamLabels();
         },
@@ -163,12 +163,10 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   computeDeadlineWithExtension() {
     if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
-      this.completionDate = this.poam.scheduledCompletionDate.substr(0, 10).replaceAll('-', '/');
-      this.completionDateWithExtension = format(this.completionDate, 'EEE MMM dd yyyy');
+      this.completionDateWithExtension = format(this.poam.scheduledCompletionDate, 'EEE MMM dd yyyy');
     } else {
-      this.completionDate = this.poam.scheduledCompletionDate.substr(0, 10).replaceAll('-', '/');
       this.completionDateWithExtension = format(
-        addDays(this.completionDate, this.poam.extensionTimeAllowed),
+        addDays(this.poam.scheduledCompletionDate, this.poam.extensionTimeAllowed),
         'EEE MMM dd yyyy'
       );
     }
@@ -176,8 +174,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   onRowEditInit(milestone: any) {
     this.clonedMilestones[milestone.extensionMilestoneId] = { ...milestone };
-    if (typeof milestone.extensionMilestoneDate === 'string') {
-      milestone.extensionMilestoneDate = parseISO(milestone.extensionMilestoneDate);
+    if (milestone.extensionMilestoneDate && !(milestone.extensionMilestoneDate instanceof Date)) {
+      milestone.extensionMilestoneDate = new Date(milestone.extensionMilestoneDate);
     }
   }
 
@@ -201,8 +199,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const scheduledCompletionDate = parseISO(this.poam.scheduledCompletionDate);
-    const milestoneDate = milestone.extensionMilestoneDate instanceof Date ? milestone.extensionMilestoneDate : parseISO(milestone.extensionMilestoneDate);
+    const scheduledCompletionDate = this.poam.scheduledCompletionDate;
+    const milestoneDate = milestone.extensionMilestoneDate instanceof Date ? milestone.extensionMilestoneDate : new Date(milestone.extensionMilestoneDate);
 
     if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
       if (isAfter(milestoneDate, scheduledCompletionDate)) {

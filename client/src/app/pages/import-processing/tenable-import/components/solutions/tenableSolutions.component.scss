@@ -1,0 +1,80 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+::ng-deep .p-dialog {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+div.col-6 i {
+  font-size: 2.5rem;
+  width: 26px;
+  margin-right: .25rem;
+}
+
+div.col-6 > * {
+  display: inline-block;
+  align-items: center;
+}
+
+.solutions-icon-desktop {
+  height: 26px;
+  background-repeat: no-repeat;
+  background-position-x: center;
+  background-position-y: bottom;
+  background-size: 24px 26px;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGZpbHRlciBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9ImF1dG8iIGlkPSJhIj48ZmVDb2xvck1hdHJpeCBpbj0iU291cmNlR3JhcGhpYyIgdmFsdWVzPSIwIDAgMCAwIDAuNjM1Mjk0IDAgMCAwIDAgMC42OTAxOTYgMCAwIDAgMCAwLjgyNzQ1MSAwIDAgMCAxLjAwMDAwMCAwIi8+PC9maWx0ZXI+PC9kZWZzPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xIC0yKSIgZmlsdGVyPSJ1cmwoI2EpIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0xNC41IDJoLTEzYS41LjUgMCAwIDAtLjUuNXY5YS41LjUgMCAwIDAgLjUuNUg3djFINS41YS41LjUgMCAxIDAgMCAxaDVhLjUuNSAwIDEgMCAwLTFIOXYtMWg1LjVhLjUuNSAwIDAgMCAuNS0uNXYtOWEuNS41IDAgMCAwLS41LS41Wk0xMyAxMS40OGEuNS41IDAgMSAxIDAtMSAuNS41IDAgMCAxIDAgMVpNMTQgMTBIMlYzaDEydjdaIiBmaWxsPSIjMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48L2c+PC9zdmc+");
+}
+
+.solutions-icon-vulnerabilities {
+  height: 26px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 24px 26px;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGZpbHRlciBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9ImF1dG8iIGlkPSJhIj48ZmVDb2xvck1hdHJpeCBpbj0iU291cmNlR3JhcGhpYyIgdmFsdWVzPSIwIDAgMCAwIDAuNjM1Mjk0IDAgMCAwIDAgMC42OTAxOTYgMCAwIDAgMCAwLjgyNzQ1MSAwIDAgMCAxLjAwMDAwMCAwIi8+PC9maWx0ZXI+PC9kZWZzPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xKSIgZmlsdGVyPSJ1cmwoI2EpIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0xNC42NTMgMi4xMkMxMy4zNTggMS4wNCAxMC4xNjUuMDE0IDcuOTk5LjAxNGMtMi4xNjYgMC01LjM1OSAxLjAyOC02LjY1NCAyLjEwOGEuNTcyLjU3MiAwIDAgMC0uMTkuNDQ0Yy4wODkgMTEuMyA1Ljc5MyAxMy4xNjYgNi43MTggMTMuMzk0YS41Mi41MiAwIDAgMCAuMjUyIDBjLjkyNS0uMjI4IDYuNjMtMi4wOTQgNi43MTktMTMuMzk0YS41NzIuNTcyIDAgMCAwLS4xOTEtLjQ0NFpNOCAxNC44MTVjLTEuMDI3LS4zMDMtNS41NDQtMi4xOTItNS43MDMtMTEuOTg3IDEuMDg4LS43NTIgMy41MzMtMS41NzcgNS4zOS0xLjY2My4xNy0uMDA4LjMzLjA2NS40NDUuMTlMOS45OCAzLjM3NmMuMDUuMDU1LjA1LjEzOCAwIC4xOTNMOC4xMDQgNS42MDJhLjE0My4xNDMgMCAwIDAgLjAyLjIxbDEuNjI5IDEuMjNjLjA3LjA1NC4wNzYuMTU4LjAxMi4yMThMNy45OTkgOC45MjdsMy4wOTctMS44MmEuMTQzLjE0MyAwIDAgMCAuMDE4LS4yMzNMOS44MzIgNS44MThhLjE0My4xNDMgMCAwIDEtLjAxLS4yMTFsMS45MzUtMS45MzZhLjE0My4xNDMgMCAwIDAgLjAwOS0uMTkybC0xLjQzMi0xLjcwM2MtLjA2OC0uMTMxLjA1Mi0uMjg0LjE5NS0uMjQ3IDEuMjcxLjMyOSAyLjQ4OC44MjYgMy4xNyAxLjI5OC0uMTU4IDkuODEzLTQuNjkxIDExLjY5LTUuNjk4IDExLjk4N1oiIGZpbGw9IiMwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjwvZz48L3N2Zz4=");
+}
+
+.solutions-icon-sheild-vpr-high {
+  height: 26px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 24px 26px;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTYgMTYiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxnPjxwYXRoIGQ9Ik03LjkgMGMyLjIgMCA1LjQgMSA2LjcgMi4xLjEuMS4yLjMuMi40QzE0LjYgMTMuOSA4LjkgMTUuOCA4IDE2aC0uM2MtLjktLjItNi42LTIuMS02LjctMTMuNCAwLS4yLjEtLjMuMi0uNEMyLjUgMSA1LjcgMCA3LjkgMHptMCAxQzYgMSAzLjIgMS45IDIgMi43Yy4xIDQuNyAxLjEgOCAyLjggMTAuMS42LjggMS4zIDEuMyAyIDEuNy40LjIuOC40IDEuMS41LjMtLjEuNy0uMiAxLjEtLjUuNy0uNCAxLjQtMSAyLTEuNyAxLjctMi4xIDIuOC01LjQgMi44LTEwLjFDMTIuNSAxLjkgOS43IDEgNy45IDF6TTkgMTF2MUg3di0xaDJ6TTggM2wzIDRIOXYzSDdWN0g1bDMtNHoiLz48ZGVmcz48ZmlsdGVyIGlkPSJhIiBmaWx0ZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIHg9IjAiIHk9IjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PGZlQ29sb3JNYXRyaXggdmFsdWVzPSIxIDAgMCAwIDAgMCAxIDAgMCAwIDAgMCAxIDAgMCAwIDAgMCAxIDAiLz48L2ZpbHRlcj48L2RlZnM+PG1hc2sgbWFza1VuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeD0iMCIgeT0iMCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBpZD0iYiI+PGcgc3R5bGU9ImZpbHRlcjp1cmwoI2EpIj48cGF0aCBkPSJNNy45IDBjMi4yIDAgNS40IDEgNi43IDIuMS4xLjEuMi4zLjIuNEMxNC42IDEzLjkgOC45IDE1LjggOCAxNmgtLjNjLS45LS4yLTYuNi0yLjEtNi43LTEzLjQgMC0uMi4xLS4zLjItLjRDMi41IDEgNS43IDAgNy45IDB6bTAgMUM2IDEgMy4yIDEuOSAyIDIuN2MuMSA0LjcgMS4xIDggMi44IDEwLjEuNi44IDEuMyAxLjMgMiAxLjcuNC4yLjguNCAxLjEuNS4zLS4xLjctLjIgMS4xLS41LjctLjQgMS40LTEgMi0xLjcgMS43LTIuMSAyLjgtNS40IDIuOC0xMC4xQzEyLjUgMS45IDkuNyAxIDcuOSAxek05IDExdjFIN3YtMWgyek04IDNsMyA0SDl2M0g3VjdINWwzLTR6IiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojZmZmIi8+PC9nPjwvbWFzaz48ZyBzdHlsZT0ibWFzazp1cmwoI2IpIj48cGF0aCBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojZmY3NDc4IiBkPSJNMSAwaDE2djE2SDF6IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMSkiLz48L2c+PC9nPjwvc3ZnPg==");
+}
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .description {
+    margin: 1rem 0;
+
+    h6 {
+      margin-bottom: 0.5rem !important;
+    }
+  }
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .right-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .right-buttons {
+    position: relative;
+  }
+}

@@ -47,6 +47,7 @@ import { TabViewModule } from 'primeng/tabview';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
+import { ImportProcessingModule } from '../import-processing/import-processing.module';
 
 @NgModule({
   declarations: [
@@ -88,6 +89,7 @@ import { ToastModule } from 'primeng/toast';
     RouterModule,
     NgxChartsModule,
     PoamProcessingRoutingModule,
+    ImportProcessingModule
   ],
   providers: [
     provideCharts(withDefaultRegisterables()),

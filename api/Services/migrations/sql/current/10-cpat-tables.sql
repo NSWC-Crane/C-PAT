@@ -72,6 +72,7 @@ CREATE TABLE `collection` (
   `assetCount` int DEFAULT '0',
   `poamCount` int DEFAULT '0',
   `collectionOrigin` varchar(15) DEFAULT 'C-PAT',
+  `originCollectionId` int DEFAULT NULL,
   PRIMARY KEY (`collectionId`),
   KEY `idx_collection_collectionName` (`collectionName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -99,6 +100,40 @@ CREATE TABLE `config` (
   `key` varchar(45) NOT NULL,
   `value` varchar(255) NOT NULL,
   PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `iav`
+--
+
+DROP TABLE IF EXISTS `iav`;
+CREATE TABLE `iav` (
+  `iav` varchar(25) NOT NULL,
+  `status` varchar(25) DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `iavCat` tinyint(1) DEFAULT NULL,
+  `type` char(1) NOT NULL,
+  `releaseDate` date DEFAULT NULL,
+  `navyComplyDate` date DEFAULT NULL,
+  `supersededBy` varchar(25) DEFAULT NULL,
+  `knownExploits` varchar(3) DEFAULT NULL,
+  `knownDodIncidents` varchar(3) DEFAULT NULL,
+  `nessusPlugins` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`iav`),
+  UNIQUE KEY `iav_UNIQUE` (`iav`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `iav_plugin`
+--
+
+DROP TABLE IF EXISTS `iav_plugin`;
+CREATE TABLE `iav_plugin` (
+  `iav` varchar(25) NOT NULL,
+  `pluginID` int NOT NULL,
+  PRIMARY KEY (`iav`,`pluginID`),
+  KEY `idx_pluginID` (`pluginID`),
+  CONSTRAINT `iav_plugin_ibfk_1` FOREIGN KEY (`iav`) REFERENCES `iav` (`iav`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -171,6 +206,7 @@ CREATE TABLE `poam` (
   `stigTitle` varchar(255) DEFAULT NULL,
   `stigBenchmarkId` varchar(255) DEFAULT NULL,
   `stigCheckData` text,
+  `tenablePluginData` text,
   `iavmNumber` varchar(25) DEFAULT '',
   `description` varchar(2000) DEFAULT '',
   `mitigations` text,
@@ -391,4 +427,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-07 15:17:27
+-- Dump completed on 2024-08-13 13:12:25

@@ -16,8 +16,9 @@ import { firstValueFrom } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class FileUploadService {
+export class eMASSImportService {
   private cpatApiBase = CPAT.Env.apiBase;
+
   constructor(
     private http: HttpClient,
     private oidcSecurityService: OidcSecurityService
@@ -30,9 +31,12 @@ export class FileUploadService {
 
   async upload(file: File, userId: string) {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file, file.name);
     formData.append('userId', userId);
+
     const headers = await this.getAuthHeaders();
+    headers.set('Content-Type', 'multipart/form-data');
+
     return this.http.post(`${this.cpatApiBase}/import/poams`, formData, {
       headers,
       reportProgress: true,
@@ -40,5 +44,3 @@ export class FileUploadService {
     });
   }
 }
-
-
