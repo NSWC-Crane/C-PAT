@@ -512,7 +512,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/collectionNameAndId'
+                  $ref: '#/components/schemas/collectionBasicList'
         '500':
           description: Internal server error
           content:
@@ -574,8 +574,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'
-  
+                $ref: '#/components/schemas/error'  
     put:
       summary: Update a Collection
       operationId: putCollection
@@ -640,6 +639,52 @@ paths:
                     type: string
         '400':
           description: Bad request - invalid file format, missing file, or missing lastCollectionAccessedId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Import
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  '/import/vram':
+    post:
+      summary: Parse and import VRAM excel IAV exports to provide up-to-date comply by dates
+      operationId: importVRAMExcel
+      x-eov-file-handler: true
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: .xls, .xlsx, or .xlsm VRAM IAV export files
+              required:
+                - file
+      responses:
+        '201':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad request - invalid file format, missing file, or missing userId
           content:
             application/json:
               schema:
@@ -748,7 +793,7 @@ paths:
   '/update/stigmanager/poamassets':
     put:
       summary: Endpoint to receive updated asset data from STIG Manager
-      operationId: updatePoamAssetsWithStigManagerData
+      operationId: putPoamAssetsWithStigManagerData
       requestBody:
         required: true
         content:
@@ -3463,6 +3508,42 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
+
+  /poam/pluginIDs:
+    get:
+      summary: Return a list of Plugin IDs with existing POAMs
+      operationId: getPluginIDsWithPoam
+      responses:
+        '200':
+          description: Successfully retrieved Plugin ID list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    poamId:
+                      type: string
+                    vulnerabilityId:
+                      type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Poam
+      security:
+        - oauth:
+            - 'c-pat:read'
   
   '/poam':
     post:
@@ -4005,6 +4086,206 @@ paths:
         - oauth:
             - 'c-pat:op'
 
+  /vramUpdatedDate:
+    get:
+      summary: Get VRAM data updated date
+      description: Retrieves the last updated date of the VRAM data
+      operationId: getVramDataUpdatedDate
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  value:
+                    type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  /iavSummary:
+    get:
+      summary: Get IAV Summary
+      description: Retrieves IAV table data
+      operationId: getIAVTableData
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IAVTableData'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+          - 'c-pat:read'
+
+  /mapPluginIds:
+    post:
+      summary: Maps Plugin IDs to IAVs
+      description: Maps Plugin IDs to IAVs
+      operationId: mapIAVPluginIds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  iav:
+                    type: string
+                    pattern: '^\d{4}-[A-Z]-\d{4}$'
+                    description: IAV in the format 0000-A-0000
+                  pluginID:
+                    type: string
+                    description: Comma-separated list of plugin IDs
+                required:
+                  - iav
+                  - pluginID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  updatedCount:
+                    type: integer
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  /iav/pluginInfo:
+    get:
+      summary: Get IAV and Navy Comply Date for Plugin IDs
+      description: Retrieves IAV and Navy Comply Date information for given Plugin IDs
+      operationId: getIAVInfoForPlugins
+      parameters:
+        - in: query
+          name: pluginIDs
+          required: true
+          schema:
+            type: string
+          description: Comma-separated list of Plugin IDs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    pluginID:
+                      type: integer
+                    iav:
+                      type: string
+                    navyComplyDate:
+                      type: string
+                      format: date
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /iav/pluginIDs:
+    get:
+      summary: Retrieves mapped IAV pluginIDs
+      description: Get all unique pluginIDs that have an associated IAV as a comma-separated string
+      operationId: getIAVPluginIds
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pluginIDs:
+                    type: string
+                    description: Comma-separated list of unique plugin IDs
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+          - 'c-pat:read'
+
 components:
   schemas:
     ApiClassification:
@@ -4274,8 +4555,11 @@ components:
         collectionOrigin:
           type: string
           nullable: true
+        originCollectionId:
+          type: integer
+          nullable: true
 
-    collectionNameAndId:
+    collectionBasicList:
       type: object
       additionalProperties: false
       properties:
@@ -4283,6 +4567,12 @@ components:
           type: integer
         collectionName:
           type: string
+        collectionOrigin:
+          type: string
+          nullable: true
+        originCollectionId:
+          type: integer
+          nullable: true
 
     collectionField:
       type: object
@@ -4333,6 +4623,52 @@ components:
           type: string
         description:
           type: string
+
+    IAVTableData:
+      type: object
+      properties:
+        iav:
+          type: string
+        pluginID:
+          type: string
+          nullable: true
+          description: Comma-separated list of plugin IDs associated with this IAV
+        status:
+          type: string
+          nullable: true
+        title:
+          type: string
+        iavCat:
+          type: integer
+          format: int32
+          nullable: true
+        type:
+          type: string
+          maxLength: 1
+        releaseDate:
+          type: string
+          format: date
+          nullable: true
+        navyComplyDate:
+          type: string
+          format: date
+          nullable: true
+        supersededBy:
+          type: string
+          nullable: true
+        knownExploits:
+          type: string
+          nullable: true
+        knownDodIncidents:
+          type: string
+          nullable: true
+        nessusPlugins:
+          type: integer
+          format: int32
+      required:
+        - iav
+        - title
+        - type
 
     label:
       type: object
@@ -4415,6 +4751,7 @@ components:
           type: string
         approvedDate:
           type: string
+          format: date
           nullable: true
         comments:
           type: string
@@ -4439,6 +4776,7 @@ components:
           type: string
         approvedDate:
           type: string
+          format: date
           nullable: true
         comments:
           type: string
@@ -4524,11 +4862,15 @@ components:
         stigCheckData:
           type: string
           nullable: true
+        tenablePluginData:
+          type: string
+          nullable: true
         iavmNumber:
           type: string
           nullable: true
         iavComplyByDate:
           type: string
+          format: date
           nullable: true
         aaPackage:
           type: string
@@ -4544,8 +4886,10 @@ components:
           nullable: true
         scheduledCompletionDate:
           type: string
+          format: date
         closedDate:
           type: string
+          format: date
           nullable: true
         submitterId:
           type: integer
@@ -4583,6 +4927,7 @@ components:
           nullable: true
         submittedDate:
           type: string
+          format: date
         hqs:
           type: boolean
           nullable: true
@@ -4679,6 +5024,7 @@ components:
           type: integer
         milestoneDate:
           type: string
+          format: date
         milestoneComments:
           type: string
         milestoneStatus:
@@ -4690,6 +5036,7 @@ components:
       properties:
         milestoneDate:
           type: string
+          format: date
         milestoneComments:
           type: string
         milestoneStatus:
@@ -4727,6 +5074,7 @@ components:
           type: integer
         extensionMilestoneDate:
           type: string
+          format: date
         extensionMilestoneComments:
           type: string
         extensionMilestoneStatus:
@@ -4738,6 +5086,7 @@ components:
       properties:
         extensionMilestoneDate:
           type: string
+          format: date
         extensionMilestoneComments:
           type: string
         extensionMilestoneStatus:
@@ -5394,5 +5743,4 @@ components:
   securitySchemes:
       oauth:
         type: openIdConnect
-        openIdConnectUrl: https://localhost:8080/realms/RMFTools/.well-known/openid-configuration    
-
+        openIdConnectUrl: https://localhost:8080/realms/RMFTools/.well-known/openid-configuration

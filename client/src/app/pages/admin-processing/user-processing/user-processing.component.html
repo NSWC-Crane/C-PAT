@@ -9,7 +9,6 @@
 -->
 <div class="grid" *ngIf="selectedRole === 'admin'; else unauthorized">
   <div *ngIf="showUserSelect" class="col-12">
-    <p-card>
       <div class="scrollable-users">
         <p-treeTable #usersTable [value]="treeData" [columns]="allColumns" [filterDelay]="0" [globalFilterFields]="['User', 'Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level']">
           <ng-template pTemplate="caption">
@@ -76,7 +75,6 @@
           </ng-template>
         </p-dropdown>
       </div>
-    </p-card>
   </div>
 
   <div *ngIf="!showUserSelect" class="col-12">
@@ -88,14 +86,12 @@
   </div>
 </div>
 <ng-template #dialog let-data let-ref="dialogRef">
-  <p-card>
     <p-header>Delete Row</p-header>
     <div class="p-card-body">Are you sure you want to delete this item?</div>
     <p-footer>
       <button pButton type="button" label="Delete" class="p-button-danger"></button>
       <button pButton type="button" label="Cancel" class="p-button-secondary" (click)="ref.close()"></button>
     </p-footer>
-  </p-card>
 </ng-template>
 <ng-template #unauthorized>
   <h1>

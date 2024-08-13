@@ -11,8 +11,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
-import { addDays, format, isAfter, parseISO } from 'date-fns';
+import { addDays, format, isAfter } from 'date-fns';
 import { Subscription, forkJoin, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { SubSink } from 'subsink';
@@ -24,7 +23,7 @@ import { AssetService } from '../../asset-processing/assets.service';
 import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-
+import { jsonToPlainText } from "json-to-plain-text";
 function getRoleFromAccessLevel(accessLevel: number): string {
   switch (accessLevel) {
     case 1:
@@ -92,6 +91,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   collectionBasicList: any[] = [];
   poamApprovers: any[] = [];
   poamMilestones: any[] = [];
+  pluginData: any;
   assets: any;
   poamAssets: any[] = [];
   poamAssignees: any[] = [];
@@ -102,6 +102,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   showCheckData: boolean = false;
   stigmanCollections: any[] = [];
   stigmanSTIGs: any;
+  tenableVulnResponse: any;
+  tenablePluginData: string;
   filteredStigmanSTIGs: string[] = [];
   selectedStig: any = null;
   selectedStigTitle: string = '';
@@ -110,7 +112,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   assetList: any[] = [];
   stateData: any;
   vulnerabilitySources: string[] = [
-    "Assured Compliance Assessment Solution (ACAS) Nessus Scanner",
+    "ACAS Nessus Scanner",
     "STIG",
     "RMF Controls",
     "EXORD",
@@ -186,7 +188,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   selectedCollection: any;
   private subscriptions = new Subscription();
   private subs = new SubSink();
-  private dialogRef: DynamicDialogRef;
 
   constructor(
     private confirmationService: ConfirmationService,
@@ -274,8 +275,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   async getData() {
     this.getLabelData();
-    if (this.poamId == undefined || !this.poamId) return;
-    if (this.poamId === "ADDPOAM") {
+    if (this.poamId === undefined || !this.poamId) {
+      return;
+    } else if (this.poamId === "ADDPOAM" && this.stateData.vulnerabilitySource === 'ACAS Nessus Scanner') {
+      this.createNewACASPoam();
+    } else if (this.poamId === "ADDPOAM") {
       this.createNewPoam();
     } else {
       forkJoin([
@@ -290,10 +294,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         await this.poamService.getPoamLabelsByPoam(this.poamId)
       ]).subscribe(([poam, collection, users, collectionAssets, poamAssets, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
         this.poam = { ...poam, hqs: poam.hqs === 1 ? true : false };
-        this.dates.scheduledCompletionDate = (this.poam.scheduledCompletionDate) ? parseISO(this.poam.scheduledCompletionDate.substr(0, 10)) : '';
-        this.dates.iavComplyByDate = (this.poam.iavComplyByDate) ? parseISO(this.poam.iavComplyByDate.substr(0, 10)) : '';
-        this.dates.submittedDate = (this.poam.submittedDate) ? parseISO(this.poam.submittedDate.substr(0, 10)) : '';
-        this.dates.closedDate = (this.poam.closedDate) ? parseISO(this.poam.closedDate.substr(0, 10)) : null;
+        this.dates.scheduledCompletionDate = poam.scheduledCompletionDate ? new Date(poam.scheduledCompletionDate) : null;
+        this.dates.iavComplyByDate = poam.iavComplyByDate ? new Date(poam.iavComplyByDate) : null;
+        this.dates.submittedDate = poam.submittedDate ? new Date(poam.submittedDate) : null;
+        this.dates.closedDate = poam.closedDate ? new Date(poam.closedDate) : null;
         this.collection = collection.collection;
         this.collectionUsers = users;
         this.assets = collectionAssets;
@@ -301,7 +305,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.poamApprovers = poamApprovers;
         this.poamMilestones = poamMilestones.poamMilestones.map((milestone: any) => ({
           ...milestone,
-          milestoneDate: (milestone.milestoneDate) ? parseISO(milestone.milestoneDate.substr(0, 10)) : null,
+          milestoneDate: milestone.milestoneDate ? new Date(milestone.milestoneDate) : null,
         }));
         this.selectedStigTitle = this.poam.stigTitle;
         this.selectedStigBenchmarkId = this.poam.stigBenchmarkId;
@@ -316,7 +320,15 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             }
           });
         }
-        if (this.stateData.vulnerabilitySource && this.stateData.benchmarkId) {
+        if (this.poam.tenablePluginData) {
+          try {
+            const pluginDataObject = JSON.parse(this.poam.tenablePluginData);
+            this.tenablePluginData = jsonToPlainText(pluginDataObject, {});
+          } catch (error) {
+            this.tenablePluginData = this.poam.tenablePluginData;
+          }
+        }
+        if (this.stateData.vulnerabilitySource === 'STIG' && this.stateData.benchmarkId) {
           this.poamAssets = [];
           this.validateStigManagerCollection();
         } else {
@@ -340,9 +352,134 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  async createNewACASPoam() {
+    this.canModifySubmitter = true;
+    this.pluginData = this.stateData.pluginData;
+    await this.loadVulnerabilitiy(this.pluginData.id);
+    forkJoin([
+      await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
+      await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+      await this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
+    ]).subscribe(async ([collection, users, collectionAssets]: any) => {
+      this.poam = {
+        poamId: "ADDPOAM",
+        collectionId: this.payload.lastCollectionAccessedId,
+        vulnerabilitySource: "ACAS Nessus Scanner",
+        aaPackage: "",
+        iavmNumber: this.stateData.iavNumber || "",
+        iavComplyByDate: this.stateData.iavComplyByDate ? format(new Date(this.stateData.iavComplyByDate), "yyyy-MM-dd") : null,
+        submittedDate: format(new Date(), "yyyy-MM-dd"),
+        vulnerabilityId: this.pluginData.id || "",
+        description: this.pluginData.description || "",
+        rawSeverity: this.mapTenableSeverity(this.tenableVulnResponse.severity.id),
+        scheduledCompletionDate: '',
+        submitterId: this.payload.userId,
+        status: "Draft",
+        tenablePluginData: JSON.parse(this.pluginData) || "",
+        hqs: false,
+      };
+
+      this.dates.scheduledCompletionDate = null;
+      this.dates.iavComplyByDate = this.poam.iavComplyByDate ? new Date(this.poam.iavComplyByDate) : null;
+      this.dates.submittedDate = new Date(this.poam.submittedDate);
+
+      this.collection = collection;
+      this.collectionUsers = users;
+      this.assets = collectionAssets;
+      this.poamAssets = [];
+      this.poamAssignees = [];
+      this.collectionApprovers = [];
+      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3 || this.user.isAdmin);
+      this.poamApprovers = this.collectionApprovers.map((approver: any) => ({
+        userId: approver.userId,
+        approvalStatus: 'Not Reviewed',
+        comments: '',
+      }));
+      this.collectionSubmitters = [];
+      if (this.collectionUsers) {
+        this.collectionUsers.forEach((user: any) => {
+          if (user.accessLevel >= 2) {
+            this.collectionSubmitters.push({ ...user });
+          }
+        });
+      }
+      this.setChartSelectionData();
+      if (this.poam.tenablePluginData) {
+        try {
+          const pluginDataObject = JSON.parse(this.poam.tenablePluginData);
+          this.tenablePluginData = jsonToPlainText(pluginDataObject, {});
+        } catch (error) {
+          this.tenablePluginData = this.poam.tenablePluginData;
+        }
+      }
+    });
+  }
+
+  mapTenableSeverity(severity: string) {
+   switch (severity) {
+      case "0":
+        return 'CAT III - Low';
+      case "1":
+        return 'CAT III - Low';
+      case "2":
+        return 'CAT II - Medium';
+      case "3":
+        return 'CAT I - Critical/High';
+      case "4":
+        return 'CAT I - Critical/High';
+      default:
+        return '';
+   }
+}
+
+  async loadVulnerabilitiy(pluginId: string) {
+    const analysisParams = {
+      "query": {
+        "description": "",
+        "context": "",
+        "status": -1,
+        "createdTime": 0,
+        "modifiedTime": 0,
+        "groups": [],
+        "type": "vuln",
+        "tool": "sumid",
+        "sourceType": "cumulative",
+        "startOffset": 0,
+        "endOffset": 50,
+        "filters": [
+          {
+            "id": "pluginID",
+            "filterName": "pluginID",
+            "operator": "=",
+            "type": "vuln",
+            "isPredefined": true,
+            "value": pluginId
+          }
+        ],
+        "sortColumn": "severity",
+        "sortDirection": "desc",
+        "vulnTool": "sumid",
+      },
+      "sourceType": "cumulative",
+      "sortField": "severity",
+      "sortOrder": "desc",
+      "columns": [],
+      "type": "vuln"      
+    };
+
+    try {
+      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
+      if (data.error_msg) {
+      } else {
+        this.tenableVulnResponse = data.response.results[0];
+      }
+    } catch (error) {
+      console.error('Error fetching all Vulnerabilities:', error);
+    }
+  }
+
   async createNewPoam() {
     this.canModifySubmitter = true;
-
     forkJoin([
       await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
       await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
@@ -359,13 +496,13 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         scheduledCompletionDate: '',
         submitterId: this.payload.userId,
         status: "Draft",
-        submittedDate: new Date().toISOString().slice(0, 10),
+        submittedDate: format(new Date(), "yyyy-MM-dd"),
         hqs: false,
       };
 
-      this.dates.scheduledCompletionDate = this.poam.scheduledCompletionDate;
-      this.dates.iavComplyByDate = this.poam.iavComplyByDate;
-      this.dates.submittedDate = this.poam.submittedDate;
+      this.dates.scheduledCompletionDate = null;
+      this.dates.iavComplyByDate = null;
+      this.dates.submittedDate = new Date(this.poam.submittedDate);
 
       this.collection = collection;
       this.collectionUsers = users;
@@ -570,14 +707,16 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   async savePoam() {
     if (!this.validateData()) return;
-    this.poam.scheduledCompletionDate = format(this.dates.scheduledCompletionDate, "yyyy-MM-dd");
-    this.poam.submittedDate = format(this.dates.submittedDate, "yyyy-MM-dd");
+    this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate ? format(this.dates.scheduledCompletionDate, "yyyy-MM-dd") : null;
+    this.poam.submittedDate = this.dates.submittedDate ? format(this.dates.submittedDate, "yyyy-MM-dd") : null;
+    this.poam.iavComplyByDate = this.dates.iavComplyByDate ? format(this.dates.iavComplyByDate, "yyyy-MM-dd") : null;
     this.poam.requiredResources = this.poam.requiredResources ? this.poam.requiredResources : "";
     this.poam.vulnIdRestricted = this.poam.vulnIdRestricted ? this.poam.vulnIdRestricted : "";
-    this.poam.iavComplyByDate = this.dates.iavComplyByDate ? format(this.dates.iavComplyByDate, "yyyy-MM-dd") : null;
     this.poam.poamLog = [{ userId: this.user.userId }];
     if (this.poam.status === "Closed") {
-      this.poam.closedDate = new Date().toISOString().slice(0, 10);
+      this.poam.closedDate = format(new Date(), "yyyy-MM-dd");
+    } else {
+      this.poam.closedDate = null;
     }
 
     if (this.poam.poamId === "ADDPOAM") {
@@ -767,12 +906,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.poam.status === "Closed") {
-      this.poam.closedDate = new Date().toISOString().slice(0, 10);
+      this.poam.closedDate = format(new Date(), "yyyy-MM-dd");
     }
     this.poam.status = "Submitted";
     this.poam.iavComplyByDate = this.dates.iavComplyByDate ? format(this.dates.iavComplyByDate, "yyyy-MM-dd") : null;
-    this.poam.scheduledCompletionDate = format(this.dates.scheduledCompletionDate, "yyyy-MM-dd");
-    this.poam.submittedDate = format(this.dates.submittedDate, "yyyy-MM-dd");
+    this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate ? format(this.dates.scheduledCompletionDate, "yyyy-MM-dd") : null;
+    this.poam.submittedDate = this.dates.submittedDate ? format(this.dates.submittedDate, "yyyy-MM-dd") : null;
     this.savePoam();
   }
 
@@ -996,6 +1135,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.poamApprovers = this.poamApprovers.filter((a: any) => a.userId !== approver.userId);
       });
     } else if (this.poam.poamId === "ADDPOAM") {
+      this.poamApprovers = this.poamApprovers.filter((a: any) => a.userId !== approver.userId);
       this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Approver removed' });
     } else {
       this.showConfirmation("You may only remove an approver from the approver list if the POAM status is 'Draft'.", "Error");
@@ -1057,7 +1197,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add assignee' });
       });
     } else if (this.poam.poamId === "ADDPOAM" && newAssignee.userId) {
-      this.poamAssignees = [...this.poamAssignees, newAssignee];
       this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assigneeName} was added as an assignee` });
     } else {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to create entry. Invalid input.' });
@@ -1149,6 +1288,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   async confirmDeleteAsset(event: any) {
     if (this.poam.poamId === "ADDPOAM") {
+      this.poamAssets = this.poamAssets.filter(a => a.assetId !== event.assetId);
       return;
     }
 

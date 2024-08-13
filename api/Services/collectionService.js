@@ -105,7 +105,7 @@ exports.getCollections = async function getCollections(userNameInput, req, res, 
 exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            const sql = "SELECT collectionId, collectionName FROM collection";
+            const sql = "SELECT collectionId, collectionName, collectionOrigin, originCollectionId FROM collection";
             const [rows] = await connection.query(sql);
             return rows;
         });
@@ -115,15 +115,28 @@ exports.getCollectionBasicList = async function getCollectionBasicList(req, res,
 };
 
 exports.postCollection = async function postCollection(req, res, next) {
-    if (!req.body.collectionName) req.body.collectionName = undefined
-    if (!req.body.description) req.body.description = ""
-    if (!req.body.assetCount) req.body.assetCount = 0;
-    if (!req.body.poamCount) req.body.poamCount = 0;
+    if (!req.body.collectionName) {
+        return next({
+            status: 400,
+            errors: {
+                collectionName: 'is required',
+            }
+        });
+    }
+    if (!req.body.description) {
+        req.body.description = ""
+    }
+    if (!req.body.collectionOrigin) {
+        req.body.collectionOrigin = "C-PAT"
+    }
+    if (!req.body.originCollectionId) {
+        req.body.originCollectionId = null;
+    }
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.collection (collectionName, description, assetCount, poamCount) VALUES (?, ?, ?, ?) `
-            await connection.query(sql_query, [req.body.collectionName, req.body.description, 0, 0, 0])
+            let sql_query = `INSERT INTO cpat.collection (collectionName, description, collectionOrigin, originCollectionId) VALUES (?, ?, ?, ?) `
+            await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.collectionOrigin, req.body.originCollectionId])
             let sql = "SELECT * FROM cpat.collection WHERE collectionId = LAST_INSERT_ID();"
             let [rowCollection] = await connection.query(sql)
 

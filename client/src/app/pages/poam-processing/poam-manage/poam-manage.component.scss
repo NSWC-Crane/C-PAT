@@ -39,11 +39,14 @@
 }
 
 :host ::ng-deep {
+  .p-card .p-card-content {
+      padding-bottom: 0;
+  }    
   .ngx-poam-assigned-grid {
     &.p-card .p-card-body {
       padding: 0 !important;
     }
-    
+
     .p-tabview {
       .p-tabview-panels,
       .p-tabview-panel {
@@ -62,16 +65,11 @@
       
       .p-datatable {
         width: 100% !important;
-        
+        padding: 0;
+
         .p-datatable-wrapper {
           border-left: 0 !important;
           border-right: 0 !important;
-        }
-        
-        .p-datatable-thead > tr > th,
-        .p-datatable-tbody > tr > td {
-          padding-left: 0.5rem !important;
-          padding-right: 0rem !important;
         }
       }
     }

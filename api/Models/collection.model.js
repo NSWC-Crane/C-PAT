@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         description: {
             type: DataTypes.STRING(255),
+            allowNull: true,
         },
         created: {
             type: DataTypes.DATE,
@@ -26,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
         },
         collectionOrigin: {
             type: DataTypes.STRING(15),
+            allowNull: true,
+        },
+        originCollectionId: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
         },
     }, {
         tableName: 'collection',

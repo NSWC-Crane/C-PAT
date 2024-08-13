@@ -14,15 +14,18 @@
       <p-tabView>
         <p-tabPanel header="Asset Management">
           <div class="p-fluid">
-            <div class="toolbar" style="display: flex; align-items: center;">
-              <span class="p-input-icon-left">
-                <i class="pi pi-search"></i>
-                <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Assets" style="width: 300px;">
-              </span>
-              <p-button label="Clear" [outlined]="true" severity="info" class="ml-auto" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()"></p-button>
+            <div class="toolbar mb-3">
+              <div class="left-buttons">
+                <span class="p-input-icon-left">
+                  <i class="pi pi-search"></i>
+                  <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Assets" style="width: 300px;">
+                  <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()" pTooltip="Clear all filters"></p-button>
+                </span>
+              </div>
             </div>
             <div class="scrollable-assets">
               <p-table #assetTable
+                       [resizableColumns]="true"
                        [value]="data"
                        selectionMode="multiple"
                        [(selection)]="selectedAssets"
@@ -31,31 +34,31 @@
                        [globalFilterFields]="['assetId', 'assetName', 'description', 'ipAddress', 'macAddress']">
                 <ng-template pTemplate="header">
                   <tr>
-                    <th scope="col" style="min-width:5rem">
+                    <th scope="col" pResizableColumn>
                       <div class="flex align-items-center">
                         Asset ID
                         <p-columnFilter type="text" field="assetId" display="menu" />
                       </div>
                     </th>
-                    <th scope="col" style="min-width:15rem">
+                    <th scope="col" pResizableColumn>
                       <div class="flex align-items-center">
                         Asset Name
                         <p-columnFilter type="text" field="assetName" display="menu" />
                       </div>
                     </th>
-                    <th scope="col" style="min-width:15rem">
+                    <th scope="col" pResizableColumn>
                       <div class="flex align-items-center">
                         Description
                         <p-columnFilter type="text" field="description" display="menu" />
                       </div>
                     </th>
-                    <th scope="col" style="min-width:15rem">
+                    <th scope="col" pResizableColumn>
                       <div class="flex align-items-center">
                         IP Address
                         <p-columnFilter type="text" field="ipAddress" display="menu" />
                       </div>
                     </th>
-                    <th scope="col" style="min-width:15rem">
+                    <th scope="col" pResizableColumn>
                       <div class="flex align-items-center">
                         MAC Address
                         <p-columnFilter type="text" field="macAddress" display="menu" />

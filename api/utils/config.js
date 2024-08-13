@@ -46,6 +46,11 @@ let config = {
         scopePrefix: process.env.STIGMAN_SCOPE_PREFIX,
         extraScopes: process.env.STIGMAN_EXTRA_SCOPES,
     },
+    tenable: {
+        url: process.env.TENABLE_URL,
+        accessKey: process.env.TENABLE_ACCESS_KEY,
+        secretKey: process.env.TENABLE_SECRET_KEY,
+    },
     docs: {
         disabled: process.env.CPAT_DOCS_DISABLED === "true",
         docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../docs/_build/html',
@@ -107,10 +112,10 @@ let config = {
 function formatChain(path) {
     const components = path?.split('.')
     if (components?.length === 1) return path
-    for (let x=0; x < components.length; x++) {
-      components[x] = `['${components[x]}']`
+    for (let x = 0; x < components.length; x++) {
+        components[x] = `['${components[x]}']`
     }
     return components.join('?.')
-  }
-  
+}
+
 module.exports = config

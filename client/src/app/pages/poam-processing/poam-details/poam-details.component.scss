@@ -59,7 +59,25 @@ hr {
   margin-left: 0.5rem;
 }
 
+.showCheckData {
+    background-color: var(--surface-b);
+    border: 1px solid var(--surface-d);
+    padding: 1rem;
+    overflow: auto;
+    max-height: 500px;
+}
+
+.showCheckData pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+}
+
 :host ::ng-deep {
+  .p-card-content {
+      padding: 0;
+  }
+
   .p-stepper-panel {
     height: 100%;
   }
@@ -74,14 +92,13 @@ hr {
     flex: 1;
     overflow-y: auto;
     padding: 1rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--surface-d);
+    margin-bottom: .5rem;
   }
 
   .stepper-buttons {
     display: flex;
     justify-content: space-between;
-    padding: 1rem;
+    padding: 0 1rem 1rem;
     border-bottom: 1px solid var(--surface-d);
     &.first-panel {
       justify-content: flex-end;
@@ -93,4 +110,10 @@ hr {
       overflow-x: auto;
     }
   }
+}
+
+
+::ng-deep .p-dialog {
+  max-height: 90vh;
+  overflow-y: auto;
 }

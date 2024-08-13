@@ -7,118 +7,67 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-<div class="grid" *ngIf="canModifyCollection; else unauthorized">
+<div class="grid">
   <div class="col-12">
-    <p-card>
-      <div class="scrollable-collections">
-        <p-treeTable #dt [value]="collectionTreeData" [columns]="allColumns" [filterDelay]="0" [globalFilterFields]="['data']">
-          <ng-template pTemplate="caption">
+    <div class="scrollable-collections">
+      <p-treeTable #dt [value]="collectionTreeData" [columns]="allColumns" [filterDelay]="0" [globalFilterFields]="['data']">
+        <ng-template pTemplate="caption">
+          <div class="flex justify-content-between align-items-center">
             <p-iconField iconPosition="left">
               <p-inputIcon>
                 <i class="pi pi-search"></i>
               </p-inputIcon>
               <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections" class="search-input">
             </p-iconField>
-          </ng-template>
-          <ng-template pTemplate="header" let-columns>
-            <tr>
-              <th scope="col" *ngFor="let col of columns">
-                {{col}}
-              </th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
-            <tr>
-              <td *ngFor="let col of columns; let i = index">
-                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-                {{rowData[col]}}
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="5" style="text-align:center">No Data to Display</td>
-            </tr>
-          </ng-template>
-        </p-treeTable>
-      </div>
-    </p-card>
-  </div>
-  <div *ngIf="showCollectionSelect" class="col-12">
-    <p-card>
-        <div *ngIf="collections && collections.length > 0">
-          <p-dropdown [options]="collections"
-                      name="selectedCollection"
-                      [(ngModel)]="selectedCollection"
-                      (onChange)="setCollection()"
-                      placeholder="Select Collection to Modify..."
-                      optionLabel="collectionName"
-                      [showClear]="true"
-                      autoWidth="false"
-                      [style]="{'width': '30vw', 'margin-right': '20px'}"
-                      appendTo="body">
-            <ng-template let-collection pTemplate="item">
-              {{collection.collectionId}} - {{collection.collectionName}} - {{collection.description}}
-            </ng-template>
-          </p-dropdown>
-          <button pButton
-                  type="button"
-                  label="ADD COLLECTION"
-                  styleClass="p-button-primary p-button-outlined"
-                  (click)="addCollection()"
-                  [outlined]="true">
-          </button>
-        </div>
-    </p-card>
-  </div>
-  <div *ngIf="!showCollectionSelect" class="col-12">
-    <p-card>
-      <cpat-collection [collection]="collection"
-                       [collections]="collections"
-                       [payload]="payload"
-                       (collectionchange)="onCollectionChange($event)">
-      </cpat-collection>
-    </p-card>
-  </div>
-  <div class="col-12">
-    <p-card>
-      <p-dropdown [options]="collections"
-                  [(ngModel)]="exportCollectionId"
-                  (onChange)="setExportCollection($event.value)"
-                  placeholder="{{ collectionToExport }}"
-                  optionLabel="collectionName"
-                  [style]="{'width': '30vw', 'margin-right': '20px'}"
-                  appendTo="body"
-                  require>
-        <ng-template let-collection pTemplate="item">
-          {{collection.collectionId}} - {{collection.collectionName}} - {{collection.description}}
+            <button pButton type="button" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Manually Add Collection" (click)="showAddCollectionDialog()"></button>
+          </div>
         </ng-template>
-      </p-dropdown>
-      <button pButton
-              type="button"
-              label="DOWNLOAD"
-              styleClass="p-button-primary p-button-outlined"
-              icon="pi pi-download"
-              (click)="exportAll()"
-              [outlined]="true">
-      </button>
-    </p-card>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th scope="col" *ngFor="let col of columns">
+              {{col}}
+            </th>
+            <th scope="col">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
+          <tr>
+            <td *ngFor="let col of columns; let i = index">
+              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
+              {{rowData[col]}}
+            </td>
+            <td>
+              <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text mr-2" (click)="showModifyCollectionDialog(rowData)"></button>
+              <button pButton type="button" icon="pi pi-download" class="p-button-rounded p-button-text" (click)="exportCollection(rowData['Collection ID'], rowData['Name'])"></button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" style="text-align:center">No Data to Display</td>
+          </tr>
+        </ng-template>
+      </p-treeTable>
+    </div>
   </div>
 </div>
-<ng-template #dialog let-data let-ref="dialogRef">
-  <p-card>
-    <p-header>Delete Row</p-header>
-    <div class="p-card-body">Are you sure you want to delete this item?</div>
-    <p-footer>
-      <button pButton type="button" label="Delete" class="p-button-danger"></button>
-      <button pButton type="button" label="Cancel" class="p-button-secondary" (click)="ref.close()"></button>
-    </p-footer>
-  </p-card>
-</ng-template>
-<ng-template #unauthorized>
-  <h1>
-    Collection processing requires appropriate permissions.
-    <br /><br />
-  </h1>
-</ng-template>
+
+<p-dialog [(visible)]="displayCollectionDialog" [style]="{width: '450px'}" [header]="dialogMode === 'add' ? 'Add Collection' : 'Modify Collection'" [modal]="true" styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <div class="field">
+      <label for="collectionName">Collection Name</label>
+      <input type="text" pInputText id="collectionName" [(ngModel)]="editingCollection.collectionName" required autofocus />
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" pInputTextarea [(ngModel)]="editingCollection.description" required rows="3" cols="20"></textarea>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideCollectionDialog()"></button>
+    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveCollection()"></button>
+  </ng-template>
+</p-dialog>
+
 <p-toast></p-toast>

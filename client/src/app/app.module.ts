@@ -18,11 +18,10 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CardModule } from 'primeng/card';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { FileUploadService } from '../app/pages/import-processing/emass-import/file-upload.service';
 import { SharedModule } from './common/shared.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { NgParticlesModule } from 'ng-particles';
+import { NgxParticlesModule } from "@tsparticles/angular";
 import { NotFoundComponent } from './common/components/not-found/not-found.component';
 import { UnauthorizedComponent } from './common/components/unauthorized/unauthorized.component';
 import { ButtonModule } from 'primeng/button';
@@ -83,7 +82,7 @@ function getScopeStr(configId: string) {
     AppRoutingModule,
     SharedModule,
     AppConfigModule,
-    NgParticlesModule,
+    NgxParticlesModule,
     AuthModule.forRoot({
       config: [
         {
@@ -133,7 +132,6 @@ function getScopeStr(configId: string) {
   ],
   providers: [
     { provide: APP_BASE_HREF, useValue: "/" },
-    FileUploadService,
     provideCharts(withDefaultRegisterables()),
     PrimeNGConfig,
   ],

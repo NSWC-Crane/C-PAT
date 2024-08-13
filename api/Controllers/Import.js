@@ -10,9 +10,9 @@
 
 const importService = require('../Services/importService');
 
-module.exports.updatePoamAssetsWithStigManagerData = async function updatePoamAssetsWithStigManagerData(req, res, next) {
+module.exports.putPoamAssetsWithStigManagerData = async function putPoamAssetsWithStigManagerData(req, res, next) {
     try {
-        const poamAsset = await importService.updatePoamAssetsWithStigManagerData(req, res, next);
+        const poamAsset = await importService.putPoamAssetsWithStigManagerData(req, res, next);
         res.status(200).json(poamAsset);
     } catch (error) {
         if (error.status === 400) {
@@ -37,6 +37,33 @@ module.exports.uploadPoamFile = async (req, res, next) => {
                 await importService.processPoamFile(file, userId);
                 res.status(201).json({ message: "Uploaded the file successfully" });
             } catch (error) {
+                res.status(500).json({
+                    message: "Could not process the file",
+                    error: error.message,
+                });
+            }
+        }
+    });
+};
+
+module.exports.importVRAMExcel = async (req, res, next) => {
+    const file = req.files[0];
+
+    if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    importService.excelFilter(req, file, async (err) => {
+        if (err) {
+            return res.status(400).json({
+                message: err.message,
+            });
+        } else {
+            try {
+                const result = await importService.importVRAMExcel(file);
+                res.status(201).json(result);
+            } catch (error) {
+                console.error('Error processing VRAM file:', error);
                 res.status(500).json({
                     message: "Could not process the file",
                     error: error.message,

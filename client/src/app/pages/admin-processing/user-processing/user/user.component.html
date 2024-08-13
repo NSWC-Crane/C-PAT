@@ -1,5 +1,4 @@
-<form (ngSubmit)="onSubmit()" #form="ngForm">
-  <p-card>
+<form #form="ngForm">
     <div class="field">
       <label for="userName">First Name: </label>
       <input pInputText type="text" style="width: 100%" name="userName" [(ngModel)]="user.firstName" placeholder="First Name" required>
@@ -127,7 +126,6 @@
         </div>
       </div>
     </div>
-  </p-card>
 </form>
 
 <p-toast></p-toast>

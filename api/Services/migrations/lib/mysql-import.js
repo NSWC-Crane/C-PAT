@@ -394,7 +394,8 @@ class queryParser {
 
 	// Check to see if a new delimiter is being assigned
 	checkNewDelimiter(char) {
-		const buffer_str = this.buffer.join('').toLowerCase().trim();
+		let buffer_str = '';
+		if (this.buffer.length < 10) buffer_str = this.buffer.join('').toLowerCase().trim();
 		if (buffer_str === 'delimiter' && !this.quoteType) {
 			this.seekingDelimiter = true;
 			this.buffer = [];

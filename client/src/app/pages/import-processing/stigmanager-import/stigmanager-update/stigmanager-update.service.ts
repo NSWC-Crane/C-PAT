@@ -61,7 +61,7 @@ export class PoamAssetUpdateService {
           return poamAssetsData;
         }),
         switchMap(async (poamAssetsData) => {
-          return (await this.importService.updatePoamAssetsWithStigManagerData(poamAssetsData)).subscribe();
+          return (await this.importService.putPoamAssetsWithStigManagerData(poamAssetsData)).subscribe();
         }),
         catchError((error) => {
           console.error('Failed to update POAM assets:', error);

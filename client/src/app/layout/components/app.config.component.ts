@@ -15,8 +15,8 @@ export class AppConfigComponent {
     { label: 'Outlined', value: 'outlined' },
     { label: 'Filled', value: 'filled' }
   ];
-  lightOnlyThemes = ['fluent-light', 'mira', 'nano'];
-  darkOnlyThemes = ['arya-blue', 'arya-green', 'arya-orange', 'arya-purple'];
+  lightOnlyThemes = ['fluent-light', 'mira', 'nano', 'bootstrap4-light-purple', 'bootstrap4-light-blue', 'soho-light', 'viva-light'];
+  darkOnlyThemes = ['arya-blue', 'arya-green', 'arya-orange', 'arya-purple', 'bootstrap4-dark-purple', 'bootstrap4-dark-blue', 'soho-dark', 'viva-dark'];
   scales: number[] = [12, 13, 14, 15, 16];
   user: any;
   private subs = new SubSink();
@@ -92,7 +92,8 @@ export class AppConfigComponent {
   }
 
   get isDarkToggleDisabled(): boolean {
-    return this.darkOnlyThemes.includes(this.layoutService.config().theme);
+    const currentTheme = this.layoutService.config().theme;
+    return this.darkOnlyThemes.includes(currentTheme) || this.lightOnlyThemes.includes(currentTheme);
   }
 
   get isDarkMode(): boolean {

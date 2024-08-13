@@ -18,6 +18,8 @@ import { Collections } from './collections.model';
 interface CollectionBasicList {
   collectionId: string;
   collectionName: string;
+  collectionOrigin?: string;
+  originCollectionId?: number;
 }
 
 @Injectable({
@@ -97,7 +99,7 @@ export class CollectionsService {
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamsByCollection(id: string) {
+  async getPoamsByCollection(id: any) {
         const headers = await this.getAuthHeaders();
 		return this.http.get(`${this.cpatApiBase}/poams/collection/${id}`, { headers })
       .pipe(catchError(this.handleError));

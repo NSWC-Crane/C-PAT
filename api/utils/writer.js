@@ -56,8 +56,8 @@ let writeJson = exports.writeJson = function (response, arg1, arg2) {
 const charToHexStr = (c) => `%${c.charCodeAt(0).toString(16).padStart(2, '0')}`
 
 const goodFilename = (string) =>
-    string.replace(/([<>:"/\\|?*]|[\x00-\x1F])|( +$)/g, (match, controlChar, trailingSpace) => {
-        if (controlChar) return charToHexStr(controlChar);
+    string.replace(/([<>:"/\\|?*])|( +$)/g, (match, specialChar, trailingSpace) => {
+        if (specialChar) return '';
         if (trailingSpace) return '';
         return match;
     });

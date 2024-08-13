@@ -238,6 +238,18 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
     }
 };
 
+exports.getPluginIDsWithPoam = async function getPluginIDsWithPoam(req, res, next) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `SELECT poamId, vulnerabilityId FROM cpat.poam;`;
+            let [PluginIDs] = await connection.query(sql);
+            return PluginIDs;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
 exports.postPoam = async function postPoam(req) {
     const requiredFields = ['collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'submitterId'];
     for (let field of requiredFields) {
@@ -251,11 +263,11 @@ exports.postPoam = async function postPoam(req) {
     req.body.closedDate = req.body.closedDate || null;
     req.body.iavComplyByDate = req.body.iavComplyByDate || null;
 
-    let sql_query = `INSERT INTO cpat.poam (collectionId, vulnerabilitySource, stigTitle, stigBenchmarkId, stigCheckData,
+    let sql_query = `INSERT INTO cpat.poam (collectionId, vulnerabilitySource, stigTitle, stigBenchmarkId, stigCheckData, tenablePluginData,
                     iavmNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate, scheduledCompletionDate,
                     submitterId, officeOrg, predisposingConditions, mitigations, requiredResources, residualRisk, likelihood, relevanceOfThreat,
                     businessImpactRating, businessImpactDescription, notes, status, vulnIdRestricted, submittedDate, closedDate)
-                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     try {
         return await withConnection(async (connection) => {
@@ -270,10 +282,10 @@ exports.postPoam = async function postPoam(req) {
             }
 
             await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
-            req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity, req.body.iavComplyByDate,
-            req.body.scheduledCompletionDate, req.body.submitterId, req.body.officeOrg, req.body.predisposingConditions, req.body.mitigations, req.body.requiredResources,
-            req.body.residualRisk, req.body.likelihood, req.body.relevanceOfThreat, req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes,
-            req.body.status, req.body.vulnIdRestricted, req.body.submittedDate, req.body.closedDate]);
+                req.body.tenablePluginData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
+                req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.officeOrg, req.body.predisposingConditions, req.body.mitigations,
+                req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.relevanceOfThreat, req.body.businessImpactRating, req.body.businessImpactDescription,
+                req.body.notes, req.body.status, req.body.vulnIdRestricted, req.body.submittedDate, req.body.closedDate]);
 
             let sql = "SELECT * FROM cpat.poam WHERE poamId = LAST_INSERT_ID();";
             let [rowPoam] = await connection.query(sql);
@@ -362,6 +374,7 @@ exports.putPoam = async function putPoam(req, res, next) {
         "stigTitle": "STIG Title",
         "stigBenchmarkId": "STIG Manager Benchmark ID",
         "stigCheckData": "STIG Manager Check Data",
+        "tenablePluginData": "Tenable Plugin Data",
         "iavmNumber": "IAVM Number",
         "iavComplyByDate": "IAV Comply By Date",
         "aaPackage": "A&A Package",
@@ -409,14 +422,14 @@ exports.putPoam = async function putPoam(req, res, next) {
             }
 
             const sqlInsertPoam = `UPDATE cpat.poam SET collectionId = ?, vulnerabilitySource = ?, stigTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
-                      iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
+                      tenablePluginData = ?, iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
                       iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
                       residualRisk = ?, likelihood = ?, relevanceOfThreat = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?,
                       vulnIdRestricted = ?, submittedDate = ?, closedDate = ?, officeOrg = ?  WHERE poamId = ?`;
 
             await connection.query(sqlInsertPoam, [
-                req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId,
-                req.body.stigCheckData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
+                req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
+                req.body.tenablePluginData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
                 req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions,
                 req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.relevanceOfThreat,
                 req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.vulnIdRestricted,

@@ -19,10 +19,10 @@
       </div>
 
       <div class="button-group">
-        <button pButton type="button" label="Poam History" class="p-button-outlined p-button-secondary" (click)="poamLog()"></button>
-        <button pButton type="button" label="Extend Poam" class="p-button-outlined p-button-warning" *ngIf="showSubmit" (click)="extendPoam()"></button>
-        <button pButton type="button" label="Submit Poam" class="p-button-outlined p-button-success" *ngIf="showSubmit" (click)="submitPoam()" pTooltip="Update POAM Status to Submitted" tooltipPosition="top"></button>
-        <button pButton type="button" label="POAM Approval" class="p-button-outlined p-button-primary" *ngIf="showApprove" (click)="poamApproval()"></button>
+        <p-button size="large" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-history" pTooltip="POAM history" tooltipPosition="top" (click)="poamLog()"></p-button>
+        <p-button size="large" class="ml-1" [rounded]="true" [text]="true" [raised]="true" severity="warning" icon="pi pi-hourglass" pTooltip="Extend POAM" tooltipPosition="top" *ngIf="showSubmit" (click)="extendPoam()"></p-button>
+        <p-button size="large" class="ml-1" [rounded]="true" [text]="true" [raised]="true" severity="success" icon="pi pi-file-plus" pTooltip="Submit POAM for review" tooltipPosition="top" *ngIf="showSubmit" (click)="submitPoam()"></p-button>
+        <p-button size="large" class="ml-1" [rounded]="true" [text]="true" [raised]="true" severity="primary" icon="pi pi-verified" pTooltip="POAM Approval" tooltipPosition="top" *ngIf="showApprove" (click)="poamApproval()"></p-button>
       </div>
     </div>
 
@@ -33,8 +33,18 @@
             <p-inputSwitch id="stigCheckData" [(ngModel)]="showCheckData"></p-inputSwitch>
             <label for="stigCheckData">View STIG Manager Check Data</label>
           </div>
-          <div class="form-group">
-            <textarea *ngIf="showCheckData" pInputTextarea class="w-full" [rows]="10" [(ngModel)]="poam.stigCheckData" name="stigCheckData" [maxlength]="4000" style="font-weight: normal;"></textarea>
+          <div class="card mt-4 showCheckData" *ngIf="showCheckData">
+            <pre>{{poam.stigCheckData}}</pre>
+          </div>
+        </div>
+
+        <div *ngIf="poam.tenablePluginData?.length > 0" class="form-group">
+          <div class="switch-container">
+            <p-inputSwitch id="tenablePluginData" [(ngModel)]="showCheckData"></p-inputSwitch>
+            <label for="tenablePluginData">View Tenable Plugin Data</label>
+          </div>
+          <div class="card mt-4 showCheckData" *ngIf="showCheckData">
+            <pre>{{tenablePluginData}}</pre>
           </div>
         </div>
 
@@ -92,18 +102,18 @@
         </div>
 
         <!-- IAVM # -->
-        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
+        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'ACAS Nessus Scanner' || poam.vulnerabilitySource === 'EXORD'">
           <label for="iavmNumber">IAVM #: </label>
           <div class="p-inputgroup">
             <input type="text" pInputText class="w-full" [(ngModel)]="poam.iavmNumber" name='iavmNumber' placeholder="IAVM #...">
-            <button type="button" pButton class="w-full" icon="pi pi-external-link" (click)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber" [style]="{'width':'25rem', 'margin-top':'20px'}"></button>
+            <button type="button" pButton icon="pi pi-external-link" (click)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber"></button>
           </div>
         </div>
 
         <!-- IAV Comply By Date -->
         <div class="form-group" *ngIf="poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)">
           <label for="iavComplyByDate">IAV Comply By Date: <span class="text-danger">*</span></label>
-          <p-calendar [(ngModel)]="dates.iavComplyByDate" name="iavComplyByDate" placeholder="IAV Comply By Date..." [showIcon]="true" [style]="{'width':'25rem'}"></p-calendar>
+          <p-calendar [(ngModel)]="dates.iavComplyByDate" dateFormat="yy-mm-dd" name="iavComplyByDate" placeholder="IAV Comply By Date..." [showIcon]="true" [style]="{'width':'25rem'}"></p-calendar>
         </div>
 
         <!-- Raw Severity -->
@@ -127,26 +137,23 @@
         <!-- Scheduled Completion Date -->
         <div class="form-group">
           <label for="scheduledCompletionDate">Scheduled Completion Date: <span class="text-danger">*</span></label>
-          <p-calendar [(ngModel)]="dates.scheduledCompletionDate" name="scheduledCompletionDate" placeholder="Scheduled Completion Date..." [showIcon]="true" [style]="{'width':'25rem'}"></p-calendar>
+          <p-calendar [(ngModel)]="dates.scheduledCompletionDate" dateFormat="yy-mm-dd" name="scheduledCompletionDate" placeholder="Scheduled Completion Date..." [showIcon]="true" [style]="{'width':'25rem'}"></p-calendar>
         </div>
 
         <!-- Submitted Date -->
         <div class="form-group">
           <label for="submittedDate">Submitted Date: </label>
-          <p-calendar [(ngModel)]="dates.submittedDate" name="submittedDate" placeholder="Submitted Date..." [showIcon]="true" [style]="{'width':'25rem'}"></p-calendar>
+          <p-calendar [(ngModel)]="dates.submittedDate" dateFormat="yy-mm-dd" name="submittedDate" placeholder="Submitted Date..." [showIcon]="true" [style]="{'width':'25rem'}"></p-calendar>
         </div>
       </div>
     </div>
 
     <p-footer>
-      <p-stepper>
+      <p-stepper styleClass="'responsive-stepper'">
         <!-- Assignees -->
         <p-stepperPanel header="Assignees">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons first-panel">
-                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
-              </div>
               <div class="stepper-content">
                 <p-table [value]="poamAssignees" [paginator]="false">
                   <ng-template pTemplate="header">
@@ -175,6 +182,9 @@
                   </ng-template>
                 </p-table>
               </div>
+              <div class="stepper-buttons first-panel">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
             </div>
           </ng-template>
         </p-stepperPanel>
@@ -183,10 +193,6 @@
         <p-stepperPanel header="Approvers">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons">
-                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
-                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
-              </div>
               <div class="stepper-content">
                 <p-table [value]="poamApprovers">
                   <ng-template pTemplate="header">
@@ -207,7 +213,7 @@
                         <p-dropdown *ngIf="approver.isNew" [options]="collectionApprovers" [(ngModel)]="approver.userId" optionLabel="fullName" optionValue="userId" [style]="{'width':'100%'}" (onChange)="onApproverChange(approver, rowIndex)" appendTo="body"></p-dropdown>
                       </td>
                       <td>{{approver.approvalStatus}}</td>
-                      <td>{{approver.approvedDate ? (approver.approvedDate | date) : 'Not Reviewed'}}</td>
+                      <td>{{approver.approvedDate ? (approver.approvedDate | date:'yyyy-MM-dd') : 'Not Reviewed'}}</td>
                       <td>
                         <span *ngIf="!approver.isNew">{{approver.comments}}</span>
                         <textarea *ngIf="approver.isNew" pInputTextarea class="w-full" [(ngModel)]="approver.comments" [rows]="3"></textarea>
@@ -224,6 +230,10 @@
                   </ng-template>
                 </p-table>
               </div>
+              <div class="stepper-buttons">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
             </div>
           </ng-template>
         </p-stepperPanel>
@@ -232,11 +242,7 @@
         <p-stepperPanel header="Assets">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons">
-                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
-                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
-              </div>
-              <div class="stepper-content">
+              <div *ngIf="poam.vulnerabilitySource != 'ACAS Nessus Scanner'" class="stepper-content">
                 <p-table [value]="poamAssets" [paginator]="false">
                   <ng-template pTemplate="header">
                     <tr>
@@ -264,6 +270,15 @@
                   </ng-template>
                 </p-table>
               </div>
+
+              <div *ngIf="poam.vulnerabilitySource === 'ACAS Nessus Scanner'" class="stepper-content">
+                <tenable-assets-table [pluginID]="poam.vulnerabilityId"></tenable-assets-table>
+              </div>
+
+              <div class="stepper-buttons">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
             </div>
           </ng-template>
         </p-stepperPanel>
@@ -272,12 +287,12 @@
         <p-stepperPanel header="Predisposing Conditions">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons">
-                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
-                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
-              </div>
               <div class="stepper-content">
                 <textarea pInputTextarea class="w-full" [(ngModel)]="poam.predisposingConditions" name='predisposingConditions' [rows]="16" [maxlength]="2000" placeholder="Predisposing conditions..."></textarea>
+              </div>
+              <div class="stepper-buttons">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
               </div>
             </div>
           </ng-template>
@@ -287,12 +302,12 @@
         <p-stepperPanel header="Mitigations">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons">
-                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
-                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
-              </div>
               <div class="stepper-content">
                 <textarea pInputTextarea class="w-full" [(ngModel)]="poam.mitigations" name='mitigations' [rows]="16" [maxlength]="2000" placeholder="Mitigations..."></textarea>
+              </div>
+              <div class="stepper-buttons">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
               </div>
             </div>
           </ng-template>
@@ -302,12 +317,12 @@
         <p-stepperPanel header="Required Resources">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons">
-                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
-                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
-              </div>
               <div class="stepper-content">
                 <textarea pInputTextarea class="w-full" [(ngModel)]="poam.requiredResources" name='requiredResources' [rows]="16" [maxlength]="2000" placeholder="Required Resources..."></textarea>
+              </div>
+              <div class="stepper-buttons">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
               </div>
             </div>
           </ng-template>
@@ -317,10 +332,6 @@
         <p-stepperPanel header="Risk & Impact">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons">
-                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
-                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
-              </div>
               <div class="stepper-content">
                 <div class="form-group">
                   <label for="residualRisk">Residual Risk:</label>
@@ -347,6 +358,10 @@
                   <textarea *ngIf="poam.businessImpactRating === 'Moderate' || poam.businessImpactRating === 'High' || poam.businessImpactRating === 'Very High'" pInputTextarea class="w-full" [(ngModel)]="poam.businessImpactDescription" name='businessImpactDescription' [rows]="16" placeholder="Business Impact Description..."></textarea>
                 </div>
               </div>
+              <div class="stepper-buttons">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
             </div>
           </ng-template>
         </p-stepperPanel>
@@ -355,10 +370,6 @@
         <p-stepperPanel header="Milestones">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons">
-                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
-                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
-              </div>
               <div class="stepper-content">
                 <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
                   <ng-template pTemplate="header">
@@ -384,10 +395,10 @@
                       <td>
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <p-calendar [(ngModel)]="milestone.milestoneDate" [showIcon]="true" appendTo="body"></p-calendar>
+                            <p-calendar [(ngModel)]="milestone.milestoneDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body"></p-calendar>
                           </ng-template>
                           <ng-template pTemplate="output">
-                            {{milestone.milestoneDate | date}}
+                            {{milestone.milestoneDate | date:'yyyy-MM-dd'}}
                           </ng-template>
                         </p-cellEditor>
                       </td>
@@ -416,6 +427,10 @@
                   </ng-template>
                 </p-table>
               </div>
+              <div class="stepper-buttons">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
             </div>
           </ng-template>
         </p-stepperPanel>
@@ -424,10 +439,6 @@
         <p-stepperPanel header="Labels">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons">
-                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
-                <p-button label="Next" styleClass="p-button-outlined p-button-info" size="small" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
-              </div>
               <div class="stepper-content">
                 <p-table [value]="poamLabels" [paginator]="false">
                   <ng-template pTemplate="header">
@@ -456,6 +467,10 @@
                   </ng-template>
                 </p-table>
               </div>
+              <div class="stepper-buttons">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
+              </div>
             </div>
           </ng-template>
         </p-stepperPanel>
@@ -464,11 +479,11 @@
         <p-stepperPanel header="Notes">
           <ng-template pTemplate="content" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div class="stepper-buttons">
-                <p-button label="Back" styleClass="p-button-outlined p-button-secondary" size="small" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
-              </div>
               <div class="stepper-content">
                 <textarea pInputTextarea class="w-full" [(ngModel)]="poam.notes" name='notes' [rows]="16" [maxlength]="4000" placeholder="Notes..." style="font-weight: normal;"></textarea>
+              </div>
+              <div class="stepper-buttons">
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
               </div>
             </div>
           </ng-template>

@@ -62,6 +62,19 @@ module.exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req,
     }
 };
 
+module.exports.getPluginIDsWithPoam = async function getPluginIDsWithPoam(req, res, next) {
+    try {
+        const pluginIDs = await poamService.getPluginIDsWithPoam(req, res, next);
+        res.status(200).json(pluginIDs);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
+
 module.exports.postPoam = async function postPoam(req, res, next) {
     try {
         const poam = await poamService.postPoam(req, res, next);
