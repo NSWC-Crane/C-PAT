@@ -11,12 +11,12 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { STIGManagerImportComponent } from './stigmanager-import/stigmanager-import.component';
-import { TenableImportComponent } from './tenable-import/tenable-import.component';
+import { TenableVulnerabilitiesComponent } from './tenable-import/tenableVulnerabilities.component';
 import { AuthGuard } from '../../core/auth/guards/auth.guard'
 
 const routes: Routes = [
   { path: 'stigmanager-import', canActivate: [AuthGuard], component: STIGManagerImportComponent },
-  { path: 'tenable-import', canActivate: [AuthGuard], component: TenableImportComponent },
+  { path: 'tenable-import', canActivate: [AuthGuard], component: TenableVulnerabilitiesComponent },
 ];
 
 @NgModule({

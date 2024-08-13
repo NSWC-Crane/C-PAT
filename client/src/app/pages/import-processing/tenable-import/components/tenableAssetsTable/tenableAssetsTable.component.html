@@ -62,7 +62,7 @@
                  styleClass="p-datatable-sm p-datatable-gridlines-hidden">
           <ng-template pTemplate="header" let-columns>
             <tr>
-              <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}" pResizableColumn>
+              <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}" pResizableColumn scope="col">
                 {{col.header}}
                 <p-sortIcon [field]="col.field"></p-sortIcon>
                 <p-columnFilter [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" display="menu"></p-columnFilter>
@@ -110,8 +110,8 @@
         <p-table [value]="parsedVprContext" styleClass="p-datatable-sm">
           <ng-template pTemplate="header">
             <tr>
-              <th>Vulnerability Priority Rating (VPR) Key Drivers</th>
-              <th></th>
+              <th scope="col">Vulnerability Priority Rating (VPR) Key Drivers</th>
+              <th scope="col"></th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-item>

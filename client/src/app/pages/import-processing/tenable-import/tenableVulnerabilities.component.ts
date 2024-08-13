@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ConfirmationDialogOptions } from '../../../../../common/components/confirmation-dialog/confirmation-dialog.component';
-import { ImportService } from '../../../import.service';
-import { PoamService } from '../../../../poam-processing/poams.service';
+import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { ImportService } from '../import.service';
+import { PoamService } from '../../poam-processing/poams.service';
 import { Table, TableLazyLoadEvent } from 'primeng/table';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { OverlayPanel } from 'primeng/overlaypanel';
@@ -10,8 +10,8 @@ import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
 import { Subscription } from 'rxjs';
-import { SharedService } from '../../../../../common/services/shared.service';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { SharedService } from '../../../common/services/shared.service';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 interface Reference {
   type: string;
   value: string;
@@ -2100,7 +2100,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       value = value.replace(/,\s*$/, '');
       if (type === 'CVE') {
         this.cveReferences.push({ type, value });
-      } else if (type === ('IAVA' || 'IAVB' || 'IAVT')) {
+      } else if (type === 'IAVA' || type === 'IAVB' || type === 'IAVT') {
         this.iavReferences.push({ type, value });
       } else {
         this.otherReferences.push({ type, value });
