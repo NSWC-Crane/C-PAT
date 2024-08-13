@@ -25,6 +25,7 @@
             class="import-button"
             styleClass="p-button-info"
             (click)="importTenableRepository()"
+            (onKeyUp)="importTenableRepository()"
             [disabled]="!selectedTenableRepository"
             [style]="{'width':'100%', 'margin-bottom': '10px'}"
             [outlined]="true">
@@ -35,6 +36,7 @@
             class="import-all-button"
             styleClass="p-button-warning"
             (click)="importAllRemainingRepositories()"
+            (onKeyUp)="importAllRemainingRepositories()"
             [disabled]="filteredRepositories.length === 0"
             [style]="{'width':'100%'}"
             [outlined]="true">

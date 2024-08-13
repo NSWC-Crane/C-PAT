@@ -18,6 +18,7 @@
                 <p-button icon="pi pi-trash"
                           class="clearFilterButton"
                           (click)="clearIndividualFilter(item.identifier, $event)"
+                          (onKeyUp)="clearIndividualFilter(item.identifier, $event)"
                           styleClass="p-button-text p-button-rounded p-button-plain"
                           [disabled]="!isFilterActive(item.identifier)">
                 </p-button>
@@ -114,8 +115,8 @@
       </div>
       <div class="filter-footer">
         <div class="flex justify-content-between p-3">
-          <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()" styleClass="p-button-sm"></p-button>
-          <p-button label="Clear" [rounded]="true" icon="pi pi-filter-slash" (click)="clearFilters()" styleClass="p-button-sm p-button-outlined"></p-button>
+          <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()" (onKeyUp)="applyFilters()" styleClass="p-button-sm"></p-button>
+          <p-button label="Clear" [rounded]="true" icon="pi pi-filter-slash" (click)="clearFilters()" (onKeyUp)="clearFilters()" styleClass="p-button-sm p-button-outlined"></p-button>
         </div>
       </div>
     </div>
@@ -140,6 +141,7 @@
                               [text]="true"
                               [raised]="true"
                               severity="primary"
+                              (onKeyUp)="toggleAddColumnOverlay()"
                               (click)="toggleAddColumnOverlay()">
                     </p-button>
                     <p-multiSelect #ms
@@ -268,10 +270,11 @@
                                 </ng-container>
                               </ng-container>
                               <div class="flex justify-content-between align-items-center mt-5">
-                                <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()" styleClass="p-button-sm"></p-button>
+                                <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()" (onKeyUp)="applyFilters()" styleClass="p-button-sm"></p-button>
                                 <p-button icon="pi pi-trash"
                                           class="clearFilterButton"
                                           (click)="clearIndividualFilter(field, $event)"
+                                          (onKeyUp)="clearIndividualFilter(field, $event)"
                                           styleClass="p-button-rounded p-button-text p-button-secondary"
                                           [disabled]="!isFilterActive(field)">
                                 </p-button>
@@ -290,6 +293,7 @@
                                  class="pi pi-check-circle"
                                  style="color: green; font-size: 1.5rem; cursor: pointer;"
                                  (click)="onPoamIconClick(vulnerability, $event)"
+                                 (onKeyUp)="onPoamIconClick(vulnerability, $event)"
                                  pTooltip="POAM Already Created. Click icon to view POAM."
                                  tooltipPosition="top">
                               </i>
@@ -297,12 +301,13 @@
                                  class="pi pi-times-circle"
                                  style="color: maroon; font-size: 1.5rem;"
                                  (click)="onPoamIconClick(vulnerability, $event)"
+                                 (onKeyUp)="onPoamIconClick(vulnerability, $event)"
                                  pTooltip="No Existing POAM. Click icon to create draft POAM."
                                  tooltipPosition="top">
                               </i>
                             </ng-container>
                             <ng-container *ngSwitchCase="'pluginID'">
-                              <span (click)="onPluginIDClick(vulnerability, $event)"
+                              <span (click)="onPluginIDClick(vulnerability, $event)" (onKeyUp)="onPluginIDClick(vulnerability, $event)"
                                     style="cursor: pointer; color: var(--primary-color); font-weight: bold; text-decoration: underline;">
                                 {{vulnerability.pluginID}}
                               </span>

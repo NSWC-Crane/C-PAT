@@ -46,7 +46,7 @@
               <th scope="col">Milestone Comments</th>
               <th scope="col">Milestone Date</th>
               <th scope="col">Milestone Status</th>
-              <th scope="col"><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()"></button></th>
+              <th scope="col"><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()" (onKeyUp)="onAddNewMilestone()"></button></th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-milestone let-editing="editing" let-ri="rowIndex">
@@ -99,8 +99,8 @@
     </div>
   </div>
   <ng-template pTemplate="footer">
-    <p-button [outlined]="true" label="Save" (click)="submitPoamExtension()"></p-button>
-    <p-button class="ml-2" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()"></p-button>
+    <p-button [outlined]="true" label="Save" (click)="submitPoamExtension()" (onKeyUp)="submitPoamExtension()"></p-button>
+    <p-button class="ml-2" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()" (onKeyUp)="cancelExtension()"></p-button>
   </ng-template>
 </p-dialog>
 <p-toast></p-toast>
