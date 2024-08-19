@@ -1,4 +1,3 @@
-<!-- View STIG Manager Findings and Create POAM -->
     <p-card>
       <p-tabView>
         <p-tabPanel [header]="'Findings Grid (' + findingsCount + ')'">
@@ -24,7 +23,7 @@
                            style="color: green; font-size: 1.5rem; cursor: pointer;"
                            (click)="addPoam(rowNode)"
                            (onKeyUp)="addPoam(rowNode)"
-                           pTooltip="POAM Already Created. Click to update POAM."
+                           pTooltip="POAM Already Created. Click to view POAM."
                            tooltipPosition="top">
                         </i>
                         <i *ngIf="!rowData.hasExistingPoam"
@@ -69,44 +68,4 @@
         </div>
         </div>
     </p-card>
-
-    <div class="formgrid grid">
-      <div class="field col-12 md:col-6">
-        <p-card header="Synchronize Existing POAMs With STIG Manager Assets" styleClass="pt-4 pb-2 mt-4">
-          <button pButton
-                  pRipple
-                  type="button"
-                  label="Synchronize POAMs with STIG Manager"
-                  class="p-button-outlined p-button-info sync-button w-full"
-                  (click)="stigManagerAssetSync()"
-                  (onKeyUp)="stigManagerAssetSync()">
-          </button>
-        </p-card>
-      </div>
-      <div class="field col-12 md:col-6">
-        <p-card header="Manually Import STIG Manager Assets" styleClass="pt-4 pb-2 mt-4">
-          <div class="flex align-items-center">
-            <div class="w-9 mr-4">
-              <p-multiSelect [options]="availableAssets"
-                             [(ngModel)]="selectedAssets"
-                             optionLabel="name"
-                             optionValue="assetId"
-                             placeholder="Select STIG Manager Assets"
-                             styleClass="w-full"
-                             appendTo="body">
-              </p-multiSelect>
-            </div>
-            <div class="w-3">
-              <button pButton
-                      pRipple
-                      type="button"
-                      label="Import"
-                      class="p-button-outlined p-button-info w-full"
-                      (click)="fetchAssetDetails()"
-                      (onKeyUp)="fetchAssetDetails()">
-              </button>
-            </div>
-          </div>
-        </p-card>
-      </div>
 <p-toast></p-toast>

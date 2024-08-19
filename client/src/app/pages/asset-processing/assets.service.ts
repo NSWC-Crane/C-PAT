@@ -38,12 +38,6 @@ export class AssetService {
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
-  async getAssets() {
-    const headers = await this.getAuthHeaders();
-    return this.http.get<any>(`${this.cpatApiBase}/assets`, { headers })
-    .pipe(catchError(this.handleError));
-  }
-
   async getAssetsByCollection(collectionId: number) {
         const headers = await this.getAuthHeaders();
         return this.http.get<any>(`${this.cpatApiBase}/assets/collection/${collectionId}`, { headers })

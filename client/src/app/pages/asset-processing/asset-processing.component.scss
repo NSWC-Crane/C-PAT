@@ -37,3 +37,19 @@
     min-height: 20rem;
   }
 }
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .right-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .right-buttons {
+    position: relative;
+  }
+}

@@ -20,9 +20,22 @@
       </div>
     </div>
     <div class="table-container" (scroll)="onScroll($event)">
-      <p-table #dt [value]="displayedData" [resizableColumns]="true" [scrollable]="true" scrollHeight="50rem" [paginator]="false" [globalFilterFields]="['poamId', 'status', 'adjSeverity', 'submitter', 'submittedDate', 'scheduledCompletionDate']">
+      <p-table #dt
+               [value]="displayedData"
+               [resizableColumns]="true"
+               [scrollable]="true"
+               scrollHeight="50rem"
+               [paginator]="false"
+               columnResizeMode="fit"
+               [globalFilterFields]="['lastUpdated', 'poamId', 'status', 'adjSeverity', 'submitter', 'submittedDate', 'scheduledCompletionDate']">
         <ng-template pTemplate="header">
           <tr>
+            <th scope="col" pResizableColumn style="text-align: center;">
+              <div class="flex justify-content-center align-items-center" style="height: 100%;">
+                <i class="pi pi-clock" style="font-size: 1.5rem;" pTooltip="Last Updated"></i>
+                <p-columnFilter type="date" field="lastUpdated" display="menu"></p-columnFilter>
+              </div>
+            </th>
             <th scope="col" pResizableColumn>
               <div class="flex align-items-center">
                 POAM ID
@@ -56,13 +69,13 @@
             <th scope="col" pResizableColumn>
               <div class="flex align-items-center">
                 Submitted Date
-                <p-columnFilter type="text" field="submittedDate" display="menu"></p-columnFilter>
+                <p-columnFilter type="date" field="submittedDate" display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex align-items-center">
                 Scheduled Completion
-                <p-columnFilter type="text" field="scheduledCompletionDate" display="menu"></p-columnFilter>
+                <p-columnFilter type="date" field="scheduledCompletionDate" display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
@@ -72,6 +85,7 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
+            <td style="text-align: center;">{{ row.lastUpdated }}</td>
             <td>{{ row.poamId }}</td>
             <td>{{ row.status }}</td>
             <td>{{ row.source }}</td>
@@ -86,7 +100,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="7">No POAMs found.</td>
+            <td colspan="9">No POAMs found.</td>
           </tr>
         </ng-template>
       </p-table>

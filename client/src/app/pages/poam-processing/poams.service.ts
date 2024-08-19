@@ -119,13 +119,6 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async getAssetsForCollection(collectionId: number) {
-        const headers = await this.getAuthHeaders();
-		return this.http
-      .get<any>(`${this.cpatApiBase}/assets/collection/${collectionId}`, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
   async getPoamAssets(id: string) {
         const headers = await this.getAuthHeaders();
 		return this.http.get(`${this.cpatApiBase}/poamAssets/poam/${id}`, { headers })

@@ -67,13 +67,14 @@ export class PoamGridComponent implements OnChanges {
 
   updateFilteredData() {
     this.filteredData = this.poamsData.map(poam => ({
+      lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
       poamId: poam.poamId,
       status: poam.status,
       source: poam.vulnerabilitySource,
       adjSeverity: poam.adjSeverity,
       submitter: poam.submitterName,
-      submittedDate: poam.submittedDate.split('T')[0],
-      scheduledCompletionDate: poam.scheduledCompletionDate.split('T')[0],
+      submittedDate: poam.submittedDate?.split('T')[0],
+      scheduledCompletionDate: poam.scheduledCompletionDate?.split('T')[0],
     }));
     this.applyFilter();
   }

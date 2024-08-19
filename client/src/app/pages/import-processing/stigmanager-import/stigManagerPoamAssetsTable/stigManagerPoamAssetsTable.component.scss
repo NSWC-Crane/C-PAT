@@ -1,0 +1,72 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+::ng-deep .p-dialog {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+:host ::ng-deep {
+  .custom-multiselect {
+    position: absolute !important;
+    visibility: hidden;
+    pointer-events: none;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    top: 3.5rem;
+    right: -2rem;
+    
+    .p-multiselect-label-container,
+    .p-multiselect-trigger {
+      display: none;
+    }
+
+    .p-multiselect-panel {
+      visibility: visible;
+      pointer-events: auto;
+      position: fixed;
+      top: 4rem;
+      right: 1rem;
+      min-width: 200px;
+      z-index: 1000;
+    }
+  }
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.description {
+    margin: 1rem 0;
+
+    h6 {
+        margin-bottom: 0.5rem !important;
+    }
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .right-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .right-buttons {
+    position: relative;
+  }
+}

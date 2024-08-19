@@ -38,8 +38,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: ''
         },
         description: {
-            type: DataTypes.STRING(255),
-            defaultValue: ''
+            type: DataTypes.TEXT
         },
         rawSeverity: {
             type: DataTypes.STRING(10),
@@ -65,9 +64,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT
         },
         residualRisk: {
-            type: DataTypes.TEXT
-        },
-        notes: {
             type: DataTypes.TEXT
         },
         status: {
@@ -106,12 +102,10 @@ module.exports = (sequelize, DataTypes) => {
         },
         severity: {
             type: DataTypes.STRING(15),
-            allowNull: false,
             defaultValue: ''
         },
         relevanceOfThreat: {
             type: DataTypes.STRING(15),
-            allowNull: false,
             defaultValue: ''
         },
         threatDescription: {

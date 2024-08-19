@@ -19,19 +19,25 @@ info:
 servers:
   - url: 'http://localhost:8086/api'
 paths:
-  /assets:
+  '/aaPackages':
     get:
-      summary: Return all assets
-      operationId: getAssets
+      summary: Return all A&A Packages
+      operationId: getAAPackages
       responses:
         '200':
-          description: Asset array response
+          description: A&A Packages array response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AssetResponse'
+                  $ref: '#/components/schemas/aaPackage_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -39,11 +45,137 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
       tags:
-        - Asset
+        - AAPackage
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
   
+  '/aaPackage/{aaPackageId}':
+    parameters:
+      - in: path
+        name: aaPackageId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return a A&A Package Name by aaPackageId
+      operationId: getAAPackage
+      responses:
+        '200':
+          description: A&A Package object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aaPackage_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AAPackage
+      security:
+        - oauth:
+            - 'c-pat:read'
+    delete:
+      summary: Delete an A&A Package by aaPackageId
+      operationId: deleteAAPackage
+      responses:
+        '204':
+          description: A&A Package deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AAPackage
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  '/aaPackage':
+    post:
+      summary: Add an A&A Package
+      operationId: postAAPackage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aaPackage_Object'
+      responses:
+        '201':
+          description: A&A Package created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aaPackage_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AAPackage
+      security:
+        - oauth:
+            - 'c-pat:read'
+    put:
+      summary: Update an A&A Package
+      operationId: putAAPackage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aaPackage_Object'
+      responses:
+        '200':
+          description: A&A Package updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aaPackage_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AAPackage
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   /assets/collection/{collectionId}:
     parameters:
       - in: path
@@ -700,153 +832,6 @@ paths:
       security:
         - oauth:
             - 'c-pat:op'
-  
-  '/import/stigmanager/collection':
-    post:
-      summary: Endpoint to receive collection and assets data from STIG Manager
-      operationId: postStigManagerCollection
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                collection:
-                  $ref: '#/components/schemas/STIGMANCollection'
-                assets:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/STIGMANAsset'
-      responses:
-        '201':
-          description: Collection and assets imported successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '400':
-          description: Bad request - invalid data format or missing data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Import
-      security:
-        - oauth:
-            - 'c-pat:read'
-  
-  '/import/stigmanager/assets':
-    post:
-      summary: Endpoint to receive asset data from STIG Manager
-      operationId: postStigManagerAssets
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                assets:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/STIGMANAsset'
-      responses:
-        '201':
-          description: Assets imported successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  assets:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/AssetObject'
-        '400':
-          description: Bad request - invalid data format or missing data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Import
-
-  '/update/stigmanager/poamassets':
-    put:
-      summary: Endpoint to receive updated asset data from STIG Manager
-      operationId: putPoamAssetsWithStigManagerData
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: object
-                required:
-                  - assets
-                  - collectionId
-                  - poamId
-                properties:
-                  assets:
-                    type: array
-                    items: {}
-                  collectionId:
-                    type: integer
-                  poamId:
-                    type: integer
-                  poamLog:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        userId:
-                          type: integer
-      responses:
-        '200':
-          description: Poam Assets updated with stigman data
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/stigmanPoamAssetUpdate'
-        '400':
-          description: Bad request - invalid data format or missing data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Import
-      security:
-        - oauth:
-            - 'c-pat:read'
 
   '/labels/{collectionId}':
     get:
@@ -3127,167 +3112,6 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /poamExtensionMilestones/{poamId}:
-    get:
-      summary: Get all Extension Milestones for a specific POAM
-      operationId: getPoamExtensionMilestones
-      parameters:
-        - in: path
-          name: poamId
-          required: true
-          schema:
-            type: integer
-          description: The ID of the POAM
-      responses:
-        '200':
-          description: Successfully retrieved Extension Milestones
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PoamExtensionMilestonesResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamExtensionMilestones
-      security:
-        - oauth:
-            - 'c-pat:read'
-    post:
-      summary: Add a new Extension Milestone to a POAM
-      description: Creates a new Extension Milestone. The extensionMilestoneId is auto-generated upon creation.
-      operationId: postPoamExtensionMilestone
-      parameters:
-        - in: path
-          name: poamId
-          required: true
-          schema:
-            type: integer
-          description: The ID of the POAM
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PoamExtensionMilestoneRequest'
-      responses:
-        '201':
-          description: Successfully created a new ExtensionMilestone
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PoamExtensionMilestone'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamExtensionMilestones
-      security:
-        - oauth:
-            - 'c-pat:read'
-  
-  /poamExtensionMilestones/{poamId}/{extensionMilestoneId}:
-    put:
-      summary: Update a specific Extension Milestone
-      description: Updates the Extension Milestone identified by extensionMilestoneId for a given POAM.
-      operationId: putPoamExtensionMilestone
-      parameters:
-        - in: path
-          name: poamId
-          required: true
-          schema:
-            type: integer
-          description: The ID of the POAM to which the Extension Milestone belongs.
-        - in: path
-          name: extensionMilestoneId
-          required: true
-          schema:
-            type: integer
-          description: The ID of the Extension Milestone to update.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PoamExtensionMilestoneUpdateRequest'
-      responses:
-        '200':
-          description: Successfully updated the Extension Milestone
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PoamExtensionMilestone'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamExtensionMilestones
-      security:
-        - oauth:
-            - 'c-pat:read'
-    delete:
-      summary: Delete a specific Extension Milestone
-      description: Deletes the Extension Milestone identified by extensionMilestoneId for a given POAM.
-      operationId: deletePoamExtensionMilestone
-      parameters:
-        - in: path
-          name: poamId
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: extensionMilestoneId
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Successfully deleted the Extension Milestone
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamExtensionMilestones
-      security:
-        - oauth:
-            - 'c-pat:read'
-
   /poams/{userId}:
     parameters:
       - in: path
@@ -4624,6 +4448,16 @@ components:
         description:
           type: string
 
+    aaPackage_Object:
+      type: object
+      required:
+        - aaPackage
+      properties:
+        aaPackageId:
+          type: integer
+        aaPackage:
+          type: string
+
     IAVTableData:
       type: object
       properties:
@@ -4917,9 +4751,6 @@ components:
         businessImpactDescription:
           type: string
           nullable: true
-        notes:
-          type: string
-          nullable: true
         status:
           type: string
         vulnIdRestricted:
@@ -5011,48 +4842,27 @@ components:
         milestoneDate:
           type: string
           format: date
+          nullable: true
         milestoneComments:
           type: string
+          nullable: true
+        milestoneChangeDate:
+          type: string
+          format: date
+          nullable: true
+        milestoneChangeComments:
+          type: string
+          nullable: true
         milestoneStatus:
           type: string
+          nullable: true
+        milestoneTeam:
+          type: string
+          nullable: true
 
     PoamMilestoneRequest:
       type: object
       additionalProperties: true
-      properties:
-        poamId:
-          type: integer
-        milestoneDate:
-          type: string
-          format: date
-        milestoneComments:
-          type: string
-        milestoneStatus:
-          type: string
-
-    PoamMilestoneUpdateRequest:
-      type: object
-      additionalProperties: true
-      properties:
-        milestoneDate:
-          type: string
-          format: date
-        milestoneComments:
-          type: string
-        milestoneStatus:
-          type: string
-      description: Schema for updating a milestone. All fields are optional, allowing partial updates.
-
-    PoamExtensionMilestonesResponse:
-      type: object
-      properties:
-        poamMilestones:
-          type: array
-          items:
-            $ref: '#/components/schemas/PoamExtensionMilestone'
-
-    PoamExtensionMilestone:
-      type: object
       properties:
         milestoneId:
           type: integer
@@ -5061,37 +4871,52 @@ components:
         milestoneDate:
           type: string
           format: date
+          nullable: true
         milestoneComments:
           type: string
+          nullable: true
+        milestoneChangeDate:
+          type: string
+          format: date
+          nullable: true
+        milestoneChangeComments:
+          type: string
+          nullable: true
         milestoneStatus:
           type: string
+          nullable: true
+        milestoneTeam:
+          type: string
+          nullable: true
 
-    PoamExtensionMilestoneRequest:
+    PoamMilestoneUpdateRequest:
       type: object
       additionalProperties: true
       properties:
+        milestoneId:
+          type: integer
         poamId:
           type: integer
-        extensionMilestoneDate:
+        milestoneDate:
           type: string
           format: date
-        extensionMilestoneComments:
+          nullable: true
+        milestoneComments:
           type: string
-        extensionMilestoneStatus:
-          type: string
-
-    PoamExtensionMilestoneUpdateRequest:
-      type: object
-      additionalProperties: true
-      properties:
-        extensionMilestoneDate:
+          nullable: true
+        milestoneChangeDate:
           type: string
           format: date
-        extensionMilestoneComments:
+          nullable: true
+        milestoneChangeComments:
           type: string
-        extensionMilestoneStatus:
+          nullable: true
+        milestoneStatus:
           type: string
-      description: Schema for updating a milestone. All fields are optional, allowing partial updates.
+          nullable: true
+        milestoneTeam:
+          type: string
+          nullable: true
 
     assetLabel:
       type: object

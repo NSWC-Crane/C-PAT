@@ -22,27 +22,6 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAssets = async function getAssets(req, res, next) {
-    try {
-        return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM  cpat.asset ORDER BY assetName;"
-            let [rowAssets] = await connection.query(sql);
-            const assets = rowAssets.map(row => ({
-                "assetId": row.assetId,
-                "assetName": row.assetName,
-                "description": row.description,
-                "fullyQualifiedDomainName": row.fullyQualifiedDomainName,
-                "collectionId": row.collectionId,
-                "ipAddress": row.ipAddress,
-                "macAddress": row.macAddress,
-            }));
-            return { assets };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-}
-
 exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
     try {
         if (!req.params.collectionId) {

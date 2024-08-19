@@ -24,6 +24,17 @@ CREATE TABLE `_migrations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
+-- Table structure for table `aapackages`
+--
+
+DROP TABLE IF EXISTS `aapackages`;
+CREATE TABLE `aapackages` (
+  `aaPackageId` int NOT NULL AUTO_INCREMENT,
+  `aaPackage` varchar(50) NOT NULL,
+  PRIMARY KEY (`aaPackageId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
 -- Table structure for table `asset`
 --
 
@@ -208,11 +219,10 @@ CREATE TABLE `poam` (
   `stigCheckData` text,
   `tenablePluginData` text,
   `iavmNumber` varchar(25) DEFAULT '',
-  `description` varchar(2000) DEFAULT '',
+  `description` text,
   `mitigations` text,
   `requiredResources` text,
   `residualRisk` varchar(25) DEFAULT NULL,
-  `notes` text,
   `vulnIdRestricted` varchar(255) DEFAULT '',
   `securityControlNumber` varchar(25) DEFAULT '',
   `submitterId` int NOT NULL DEFAULT '0',
@@ -229,6 +239,8 @@ CREATE TABLE `poam` (
   `emassStatus` varchar(15) DEFAULT 'Ongoing',
   `emassPoamId` varchar(20) DEFAULT NULL,
   `hqs` tinyint(1) NOT NULL DEFAULT '0',
+  `created` date NOT NULL DEFAULT (curdate()),
+  `lastUpdated` date DEFAULT NULL,
   PRIMARY KEY (`poamId`),
   UNIQUE KEY `poamID_UNIQUE` (`poamId`),
   UNIQUE KEY `emassPoamId_UNIQUE` (`emassPoamId`),
@@ -254,6 +266,19 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `prevent_created_update` BEFORE UPDATE ON `poam` FOR EACH ROW BEGIN
+    IF NEW.created != OLD.created THEN
+        SET NEW.created = OLD.created;
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
 /*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poam_update` AFTER UPDATE ON `poam` FOR EACH ROW BEGIN
     IF OLD.`collectionId` != NEW.`collectionId` THEN
         UPDATE `collection` c
@@ -263,6 +288,21 @@ DELIMITER ;;
         UPDATE `collection` c
         SET c.`poamCount` = c.`poamCount` + 1
         WHERE c.`collectionId` = NEW.`collectionId`;
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poam_update_last_updated` AFTER UPDATE ON `poam` FOR EACH ROW BEGIN
+    IF OLD.lastUpdated != NEW.lastUpdated THEN
+        UPDATE poam
+        SET lastUpdated = CURRENT_DATE
+        WHERE poamId = NEW.poamId;
     END IF;
 END */;;
 DELIMITER ;
@@ -295,6 +335,45 @@ CREATE TABLE `poamapprovers` (
   `comments` varchar(2000) DEFAULT NULL,
   PRIMARY KEY (`poamId`,`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamapprovers_insert` AFTER INSERT ON `poamapprovers` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamapprovers_update` AFTER UPDATE ON `poamapprovers` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamapprovers_delete` AFTER DELETE ON `poamapprovers` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = OLD.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `poamassets`
@@ -309,6 +388,32 @@ CREATE TABLE `poamassets` (
   KEY `idx_poamassets_poamId` (`poamId`),
   CONSTRAINT `fk_poamassets_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassets_insert` AFTER INSERT ON `poamassets` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassets_delete` AFTER DELETE ON `poamassets` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = OLD.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `poamassignees`
@@ -321,21 +426,45 @@ CREATE TABLE `poamassignees` (
   PRIMARY KEY (`poamId`,`userId`),
   KEY `idx_poamassignees_userId` (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Table structure for table `poamextensionmilestones`
---
-
-DROP TABLE IF EXISTS `poamextensionmilestones`;
-CREATE TABLE `poamextensionmilestones` (
-  `extensionMilestoneId` int NOT NULL AUTO_INCREMENT,
-  `poamId` int NOT NULL,
-  `extensionMilestoneDate` date DEFAULT NULL,
-  `extensionMilestoneComments` varchar(2000) DEFAULT '',
-  `extensionMilestoneStatus` varchar(10) DEFAULT 'Pending',
-  PRIMARY KEY (`extensionMilestoneId`),
-  KEY `idx_poamExtensionMilestones_poamId` (`poamId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassignees_insert` AFTER INSERT ON `poamassignees` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassignees_update` AFTER UPDATE ON `poamassignees` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassignees_delete` AFTER DELETE ON `poamassignees` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = OLD.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `poamlabels`
@@ -347,6 +476,45 @@ CREATE TABLE `poamlabels` (
   `labelId` int NOT NULL,
   PRIMARY KEY (`poamId`,`labelId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamlabels_insert` AFTER INSERT ON `poamlabels` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamlabels_update` AFTER UPDATE ON `poamlabels` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamlabels_delete` AFTER DELETE ON `poamlabels` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = OLD.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `poamlogs`
@@ -362,6 +530,19 @@ CREATE TABLE `poamlogs` (
   PRIMARY KEY (`poamLogId`),
   KEY `idx_poamlogs_poamId` (`poamId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamlogs_insert` AFTER INSERT ON `poamlogs` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `poammilestones`
@@ -372,11 +553,53 @@ CREATE TABLE `poammilestones` (
   `milestoneId` int NOT NULL AUTO_INCREMENT,
   `poamId` int NOT NULL,
   `milestoneDate` date DEFAULT NULL,
-  `milestoneComments` varchar(2000) DEFAULT '',
+  `milestoneComments` varchar(2000) DEFAULT NULL,
   `milestoneStatus` varchar(10) DEFAULT 'Pending',
+  `milestoneChangeComments` varchar(2000) DEFAULT NULL,
+  `milestoneChangeDate` date DEFAULT NULL,
+  `milestoneTeam` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`milestoneId`),
   KEY `idx_poammilestones_poamId` (`poamId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poammilestones_insert` AFTER INSERT ON `poammilestones` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poammilestones_update` AFTER UPDATE ON `poammilestones` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poammilestones_delete` AFTER DELETE ON `poammilestones` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = OLD.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `themes`
@@ -427,4 +650,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-13 13:12:25
+-- Dump completed on 2024-08-19 12:21:32

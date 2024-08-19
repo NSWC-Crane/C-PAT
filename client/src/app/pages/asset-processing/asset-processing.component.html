@@ -7,7 +7,10 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-
+<div class="card" *ngIf="this.stigmanCollectionId">
+  <stigmanager-assets-table [stigmanCollectionId]="stigmanCollectionId"></stigmanager-assets-table>
+</div>
+<div *ngIf="!this.stigmanCollectionId">
 <div class="col-12 row">
   <div class="col">
     <p-card>
@@ -22,11 +25,21 @@
                   <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()" pTooltip="Clear all filters"></p-button>
                 </span>
               </div>
+              <div class="right-buttons">
+                <p-button class="ml-2"
+                          icon="pi pi-external-link"
+                          severity="secondary"
+                          [rounded]="true"
+                          [text]="true"
+                          (onClick)="assetTable.exportCSV()">
+                </p-button>
+              </div>
             </div>
             <div class="scrollable-assets">
               <p-table #assetTable
                        [resizableColumns]="true"
                        [value]="data"
+                       [columns]="cols"
                        selectionMode="multiple"
                        [(selection)]="selectedAssets"
                        [metaKeySelection]="true"
@@ -120,3 +133,4 @@
     <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData(); closeAssetDialog();"></cpat-asset>
   </ng-template>
 </p-dialog>
+</div>

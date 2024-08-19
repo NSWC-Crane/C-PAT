@@ -10,7 +10,7 @@
 
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AssetService } from './assets.service';
-import { forkJoin, Observable } from 'rxjs';
+import { catchError, forkJoin, Observable, of, Subscription } from 'rxjs';
 import { SubSink } from "subsink";
 import { ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component'
 import { UsersService } from '../admin-processing/user-processing/users.service';
@@ -18,13 +18,19 @@ import { Chart, registerables, ChartData } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { DialogService } from 'primeng/dynamicdialog';
 import { Table } from 'primeng/table';
+import { SharedService } from '../../common/services/shared.service';
+import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
 
 interface Permission {
   userId: number;
   collectionId: number;
   accessLevel: number;
 }
-
+interface Column {
+  field: string;
+  header: string;
+  customExportHeader?: string;
+}
 interface AssetEntry {
   assetId: string;
   assetName: string;
@@ -86,10 +92,10 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   customColumn = 'Asset';
   defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'MAC Address'];
   allColumns = [this.customColumn, ...this.defaultColumns];
+  cols!: Column[];
+  exportColumns!: Column[];
   data: AssetEntry[] = [];
   filterValue: string = '';
-
-  public isLoggedIn = false;
   users: any;
   user: any;
   assets: AssetEntry[] = [];
@@ -100,24 +106,77 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   selectedCollection: any;
   assetDialogVisible: boolean = false;
   selectedAssets: AssetEntry[] = [];
+  stigmanCollectionId: any;
   private subs = new SubSink();
+  private subscriptions = new Subscription();
 
   constructor(
     private assetService: AssetService,
     private cdr: ChangeDetectorRef,
     private dialogService: DialogService,
-    private userService: UsersService
+    private userService: UsersService,
+    private sharedService: SharedService,
+    private collectionService: CollectionsService,
   ) {
     Chart.register(...registerables);
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.subscriptions.add(
+      await this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
     this.setPayload();
+    this.validateStigManagerCollection();
+    this.initializeColumns();
   }
 
   ngAfterViewInit() {
     this.initializeChart();
     this.cdr.detectChanges();
+  }
+
+  initializeColumns() {
+    this.cols = [
+      { field: 'assetId', header: 'Asset ID', customExportHeader: 'Asset Identifier' },
+      { field: 'assetName', header: 'Asset Name' },
+      { field: 'description', header: 'Description' },
+      { field: 'ipAddress', header: 'IP Address' },
+      { field: 'macAddress', header: 'MAC Address' }
+    ];
+    this.exportColumns = this.cols;
+  }
+
+  async validateStigManagerCollection(background: boolean = true) {
+    forkJoin([
+      await (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
+        catchError((err) => {
+          console.error('Failed to fetch from STIGMAN:', err);
+          return of([]);
+        })
+      ),
+      await (await this.collectionService.getCollectionBasicList()).pipe(
+        catchError((err) => {
+          console.error('Failed to fetch basic collection list:', err);
+          return of([]);
+        })
+      )
+    ]).subscribe(([stigmanData, basicListData]) => {
+      const stigmanCollectionsMap = new Map(stigmanData.map(collection => [collection.name, collection]));
+      const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
+
+      const selectedCollection = basicListCollectionsMap.get(this.selectedCollection);
+      const selectedCollectionName = selectedCollection!.collectionName;
+
+      const stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
+
+      if (!stigmanCollection && !background || !selectedCollectionName && !background) {
+        return;
+      }
+
+      this.stigmanCollectionId = stigmanCollection.collectionId;
+    });
   }
 
   private initializeChart(): void {

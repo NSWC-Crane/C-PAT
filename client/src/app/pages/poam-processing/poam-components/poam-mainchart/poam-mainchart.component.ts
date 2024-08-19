@@ -50,6 +50,13 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     { value: 'Extension Requested', label: 'Extension Requested' }
   ];
 
+  poamVulnerabilityTypes = [
+    { value: 'ACAS Nessus Scanner', label: 'ACAS Nessus Scanner' },
+    { value: 'STIG', label: 'STIG' },
+    { value: 'RMF Controls', label: 'RMF Controls' },
+    { value: 'Task Order', label: 'Task Order' },
+  ];
+
   poamSeverities = [
     { value: 'CAT I - Critical/High', label: 'CAT I - Critical/High' },
     { value: 'CAT II - Medium', label: 'CAT II - Medium' },
@@ -128,6 +135,10 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     {
       label: 'Status',
       items: this.poamStatuses.map(status => ({ label: status.label, value: `status:${status.value}` }))
+    },
+    {
+      label: 'Vulnerability Source',
+      items: this.poamVulnerabilityTypes.map(vulnerabilitySource => ({ label: vulnerabilitySource.label, value: `vulnerabilitySource:${vulnerabilitySource.value}` }))
     },
     {
       label: 'Severity',
@@ -275,6 +286,10 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
           items: this.poamStatuses.map(status => ({ label: status.label, value: `status:${status.value}` }))
         },
         {
+          label: 'Vulnerability Source',
+          items: this.poamVulnerabilityTypes.map(vulnerabilitySource => ({ label: vulnerabilitySource.label, value: `vulnerabilitySource:${vulnerabilitySource.value}` }))
+        },
+        {
           label: 'Severity',
           items: this.poamSeverities.map(severity => ({ label: severity.label, value: `severity:${severity.value}` }))
         },
@@ -366,6 +381,10 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
       filteredPoams = filteredPoams.filter(poam => poam.status === this.selectedOptions['status']);
     }
 
+    if (this.selectedOptions['vulnerabilitySource'] !== null) {
+      filteredPoams = filteredPoams.filter(poam => poam.vulnerabilitySource === this.selectedOptions['vulnerabilitySource']);
+    }
+
     if (this.selectedOptions['label'] !== null) {
       filteredPoams = filteredPoams.filter(poam => poam.labels.includes(this.selectedOptions['label']));
     }
@@ -387,6 +406,8 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     this.poamsChange.emit(filteredPoams);
     switch (filterType) {
       case 'status':
+        return this.generateChartDataForStatus(filteredPoams);
+      case 'vulnerabilitySource':
         return this.generateChartDataForStatus(filteredPoams);
       case 'label':
         return this.generateChartDataForLabel(filteredPoams);
@@ -526,6 +547,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
 
   selectedOptions: { [key: string]: string | null } = {
     status: null,
+    vulnerabilitySource: null,
     severity: null,
     scheduledCompletion: null,
     label: null
@@ -534,6 +556,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   onGroupSelect(event: MultiSelectChangeEvent) {
     this.selectedOptions = {
       status: null,
+      vulnerabilitySource: null,
       severity: null,
       scheduledCompletion: null,
       label: null
@@ -558,6 +581,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   resetChartFilters() {
     this.selectedOptions = {
       status: null,
+      vulnerabilitySource: null,
       severity: null,
       scheduledCompletion: null,
       label: null

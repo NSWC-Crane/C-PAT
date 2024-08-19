@@ -99,7 +99,7 @@ export class TenableAdminComponent implements OnInit {
 
   importTenableRepository() {
     if (this.selectedTenableRepository) {
-      this.importRepository(this.selectedTenableRepository);
+      this.importRepository(this.selectedTenableRepository).subscribe();
     } else {
       this.showPopup('Please select a repository to import.');
     }
