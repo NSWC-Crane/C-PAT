@@ -7,31 +7,40 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-
 <!-- Import STIG Manager Collection Section -->
-  <div class="field">
-    <p-dropdown [options]="stigmanCollections"
-                [(ngModel)]="selectedStigmanCollection"
-                (onChange)="onSTIGManagerCollectionSelect($event.value)"
-                placeholder="Select Collection to Import..."
-                optionLabel="name"
-                optionValue="collectionId"
-                [showClear]="true"
-                styleClass="stigmanCollectionSelect"
-                appendTo="body"
-                [style]="{'width':'100%'}">
-    </p-dropdown>
-  </div>
-  <div class="field">
-    <p-button label="Import"
-              class="import-button"
-              styleClass="p-button-info"
-              (click)="importSTIGManagerCollection()"
-              (onKeyUp)="importSTIGManagerCollection()"
-              pTooltip="If a STIG Manager collection has previously been imported, importing again will update the collection and relative assets with current data from STIG Manager."
-              tooltipPosition="left"
-              [style]="{'width':'100%'}"
-              [outlined]="true">
-    </p-button>
-  </div>
+<div class="field">
+  <p-dropdown [options]="filteredCollections"
+              [(ngModel)]="selectedSTIGManagerCollection"
+              (onChange)="onSTIGManagerCollectionSelect($event.value)"
+              placeholder="Select Collection to Import..."
+              optionLabel="name"
+              [showClear]="true"
+              styleClass="stigmanCollectionSelect"
+              appendTo="body"
+              [style]="{'width':'100%'}">
+  </p-dropdown>
+</div>
+<div class="field">
+  <p-button label="Import Selected"
+            class="import-button"
+            styleClass="p-button-info"
+            (click)="importSTIGManagerCollection()"
+            (onKeyUp)="importSTIGManagerCollection()"
+            [disabled]="!selectedSTIGManagerCollection"
+            [style]="{'width':'100%', 'margin-bottom': '10px'}"
+            [outlined]="true">
+  </p-button>
+</div>
+<div class="field">
+  <p-button label="Import All Remaining"
+            class="import-all-button"
+            styleClass="p-button-warning"
+            (click)="importAllRemainingCollections()"
+            (onKeyUp)="importAllRemainingCollections()"
+            [disabled]="filteredCollections.length === 0"
+            [style]="{'width':'100%'}"
+            [outlined]="true">
+  </p-button>
+</div>
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

@@ -7,7 +7,7 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-<p-dialog header="Extend POAM" [(visible)]="displayExtensionDialog" [modal]="true" [style]="{width: '60vw', height: '80vh'}" [draggable]="false" [resizable]="false" [closable]="true" (onHide)="cancelExtension()">
+<p-dialog header="Request POAM Extension" [(visible)]="displayExtensionDialog" [modal]="true" [style]="{width: '80vw', height: '80vh'}" [draggable]="false" [resizable]="false" [closable]="true" (onHide)="cancelExtension()">
   <div class="container" *ngIf="poam">
     <div class="p-grid">
       <!-- Extension Time Allowed -->
@@ -37,66 +37,99 @@
           </p-autoComplete>
         </div>
       </div>
-      <!-- New Milestones to Achieve Completion -->
-      <div class="p-col-12">
-        <label for="newMilestones">New Milestones to Achieve Completion:</label>
-        <p-table [value]="poamExtensionMilestones" editMode="row" dataKey="milestoneId">
-          <ng-template pTemplate="header">
-            <tr>
-              <th scope="col">Milestone Comments</th>
-              <th scope="col">Milestone Date</th>
-              <th scope="col">Milestone Status</th>
-              <th scope="col"><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()" (onKeyUp)="onAddNewMilestone()"></button></th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-milestone let-editing="editing" let-ri="rowIndex">
-            <tr [pEditableRow]="milestone">
-              <td>
-                <p-cellEditor>
-                  <ng-template pTemplate="input">
-                    <textarea pInputTextarea [(ngModel)]="milestone.extensionMilestoneComments"></textarea>
-                  </ng-template>
-                  <ng-template pTemplate="output">
-                    {{milestone.extensionMilestoneComments}}
-                  </ng-template>
-                </p-cellEditor>
-              </td>
-              <td>
-                <p-cellEditor>
-                  <ng-template pTemplate="input">
-                    <p-calendar [(ngModel)]="milestone.extensionMilestoneDate" [showIcon]="true" dateFormat="yy-mm-dd" [readonlyInput]="true" appendTo="body"></p-calendar>
-                  </ng-template>
-                  <ng-template pTemplate="output">
-                    {{milestone.extensionMilestoneDate | date:'yyyy-MM-dd'}}
-                  </ng-template>
-                </p-cellEditor>
-              </td>
-              <td>
-                <p-cellEditor>
-                  <ng-template pTemplate="input">
-                    <p-dropdown [options]="milestoneStatusOptions" [(ngModel)]="milestone.extensionMilestoneStatus" [style]="{'width':'100%'}" appendTo="body"></p-dropdown>
-                  </ng-template>
-                  <ng-template pTemplate="output">
-                    {{milestone.extensionMilestoneStatus}}
-                  </ng-template>
-                </p-cellEditor>
-              </td>
-              <td style="text-align:center">
-                <button *ngIf="!editing" pButton type="button" pInitEditableRow icon="pi pi-pencil" class="p-button-text" (click)="onRowEditInit(milestone)"></button>
-                <button *ngIf="editing" pButton type="button" pSaveEditableRow icon="pi pi-check" class="p-button-text" style="margin-right: .5em" (click)="onRowEditSave(milestone, ri)"></button>
-                <button *ngIf="editing" pButton type="button" pCancelEditableRow icon="pi pi-times" class="p-button-text" (click)="onRowEditCancel(milestone, ri)"></button>
-                <button *ngIf="!editing" pButton type="button" icon="pi pi-trash" class="p-button-text" (click)="deleteMilestone(milestone, ri)"></button>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="4" style="text-align:center">No Data to Display</td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
     </div>
+
+    <!-- Milestones -->
+            <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th scope="col">Milestone Comments</th>
+                  <th scope="col">Milestone Date</th>
+                  <th scope="col">Milestone Change Comments</th>
+                  <th scope="col">Milestone Change Date</th>
+                  <th scope="col">Milestone Status</th>
+                  <th scope="col">Milestone Team</th>
+                  <th></th>
+                  <th scope="col"><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()"></button></th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-milestone let-editing="editing" let-ri="rowIndex">
+                <tr [pEditableRow]="milestone" [class.p-highlight]="milestone.editing">
+                  <td>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <textarea pInputTextarea class="w-full" [rows]="2" [(ngModel)]="milestone.milestoneComments" disabled></textarea>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{milestone.milestoneComments}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <p-calendar [(ngModel)]="milestone.milestoneDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" disabled></p-calendar>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{milestone.milestoneDate | date:'yyyy-MM-dd'}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <textarea pInputTextarea class="w-full" [rows]="2" [(ngModel)]="milestone.milestoneChangeComments"></textarea>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{milestone.milestoneChangeComments}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <p-calendar [(ngModel)]="milestone.milestoneChangeDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body"></p-calendar>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{milestone.milestoneChangeDate | date:'yyyy-MM-dd'}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <p-dropdown [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" [style]="{'width':'100%'}" appendTo="body"></p-dropdown>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{milestone.milestoneStatus}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <input type="text" pInputText class="w-full" [(ngModel)]="milestone.milestoneTeam">
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{milestone.milestoneTeam}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td>
+                  <td style="text-align:center">
+                    <button *ngIf="!editing" pButton type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(milestone)" class="p-button-rounded p-button-text"></button>
+                    <button *ngIf="editing" pButton type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(milestone)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+                    <button *ngIf="editing" pButton type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(milestone, ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="6" style="text-align:center">No Data to Display</td>
+                </tr>
+              </ng-template>
+            </p-table>
+
   </div>
   <ng-template pTemplate="footer">
     <p-button [outlined]="true" label="Save" (click)="submitPoamExtension()" (onKeyUp)="submitPoamExtension()"></p-button>

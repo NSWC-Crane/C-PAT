@@ -10,6 +10,7 @@
 
 const Sequelize = require("sequelize");
 const config = require("../utils/config");
+
 const sequelize = new Sequelize(
     config.database.schema,
     config.database.username,
@@ -26,6 +27,7 @@ const sequelize = new Sequelize(
         },
     }
 );
+
 const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
@@ -36,7 +38,7 @@ db.Collection = require("../Models/collection.model.js")(sequelize, Sequelize.Da
 db.Label = require("../Models/label.model.js")(sequelize, Sequelize.DataTypes);
 db.Poam = require("../Models/poam.model.js")(sequelize, Sequelize.DataTypes);
 db.poamAsset = require("../Models/poamAsset.model.js")(sequelize, Sequelize.DataTypes);
-db.poamMilestone = require("../Models/poamMilestone.model.js")(sequelize, Sequelize.DataTypes);
+db.poamMilestones = require("../Models/poamMilestones.model.js")(sequelize, Sequelize.DataTypes);
 db.IAV = require("../Models/iav.model.js")(sequelize, Sequelize.DataTypes);
 db.IAV_Plugin = require("../Models/iav_plugin.model.js")(sequelize, Sequelize.DataTypes);
 db.Config = require("../Models/config.model.js")(sequelize, Sequelize.DataTypes);
@@ -56,5 +58,13 @@ Object.keys(db).forEach(modelName => {
         db[modelName].associate(db);
     }
 });
+
+sequelize.authenticate()
+    .then(() => {
+        console.log('Sequelize connection to the database has been established.');
+    })
+    .catch(err => {
+        console.error('Sequelize is unable to connect to the database:', err);
+    });
 
 module.exports = db;

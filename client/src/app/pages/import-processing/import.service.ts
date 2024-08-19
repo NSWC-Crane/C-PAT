@@ -38,24 +38,6 @@ export class ImportService {
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
-  async putPoamAssetsWithStigManagerData(poamAsset: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http.put(`${this.cpatApiBase}/update/stigmanager/poamassets`, poamAsset, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
-  async postStigManagerAssets(assets: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http.post(`${this.cpatApiBase}/import/stigmanager/assets`, assets, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
-  async postStigManagerCollection(data: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http.post(`${this.cpatApiBase}/import/stigmanager/collection`, data, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
   async postTenableAnalysis(analysisParams: any): Promise<Observable<any>> {
     const headers = await this.getAuthHeaders();
     return this.http.post(`${this.cpatApiBase}/tenable/analysis`, analysisParams, { headers })

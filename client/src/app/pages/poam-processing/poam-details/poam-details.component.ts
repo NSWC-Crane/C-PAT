@@ -24,6 +24,7 @@ import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { jsonToPlainText } from "json-to-plain-text";
+import { AAPackageService } from '../../admin-processing/aaPackage-processing/aaPackage-processing.service';
 function getRoleFromAccessLevel(accessLevel: number): string {
   switch (accessLevel) {
     case 1:
@@ -38,7 +39,10 @@ function getRoleFromAccessLevel(accessLevel: number): string {
       return 'none';
   }
 }
-
+interface AAPackage {
+  aaPackageId: number;
+  aaPackage: string;
+}
 interface Permission {
   userId: number;
   collectionId: number;
@@ -89,12 +93,15 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   collection: any;
   collectionApprovers: any;
   collectionBasicList: any[] = [];
+  aaPackages: AAPackage[] = [];
+  filteredAAPackages: string[] = [];
   poamApprovers: any[] = [];
   poamMilestones: any[] = [];
   pluginData: any;
   assets: any;
   poamAssets: any[] = [];
   poamAssignees: any[] = [];
+  isEmassCollection: boolean = false;
   canModifySubmitter: boolean = false;
   showApprove: boolean = false;
   showSubmit: boolean = false;
@@ -109,13 +116,16 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   selectedStigTitle: string = '';
   selectedStigObject: any = null;
   selectedStigBenchmarkId: string = '';
+  stigmanCollectionId: any;
+  groupId: any;
   assetList: any[] = [];
   stateData: any;
+
   vulnerabilitySources: string[] = [
     "ACAS Nessus Scanner",
     "STIG",
     "RMF Controls",
-    "EXORD",
+    "Task Order",
   ];
   filteredVulnerabilitySources: string[] =[];
   statusOptions = [
@@ -190,6 +200,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   private subs = new SubSink();
 
   constructor(
+    private aaPackageService: AAPackageService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
     private poamService: PoamService,
@@ -216,9 +227,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       })
     );
     this.setPayload();
-    if (this.poamId !== "ADDPOAM") {
-      this.fetchAssets();
-    }
   }
 
   async setPayload() {
@@ -272,13 +280,16 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-
   async getData() {
+    this.validateStigManagerCollection(true);
     this.getLabelData();
+    this.loadAAPackages();
     if (this.poamId === undefined || !this.poamId) {
       return;
     } else if (this.poamId === "ADDPOAM" && this.stateData.vulnerabilitySource === 'ACAS Nessus Scanner') {
       this.createNewACASPoam();
+    } else if (this.poamId === "ADDPOAM" && this.stateData.vulnerabilitySource === 'STIG') {
+      this.createNewSTIGManagerPoam();
     } else if (this.poamId === "ADDPOAM") {
       this.createNewPoam();
     } else {
@@ -286,13 +297,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         await this.poamService.getPoam(this.poamId),
         await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
         await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-        await this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
-        await this.poamService.getPoamAssets(this.poamId),
+        await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
         await this.poamService.getPoamAssignees(this.poamId),
         await this.poamService.getPoamApprovers(this.poamId),
         await this.poamService.getPoamMilestones(this.poamId),
         await this.poamService.getPoamLabelsByPoam(this.poamId)
-      ]).subscribe(([poam, collection, users, collectionAssets, poamAssets, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
+      ]).subscribe(([poam, collection, users, collectionAssets, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
         this.poam = { ...poam, hqs: poam.hqs === 1 ? true : false };
         this.dates.scheduledCompletionDate = poam.scheduledCompletionDate ? new Date(poam.scheduledCompletionDate) : null;
         this.dates.iavComplyByDate = poam.iavComplyByDate ? new Date(poam.iavComplyByDate) : null;
@@ -328,11 +338,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             this.tenablePluginData = this.poam.tenablePluginData;
           }
         }
-        if (this.stateData.vulnerabilitySource === 'STIG' && this.stateData.benchmarkId) {
-          this.poamAssets = [];
-          this.validateStigManagerCollection();
+        if ((this.poam.vulnerabilitySource === 'STIG' || this.poam.vulnerabilitySource === 'ACAS Nessus Scanner') && !this.isEmassCollection) {
+          this.poamAssets = [];      
         } else {
-          this.poamAssets = poamAssets;
+          this.fetchAssets();
         }
         this.poamLabels = poamLabels;
         this.setChartSelectionData();
@@ -359,7 +368,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     forkJoin([
       await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
       await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-      await this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
+      await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
     ]).subscribe(async ([collection, users, collectionAssets]: any) => {
       this.poam = {
         poamId: "ADDPOAM",
@@ -370,12 +379,17 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         iavComplyByDate: this.stateData.iavComplyByDate ? format(new Date(this.stateData.iavComplyByDate), "yyyy-MM-dd") : null,
         submittedDate: format(new Date(), "yyyy-MM-dd"),
         vulnerabilityId: this.pluginData.id || "",
-        description: this.pluginData.description || "",
+        description:
+`Title:
+${this.pluginData.name}
+
+Description:
+${this.pluginData.description}` || "",
         rawSeverity: this.mapTenableSeverity(this.tenableVulnResponse.severity.id),
         scheduledCompletionDate: '',
         submitterId: this.payload.userId,
         status: "Draft",
-        tenablePluginData: JSON.parse(this.pluginData) || "",
+        tenablePluginData: this.pluginData || "",
         hqs: false,
       };
 
@@ -478,12 +492,13 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async createNewPoam() {
+  async createNewSTIGManagerPoam() {
+    this.validateStigManagerCollection(false);
     this.canModifySubmitter = true;
     forkJoin([
       await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
       await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
-      await this.poamService.getAssetsForCollection(this.payload.lastCollectionAccessedId),
+      await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
     ]).subscribe(async ([collection, users, collectionAssets]: any) => {
       this.poam = {
         poamId: "ADDPOAM",
@@ -525,6 +540,81 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         });
       }
       this.setChartSelectionData();
+      (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
+        next: (data) => {
+          this.stigmanSTIGs = data.map((stig: any) => ({
+            title: stig.title,
+            benchmarkId: stig.benchmarkId
+          }));
+
+          if (!data || data.length === 0) {
+            console.warn("Unable to retrieve list of current STIGs from STIGMAN.");
+          }
+          this.poam.vulnerabilitySource = this.stateData.vulnerabilitySource;
+            this.poam.vulnerabilityId = this.stateData.vulnerabilityId;
+            this.poam.rawSeverity = this.stateData.severity;
+            this.poam.stigCheckData = this.stateData.ruleData;
+            const benchmarkId = this.stateData.benchmarkId;
+            const selectedStig = this.stigmanSTIGs.find((stig: any) => stig.benchmarkId === benchmarkId);
+          if (selectedStig) {
+            this.selectedStigObject = selectedStig;
+            this.selectedStigTitle = selectedStig.title;
+            this.onStigSelected(selectedStig);
+          } else {
+            this.poam.stigBenchmarkId = benchmarkId;
+          }
+        },
+      });
+    });
+  }
+
+  async createNewPoam() {
+    this.canModifySubmitter = true;
+    forkJoin([
+      await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
+      await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+      await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
+    ]).subscribe(async ([collection, users, collectionAssets]: any) => {
+      this.poam = {
+        poamId: "ADDPOAM",
+        collectionId: this.payload.lastCollectionAccessedId,
+        vulnerabilitySource: "",
+        aaPackage: "",
+        vulnerabilityId: "",
+        description: "",
+        rawSeverity: "",
+        scheduledCompletionDate: '',
+        submitterId: this.payload.userId,
+        status: "Draft",
+        submittedDate: format(new Date(), "yyyy-MM-dd"),
+        hqs: false,
+      };
+
+      this.dates.scheduledCompletionDate = null;
+      this.dates.iavComplyByDate = null;
+      this.dates.submittedDate = new Date(this.poam.submittedDate);
+
+      this.collection = collection;
+      this.collectionUsers = users;
+      this.assets = collectionAssets;
+      this.poamAssets = [];
+      this.poamAssignees = [];
+      this.collectionApprovers = [];
+      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3 || this.user.isAdmin);
+      this.poamApprovers = this.collectionApprovers.map((approver: any) => ({
+        userId: approver.userId,
+        approvalStatus: 'Not Reviewed',
+        comments: '',
+      }));
+      this.collectionSubmitters = [];
+      if (this.collectionUsers) {
+        this.collectionUsers.forEach((user: any) => {
+          if (user.accessLevel >= 2) {
+            this.collectionSubmitters.push({ ...user });
+          }
+        });
+      }
+      this.setChartSelectionData();
         (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
           next: (data) => {
             this.stigmanSTIGs = data.map((stig: any) => ({
@@ -534,23 +624,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
             if (!data || data.length === 0) {
               console.warn("Unable to retrieve list of current STIGs from STIGMAN.");
-            }
-
-            if (this.stateData.vulnerabilitySource && this.stateData.benchmarkId) {
-              this.poam.vulnerabilitySource = this.stateData.vulnerabilitySource;
-              this.poam.vulnerabilityId = this.stateData.vulnerabilityId;
-              this.poam.rawSeverity = this.stateData.severity;
-              this.poam.stigCheckData = this.stateData.ruleData;
-              const benchmarkId = this.stateData.benchmarkId;
-              const selectedStig = this.stigmanSTIGs.find((stig: any) => stig.benchmarkId === benchmarkId);
-              this.validateStigManagerCollection();
-              if (selectedStig) {
-                this.selectedStigObject = selectedStig;
-                this.selectedStigTitle = selectedStig.title;
-                this.onStigSelected(selectedStig);
-              } else {
-                this.poam.stigBenchmarkId = benchmarkId;
-              }
             }
           },
         });
@@ -630,7 +703,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-
   async addDefaultApprovers() {
     this.collectionApprovers.forEach(async (collectionApprover: any) => {
       const approver: any = {
@@ -669,7 +741,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   extendPoam() {
     if (this.poam.poamId === "ADDPOAM") {
-      this.showConfirmation("You may not extend POAM until after it has been saved.", "Information", "warning");
+      this.messageService.add({ severity: "warn", summary: 'Information', detail: "You may not extend POAM until after it has been saved." });
       return;
     }
     this.router.navigate(['/poam-processing/poam-extend', this.poam.poamId]);
@@ -677,11 +749,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   poamApproval() {
     if (this.poam.poamId === "ADDPOAM") {
-      this.showConfirmation("The POAM must be submitted before it can be approved.", "Information", "warning");
+      this.messageService.add({ severity: "warn", summary: 'Information', detail: "The POAM is currently in an unsaved 'Draft' status. Approvals can not be entered until after a POAM has been submitted." });
       return;
     }
     if (this.poam.status === "Draft") {
-      this.showConfirmation("The POAM is currently in 'Draft' status. Approvals can not be entered until after a POAM has been submitted.", "Information", "warning");
+      this.messageService.add({ severity: "warn", summary: 'Information', detail: "The POAM is currently in 'Draft' status. Approvals can not be entered until after a POAM has been submitted." });
       return;
     }
     this.router.navigate(['/poam-processing/poam-approve', this.poam.poamId]);
@@ -689,7 +761,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   poamLog() {
     if (this.poam.poamId === "ADDPOAM") {
-      this.showConfirmation("You may not view a POAM log until after the POAM has been saved.", "Information", "warning");
+      this.messageService.add({ severity: "warn", summary: 'Information', detail: "The POAM is currently in an unsaved 'Draft' status. You may not view a POAM log until after the POAM has been saved." });
       return;
     }
     this.router.navigate(['/poam-processing/poam-log', this.poam.poamId]);
@@ -697,7 +769,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   closePoam() {
     if (this.poam.poamId === "ADDPOAM") {
-      this.showConfirmation("You may not close a POAM until after it has been saved.", "Information", "warning");
+      this.messageService.add({ severity: "warn", summary: 'Information', detail: "The POAM is currently in an unsaved 'Draft' status. You may not close a POAM until after it has been saved." });
       return;
     }
     this.poam.status = "Closed";
@@ -748,14 +820,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       (await this.poamService.postPoam(this.poam)).subscribe({
         next: (res) => {
           if (res.null || res.null == "null") {
-            this.showError("Unexpected error adding POAM", "Error");
+            this.messageService.add({ severity: "error", summary: 'Information', detail: "Unexpected error adding POAM" });
           } else {
             this.poam.poamId = res.poamId;
-            this.showConfirmation("Added POAM: " + res.poamId, "Success", "success");
+            this.messageService.add({ severity: "success", summary: 'Success', detail: `Added POAM: ${res.poamId}` });
           }
         },
         error: () => {
-          this.showConfirmation("Unexpected error adding poam", "Error");
+          this.messageService.add({ severity: "error", summary: 'Information', detail: "Unexpected error adding poam" });
         }
       });
     } else {
@@ -768,7 +840,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       this.subs.sink = (await this.poamService.updatePoam(this.poam)).subscribe(data => {
         this.poam = data;
-        this.showConfirmation("Updated POAM", "Success", "success");
+        this.messageService.add({ severity: "success", summary: 'Success', detail: "POAM successfully updated" });
       });
     }
   }
@@ -789,7 +861,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async validateStigManagerCollection() {
+  async validateStigManagerCollection(background: boolean = true) {
     forkJoin([
       (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
         catchError((err) => {
@@ -808,101 +880,23 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
 
       const selectedCollection = basicListCollectionsMap.get(this.selectedCollection);
+      this.isEmassCollection = selectedCollection?.collectionName === 'eMASS';
       const selectedCollectionName = selectedCollection!.collectionName;
 
       const stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
 
-      if (!stigmanCollection || !selectedCollectionName) {
-        this.showConfirmation('Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are creating the POAM in the correct collection.', "Information", "warning");
+      if (!stigmanCollection && !background || !selectedCollectionName && !background) {
+        this.messageService.add({ severity: "warn", summary: 'Information', detail: "Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are creating the POAM in the correct collection." });
         return;
       }
 
-      const stigmanCollectionId = stigmanCollection.collectionId;
-      this.updateAssetSettings(stigmanCollectionId);
-    });
-  }
-
-  async updateAssetSettings(stigmanCollectionId: string) {
-    (await this.sharedService.getAffectedAssetsFromSTIGMAN(stigmanCollectionId)).pipe(
-      map(data => data.filter(entry => entry.groupId === this.poam.vulnerabilityId)),
-      switchMap(async filteredData => {
-        if (filteredData.length > 0) {
-          this.assetList = filteredData[0].assets.map((assets: { name: any; assetId: string; }) => ({
-            assetName: assets.name,
-            assetId: parseInt(assets.assetId, 10),
-          }));
-          if (this.poamId !== "ADDPOAM" && this.stateData.vulnerabilitySource === 'STIG') {
-            return (await this.assetService.deleteAssetsByPoamId(+this.poamId)).pipe(
-              switchMap(async () => await this.poamService.deletePoamAssetByPoamId(+this.poamId)),
-              switchMap(() => {
-                const assetDetailsObservables = this.assetList.map(async asset =>
-                  await this.sharedService.selectedAssetsFromSTIGMAN(asset.assetId)
-                );
-                return forkJoin(assetDetailsObservables);
-              }),
-              switchMap(async (assetDetails: any[]) => {
-                const assets = assetDetails.map(asset => {
-                  const { assetId, ...rest } = asset;
-                  return rest;
-                });
-
-                const requestBody = { assets: assets };
-
-                return (await this.importService.postStigManagerAssets(requestBody)).pipe(
-                  tap((response: any) => {
-                    const importedAssets = response.assets;
-                    this.assetList = this.assetList.map(asset => {
-                      const importedAsset = importedAssets.find((imported: any) => imported.assetName === asset.assetName);
-                      if (importedAsset) {
-                        return { ...asset, assetId: importedAsset.assetId };
-                      }
-                      return asset;
-                    });
-                  }),
-                  catchError((error) => {
-                    console.error('Error during import', error);
-                    this.showConfirmation('Error during import: ' + error.message, "Information", "warning");
-                    return throwError(error);
-                  })
-                );
-              }),
-              switchMap(() => {
-                const poamAssetObservables = this.assetList.map(async asset => {
-                  const poamAsset = {
-                    poamId: +this.poamId,
-                    assetId: asset.assetId,
-                    poamLog: [{ userId: this.user.userId }],
-                  };
-                  return await this.poamService.postPoamAsset(poamAsset);
-                });
-                return forkJoin(poamAssetObservables);
-              }),
-              map(() => filteredData)
-            );
-          } else {
-            return of(filteredData);
-          }
-        } else {
-          return of([]);
-        }
-      }),
-      switchMap(filteredData => filteredData)
-    ).subscribe({
-      next: async (filteredData: any[]) => {
-        if (filteredData.length > 0) {
-          this.poamAssets = this.assetList;
-          this.showConfirmation("Asset list updated with STIG Manager findings.", "Information", "warning");
-        } else {
-          this.showConfirmation(`No assets found for Vulnerability ID ${this.poam.vulnerabilityId}.`, "Information", "warning");
-        }
-      },
-      error: (err) => console.error('Failed to fetch affected assets from STIGMAN:', err)
+      this.stigmanCollectionId = stigmanCollection?.collectionId ? stigmanCollection.collectionId : undefined;
     });
   }
 
   submitPoam() {
     if (this.poam.poamId === "ADDPOAM") {
-      this.showConfirmation("You may not submit a POAM until after it has been saved.", "Information", "warning");
+      this.messageService.add({ severity: "warn", summary: 'Information', detail: "The POAM is currently in an unsaved 'Draft' status. You may not submit a POAM until after it has been saved." });
       return;
     }
     if (this.poam.status === "Closed") {
@@ -916,37 +910,36 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   validateData() {
-
     if (!this.poam.description) {
-      this.showConfirmation("POAM Description is required", "Information", "warning");
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "Description is a required field" });
       return false;
     }
     if (!this.poam.status) {
-      this.showConfirmation("POAM Status is required", "Information", "warning");
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "POAM Status is a required field" });
       return false;
     }
     if (!this.poam.aaPackage) {
-      this.showConfirmation("POAM aaPackage is required", "Information", "warning");
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "A&A Package is a required field" });
       return false;
     }
     if (!this.poam.vulnerabilitySource) {
-      this.showConfirmation("POAM Vulnerability Source is required", "Information", "warning");
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "Vulnerability Source is a required field" });
       return false;
     }
     if (!this.poam.rawSeverity) {
-      this.showConfirmation("POAM Raw Severity is required", "Information", "warning");
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "Raw Severity is a required field" });
       return false;
     }
     if (!this.poam.submitterId) {
-      this.showConfirmation("POAM Submitter ID is required", "Information", "warning");
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "POAM Submitter is a required field" });
       return false;
     }
     if (!this.dates.scheduledCompletionDate) {
-      this.showConfirmation("Scheduled Completion Date is required", "Information", "warning");
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "Scheduled Completion Date is a required field" });
       return false;
     }
     if (this.isIavmNumberValid(this.poam.iavmNumber) && !this.dates.iavComplyByDate) {
-      this.showConfirmation("IAV Comply By Date is required if an IAVM Number is provided.", "Information", "warning");
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "IAV Comply By Date is required if an IAVM Number is provided." });
       return false;
     }
     return true;
@@ -963,9 +956,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   onAddNewMilestone() {
     const newMilestone = {
       milestoneId: this.generateTempId(),
-      milestoneComments: '',
+      milestoneComments: null,
       milestoneDate: new Date(),
       milestoneStatus: 'Pending',
+      milestoneTeam: null,
       isNew: true,
       editing: true
     };
@@ -983,8 +977,20 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   async onRowEditSave(milestone: any) {
-    if (!milestone.milestoneComments || !milestone.milestoneDate || !milestone.milestoneStatus) {
-      this.showConfirmation("Please provide values for all columns: Milestone Comments, Milestone Date, and Milestone Status.", "Information", "warning");
+    if (!milestone.milestoneComments) {
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "Milestone Comments is a required field." });
+      return;
+    }
+    if (!milestone.milestoneDate) {
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "Milestone Date is a required field." });
+      return;
+    }
+    if (!milestone.milestoneStatus) {
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "Milestone Status is a required field." });
+      return;
+    }
+    if (!milestone.milestoneTeam) {
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "Milestone Team is a required field." });
       return;
     }
 
@@ -992,14 +998,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
     if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
       if (isAfter(milestoneDate, this.dates.scheduledCompletionDate)) {
-        this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date.", "Information", "warning");
+        this.messageService.add({ severity: "warn", summary: 'Information', detail: "The Milestone date provided exceeds the POAM scheduled completion date." });
         return;
       }
     } else {
       const maxAllowedDate = addDays(this.dates.scheduledCompletionDate, this.poam.extensionTimeAllowed);
 
       if (isAfter(milestoneDate, maxAllowedDate)) {
-        this.showConfirmation("The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.", "Information", "warning");
+        this.messageService.add({ severity: "warn", summary: 'Information', detail: "The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time." });
         return;
       }
     }
@@ -1007,14 +1013,15 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     if (milestone.isNew) {
       const newMilestone: any = {
         milestoneDate: format(milestone.milestoneDate, "yyyy-MM-dd"),
-        milestoneComments: milestone.milestoneComments || '',
+        milestoneComments: milestone.milestoneComments || null,
         milestoneStatus: milestone.milestoneStatus || 'Pending',
+        milestoneTeam: milestone.milestoneTeam || null,
         poamLog: [{ userId: this.user.userId }],
       };
 
       await (await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone)).subscribe((res: any) => {
         if (res.null) {
-          this.showConfirmation("Unable to insert row, please try again.", "Information", "warning");
+          this.messageService.add({ severity: "error", summary: 'Information', detail: "Unable to insert row, please validate entry and try again." });
           return;
         } else {
           milestone.milestoneId = res.milestoneId;
@@ -1027,6 +1034,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         ...(milestone.milestoneDate && { milestoneDate: format(milestone.milestoneDate, "yyyy-MM-dd") }),
         ...(milestone.milestoneComments && { milestoneComments: milestone.milestoneComments }),
         ...(milestone.milestoneStatus && { milestoneStatus: milestone.milestoneStatus }),
+        ...(milestone.milestoneTeam && { milestoneTeam: milestone.milestoneTeam }),
         poamLog: [{ userId: this.user.userId }],
       };
 
@@ -1035,14 +1043,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.getData();
         },
         error: (error) => {
-          this.showConfirmation("Failed to update the milestone. Please try again.", "Information", "warning");
           console.error(error);
         }
       });
     }
     delete this.clonedMilestones[milestone.milestoneId];
   }
-
 
   onRowEditCancel(milestone: any, index: number) {
     if (milestone.isNew) {
@@ -1052,7 +1058,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       delete this.clonedMilestones[milestone.milestoneId];
     }
   }
-
 
   async deleteMilestone(milestone: any, index: number) {
     if (!milestone.milestoneId) {
@@ -1125,7 +1130,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     } else if (this.poam.poamId === "ADDPOAM") {
       this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Approver added' });
     } else {
-      this.showConfirmation("Failed to create entry on poamApprover. Invalid input.", "Information", "warning");
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "Failed to add POAM Approver. Please validate entry and try again." });
     }
   }
 
@@ -1138,10 +1143,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.poamApprovers = this.poamApprovers.filter((a: any) => a.userId !== approver.userId);
       this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Approver removed' });
     } else {
-      this.showConfirmation("You may only remove an approver from the approver list if the POAM status is 'Draft'.", "Error");
+      this.messageService.add({ severity: "warn", summary: 'Information', detail: "You may only remove an approver from the approver list if the POAM status is 'Draft'." });
     }
   }
-
 
   getAssigneeName(userId: number): string {
     const user = this.collectionUsers.find((user: any) => user.userId === userId);
@@ -1226,8 +1230,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   async fetchAssets() {
-    this.subs.sink = (await this.assetService.getAssets()).subscribe((response: any) => {
-      this.assetList = response.assets.map((asset: any) => ({
+    this.subs.sink = await (await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId)).subscribe((response: any) => {
+      this.assetList = response.map((asset: any) => ({
         assetId: asset.assetId,
         assetName: asset.assetName
       }));
@@ -1318,8 +1322,29 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     );
   }
 
-  showConfirmation(message: string, header?: string, severity: string = 'warn') {
-    this.messageService.add({ severity: severity, summary: header || 'Confirmation', detail: message });
+  async loadAAPackages() {
+    try {
+      const response = await (await this.aaPackageService.getAAPackages()).toPromise();
+      this.aaPackages = response || [];
+    } catch (error) {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load A&A Packages' });
+    }
+  }
+
+  filterAAPackages(event: { query: string }) {
+    const query = event.query.toLowerCase();
+    this.filteredAAPackages = this.aaPackages
+      .filter(aaPackage => aaPackage.aaPackage.toLowerCase().includes(query))
+      .map(aaPackage => aaPackage.aaPackage);
+  }
+
+  confirm(options: { header: string, message: string, accept: () => void }) {
+    this.confirmationService.confirm({
+      message: options.message,
+      header: options.header,
+      icon: 'pi pi-exclamation-triangle',
+      accept: options.accept
+    });
   }
 
   showError(message: string, header?: string) {
@@ -1330,15 +1355,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   hideErrorDialog() {
     this.errorDialogVisible = false;
-  }
-
-  confirm(options: { header: string, message: string, accept: () => void }) {
-    this.confirmationService.confirm({
-      message: options.message,
-      header: options.header,
-      icon: 'pi pi-exclamation-triangle',
-      accept: options.accept
-    });
   }
 
   ngOnDestroy() {

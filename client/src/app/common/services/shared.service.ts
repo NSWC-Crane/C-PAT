@@ -108,6 +108,20 @@ export class SharedService {
       .pipe(catchError(this.handleError));
   }
 
+  async getAssetDetailsFromSTIGMAN(collectionId: string) {
+    const url = `${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`;
+    const headers = await this.getSTIGManagerAuthHeaders();
+    return this.http.get<any[]>(url, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async getLabelsByCollectionSTIGMAN(collectionId: string) {
+    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/labels`;
+    const headers = await this.getSTIGManagerAuthHeaders();
+    return this.http.get<any[]>(url, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
   async getRuleDataFromSTIGMAN(ruleId: string) {
     const url = `${this.STIGMANAGER_URL}/stigs/rules/${ruleId}?projection=detail&projection=check&projection=fix`;
     const headers = await this.getSTIGManagerAuthHeaders();

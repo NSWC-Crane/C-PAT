@@ -8,12 +8,12 @@
 !########################################################################
 */
 
-const assetService = require('../Services/assetService')
+const aaPackageService = require('../Services/aaPackageService');
 
-module.exports.getAsset = async function getAsset(req, res, next) {
+module.exports.getAAPackages = async function getAAPackages(req, res, next) {
     try {
-        const asset = await assetService.getAsset(req, res, next);
-        res.status(200).json(asset);
+        const aaPackages = await aaPackageService.getAAPackages(req, res, next);
+        res.status(200).json(aaPackages);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
@@ -23,10 +23,10 @@ module.exports.getAsset = async function getAsset(req, res, next) {
     }
 };
 
-module.exports.getAssetByName = async function getAssetByName(req, res, next) {
+module.exports.getAAPackage = async function getAAPackage(req, res, next) {
     try {
-        const asset = await assetService.getAssetByName(req, res, next);
-        res.status(200).json(asset);
+        const aaPackage = await aaPackageService.getAAPackage(req, res, next);
+            res.status(200).json(aaPackage);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
@@ -36,24 +36,10 @@ module.exports.getAssetByName = async function getAssetByName(req, res, next) {
     }
 };
 
-module.exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
+module.exports.postAAPackage = async function postAAPackage(req, res, next) {
     try {
-        const response = await assetService.getAssetsByCollection(req, res, next);
-        const assets = response.assets;
-        res.status(200).json(assets);
-    } catch (error) {
-        if (error.message === 'Collection ID is required') {
-            res.status(400).json({ error: 'Validation Error', detail: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
-    }
-}
-
-module.exports.postAsset = async function postAsset(req, res, next) {
-    try {
-        const asset = await assetService.postAsset(req, res, next);
-        res.status(201).json(asset);
+        const aaPackage = await aaPackageService.postAAPackage(req, res, next);
+        res.status(201).json(aaPackage);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
@@ -61,12 +47,12 @@ module.exports.postAsset = async function postAsset(req, res, next) {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
-module.exports.putAsset = async function putAsset(req, res, next) {
+module.exports.putAAPackage = async function putAAPackage(req, res, next) {
     try {
-        const asset = await assetService.putAsset(req, res, next);
-        res.status(200).json(asset);
+        const aaPackage = await aaPackageService.putAAPackage(req, res, next);
+        res.status(200).json(aaPackage);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
@@ -74,11 +60,11 @@ module.exports.putAsset = async function putAsset(req, res, next) {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
-module.exports.deleteAsset = async function deleteAsset(req, res, next) {
+module.exports.deleteAAPackage = async function deleteAAPackage(req, res, next) {
     try {
-        await assetService.deleteAsset(req, res, next);
+        await aaPackageService.deleteAAPackage(req, res, next);
         res.status(204).send();
     } catch (error) {
         if (error.status === 400) {
@@ -87,17 +73,4 @@ module.exports.deleteAsset = async function deleteAsset(req, res, next) {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
-
-module.exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, next) {
-    try {
-        await assetService.deleteAssetsByPoamId(req, res, next);
-        res.status(204).send();
-    } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
-    }
-}
+};

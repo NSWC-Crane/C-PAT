@@ -10,18 +10,6 @@
 
 const importService = require('../Services/importService');
 
-module.exports.putPoamAssetsWithStigManagerData = async function putPoamAssetsWithStigManagerData(req, res, next) {
-    try {
-        const poamAsset = await importService.putPoamAssetsWithStigManagerData(req, res, next);
-        res.status(200).json(poamAsset);
-    } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
-    }
-}
 
 module.exports.uploadPoamFile = async (req, res, next) => {
     const file = req.files[0];
@@ -72,23 +60,3 @@ module.exports.importVRAMExcel = async (req, res, next) => {
         }
     });
 };
-
-module.exports.postStigManagerAssets = async function postStigManagerAssets(req, res) {
-    try {
-        const { assets } = req.body;
-        const importedAssets = await importService.postStigManagerAssets(assets);
-        res.status(201).json({ message: 'Assets Imported Successfully', assets: importedAssets });
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-};
-
-module.exports.postStigManagerCollection = async function postStigManagerCollection(req, res) {
-    try {
-        const { collection, assets } = req.body;
-        await importService.postStigManagerCollection(collection, assets);
-        res.status(201).json({ message: 'Collection, Assets, and Labels Imported Successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-}

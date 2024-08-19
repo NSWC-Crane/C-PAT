@@ -99,14 +99,24 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   initColumnsAndFilters() {
     this.cols = [
-      { field: 'poam', header: 'POAM'},
-      { field: 'pluginID', header: 'Plugin ID', width: '100px' },
-      { field: 'pluginName', header: 'Name', width: '200px' },
-      { field: 'family', header: 'Family', width: '150px' },
-      { field: 'severity', header: 'Severity', width: '100px' },
-      { field: 'vprScore', header: 'VPR', width: '100px' },
-      { field: 'iav', header: 'IAV' },
-      { field: 'navyComplyDate', header: 'Navy Comply Date' }
+      { field: 'poam', header: 'POAM', filterType: 'boolean' },
+      { field: 'pluginID', header: 'Plugin ID', width: '100px', filterType: 'text' },
+      { field: 'pluginName', header: 'Name', width: '200px', filterType: 'text' },
+      { field: 'family', header: 'Family', width: '150px', filterType: 'text' },
+      { field: 'severity', header: 'Severity', width: '100px', filterType: 'text' },
+      { field: 'vprScore', header: 'VPR', width: '100px', filterType: 'numeric' },
+      { field: 'iav', header: 'IAV', filterType: 'text' },
+      { field: 'navyComplyDate', header: 'Navy Comply Date', filterType: 'date' },
+      { field: 'ips', header: 'IP Address', filterType: 'text' },
+      { field: 'acrScore', header: 'ACR', filterType: 'numeric' },
+      { field: 'assetExposureScore', header: 'AES', filterType: 'numeric' },
+      { field: 'netbiosName', header: 'NetBIOS', filterType: 'text' },
+      { field: 'dnsName', header: 'DNS', filterType: 'text' },
+      { field: 'macAddress', header: 'MAC Address', filterType: 'text' },
+      { field: 'port', header: 'Port', filterType: 'numeric' },
+      { field: 'protocol', header: 'Protocol', filterType: 'text' },
+      { field: 'uuid', header: 'Agent ID', filterType: 'text' },
+      { field: 'hostUUID', header: 'Host ID', filterType: 'numeric' },
     ];
     this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));
     this.navyComplyDateFilters = [
@@ -144,7 +154,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         modifiedTime: 0,
         groups: [],
         type: "vuln",
-        tool: "sumid",
+        tool: "listvuln",
         sourceType: "cumulative",
         startOffset: 0,
         endOffset: 5000,
@@ -170,7 +180,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
             value: pluginIDs
           }
         ],
-        vulnTool: "sumid"
+        vulnTool: "listvuln"
       },
       sourceType: "cumulative",
       columns: [],
@@ -242,6 +252,35 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       console.error('Error fetching IAV info:', error);
       this.showErrorMessage('Error fetching IAV info. Please try again.');
     }
+  }
+
+  onRowClick(vulnerability: any, event: any) {
+    this.table.filter(vulnerability.pluginID, 'pluginID', 'equals');
+    this.selectedColumns = this.cols.filter(col => [
+      'poam',
+      'pluginID',
+      'pluginName',
+      'family',
+      'severity',
+      'vprScore',
+      'iav',
+      'navyComplyDate',
+      'ips',
+      'acrScore',
+      'assetExposureScore',
+      'netbiosName',
+      'dnsName',
+      'macAddress',
+      'port',
+      'protocol',
+      'uuid',
+      'hostUUID'
+    ].includes(col.field));
+  }
+
+  onPluginIDClick(vulnerability: any, event: Event) {
+    event.stopPropagation();
+    this.showDetails(vulnerability);
   }
 
   async showDetails(vulnerability: any, createPoam: boolean = false) {
@@ -415,7 +454,16 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter(col => ['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate'].includes(col.field));
+    this.selectedColumns = this.cols.filter(col => [
+      'poam',
+      'pluginID',
+      'pluginName',
+      'family',
+      'severity',
+      'vprScore',
+      'iav',
+      'navyComplyDate'
+    ].includes(col.field));
   }
 
   toggleNavyComplyFilter() {

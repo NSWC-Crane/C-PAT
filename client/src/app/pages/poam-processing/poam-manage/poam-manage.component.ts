@@ -171,12 +171,10 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     const thirtyDaysFromNow = new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000);
     this.poamsNeedingAttention = this.poams.filter(poam => {
       if (!poam.scheduledCompletionDate) {
-        console.warn(`Poam with ID ${poam.id} has a null or empty scheduled completion date.`);
         return false;
       }
       const scheduledCompletionDate = new Date(poam.scheduledCompletionDate);
       if (isNaN(scheduledCompletionDate.getTime())) {        
-        console.warn(`Poam with ID ${poam.id} has an invalid scheduled completion date format.`);
         return false;
       }
       return scheduledCompletionDate <= thirtyDaysFromNow && poam.status != 'Closed' && poam.status != 'Draft';

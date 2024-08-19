@@ -14,12 +14,15 @@ import { FormsModule } from '@angular/forms';
 
 import { SharedModule } from '../../common/shared.module';
 import { STIGManagerImportComponent } from './stigmanager-import/stigmanager-import.component';
+import { STIGManagerAssetsTableComponent } from './stigmanager-import/stigManagerAssetsTable/stigManagerAssetsTable.component';
+import { STIGManagerPoamAssetsTableComponent } from './stigmanager-import/stigManagerPoamAssetsTable/stigManagerPoamAssetsTable.component';
 import { ImportProcessingRoutingModule } from './import-processing-routing.module';
 
 import { AccordionModule } from 'primeng/accordion';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
 import { CardModule } from 'primeng/card';
+import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ListboxModule } from 'primeng/listbox';
 import { DialogModule } from 'primeng/dialog';
@@ -46,6 +49,8 @@ import { TenableAssetsTableComponent } from './tenable-import/components/tenable
 @NgModule({
   declarations: [
     STIGManagerImportComponent,
+    STIGManagerAssetsTableComponent,
+    STIGManagerPoamAssetsTableComponent,
     TenableVulnerabilitiesComponent,
     TenableSolutionsComponent,
     TenableIAVVulnerabilitiesComponent,
@@ -56,6 +61,7 @@ import { TenableAssetsTableComponent } from './tenable-import/components/tenable
     ButtonModule,
     CalendarModule,
     CardModule,
+    CheckboxModule,
     ListboxModule,
     DialogModule,
     InputTextareaModule,
@@ -83,6 +89,8 @@ import { TenableAssetsTableComponent } from './tenable-import/components/tenable
     ConfirmationService
   ],
   exports: [
+    STIGManagerAssetsTableComponent,
+    STIGManagerPoamAssetsTableComponent,
     TenableAssetsTableComponent,
   ]
 })

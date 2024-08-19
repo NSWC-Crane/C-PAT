@@ -26,7 +26,6 @@ interface Poam {
   mitigations: string;
   requiredResources: string;
   residualRisk: string;
-  notes: string;
   status: string;
   vulnIdRestricted: string;
   submittedDate: Date | string;

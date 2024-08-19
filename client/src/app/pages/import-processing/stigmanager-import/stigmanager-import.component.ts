@@ -12,20 +12,13 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { Router } from '@angular/router';
 import { Chart, ChartData, registerables } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { Observable, Subscription, catchError, forkJoin, of } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { SubSink } from "subsink";
-import { ImportService } from '../../import-processing/import.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
-import { PoamAssetUpdateService } from '../../import-processing/stigmanager-import/stigmanager-update/stigmanager-update.service';
 import { TreeTable } from 'primeng/treetable';
 import { ConfirmationService, MessageService, TreeNode } from 'primeng/api';
-
-interface Asset {
-  assetId: any;
-  name: string;
-}
 
 interface AssetEntry {
   groupId: string;
@@ -49,8 +42,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   dataSource: TreeNode<AssetEntry>[] = [];
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
-  availableAssets: Asset[] = [];
-  selectedAssets: string[] = [];
   selectedFindings: string = '';
   collectionBasicList: any[] = [];
   sortField: string = '';
@@ -59,9 +50,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   originalTreeData: any[] = [];
   selectedCollection: any;
   stigmanCollection: { name: string; description: string; collectionId: string; } | undefined;
-  updatePoamColumnTitle = 'Create POAM';
-  updatePoamButtonIcon = 'pi pi-plus';
-  updatePoamButtonTooltip = '';
   user: any;
   private subs = new SubSink();
   private subscriptions = new Subscription();
@@ -125,11 +113,9 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     private router: Router,
     private collectionService: CollectionsService,
     private sharedService: SharedService,
-    private poamAssetUpdateService: PoamAssetUpdateService,
     private userService: UsersService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
-    private importService: ImportService
   ) {
     Chart.register(...registerables);
   }
@@ -163,16 +149,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
-  }
-
-  async stigManagerAssetSync() {
-    try {
-      await this.poamAssetUpdateService.updateOpenPoamAssets(this.selectedCollection, this.stigmanCollection!.collectionId, this.user.userId);
-      this.showSuccess("POAM Asset Lists have been updated.");
-    } catch (error) {
-      console.error('Failed to update POAM assets:', error);
-      this.showError("Failed to update POAM Asset Lists. Please try again.");
-    }
   }
 
   updateSort(event: any) {
@@ -275,32 +251,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }, 150);
   }
 
-  async fetchAssetDetails() {
-    const assetDetailsObservables = this.selectedAssets.map(async assetId =>
-      await this.sharedService.selectedAssetsFromSTIGMAN(assetId)
-    );
-    forkJoin(assetDetailsObservables).subscribe(results => {
-      this.importAssets(results);
-    });
-  }
-
-  async importAssets(assetDetails: any[]) {
-    const assets = assetDetails.map(asset => {
-      const { assetId, ...rest } = asset;
-      return rest;
-    });
-    const requestBody = { assets: assets };
-    (await this.importService.postStigManagerAssets(requestBody)).subscribe({
-      next: () => {
-        this.showSuccess('Import successful');
-      },
-      error: (error) => {
-        console.error('Error during import', error);
-        this.showError('Error during import: ' + error.message);
-      }
-    });
-  }
-
   async validateStigManagerCollection() {
     try {
       const [stigmanData, basicListData] = await Promise.all([
@@ -321,25 +271,11 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       }
 
       await Promise.all([
-        this.fetchAssetsFromAPI(this.stigmanCollection.collectionId),
         this.getAffectedAssetGrid(this.stigmanCollection.collectionId)
       ]);
     } catch (error) {
       console.error('Error in validateStigManagerCollection:', error);
       this.showError('Failed to validate STIG Manager collection. Please try again.');
-    }
-  }
-
-  async fetchAssetsFromAPI(collectionId: string) {
-    try {
-      const data = await (await this.sharedService.getAssetsFromSTIGMAN(collectionId)).toPromise();
-      if (!data || data.length === 0) {
-        this.showWarn('No assets found for the selected collection.');
-      } else {
-        this.availableAssets = data;
-      }
-    } catch (error) {
-      this.showError('You are not connected to STIG Manager or the connection is not properly configured.');
     }
   }
 
@@ -427,15 +363,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         this.showError("Error retrieving existing POAMs. Please try again.");
       }
     });
-    if (this.selectedFindings === 'Has Existing POAM') {
-      this.updatePoamColumnTitle = 'Update POAM';
-      this.updatePoamButtonIcon = 'pi pi-sync';
-      this.updatePoamButtonTooltip = 'Navigate to the POAM and update the affected asset list with live data.';
-    } else if (this.selectedFindings === 'No Existing POAM') {
-      this.updatePoamColumnTitle = 'Create POAM';
-      this.updatePoamButtonIcon = 'pi pi-plus';
-      this.updatePoamButtonTooltip = '';
-    }
   }
 
   async updateChartAndGrid(existingPoams: any[]) {

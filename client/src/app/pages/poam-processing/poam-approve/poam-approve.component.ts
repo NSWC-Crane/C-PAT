@@ -19,15 +19,18 @@ import { SharedService } from '../../../common/services/shared.service';
 import { PoamApproveService } from './poam-approve.service';
 import { parseISO, format } from 'date-fns';
 import { ChangeDetectorRef } from '@angular/core';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'cpat-poam-approve',
   templateUrl: './poam-approve.component.html',
   styleUrls: ['./poam-approve.component.scss'],
-  providers: [DatePipe]
+  providers: [
+    MessageService,
+    DatePipe
+  ]
 })
 export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
-
   private subs = new SubSink();
   public isLoggedIn = false;
   hqsChecked: boolean = false;
@@ -50,6 +53,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   confirmDialogMessage: string = '';
 
   constructor(
+    private messageService: MessageService,
     private router: Router,
     private route: ActivatedRoute,
     private userService: UsersService,
@@ -149,10 +153,10 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
 
     (await this.poamApproveService.updatePoamApprover(approvalData)).subscribe(
       () => {
-        this.displayDialog = false;
-        this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Approval saved successfully.' });
       },
       (error) => {
+        this.messageService.add({ severity: 'warn', summary: 'Information', detail: 'Failed to update POAM Approval. Please validate data entry and try again.' });
         console.error('Failed to update POAM Approval:', error);
       }
     );

@@ -59,13 +59,11 @@
                  [rowHover]="true"
                  dataKey="pluginID"
                  [resizableColumns]="true"
-                 [exportHeader]="'customExportHeader'"
                  styleClass="p-datatable-sm p-datatable-gridlines-hidden">
           <ng-template pTemplate="header" let-columns>
             <tr>
               <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}" pResizableColumn scope="col">
                 {{col.header}}
-                <p-sortIcon [field]="col.field"></p-sortIcon>
                 <p-columnFilter [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" display="menu"></p-columnFilter>
               </th>
             </tr>
@@ -155,13 +153,13 @@
         <h6>IAV References</h6>
         <ul>
           <li *ngFor="let ref of iavReferences">
-            <a [href]="getIavUrl(ref.value)" target="_blank">{{ ref.value }}</a>
+            <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
           </li>
         </ul>
         <h6>CVE References</h6>
         <ul>
           <li *ngFor="let ref of cveReferences">
-            <a [href]="getCveUrl(ref.value)" target="_blank">{{ ref.value }}</a>
+            <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
           </li>
         </ul>
         <h6 *ngIf="otherReferences.length > 0">Cross-References</h6>

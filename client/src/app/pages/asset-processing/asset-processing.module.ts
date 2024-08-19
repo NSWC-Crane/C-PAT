@@ -27,6 +27,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { ImportProcessingModule } from '../import-processing/import-processing.module';
+import { TooltipModule } from 'primeng/tooltip';
 
 @NgModule({
   declarations: [
@@ -35,6 +37,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
   ],
   imports: [
     CommonModule,
+    ImportProcessingModule,
     AssetProcessingRoutingModule,
     FormsModule,
     ButtonModule,
@@ -43,6 +46,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     DropdownModule,
     InputTextModule,
     TableModule,
+    TooltipModule,
     ToastModule,
     TabViewModule,
     DialogModule,

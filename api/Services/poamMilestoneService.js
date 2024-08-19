@@ -61,17 +61,30 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, requestBody
             });
         }
 
-        requestBody.milestoneDate = normalizeDate(requestBody.milestoneDate);
+        if (requestBody.milestoneDate) {
+            requestBody.milestoneDate = normalizeDate(requestBody.milestoneDate);
+        } else {
+            requestBody.milestoneDate = null;
+        }
+        if (requestBody.milestoneChangeDate) {
+            requestBody.milestoneChangeDate = normalizeDate(requestBody.milestoneChangeDate);
+        } else {
+            requestBody.milestoneChangeDate = null;
+        }
         if (!requestBody.milestoneComments) requestBody.milestoneComments = null;
+        if (!requestBody.milestoneChangeComments) requestBody.milestoneChangeComments = null;
         if (!requestBody.milestoneStatus) requestBody.milestoneStatus = null;
-
+        if (!requestBody.milestoneTeam) requestBody.milestoneTeam = null;
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneStatus) VALUES (?, ?, ?, ?)`;
+            let sql_query = `INSERT INTO cpat.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneChangeComments, milestoneChangeDate, milestoneStatus, milestoneTeam) VALUES (?, ?, ?, ?, ?, ?, ?)`;
             await connection.query(sql_query, [
                 poamId,
                 requestBody.milestoneDate,
                 requestBody.milestoneComments,
+                requestBody.milestoneChangeComments,
+                requestBody.milestoneChangeDate,
                 requestBody.milestoneStatus,
+                requestBody.milestoneTeam,
             ]);
 
             let sql = "SELECT * FROM cpat.poamMilestones WHERE poamId = ?";
@@ -79,14 +92,22 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, requestBody
 
             const poamMilestone = rows.map(row => ({ ...row }));
 
-            if (requestBody.poamLog && requestBody.poamLog.length > 0) {
+            if (requestBody.poamLog && requestBody.poamLog.length > 0 && requestBody.milestoneChangeComments) {
                 let userId = requestBody.poamLog[0].userId;
-                let action = `POAM Milestone Created.<br>
-Milestone Date: ${normalizeDate(requestBody.milestoneDate)}<br>
-Milestone Comment: ${requestBody.milestoneComments}`;
+                let action = `POAM Milestone Change Entered.<br>
+Milestone Date: ${normalizeDate(requestBody.milestoneChangeDate)}<br>
+Milestone Comment: ${requestBody.milestoneChangeComments}`;
 
                 let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
+            } else if (requestBody.poamLog && requestBody.poamLog.length > 0) {
+                    let userId = requestBody.poamLog[0].userId;
+                    let action = `POAM Milestone Created.<br>
+Milestone Date: ${normalizeDate(requestBody.milestoneDate)}<br>
+Milestone Comment: ${requestBody.milestoneComments}`;
+
+                    let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                    await connection.query(logSql, [poamId, action, userId]);
             }
             return { poamMilestone };
         });
@@ -113,19 +134,33 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
             });
         }
 
-        requestBody.milestoneDate = normalizeDate(requestBody.milestoneDate);
+        if (requestBody.milestoneDate) {
+            requestBody.milestoneDate = normalizeDate(requestBody.milestoneDate);
+        } else {
+            requestBody.milestoneDate = null;
+        }
+        if (requestBody.milestoneChangeDate) {
+            requestBody.milestoneChangeDate = normalizeDate(requestBody.milestoneChangeDate);
+        } else {
+            requestBody.milestoneChangeDate = null;
+        }
         if (!requestBody.milestoneComments) requestBody.milestoneComments = null;
+        if (!requestBody.milestoneChangeComments) requestBody.milestoneChangeComments = null;
         if (!requestBody.milestoneStatus) requestBody.milestoneStatus = null;
+        if (!requestBody.milestoneTeam) requestBody.milestoneTeam = null;
 
         return await withConnection(async (connection) => {
             let getMilestoneSql = "SELECT * FROM cpat.poammilestones WHERE poamId = ? AND milestoneId = ?";
             let [existingMilestone] = await connection.query(getMilestoneSql, [poamId, milestoneId]);
 
-            let sql_query = `UPDATE cpat.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneStatus = ? WHERE poamId = ? AND milestoneId = ?`;
+            let sql_query = `UPDATE cpat.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneChangeDate = ?, milestoneChangeComments = ?, milestoneStatus = ?, milestoneTeam = ? WHERE poamId = ? AND milestoneId = ?`;
             await connection.query(sql_query, [
                 requestBody.milestoneDate,
                 requestBody.milestoneComments,
+                requestBody.milestoneChangeDate,
+                requestBody.milestoneChangeComments,
                 requestBody.milestoneStatus,
+                requestBody.milestoneTeam,
                 poamId,
                 milestoneId,
             ]);
@@ -141,12 +176,12 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
 
                 if (normalizeDate(existingMilestone[0].milestoneDate) !== normalizeDate(requestBody.milestoneDate)) {
                     actionParts.push(`Previous Milestone Date: ${normalizeDate(existingMilestone[0].milestoneDate)}<br>
-New Milestone Date: ${normalizeDate(requestBody.milestoneDate)}`);
+New Milestone Date: ${normalizeDate(requestBody.milestoneChangeDate)}`);
                 }
 
                 if (existingMilestone[0].milestoneComments !== requestBody.milestoneComments) {
                     actionParts.push(`Previous Milestone Comment: ${existingMilestone[0].milestoneComments}<br>
-New Milestone Comment: ${requestBody.milestoneComments}`);
+New Milestone Comment: ${requestBody.milestoneChangeComments}`);
                 }
 
                 if (existingMilestone[0].milestoneStatus !== requestBody.milestoneStatus) {

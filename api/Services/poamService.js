@@ -266,8 +266,8 @@ exports.postPoam = async function postPoam(req) {
     let sql_query = `INSERT INTO cpat.poam (collectionId, vulnerabilitySource, stigTitle, stigBenchmarkId, stigCheckData, tenablePluginData,
                     iavmNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate, scheduledCompletionDate,
                     submitterId, officeOrg, predisposingConditions, mitigations, requiredResources, residualRisk, likelihood, relevanceOfThreat,
-                    businessImpactRating, businessImpactDescription, notes, status, vulnIdRestricted, submittedDate, closedDate)
-                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    businessImpactRating, businessImpactDescription, status, vulnIdRestricted, submittedDate, closedDate)
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     try {
         return await withConnection(async (connection) => {
@@ -285,7 +285,7 @@ exports.postPoam = async function postPoam(req) {
                 req.body.tenablePluginData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
                 req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.officeOrg, req.body.predisposingConditions, req.body.mitigations,
                 req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.relevanceOfThreat, req.body.businessImpactRating, req.body.businessImpactDescription,
-                req.body.notes, req.body.status, req.body.vulnIdRestricted, req.body.submittedDate, req.body.closedDate]);
+                req.body.status, req.body.vulnIdRestricted, req.body.submittedDate, req.body.closedDate]);
 
             let sql = "SELECT * FROM cpat.poam WHERE poamId = LAST_INSERT_ID();";
             let [rowPoam] = await connection.query(sql);
@@ -388,7 +388,6 @@ exports.putPoam = async function putPoam(req, res, next) {
         "mitigations": "Mitigations",
         "requiredResources": "Required Resources",
         "residualRisk": "Residual Risk",
-        "notes": "Notes",
         "status": "POAM Status",
         "vulnIdRestricted": "Vulnerability Restricted ID #",
         "submittedDate": "Submitted Date",
@@ -424,7 +423,7 @@ exports.putPoam = async function putPoam(req, res, next) {
             const sqlInsertPoam = `UPDATE cpat.poam SET collectionId = ?, vulnerabilitySource = ?, stigTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
                       tenablePluginData = ?, iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
                       iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
-                      residualRisk = ?, likelihood = ?, relevanceOfThreat = ?, businessImpactRating = ?, businessImpactDescription = ?, notes = ?, status = ?,
+                      residualRisk = ?, likelihood = ?, relevanceOfThreat = ?, businessImpactRating = ?, businessImpactDescription = ?, status = ?,
                       vulnIdRestricted = ?, submittedDate = ?, closedDate = ?, officeOrg = ?  WHERE poamId = ?`;
 
             await connection.query(sqlInsertPoam, [
@@ -432,7 +431,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                 req.body.tenablePluginData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
                 req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions,
                 req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.relevanceOfThreat,
-                req.body.businessImpactRating, req.body.businessImpactDescription, req.body.notes, req.body.status, req.body.vulnIdRestricted,
+                req.body.businessImpactRating, req.body.businessImpactDescription, req.body.status, req.body.vulnIdRestricted,
                 req.body.submittedDate, req.body.closedDate, req.body.officeOrg, req.body.poamId
             ]);
 

@@ -56,34 +56,4 @@ export class PoamExtensionService {
 		return this.http.delete<any>(`${this.cpatApiBase}/poamExtension/${poamId}`, { headers })
       .pipe(catchError(this.handleError));
   }
-
-  async getPoamExtensionMilestones(poamId: string) {
-        const headers = await this.getAuthHeaders();
-		return this.http.get<any>(`${this.cpatApiBase}/poamExtensionMilestones/${poamId}`, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
-  async addPoamExtensionMilestone(poamId: string, milestone: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http
-      .post<any>(`${this.cpatApiBase}/poamExtensionMilestones/${poamId}`, milestone, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
-  async updatePoamExtensionMilestone(poamId: string, milestoneId: string, milestone: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http
-      .put<any>(`${this.cpatApiBase}/poamExtensionMilestones/${poamId}/${milestoneId}`, milestone, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
-  async deletePoamExtensionMilestone(poamId: string, milestoneId: string, requestorId: any, extension: boolean) {
-    const requestBody = { requestorId: requestorId, extension: extension };
-    const headers = await this.getAuthHeaders();
-    const options = {
-      ...{ headers },
-      body: requestBody
-    };
-		return this.http.delete<any>(`${this.cpatApiBase}/poamExtensionMilestones/${poamId}/${milestoneId}`, options);
-  }
 }

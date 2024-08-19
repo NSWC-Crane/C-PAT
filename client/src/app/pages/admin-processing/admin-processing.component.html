@@ -32,13 +32,13 @@
       <cpat-tenable-admin></cpat-tenable-admin>
     </p-tabPanel>
 
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-upload" style="margin-right: 0.5rem;"></i>
-        eMASS Import
-      </ng-template>
-      <app-emass-import></app-emass-import>
-    </p-tabPanel>
+    <!--<p-tabPanel>
+    <ng-template pTemplate="header">
+      <i class="pi pi-upload" style="margin-right: 0.5rem;"></i>
+      eMASS Import
+    </ng-template>
+    <app-emass-import></app-emass-import>
+  </p-tabPanel>-->
 
     <p-tabPanel>
       <ng-template pTemplate="header">
@@ -54,6 +54,14 @@
         Nessus Plugin Mapping
       </ng-template>
       <app-nessus-plugin-mapping></app-nessus-plugin-mapping>
+    </p-tabPanel>
+
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <i class="pi pi-exclamation-triangle" style="margin-right: 0.5rem;"></i>
+        Set A&A Packages
+      </ng-template>
+      <aa-package-processing></aa-package-processing>
     </p-tabPanel>
   </p-tabView>
   </div>
