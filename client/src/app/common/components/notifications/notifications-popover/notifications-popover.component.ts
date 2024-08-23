@@ -81,7 +81,7 @@ export class NotificationsPanelComponent implements OnInit {
   }
 
   async fetchNotifications() {
-    (await this.notificationService.getUnreadNotificationsByUserId(this.user.userId)).subscribe(
+    (await this.notificationService.getUnreadNotifications()).subscribe(
       notifications => {
         this.notifications = notifications;
       },
@@ -92,7 +92,7 @@ export class NotificationsPanelComponent implements OnInit {
   }
 
   async dismissNotification(notification: any) {
-    (await this.notificationService.dismissNotificationByNotificationId(notification.notificationId)).subscribe(
+    (await this.notificationService.dismissNotification(notification.notificationId)).subscribe(
       () => {
         const index = this.notifications.indexOf(notification);
         if (index !== -1) {
@@ -106,7 +106,7 @@ export class NotificationsPanelComponent implements OnInit {
   }
 
   async dismissAllNotifications() {
-    (await this.notificationService.dismissAllNotificationsByUserId(this.user.userId)).subscribe(
+    (await this.notificationService.dismissAllNotifications()).subscribe(
       () => {
         this.notifications = [];
       },

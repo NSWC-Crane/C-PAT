@@ -31,9 +31,7 @@ export class AppComponent implements OnInit {
     try {
       await this.authService.initializeAuthentication();
       this.userProfile = await this.authService.getUserData('cpat');
-    } catch (error) {
-      console.error('Authentication Error:', error);
-    } finally {
+
       const apiConfig = await this.sharedService.getApiConfig().toPromise();
       if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {
         const apiClassification = (apiConfig as { classification: string }).classification;
@@ -41,6 +39,8 @@ export class AppComponent implements OnInit {
       } else {
         console.error('Invalid API configuration response');
       }
+    } catch (error) {
+      console.error('Authentication Error:', error);
     }
   }
 }

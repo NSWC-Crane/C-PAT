@@ -56,18 +56,6 @@ export class AssetService {
       .pipe(catchError(this.handleError));
   }
 
-  async getCollection(collectionId: any, userName: string) {
-        const headers = await this.getAuthHeaders();
-        return this.http.get<any>(`${this.cpatApiBase}/collection/${collectionId}/user/${userName}`, { headers })
-          .pipe(catchError(this.handleError));
-  }
-
-  async getCollections(userName: string) {
-    const url = `${this.cpatApiBase}/collections/${userName}`;
-        const headers = await this.getAuthHeaders();
-        return this.http.get(url, { headers }).pipe(catchError(this.handleError));
-  }
-
   async getCollectionAssetLabel(id: string) {
         const headers = await this.getAuthHeaders();
         return this.http.get(`${this.cpatApiBase}/metrics/collection/${id}/assetlabel`, { headers })

@@ -14,23 +14,23 @@ interface SearchItem {
   standalone: true,
   imports: [CommonModule, FormsModule, AutoCompleteModule],
   template: `
-  <span class="p-input-icon-right">
-    <p-autoComplete
-      [(ngModel)]="query"
-      [suggestions]="filteredItems"
-      (completeMethod)="search($event)"
-      (onSelect)="navigateTo($event)"
-      [placeholder]="placeholder"
-      [field]="'title'"
-      [minLength]="1"
-      [scrollHeight]="'500px'"
-      [style]="{'width':'100%'}">
-      <ng-template let-item pTemplate="item">
-        <div>{{item.title}}</div>
-      </ng-template>
-    </p-autoComplete>
-    <i class="pi pi-search"></i>
-</span>
+    <span class="p-input-icon-right">
+      <p-autoComplete
+        [(ngModel)]="query"
+        [suggestions]="filteredItems"
+        (completeMethod)="search($event)"
+        (onSelect)="navigateTo($event)"
+        [placeholder]="placeholder"
+        [field]="'title'"
+        [minLength]="1"
+        [scrollHeight]="'500px'"
+        [style]="{'width':'100%'}">
+        <ng-template let-item pTemplate="item">
+          <div>{{item.title}}</div>
+        </ng-template>
+      </p-autoComplete>
+      <i class="pi pi-search"></i>
+    </span>
   `,
   styles: [`
     :host ::ng-deep .p-autocomplete {
@@ -45,19 +45,27 @@ export class AppSearchComponent {
   public filteredItems: SearchItem[] = [];
   public query: string = '';
   public placeholder: string = 'Search...';
+  private searchItems: SearchItem[] = [];
 
-  private searchItems: SearchItem[] = [
-    { title: 'Add POAM', path: '/poam-processing/poam-details/ADDPOAM' },
-    { title: 'Asset Processing', path: '/asset-processing' },
-    { title: 'Home', path: '/poam-processing' },
-    { title: 'Import Processing', path: '/import-processing' },
-    { title: 'Label Processing', path: '/label-processing' },
-    { title: 'Manage POAMs', path: '/poam-processing/poam-manage' },
-    { title: 'Marketplace', path: '/marketplace' },
-    { title: 'Notifications', path: '/notifications' },
-  ];
+  constructor(private router: Router) {
+    this.initializeSearchItems();
+  }
 
-  constructor(private router: Router) { }
+  private initializeSearchItems(): void {
+    this.searchItems = [
+      { title: 'Add POAM', path: '/poam-processing/poam-details/ADDPOAM' },
+      { title: 'Asset Processing', path: '/asset-processing' },
+      { title: 'Home', path: '/poam-processing' },
+      { title: 'Import Processing', path: '/import-processing' },
+      { title: 'Label Processing', path: '/label-processing' },
+      { title: 'Manage POAMs', path: '/poam-processing/poam-manage' },
+      { title: 'Notifications', path: '/notifications' },
+    ];
+
+    if (!CPAT.Env.features.marketplaceDisabled) {
+      this.searchItems.push({ title: 'Marketplace', path: '/marketplace' });
+    }
+  }
 
   search(event: { query: string }) {
     this.filteredItems = this.searchItems.filter(item =>

@@ -67,59 +67,6 @@ exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(poamI
     });
 };
 
-exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(req, res, next) {
-    if (!req.params.userId) {
-        throw new Error('getPoamAssigneesByUserId: userId is required');
-    }
-
-    return await withConnection(async (connection) => {
-        let sql = `
-            SELECT t1.userId, t2.fullName, t1.poamId, t3.status
-            FROM cpat.poamassignees t1
-            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
-            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
-            WHERE t1.userId = ?
-            ORDER BY t2.fullName
-        `;
-        let [rowPoamAssignees] = await connection.query(sql, [req.params.userId]);
-        const poamAssignees = rowPoamAssignees.map(row => ({
-            userId: row.userId,
-            fullName: row.fullName,
-            poamId: row.poamId,
-            poamStatus: row.status,
-        }));
-        return { poamAssignees };
-    });
-};
-
-exports.getPoamAssignee = async function getPoamAssignee(req, res, next) {
-    if (!req.params.userId) {
-        throw new Error('getPoamAssignee: userId is required');
-    }
-    if (!req.params.poamId) {
-        throw new Error('getPoamAssignee: poamId is required');
-    }
-
-    return await withConnection(async (connection) => {
-        let sql = `
-            SELECT t1.userId, t2.fullName, t1.poamId, t3.status
-            FROM cpat.poamassignees t1
-            INNER JOIN cpat.user t2 ON t1.userId = t2.userId
-            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
-            WHERE t1.userId = ? AND t1.poamId = ?
-            ORDER BY t2.fullName
-        `;
-        let [rowPoamAssignees] = await connection.query(sql, [req.params.userId, req.params.poamId]);
-        const poamAssignees = rowPoamAssignees.map(row => ({
-            userId: row.userId,
-            fullName: row.fullName,
-            poamId: row.poamId,
-            poamStatus: row.status,
-        }));
-        const poamAssignee = poamAssignees.length > 0 ? [poamAssignees[0]] : [];
-        return { poamAssignee };
-    });
-};
 
 exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
     if (!req.body.userId) {

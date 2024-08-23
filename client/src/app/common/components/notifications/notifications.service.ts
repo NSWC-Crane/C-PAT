@@ -39,45 +39,45 @@ export class NotificationService {
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
-  async getAllNotificationsByUserId(userId: number) {
+  async getAllNotifications() {
         const headers = await this.getAuthHeaders();
-		return this.http.get<any[]>(`${this.cpatApiBase}/notifications/all/${userId}`, { headers })
+		return this.http.get<any[]>(`${this.cpatApiBase}/notifications/all`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async getUnreadNotificationsByUserId(userId: number) {
+  async getUnreadNotifications() {
         const headers = await this.getAuthHeaders();
-		return this.http.get<any[]>(`${this.cpatApiBase}/notifications/unread/${userId}`, { headers })
+		return this.http.get<any[]>(`${this.cpatApiBase}/notifications/unread`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async getUnreadNotificationCountByUserId(userId: number) {
+  async getUnreadNotificationCount() {
         const headers = await this.getAuthHeaders();
-		return this.http.get<any[]>(`${this.cpatApiBase}/notifications/unread/count/${userId}`, { headers })
+		return this.http.get<any[]>(`${this.cpatApiBase}/notifications/unread/count`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async dismissNotificationByNotificationId(notificationId: number) {
+  async dismissNotification(notificationId: number) {
         const headers = await this.getAuthHeaders();
 		return this.http.put<any>(`${this.cpatApiBase}/notifications/dismiss/${notificationId}`, null, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async dismissAllNotificationsByUserId(userId: number) {
+  async dismissAllNotifications() {
         const headers = await this.getAuthHeaders();
-		return this.http.put<any>(`${this.cpatApiBase}/notifications/all/dismiss/${userId}`, null, { headers })
+		return this.http.put<any>(`${this.cpatApiBase}/notifications/all/dismiss`, null, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async deleteNotificationByNotificationId(notificationId: number) {
+  async deleteNotification(notificationId: number) {
         const headers = await this.getAuthHeaders();
 		return this.http.delete<any>(`${this.cpatApiBase}/notifications/delete/${notificationId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async deleteAllNotificationsByUserId(userId: number) {
+  async deleteAllNotifications() {
         const headers = await this.getAuthHeaders();
-		return this.http.delete<any>(`${this.cpatApiBase}/notifications/all/delete/${userId}`, { headers })
+		return this.http.delete<any>(`${this.cpatApiBase}/notifications/all/delete`, { headers })
       .pipe(catchError(this.handleError));
   }
 }

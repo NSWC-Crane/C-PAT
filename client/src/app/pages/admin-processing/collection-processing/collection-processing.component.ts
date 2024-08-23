@@ -104,7 +104,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   async getCollectionData() {
     this.collections = null;
     (await this.collectionService
-      .getCollections(this.payload.userName))
+      .getAllCollections())
       .subscribe((result: any) => {
         this.data = result;
         this.collections = this.data;

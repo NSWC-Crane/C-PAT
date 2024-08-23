@@ -8,6 +8,11 @@
 !########################################################################
 */
 
+interface Permission {
+  userId: number;
+  collectionId: number;
+  accessLevel: number;
+}
 export interface Users {
   userId: number;
   userName: string;
@@ -17,11 +22,12 @@ export interface Users {
   created: string;
   lastAccess: string;
   lastCollectionAccessedId: number;
-  password: string;
   accountStatus: string;
-  fullName: string;
+  fullName: string | null;
   officeOrg: string;
   defaultTheme: string;
   isAdmin: number;
   lastClaims: any;
+  points: number;
+  permissions: Permission[];
 }

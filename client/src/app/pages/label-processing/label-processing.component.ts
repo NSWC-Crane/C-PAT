@@ -36,6 +36,7 @@ interface LabelEntry {
   providers: [DialogService]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
+  protected accessLevel: number;
   @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;
   @ViewChild('labelTable') labelTable!: Table;
   labelDialogVisible: boolean = false;
@@ -44,7 +45,6 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   allColumns = [this.customColumn, ...this.defaultColumns];
   data: LabelEntry[] = [];
   filterValue: string = '';
-
   users: any;
   user: any;
   public isLoggedIn = false;
@@ -82,30 +82,36 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   async setPayload() {
     this.user = null;
     this.payload = null;
-
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
-      (response: any) => {
+    this.accessLevel = 0;
+    (await this.userService.getCurrentUser()).subscribe({
+      next: (response: any) => {
         if (response?.userId) {
           this.user = response;
-          if (this.user.accountStatus === 'ACTIVE') {
-            this.payload = {
-              ...this.user,
-              collections: this.user.permissions.map((permission: Permission) => ({
-                collectionId: permission.collectionId,
-                accessLevel: permission.accessLevel,
-              }))
-            };
+          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
+            collectionId: permission.collectionId,
+            accessLevel: permission.accessLevel,
+          }));
 
-            this.getLabelData();
+          this.payload = {
+            ...this.user,
+            collections: mappedPermissions
+          };
+          if (mappedPermissions.length > 0) {
+            const selectedPermissions = this.payload.collections.find(
+              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
+            );
+
+            if (selectedPermissions) {
+              this.accessLevel = selectedPermissions.accessLevel;
+            }
           }
-        } else {
-          console.error('User data is not available or user is not active');
+          this.getLabelData();
         }
       },
-      (error) => {
+      error: (error) => {
         console.error('An error occurred:', error);
       }
-    );
+    });
   }
 
   async getLabelData() {

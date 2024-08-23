@@ -50,8 +50,8 @@ const excelColumnToDbColumnMapping = {
     "Relevance of Threat": "relevanceOfThreat",
     "Threat Description": "threatDescription",
     "Likelihood": "likelihood",
-    "Impact": "businessImpactRating",
-    "Impact Description": "businessImpactDescription",
+    "Impact": "impactRating",
+    "Impact Description": "impactDescription",
     "Residual Risk Level": "residualRisk",
     "Recommendations": "recommendations",
     "Resulting Residual Risk after Proposed Mitigations": "adjSeverity"
@@ -60,13 +60,15 @@ const excelColumnToDbColumnMapping = {
 function mapValueToCategory(cellValue, dbColumn) {
     const severityMapping = {
         rawSeverity: {
-            'I': "Cat I - Critical/High",
-            'II': "CAT II - Medium",
-            'III': "CAT III - Low"
+            'Very High': "CAT I - Critical",
+            'High': "CAT I - High",
+            'Moderate': "CAT II - Medium",
+            'Low': "CAT III - Low",
+            'Very Low': "CAT III - Low"
         },
         adjSeverity: {
-            'Very High': "Cat I - Critical/High",
-            'High': "Cat I - Critical/High",
+            'Very High': "CAT I - Critical",
+            'High': "CAT I - High",
             'Moderate': "CAT II - Medium",
             'Low': "CAT III - Low",
             'Very Low': "CAT III - Low"
@@ -275,25 +277,6 @@ function processVulnerabilitySource(poamEntry, cellValue) {
     } else {
         poamEntry.vulnerabilitySource = cellValue;
     }
-}
-
-function mapValueToCategory(cellValue, dbColumn) {
-    const severityMapping = {
-        rawSeverity: {
-            'I': "Cat I - Critical/High",
-            'II': "CAT II - Medium",
-            'III': "CAT III - Low"
-        },
-        adjSeverity: {
-            'Very High': "Cat I - Critical/High",
-            'High': "Cat I - Critical/High",
-            'Moderate': "CAT II - Medium",
-            'Low': "CAT III - Low",
-            'Very Low': "CAT III - Low"
-        }
-    };
-
-    return severityMapping[dbColumn][cellValue] || cellValue;
 }
 
 async function processPoamEntry(poamEntry, collectionId) {

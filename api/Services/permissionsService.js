@@ -22,51 +22,6 @@ async function withConnection(callback) {
     }
 }
 
-exports.getCollectionPermission = async function getCollectionPermission(userName, collectionId, req, res, next) {
-    function collectionObj(collectionId, collectionName, description, created, poamCount) {
-        this.collectionId = collectionId
-        this.collectionName = collectionName
-        this.description = description
-        this.created = created
-        this.poamCount = poamCount
-    }
-
-    try {
-        let userInfo = await withConnection(async (connection) => {
-            let sql = "SELECT * FROM user WHERE userName = ?";
-            let [row] = await connection.query(sql, [userName]);
-            let userId = row[0].userId;
-            let isAdmin = row[0].isAdmin;
-
-            try {
-                let sql = "SELECT * FROM collectionpermissions WHERE userId = ? AND collectionId = ?";
-                let [row] = await connection.query(sql, [userId, collectionId]);
-                let userName = row[0].userName;
-                return { userId, isAdmin, userName };
-            } catch (error) {
-                if (!isAdmin) {
-                    return { error: "User does not have access to this collection." };
-                }
-                return { userId, isAdmin };
-            }
-        });
-
-        if (userInfo.error) {
-            return { error: userInfo.error };
-        }
-
-        let collection = await withConnection(async (connection) => {
-            let sql = "SELECT * FROM collection WHERE collectionId = ?";
-            let [row] = await connection.query(sql, [collectionId]);
-            return { ...row[0] };
-        });
-
-        return collection;
-    } catch (error) {
-        return { error: error.message };
-    }
-}
-
 exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
     if (!req.params.collectionId) {
         return next({
@@ -90,11 +45,13 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
 
         return permissions;
     } catch (error) {
-        return { error: error.message };
+        return {
+            error: error.message
+        };
     }
 }
 
-exports.postPermission = async function postPermission(req, res, next) {
+exports.postPermission = async function postPermission(userId, elevate, req) {
     if (!req.body.userId) {
         return next({
             status: 400,
@@ -124,15 +81,33 @@ exports.postPermission = async function postPermission(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "INSERT INTO cpat.collectionpermissions (accessLevel, userId, collectionId) VALUES (?, ?, ?);";
-            await connection.query(sql_query, [req.body.accessLevel, req.body.userId, req.body.collectionId]);
+            if (elevate) {
+                const userSql = "SELECT * FROM user WHERE userId = ?";
+                const [userRows] = await connection.query(userSql, [userId]);
 
-            const message = {
-                userId: req.body.userId,
-                collectionId: req.body.collectionId,
-                accessLevel: req.body.accessLevel,
-            };
-            return message;
+                if (userRows.length === 0) {
+                    throw new SmError.PrivilegeError('User not found');
+                }
+
+                const isAdmin = userRows[0].isAdmin;
+
+                if (isAdmin !== 1) {
+                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
+                }
+
+                let sql_query = "INSERT INTO cpat.collectionpermissions (accessLevel, userId, collectionId) VALUES (?, ?, ?);";
+                await connection.query(sql_query, [req.body.accessLevel, req.body.userId, req.body.collectionId]);
+
+                const message = {
+                    userId: req.body.userId,
+                    collectionId: req.body.collectionId,
+                    accessLevel: req.body.accessLevel,
+                };
+                return message;
+
+            } else {
+                throw new Error('Elevate parameter is required');
+            }
         });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
@@ -141,14 +116,15 @@ exports.postPermission = async function postPermission(req, res, next) {
                 const [existingPermission] = await connection.query(fetchSql, [req.body.userId, req.body.collectionId]);
                 return existingPermission[0];
             });
-        }
-        else {
-            return { error: error.message };
+        } else {
+            return {
+                error: error.message
+            };
         }
     }
-}
+};
 
-exports.putPermission = async function putPermission(req, res, next) {
+exports.putPermission = async function putPermission(userId, elevate, req) {
     if (!req.body.userId) {
         return next({
             status: 400,
@@ -178,22 +154,41 @@ exports.putPermission = async function putPermission(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE cpat.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;";
-            await connection.query(sql_query, [req.body.newCollectionId, req.body.accessLevel, req.body.userId, req.body.oldCollectionId]);
+            if (elevate) {
+                const userSql = "SELECT * FROM user WHERE userId = ?";
+                const [userRows] = await connection.query(userSql, [userId]);
 
-            const message = {
-                userId: req.body.userId,
-                collectionId: req.body.newCollectionId,
-                accessLevel: req.body.accessLevel,
-            };
-            return message;
+                if (userRows.length === 0) {
+                    throw new SmError.PrivilegeError('User not found');
+                }
+
+                const isAdmin = userRows[0].isAdmin;
+
+                if (isAdmin !== 1) {
+                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
+                }
+
+                let sql_query = "UPDATE cpat.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;";
+                await connection.query(sql_query, [req.body.newCollectionId, req.body.accessLevel, req.body.userId, req.body.oldCollectionId]);
+
+                const message = {
+                    userId: req.body.userId,
+                    collectionId: req.body.newCollectionId,
+                    accessLevel: req.body.accessLevel,
+                };
+                return message;
+            } else {
+                throw new Error('Elevate parameter is required');
+            }
         });
     } catch (error) {
-        return { error: error.message };
+        return {
+            error: error.message
+        };
     }
-}
+};
 
-exports.deletePermission = async function deletePermission(req, res, next) {
+exports.deletePermission = async function deletePermission(userId, elevate, req) {
     if (!req.params.userId) {
         return next({
             status: 400,
@@ -214,12 +209,33 @@ exports.deletePermission = async function deletePermission(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM  cpat.collectionpermissions WHERE userId = ? AND collectionId = ?";
-            await connection.query(sql, [req.params.userId, req.params.collectionId]);
+            if (elevate) {
+                const userSql = "SELECT * FROM user WHERE userId = ?";
+                const [userRows] = await connection.query(userSql, [userId]);
 
-            return { permissions: [] };
+                if (userRows.length === 0) {
+                    throw new SmError.PrivilegeError('User not found');
+                }
+
+                const isAdmin = userRows[0].isAdmin;
+
+                if (isAdmin !== 1) {
+                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
+                }
+
+                let sql = "DELETE FROM  cpat.collectionpermissions WHERE userId = ? AND collectionId = ?";
+                await connection.query(sql, [req.params.userId, req.params.collectionId]);
+
+                return {
+                    permissions: []
+                };
+            } else {
+                throw new Error('Elevate parameter is required');
+            }
         });
     } catch (error) {
-        return { error: error.message };
+        return {
+            error: error.message
+        };
     }
-}
+};

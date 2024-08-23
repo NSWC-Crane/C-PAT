@@ -24,6 +24,7 @@ import { AppComponent } from './app.component';
 import { NgxParticlesModule } from "@tsparticles/angular";
 import { NotFoundComponent } from './common/components/not-found/not-found.component';
 import { UnauthorizedComponent } from './common/components/unauthorized/unauthorized.component';
+import { NotActivatedComponent } from './common/components/notActivated/notActivated.component';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
 import { MenuModule } from 'primeng/menu';
@@ -34,6 +35,7 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { RippleModule } from 'primeng/ripple';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { PrimeNGConfig } from 'primeng/api';
+
 function getScopeStr(configId: string) {
   const cpatScopePrefix = CPAT.Env.oauth.scopePrefix;
   const stigmanScopePrefix = CPAT.Env.stigman.scopePrefix;
@@ -72,7 +74,8 @@ function getScopeStr(configId: string) {
   declarations: [
     AppComponent,
     NotFoundComponent,
-    UnauthorizedComponent
+    UnauthorizedComponent,
+    NotActivatedComponent,
   ],
   imports: [
     BrowserModule,
@@ -87,10 +90,10 @@ function getScopeStr(configId: string) {
       config: [
         {
           configId: 'cpat',
-          postLoginRoute: '/consent',
+          postLoginRoute: '/verify',
           authority: CPAT.Env.oauth.authority,
-          redirectUrl: window.location.origin + '/consent',
-          postLogoutRedirectUri: window.location.origin + '/consent',
+          redirectUrl: window.location.origin + '/verify',
+          postLogoutRedirectUri: window.location.origin + '/verify',
           clientId: CPAT.Env.oauth.clientId,
           scope: getScopeStr('cpat'),
           responseType: 'code',
@@ -105,8 +108,8 @@ function getScopeStr(configId: string) {
         {
           configId: 'stigman',
           authority: CPAT.Env.oauth.authority,
-          redirectUrl: window.location.origin + '/consent',
-          postLogoutRedirectUri: window.location.origin + '/consent',
+          redirectUrl: window.location.origin + '/verify',
+          postLogoutRedirectUri: window.location.origin + '/verify',
           clientId: CPAT.Env.stigman.clientId,
           scope: getScopeStr('stigman'),
           responseType: 'code',

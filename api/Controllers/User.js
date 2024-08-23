@@ -12,7 +12,9 @@ const userService = require('../Services/usersService');
 
 module.exports.getUsers = async function getUsers(req, res, next) {
     try {
-        const users = await userService.getUsers();
+        const userId = req.userObject.userId;
+        const elevate = req.query.elevate;
+        const users = await userService.getUsers(elevate, userId);
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
@@ -21,8 +23,8 @@ module.exports.getUsers = async function getUsers(req, res, next) {
 
 module.exports.getCurrentUser = async function getCurrentUser(req, res, next) {
     try {
-        const email = req.userObject.email;
-        const user = await userService.getCurrentUser(email);
+        const userId = req.userObject.userId;
+        const user = await userService.getCurrentUser(userId);
         res.status(200).json(user);
     } catch (error) {
         if (error.message === "User not found") {
@@ -36,36 +38,9 @@ module.exports.getCurrentUser = async function getCurrentUser(req, res, next) {
 module.exports.getUserByUserID = async function getUserByUserID(req, res, next) {
     try {
         const userId = req.params.userId;
-        const user = await userService.getUserByUserID(userId);
-        res.status(200).json(user);
-    } catch (error) {
-        if (error.message === "User not found") {
-            res.status(200).json(user);
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
-    }
-};
-
-
-module.exports.getUserByUserName = async function getUserByUserName(req, res, next) {
-    try {
-        const userName = req.params.userName;
-        const user = await userService.getUserByUserName(userName);
-        res.status(200).json(user);
-    } catch (error) {
-        if (error.message === "User not found") {
-            res.status(200).json(user);
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
-    }
-};
-
-module.exports.getBasicUserByUserID = async function getBasicUserByUserID(req, res, next) {
-    try {
-        const userId = req.params.userId;
-        const user = await userService.getBasicUserByUserID(userId);
+        const requestorId = req.userObject.userId;
+        const elevate = req.query.elevate;
+        const user = await userService.getUserByUserID(requestorId, elevate, userId);
         res.status(200).json(user);
     } catch (error) {
         if (error.message === "User not found") {
@@ -78,7 +53,9 @@ module.exports.getBasicUserByUserID = async function getBasicUserByUserID(req, r
 
 module.exports.updateUser = async function updateUser(req, res, next) {
     try {
-        const updatedUser = await userService.updateUser(req, res, next);
+        const userId = req.userObject.userId;
+        const elevate = req.query.elevate;
+        const updatedUser = await userService.updateUser(userId, elevate, req);
         res.status(200).json(updatedUser);
     } catch (error) {
         if (error.message === "User update failed") {
@@ -104,7 +81,8 @@ module.exports.updateUserTheme = async function updateUserTheme(req, res, next) 
 
 module.exports.updateUserPoints = async function updateUserPoints(req, res, next) {
     try {
-        const result = await userService.updateUserPoints(req, res, next);
+        const elevate = req.query.elevate;
+        const result = await userService.updateUserPoints(elevate, req);
         if (result.success) {
             res.status(200).json(result.message);
         } else {
@@ -117,18 +95,11 @@ module.exports.updateUserPoints = async function updateUserPoints(req, res, next
 
 module.exports.deleteUser = async function deleteUser(req, res, next) {
     try {
+        const requestorId = req.userObject.userId;
+        const elevate = req.query.elevate;
         const userId = req.params.userId;
-        await userService.deleteUserByUserID(userId, req.userObject.username, req.userObject.displayName);
+        await userService.deleteUser(requestorId, elevate, userId);
         res.status(200).json({ message: 'User deleted' });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-    }
-};
-
-module.exports.loginState = async function loginState(req, res, next) {
-    try {
-        const message = await userService.loginState(req, res, next);
-        res.status(201).json(message);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }

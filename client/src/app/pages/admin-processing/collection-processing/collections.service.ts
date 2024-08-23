@@ -46,16 +46,15 @@ export class CollectionsService {
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
-  async getCollections(userName: string) {
+  async getAllCollections() {
         const headers = await this.getAuthHeaders();
-		return this.http.get<Collections[]>(`${this.cpatApiBase}/collections/${userName}`, { headers })
+    return this.http.get<Collections[]>(`${this.cpatApiBase}/collections?elevate=true`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionById(id: string) {
-		    const headers = await this.getAuthHeaders();
-		return this.http
-      .get(`${this.cpatApiBase}/collections/${id}`, { headers })
+  async getCollections() {
+    const headers = await this.getAuthHeaders();
+    return this.http.get<Collections[]>(`${this.cpatApiBase}/collections`, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -89,13 +88,7 @@ export class CollectionsService {
 
   async getUsersForCollection(id: string) {
         const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.cpatApiBase}/collection/permissions/${+id}`, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
-  async getPoamApproversByCollectionUser(collectionId: any, userId: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.cpatApiBase}/poamApprovers/collection/${+collectionId}/user/${+userId}`, { headers })
+		return this.http.get(`${this.cpatApiBase}/permissions/${+id}`, { headers })
       .pipe(catchError(this.handleError));
   }
 

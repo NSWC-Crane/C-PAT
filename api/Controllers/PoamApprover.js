@@ -28,24 +28,6 @@ module.exports.getPoamApproversByCollection = async function getPoamApproversByC
     }
 };
 
-module.exports.getPoamApproversByCollectionUser = async function getPoamApproversByCollectionUser(req, res, next) {
-    try {
-        const poamApprovers = await poamApproverService.getPoamApproversByCollectionUser(req, res, next);
-            res.status(200).json(poamApprovers);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-};
-
-module.exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, res, next) {
-    try {
-        const poamApprovers = await poamApproverService.getPoamApproversByUserId(req, res, next);
-        res.status(200).json(poamApprovers);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-};
-
 module.exports.postPoamApprover = async function postPoamApprover(req, res, next) {
     try {
         const poamApprover = await poamApproverService.postPoamApprover(req, res, next);

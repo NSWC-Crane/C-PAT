@@ -36,24 +36,55 @@ exports.getPoamExtension = async function (poamId) {
 
 exports.putPoamExtension = async function (extensionData) {
     return withConnection(async (connection) => {
-        let sql = "UPDATE cpat.poam SET extensionTimeAllowed = ?, extensionJustification = ? WHERE poamId = ?";
-        await connection.query(sql, [extensionData.extensionTimeAllowed, extensionData.extensionJustification, extensionData.poamId]);
+        try {
+            let sql = `UPDATE cpat.poam SET 
+                extensionTimeAllowed = ?, 
+                extensionJustification = ?,
+                mitigations = ?,
+                requiredResources = ?,
+                residualRisk = ?,
+                likelihood = ?,
+                relevanceOfThreat = ?,
+                impactRating = ?,
+                impactDescription = ?,
+                status = ?
+                WHERE poamId = ?`;
 
-        if (extensionData.poamLog && extensionData.poamLog.length > 0) {
-            let scheduledCompletionDateQuery = `SELECT scheduledCompletionDate FROM cpat.poam WHERE poamId = ?`;
-            let [[scheduledCompletionDateResult]] = await connection.query(scheduledCompletionDateQuery, [extensionData.poamId]);
-            if (scheduledCompletionDateResult) {
-                let scheduledCompletionDate = new Date(scheduledCompletionDateResult.scheduledCompletionDate);
-                let deadlineWithExtension = addDays(scheduledCompletionDate, extensionData.extensionTimeAllowed);
+            const params = [
+                extensionData.extensionTimeAllowed,
+                extensionData.extensionJustification,
+                extensionData.mitigations,
+                extensionData.requiredResources,
+                extensionData.residualRisk,
+                extensionData.likelihood,
+                extensionData.relevanceOfThreat,
+                extensionData.impactRating,
+                extensionData.impactDescription,
+                extensionData.status,
+                extensionData.poamId
+            ];
 
-                let formattedDeadline = deadlineWithExtension.toLocaleDateString("en-US");
-
-                let action = `POAM Extended. Extension time requested: ${extensionData.extensionTimeAllowed} days<br>Extension Justification: ${extensionData.extensionJustification}<br>Deadline with Extension: ${formattedDeadline}`;
+            const [result] = await connection.query(sql, params);
+            if (extensionData.poamLog && extensionData.poamLog.length > 0) {
+                let action = `POAM Updated. Status: ${extensionData.status}`;
+                if (extensionData.extensionTimeAllowed > 0) {
+                    let scheduledCompletionDateQuery = `SELECT scheduledCompletionDate FROM cpat.poam WHERE poamId = ?`;
+                    let [[scheduledCompletionDateResult]] = await connection.query(scheduledCompletionDateQuery, [extensionData.poamId]);
+                    if (scheduledCompletionDateResult) {
+                        let scheduledCompletionDate = new Date(scheduledCompletionDateResult.scheduledCompletionDate);
+                        let deadlineWithExtension = new Date(scheduledCompletionDate.getTime() + extensionData.extensionTimeAllowed * 24 * 60 * 60 * 1000);
+                        let formattedDeadline = deadlineWithExtension.toLocaleDateString("en-US");
+                        action += `<br>Extension time requested: ${extensionData.extensionTimeAllowed} days<br>Extension Justification: ${extensionData.extensionJustification}<br>Deadline with Extension: ${formattedDeadline}`;
+                    }
+                }
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                 await connection.query(logSql, [extensionData.poamId, action, extensionData.poamLog[0].userId]);
             }
+
+            return extensionData;
+        } catch (error) {
+            throw error;
         }
-        return extensionData;
     });
 };
 

@@ -23,7 +23,9 @@ async function withConnection(callback) {
     }
 }
 
-exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res, next) {
+
+
+exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collectionId) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
@@ -34,7 +36,7 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, re
                 WHERE p.collectionId = ?
                 GROUP BY l.labelName;
             `;
-            let [rows] = await connection.query(sql, [req.params.collectionId]);
+            let [rows] = await connection.query(sql, [collectionId]);
 
             let assetLabel = rows.map(row => ({
                 label: row.labelName,
@@ -48,11 +50,11 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, re
     }
 }
 
-exports.getCollectionPoamStatus = async function getCollectionPoamStatus(req, res, next) {
+exports.getCollectionPoamStatus = async function getCollectionPoamStatus(collectionId) {
     try {
         return await withConnection(async (connection) => {
             let sql = "SELECT status, COUNT(*) AS statusCount FROM poam WHERE collectionId = ?  GROUP BY status;"
-            let [rows] = await connection.query(sql, [req.params.collectionId])
+            let [rows] = await connection.query(sql, [collectionId])
 
             const size = Object.keys(rows).length
 
@@ -72,7 +74,7 @@ exports.getCollectionPoamStatus = async function getCollectionPoamStatus(req, re
     }
 }
 
-exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res, next) {
+exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectionId) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
@@ -83,7 +85,7 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res,
                 WHERE p.collectionId = ?
                 GROUP BY l.labelName;
             `;
-            let [rows] = await connection.query(sql, [req.params.collectionId]);
+            let [rows] = await connection.query(sql, [collectionId]);
 
             let poamLabel = rows.map(row => ({
                 label: row.labelName,
@@ -97,11 +99,11 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res,
     }
 }
 
-exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(req, res, next) {
+exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(collectionId) {
     try {
         return await withConnection(async (connection) => {
             let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam WHERE collectionId = ?  GROUP BY rawSeverity;"
-            let [rows] = await connection.query(sql, [req.params.collectionId])
+            let [rows] = await connection.query(sql, [collectionId])
 
             const size = Object.keys(rows).length
 
@@ -122,7 +124,7 @@ exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(req
     }
 }
 
-exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoamStatus(req, res, next) {
+exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoamStatus(collectionId) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
@@ -139,7 +141,7 @@ exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoam
         GROUP BY status;
       `;
 
-            let [rows] = await connection.query(sql, [req.params.collectionId]);
+            let [rows] = await connection.query(sql, [collectionId]);
 
             const poamStatusMap = {};
 
@@ -167,7 +169,7 @@ exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoam
     }
 };
 
-exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(req, res, next) {
+exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(collectionId) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
@@ -176,7 +178,7 @@ exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamS
                 WHERE collectionId = ?
             `;
 
-            let [rows] = await connection.query(sql, [req.params.collectionId]);
+            let [rows] = await connection.query(sql, [collectionId]);
 
             let buckets = {
                 "OVERDUE": 0,
@@ -211,11 +213,9 @@ exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamS
     }
 }
 
-exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res, next) {
+exports.getAvailableAssetLabel = async function getAvailableAssetLabel(userId) {
     try {
         return await withConnection(async (connection) => {
-            const userId = req.params.userId;
-
             const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
@@ -261,11 +261,9 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res,
     }
 }
 
-exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res, next) {
+exports.getAvailablePoamStatus = async function getAvailablePoamStatus(userId) {
     try {
         return await withConnection(async (connection) => {
-            const userId = req.params.userId;
-
             const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
@@ -306,11 +304,9 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res,
     }
 }
 
-exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamStatus(req, res, next) {
+exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamStatus(userId) {
     try {
         return await withConnection(async (connection) => {
-            const userId = req.params.userId;
-
             const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
@@ -375,11 +371,9 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
     }
 };
 
-exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res, next) {
+exports.getAvailablePoamLabel = async function getAvailablePoamLabel(userId) {
     try {
         return await withConnection(async (connection) => {
-            const userId = req.params.userId;
-
             const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
@@ -425,11 +419,9 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res, n
     }
 }
 
-exports.getAvailableCollectionPoamCounts = async function getAvailableCollectionPoamCounts(req, res, next) {
+exports.getAvailableCollectionPoamCounts = async function getAvailableCollectionPoamCounts(userId) {
     try {
         return await withConnection(async (connection) => {
-            const userId = req.params.userId;
-
             const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
@@ -464,11 +456,9 @@ exports.getAvailableCollectionPoamCounts = async function getAvailableCollection
     }
 };
 
-exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, res, next) {
+exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(userId) {
     try {
         return await withConnection(async (connection) => {
-            const userId = req.params.userId;
-
             const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
@@ -509,11 +499,9 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, 
     }
 }
 
-exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(req, res, next) {
+exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(userId) {
     try {
         return await withConnection(async (connection) => {
-            const userId = req.params.userId;
-
             const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 
@@ -553,11 +541,9 @@ exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoam
     }
 };
 
-exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(req, res, next) {
+exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(userId) {
     try {
         return await withConnection(async (connection) => {
-            const userId = req.params.userId;
-
             const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
             const isAdmin = adminRows[0].isAdmin;
 

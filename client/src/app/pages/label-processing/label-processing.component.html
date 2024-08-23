@@ -75,16 +75,18 @@
                       (onChange)="setLabel($event.value.labelId)"
                       styleClass="mt-4 w-full"
                       required
-                      appendTo="body">
+                      appendTo="body"
+                      [disabled]="accessLevel < 2">
           </p-dropdown>
         </div>
         <div class="field">
           <button pButton
                   type="button"
                   label="Add Label"
-                  class="p-button-outlined p-button-info w-full"
+                  class="p-button-outlined p-button-primary w-full"
                   (onKeyUp)="addLabel()"
-                  (click)="addLabel()">
+                  (click)="addLabel()"
+                  [disabled]="accessLevel < 2">
           </button>
         </div>
       </div>

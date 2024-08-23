@@ -12,8 +12,8 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addDays, format, isAfter } from 'date-fns';
-import { Subscription, forkJoin, of, throwError } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { Subscription, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
@@ -25,20 +25,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { jsonToPlainText } from "json-to-plain-text";
 import { AAPackageService } from '../../admin-processing/aaPackage-processing/aaPackage-processing.service';
-function getRoleFromAccessLevel(accessLevel: number): string {
-  switch (accessLevel) {
-    case 1:
-      return 'viewer';
-    case 2:
-      return 'submitter';
-    case 3:
-      return 'approver';
-    case 4:
-      return 'cat1approver';
-    default:
-      return 'none';
-  }
-}
+
 interface AAPackage {
   aaPackageId: number;
   aaPackage: string;
@@ -61,36 +48,19 @@ interface Permission {
 })
 export class PoamDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table: Table;
-  editingRows: { [s: string]: boolean } = {};
-  clonedAssignees: { [s: string]: any; } = {};
+  protected accessLevel: number;
   clonedMilestones: { [s: string]: any; } = {};
-  milestoneStatusOptions = [
-    { label: 'Pending', value: 'Pending' },
-    { label: 'Complete', value: 'Complete' }
-  ];
-
-  approvalStatusOptions = [
-    { label: 'Not Reviewed', value: 'Not Reviewed' },
-    { label: 'Approved', value: 'Approved' },
-    { label: 'Rejected', value: 'Rejected' }
-  ];
-
   poamLabels: any[] = [];
   labelList: any[] = [];
-  newLabel: any = { labelId: null };
   errorDialogVisible: boolean = false;
   errorMessage: string = '';
   errorHeader: string = 'Error';
-  public isLoggedIn = false;
-  users: any;
   user: any;
   poam: any;
   poamId: string = "";
   payload: any;
   dates: any = {};
   collectionUsers: any;
-  collectionSubmitters: any[] = [];
-  collection: any;
   collectionApprovers: any;
   collectionBasicList: any[] = [];
   aaPackages: AAPackage[] = [];
@@ -99,27 +69,29 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   poamMilestones: any[] = [];
   pluginData: any;
   assets: any;
+  assetList: any[] = [];
   poamAssets: any[] = [];
   poamAssignees: any[] = [];
   isEmassCollection: boolean = false;
-  canModifySubmitter: boolean = false;
-  showApprove: boolean = false;
-  showSubmit: boolean = false;
-  showClose: boolean = false;
   showCheckData: boolean = false;
-  stigmanCollections: any[] = [];
   stigmanSTIGs: any;
   tenableVulnResponse: any;
   tenablePluginData: string;
   filteredStigmanSTIGs: string[] = [];
-  selectedStig: any = null;
+  filteredVulnerabilitySources: string[] = [];
   selectedStigTitle: string = '';
   selectedStigObject: any = null;
   selectedStigBenchmarkId: string = '';
   stigmanCollectionId: any;
-  groupId: any;
-  assetList: any[] = [];
   stateData: any;
+  selectedCollection: any;
+  private subscriptions = new Subscription();
+  private subs = new SubSink();
+
+  milestoneStatusOptions = [
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Complete', value: 'Complete' }
+  ];
 
   vulnerabilitySources: string[] = [
     "ACAS Nessus Scanner",
@@ -127,77 +99,33 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     "RMF Controls",
     "Task Order",
   ];
-  filteredVulnerabilitySources: string[] =[];
+
   statusOptions = [
     { label: 'Draft', value: 'Draft', disabled: false },
     { label: 'Closed', value: 'Closed', disabled: false },
     { label: 'Expired', value: 'Expired', disabled: false },
     { label: 'Submitted', value: 'Submitted', disabled: true },
     { label: 'Approved', value: 'Approved', disabled: true },
+    { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval', disabled: true },
     { label: 'Rejected', value: 'Rejected', disabled: true },
     { label: 'Extension Requested', value: 'Extension Requested', disabled: true },
   ];
 
-  rawSeverityOptions = [
-    { label: 'CAT I - Critical/High', value: 'CAT I - Critical/High' },
-    { label: 'CAT II - Medium', value: 'CAT II - Medium' },
-    { label: 'CAT III - Low', value: 'CAT III - Low' },
+  severityOptions = [
+    { value: 'CAT I - Critical', label: 'CAT I - Critical' },
+    { value: 'CAT I - High', label: 'CAT I - High' },
+    { value: 'CAT II - Medium', label: 'CAT II - Medium' },
+    { value: 'CAT III - Low', label: 'CAT III - Low' },
+    { value: 'CAT III - Informational', label: 'CAT III - Informational' }
   ];
 
-  adjSeverityOptions = [
-    { label: 'CAT I - Critical/High', value: 'CAT I - Critical/High' },
-    { label: 'CAT II - Medium', value: 'CAT II - Medium' },
-    { label: 'CAT III - Low', value: 'CAT III - Low' },
-  ];
-
-  residualRiskOptions = [
+  ratingOptions = [
     { label: 'Very Low', value: 'Very Low' },
     { label: 'Low', value: 'Low' },
     { label: 'Moderate', value: 'Moderate' },
     { label: 'High', value: 'High' },
     { label: 'Very High', value: 'Very High' },
   ];
-
-  likelihoodOptions = [
-    { label: 'Very Low', value: 'Very Low' },
-    { label: 'Low', value: 'Low' },
-    { label: 'Moderate', value: 'Moderate' },
-    { label: 'High', value: 'High' },
-    { label: 'Very High', value: 'Very High' },
-  ];
-
-  relevanceOfThreatOptions = [
-    { label: 'Very Low', value: 'Very Low' },
-    { label: 'Low', value: 'Low' },
-    { label: 'Moderate', value: 'Moderate' },
-    { label: 'High', value: 'High' },
-    { label: 'Very High', value: 'Very High' },
-  ];
-
-  businessImpactRatingOptions = [
-    { label: 'Very Low', value: 'Very Low' },
-    { label: 'Low', value: 'Low' },
-    { label: 'Moderate', value: 'Moderate' },
-    { label: 'High', value: 'High' },
-    { label: 'Very High', value: 'Very High' },
-  ];
-
-  steps = [
-    { label: 'Assignees' },
-    { label: 'Approvers' },
-    { label: 'Assets' },
-    { label: 'Predisposing Conditions' },
-    { label: 'Mitigations' },
-    { label: 'Required Resources' },
-    { label: 'Residual Risk' },
-    { label: 'Business Impact' },
-    { label: 'Milestones' },
-    { label: 'POAM Labels' },
-    { label: 'Notes' },
-  ];
-  selectedCollection: any;
-  private subscriptions = new Subscription();
-  private subs = new SubSink();
 
   constructor(
     private aaPackageService: AAPackageService,
@@ -232,45 +160,30 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   async setPayload() {
     this.user = null;
     this.payload = null;
-
+    this.accessLevel = 0;
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response?.userId) {
           this.user = response;
-          if (this.user.accountStatus === 'ACTIVE') {
+          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
+            collectionId: permission.collectionId,
+            accessLevel: permission.accessLevel,
+          }));
 
-            const mappedPermissions = this.user.permissions.map((permission: Permission) => ({
-              collectionId: permission.collectionId,
-              accessLevel: permission.accessLevel,
-            }));
+          this.payload = {
+            ...this.user,
+            collections: mappedPermissions
+          };
+          if (mappedPermissions.length > 0) {
+            const selectedPermissions = this.payload.collections.find(
+              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
+            );
 
-            this.payload = {
-              ...this.user,
-              collections: mappedPermissions
-            };
-
-            const selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId);
-            let myRole: string;
-
-            if (!selectedPermissions && !this.user.isAdmin) {
-              myRole = 'none';
-            } else if (this.user.isAdmin) {
-              myRole = 'admin';
-            } else if (selectedPermissions) {
-              myRole = getRoleFromAccessLevel(selectedPermissions.accessLevel);
-            } else {
-              myRole = 'none';
+            if (selectedPermissions) {
+              this.accessLevel = selectedPermissions.accessLevel;
             }
-
-            this.payload.role = myRole;
-            this.showApprove = ['admin', 'cat1approver', 'approver'].includes(this.payload.role);
-            this.showClose = ['admin', 'cat1approver', 'approver', 'submitter'].includes(this.payload.role);
-            this.showSubmit = ['admin', 'cat1approver', 'approver', 'submitter'].includes(this.payload.role);
-            this.canModifySubmitter = ['admin', 'cat1approver', 'approver', 'submitter'].includes(this.payload.role);
-            this.getData();
           }
-        } else {
-          console.error('User data is not available or user is not active');
+          this.getData();
         }
       },
       error: (error) => {
@@ -295,22 +208,21 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     } else {
       forkJoin([
         await this.poamService.getPoam(this.poamId),
-        await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
         await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
         await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
         await this.poamService.getPoamAssignees(this.poamId),
         await this.poamService.getPoamApprovers(this.poamId),
         await this.poamService.getPoamMilestones(this.poamId),
         await this.poamService.getPoamLabelsByPoam(this.poamId)
-      ]).subscribe(([poam, collection, users, collectionAssets, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
+      ]).subscribe(([poam, users, collectionAssets, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
         this.poam = { ...poam, hqs: poam.hqs === 1 ? true : false };
         this.dates.scheduledCompletionDate = poam.scheduledCompletionDate ? new Date(poam.scheduledCompletionDate) : null;
         this.dates.iavComplyByDate = poam.iavComplyByDate ? new Date(poam.iavComplyByDate) : null;
         this.dates.submittedDate = poam.submittedDate ? new Date(poam.submittedDate) : null;
         this.dates.closedDate = poam.closedDate ? new Date(poam.closedDate) : null;
-        this.collection = collection.collection;
         this.collectionUsers = users;
         this.assets = collectionAssets;
+        this.poamAssets = [];
         this.poamAssignees = assignees;
         this.poamApprovers = poamApprovers;
         this.poamMilestones = poamMilestones.poamMilestones.map((milestone: any) => ({
@@ -319,32 +231,19 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         }));
         this.selectedStigTitle = this.poam.stigTitle;
         this.selectedStigBenchmarkId = this.poam.stigBenchmarkId;
-        this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3 || this.user.isAdmin);
+        this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3);
         if (this.collectionApprovers.length > 0 && (this.poamApprovers == undefined || this.poamApprovers.length == 0)) {
           this.addDefaultApprovers();
         }
-        if (this.collectionUsers) {
-          this.collectionUsers.forEach((user: any) => {
-            if (user.accessLevel >= 2) {
-              this.collectionSubmitters.push({ ...user });
-            }
-          });
-        }
+
         if (this.poam.tenablePluginData) {
-          try {
-            const pluginDataObject = JSON.parse(this.poam.tenablePluginData);
-            this.tenablePluginData = jsonToPlainText(pluginDataObject, {});
-          } catch (error) {
-            this.tenablePluginData = this.poam.tenablePluginData;
-          }
+          this.parsePluginData(this.poam.tenablePluginData);
         }
-        if ((this.poam.vulnerabilitySource === 'STIG' || this.poam.vulnerabilitySource === 'ACAS Nessus Scanner') && !this.isEmassCollection) {
-          this.poamAssets = [];      
-        } else {
-          this.fetchAssets();
-        }
+        
+        if (this.isEmassCollection) {
+          this.fetchAssets(); 
+        } 
         this.poamLabels = poamLabels;
-        this.setChartSelectionData();
       });
         (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
           next: (data) => {
@@ -362,14 +261,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   async createNewACASPoam() {
-    this.canModifySubmitter = true;
     this.pluginData = this.stateData.pluginData;
     await this.loadVulnerabilitiy(this.pluginData.id);
     forkJoin([
-      await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
       await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
       await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
-    ]).subscribe(async ([collection, users, collectionAssets]: any) => {
+    ]).subscribe(async ([users, collectionAssets]: any) => {
       this.poam = {
         poamId: "ADDPOAM",
         collectionId: this.payload.lastCollectionAccessedId,
@@ -389,58 +286,60 @@ ${this.pluginData.description}` || "",
         scheduledCompletionDate: '',
         submitterId: this.payload.userId,
         status: "Draft",
-        tenablePluginData: this.pluginData || "",
+        tenablePluginData: this.pluginData ? JSON.stringify(this.pluginData) : "",
         hqs: false,
       };
 
       this.dates.scheduledCompletionDate = null;
       this.dates.iavComplyByDate = this.poam.iavComplyByDate ? new Date(this.poam.iavComplyByDate) : null;
       this.dates.submittedDate = new Date(this.poam.submittedDate);
-
-      this.collection = collection;
       this.collectionUsers = users;
       this.assets = collectionAssets;
       this.poamAssets = [];
       this.poamAssignees = [];
       this.collectionApprovers = [];
-      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3 || this.user.isAdmin);
+      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3);
       this.poamApprovers = this.collectionApprovers.map((approver: any) => ({
         userId: approver.userId,
         approvalStatus: 'Not Reviewed',
         comments: '',
       }));
-      this.collectionSubmitters = [];
-      if (this.collectionUsers) {
-        this.collectionUsers.forEach((user: any) => {
-          if (user.accessLevel >= 2) {
-            this.collectionSubmitters.push({ ...user });
-          }
-        });
-      }
-      this.setChartSelectionData();
       if (this.poam.tenablePluginData) {
-        try {
-          const pluginDataObject = JSON.parse(this.poam.tenablePluginData);
-          this.tenablePluginData = jsonToPlainText(pluginDataObject, {});
-        } catch (error) {
-          this.tenablePluginData = this.poam.tenablePluginData;
-        }
+        this.parsePluginData(this.poam.tenablePluginData);
       }
     });
+  }
+
+  private parsePluginData(pluginData: string) {
+    try {
+      let dataObject: any;
+
+      if (typeof pluginData === 'string') {
+        dataObject = JSON.parse(pluginData);
+      } else if (typeof pluginData === 'object') {
+        dataObject = pluginData;
+      } else {
+        throw new Error('Invalid plugin data format');
+      }
+
+      this.tenablePluginData = jsonToPlainText(dataObject, {});
+    } catch (error) {
+      this.tenablePluginData = this.poam.tenablePluginData;
+    }
   }
 
   mapTenableSeverity(severity: string) {
    switch (severity) {
       case "0":
-        return 'CAT III - Low';
+        return 'CAT III - Informational';
       case "1":
         return 'CAT III - Low';
       case "2":
         return 'CAT II - Medium';
       case "3":
-        return 'CAT I - Critical/High';
+        return 'CAT I - High';
       case "4":
-        return 'CAT I - Critical/High';
+        return 'CAT I - Critical';
       default:
         return '';
    }
@@ -494,12 +393,10 @@ ${this.pluginData.description}` || "",
 
   async createNewSTIGManagerPoam() {
     this.validateStigManagerCollection(false);
-    this.canModifySubmitter = true;
     forkJoin([
-      await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
       await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
       await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
-    ]).subscribe(async ([collection, users, collectionAssets]: any) => {
+    ]).subscribe(async ([users, collectionAssets]: any) => {
       this.poam = {
         poamId: "ADDPOAM",
         collectionId: this.payload.lastCollectionAccessedId,
@@ -518,28 +415,17 @@ ${this.pluginData.description}` || "",
       this.dates.scheduledCompletionDate = null;
       this.dates.iavComplyByDate = null;
       this.dates.submittedDate = new Date(this.poam.submittedDate);
-
-      this.collection = collection;
       this.collectionUsers = users;
       this.assets = collectionAssets;
       this.poamAssets = [];
       this.poamAssignees = [];
       this.collectionApprovers = [];
-      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3 || this.user.isAdmin);
+      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3);
       this.poamApprovers = this.collectionApprovers.map((approver: any) => ({
         userId: approver.userId,
         approvalStatus: 'Not Reviewed',
         comments: '',
       }));
-      this.collectionSubmitters = [];
-      if (this.collectionUsers) {
-        this.collectionUsers.forEach((user: any) => {
-          if (user.accessLevel >= 2) {
-            this.collectionSubmitters.push({ ...user });
-          }
-        });
-      }
-      this.setChartSelectionData();
       (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
         next: (data) => {
           this.stigmanSTIGs = data.map((stig: any) => ({
@@ -569,12 +455,10 @@ ${this.pluginData.description}` || "",
   }
 
   async createNewPoam() {
-    this.canModifySubmitter = true;
     forkJoin([
-      await this.poamService.getCollection(this.payload.lastCollectionAccessedId, this.payload.userName),
       await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
       await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
-    ]).subscribe(async ([collection, users, collectionAssets]: any) => {
+    ]).subscribe(async ([users, collectionAssets]: any) => {
       this.poam = {
         poamId: "ADDPOAM",
         collectionId: this.payload.lastCollectionAccessedId,
@@ -593,28 +477,17 @@ ${this.pluginData.description}` || "",
       this.dates.scheduledCompletionDate = null;
       this.dates.iavComplyByDate = null;
       this.dates.submittedDate = new Date(this.poam.submittedDate);
-
-      this.collection = collection;
       this.collectionUsers = users;
       this.assets = collectionAssets;
       this.poamAssets = [];
       this.poamAssignees = [];
       this.collectionApprovers = [];
-      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3 || this.user.isAdmin);
+      this.collectionApprovers = this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3);
       this.poamApprovers = this.collectionApprovers.map((approver: any) => ({
         userId: approver.userId,
         approvalStatus: 'Not Reviewed',
         comments: '',
       }));
-      this.collectionSubmitters = [];
-      if (this.collectionUsers) {
-        this.collectionUsers.forEach((user: any) => {
-          if (user.accessLevel >= 2) {
-            this.collectionSubmitters.push({ ...user });
-          }
-        });
-      }
-      this.setChartSelectionData();
         (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
           next: (data) => {
             this.stigmanSTIGs = data.map((stig: any) => ({
@@ -726,15 +599,6 @@ ${this.pluginData.description}` || "",
     })
   }
 
-  setChartSelectionData() {
-    this.collectionSubmitters = [];
-    if (this.collectionUsers) {
-      this.collectionUsers.forEach((user: any) => {
-        if (user.accessLevel >= 2) this.collectionSubmitters.push({ ...user });
-      });
-    }
-  }
-
   async approvePoam() {
     await this.router.navigateByUrl("/poam-processing/poam-approve/" + this.poam.poamId);
   }
@@ -783,7 +647,6 @@ ${this.pluginData.description}` || "",
     this.poam.submittedDate = this.dates.submittedDate ? format(this.dates.submittedDate, "yyyy-MM-dd") : null;
     this.poam.iavComplyByDate = this.dates.iavComplyByDate ? format(this.dates.iavComplyByDate, "yyyy-MM-dd") : null;
     this.poam.requiredResources = this.poam.requiredResources ? this.poam.requiredResources : "";
-    this.poam.vulnIdRestricted = this.poam.vulnIdRestricted ? this.poam.vulnIdRestricted : "";
     this.poam.poamLog = [{ userId: this.user.userId }];
     if (this.poam.status === "Closed") {
       this.poam.closedDate = format(new Date(), "yyyy-MM-dd");
@@ -906,6 +769,7 @@ ${this.pluginData.description}` || "",
     this.poam.iavComplyByDate = this.dates.iavComplyByDate ? format(this.dates.iavComplyByDate, "yyyy-MM-dd") : null;
     this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate ? format(this.dates.scheduledCompletionDate, "yyyy-MM-dd") : null;
     this.poam.submittedDate = this.dates.submittedDate ? format(this.dates.submittedDate, "yyyy-MM-dd") : null;
+    this.poam.hqs = 1 ? true : false;
     this.savePoam();
   }
 
@@ -940,6 +804,10 @@ ${this.pluginData.description}` || "",
     }
     if (this.isIavmNumberValid(this.poam.iavmNumber) && !this.dates.iavComplyByDate) {
       this.messageService.add({ severity: "error", summary: 'Information', detail: "IAV Comply By Date is required if an IAVM Number is provided." });
+      return false;
+    }
+    if (this.poam.adjSeverity && this.poam.adjSeverity != this.poam.rawSeverity && !this.poam.mitigations) {
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "If Adjusted Severity deviates from the Raw Severity, Mitigations becomes a required field." });
       return false;
     }
     return true;
@@ -1337,6 +1205,7 @@ ${this.pluginData.description}` || "",
       .filter(aaPackage => aaPackage.aaPackage.toLowerCase().includes(query))
       .map(aaPackage => aaPackage.aaPackage);
   }
+
 
   confirm(options: { header: string, message: string, accept: () => void }) {
     this.confirmationService.confirm({

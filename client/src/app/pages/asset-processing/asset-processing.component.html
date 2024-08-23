@@ -113,22 +113,24 @@
                     (onChange)="setAsset($event.value.assetId)"
                     appendTo="body"
                     styleClass="mt-2 w-full"
-                    required>
+                    required
+                    [disabled]="accessLevel < 2">
         </p-dropdown>
       </div>
       <div class="field">
         <button pButton
                 type="button"
                 label="Add Asset"
-                class="p-button-outlined p-button-info w-full"
-                (click)="addAsset()">
+                class="p-button-outlined p-button-primary w-full"
+                (click)="addAsset()"
+                [disabled]="accessLevel < 2">
         </button>
       </div>
     </p-card>
   </div>
 </div>
 
-<p-dialog header="Manage Assets" [(visible)]="assetDialogVisible" [modal]="true" [style]="{width: '50vw'}">
+<p-dialog *ngIf="accessLevel < 2" header="Manage Assets" [(visible)]="assetDialogVisible" [modal]="true" [style]="{width: '50vw'}">
   <ng-template pTemplate="content">
     <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData(); closeAssetDialog();"></cpat-asset>
   </ng-template>

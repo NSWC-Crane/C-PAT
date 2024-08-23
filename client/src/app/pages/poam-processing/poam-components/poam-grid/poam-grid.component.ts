@@ -71,6 +71,7 @@ export class PoamGridComponent implements OnChanges {
       poamId: poam.poamId,
       status: poam.status,
       source: poam.vulnerabilitySource,
+      stigBenchmarkId: poam.stigBenchmarkId ?? '',
       adjSeverity: poam.adjSeverity,
       submitter: poam.submitterName,
       submittedDate: poam.submittedDate?.split('T')[0],

@@ -27,7 +27,6 @@ interface Poam {
   requiredResources: string;
   residualRisk: string;
   status: string;
-  vulnIdRestricted: string;
   submittedDate: Date | string;
   emassPoamId: string;
   securityControlNumber: string;
@@ -40,8 +39,8 @@ interface Poam {
   likelihood: string;
   relevanceOfThreat: string;
   devicesAffected: string;
-  businessImpactRating: string;
-  businessImpactDescription: string;
+  impactRating: string;
+  impactDescription: string;
   extensionTimeAllowed: number;
   extensionJustification: string;
 }
@@ -77,8 +76,8 @@ export class ExcelDataService {
       "S": "relevanceOfThreat",
       "T": "threatDescription",
       "U": "likelihood",
-      "V": "businessImpactRating",
-      "W": "businessImpactDescription",
+      "V": "impactRating",
+      "W": "impactDescription",
       "X": "residualRisk",
       "Y": "recommendations",
       "Z": "adjSeverity"

@@ -27,7 +27,7 @@
                scrollHeight="50rem"
                [paginator]="false"
                columnResizeMode="fit"
-               [globalFilterFields]="['lastUpdated', 'poamId', 'status', 'adjSeverity', 'submitter', 'submittedDate', 'scheduledCompletionDate']">
+               [globalFilterFields]="['lastUpdated', 'poamId', 'status', 'stigBenchmarkId', 'adjSeverity', 'submitter', 'submittedDate', 'scheduledCompletionDate']">
         <ng-template pTemplate="header">
           <tr>
             <th scope="col" pResizableColumn style="text-align: center;">
@@ -56,6 +56,12 @@
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex align-items-center">
+                STIG Benchmark
+                <p-columnFilter type="text" field="stigBenchmarkId" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
                 Adjusted Severity
                 <p-columnFilter type="text" field="adjSeverity" display="menu"></p-columnFilter>
               </div>
@@ -79,7 +85,7 @@
               </div>
             </th>
             <th scope="col" pResizableColumn>
-              Manage
+              POAM
             </th>
           </tr>
         </ng-template>
@@ -89,12 +95,13 @@
             <td>{{ row.poamId }}</td>
             <td>{{ row.status }}</td>
             <td>{{ row.source }}</td>
+            <td>{{ row.stigBenchmarkId }}</td>
             <td>{{ row.adjSeverity }}</td>
             <td>{{ row.submitter }}</td>
             <td>{{ row.submittedDate }}</td>
             <td>{{ row.scheduledCompletionDate }}</td>
             <td>
-              <button pButton type="button" icon="pi pi-plus" class="p-button-text" (click)="managePoam(row)"></button>
+              <button pButton type="button" icon="pi pi-eye" class="p-button-text" (click)="managePoam(row)"></button>
             </td>
           </tr>
         </ng-template>

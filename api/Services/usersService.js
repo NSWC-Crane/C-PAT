@@ -10,7 +10,7 @@
 
 const dbUtils = require('./utils');
 const logger = require('../utils/logger');
-const _this = this
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,13 +21,138 @@ async function withConnection(callback) {
     }
 }
 
-exports.getUsers = async function getUsers() {
+exports.getUsers = async function getUsers(elevate, userId) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM cpat.user;";
-            let [rows] = await connection.query(sql);
+            if (elevate) {
+                const userSql = "SELECT * FROM user WHERE userId = ?";
+                const [userRows] = await connection.query(userSql, [userId]);
 
-            const users = await Promise.all(rows.map(async (user) => {
+                if (userRows.length === 0) {
+                    throw new SmError.PrivilegeError('User not found');
+                }
+
+                const isAdmin = userRows[0].isAdmin;
+
+                if (isAdmin !== 1) {
+                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
+                }
+
+                const allUsersSql = "SELECT * FROM cpat.user";
+                const [allUsersRows] = await connection.query(allUsersSql);
+
+                const users = await Promise.all(allUsersRows.map(async (user) => {
+                    const permissionsSql = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
+                    const [permissionRows] = await connection.query(permissionsSql, [user.userId]);
+
+                    const permissions = permissionRows.map(permission => ({
+                        userId: permission.userId,
+                        collectionId: permission.collectionId,
+                        accessLevel: permission.accessLevel,
+                    }));
+
+                    return {
+                        userId: user.userId,
+                        userName: user.userName,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        created: user.created,
+                        lastAccess: user.lastAccess,
+                        lastCollectionAccessedId: user.lastCollectionAccessedId,
+                        accountStatus: user.accountStatus,
+                        fullName: user.fullName,
+                        officeOrg: user.officeOrg,
+                        defaultTheme: user.defaultTheme,
+                        points: user.points,
+                        isAdmin: user.isAdmin,
+                        lastClaims: user.lastClaims,
+                        permissions: permissions
+                    };
+                }));
+
+                return users;
+            } else {
+                throw new Error('Elevate parameter is required');
+            }
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+exports.getCurrentUser = async function getCurrentUser(userId) {
+    try {
+        return await withConnection(async (connection) => {
+            const sqlUser = "SELECT * FROM user WHERE userId = ?";
+            const [userRows] = await connection.query(sqlUser, [userId]);
+
+            if (userRows.length === 0) {
+                return userRows[0];
+            }
+
+            const user = userRows[0];
+
+            const sqlPermissions = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
+            const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
+
+            const permissions = permissionRows.map(permission => ({
+                userId: permission.userId,
+                collectionId: permission.collectionId,
+                accessLevel: permission.accessLevel,
+            }));
+
+            const userObject = {
+                userId: user.userId,
+                userName: user.userName,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                created: user.created,
+                lastAccess: user.lastAccess,
+                lastCollectionAccessedId: user.lastCollectionAccessedId,
+                accountStatus: user.accountStatus,
+                fullName: user.fullName,
+                officeOrg: user.officeOrg,
+                defaultTheme: user.defaultTheme,
+                points: user.points,
+                isAdmin: user.isAdmin,
+                lastClaims: user.lastClaims,
+                permissions: permissions
+            }; 
+            return userObject;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+exports.getUserByUserID = async function getUserByUserID(requestorId, elevate, userId) {
+    try {
+        return await withConnection(async (connection) => {
+            if (elevate) {
+                const userSql = "SELECT * FROM user WHERE userId = ?";
+                const [userRows] = await connection.query(userSql, [requestorId]);
+
+                if (userRows.length === 0) {
+                    throw new SmError.PrivilegeError('User not found');
+                }
+
+                const isAdmin = userRows[0].isAdmin;
+
+                if (isAdmin !== 1) {
+                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
+                }
+
+                let sql = "SELECT * FROM user WHERE userId = ?";
+                const [userQueryRows] = await connection.query(sql, [userId]);
+
+                if (userQueryRows.length === 0) {
+                    return userQueryRows[0];
+                }
+
+                const user = userQueryRows[0];
+
                 const sqlPermissions = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
                 const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
 
@@ -55,99 +180,9 @@ exports.getUsers = async function getUsers() {
                     lastClaims: user.lastClaims,
                     permissions: permissions
                 };
-            }));
-
-            return users;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-};
-
-exports.getCurrentUser = async function getCurrentUser(email) {
-    try {
-        return await withConnection(async (connection) => {
-            const sqlUser = "SELECT * FROM user WHERE email = ?";
-            const [userRows] = await connection.query(sqlUser, [email]);
-
-            if (userRows.length === 0) {
-                return userRows[0];
+            } else {
+                throw new Error('Elevate parameter is required');
             }
-
-            const user = userRows[0];
-
-            const sqlPermissions = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
-            const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
-
-            const permissions = permissionRows.map(permission => ({
-                userId: permission.userId,
-                collectionId: permission.collectionId,
-                accessLevel: permission.accessLevel,
-            }));
-
-            return {
-                userId: user.userId,
-                userName: user.userName,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                created: user.created,
-                lastAccess: user.lastAccess,
-                lastCollectionAccessedId: user.lastCollectionAccessedId,
-                accountStatus: user.accountStatus,
-                fullName: user.fullName,
-                officeOrg: user.officeOrg,
-                defaultTheme: user.defaultTheme,
-                points: user.points,
-                isAdmin: user.isAdmin,
-                lastClaims: user.lastClaims,
-                permissions: permissions
-            };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-};
-
-exports.getUserByUserID = async function getUserByUserID(userId) {
-    try {
-        return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM user WHERE userId = ?";
-            const [userRows] = await connection.query(sql, [userId]);
-
-            if (userRows.length === 0) {
-                return userRows[0];
-            }
-
-            const user = userRows[0];
-
-            const sqlPermissions = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
-            const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
-
-            const permissions = permissionRows.map(permission => ({
-                userId: permission.userId,
-                collectionId: permission.collectionId,
-                accessLevel: permission.accessLevel,
-            }));
-
-            return {
-                userId: user.userId,
-                userName: user.userName,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                created: user.created,
-                lastAccess: user.lastAccess,
-                lastCollectionAccessedId: user.lastCollectionAccessedId,
-                accountStatus: user.accountStatus,
-                fullName: user.fullName,
-                officeOrg: user.officeOrg,
-                defaultTheme: user.defaultTheme,
-                points: user.points,
-                isAdmin: user.isAdmin,
-                lastClaims: user.lastClaims,
-                permissions: permissions
-            };
         });
     } catch (error) {
         return { error: error.message };
@@ -200,36 +235,24 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
     }
 };
 
-exports.getBasicUserByUserID = async function getBasicUserByUserID(userId) {
+exports.updateUser = async function updateUser(userId, elevate, req) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM user WHERE userId = ?";
-            const [userRows] = await connection.query(sql, [userId]);
+            if (elevate) {
+                const userSql = "SELECT * FROM user WHERE userId = ?";
+                const [userRows] = await connection.query(userSql, [userId]);
 
-            if (userRows.length === 0) {
-                return userRows[0];
-            }
+                if (userRows.length === 0) {
+                    throw new SmError.PrivilegeError('User not found');
+                }
 
-            const user = userRows[0];
+                const isAdmin = userRows[0].isAdmin;
 
-            return {
-                userId: user.userId,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                fullName: user.fullName,
-                officeOrg: user.officeOrg,
-            };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-};
+                if (isAdmin !== 1) {
+                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
+                }
 
-exports.updateUser = async function updateUser(req, res, next) {
-    try {
-        return await withConnection(async (connection) => {
-            let sql = "UPDATE user SET firstName = ?, lastName = ?, email = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, isAdmin = ? WHERE userId = ?";
+            let sql = "UPDATE user SET firstName = ?, lastName = ?, email = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, isAdmin = ?, points = ? WHERE userId = ?";
 
             await connection.query(sql, [
                 req.body.firstName,
@@ -242,6 +265,7 @@ exports.updateUser = async function updateUser(req, res, next) {
                 req.body.officeOrg,
                 req.body.defaultTheme,
                 req.body.isAdmin,
+                req.body.points,
                 req.body.userId
             ]);
 
@@ -249,6 +273,9 @@ exports.updateUser = async function updateUser(req, res, next) {
             let [updatedUser] = await connection.query(sql, [req.body.userId]);
 
             return updatedUser[0];
+            } else {
+                throw new Error('Elevate parameter is required');
+            }
         });
     } catch (error) {
         return { error: error.message };
@@ -272,7 +299,7 @@ exports.updateUserTheme = async function updateUserTheme(req, res, next) {
     }
 };
 
-exports.updateUserPoints = async function updateUserPoints(req, res, next) {
+exports.updateUserPoints = async function updateUserPoints(elevate, req) {
     try {
         return await withConnection(async (connection) => {
             let sql = "UPDATE user SET points = ? WHERE userId = ?";
@@ -289,35 +316,50 @@ exports.updateUserPoints = async function updateUserPoints(req, res, next) {
     }
 };
 
-exports.setUserData = async function setUserData(userObject) {
+exports.setUserData = async function setUserData(userObject, fields, newUser) {
     try {
         return await withConnection(async (connection) => {
-            let insertColumns = ['userName', 'email', 'firstName', 'lastName', 'fullName', 'lastClaims', 'isAdmin'];
-            let updateColumns = ['userId = LAST_INSERT_ID(userId)', 'firstName = VALUES(firstName)', 'lastName = VALUES(lastName)', 'fullName = VALUES(fullName)', 'lastClaims = VALUES(lastClaims)', 'isAdmin = VALUES(isAdmin)'];
+            console.log("setUserData!@!@!@", userObject, fields, newUser);
+            let insertColumns = ['userName']
+            let updateColumns = ['userId = LAST_INSERT_ID(userId)']
+            let binds = [userObject.userName]
 
-            let lastClaimsSerialized = JSON.stringify(userObject.lastClaims);
-
-            let binds = [userObject.userName, userObject.email, userObject.firstName, userObject.lastName, userObject.fullName, lastClaimsSerialized, userObject.isAdmin];
-
-            let sql = `
-                INSERT INTO cpat.user (${insertColumns.join(', ')})
-                VALUES (${insertColumns.map(() => '?').join(', ')})
-                ON DUPLICATE KEY UPDATE ${updateColumns.join(', ')}
-            `;
-            const [result] = await connection.query(sql, binds);
-            let userId = userObject.userId;
-            if (!userId && result.insertId) {
-                userId = result.insertId;
+            if (newUser && userObject.firstName) {
+                insertColumns.push('firstName')
+                updateColumns.push('firstName = VALUES(firstName)')
+                binds.push(userObject.firstName)
             }
-
-            sql = "SELECT * FROM user WHERE userId = ?";
-            let [updatedUser] = await connection.query(sql, [userId]);
-
-            if (updatedUser[0]) {
-                updatedUser[0].lastClaims = JSON.parse(updatedUser[0].lastClaims);
+            if (newUser && userObject.lastName) {
+                insertColumns.push('lastName')
+                updateColumns.push('lastName = VALUES(lastName)')
+                binds.push(userObject.lastName)
             }
-
-            return updatedUser[0];
+            if (newUser && userObject.fullName) {
+                insertColumns.push('fullName')
+                updateColumns.push('fullName = VALUES(fullName)')
+                binds.push(userObject.fullName)
+            }
+            if (newUser && userObject.email) {
+                insertColumns.push('email')
+                updateColumns.push('email = VALUES(email)')
+                binds.push(userObject.email)
+            }
+            if (fields.lastAccess) {
+                insertColumns.push('lastAccess')
+                updateColumns.push('lastAccess = VALUES(lastAccess)')
+                binds.push(fields.lastAccess)
+            }
+            if (fields.lastClaims) {
+                insertColumns.push('lastClaims')
+                updateColumns.push('lastClaims = VALUES(lastClaims)')
+                binds.push(JSON.stringify(fields.lastClaims))
+            }
+            let sqlUpsert = `INSERT INTO cpat.user (
+    ${insertColumns.join(',\n')}
+  ) VALUES ? ON DUPLICATE KEY UPDATE 
+    ${updateColumns.join(',\n')}`
+            let [result] = await connection.query(sqlUpsert, [[binds]])
+            return result;
         });
     } catch (error) {
         return { error: error.message };
@@ -337,9 +379,23 @@ exports.setLastAccess = async function (userId, timestamp) {
     }
 };
 
-exports.deleteUserByUserID = async function deleteUserByUserID(userId, username, displayName) {
+exports.deleteUser = async function deleteUser(requestorId, elevate, userId) {
     try {
         return await withConnection(async (connection) => {
+            if (elevate) {
+                const userSql = "SELECT * FROM user WHERE userId = ?";
+                const [userRows] = await connection.query(userSql, [requestorId]);
+
+                if (userRows.length === 0) {
+                    throw new SmError.PrivilegeError('User not found');
+                }
+
+                const isAdmin = userRows[0].isAdmin;
+
+                if (isAdmin !== 1) {
+                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
+                }
+
             let sql = 'DELETE FROM `user` WHERE `userId`= ?';
             await connection.query(sql, [userId]);
 
@@ -347,34 +403,11 @@ exports.deleteUserByUserID = async function deleteUserByUserID(userId, username,
             logger.writeInfo("usersService", 'notification', { event: 'removed account', userId: userId });
 
             return { message: "User deleted" };
+            } else {
+                throw new Error('Elevate parameter is required');
+            }
         });
     } catch (error) {
         return { error: error.message };
     }
-};
-
-exports.loginState = async function loginState(req, res, next) {
-    let message = { message: "" };
-    if (req.body.loginState == 'logIn') {
-        logger.writeInfo("usersService", 'info', { event: 'Logged In' });
-        message.message = "Login Success";
-    } else {
-        logger.writeInfo("usersService", 'info', { event: 'Logged Out' });
-        message.message = "Logout Success";
-    }
-    return message;
-};
-
-module.exports.deleteUserByUserID = async function deleteUserByUserID(userId, req, res, next) {
-    return await withConnection(async (connection) => {
-        let sql_query = 'DELETE FROM `user` WHERE `id`=' + userId;
-        await connection.query(sql_query);
-
-        logger.writeInfo("usersService", 'log', { event: 'removed account', userId: userId });
-        logger.writeInfo("usersService", 'notification', { event: 'removed account', userId: userId });
-
-        let messageReturned = new Object();
-        messageReturned.text = "User deleted";
-        return messageReturned;
-    });
 };

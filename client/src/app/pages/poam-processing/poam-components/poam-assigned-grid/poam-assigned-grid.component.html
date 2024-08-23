@@ -29,9 +29,9 @@
     <ng-template pTemplate="body" let-row>
       <tr>
         <td *ngFor="let col of assignedColumns">
-          <span *ngIf="col !== 'Manage'">{{ row[getColumnKey(col)] }}</span>
-          <span *ngIf="col === 'Manage'">
-            <button pButton type="button" icon="pi pi-plus" class="p-button-text" (click)="managePoam(row)"></button>
+          <span *ngIf="col !== 'POAM'">{{ row[getColumnKey(col)] }}</span>
+          <span *ngIf="col === 'POAM'">
+            <button pButton type="button" icon="pi pi-eye" class="p-button-text" (click)="managePoam(row)"></button>
           </span>
         </td>
       </tr>

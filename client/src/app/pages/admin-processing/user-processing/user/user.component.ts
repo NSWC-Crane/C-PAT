@@ -106,7 +106,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   private async loadCollections() {
     (await this.userService.getCurrentUser()).subscribe(
       async currentUser => {
-        (await this.collectionsService.getCollections(currentUser.userName)).subscribe(
+        (await this.collectionsService.getAllCollections()).subscribe(
           (response: any) => {
             this.collectionList = [];
             response.forEach((collection: { collectionName: any; collectionId: any; }) => {

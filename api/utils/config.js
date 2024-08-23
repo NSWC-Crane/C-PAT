@@ -21,6 +21,7 @@ let config = {
     },
     settings: {
         setClassification: process.env.CPAT_CLASSIFICATION || "U",
+        lastAccessResolution: 60,
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || "none"
     },
     client: {
@@ -93,7 +94,7 @@ let config = {
     oauth: {
         authority: process.env.CPAT_OIDC_PROVIDER || "http://192.168.1.101:8080/auth/realms/RMFTools",
         claims: {
-            scope: process.env.CPAT_JWT_SCOPE_CLAIM || "c-pat:read c-pat:op openid profile offline_access",
+            scope: process.env.CPAT_JWT_SCOPE_CLAIM || "scope",
             username: process.env.CPAT_JWT_USERNAME_CLAIM || "preferred_username",
             servicename: process.env.CPAT_JWT_SERVICENAME_CLAIM || "clientId",
             fullname: process.env.CPAT_JWT_FULL_NAME_CLAIM || process.env.CPAT_JWT_USERNAME_CLAIM || "name",

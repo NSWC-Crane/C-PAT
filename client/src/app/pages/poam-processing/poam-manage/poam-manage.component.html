@@ -31,25 +31,25 @@
       <p-tabView>
         <p-tabPanel header="All POAMs">
           <cpat-poam-assigned-grid [assignedData]="this.allPoams"
-                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'Manage']"
+                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'POAM']"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>
         <p-tabPanel header="Needs Attention">
           <cpat-poam-assigned-grid [assignedData]="this.poamsNeedingAttention"
-                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'Manage']"
+                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'POAM']"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>
         <p-tabPanel *ngIf="this.userPermissions.accessLevel >= 2" header="My POAMs">
           <cpat-poam-assigned-grid [assignedData]="this.submittedPoams"
-                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'Manage']"
+                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'POAM']"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>
         <p-tabPanel *ngIf="this.userPermissions.accessLevel >= 3" header="Pending Approval">
           <cpat-poam-assigned-grid [assignedData]="this.poamsPendingApproval"
-                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Approval Status', 'Manage']"
+                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Approval Status', 'POAM']"
                                    [userId]="this.user.userId"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
@@ -59,6 +59,6 @@
   </div>
 </div>
 <cpat-poam-grid [poamsData]="poamsForChart"
-                [allColumns]="['Last Updated', 'POAM ID', 'POAM Status', 'Adjusted Severity', 'Submitter', 'Submitted Date', 'Scheduled Completion Date', 'Manage']"
+                [allColumns]="['Last Updated', 'POAM ID', 'POAM Status', 'Adjusted Severity', 'Submitter', 'Submitted Date', 'Scheduled Completion Date', 'POAM']"
                 (managePoam)="managePoam($event)">
 </cpat-poam-grid>

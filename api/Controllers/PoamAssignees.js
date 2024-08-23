@@ -28,25 +28,6 @@ exports.getPoamAssigneesByPoamId = async function getPoamAssigneesByPoamId(req, 
     }
 };
 
-
-exports.getPoamAssigneesByUserId = async function getPoamAssigneesByUserId(req, res, next) {
-    try {
-        const result = await poamAssigneeService.getPoamAssigneesByUserId(req, res, next);
-        return res.status(200).json(result);
-    } catch (error) {
-        return res.status(500).json({ error: "An error occurred while retrieving POAM assignees by userId" });
-    }
-};
-
-exports.getPoamAssignee = async function getPoamAssignee(req, res, next) {
-    try {
-        const result = await poamAssigneeService.getPoamAssignee(req, res, next);
-        return res.status(200).json(result);
-    } catch (error) {
-        return res.status(500).json({ error: "An error occurred while retrieving the POAM assignee" });
-    }
-};
-
 exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
     try {
         const assignee = await poamAssigneeService.postPoamAssignee(req, res, next);

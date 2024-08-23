@@ -26,7 +26,8 @@ module.exports.getPoamLabels = async function getPoamLabels(req, res, next) {
 
 module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res, next) {
     try {
-        const poamLabels = await poamLabelService.getAvailablePoamLabels(req, res, next);
+        const userId = req.userObject.userId;
+        const poamLabels = await poamLabelService.getAvailablePoamLabels(userId);
         res.status(200).json(poamLabels);
     } catch (error) {
         if (error.message === 'User ID is required') {

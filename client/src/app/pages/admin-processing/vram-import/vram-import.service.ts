@@ -54,7 +54,7 @@ export class VRAMImportService {
 
   async getVramDataUpdatedDate() {
     const headers = await this.getAuthHeaders();
-    return this.http.get(`${this.cpatApiBase}/vramUpdatedDate`, { headers })
+    return this.http.get(`${this.cpatApiBase}/iav/vramUpdatedDate`, { headers })
       .pipe(catchError(this.handleError));
   }
 }

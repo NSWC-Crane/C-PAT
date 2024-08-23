@@ -293,7 +293,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
           'Rule Title': item.rules[0].title,
           'ruleId': item.rules[0].ruleId,
           'Benchmark ID': item.stigs[0].benchmarkId,
-          'Severity': item.severity === 'high' ? 'CAT I - Critical/High' :
+          'Severity': item.severity === 'high' ? 'CAT I - High' :
             item.severity === 'medium' ? 'CAT II - Medium' :
               item.severity === 'low' ? 'CAT III - Low' : item.severity,
           'Asset Count': item.assetCount
@@ -312,7 +312,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       this.findingsCount = this.treeData.length;
 
       const severityGroups = data.reduce((groups: any, item: any) => {
-        const severity = item.severity === 'high' ? 'CAT I - Critical/High' :
+        const severity = item.severity === 'high' ? 'CAT I - High' :
           item.severity === 'medium' ? 'CAT II - Medium' :
             item.severity === 'low' ? 'CAT III - Low' : item.severity;
         if (!groups[severity]) {
@@ -327,7 +327,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         severityCount: count
       }));
 
-      const allSeverities = ['CAT I - Critical/High', 'CAT II - Medium', 'CAT III - Low'];
+      const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
       allSeverities.forEach(severity => {
         if (!findings.find(finding => finding.severity === severity)) {
           findings.push({ severity, severityCount: 0 });
@@ -393,7 +393,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       severityCount: count
     }));
 
-    const allSeverities = ['CAT I - Critical/High', 'CAT II - Medium', 'CAT III - Low'];
+    const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
     allSeverities.forEach(severity => {
       if (!findings.find(finding => finding.severity === severity)) {
         findings.push({ severity, severityCount: 0 });

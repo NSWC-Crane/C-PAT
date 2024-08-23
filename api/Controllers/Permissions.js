@@ -10,18 +10,6 @@
 
 const permissionService = require('../Services/permissionsService');
 
-module.exports.getCollectionPermission = async function getCollectionPermission(req, res, next) {
-    try {
-        const getCollection = await permissionService.getCollectionPermission(req.params.userName, req.params.collectionId, req, res, next);
-        if (getCollection) {
-            res.status(200).json(getCollection);
-        } else {
-            res.status(204).send();
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-    }
-};
 
 module.exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
     try {
@@ -38,7 +26,9 @@ module.exports.getCollectionPermissions = async function getCollectionPermission
 
 module.exports.postPermission = async function postPermission(req, res, next) {
     try {
-        const permission = await permissionService.postPermission(req, res, next);
+        const userId = req.userObject.userId;
+        const elevate = req.query.elevate;
+        const permission = await permissionService.postPermission(userId, elevate, req);
         res.status(201).json(permission);
     } catch (error) {
         if (error.status === 400) {
@@ -51,7 +41,9 @@ module.exports.postPermission = async function postPermission(req, res, next) {
 
 module.exports.putPermission = async function putPermission(req, res, next) {
     try {
-        const permission = await permissionService.putPermission(req, res, next);
+        const userId = req.userObject.userId;
+        const elevate = req.query.elevate;
+        const permission = await permissionService.putPermission(userId, elevate, req);
         res.status(200).json(permission);
     } catch (error) {
         if (error.status === 400) {
@@ -64,7 +56,9 @@ module.exports.putPermission = async function putPermission(req, res, next) {
 
 module.exports.deletePermission = async function deletePermission(req, res, next) {
     try {
-        await permissionService.deletePermission(req, res, next);
+        const userId = req.userObject.userId;
+        const elevate = req.query.elevate;
+        await permissionService.deletePermission(userId, elevate, req);
         res.status(204).send();
     } catch (error) {
         if (error.status === 400) {
