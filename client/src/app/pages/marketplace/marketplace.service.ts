@@ -58,14 +58,14 @@ export class MarketplaceService {
   async getUserThemes(userId: number) {
     const headers = await this.getAuthHeaders();
     return this.http
-      .get<Theme[]>(`${this.cpatApiBase}/marketplace/user-themes/${userId}`, { headers })
+      .get<Theme[]>(`${this.cpatApiBase}/marketplace/user-themes`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getUserPoints(userId: number) {
     const headers = await this.getAuthHeaders();
     return this.http
-      .get<any>(`${this.cpatApiBase}/marketplace/user-points/${userId}`, { headers })
+      .get<any>(`${this.cpatApiBase}/marketplace/user-points`, { headers })
       .pipe(catchError(this.handleError));
   }
 }

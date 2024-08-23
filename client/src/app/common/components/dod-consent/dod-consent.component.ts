@@ -36,7 +36,6 @@ export class DoDConsentComponent implements AfterViewInit {
   consentOk() {
     if (this.modalWindow) {
       this.modalWindow.close();
-      this.router.navigate(['/poam-processing']);
     }
   }
 }

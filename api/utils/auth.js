@@ -18,58 +18,42 @@ const { promisify } = require('util');
 const User = require('../Services/usersService')
 const axios = require('axios');
 const SmError = require('./error');
-const { format, isAfter  } = require('date-fns');
+const { format, isAfter, differenceInMinutes } = require('date-fns');
 
-let jwksUri;
-let client;
+let jwksUri
+let client
 
 const privilegeGetter = new Function("obj", "return obj?." + config.oauth.claims.privileges + " || [];");
 
 const verifyRequest = async function (req, requiredScopes, securityDefinition) {
-    const token = getBearerToken(req);
+
+    const token = getBearerToken(req)
     if (!token) {
-        throw new SmError.AuthorizeError("OIDC bearer token must be provided");
+        throw (new SmError.AuthorizeError("OIDC bearer token must be provided"))
     }
-
-    const options = { algorithms: ['RS256'] };
-    const decoded = await verifyAndDecodeToken(token, getKey, options);
-    req.access_token = decoded;
-    req.bearer = token;
-
+    const options = {
+        algorithms: ['RS256']
+    }
+    const decoded = await verifyAndDecodeToken(token, getKey, options)
+    req.access_token = decoded
+    req.bearer = token
     req.userObject = {
-        userName: decoded[config.oauth.claims.username],
-        firstName: decoded[config.oauth.claims.firstname] || 'null',
-        lastName: decoded[config.oauth.claims.lastname] || 'null',
-        fullName: decoded[config.oauth.claims.fullname] || 'null',
-        email: decoded[config.oauth.claims.email],
-        lastClaims: req.access_token,
-    };
+        email: decoded[config.oauth.claims.email] || '',
+        firstName: decoded[config.oauth.claims.firstname] || '',
+        lastName: decoded[config.oauth.claims.lastname] || '',
+        fullName: decoded[config.oauth.claims.fullname] || '',
+    }
 
-    const usernamePrecedence = [config.oauth.claims.username, "preferred_username", config.oauth.claims.servicename, "azp", "client_id", "clientId"];
-    req.userObject.userName = decoded[usernamePrecedence.find(element => !!decoded[element])];
-
+    const usernamePrecedence = [config.oauth.claims.username, "preferred_username", config.oauth.claims.servicename, "azp", "client_id", "clientId"]
+    req.userObject.userName = decoded[usernamePrecedence.find(element => !!decoded[element])]
     if (req.userObject.userName === undefined) {
-        throw new SmError.PrivilegeError("No token claim mappable to username found");
+        throw (new SmError.PrivilegeError("No token claim mappable to username found"))
     }
 
-    let scopeClaim;
-    if (decoded[config.oauth.claims.scope]) {
-        scopeClaim = decoded[config.oauth.claims.scope];
-    } else if (decoded.scope) {
-        scopeClaim = decoded.scope;
-    } else {
-        scopeClaim = null;
-    }
-
-    let grantedScopes = [];
-
-    if (typeof scopeClaim === 'string') {
-        grantedScopes = scopeClaim.split(' ');
-    } else if (Array.isArray(scopeClaim)) {
-        grantedScopes = scopeClaim;
-    } else {
-        logger.writeError('verifyRequest', 'invalidScopeType', { scopeClaim, grantedScopes });
-    }
+    req.userObject.displayName = decoded[config.oauth.claims.name] || req.userObject.userName
+    const grantedScopes = typeof decoded[config.oauth.claims.scope] === 'string' ?
+        decoded[config.oauth.claims.scope].split(' ') :
+        decoded[config.oauth.claims.scope]
     const commonScopes = _.intersectionWith(grantedScopes, requiredScopes, function (gs, rs) {
         if (gs === rs) return gs
         let gsTokens = gs.split(":").filter(i => i.length)
@@ -80,51 +64,49 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
         else {
             return gsTokens.every((t, i) => rsTokens[i] === t)
         }
-    });
-
+    })
     if (commonScopes.length == 0) {
         throw (new SmError.PrivilegeError("Not in scope"))
-    } else {  
-        const permissions = {};
-        permissions.canAdmin = privilegeGetter(decoded).includes('admin');
-        req.userObject.isAdmin = permissions.canAdmin ? 1 : 0;
+    }
+    else {
+        let isAdmin = privilegeGetter(decoded).includes('admin');
         const response = await User.getUserByUserName(req.userObject.userName);
-
+        if (response?.length > 1) req.userObject = response;
+        const adminValidation = response?.isAdmin === 1 ? isAdmin : 0;
+        req.userObject.isAdmin = adminValidation;
         req.userObject.userId = response?.userId || null;
 
+        const refreshFields = {}
         let now = new Date();
         let formattedNow = format(now, 'yyyy-MM-dd HH:mm:ss');
 
-        if (!response?.lastAccess) {
-            req.userObject.lastAccess = formattedNow;
-        } else {
-            let lastAccessDate = new Date(response.lastAccess);
-            if (isAfter(now, lastAccessDate)) {
-                req.userObject.lastAccess = formattedNow;
-            } else {
-                req.userObject.lastAccess = response.lastAccess;
-            }
+        if (!response?.lastAccess || differenceInMinutes(now, response?.lastAccess) >= config.settings.lastAccessResolution) {
+            refreshFields.lastAccess = now
         }
         if (!response?.lastClaims || decoded.jti !== response?.lastClaims?.jti) {
-            req.userObject.lastClaims = decoded
-        } else {
-            req.userObject.lastClaims = response.lastClaims
+            refreshFields.lastClaims = decoded
         }
 
-        if (req.userObject.userName) {
-            const userResponse = await User.setUserData(req.userObject);
-            const userId = userResponse.userId;
-            if (userId !== req.userObject.userId) {
-                req.userObject.userId = userId;
-            }
+        if (req.userObject.userName && (refreshFields.lastAccess || refreshFields.lastClaims)) {
+            if (req.userObject.userId === null) {
+                const userId = await User.setUserData(req.userObject, refreshFields, true);
+                if (userId.insertId != req.userObject.userId) {
+                    req.userObject.userId = userId.insertId.toString();
+                }
+            } else {
+                const userId = await User.setUserData(req.userObject, refreshFields, false);
+                if (userId.insertId != req.userObject.userId) {
+                    req.userObject.userId = userId.insertId.toString();
+                }
+            }                   
         }
-
-        if ('elevate' in req.query && req.query.elevate === 'true' && !permissions.canAdmin) {
-            throw new SmError.PrivilegeError("User has insufficient privilege to complete this request.");
+        if ('elevate' in req.query && (req.query.elevate === 'true' && req.userObject.isAdmin != 1)) {
+            throw (new SmError.PrivilegeError("User has insufficient privilege to complete this request."))
         }
         return true;
     }
-};
+
+}
 
 const verifyAndDecodeToken = promisify(jwt.verify);
 

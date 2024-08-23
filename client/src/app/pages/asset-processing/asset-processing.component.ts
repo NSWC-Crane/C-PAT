@@ -46,6 +46,7 @@ interface AssetEntry {
   providers: [DialogService]
 })
 export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestroy {
+  protected accessLevel: number;
   @ViewChild('assetLabelsChart') assetLabelsChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('assetTable') assetTable!: Table;
   searchValue: string = '';
@@ -243,30 +244,36 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   async setPayload() {
     this.user = null;
     this.payload = null;
-
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
-      (response: any) => {
+    this.accessLevel = 0;
+    (await this.userService.getCurrentUser()).subscribe({
+      next: (response: any) => {
         if (response?.userId) {
           this.user = response;
+            const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
+              collectionId: permission.collectionId,
+              accessLevel: permission.accessLevel,
+            }));
 
-          if (this.user.accountStatus === 'ACTIVE') {
             this.payload = {
               ...this.user,
-              collections: this.user.permissions.map((permission: Permission) => ({
-                collectionId: permission.collectionId,
-                accessLevel: permission.accessLevel,
-              }))
+              collections: mappedPermissions
             };
+          if (mappedPermissions.length > 0) {
+            const selectedPermissions = this.payload.collections.find(
+              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
+            );
+
+            if (selectedPermissions) {
+              this.accessLevel = selectedPermissions.accessLevel;
+            }
+          }
             this.getAssetData();
           }
-        } else {
-          console.error('User data is not available or user is not active');
-        }
-      },
-      (error) => {
+        },
+      error: (error) => {
         console.error('An error occurred:', error);
       }
-    );
+    });
   }
 
   async getAssetData() {

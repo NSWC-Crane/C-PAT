@@ -10,20 +10,7 @@ import { SubSink } from 'subsink';
 import { SharedService } from '../../common/services/shared.service';
 import { format } from 'date-fns';
 import { Subject, filter, takeUntil } from 'rxjs';
-function getRoleFromAccessLevel(accessLevel: number): string {
-  switch (accessLevel) {
-    case 1:
-      return 'viewer';
-    case 2:
-      return 'submitter';
-    case 3:
-      return 'approver';
-    case 4:
-      return 'cat1approver';
-    default:
-      return 'none';
-  }
-}
+
 interface Permission {
   userId: number;
   collectionId: number;
@@ -66,8 +53,6 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   public async ngOnInit() {
     this.layoutService.setInitialTheme('lara-dark-blue');
     this.initializeUser();
-    this.setMenuItems();
-    this.setupUserMenuActions();
   }
 
   async initializeUser() {
@@ -92,6 +77,8 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
             };
             this.getNotificationCount();
             this.getCollections();
+            this.setMenuItems();
+            this.setupUserMenuActions();
             this.router.events.pipe(
               filter(event => event instanceof NavigationEnd),
               takeUntil(this.destroy$)
@@ -100,8 +87,6 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
                 this.getNotificationCount();
               }
             });
-          } else {
-            alert('Your account status is not Active, contact your system administrator');
           }
         },
         error: (error) => {
@@ -114,8 +99,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   }
 
   async getCollections() {
-    const userName = this.payload.userName;
-    this.subs.sink = (await this.collectionService.getCollections(userName)).subscribe((result: any) => {
+    this.subs.sink = (await this.collectionService.getCollections()).subscribe((result: any) => {
       this.collections = result;
       if (this.user.lastCollectionAccessedId) {
         this.selectedCollection = +this.user.lastCollectionAccessedId;
@@ -130,7 +114,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   }
 
   async getNotificationCount() {
-    this.subs.sink = (await this.notificationService.getUnreadNotificationCountByUserId(this.user.userId)).subscribe((result: any) => {
+    this.subs.sink = (await this.notificationService.getUnreadNotificationCount()).subscribe((result: any) => {
       this.notificationCount = result > 0 ? result : null;
     });
   }
@@ -227,22 +211,8 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
       officeOrg: this.user.officeOrg,
       defaultTheme: this.user.defaultTheme || 'default',
       isAdmin: this.user.isAdmin,
+      points: this.user.points,
     };
-    const selectedPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == selectedCollection);
-    let myRole: string;
-
-    if (!selectedPermissions && !this.user.isAdmin) {
-      myRole = 'none';
-    } else if (this.user.isAdmin) {
-      myRole = 'admin';
-    } else if (selectedPermissions) {
-      myRole = getRoleFromAccessLevel(selectedPermissions.accessLevel);
-    } else {
-      myRole = 'none';
-    }
-
-    this.payload.role = myRole;
-    this.userService.changeRole(this.payload);
 
     if (this.user.lastCollectionAccessedId !== selectedCollection) {
       try {

@@ -13,23 +13,23 @@
     <div class="container">
       <div class="form-group">
         <label for="approvalStatus">Approval Status:</label>
-        <p-dropdown [options]="approvalStatusOptions" [(ngModel)]="approvalStatus" placeholder="Approval Status..." name="approvalStatus" [style]="{'width':'25rem'}"></p-dropdown>
+        <p-dropdown [options]="approvalStatusOptions" [(ngModel)]="approvalStatus" placeholder="Approval Status..." name="approvalStatus" [style]="{'width':'25rem'}" [disabled]="accessLevel < 3"></p-dropdown>
       </div>
       <div class="form-group">
         <label for="approvedDate">Approval Date: </label>
-        <p-calendar [(ngModel)]="dates.approvedDate" name="approvedDate" placeholder="Approval Date..." [style]="{'width':'25rem'}"></p-calendar>
+        <p-calendar [(ngModel)]="dates.approvedDate" name="approvedDate" placeholder="Approval Date..." [style]="{'width':'25rem'}" [disabled]="accessLevel < 3"></p-calendar>
       </div>
       <div class="form-group">
         <label for="comments">Approval Comments:</label>
-        <textarea pInputTextarea class="w-full" [(ngModel)]="comments" placeholder="Comments..." name="comments" [rows]="10" [maxlength]="2000"></textarea>
+        <textarea pInputTextarea class="w-full" [(ngModel)]="comments" placeholder="Comments..." name="comments" [rows]="10" [maxlength]="2000" [disabled]="accessLevel < 3"></textarea>
       </div>
     </div>
   </ng-template>
   <ng-template pTemplate="footer">
     <div class="p-dialog-footer" style="display: flex; align-items: center; justify-content: space-between;">
-      <p-checkbox [(ngModel)]="hqsChecked" label="High-Quality Submission?"></p-checkbox>
+      <p-checkbox [(ngModel)]="hqsChecked" label="High-Quality Submission?" [disabled]="accessLevel < 3"></p-checkbox>
       <div>
-        <p-button [outlined]="true" label="Save" icon="pi pi-check" (click)="submitApprovalData()"></p-button>
+        <p-button [outlined]="true" label="Save" icon="pi pi-check" (click)="submitApprovalData()" [disabled]="accessLevel < 3"></p-button>
         <p-button [outlined]="true" severity="secondary" class="ml-2" label="Cancel" icon="pi pi-times" (click)="cancelApproval()" ></p-button>
       </div>
     </div>

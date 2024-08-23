@@ -10,40 +10,45 @@
 
 const notificationService = require('../Services/notificationService');
 
-module.exports.getAllNotificationsByUserId = async function getAllNotificationsByUserId(req, res, next) {
+module.exports.getAllNotifications = async function getAllNotifications(req, res, next) {
     try {
-        const userId = req.params.userId;
-        const notifications = await notificationService.getAllNotificationsByUserId(userId);
+        const userId = req.userObject.userId;
+        const notifications = await notificationService.getAllNotifications(userId);
+
         res.status(200).json(notifications);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 
-module.exports.getUnreadNotificationsByUserId = async function getUnreadNotificationsByUserId(req, res, next) {
+module.exports.getUnreadNotifications = async function getUnreadNotifications(req, res, next) {
     try {
-        const userId = req.params.userId;
-        const notifications = await notificationService.getUnreadNotificationsByUserId(userId);
+        const userId = req.userObject.userId;
+        const notifications = await notificationService.getUnreadNotifications(userId);
+
         res.status(200).json(notifications);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 
-module.exports.getUnreadNotificationCountByUserId = async function getUnreadNotificationCountByUserId(req, res, next) {
+module.exports.getUnreadNotificationCount = async function getUnreadNotificationCount(req, res, next) {
     try {
-        const userId = req.params.userId;
-        const notificationCount = await notificationService.getUnreadNotificationCountByUserId(userId);
+        const userId = req.userObject.userId;
+        const notificationCount = await notificationService.getUnreadNotificationCount(userId);
+
         res.status(200).json(notificationCount);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 
-module.exports.dismissNotificationByNotificationId = async function dismissNotificationByNotificationId(req, res, next) {
+module.exports.dismissNotification = async function dismissNotification(req, res, next) {
     try {
+        const userId = req.userObject.userId;
         const notificationId = req.params.notificationId;
-        const unreadNotifications = await notificationService.dismissNotificationByNotificationId(notificationId);
+        const unreadNotifications = await notificationService.dismissNotification(userId, notificationId);
+
         if (unreadNotifications !== null) {
             res.status(200).json(unreadNotifications);
         } else {
@@ -54,10 +59,10 @@ module.exports.dismissNotificationByNotificationId = async function dismissNotif
     }
 };
 
-module.exports.dismissAllNotificationsByUserId = async function dismissAllNotificationsByUserId(req, res, next) {
+module.exports.dismissAllNotifications = async function dismissAllNotifications(req, res, next) {
     try {
-        const userId = req.params.userId;
-        const dismissed = await notificationService.dismissAllNotificationsByUserId(userId);
+        const userId = req.userObject.userId;
+        const dismissed = await notificationService.dismissAllNotifications(userId);
         if (dismissed) {
             res.status(204).json();
         } else {
@@ -68,10 +73,11 @@ module.exports.dismissAllNotificationsByUserId = async function dismissAllNotifi
     }
 };
 
-module.exports.deleteNotificationByNotificationId = async function deleteNotificationByNotificationId(req, res, next) {
+module.exports.deleteNotification = async function deleteNotification(req, res, next) {
     try {
+        const userId = req.userObject.userId;
         const notificationId = req.params.notificationId;
-        const deleted = await notificationService.deleteNotificationByNotificationId(notificationId);
+        const deleted = await notificationService.deleteNotification(userId, notificationId);
 
         if (deleted) {
             res.status(204).send();
@@ -83,10 +89,10 @@ module.exports.deleteNotificationByNotificationId = async function deleteNotific
     }
 };
 
-module.exports.deleteAllNotificationsByUserId = async function deleteAllNotificationsByUserId(req, res, next) {
+module.exports.deleteAllNotifications = async function deleteAllNotifications(req, res, next) {
     try {
-        const userId = req.params.userId;
-        const deleted = await notificationService.deleteAllNotificationsByUserId(userId);
+        const userId = req.userObject.userId;
+        const deleted = await notificationService.deleteAllNotifications(userId);
 
         if (deleted) {
             res.status(204).send();

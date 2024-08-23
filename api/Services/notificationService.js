@@ -21,7 +21,10 @@ async function withConnection(callback) {
         await connection.release();
     }
 }
-exports.getAllNotificationsByUserId = async function getAllNotificationsByUserId(userId) {
+
+
+
+exports.getAllNotifications = async function getAllNotifications(userId) {
     try {
         return await withConnection(async (connection) => {
             const sql = `SELECT * FROM cpat.notification WHERE userId = ? ORDER BY timestamp DESC`;
@@ -33,7 +36,7 @@ exports.getAllNotificationsByUserId = async function getAllNotificationsByUserId
     }
 };
 
-exports.getUnreadNotificationsByUserId = async function getUnreadNotificationsByUserId(userId) {
+exports.getUnreadNotifications = async function getUnreadNotifications(userId) {
     try {
         return await withConnection(async (connection) => {
             const sql = `SELECT * FROM cpat.notification WHERE notification.read = 0 AND userId = ? ORDER BY timestamp DESC`;
@@ -45,7 +48,7 @@ exports.getUnreadNotificationsByUserId = async function getUnreadNotificationsBy
     }
 };
 
-exports.getUnreadNotificationCountByUserId = async function getUnreadNotificationCountByUserId(userId) {
+exports.getUnreadNotificationCount = async function getUnreadNotificationCount(userId) {
     try {
         return await withConnection(async (connection) => {
             const sql = `SELECT COUNT(userId) AS NotificationCount FROM cpat.notification WHERE notification.read = 0 AND userId = ?`;
@@ -58,7 +61,7 @@ exports.getUnreadNotificationCountByUserId = async function getUnreadNotificatio
     }
 };
 
-exports.dismissNotificationByNotificationId = async function dismissNotificationByNotificationId(notificationId, userId) {
+exports.dismissNotification = async function dismissNotification(userId, notificationId) {
     try {
         return await withConnection(async (connection) => {
             const userIdQuery = `SELECT userId FROM cpat.notification WHERE notificationId = ?`;
@@ -77,7 +80,7 @@ exports.dismissNotificationByNotificationId = async function dismissNotification
     }
 };
 
-exports.dismissAllNotificationsByUserId = async function dismissAllNotificationsByUserId(userId) {
+exports.dismissAllNotifications = async function dismissAllNotifications(userId) {
     try {
         return await withConnection(async (connection) => {
             const sql = `UPDATE cpat.notification SET notification.read = 1 WHERE userId = ?`;
@@ -89,11 +92,11 @@ exports.dismissAllNotificationsByUserId = async function dismissAllNotifications
     }
 };
 
-exports.deleteNotificationByNotificationId = async function deleteNotificationByNotificationId(notificationId) {
+exports.deleteNotification = async function deleteNotification(userId, notificationId) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `DELETE FROM cpat.notification WHERE notificationId = ?`;
-            const [result] = await connection.query(sql, [notificationId]);
+            const sql = `DELETE FROM cpat.notification WHERE notificationId = ? AND userId = ?`;
+            const [result] = await connection.query(sql, [notificationId, userId]);
             return result.affectedRows > 0;
         });
     } catch (error) {
@@ -101,7 +104,7 @@ exports.deleteNotificationByNotificationId = async function deleteNotificationBy
     }
 };
 
-exports.deleteAllNotificationsByUserId = async function deleteAllNotificationsByUserId(userId) {
+exports.deleteAllNotifications = async function deleteAllNotifications(userId) {
     try {
         return await withConnection(async (connection) => {
             const sql = `DELETE FROM cpat.notification WHERE userId = ?`;

@@ -41,9 +41,7 @@ export class VRAMImportComponent implements OnInit {
       next: (response: any) => {
         if (response && response.value) {
           this.vramUpdatedDate = response.value;
-          console.log('VRAM Updated Date:', this.vramUpdatedDate);
         } else {
-          console.error('Invalid response format:', response);
           this.vramUpdatedDate = 'N/A';
         }
       },

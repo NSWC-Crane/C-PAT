@@ -128,7 +128,7 @@ export class STIGManagerAdminComponent implements OnInit {
   private importCollection(collection: STIGManagerCollection): Observable<any> {
     const collectionData = {
       collectionName: collection.name,
-      description: collection.description || '',
+      description: collection.description ?? '',
       collectionOrigin: 'STIG Manager',
       originCollectionId: +collection.collectionId,
     };

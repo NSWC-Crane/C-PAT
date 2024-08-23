@@ -67,13 +67,9 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT
         },
         status: {
-            type: DataTypes.STRING(10),
+            type: DataTypes.STRING(50),
             allowNull: false,
             defaultValue: 'Draft'
-        },
-        vulnIdRestricted: {
-            type: DataTypes.STRING(255),
-            defaultValue: ''
         },
         submittedDate: {
             type: DataTypes.DATEONLY,
@@ -116,11 +112,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(15),
             defaultValue: ''
         },
-        businessImpactRating: {
+        impactRating: {
             type: DataTypes.STRING(15),
             defaultValue: ''
         },
-        businessImpactDescription: {
+        impactDescription: {
             type: DataTypes.TEXT
         },
         extensionTimeAllowed: {

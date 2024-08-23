@@ -13,17 +13,19 @@ import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { NotificationsComponent } from './common/components/notifications/notifications.component';
 import { AuthGuard } from './core/auth/guards/auth.guard'
 import { UnauthorizedComponent } from './common/components/unauthorized/unauthorized.component';
+import { NotActivatedComponent } from './common/components/notActivated/notActivated.component';
 import { AppLayoutComponent } from './layout/components/app.layout.component';
+import { DoDConsentComponent } from './common/components/dod-consent/dod-consent.component';
 
 const routerOptions: ExtraOptions = {
   anchorScrolling: 'enabled'
 };
 
 const routes: Routes = [
-  {
+  {    
     path: '', component: AppLayoutComponent,
-    children: [
-
+    children:
+    [
   { path: 'admin-processing', canActivate: [AuthGuard], data: { guardType: 'admin' }, loadChildren: () => import('./pages/admin-processing/admin-processing.module').then(m => m.AdminProcessingModule) },
   { path: 'asset-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/asset-processing/asset-processing.module').then(m => m.AssetProcessingModule) },
   { path: 'consent', canActivate: [AuthGuard], loadChildren: () => import('./common/components/dod-consent/dod-consent.module').then(m => m.DoDConsentModule) },
@@ -35,6 +37,7 @@ const routes: Routes = [
     ]
   },
   { path: 'unauthorized', component: UnauthorizedComponent },
+  { path: 'not-activated', component: NotActivatedComponent },
   { path: '**', redirectTo: 'consent' },
 ];
 @NgModule({

@@ -4,84 +4,112 @@ import { filter, Subscription } from 'rxjs';
 import { MenuService } from '../services/app.menu.service';
 import { AppNavigationComponent } from './app.navigation.component';
 import { LayoutService } from '../services/app.layout.service';
+import { SubSink } from 'subsink';
+import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 
 @Component({
     selector: 'app-layout',
     templateUrl: './app.layout.component.html',
 })
 export class AppLayoutComponent implements OnDestroy {
-    overlayMenuOpenSubscription: Subscription;
+  overlayMenuOpenSubscription: Subscription;
+  menuOutsideClickListener: any;
+  menuScrollListener: any;
+  user: any;
+  verified: boolean = false;
+  private subs = new SubSink();
+  @ViewChild(AppNavigationComponent) appSidebar!: AppNavigationComponent;
+  @ViewChild(AppNavigationComponent) appTopbar!: AppNavigationComponent;
 
-    menuOutsideClickListener: any;
+  constructor(
+    private menuService: MenuService,
+    public layoutService: LayoutService,
+    public renderer: Renderer2,
+    public router: Router,
+    private userService: UsersService
+  ) {
+    this.initialize();
+  }
 
-    menuScrollListener: any;
+  async initialize() {
+    try {
+      this.user = null;
+      this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
+        next: (response: any) => {
+          this.user = response;
+          if (this.user.accountStatus != 'ACTIVE') {
+            this.router.navigate(['/not-activated']);
+          } else {
+            this.verified = true;
+            this.continueInitialization();
+          }
+        },
+        error: (error: any) => {
+          console.error('An error occurred:', error.message);
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing user:', error);
+    }    
+  }
 
-    @ViewChild(AppNavigationComponent) appSidebar!: AppNavigationComponent;
-
-    @ViewChild(AppNavigationComponent) appTopbar!: AppNavigationComponent;
-
-    constructor(
-        private menuService: MenuService,
-        public layoutService: LayoutService,
-        public renderer: Renderer2,
-        public router: Router
-    ) {
-        this.overlayMenuOpenSubscription =
-            this.layoutService.overlayOpen$.subscribe(() => {
-                if (!this.menuOutsideClickListener) {
-                    this.menuOutsideClickListener = this.renderer.listen(
-                        'document',
-                        'click',
-                        (event) => {
-                            const isOutsideClicked = !(
-                                this.appSidebar.el.nativeElement.isSameNode(
-                                    event.target
-                                ) ||
-                                this.appSidebar.el.nativeElement.contains(
-                                    event.target
-                                ) ||
-                                this.appTopbar.menuButton.nativeElement.isSameNode(
-                                    event.target
-                                ) ||
-                                this.appTopbar.menuButton.nativeElement.contains(
-                                    event.target
-                                )
-                            );
-                            if (isOutsideClicked) {
-                                this.hideMenu();
-                            }
-                        }
-                    );
-                }
-
-                if (
-                    (this.layoutService.isHorizontal() ||
-                        this.layoutService.isSlim() ||
-                        this.layoutService.isSlimPlus()) &&
-                    !this.menuScrollListener
-                ) {
-                    this.menuScrollListener = this.renderer.listen(
-                        this.appSidebar.menuContainer.nativeElement,
-                        'scroll',
-                        (event) => {
-                            if (this.layoutService.isDesktop()) {
-                                this.hideMenu();
-                            }
-                        }
-                    );
-                }
-
-                if (this.layoutService.state.staticMenuMobileActive) {
-                    this.blockBodyScroll();
-                }
-            });
-
-        this.router.events
-            .pipe(filter((event) => event instanceof NavigationEnd))
-            .subscribe(() => {
+  continueInitialization() {
+    this.overlayMenuOpenSubscription =
+      this.layoutService.overlayOpen$.subscribe(() => {
+        if (!this.menuOutsideClickListener) {
+          this.menuOutsideClickListener = this.renderer.listen(
+            'document',
+            'click',
+            (event) => {
+              const isOutsideClicked = !(
+                this.appSidebar.el.nativeElement.isSameNode(
+                  event.target
+                ) ||
+                this.appSidebar.el.nativeElement.contains(
+                  event.target
+                ) ||
+                this.appTopbar.menuButton.nativeElement.isSameNode(
+                  event.target
+                ) ||
+                this.appTopbar.menuButton.nativeElement.contains(
+                  event.target
+                )
+              );
+              if (isOutsideClicked) {
                 this.hideMenu();
-            });
-    }
+              }
+            }
+          );
+        }
+
+        if (
+          (this.layoutService.isHorizontal() ||
+            this.layoutService.isSlim() ||
+            this.layoutService.isSlimPlus()) &&
+          !this.menuScrollListener
+        ) {
+          this.menuScrollListener = this.renderer.listen(
+            this.appSidebar.menuContainer.nativeElement,
+            'scroll',
+            (event) => {
+              if (this.layoutService.isDesktop()) {
+                this.hideMenu();
+              }
+            }
+          );
+        }
+
+        if (this.layoutService.state.staticMenuMobileActive) {
+          this.blockBodyScroll();
+        }
+      });
+
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.hideMenu();
+      });
+  }
 
     blockBodyScroll(): void {
         if (document.body.classList) {
@@ -107,24 +135,24 @@ export class AppLayoutComponent implements OnDestroy {
         }
     }
 
-    hideMenu() {
-        this.layoutService.state.overlayMenuActive = false;
-        this.layoutService.state.staticMenuMobileActive = false;
-        this.layoutService.state.menuHoverActive = false;
-        this.menuService.reset();
+  hideMenu() {
+    this.layoutService.state.overlayMenuActive = false;
+    this.layoutService.state.staticMenuMobileActive = false;
+    this.layoutService.state.menuHoverActive = false;
+    this.menuService.reset();
 
-        if (this.menuOutsideClickListener) {
-            this.menuOutsideClickListener();
-            this.menuOutsideClickListener = null;
-        }
-
-        if (this.menuScrollListener) {
-            this.menuScrollListener();
-            this.menuScrollListener = null;
-        }
-
-        this.unblockBodyScroll();
+    if (this.menuOutsideClickListener) {
+      this.menuOutsideClickListener();
+      this.menuOutsideClickListener = null;
     }
+
+    if (this.menuScrollListener) {
+      this.menuScrollListener();
+      this.menuScrollListener = null;
+    }
+
+    this.unblockBodyScroll();
+  }
 
     get containerClass() {
         return {
@@ -159,13 +187,13 @@ export class AppLayoutComponent implements OnDestroy {
         };
     }
 
-    ngOnDestroy() {
-        if (this.overlayMenuOpenSubscription) {
-            this.overlayMenuOpenSubscription.unsubscribe();
-        }
-
-        if (this.menuOutsideClickListener) {
-            this.menuOutsideClickListener();
-        }
+  ngOnDestroy() {
+    if (this.overlayMenuOpenSubscription) {
+      this.overlayMenuOpenSubscription.unsubscribe();
     }
+
+    if (this.menuOutsideClickListener) {
+      this.menuOutsideClickListener();
+    }
+  }
 }

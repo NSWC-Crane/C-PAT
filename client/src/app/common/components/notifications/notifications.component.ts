@@ -83,7 +83,7 @@ export class NotificationsComponent implements OnInit {
 
   async fetchNotifications() {
     try {
-      const notifications = await firstValueFrom(await this.notificationService.getAllNotificationsByUserId(this.user.userId));
+      const notifications = await firstValueFrom(await this.notificationService.getAllNotifications());
       this.notifications = notifications;
       this.filterNotifications();
     } catch (error) {
@@ -109,7 +109,7 @@ export class NotificationsComponent implements OnInit {
 
   async deleteNotification(notification: any) {
     try {
-      await firstValueFrom(await this.notificationService.deleteNotificationByNotificationId(notification.notificationId));
+      await firstValueFrom(await this.notificationService.deleteNotification(notification.notificationId));
       const index = this.notifications.indexOf(notification);
       if (index !== -1) {
         this.notifications.splice(index, 1);
@@ -126,7 +126,7 @@ export class NotificationsComponent implements OnInit {
       return;
     }
     try {
-      await firstValueFrom(await this.notificationService.dismissAllNotificationsByUserId(this.user.userId));
+      await firstValueFrom(await this.notificationService.dismissAllNotifications());
       this.fetchNotifications();
     } catch (error) {
       console.error('Failed to dismiss all notifications:', error);
@@ -139,7 +139,7 @@ export class NotificationsComponent implements OnInit {
       return;
     }
     try {
-      await firstValueFrom(await this.notificationService.deleteAllNotificationsByUserId(this.user.userId));
+      await firstValueFrom(await this.notificationService.deleteAllNotifications());
       this.fetchNotifications();
     } catch (error) {
       console.error('Failed to delete all notifications:', error);

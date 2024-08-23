@@ -8,6 +8,12 @@
 !########################################################################
 */
 
+interface Permission {
+  userId: number;
+  collectionId: number;
+  accessLevel: number;
+}
+
 import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { SubSink } from 'subsink';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,6 +37,7 @@ import { MessageService } from 'primeng/api';
   ]
 })
 export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
+  protected accessLevel: number;
   private subs = new SubSink();
   public isLoggedIn = false;
   hqsChecked: boolean = false;
@@ -42,6 +49,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   comments: any;
   selectedCollection: any;
   user: any;
+  payload: any;
   private subscriptions = new Subscription();
   approvalStatusOptions = [
     { label: 'Not Reviewed', value: 'Not Reviewed' },
@@ -79,19 +87,38 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async setPayload() {
     this.user = null;
+    this.payload = null;
+    this.accessLevel = 0;
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response?.userId) {
           this.user = response;
+          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
+            collectionId: permission.collectionId,
+            accessLevel: permission.accessLevel,
+          }));
+
+          this.payload = {
+            ...this.user,
+            collections: mappedPermissions
+          };
+          if (mappedPermissions.length > 0) {
+            const selectedPermissions = this.payload.collections.find(
+              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
+            );
+
+            if (selectedPermissions) {
+              this.accessLevel = selectedPermissions.accessLevel;
+            }
+          }
           this.getData();
-        } else {
-          console.error('User data is not available or user is not active');
         }
       },
       error: (error) => {
         console.error('An error occurred:', error);
       }
     });
+    this.cdr.detectChanges();
   }
 
   async getData() {
@@ -154,6 +181,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     (await this.poamApproveService.updatePoamApprover(approvalData)).subscribe(
       () => {
         this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Approval saved successfully.' });
+        this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
       },
       (error) => {
         this.messageService.add({ severity: 'warn', summary: 'Information', detail: 'Failed to update POAM Approval. Please validate data entry and try again.' });

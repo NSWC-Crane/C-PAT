@@ -8,16 +8,23 @@
 !########################################################################
 */
 
-import { Component, OnInit, OnDestroy, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
 import { Subscription, forkJoin } from 'rxjs';
-import { addDays, format, isAfter, parseISO } from 'date-fns';
+import { addDays, format, isAfter } from 'date-fns';
 import { PoamService } from '../poams.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { PoamExtensionService } from '../poam-extend/poam-extend.service';
 import { MessageService } from 'primeng/api';
+import { AuthGuard } from '../../../core/auth/guards/auth.guard';
+
+interface Permission {
+  userId: number;
+  collectionId: number;
+  accessLevel: number;
+}
 
 @Component({
   selector: 'cpat-poam-extend',
@@ -26,6 +33,7 @@ import { MessageService } from 'primeng/api';
   providers: [ConfirmationService]
 })
 export class PoamExtendComponent implements OnInit, OnDestroy {
+  protected accessLevel: number;
   displayExtensionDialog: boolean = false;
   dates: any = {};
   poam: any;
@@ -51,15 +59,49 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   ];
   filteredJustifications: string[] = [];
   extensionTimeOptions = [
-    { label: '0 Days', value: 0 },
+    { label: '3 Days', value: 3 },
+    { label: '7 Days', value: 7 },
+    { label: '14 Days', value: 14 },
     { label: '30 Days', value: 30 },
     { label: '60 Days', value: 60 },
     { label: '90 Days', value: 90 },
     { label: '180 Days', value: 180 },
     { label: '365 Days', value: 365 }
   ];
+  residualRiskOptions = [
+    { label: 'Very Low', value: 'Very Low' },
+    { label: 'Low', value: 'Low' },
+    { label: 'Moderate', value: 'Moderate' },
+    { label: 'High', value: 'High' },
+    { label: 'Very High', value: 'Very High' },
+  ];
+
+  likelihoodOptions = [
+    { label: 'Very Low', value: 'Very Low' },
+    { label: 'Low', value: 'Low' },
+    { label: 'Moderate', value: 'Moderate' },
+    { label: 'High', value: 'High' },
+    { label: 'Very High', value: 'Very High' },
+  ];
+
+  relevanceOfThreatOptions = [
+    { label: 'Very Low', value: 'Very Low' },
+    { label: 'Low', value: 'Low' },
+    { label: 'Moderate', value: 'Moderate' },
+    { label: 'High', value: 'High' },
+    { label: 'Very High', value: 'Very High' },
+  ];
+
+  impactRatingOptions = [
+    { label: 'Very Low', value: 'Very Low' },
+    { label: 'Low', value: 'Low' },
+    { label: 'Moderate', value: 'Moderate' },
+    { label: 'High', value: 'High' },
+    { label: 'Very High', value: 'Very High' },
+  ];
   selectedCollection: any;
   user: any;
+  payload: any;
   completionDate: any;
   completionDateWithExtension: any;
   labelList: any;
@@ -93,19 +135,38 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   async setPayload() {
     this.user = null;
+    this.payload = null;
+    this.accessLevel = 0;
     (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         if (response?.userId) {
           this.user = response;
+          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
+            collectionId: permission.collectionId,
+            accessLevel: permission.accessLevel,
+          }));
+
+          this.payload = {
+            ...this.user,
+            collections: mappedPermissions
+          };
+          if (mappedPermissions.length > 0) {
+            const selectedPermissions = this.payload.collections.find(
+              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
+            );
+
+            if (selectedPermissions) {
+              this.accessLevel = selectedPermissions.accessLevel;
+            }
+          }
           this.getData();
-        } else {
-          console.error('User data is not available or user is not active');
         }
       },
       error: (error) => {
         console.error('An error occurred:', error);
       }
     });
+    this.cdr.detectChanges();
   }
 
   async getData() {
@@ -127,6 +188,13 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           this.poam = {
             poamId: +poamData.poamId,
             status: poamData.status,
+            mitigations: poamData.mitigations,
+            requiredResources: poamData.requiredResources,
+            residualRisk: poamData.residualRisk,
+            likelihood: poamData.likelihood,
+            relevanceOfThreat: poamData.relevanceOfThreat,
+            impactRating: poamData.impactRating,
+            impactDescription: poamData.impactDescription,
             extensionTimeAllowed: extensionData.extensionTimeAllowed,
             extensionJustification: extensionData.extensionJustification,
             scheduledCompletionDate: new Date(extensionData.scheduledCompletionDate),
@@ -142,6 +210,13 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             extensionTimeAllowed: 0,
             extensionJustification: '',
             scheduledCompletionDate: '',
+            mitigations: '',
+            requiredResources: '',
+            residualRisk: '',
+            likelihood: '',
+            relevanceOfThreat: '',
+            impactRating: '',
+            impactDescription: '',
           };
           this.extensionJustification = '';
           this.completionDateWithExtension = this.poam.scheduledCompletionDate.substr(0, 10).replaceAll('-', '/');
@@ -333,6 +408,13 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       extensionTimeAllowed: this.poam.extensionTimeAllowed,
       extensionJustification: this.extensionJustification,
       status: 'Extension Requested',
+      mitigations: this.poam.mitigations,
+      requiredResources: this.poam.requiredResources,
+      residualRisk: this.poam.residualRisk,
+      likelihood: this.poam.likelihood,
+      relevanceOfThreat: this.poam.relevanceOfThreat,
+      impactRating: this.poam.impactRating,
+      impactDescription: this.poam.impactDescription,
       poamLog: [{ userId: this.user.userId }],
     };
 
@@ -341,7 +423,19 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     }
 
     try {
-      await this.poamExtensionService.putPoamExtension(extensionData);
+
+      (await this.poamExtensionService.putPoamExtension(extensionData)).subscribe({
+        next: (res) => {
+          if (res.null || res.null == "null") {
+            this.messageService.add({ severity: "error", summary: 'Information', detail: "Unexpected error adding POAM Extension" });
+          } else {
+            this.messageService.add({ severity: "success", summary: 'Success', detail: `Added POAM: ${res.poamId}` });
+          }
+        },
+        error: () => {
+          this.messageService.add({ severity: "error", summary: 'Information', detail: "Unexpected error adding POAM Extension" });
+        }
+      });
       if (this.poam.extensionTimeAllowed > 0) {
         await this.poamService.updatePoamStatus(this.poamId, extensionData);
       }

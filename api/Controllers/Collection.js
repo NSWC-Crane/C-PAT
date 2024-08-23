@@ -22,7 +22,9 @@ module.exports.getCollectionBasicList = async function getCollectionBasicList(re
 
 module.exports.getCollections = async function getCollections(req, res, next) {
     try {
-        const getCollections = await collectionService.getCollections(req.params.userName);
+        const userId = req.userObject.userId;
+        const elevate = req.query.elevate;
+        const getCollections = await collectionService.getCollections(userId, elevate);
         if (getCollections.error) {
             res.status(500).json({ error: 'Internal Server Error', detail: getCollections.error });
         } else {

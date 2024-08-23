@@ -15,6 +15,13 @@ import { addDays, differenceInCalendarDays } from 'date-fns';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 import { MultiSelectChangeEvent } from 'primeng/multiselect';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { UsersService } from '../../../admin-processing/user-processing/users.service';
+
+interface Permission {
+  userId: number;
+  collectionId: number;
+  accessLevel: number;
+}
 
 @Component({
   selector: 'cpat-poam-mainchart',
@@ -22,6 +29,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
   styleUrls: ['./poam-mainchart.component.scss']
 })
 export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit {
+  protected accessLevel: number;
   @Output() poamsChange = new EventEmitter<any[]>();
   @Input() poams!: any[];
   @Input() showAddButton: boolean = false;
@@ -31,7 +39,8 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   @ViewChild('poamLabelChart') poamLabelChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('poamSeverityChart') poamSeverityChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('poamScheduledCompletionChart') poamScheduledCompletionChart!: ElementRef<HTMLCanvasElement>;
-
+  user: any;
+  payload: any;
   poamsForChart: any[] = [];
   public poamLabel: any[] = [];
   public selectedStatus: any = null;
@@ -58,9 +67,11 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   ];
 
   poamSeverities = [
-    { value: 'CAT I - Critical/High', label: 'CAT I - Critical/High' },
+    { value: 'CAT I - Critical', label: 'CAT I - Critical' },
+    { value: 'CAT I - High', label: 'CAT I - High' },
     { value: 'CAT II - Medium', label: 'CAT II - Medium' },
-    { value: 'CAT III - Low', label: 'CAT III - Low' }
+    { value: 'CAT III - Low', label: 'CAT III - Low' },
+    { value: 'CAT III - Informational', label: 'CAT III - Informational' }
   ];
 
   poamScheduledCompletions = [
@@ -157,13 +168,15 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private userService: UsersService
   ) {
     Chart.register(...registerables);
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     if (this.poams) {
+      await this.setPayload();
       this.initializePoamLabel();
       this.initializeChart();
     }
@@ -188,6 +201,41 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
       this.initializeChart();
     }
     this.applyCanvasStyles();
+  }
+
+  async setPayload() {
+    this.user = null;
+    this.payload = null;
+    this.accessLevel = 0;
+    (await this.userService.getCurrentUser()).subscribe({
+      next: (response: any) => {
+        if (response?.userId) {
+          this.user = response;
+          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
+            collectionId: permission.collectionId,
+            accessLevel: permission.accessLevel,
+          }));
+
+          this.payload = {
+            ...this.user,
+            collections: mappedPermissions
+          };
+          if (mappedPermissions.length > 0) {
+            const selectedPermissions = this.payload.collections.find(
+              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
+            );
+
+            if (selectedPermissions) {
+              this.accessLevel = selectedPermissions.accessLevel;
+            }
+          }
+        }
+      },
+      error: (error) => {
+        console.error('An error occurred:', error);
+      }
+    });
+    this.cdr.detectChanges();
   }
 
   private applyCanvasStyles(): void {

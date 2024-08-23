@@ -125,7 +125,7 @@
   </p-header>
 
       <div class="row" *ngIf="showAddButton" style="margin-bottom: 20px;">
-          <button pButton type="button" label="Add POAM" class="p-button-outlined p-button-info" style="width: 100%;" (click)="addPoam()"></button>
+          <button pButton type="button" label="Add POAM" class="p-button-outlined p-button-primary" style="width: 100%;" (click)="addPoam()" [disabled]="accessLevel < 2"></button>
       </div>
       <div class="row align-items-center">
         <div class="col">

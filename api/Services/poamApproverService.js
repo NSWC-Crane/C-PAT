@@ -14,6 +14,7 @@ const dbUtils = require('./utils');
 const mysql = require('mysql2');
 const usersService = require('./usersService');
 const marketplaceService = require('./marketplaceService');
+
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
     try {
@@ -73,76 +74,6 @@ exports.getPoamApproversByCollection = async function getPoamApproversByCollecti
                 WHERE T3.collectionId = ?
             `;
             let [rows] = await connection.query(sql, [req.params.collectionId]);
-            const poamApprovers = rows.map(row => ({
-                ...row,
-                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
-            }));
-            return poamApprovers;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-}
-
-exports.getPoamApproversByCollectionUser = async function getPoamApproversByCollectionUser(req, res, next) {
-    if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            }
-        });
-    }
-    if (!req.params.userId) {
-        return next({
-            status: 400,
-            errors: {
-                userId: 'is required',
-            }
-        });
-    }
-
-    try {
-        return await withConnection(async (connection) => {
-            let sql = `
-                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
-                FROM cpat.poamapprovers T1
-                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
-                INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
-                WHERE T3.collectionId = ? AND T1.userId = ?
-            `;
-            let [rows] = await connection.query(sql, [req.params.collectionId, req.params.userId]);
-            const poamApprovers = rows.map(row => ({
-                ...row,
-                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
-            }));
-            return poamApprovers;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-}
-
-exports.getPoamApproversByUserId = async function getPoamApproversByUserId(req, res, next) {
-    if (!req.params.userId) {
-        return next({
-            status: 400,
-            errors: {
-                userId: 'is required',
-            }
-        });
-    }
-
-    try {
-        return await withConnection(async (connection) => {
-            let sql = `
-                SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
-                FROM cpat.poamapprovers T1
-                INNER JOIN cpat.user T2 ON T1.userId = T2.userId
-                INNER JOIN cpat.poam T3 ON T1.poamId = T3.poamId
-                WHERE T1.userId = ?
-            `;
-            let [rows] = await connection.query(sql, [req.params.userId]);
             const poamApprovers = rows.map(row => ({
                 ...row,
                 approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
@@ -251,7 +182,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                     (existingApproval[0].approvalStatus !== req.body.approvalStatus &&
                         (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'Rejected'));
 
-                if (isNewOrChangedApproval) {
+                if (isNewOrChangedApproval && !config.client.features.marketplaceDisabled) {
                     const approverPoints = await marketplaceService.getUserPoints(req.body.userId);
                     const newApproverPoints = approverPoints.points + 10;
                     await usersService.updateUserPoints({
@@ -295,45 +226,44 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                 const hqs = poamResult[0].hqs;
 
                 if (req.body.approvalStatus === 'Approved') {
+                    const userPoints = await marketplaceService.getUserPoints(submitterId);
                     if ((hqs === 0 || hqs === false || hqs === null) && req.body.hqs === true) {
-                        const userHqsPoints = await marketplaceService.getUserPoints(submitterId);
-                        const newHqsPoints = userHqsPoints.points + 15;
-                        await usersService.updateUserPoints({
-                            body: {
-                                userId: submitterId,
-                                points: newHqsPoints
-                            }
-                        });
-
-                        const hqsNotification = {
-                            title: `High Quality Submission`,
-                            message: `15 points have been added to your points balance for a High Quality submission on POAM ${req.body.poamId}.`,
-                            userId: submitterId
-                        };
-                        const hqsNotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
-                        await connection.query(hqsNotificationSql, [submitterId, hqsNotification.title, hqsNotification.message]);
-
+                        if (!config.client.features.marketplaceDisabled) {                            
+                            const newHqsPoints = userPoints.points + 30;
+                            await usersService.updateUserPoints({
+                                body: {
+                                    userId: submitterId,
+                                    points: newHqsPoints
+                                }
+                            });
+                            const hqsNotification = {
+                                title: `High Quality Submission`,
+                                message: `30 points have been added to your points balance for a High Quality submission on POAM ${req.body.poamId}.`,
+                                userId: submitterId
+                            };
+                            const hqsNotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                            await connection.query(hqsNotificationSql, [submitterId, hqsNotification.title, hqsNotification.message]);
+                        }
                         const hqsPoamSql = `UPDATE cpat.poam SET hqs = 1 WHERE poamId = ?`;
                         await connection.query(hqsPoamSql, [req.body.poamId]);
+                    } else if (!config.client.features.marketplaceDisabled) {                       
+                            const newPoints = userPoints.points + 15;
+                            await usersService.updateUserPoints({
+                                body: {
+                                    userId: submitterId,
+                                    points: newPoints
+                                }
+                            });
+
+                            const pointsNotification = {
+                                title: `POAM Approval Points`,
+                                message: `15 points have been added to your points balance for approval of POAM ${req.body.poamId}.`,
+                                userId: submitterId
+                            };
+                            const pointsNotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                            await connection.query(pointsNotificationSql, [submitterId, pointsNotification.title, pointsNotification.message]);                        
                     }
-
-                    const userPoints = await marketplaceService.getUserPoints(submitterId);
-                    const newPoints = userPoints.points + 15;
-                    await usersService.updateUserPoints({
-                        body: {
-                            userId: submitterId,
-                            points: newPoints
-                        }
-                    });
-
-                    const pointsNotification = {
-                        title: `POAM Approval Points`,
-                        message: `15 points have been added to your points balance for approval of POAM ${req.body.poamId}.`,
-                        userId: submitterId
-                    };
-                    const pointsNotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(pointsNotificationSql, [submitterId, pointsNotification.title, pointsNotification.message]);
-
+                    
                     let notificationMessage = `POAM ${req.body.poamId} has been approved by ${fullName}.`;
                     if (req.body.hqs === true) {
                         notificationMessage = `POAM ${req.body.poamId} has been approved and marked as High Quality by ${fullName}.`;
@@ -359,7 +289,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                 const isApproverInPermissions = permissionResult.some(p => p.userId === req.body.poamLog[0].userId);
 
                 if (req.body.approvalStatus === 'Approved') {
-                    if (rawSeverity === "CAT I - Critical/High" && !isApproverInPermissions) {
+                    if ((rawSeverity === "CAT I - Critical" || rawSeverity === "CAT I - High") && !isApproverInPermissions) {
                         for (const perm of permissionResult) {
                             const cat1Notification = {
                                 title: 'CAT-I POAM Pending Approval',

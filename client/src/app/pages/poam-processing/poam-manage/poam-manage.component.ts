@@ -37,7 +37,7 @@ interface LabelInfo {
 export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   advancedSeverityseverityPieChartData: any[] = [];
   advancedStatusPieChartData: any[] = [];
-  approvalColumns = ['POAM ID', 'Adjusted Severity', 'Approval Status', 'Manage'];
+  approvalColumns = ['POAM ID', 'Adjusted Severity', 'Approval Status', 'POAM'];
   private subs = new SubSink();
   public isLoggedIn = false;
   public monthlyPoamStatus: any[] = [];
@@ -186,7 +186,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateAdvancedPieChart(): void {
-    const severityOrder = ['CAT I - Critical/High', 'CAT II - Medium', 'CAT III - Low'];
+    const severityOrder = ['CAT I - Critical' || 'CAT I - High', 'CAT II - Medium', 'CAT III - Low' || 'CAT III - Informational'];
     const severityLabel = ['CAT I', 'CAT II', 'CAT III'];
     const statusOrder = ['Submitted', 'Approved', 'Closed', 'Rejected', 'Extension Requested', 'Expired', 'Draft'];
 

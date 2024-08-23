@@ -13,6 +13,7 @@ const config = require('../utils/config')
 const dbUtils = require('./utils')
 const mysql = require('mysql2')
 const logger = require('../utils/logger')
+const SmError = require('../utils/error')
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -23,77 +24,48 @@ async function withConnection(callback) {
     }
 }
 
-exports.getCollections = async function getCollections(userNameInput, req, res, next) {
-    if (userNameInput == "Registrant") {
-        try {
-            return await withConnection(async (connection) => {
-                let sql = "SELECT collectionId, collectionName FROM cpat.collection;"
-                let [row] = await connection.query(sql)
-                const size = Object.keys(row).length
-
+exports.getCollections = async function getCollections(userId, elevate) {
+    try {
+        return await withConnection(async (connection) => {
+            if (elevate) {
+                let sql = "SELECT * FROM user WHERE userId = ?";
+                let [rows] = await connection.query(sql, [userId]);
+                if (rows.length === 0) {
+                    throw new SmError.PrivilegeError('User not found');
+                }
+                let isAdmin = rows[0].isAdmin;
                 const user = {
                     collections: []
                 }
-
-                for (let counter = 0; counter < size; counter++) {
-                    user.collections.push({
-                        "collectionId": row[counter].collectionId,
-                        "collectionName": row[counter].collectionName
-                    });
+                if (isAdmin == 1) {
+                    let sql2 = "SELECT * FROM collection;"
+                    let [row2] = await connection.query(sql2)
+                    const size = Object.keys(row2).length
+                    for (let counter = 0; counter < size; counter++) {
+                        user.collections.push({
+                            ...row2[counter]
+                        });
+                    }
+                    return user.collections;
+                } else {
+                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
                 }
-
-                return user;
-            });
-        } catch (error) {
-            return { error: error.message };
-        }
-    }
-    let userId = 0
-    let isAdmin = 0;
-    let userName = "";
-    try {
-        return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM user WHERE userName = ?";
-            let [row] = await connection.query(sql, [userNameInput]);
-            userId = row[0].userId;
-            isAdmin = row[0].isAdmin;
-
-            const user = {
-                collections: []
-            }
-            if (isAdmin == 1) {
-                let sql2 = "SELECT * FROM collection;"
-                let [row2] = await connection.query(sql2)
-                const size = Object.keys(row2).length
-
-                for (let counter = 0; counter < size; counter++) {
-                    user.collections.push({
-                        ...row2[counter]
-                    });
-                }
-
-                return user.collections;
             } else {
-                let sql = "SELECT * FROM collectionpermissions WHERE userId = ?";
-                let [row2] = await connection.query(sql, [userId])
-                const numberOfCollections = Object.keys(row2).length
-                const nonAdminCollections = {
-                    collections: []
-                }
-                for (let counter = 0; counter < numberOfCollections; counter++) {
-                    let sql3 = "SELECT * FROM collection WHERE collectionId = ?";
-                    let [row3] = await connection.query(sql3, [row2[counter].collectionId])
-                    nonAdminCollections.collections.push({
-                        "collectionId": row3[0].collectionId,
-                        "collectionName": row3[0].collectionName,
-                        "description": row3[0].description,
-                        "created": row3[0].created,
-                        "assetCount": row3[0].assetCount,
-                        "poamCount": row3[0].poamCount
-                    });
-                }
-
-                return nonAdminCollections.collections;
+                let collectionSql = `
+                SELECT c.*
+                FROM collection c
+                INNER JOIN collectionpermissions cp ON c.collectionId = cp.collectionId
+                WHERE cp.userId = ?;
+            `;
+                let [collections] = await connection.query(collectionSql, [userId]);
+                return collections.map(collection => ({
+                    collectionId: collection.collectionId,
+                    collectionName: collection.collectionName,
+                    description: collection.description,
+                    created: collection.created,
+                    assetCount: collection.assetCount,
+                    poamCount: collection.poamCount
+                }));
             }
         });
     }

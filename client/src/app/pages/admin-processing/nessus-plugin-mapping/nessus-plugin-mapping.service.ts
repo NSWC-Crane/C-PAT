@@ -45,7 +45,7 @@ export class NessusPluginMappingService {
   getIAVTableData(): Observable<any> {
     return this.getAuthHeaders().pipe(
       switchMap(headers =>
-        this.http.get(`${this.cpatApiBase}/iavSummary`, { headers })
+        this.http.get(`${this.cpatApiBase}/iav/iavSummary`, { headers })
       ),
       catchError(this.handleError)
     );

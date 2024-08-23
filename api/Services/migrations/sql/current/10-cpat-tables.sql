@@ -204,7 +204,7 @@ DROP TABLE IF EXISTS `poam`;
 CREATE TABLE `poam` (
   `poamId` int NOT NULL AUTO_INCREMENT,
   `collectionId` int DEFAULT '0',
-  `status` char(20) DEFAULT 'Draft',
+  `status` char(50) DEFAULT 'Draft',
   `rawSeverity` varchar(25) DEFAULT '',
   `adjSeverity` varchar(25) DEFAULT '',
   `vulnerabilitySource` varchar(255) DEFAULT '',
@@ -223,7 +223,6 @@ CREATE TABLE `poam` (
   `mitigations` text,
   `requiredResources` text,
   `residualRisk` varchar(25) DEFAULT NULL,
-  `vulnIdRestricted` varchar(255) DEFAULT '',
   `securityControlNumber` varchar(25) DEFAULT '',
   `submitterId` int NOT NULL DEFAULT '0',
   `officeOrg` varchar(100) DEFAULT '',
@@ -232,8 +231,8 @@ CREATE TABLE `poam` (
   `relevanceOfThreat` varchar(15) DEFAULT '',
   `threatDescription` varchar(255) DEFAULT '',
   `likelihood` varchar(15) DEFAULT '',
-  `businessImpactRating` varchar(15) DEFAULT '',
-  `businessImpactDescription` varchar(2000) DEFAULT '',
+  `impactRating` varchar(15) DEFAULT '',
+  `impactDescription` varchar(2000) DEFAULT '',
   `extensionTimeAllowed` int DEFAULT '0',
   `extensionJustification` varchar(2000) DEFAULT '',
   `emassStatus` varchar(15) DEFAULT 'Ongoing',
@@ -253,7 +252,7 @@ CREATE TABLE `poam` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poam_insert` AFTER INSERT ON `poam` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poam_insert` AFTER INSERT ON `poam` FOR EACH ROW BEGIN
     UPDATE `collection`
     SET `poamCount` = `poamCount` + 1
     WHERE `collectionId` = NEW.`collectionId`;
@@ -266,7 +265,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `prevent_created_update` BEFORE UPDATE ON `poam` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `prevent_created_update` BEFORE UPDATE ON `poam` FOR EACH ROW BEGIN
     IF NEW.created != OLD.created THEN
         SET NEW.created = OLD.created;
     END IF;
@@ -279,7 +278,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poam_update` AFTER UPDATE ON `poam` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poam_update` AFTER UPDATE ON `poam` FOR EACH ROW BEGIN
     IF OLD.`collectionId` != NEW.`collectionId` THEN
         UPDATE `collection` c
         SET c.`poamCount` = c.`poamCount` - 1
@@ -298,22 +297,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poam_update_last_updated` AFTER UPDATE ON `poam` FOR EACH ROW BEGIN
-    IF OLD.lastUpdated != NEW.lastUpdated THEN
-        UPDATE poam
-        SET lastUpdated = CURRENT_DATE
-        WHERE poamId = NEW.poamId;
-    END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poam_delete` AFTER DELETE ON `poam` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poam_delete` AFTER DELETE ON `poam` FOR EACH ROW BEGIN
     UPDATE `collection`
     SET `poamCount` = `poamCount` - 1
     WHERE `collectionId` = OLD.`collectionId`;
@@ -340,7 +324,7 @@ CREATE TABLE `poamapprovers` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamapprovers_insert` AFTER INSERT ON `poamapprovers` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamapprovers_insert` AFTER INSERT ON `poamapprovers` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -353,7 +337,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamapprovers_update` AFTER UPDATE ON `poamapprovers` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamapprovers_update` AFTER UPDATE ON `poamapprovers` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -366,7 +350,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamapprovers_delete` AFTER DELETE ON `poamapprovers` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamapprovers_delete` AFTER DELETE ON `poamapprovers` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = OLD.poamId;
@@ -393,7 +377,7 @@ CREATE TABLE `poamassets` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassets_insert` AFTER INSERT ON `poamassets` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassets_insert` AFTER INSERT ON `poamassets` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -406,7 +390,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassets_delete` AFTER DELETE ON `poamassets` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassets_delete` AFTER DELETE ON `poamassets` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = OLD.poamId;
@@ -431,7 +415,7 @@ CREATE TABLE `poamassignees` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassignees_insert` AFTER INSERT ON `poamassignees` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignees_insert` AFTER INSERT ON `poamassignees` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -444,7 +428,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassignees_update` AFTER UPDATE ON `poamassignees` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignees_update` AFTER UPDATE ON `poamassignees` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -457,7 +441,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamassignees_delete` AFTER DELETE ON `poamassignees` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignees_delete` AFTER DELETE ON `poamassignees` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = OLD.poamId;
@@ -481,7 +465,7 @@ CREATE TABLE `poamlabels` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamlabels_insert` AFTER INSERT ON `poamlabels` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamlabels_insert` AFTER INSERT ON `poamlabels` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -494,7 +478,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamlabels_update` AFTER UPDATE ON `poamlabels` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamlabels_update` AFTER UPDATE ON `poamlabels` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -507,7 +491,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamlabels_delete` AFTER DELETE ON `poamlabels` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamlabels_delete` AFTER DELETE ON `poamlabels` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = OLD.poamId;
@@ -535,7 +519,7 @@ CREATE TABLE `poamlogs` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poamlogs_insert` AFTER INSERT ON `poamlogs` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamlogs_insert` AFTER INSERT ON `poamlogs` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -566,7 +550,7 @@ CREATE TABLE `poammilestones` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poammilestones_insert` AFTER INSERT ON `poammilestones` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poammilestones_insert` AFTER INSERT ON `poammilestones` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -579,7 +563,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poammilestones_update` AFTER UPDATE ON `poammilestones` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poammilestones_update` AFTER UPDATE ON `poammilestones` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = NEW.poamId;
@@ -592,7 +576,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_poammilestones_delete` AFTER DELETE ON `poammilestones` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poammilestones_delete` AFTER DELETE ON `poammilestones` FOR EACH ROW BEGIN
     UPDATE poam
     SET lastUpdated = CURRENT_DATE
     WHERE poamId = OLD.poamId;
@@ -623,16 +607,16 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `userId` int NOT NULL AUTO_INCREMENT,
   `userName` varchar(20) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `firstName` varchar(50) NOT NULL,
-  `lastName` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL DEFAULT ' ',
+  `firstName` varchar(50) NOT NULL DEFAULT ' ',
+  `lastName` varchar(50) NOT NULL DEFAULT ' ',
   `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `lastAccess` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `lastCollectionAccessedId` int NOT NULL DEFAULT '0',
   `accountStatus` varchar(25) NOT NULL DEFAULT 'PENDING',
   `fullName` varchar(100) DEFAULT NULL,
   `officeOrg` varchar(100) DEFAULT 'UNKNOWN',
-  `defaultTheme` varchar(50) DEFAULT 'dark',
+  `defaultTheme` varchar(50) DEFAULT 'lara-dark-blue',
   `isAdmin` int NOT NULL DEFAULT '0',
   `lastClaims` json DEFAULT (_utf8mb4'{}'),
   `points` int NOT NULL DEFAULT '0',
@@ -650,4 +634,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-19 12:21:32
+-- Dump completed on 2024-08-23 14:22:45

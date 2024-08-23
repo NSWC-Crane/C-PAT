@@ -652,14 +652,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
   
-  '/collections/{userName}':
+  '/collections':
     get:
       tags:
         - Collection
       summary: Get a list of collections accessible to the user
       operationId: getCollections
       parameters:
-        - $ref: '#/components/parameters/collectionAuth'
+        - $ref: '#/components/parameters/ElevateQuery'
       responses:
         '200':
           description: Collection list retrieved successfully
@@ -675,6 +675,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+      security:
+        - oauth:
+            - 'c-pat:read'
 
   /collection:
     post:
@@ -737,6 +740,206 @@ paths:
                 $ref: '#/components/schemas/error'
       tags: 
         - Collection
+
+  /iav/vramUpdatedDate:
+    get:
+      summary: Get VRAM data updated date
+      description: Retrieves the last updated date of the VRAM data
+      operationId: getVramDataUpdatedDate
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  value:
+                    type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  /iav/iavSummary:
+    get:
+      summary: Get IAV Summary
+      description: Retrieves IAV table data
+      operationId: getIAVTableData
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IAVTableData'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+          - 'c-pat:read'
+
+  /iav/pluginInfo:
+    get:
+      summary: Get IAV and Navy Comply Date for Plugin IDs
+      description: Retrieves IAV and Navy Comply Date information for given Plugin IDs
+      operationId: getIAVInfoForPlugins
+      parameters:
+        - in: query
+          name: pluginIDs
+          required: true
+          schema:
+            type: string
+          description: Comma-separated list of Plugin IDs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    pluginID:
+                      type: integer
+                    iav:
+                      type: string
+                    navyComplyDate:
+                      type: string
+                      format: date
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /iav/pluginIDs:
+    get:
+      summary: Retrieves mapped IAV pluginIDs
+      description: Get all unique pluginIDs that have an associated IAV as a comma-separated string
+      operationId: getIAVPluginIds
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pluginIDs:
+                    type: string
+                    description: Comma-separated list of unique plugin IDs
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+          - 'c-pat:read'
+
+  /mapPluginIds:
+    post:
+      summary: Maps Plugin IDs to IAVs
+      description: Maps Plugin IDs to IAVs
+      operationId: mapIAVPluginIds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  iav:
+                    type: string
+                    pattern: '^\d{4}-[A-Z]-\d{4}$'
+                    description: IAV in the format 0000-A-0000
+                  pluginID:
+                    type: string
+                    description: Comma-separated list of plugin IDs
+                required:
+                  - iav
+                  - pluginID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  updatedCount:
+                    type: integer
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+            - 'c-pat:op'
 
   '/import/poams':
     post:
@@ -1066,17 +1269,10 @@ paths:
         - oauth:
             - 'c-pat:read'
   
-  /marketplace/user-themes/{userId}:
+  /marketplace/user-themes:
     get:
-      summary: Get all purchased themes for a user
+      summary: Get all purchased themes
       operationId: getUserThemes
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user
       responses:
         '200':
           description: Successfully retrieved purchased themes
@@ -1096,17 +1292,10 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /marketplace/user-points/{userId}:
+  /marketplace/user-points:
     get:
-      summary: Get the available points of a user
+      summary: Get available points balance
       operationId: getUserPoints
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user
       responses:
         '200':
           description: Successfully retrieved purchased themes
@@ -1288,9 +1477,7 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/metrics/available/{userId}/assetlabel':
-    parameters:
-      - $ref: '#/components/parameters/userIdPath'
+  '/metrics/available/assetlabel':
     get:
       summary: Get all asset labels and label counts available to the user
       operationId: getAvailableAssetLabel
@@ -1315,9 +1502,7 @@ paths:
         - oauth:
             - 'c-pat:op'
   
-  '/metrics/available/{userId}/poamlabel':
-    parameters:
-      - $ref: '#/components/parameters/userIdPath'
+  '/metrics/available/poamlabel':
     get:
       summary: Get all POAM labels and label counts available to the user
       operationId: getAvailablePoamLabel
@@ -1342,9 +1527,7 @@ paths:
         - oauth:
             - 'c-pat:op'
   
-  '/metrics/available/{userId}/poamstatus':
-    parameters:
-      - $ref: '#/components/parameters/userIdPath'
+  '/metrics/available/poamstatus':
     get:
       summary: Get all POAM status and status counts available to the user
       operationId: getAvailablePoamStatus
@@ -1369,9 +1552,7 @@ paths:
         - oauth:
             - 'c-pat:op'
   
-  '/metrics/available/{userId}/poamseverity':
-    parameters:
-      - $ref: '#/components/parameters/userIdPath'
+  '/metrics/available/poamseverity':
     get:
       summary: Get all POAM severity and severity counts available to the user
       operationId: getAvailablePoamSeverity
@@ -1396,9 +1577,7 @@ paths:
         - oauth:
             - 'c-pat:op'
 
-  '/metrics/available/{userId}/monthlypoamseverity':
-    parameters:
-      - $ref: '#/components/parameters/userIdPath'
+  '/metrics/available/monthlypoamseverity':
     get:
       summary: Get all POAM severity and severity counts from within the last 30 days available to the user
       operationId: getAvailableMonthlyPoamSeverity
@@ -1423,9 +1602,7 @@ paths:
         - oauth:
             - 'c-pat:op'
 
-  '/metrics/available/{userId}/monthlypoamstatus':
-    parameters:
-      - $ref: '#/components/parameters/userIdPath'
+  '/metrics/available/monthlypoamstatus':
     get:
       summary: Get a status of all POAMs available to the user with status and status counts grouped under Open or Closed from POAMs submitted within the last 30 days
       operationId: getAvailableMonthlyPoamStatus
@@ -1450,9 +1627,7 @@ paths:
         - oauth:
             - 'c-pat:op'
   
-  '/metrics/available/{userId}/poamScheduledCompletion':
-    parameters:
-      - $ref: '#/components/parameters/userIdPath'
+  '/metrics/available/poamScheduledCompletion':
     get:
       summary: Get all POAM scheduled completion and scheduled completion counts available to the user
       operationId: getAvailablePoamScheduledCompletion
@@ -1477,9 +1652,7 @@ paths:
         - oauth:
             - 'c-pat:op'
 
-  '/metrics/available/{userId}/collectionpoamcount':
-    parameters:
-      - $ref: '#/components/parameters/userIdPath'
+  '/metrics/available/collectionpoamcount':
     get:
       summary: Get a count of poams for each collection available to the user
       operationId: getAvailableCollectionPoamCounts
@@ -1504,16 +1677,10 @@ paths:
         - oauth:
             - 'c-pat:op'
 
-  /notifications/all/{userId}:
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
+  /notifications/all:
     get:
       summary: Get all notifications for a user
-      operationId: getAllNotificationsByUserId
+      operationId: getAllNotifications
       responses:
         '200':
           description: Notification array response
@@ -1535,16 +1702,10 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /notifications/unread/{userId}:
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
+  /notifications/unread:
     get:
-      summary: Get all unread notifications for a user
-      operationId: getUnreadNotificationsByUserId
+      summary: Get all unread notifications
+      operationId: getUnreadNotifications
       responses:
         '200':
           description: Notification array response
@@ -1566,16 +1727,10 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /notifications/unread/count/{userId}:
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
+  /notifications/unread/count:
     get:
-      summary: Get a count of all unread notifications for a user
-      operationId: getUnreadNotificationCountByUserId
+      summary: Get a count of all unread notifications
+      operationId: getUnreadNotificationCount
       responses:
         '200':
           description: Notification count response
@@ -1604,7 +1759,7 @@ paths:
           type: integer
     delete:
       summary: Delete a notification
-      operationId: deleteNotificationByNotificationId
+      operationId: deleteNotification
       responses:
         '204':
           description: Notification dismissed successfully
@@ -1626,16 +1781,10 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /notifications/all/delete/{userId}:
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
+  /notifications/all/delete:
     delete:
-      summary: Delete a notification
-      operationId: deleteAllNotificationsByUserId
+      summary: Deletes all notifications
+      operationId: deleteAllNotifications
       responses:
         '204':
           description: Notification dismissed successfully
@@ -1665,8 +1814,8 @@ paths:
         schema:
           type: integer
     put:
-      summary: Dismiss a notification
-      operationId: dismissNotificationByNotificationId
+      summary: Dismiss an individual notification
+      operationId: dismissNotification
       responses:
         '200':
           description: Notification array response
@@ -1694,16 +1843,10 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /notifications/all/dismiss/{userId}:
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
+  /notifications/all/dismiss:
     put:
-      summary: Dismiss all notifications for a user
-      operationId: dismissAllNotificationsByUserId
+      summary: Dismiss all notifications
+      operationId: dismissAllNotifications
       responses:
         '204':
           description: Notification dismissed successfully
@@ -1725,36 +1868,76 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/collection/{collectionId}/user/{userName}':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-      - in: path
-        name: userName
-        required: true
-        schema:
-          type: string
+  /op/configuration:
     get:
-      tags:
-        - Permissions
-      summary: Return collection permissions for a user
-      operationId: getCollectionPermission
+      summary: Return API version and classification
+      operationId: getConfiguration
       responses:
         '200':
-          description: Collection retrieved successfully
+          description: Configuration response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/collection'
-        '204':
-          description: No Content
-        '500':
-          description: Internal server error
+                $ref: '#/components/schemas/ApiConfiguration'
+      tags:
+        - Operation
+      security: []
+    post:
+      summary: Set a configuration item
+      operationId: setConfigurationItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationItem'
+      responses:
+        '200':
+          description: Configuration item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+      tags:
+        - Operation
+      security:
+        - oauth:
+            - 'c-pat:op'    
+    delete:
+      summary: Delete a configuration item
+      operationId: deleteConfigurationItem
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/String255'
+      responses:
+        '200':
+          description: Configuration item deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Operation
+      security:
+        - oauth:
+            - 'c-pat:op'
 
-  '/collection/permissions/{collectionId}':
+  '/permissions/{collectionId}':
     parameters:
       - in: path
         name: collectionId
@@ -1762,7 +1945,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Get all permissions for a specific collection
+      summary: Get the permission assignments of a collection by collectionId
       operationId: getCollectionPermissions
       responses:
         '200':
@@ -1790,6 +1973,7 @@ paths:
 
   '/permission/{userId}/{collectionId}':
     parameters:
+      - $ref: '#/components/parameters/ElevateQuery'
       - in: path
         name: userId
         required: true
@@ -1828,6 +2012,8 @@ paths:
     post:
       summary: Add a user collection permission
       operationId: postPermission
+      parameters:
+        - $ref: '#/components/parameters/ElevateQuery'
       requestBody:
         required: true
         content:
@@ -1862,6 +2048,8 @@ paths:
     put:
       summary: Update user collection permissions
       operationId: putPermission
+      parameters:
+        - $ref: '#/components/parameters/ElevateQuery'
       requestBody:
         required: true
         content:
@@ -1930,43 +2118,6 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/poamApprovers/user/{userId}':
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer   
-    get:
-      summary: Return poamApprovers by userId
-      operationId: getPoamApproversByUserId
-      responses:
-        '200':
-          description: Poam Approvers array response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poamApprover_Response'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamApprover
-      security:
-        - oauth:
-            - 'c-pat:op'
-
   '/poamApprovers/collection/{collectionId}':
     parameters:
       - in: path
@@ -1977,48 +2128,6 @@ paths:
     get:
       summary: Return poamApprovers by collectionId
       operationId: getPoamApproversByCollection
-      responses:
-        '200':
-          description: Poam Approvers array response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/poamApprover_Response'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamApprover
-      security:
-        - oauth:
-            - 'c-pat:op'
-  
-  '/poamApprovers/collection/{collectionId}/user/{userId}':
-    parameters:
-      - in: path
-        name: collectionId
-        required: true
-        schema:
-          type: integer
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer   
-    get:
-      summary: Return poamApprovers by collectionId and userId
-      operationId: getPoamApproversByCollectionUser
       responses:
         '200':
           description: Poam Approvers array response
@@ -2402,78 +2511,7 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /poamAssignees/user/{userId}:
-    get:
-      summary: Get POAM assignees by user ID
-      operationId: getPoamAssigneesByUserId
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Successful response with POAM assignees
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  poamAssignees:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/poamAssignee_Object'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamAssignees
-      security:
-        - oauth:
-            - 'c-pat:read'
-
   /poamAssignee/poam/{poamId}/user/{userId}:
-    get:
-      summary: Get a specific POAM assignee by POAM ID and user ID
-      operationId: getPoamAssignee
-      parameters:
-        - name: poamId
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Successful response with the POAM assignee
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  poamAssignee:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/poamAssignee_Object'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - PoamAssignees
-      security:
-        - oauth:
-            - 'c-pat:read'
     delete:
       summary: Delete a POAM assignee
       operationId: deletePoamAssignee
@@ -2705,16 +2743,10 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /poamLabels/available/{userId}:
+  /poamLabels:
     get:
-      summary: Return all poams with labels available to a user
+      summary: Return all poams containing labels that are available to the user
       operationId: getAvailablePoamLabels
-      parameters:
-        - in: path
-          name: userId
-          schema:
-            type: integer
-          required: true
       responses:
         '200':
           description: Poam array response
@@ -3112,13 +3144,7 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /poams/{userId}:
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
+  /poams:
     get:
       summary: Return all POAMs available to a user
       operationId: getAvailablePoams
@@ -3512,8 +3538,10 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'        
-      summary: Update certain properties of a User
+      summary: Update properties of a User
       operationId: updateUser
+      parameters:
+        - $ref: '#/components/parameters/ElevateQuery'
       requestBody:
         required: true
         content:
@@ -3579,6 +3607,8 @@ paths:
     put:
       summary: Updates a users points
       operationId: updateUserPoints
+      parameters:
+        - $ref: '#/components/parameters/ElevateQuery'
       requestBody:
         required: true
         content:
@@ -3617,8 +3647,10 @@ paths:
       security:
         - oauth:
             - 'c-pat:op'        
-      summary: Return all users for admin processing (assigning collections and permissions)
+      summary: Return all users for admin processing
       operationId: getUsers
+      parameters:
+        - $ref: '#/components/parameters/ElevateQuery'
       responses:
         '200':
           description: User response
@@ -3637,6 +3669,7 @@ paths:
   
   '/user/{userId}':
     parameters:
+      - $ref: '#/components/parameters/ElevateQuery'
       - in: path
         name: userId
         required: true
@@ -3678,93 +3711,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/user'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-
-  '/user/name/{userName}':
-    parameters:
-      - in: path
-        name: userName
-        required: true
-        schema:
-          type: string
-    get:
-      tags:
-        - User
-      security:
-        - oauth:
-            - 'c-pat:op'        
-      summary: Return a User by userName
-      operationId: getUserByUserName
-      responses:
-        '200':
-          description: User response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/user'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-
-  '/user/basic/{userId}':
-    parameters:
-      - in: path
-        name: userId
-        required: true
-        schema:
-          type: integer
-    get:
-      tags:
-        - User
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Return basic user information by userId
-      operationId: getBasicUserByUserID
-      responses:
-        '200':
-          description: Basic user response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/basic_user'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-                
-  '/user/loginState':
-    put:
-      tags:
-        - User
-      security:
-        - oauth:
-            - 'c-pat:read'        
-      summary: Writes stdout log to indicate login or logout
-      operationId: loginState
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/user_loginState'
-      responses:
-        '201':
-          description: Login/Logout response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/user_Login_Response'
         '500':
           description: Internal server error
           content:
@@ -3840,275 +3786,6 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-
-  /op/configuration:
-    get:
-      summary: Return API version and classification
-      operationId: getConfiguration
-      responses:
-        '200':
-          description: Configuration response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiConfiguration'
-      tags:
-        - Operation
-      security: []
-    post:
-      summary: Set a configuration item
-      operationId: setConfigurationItem
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConfigurationItem'
-      responses:
-        '200':
-          description: Configuration item updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Operation
-      security:
-        - oauth:
-            - 'c-pat:op'    
-    delete:
-      summary: Delete a configuration item
-      operationId: deleteConfigurationItem
-      parameters:
-        - name: key
-          in: query
-          required: true
-          schema:
-            $ref: '#/components/schemas/String255'
-      responses:
-        '200':
-          description: Configuration item deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Operation
-      security:
-        - oauth:
-            - 'c-pat:op'
-
-  /vramUpdatedDate:
-    get:
-      summary: Get VRAM data updated date
-      description: Retrieves the last updated date of the VRAM data
-      operationId: getVramDataUpdatedDate
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  value:
-                    type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - IAV
-      security:
-        - oauth:
-            - 'c-pat:op'
-
-  /iavSummary:
-    get:
-      summary: Get IAV Summary
-      description: Retrieves IAV table data
-      operationId: getIAVTableData
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/IAVTableData'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - IAV
-      security:
-        - oauth:
-          - 'c-pat:read'
-
-  /mapPluginIds:
-    post:
-      summary: Maps Plugin IDs to IAVs
-      description: Maps Plugin IDs to IAVs
-      operationId: mapIAVPluginIds
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  iav:
-                    type: string
-                    pattern: '^\d{4}-[A-Z]-\d{4}$'
-                    description: IAV in the format 0000-A-0000
-                  pluginID:
-                    type: string
-                    description: Comma-separated list of plugin IDs
-                required:
-                  - iav
-                  - pluginID
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  updatedCount:
-                    type: integer
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - IAV
-      security:
-        - oauth:
-            - 'c-pat:op'
-
-  /iav/pluginInfo:
-    get:
-      summary: Get IAV and Navy Comply Date for Plugin IDs
-      description: Retrieves IAV and Navy Comply Date information for given Plugin IDs
-      operationId: getIAVInfoForPlugins
-      parameters:
-        - in: query
-          name: pluginIDs
-          required: true
-          schema:
-            type: string
-          description: Comma-separated list of Plugin IDs
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    pluginID:
-                      type: integer
-                    iav:
-                      type: string
-                    navyComplyDate:
-                      type: string
-                      format: date
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - IAV
-      security:
-        - oauth:
-            - 'c-pat:read'
-
-  /iav/pluginIDs:
-    get:
-      summary: Retrieves mapped IAV pluginIDs
-      description: Get all unique pluginIDs that have an associated IAV as a comma-separated string
-      operationId: getIAVPluginIds
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  pluginIDs:
-                    type: string
-                    description: Comma-separated list of unique plugin IDs
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - IAV
-      security:
-        - oauth:
-          - 'c-pat:read'
 
 components:
   schemas:
@@ -4656,6 +4333,29 @@ components:
           type: integer
         extensionJustification:
           type: string
+        mitigations:
+          type: string
+        requiredResources:
+          type: string
+        residualRisk:
+          type: string
+        likelihood:
+          type: string
+        relevanceOfThreat:
+          type: string
+        impactRating:
+          type: string
+        impactDescription:
+          type: string
+        status:
+          type: string
+        poamLog:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: integer
 
     poam_status_object:
       type: object
@@ -4745,17 +4445,14 @@ components:
         relevanceOfThreat:
           type: string
           nullable: true
-        businessImpactRating:
+        impactRating:
           type: string
           nullable: true
-        businessImpactDescription:
+        impactDescription:
           type: string
           nullable: true
         status:
           type: string
-        vulnIdRestricted:
-          type: string
-          nullable: true
         submittedDate:
           type: string
           format: date
@@ -5347,32 +5044,7 @@ components:
           type: integer
           nullable: true
         isAdmin:
-          type: integer
-          
-    user_Login:
-      required:
-        - email
-      type: object
-      additionalProperties: false
-      properties:
-        email:
-          type: string
-          
-    user_loginState:
-      required:
-        - loginState
-      type: object
-      additionalProperties: false
-      properties:
-        loginState:
-          type: string           
-
-    user_Login_Response:
-      type: object
-      additionalProperties: false
-      properties:
-        message:
-          type: string          
+          type: integer          
           
     user_Token:
       required:
@@ -5507,6 +5179,14 @@ components:
             $ref: '#/components/schemas/error'
 
   parameters:
+    ElevateQuery:
+      name: elevate
+      in: query
+      description: Elevate the user context for this request if user is permitted (isAdmin)
+      schema:
+        type: boolean
+        default: false
+
     collectionQuery:
       name: projection
       in: query
@@ -5550,20 +5230,6 @@ components:
       description: A query parameter that identifies an Asset
       schema:
         type: string
-    userIdPath:
-      name: userId
-      in: path
-      description: A path parameter that identifies a User
-      required: true
-      schema:
-        type: string
-    collectionAuth:
-      name: userName
-      in: path
-      required: true
-      description: Returns collections belonging to a specif User
-      schema:
-        type: string    
                 
   securitySchemes:
       oauth:

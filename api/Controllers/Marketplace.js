@@ -35,7 +35,7 @@ module.exports.purchaseTheme = async function purchaseTheme(req, res, next) {
 
 module.exports.getUserThemes = async function getUserThemes(req, res, next) {
     try {
-        const userId = req.params.userId;
+        const userId = req.userObject.userId;
         const themes = await marketplaceService.getUserThemes(userId);
         res.status(200).json(themes);
     } catch (error) {
@@ -45,7 +45,7 @@ module.exports.getUserThemes = async function getUserThemes(req, res, next) {
 
 module.exports.getUserPoints = async function getUserPoints(req, res, next) {
     try {
-        const userId = req.params.userId;
+        const userId = req.userObject.userId;
         const points = await marketplaceService.getUserPoints(userId);
         res.status(200).json(points);
     } catch (error) {

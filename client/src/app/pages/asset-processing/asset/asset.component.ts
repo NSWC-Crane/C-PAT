@@ -9,12 +9,12 @@
 */
 
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
-import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
 import { AssetService } from '../assets.service';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 
 @Component({
   selector: 'cpat-asset',
@@ -44,7 +44,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(
     private assetService: AssetService,
-    private router: Router,
+    private collectionService: CollectionsService,
     private sharedService: SharedService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService
@@ -84,12 +84,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async getCollectionData() {
-    const userName = this.payload?.userName;
-    if (!userName) {
-      console.error('UserName is not available');
-      return;
-    }
-    this.subs.sink = (await this.assetService.getCollections(userName)).subscribe((collections: any) => {
+    this.subs.sink = (await this.collectionService.getCollections()).subscribe((collections: any) => {
       this.collectionList = collections || [];
       this.collectionOptions = this.transformToDropdownOptions(collections, 'collectionName', 'collectionId');
       if (this.asset.collectionId) {
