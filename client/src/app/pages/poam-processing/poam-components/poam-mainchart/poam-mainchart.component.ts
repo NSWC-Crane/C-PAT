@@ -15,13 +15,8 @@ import { addDays, differenceInCalendarDays } from 'date-fns';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 import { MultiSelectChangeEvent } from 'primeng/multiselect';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { UsersService } from '../../../admin-processing/user-processing/users.service';
-
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+import { PayloadService } from '../../../../common/services/setPayload.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'cpat-poam-mainchart',
@@ -29,7 +24,6 @@ interface Permission {
   styleUrls: ['./poam-mainchart.component.scss']
 })
 export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit {
-  protected accessLevel: number;
   @Output() poamsChange = new EventEmitter<any[]>();
   @Input() poams!: any[];
   @Input() showAddButton: boolean = false;
@@ -39,8 +33,10 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   @ViewChild('poamLabelChart') poamLabelChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('poamSeverityChart') poamSeverityChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('poamScheduledCompletionChart') poamScheduledCompletionChart!: ElementRef<HTMLCanvasElement>;
+  protected accessLevel: any;
   user: any;
   payload: any;
+  private payloadSubscription: Subscription[] = [];
   poamsForChart: any[] = [];
   public poamLabel: any[] = [];
   public selectedStatus: any = null;
@@ -169,7 +165,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     private router: Router,
     private cdr: ChangeDetectorRef,
     private renderer: Renderer2,
-    private userService: UsersService
+    private setPayloadService: PayloadService
   ) {
     Chart.register(...registerables);
   }
@@ -204,38 +200,20 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.accessLevel = 0;
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
-            collectionId: permission.collectionId,
-            accessLevel: permission.accessLevel,
-          }));
-
-          this.payload = {
-            ...this.user,
-            collections: mappedPermissions
-          };
-          if (mappedPermissions.length > 0) {
-            const selectedPermissions = this.payload.collections.find(
-              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
-            );
-
-            if (selectedPermissions) {
-              this.accessLevel = selectedPermissions.accessLevel;
-            }
-          }
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
-    this.cdr.detectChanges();
+      })
+    );
   }
 
   private applyCanvasStyles(): void {

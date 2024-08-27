@@ -8,7 +8,6 @@ import { NotificationService } from '../../common/components/notifications/notif
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../common/services/shared.service';
-import { format } from 'date-fns';
 import { Subject, filter, takeUntil } from 'rxjs';
 
 interface Permission {

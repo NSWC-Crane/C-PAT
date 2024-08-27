@@ -119,8 +119,8 @@ app.use('/api/tenable', proxy(config.tenable.url, {
         return proxyResData;
     },
     proxyErrorHandler: function (err, res, next) {
-        throw new smErrors.InternalError('Proxy error:', err);
         res.status(500).send('Proxy error: ' + err.message);
+        throw new smErrors.InternalError('Proxy error:', err);        
     }
 }));
 

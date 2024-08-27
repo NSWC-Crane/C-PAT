@@ -9,19 +9,14 @@
 */
 
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 import { SubSink } from "subsink";
 import { ExcelDataService } from '../../../common/utils/excel-data.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { CollectionsService } from './collections.service';
 import { MessageService } from 'primeng/api';
 import { TreeTable } from 'primeng/treetable';
-
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 interface TreeNode<T> {
   data: T;
@@ -54,22 +49,24 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   allColumns = [this.customColumn, ...this.defaultColumns];
   collectionTreeData: TreeNode<CollectionData>[] = [];
   public isLoggedIn = false;
-  user: any;
   exportCollectionId: any;
   poams: any[] = [];
   collections: any;
   collection: any = { collectionId: '', collectionName: '', description: '', assetCount: 0, poamCount: 0 };
   collectionToExport: string = 'Select Collection to Export...';
   data: any = [];
-  payload: any;
   displayCollectionDialog: boolean = false;
   dialogMode: 'add' | 'modify' = 'add';
   editingCollection: any = {};
+  protected accessLevel: any;
+  user: any;
+  payload: any;
+  private payloadSubscription: Subscription[] = [];
   private subs = new SubSink();
 
   constructor(
     private collectionService: CollectionsService,
-    private userService: UsersService,
+    private setPayloadService: PayloadService,
     private messageService: MessageService
   ) { }
 
@@ -79,25 +76,20 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
-      (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          if (this.user.accountStatus === 'ACTIVE') {
-            this.payload = {
-              ...this.user,
-            };
-            this.getCollectionData();
-          }
-        } else {
-          console.error('User data is not available or user is not active');
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
+          this.getCollectionData();
         }
-      },
-      (error) => {
-        console.error('An error occurred:', error);
-      }
+      })
     );
   }
 

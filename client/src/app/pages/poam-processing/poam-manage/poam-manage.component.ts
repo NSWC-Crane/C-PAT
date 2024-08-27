@@ -15,13 +15,7 @@ import { CollectionsService } from '../../admin-processing/collection-processing
 import { SharedService } from '../../../common/services/shared.service';
 import { Subscription, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
-import { UsersService } from '../../admin-processing/user-processing/users.service';
-
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 interface LabelInfo {
   poamId: number;
@@ -43,11 +37,9 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   public monthlyPoamStatus: any[] = [];
   public poamCountData: any[] = [];
   approvalData: any[] = [];
-  payload: any;
   poams: any[] = [];
   poamsForChart: any[] = [];
   selectedPoamId: any;
-  user: any;
   users: any;
   userPermissions: any = [];
   collection: any;
@@ -57,15 +49,19 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   poamsNeedingAttention: any[] = [];
   submittedPoams: any[] = [];
   poamsPendingApproval: any[] = [];
+  user: any;
+  payload: any;
+  protected accessLevel: any;
   private subscriptions = new Subscription();
+  private payloadSubscription: Subscription[] = [];
 
   constructor(
     private collectionService: CollectionsService,
     private poamService: PoamService,
     private sharedService: SharedService,
     private router: Router,
-    private userService: UsersService,
     private cdr: ChangeDetectorRef,
+    private setPayloadService: PayloadService,
   ) {
   }
 
@@ -79,36 +75,21 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          if (this.user.accountStatus === 'ACTIVE') {
-
-            const mappedPermissions = this.user.permissions.map((permission: Permission) => ({
-              collectionId: permission.collectionId,
-              accessLevel: permission.accessLevel,
-            }));
-
-            this.payload = {
-              ...this.user,
-              collections: mappedPermissions
-            };
-
-            this.userPermissions = this.payload.collections.find((x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId);
-            this.getPoamData();
-          }
-        } else {
-          console.error('User data is not available or user is not active');
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
+          this.getPoamData();
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
+      })
+    );
   }
 
   async getPoamData() {

@@ -14,15 +14,10 @@ import { Observable, Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../common/services/shared.service';
-import { UsersService } from '../admin-processing/user-processing/users.service';
 import { LabelService } from './label.service';
 import { Table } from 'primeng/table';
+import { PayloadService } from '../../common/services/setPayload.service';
 
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
 interface LabelEntry {
   labelId: string;
   labelName: string;
@@ -36,7 +31,6 @@ interface LabelEntry {
   providers: [DialogService]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
-  protected accessLevel: number;
   @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;
   @ViewChild('labelTable') labelTable!: Table;
   labelDialogVisible: boolean = false;
@@ -46,23 +40,25 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   data: LabelEntry[] = [];
   filterValue: string = '';
   users: any;
-  user: any;
   public isLoggedIn = false;
   labels: LabelEntry[] = [];
   label: LabelEntry = { labelId: '', labelName: '', description: '' };
   allowSelectLabels = true;
   selected: any;
   selectedRole: string = 'admin';
-  payload: any;
   selectedCollection: any;
   selectedLabels: LabelEntry[] = [];
+  protected accessLevel: any;
+  user: any;
+  payload: any;
+  private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
   private subs = new SubSink();
 
   constructor(
     private labelService: LabelService,
     private dialogService: DialogService,
-    private userService: UsersService,
+    private setPayloadService: PayloadService,
     private sharedService: SharedService) {
   }
 
@@ -80,38 +76,21 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.accessLevel = 0;
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
-            collectionId: permission.collectionId,
-            accessLevel: permission.accessLevel,
-          }));
-
-          this.payload = {
-            ...this.user,
-            collections: mappedPermissions
-          };
-          if (mappedPermissions.length > 0) {
-            const selectedPermissions = this.payload.collections.find(
-              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
-            );
-
-            if (selectedPermissions) {
-              this.accessLevel = selectedPermissions.accessLevel;
-            }
-          }
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
           this.getLabelData();
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
+      })
+    );
   }
 
   async getLabelData() {

@@ -13,7 +13,7 @@ import { AssetService } from './assets.service';
 import { catchError, forkJoin, Observable, of, Subscription } from 'rxjs';
 import { SubSink } from "subsink";
 import { ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component'
-import { UsersService } from '../admin-processing/user-processing/users.service';
+import { PayloadService } from '../../common/services/setPayload.service';
 import { Chart, registerables, ChartData } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { DialogService } from 'primeng/dynamicdialog';
@@ -21,11 +21,6 @@ import { Table } from 'primeng/table';
 import { SharedService } from '../../common/services/shared.service';
 import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
 
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
 interface Column {
   field: string;
   header: string;
@@ -46,7 +41,6 @@ interface AssetEntry {
   providers: [DialogService]
 })
 export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestroy {
-  protected accessLevel: number;
   @ViewChild('assetLabelsChart') assetLabelsChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('assetTable') assetTable!: Table;
   searchValue: string = '';
@@ -98,16 +92,18 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   data: AssetEntry[] = [];
   filterValue: string = '';
   users: any;
-  user: any;
   assets: AssetEntry[] = [];
   asset: AssetEntry = { assetId: '', assetName: '', description: '', ipAddress: '', macAddress: '' };
   collectionList: any;
   allowSelectAssets = true;
-  payload: any;
   selectedCollection: any;
   assetDialogVisible: boolean = false;
   selectedAssets: AssetEntry[] = [];
   stigmanCollectionId: any;
+  protected accessLevel: any;
+  user: any;
+  payload: any;
+  private payloadSubscription: Subscription[] = [];
   private subs = new SubSink();
   private subscriptions = new Subscription();
 
@@ -115,7 +111,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     private assetService: AssetService,
     private cdr: ChangeDetectorRef,
     private dialogService: DialogService,
-    private userService: UsersService,
+    private setPayloadService: PayloadService,
     private sharedService: SharedService,
     private collectionService: CollectionsService,
   ) {
@@ -139,38 +135,21 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.accessLevel = 0;
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
-            collectionId: permission.collectionId,
-            accessLevel: permission.accessLevel,
-          }));
-
-          this.payload = {
-            ...this.user,
-            collections: mappedPermissions
-          };
-          if (mappedPermissions.length > 0) {
-            const selectedPermissions = this.payload.collections.find(
-              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
-            );
-
-            if (selectedPermissions) {
-              this.accessLevel = selectedPermissions.accessLevel;
-            }
-          }
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
           this.getAssetData();
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
+      })
+    );
   }
 
   async getAssetData() {

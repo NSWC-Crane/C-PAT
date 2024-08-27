@@ -11,14 +11,10 @@
 import { Component, OnInit } from '@angular/core';
 import { NotificationService } from './notifications.service';
 import { SubSink } from 'subsink';
-import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
-import { firstValueFrom } from 'rxjs';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { Subscription, firstValueFrom } from 'rxjs';
 
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+
 
 @Component({
   selector: 'cpat-notifications',
@@ -30,8 +26,10 @@ export class NotificationsComponent implements OnInit {
   filteredNotifications: any[] = [];
   filterStatus: string = 'Unread';
   public isLoggedIn = false;
+  protected accessLevel: any;
   user: any;
   payload: any;
+  private payloadSubscription: Subscription[] = [];
   private subs = new SubSink();
   layout: 'list' | 'grid' = 'list';
   sortField: string = 'timestamp';
@@ -45,7 +43,7 @@ export class NotificationsComponent implements OnInit {
 
   constructor(
     private notificationService: NotificationService,
-    private userService: UsersService,
+    private setPayloadService: PayloadService
   ) { }
 
   async ngOnInit() {
@@ -54,31 +52,21 @@ export class NotificationsComponent implements OnInit {
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    try {
-      const response: any = await firstValueFrom(await this.userService.getCurrentUser());
-      if (response?.userId) {
-        this.user = response;
-
-        if (this.user.accountStatus === 'ACTIVE') {
-          this.payload = {
-            ...this.user,
-            collections: this.user.permissions.map(
-              (permission: Permission) => ({
-                collectionId: permission.collectionId,
-                accessLevel: permission.accessLevel,
-              })
-            ),
-          };
-          await this.fetchNotifications();
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
+          this.fetchNotifications();
         }
-      } else {
-        console.error('User data is not available or user is not active');
-      }
-    } catch (error) {
-      console.error('An error occurred:', error);
-    }
+      })
+    );
   }
 
   async fetchNotifications() {

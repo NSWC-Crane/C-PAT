@@ -51,11 +51,11 @@ module.exports.importVRAMExcel = async (req, res, next) => {
                 const result = await importService.importVRAMExcel(file);
                 res.status(201).json(result);
             } catch (error) {
-                throw new SmError.UnprocessableError('Error processing VRAM file.');
                 res.status(500).json({
                     message: "Could not process the file",
                     error: error.message,
                 });
+                throw new SmError.UnprocessableError('Error processing VRAM file.');
             }
         }
     });
