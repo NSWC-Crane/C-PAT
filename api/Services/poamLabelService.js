@@ -22,15 +22,6 @@ async function withConnection(callback) {
     }
 }
 
-async function withConnection(callback) {
-    const connection = await dbUtils.pool.getConnection();
-    try {
-        return await callback(connection);
-    } finally {
-        await connection.release();
-    }
-}
-
 exports.getPoamLabels = async function getPoamLabels(collectionId) {
     try {
         if (!collectionId) {

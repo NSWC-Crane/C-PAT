@@ -37,7 +37,7 @@
             styleClass="p-button-warning"
             (click)="importAllRemainingRepositories()"
             (onKeyUp)="importAllRemainingRepositories()"
-            [disabled]="filteredRepositories.length === 0"
+            [disabled]="!filteredRepositories || filteredRepositories.length === 0"
             [style]="{'width':'100%'}"
             [outlined]="true">
   </p-button>

@@ -299,17 +299,75 @@ exports.updateUserTheme = async function updateUserTheme(req, res, next) {
     }
 };
 
-exports.updateUserPoints = async function updateUserPoints(elevate, req) {
+exports.updateUserPoints = async function updateUserPoints(elevate, points, userId, requestorId) {
     try {
         return await withConnection(async (connection) => {
+            if (elevate) {
+                const userSql = "SELECT * FROM user WHERE userId = ?";
+                const [userRows] = await connection.query(userSql, [requestorId]);
+
+                if (userRows.length === 0) {
+                    throw new SmError.PrivilegeError('User not found');
+                }
+
+                const isAdmin = userRows[0].isAdmin;
+
+                if (isAdmin !== 1) {
+                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
+                }
             let sql = "UPDATE user SET points = ? WHERE userId = ?";
 
-            await connection.query(sql, [
-                req.body.points,
-                req.body.userId
-            ]);
+            await connection.query(sql, [points, userId]);
 
             return { success: true, message: 'User points updated successfully' };
+            } else {
+                throw new Error('Elevate parameter is required');
+            }
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+exports.hourlyPoints = async function hourlyPoints(userId) {
+    try {
+        return await withConnection(async (connection) => {
+            let findUserSql = "SELECT points from user WHERE userId = ?";
+            const [response] = await connection.query(findUserSql, [userId]);
+            const points = response[0].points + 1;
+
+                let sql = "UPDATE user SET points = ? WHERE userId = ?";
+                await connection.query(sql, [points, userId]);
+                return { success: true, message: 'User points updated successfully' };            
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+exports.dailyPoints = async function dailyPoints(userId) {
+    try {
+        return await withConnection(async (connection) => {
+            let findUserSql = "SELECT points from user WHERE userId = ?";
+            const [response] = await connection.query(findUserSql, [userId]);
+            const points = response[0].points + 5;
+
+            let sql = "UPDATE user SET points = ? WHERE userId = ?";
+            await connection.query(sql, [points, userId]);
+            return { success: true, message: 'User points updated successfully' };
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+exports.updateUserLastCollectionAccessed = async function updateUserLastCollectionAccessed(userId, lastCollectionAccessedId) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = "UPDATE user SET lastCollectionAccessedId = ? WHERE userId = ?";
+            await connection.query(sql, [lastCollectionAccessedId, userId]);
+
+            return { success: true, message: 'User lastCollectionAccessedId updated successfully' };
         });
     } catch (error) {
         return { error: error.message };
@@ -319,7 +377,6 @@ exports.updateUserPoints = async function updateUserPoints(elevate, req) {
 exports.setUserData = async function setUserData(userObject, fields, newUser) {
     try {
         return await withConnection(async (connection) => {
-            console.log("setUserData!@!@!@", userObject, fields, newUser);
             let insertColumns = ['userName']
             let updateColumns = ['userId = LAST_INSERT_ID(userId)']
             let binds = [userObject.userName]

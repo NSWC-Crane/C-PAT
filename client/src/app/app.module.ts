@@ -21,10 +21,7 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { SharedModule } from './common/shared.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { NgxParticlesModule } from "@tsparticles/angular";
-import { NotFoundComponent } from './common/components/not-found/not-found.component';
-import { UnauthorizedComponent } from './common/components/unauthorized/unauthorized.component';
-import { NotActivatedComponent } from './common/components/notActivated/notActivated.component';
+import { StatusMessageComponent } from './common/components/status-message/status-message.component';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
 import { MenuModule } from 'primeng/menu';
@@ -44,9 +41,9 @@ function getScopeStr(configId: string) {
   if (configId === 'cpat') {
     scopes = [
       `${cpatScopePrefix}c-pat:read`,
+      `${cpatScopePrefix}c-pat:write`,
       `${cpatScopePrefix}c-pat:op`,
       'openid',
-      'profile',
       'offline_access'
     ];
   } else if (configId === 'stigman') {
@@ -73,9 +70,7 @@ function getScopeStr(configId: string) {
 @NgModule({
   declarations: [
     AppComponent,
-    NotFoundComponent,
-    UnauthorizedComponent,
-    NotActivatedComponent,
+    StatusMessageComponent,
   ],
   imports: [
     BrowserModule,
@@ -85,7 +80,6 @@ function getScopeStr(configId: string) {
     AppRoutingModule,
     SharedModule,
     AppConfigModule,
-    NgxParticlesModule,
     AuthModule.forRoot({
       config: [
         {

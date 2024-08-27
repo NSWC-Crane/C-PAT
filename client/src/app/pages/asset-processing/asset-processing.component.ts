@@ -138,6 +138,67 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     this.cdr.detectChanges();
   }
 
+  async setPayload() {
+    this.user = null;
+    this.payload = null;
+    this.accessLevel = 0;
+    (await this.userService.getCurrentUser()).subscribe({
+      next: (response: any) => {
+        if (response?.userId) {
+          this.user = response;
+          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
+            collectionId: permission.collectionId,
+            accessLevel: permission.accessLevel,
+          }));
+
+          this.payload = {
+            ...this.user,
+            collections: mappedPermissions
+          };
+          if (mappedPermissions.length > 0) {
+            const selectedPermissions = this.payload.collections.find(
+              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
+            );
+
+            if (selectedPermissions) {
+              this.accessLevel = selectedPermissions.accessLevel;
+            }
+          }
+          this.getAssetData();
+        }
+      },
+      error: (error) => {
+        console.error('An error occurred:', error);
+      }
+    });
+  }
+
+  async getAssetData() {
+    if (this.payload == undefined) return;
+    this.subs.sink = forkJoin(
+      await this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
+      await this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
+    ).subscribe(([assetData, assetLabelResponse]: any) => {
+      if (!Array.isArray(assetData)) {
+        console.error('Unexpected response format:', assetData);
+      } else if (!Array.isArray(assetLabelResponse.assetLabel)) {
+        console.error('assetLabelResponse.assetLabel is not an array', assetLabelResponse.assetLabel);
+        return;
+      }
+
+      this.assetLabel = assetLabelResponse.assetLabel;
+      this.setLabelChartData(this.assetLabel);
+
+      this.data = (assetData as AssetEntry[]).map(asset => ({
+        ...asset,
+        assetId: String(asset.assetId)
+      })).sort((a, b) => a.assetId.localeCompare(b.assetId));
+      this.assets = this.data;
+    }, error => {
+      console.error('Failed to fetch assets by collection', error);
+    });
+  }
+
   initializeColumns() {
     this.cols = [
       { field: 'assetId', header: 'Asset ID', customExportHeader: 'Asset Identifier' },
@@ -176,7 +237,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
         return;
       }
 
-      this.stigmanCollectionId = stigmanCollection.collectionId;
+      this.stigmanCollectionId = stigmanCollection?.collectionId;
     });
   }
 
@@ -238,67 +299,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       data: {
         options: dialogOptions,
       }
-    });
-  }
-
-  async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.accessLevel = 0;
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-            const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
-              collectionId: permission.collectionId,
-              accessLevel: permission.accessLevel,
-            }));
-
-            this.payload = {
-              ...this.user,
-              collections: mappedPermissions
-            };
-          if (mappedPermissions.length > 0) {
-            const selectedPermissions = this.payload.collections.find(
-              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
-            );
-
-            if (selectedPermissions) {
-              this.accessLevel = selectedPermissions.accessLevel;
-            }
-          }
-            this.getAssetData();
-          }
-        },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
-  }
-
-  async getAssetData() {
-    if (this.payload == undefined) return;
-    this.subs.sink = forkJoin(
-      await this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
-      await this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
-    ).subscribe(([assetData, assetLabelResponse]: any) => {
-      if (!Array.isArray(assetData)) {
-        console.error('Unexpected response format:', assetData);
-      } else if (!Array.isArray(assetLabelResponse.assetLabel)) {
-        console.error('assetLabelResponse.assetLabel is not an array', assetLabelResponse.assetLabel);
-        return;
-      }
-
-      this.assetLabel = assetLabelResponse.assetLabel;
-      this.setLabelChartData(this.assetLabel);
-
-      this.data = (assetData as AssetEntry[]).map(asset => ({
-        ...asset,
-        assetId: String(asset.assetId)
-      })).sort((a, b) => a.assetId.localeCompare(b.assetId));
-      this.assets = this.data;
-    }, error => {
-      console.error('Failed to fetch assets by collection', error);
     });
   }
 

@@ -16,6 +16,7 @@ import { SubSink } from "subsink";
 import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { TreeTable } from 'primeng/treetable';
+import { Router } from '@angular/router';
 
 interface Permission {
   userId: number;
@@ -35,12 +36,12 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   customColumn = 'User';
   defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level'];
   allColumns = [this.customColumn, ...this.defaultColumns];
+  accessLevel: any;
   collectionList: any[] = [];
   users: TreeNode[] = [];
   user: any = {};
   data: any = [];
   selected: any;
-  selectedRole: string = 'admin';
   payload: any;
   showUserSelect: boolean = true;
   treeData: any[] = [];
@@ -51,7 +52,8 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   constructor(
     private collectionsService: CollectionsService,
     private userService: UsersService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private router: Router,
   ) {
   }
 
@@ -60,42 +62,46 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    await this.setPayload();
-    if (this.user && this.user.isAdmin === 1) {
-      await this.getUserData();
-    }
+    this.setPayload();
   }
 
   async setPayload() {
     this.user = null;
     this.payload = null;
-
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
-      (response: any) => {
+    this.accessLevel = 0;
+    (await this.userService.getCurrentUser()).subscribe({
+      next: (response: any) => {
         if (response?.userId) {
           this.user = response;
+          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
+            collectionId: permission.collectionId,
+            accessLevel: permission.accessLevel,
+          }));
 
-          if (this.user.accountStatus === 'ACTIVE') {
-            this.payload = {
-              ...this.user,
-              collections: this.user.permissions.map((permission: Permission) => ({
-                collectionId: permission.collectionId,
-                accessLevel: permission.accessLevel,
-              }))
-            };
+          this.payload = {
+            ...this.user,
+            collections: mappedPermissions
+          };
+          if (mappedPermissions.length > 0) {
+            const selectedPermissions = this.payload.collections.find(
+              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
+            );
 
-            if (this.user.isAdmin === 1) {
-              this.getUserData();
+            if (selectedPermissions) {
+              this.accessLevel = selectedPermissions.accessLevel;
             }
           }
-        } else {
-          console.error('User data is not available or user is not active');
+          if (this.user.isAdmin) {
+            this.getUserData();
+          } else {
+            this.router.navigate(['/403']);
+          }        
         }
       },
-      (error) => {
+      error: (error) => {
         console.error('An error occurred:', error);
       }
-    );
+    });
   }
 
   async getUserData() {

@@ -18,7 +18,6 @@ import { UsersService } from '../../admin-processing/user-processing/users.servi
 import { SharedService } from '../../../common/services/shared.service';
 import { PoamExtensionService } from '../poam-extend/poam-extend.service';
 import { MessageService } from 'primeng/api';
-import { AuthGuard } from '../../../core/auth/guards/auth.guard';
 
 interface Permission {
   userId: number;

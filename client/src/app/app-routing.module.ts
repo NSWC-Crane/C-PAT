@@ -12,10 +12,8 @@ import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { NotificationsComponent } from './common/components/notifications/notifications.component';
 import { AuthGuard } from './core/auth/guards/auth.guard'
-import { UnauthorizedComponent } from './common/components/unauthorized/unauthorized.component';
-import { NotActivatedComponent } from './common/components/notActivated/notActivated.component';
+import { StatusMessageComponent } from './common/components/status-message/status-message.component';
 import { AppLayoutComponent } from './layout/components/app.layout.component';
-import { DoDConsentComponent } from './common/components/dod-consent/dod-consent.component';
 
 const routerOptions: ExtraOptions = {
   anchorScrolling: 'enabled'
@@ -36,8 +34,31 @@ const routes: Routes = [
   { path: 'marketplace', canActivate: [AuthGuard], loadChildren: () => import('./pages/marketplace/marketplace.module').then(m => m.MarketplaceModule) },
     ]
   },
-  { path: 'unauthorized', component: UnauthorizedComponent },
-  { path: 'not-activated', component: NotActivatedComponent },
+  {
+    path: '401',
+    component: StatusMessageComponent,
+    data: { statusCode: 401 }
+  },
+  {
+    path: '403',
+    component: StatusMessageComponent,
+    data: { statusCode: 403 }
+  },
+  {
+    path: '404',
+    component: StatusMessageComponent,
+    data: { statusCode: 404 }
+  },
+  {
+    path: '418',
+    component: StatusMessageComponent,
+    data: { statusCode: 418 }
+  },
+  {
+    path: 'not-activated',
+    component: StatusMessageComponent,
+    data: { statusCode: 999 }
+  },
   { path: '**', redirectTo: 'consent' },
 ];
 @NgModule({

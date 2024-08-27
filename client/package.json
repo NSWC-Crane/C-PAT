@@ -24,7 +24,6 @@
     "@fortawesome/fontawesome-free": "^6.6.0",
     "@ng-bootstrap/ng-bootstrap": "^17.0.0",
     "@swimlane/ngx-charts": "^20.5.0",
-    "@tsparticles/angular": "^3.0.0",
     "angular-auth-oidc-client": "^18.0.1",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.4",

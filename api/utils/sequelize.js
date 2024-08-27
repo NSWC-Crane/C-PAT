@@ -10,6 +10,8 @@
 
 const Sequelize = require("sequelize");
 const config = require("../utils/config");
+const SmError = require('./error');
+const logger = require('./logger');
 
 const sequelize = new Sequelize(
     config.database.schema,
@@ -61,10 +63,10 @@ Object.keys(db).forEach(modelName => {
 
 sequelize.authenticate()
     .then(() => {
-        console.log('Sequelize connection to the database has been established.');
+        logger.writeInfo('Sequelize connection to the database has been established.');
     })
     .catch(err => {
-        console.error('Sequelize is unable to connect to the database:', err);
+        throw new SmError.UnprocessableError('Sequelize is unable to connect to the database');
     });
 
 module.exports = db;

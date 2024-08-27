@@ -208,7 +208,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     } else {
       forkJoin([
         await this.poamService.getPoam(this.poamId),
-        await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+        await this.collectionService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
         await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
         await this.poamService.getPoamAssignees(this.poamId),
         await this.poamService.getPoamApprovers(this.poamId),
@@ -264,7 +264,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.pluginData = this.stateData.pluginData;
     await this.loadVulnerabilitiy(this.pluginData.id);
     forkJoin([
-      await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+      await this.collectionService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
       await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
     ]).subscribe(async ([users, collectionAssets]: any) => {
       this.poam = {
@@ -394,7 +394,7 @@ ${this.pluginData.description}` || "",
   async createNewSTIGManagerPoam() {
     this.validateStigManagerCollection(false);
     forkJoin([
-      await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+      await this.collectionService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
       await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
     ]).subscribe(async ([users, collectionAssets]: any) => {
       this.poam = {
@@ -456,7 +456,7 @@ ${this.pluginData.description}` || "",
 
   async createNewPoam() {
     forkJoin([
-      await this.collectionService.getUsersForCollection(this.payload.lastCollectionAccessedId),
+      await this.collectionService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
       await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
     ]).subscribe(async ([users, collectionAssets]: any) => {
       this.poam = {
