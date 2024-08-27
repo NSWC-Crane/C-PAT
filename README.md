@@ -1,15 +1,24 @@
-![CPAT](https://github.com/NSWC-Crane/C-PAT/assets/100237457/7c382eff-e86a-4c74-a3ff-f3b66fc0b4c8)
+# Keycloak for RMF Tools (C-PAT & STIG Manager)
 
-# Overview
-  C-PAT™ is an API and web client currently being developed through Naval Surface Warfare Center Crane Division that aims to automate vulnerability documentation and tracking. C-PAT™ is, and will continue to be architected with emphasis towards interoperability with other RMF Tools. C-PAT™ is designed to to run as a standalone tool that can be used to document and track vulnerabilities, or it can be integrated with [STIG Manager](https://github.com/NUWCDIVNPT/stig-manager) to provide a more comprehensive solution for oversight throughout the RMF process.
+A Keycloak authentication server pre-configured for demonstrating C-PAT and/or STIG Manager. The "Master" realm is configured with an admin user which can be used to perform Keycloak configuration.
 
-  ##  What is a POAM?
-  [NIST](https://csrc.nist.gov/glossary/term/POAM) defines a POAM as "a document for a system that identifies tasks needing to be accomplished.  It details resources required to accomplish the elements of the plan, any milestones in meetings the tasks, and scheduled completion dates for the milestones".   
+## Admin Console Access
 
-  The POAM document is an output of the "Assess" step of the Risk Management Framework.
-<img src="https://i.imgur.com/AAWSr5U.png" width="300" height="300" />
-  
+Access the admin console at [http://localhost:8080](http://localhost:8080)
 
-  ## Sample
-<img src="https://i.imgur.com/rbEbnls.png" width="1000" height="495" />
-<img src="https://i.imgur.com/tJWNX19.png" width="1000" height="300" />
+| Username | Password |
+|----------|----------|
+| admin    | Pa55w0rd |
+
+## RMF Tools Realm
+
+An "RMF Tools" realm is imported during initialization. The following users are defined and can be used when authenticating from the C-PAT or STIG Manager Client:
+
+| Username | Password |
+|----------|----------|
+| admin    | password |
+| user01   | password |
+| user02   | password |
+| user03   | password |
+| user04   | password |
+| user05   | password |
