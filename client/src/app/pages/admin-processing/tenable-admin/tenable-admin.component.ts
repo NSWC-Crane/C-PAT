@@ -84,11 +84,11 @@ export class TenableAdminComponent implements OnInit {
 
   filterRepositories() {
     const existingNames = new Set(this.existingCollections.map(c => c.collectionName.toLowerCase()));
-    this.filteredRepositories = this.tenableRepositories.filter(repo =>
+    this.filteredRepositories = this.tenableRepositories?.filter(repo =>
       !existingNames.has(repo.name.toLowerCase())
     );
 
-    if (this.filteredRepositories.length === 0) {
+    if (this.filteredRepositories?.length === 0) {
       this.showPopup('All Tenable repositories have already been imported.');
     }
   }

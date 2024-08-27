@@ -86,7 +86,7 @@ export class CollectionsService {
 			.subscribe();
 	}
 
-  async getUsersForCollection(id: string) {
+  async getCollectionPermissions(id: string) {
         const headers = await this.getAuthHeaders();
 		return this.http.get(`${this.cpatApiBase}/permissions/${+id}`, { headers })
       .pipe(catchError(this.handleError));

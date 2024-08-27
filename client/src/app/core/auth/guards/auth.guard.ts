@@ -51,7 +51,7 @@ export class AuthGuard implements CanActivate {
             if (userData.isAdmin) {
               return true;
             }
-            this.router.navigate(['/unauthorized']);
+            this.router.navigate(['/403']);
             return false;
           })
         );

@@ -63,8 +63,8 @@ exports.putPoamExtension = async function (extensionData) {
                 extensionData.status,
                 extensionData.poamId
             ];
-
             const [result] = await connection.query(sql, params);
+
             if (extensionData.poamLog && extensionData.poamLog.length > 0) {
                 let action = `POAM Updated. Status: ${extensionData.status}`;
                 if (extensionData.extensionTimeAllowed > 0) {
@@ -81,9 +81,9 @@ exports.putPoamExtension = async function (extensionData) {
                 await connection.query(logSql, [extensionData.poamId, action, extensionData.poamLog[0].userId]);
             }
 
-            return extensionData;
+            return result;
         } catch (error) {
-            throw error;
+            return { error: error.message };
         }
     });
 };

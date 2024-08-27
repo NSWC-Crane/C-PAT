@@ -9,7 +9,7 @@
 */
 
 const importService = require('../Services/importService');
-
+const SmError = require('../utils/error');
 
 module.exports.uploadPoamFile = async (req, res, next) => {
     const file = req.files[0];
@@ -51,7 +51,7 @@ module.exports.importVRAMExcel = async (req, res, next) => {
                 const result = await importService.importVRAMExcel(file);
                 res.status(201).json(result);
             } catch (error) {
-                console.error('Error processing VRAM file:', error);
+                throw new SmError.UnprocessableError('Error processing VRAM file.');
                 res.status(500).json({
                     message: "Could not process the file",
                     error: error.message,

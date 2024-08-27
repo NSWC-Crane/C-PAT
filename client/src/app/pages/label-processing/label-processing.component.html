@@ -53,7 +53,10 @@
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-label let-rowIndex="rowIndex">
-              <tr [pSelectableRow]="label" [pSelectableRowIndex]="rowIndex" (click)="setLabel(label.labelId)" (onKeyUp)="setLabel(label.labelId)">
+              <tr [pSelectableRow]="label"
+                  [pSelectableRowIndex]="rowIndex"
+                  (click)="accessLevel >= 2 ? setLabel(label.labelId) : null" 
+                  (keyup.enter)="accessLevel >= 2 ? setLabel(label.labelId) : null">
                 <td>{{label.labelId}}</td>
                 <td>{{label.labelName}}</td>
                 <td>{{label.description}}</td>
@@ -93,7 +96,7 @@
     </p-card>
   </div>
 </div>
-<p-dialog header="Label Details" [(visible)]="labelDialogVisible" [modal]="true" [style]="{width: '50vw'}">
+<p-dialog *ngIf="accessLevel >= 2" header="Label Details" [(visible)]="labelDialogVisible" [modal]="true" [style]="{width: '50vw'}">
   <ng-template pTemplate="content">
     <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData(); closeLabelPopup();"></cpat-label>
   </ng-template>

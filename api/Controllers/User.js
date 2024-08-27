@@ -82,7 +82,25 @@ module.exports.updateUserTheme = async function updateUserTheme(req, res, next) 
 module.exports.updateUserPoints = async function updateUserPoints(req, res, next) {
     try {
         const elevate = req.query.elevate;
-        const result = await userService.updateUserPoints(elevate, req);
+        const points = req.body.points;
+        const requestorId = req.userObject.userId;
+        const userId = req.body.userId;
+        const result = await userService.updateUserPoints(elevate, points, userId, requestorId);
+        if (result.success) {
+            res.status(200).json(result.message);
+        } else {
+            res.status(400).json(result.message);
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
+
+module.exports.updateUserLastCollectionAccessed = async function updateUserLastCollectionAccessed(req, res, next) {
+    try {
+        const userId = req.userObject.userId;
+        const lastCollectionAccessedId = req.body.lastCollectionAccessedId;
+        const result = await userService.updateUserLastCollectionAccessed(userId, lastCollectionAccessedId);
         if (result.success) {
             res.status(200).json(result.message);
         } else {

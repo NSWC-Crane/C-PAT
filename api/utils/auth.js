@@ -18,7 +18,7 @@ const { promisify } = require('util');
 const User = require('../Services/usersService')
 const axios = require('axios');
 const SmError = require('./error');
-const { format, isAfter, differenceInMinutes } = require('date-fns');
+const { differenceInMinutes } = require('date-fns');
 
 let jwksUri
 let client
@@ -78,7 +78,6 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
 
         const refreshFields = {}
         let now = new Date();
-        let formattedNow = format(now, 'yyyy-MM-dd HH:mm:ss');
 
         if (!response?.lastAccess || differenceInMinutes(now, response?.lastAccess) >= config.settings.lastAccessResolution) {
             refreshFields.lastAccess = now
@@ -97,6 +96,11 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
                 const userId = await User.setUserData(req.userObject, refreshFields, false);
                 if (userId.insertId != req.userObject.userId) {
                     req.userObject.userId = userId.insertId.toString();
+                }
+                if (!config.client.features.marketplaceDisabled && differenceInMinutes(now, response?.lastAccess) >= 720 && response?.points) {
+                    await User.dailyPoints(req.userObject.userId);
+                } else if (!config.client.features.marketplaceDisabled && differenceInMinutes(now, response?.lastAccess) >= 60 && response?.points) {
+                    await User.hourlyPoints(req.userObject.userId);
                 }
             }                   
         }

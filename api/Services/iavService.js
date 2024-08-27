@@ -12,6 +12,8 @@
 const config = require('../utils/config');
 const dbUtils = require('./utils');
 const mysql = require('mysql2');
+const SmError = require('../utils/error');
+const logger = require('../utils/logger');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -72,7 +74,7 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
                             if (validPluginID !== null) {
                                 acc[iav].add(validPluginID);
                             } else {
-                                console.warn(`Invalid pluginID: ${id} for IAV: ${iav}`);
+                                logger.writeWarn(`Invalid pluginID: ${id} for IAV: ${iav}`);
                             }
                         });
                     } else {
@@ -102,7 +104,7 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
             }
         });
     } catch (error) {
-        console.error('Error in mapIAVPluginIDs:', error);
+        throw new SmError.UnprocessableError('Error in mapIAVPluginIDs');
         return { error: error.message };
     }
 };
@@ -144,7 +146,7 @@ exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(encodedPlugin
             });
 
         if (validPluginIDs.length === 0) {
-            console.warn('No valid plugin IDs provided');
+            logger.writeWarn('No valid plugin IDs provided');
             return [];
         }
 
@@ -170,7 +172,6 @@ exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(encodedPlugin
             return latestResults;
         });
     } catch (error) {
-        console.error('Error in getIAVInfoForPlugins:', error);
-        throw new Error(`Failed to fetch IAV info: ${error.message}`);
+        throw new SmError.UnprocessableError('Failed to fetch IAV info');
     }
 };

@@ -80,7 +80,10 @@
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-asset let-rowIndex="rowIndex">
-                  <tr [pSelectableRow]="asset" [pSelectableRowIndex]="rowIndex" (click)="setAsset(asset.assetId)" (onKeyUp)="setAsset(asset.assetId)">
+                  <tr [pSelectableRow]="asset"
+                      [pSelectableRowIndex]="rowIndex"
+                      (click)="accessLevel >= 2 ? setAsset(asset.assetId) : null" 
+                      (keyup.enter)="accessLevel >= 2 ? setAsset(asset.assetId) : null">
                     <td>{{asset.assetId}}</td>
                     <td>{{asset.assetName}}</td>
                     <td>{{asset.description}}</td>
@@ -130,7 +133,7 @@
   </div>
 </div>
 
-<p-dialog *ngIf="accessLevel < 2" header="Manage Assets" [(visible)]="assetDialogVisible" [modal]="true" [style]="{width: '50vw'}">
+<p-dialog *ngIf="accessLevel >= 2" header="Manage Assets" [(visible)]="assetDialogVisible" [modal]="true" [style]="{width: '50vw'}">
   <ng-template pTemplate="content">
     <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData(); closeAssetDialog();"></cpat-asset>
   </ng-template>

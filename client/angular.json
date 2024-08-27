@@ -43,7 +43,7 @@
               "src/assets",
               {
                 "glob": "**/*",
-                "input": "src/app/styles/themes",
+                "input": "node_modules/primeng/resources/themes",
                 "output": "app/styles/themes"
               }
             ],

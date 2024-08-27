@@ -61,6 +61,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
       this.payload = null;
       this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
         next: (response: any) => {
+          if (response?.userId) {
           this.user = response;
           this.fullName = response.fullName;
           this.userRole = this.user.isAdmin ? 'C-PAT Admin' : 'C-PAT User';
@@ -88,6 +89,9 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
               }
             });
           }
+        } else {
+          console.error('User data is not available.');
+        }
         },
         error: (error) => {
           console.error('An error occurred:', error.message);
@@ -197,26 +201,14 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
         }
       }
     }
-    const now = new Date();
-    const formattedNow = format(now, 'yyyy-MM-dd HH:mm:ss');
     const userUpdate = {
       userId: this.user.userId,
-      userName: this.user.userName,
-      email: this.user.email,
-      lastAccess: formattedNow,
-      firstName: this.user.firstName,
-      lastName: this.user.lastName,
       lastCollectionAccessedId: parseInt(selectedCollection),
-      accountStatus: this.user.accountStatus,
-      officeOrg: this.user.officeOrg,
-      defaultTheme: this.user.defaultTheme || 'default',
-      isAdmin: this.user.isAdmin,
-      points: this.user.points,
     };
 
     if (this.user.lastCollectionAccessedId !== selectedCollection) {
       try {
-        const result = await (await this.userService.updateUser(userUpdate)).toPromise();
+        const result = await (await this.userService.updateUserLastCollection(userUpdate)).toPromise();
         this.user = result;
         window.location.reload();
       } catch (error) {

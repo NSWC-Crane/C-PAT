@@ -64,6 +64,6 @@ export class AuthService {
 
   async logout() {
     await this.oidcSecurityService.logoff('stigman', undefined);
-    await this.oidcSecurityService.logoff('cpat', undefined).subscribe((result) => console.log(result));
+    await this.oidcSecurityService.logoff('cpat', undefined).subscribe((result) => console.log('[C-PAT] Logout Success'));
   }
 }

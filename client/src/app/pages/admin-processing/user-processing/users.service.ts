@@ -89,6 +89,13 @@ export class UsersService {
       .pipe(catchError(this.handleError));
   }
 
+  async updateUserLastCollection(userData: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .put<any>(`${this.cpatApiBase}/user/updateLastCollection`, userData, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
   async updateUserTheme(userThemeData: any) {
     const headers = await this.getAuthHeaders();
     return this.http

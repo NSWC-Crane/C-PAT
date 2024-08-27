@@ -11,6 +11,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UsersService } from './user-processing/users.service';
 import { SubSink } from 'subsink';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'cpat-admin-processing',
@@ -23,6 +24,7 @@ export class AdminProcessingComponent implements OnInit {
 
   constructor(
     private userService: UsersService,
+    private router: Router,
   ) { }
 
   async ngOnInit() {
@@ -30,6 +32,9 @@ export class AdminProcessingComponent implements OnInit {
     this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
       next: (response: any) => {
         this.user = response;
+        if (!this.user.isAdmin) {
+          this.router.navigate(['/403']);
+        }
       },
       error: async (error) => {
         console.error('An error occurred:', error.message)

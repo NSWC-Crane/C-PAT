@@ -7,7 +7,7 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-<div class="grid" *ngIf="selectedRole === 'admin'; else unauthorized">
+<div class="grid">
   <div *ngIf="showUserSelect" class="col-12">
       <div class="scrollable-users">
         <p-treeTable #usersTable [value]="treeData" [columns]="allColumns" [filterDelay]="0" [globalFilterFields]="['User', 'Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level']">
@@ -92,10 +92,4 @@
       <button pButton type="button" label="Delete" class="p-button-danger"></button>
       <button pButton type="button" label="Cancel" class="p-button-secondary" (click)="ref.close()"></button>
     </p-footer>
-</ng-template>
-<ng-template #unauthorized>
-  <h1>
-    User processing requires the admin role.
-    <br /><br />
-  </h1>
 </ng-template>

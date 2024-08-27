@@ -58,7 +58,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return a A&A Package Name by aaPackageId
+      summary: Return an A&A Package Name by aaPackageId
       operationId: getAAPackage
       responses:
         '200':
@@ -106,7 +106,7 @@ paths:
         - AAPackage
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
   
   '/aaPackage':
     post:
@@ -141,7 +141,7 @@ paths:
         - AAPackage
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
     put:
       summary: Update an A&A Package
       operationId: putAAPackage
@@ -174,7 +174,7 @@ paths:
         - AAPackage
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
 
   /assets/collection/{collectionId}:
     parameters:
@@ -221,7 +221,7 @@ paths:
         schema:
           type: string
     get:
-      summary: Return an asset by userName
+      summary: Return an asset by Asset Name
       operationId: getAssetByName
       responses:
         '200':
@@ -261,7 +261,7 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return an asset by assetId
+      summary: Return an asset by Asset Id
       operationId: getAsset
       responses:
         '200':
@@ -293,7 +293,7 @@ paths:
         - oauth:
             - 'c-pat:read'
     delete:
-      summary: Delete an Asset by assetId
+      summary: Delete an Asset by Asset Id
       operationId: deleteAsset
       responses:
         '204':
@@ -314,7 +314,7 @@ paths:
         - Asset
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   /assets/{poamId}:
     parameters:
@@ -345,7 +345,7 @@ paths:
         - Asset
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
   
   /asset:
     post:
@@ -380,7 +380,7 @@ paths:
         - Asset
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
     put:
       summary: Update an Asset
       operationId: putAsset
@@ -413,7 +413,7 @@ paths:
         - Asset
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   /assetLabels/{collectionId}:
     parameters:
@@ -593,7 +593,7 @@ paths:
         - AssetLabel
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
             
   /assetLabel:
     post:
@@ -628,7 +628,7 @@ paths:
         - AssetLabel
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   /collections/basiclist:
     get:
@@ -651,6 +651,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+      security:
+        - oauth:
+            - 'c-pat:read'
   
   '/collections':
     get:
@@ -709,7 +712,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'  
+                $ref: '#/components/schemas/error'
+      security:
+        - oauth:
+            - 'c-pat:write'
     put:
       summary: Update a Collection
       operationId: putCollection
@@ -740,6 +746,9 @@ paths:
                 $ref: '#/components/schemas/error'
       tags: 
         - Collection
+      security:
+        - oauth:
+            - 'c-pat:write'
 
   /iav/vramUpdatedDate:
     get:
@@ -772,7 +781,7 @@ paths:
         - IAV
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
 
   /iav/iavSummary:
     get:
@@ -1134,7 +1143,7 @@ paths:
         - Label
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
   
   '/label/{collectionId}':
     parameters:
@@ -1175,7 +1184,7 @@ paths:
         - Label
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
     put:
       summary: Update a Label
       operationId: putLabel
@@ -1208,7 +1217,7 @@ paths:
         - Label
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   /marketplace/themes:
     get:
@@ -1500,7 +1509,7 @@ paths:
         - Metrics
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
   
   '/metrics/available/poamlabel':
     get:
@@ -1525,7 +1534,7 @@ paths:
         - Metrics
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
   
   '/metrics/available/poamstatus':
     get:
@@ -1550,7 +1559,7 @@ paths:
         - Metrics
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
   
   '/metrics/available/poamseverity':
     get:
@@ -1575,7 +1584,7 @@ paths:
         - Metrics
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
 
   '/metrics/available/monthlypoamseverity':
     get:
@@ -1600,7 +1609,7 @@ paths:
         - Metrics
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
 
   '/metrics/available/monthlypoamstatus':
     get:
@@ -1625,7 +1634,7 @@ paths:
         - Metrics
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
   
   '/metrics/available/poamScheduledCompletion':
     get:
@@ -1650,7 +1659,7 @@ paths:
         - Metrics
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
 
   '/metrics/available/collectionpoamcount':
     get:
@@ -1675,7 +1684,7 @@ paths:
         - Metrics
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
 
   /notifications/all:
     get:
@@ -1908,7 +1917,7 @@ paths:
         - Operation
       security:
         - oauth:
-            - 'c-pat:op'    
+            - 'c-pat:read'    
     delete:
       summary: Delete a configuration item
       operationId: deleteConfigurationItem
@@ -2043,8 +2052,7 @@ paths:
         - Permissions
       security:
         - oauth:
-            - 'c-pat:op'
-  
+            - 'c-pat:op'  
     put:
       summary: Update user collection permissions
       operationId: putPermission
@@ -2153,7 +2161,7 @@ paths:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
   
   '/poamApprover/poam/{poamId}/user/{userId}':
     parameters:
@@ -2189,7 +2197,7 @@ paths:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:write'
   
   '/poamApprover':
     post:
@@ -2218,7 +2226,7 @@ paths:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:write'
     put:
       summary: Updates a poamApprover
       operationId: putPoamApprover
@@ -2245,7 +2253,7 @@ paths:
         - PoamApprover
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:write'
 
   '/poamAssets':
     get:
@@ -2379,7 +2387,7 @@ paths:
         - PoamAssets
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
   
   '/poamAsset/poam/{poamId}/asset/{assetId}':
     delete:
@@ -2415,7 +2423,7 @@ paths:
         - PoamAssets
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
   
   '/poamAsset':
     post:
@@ -2450,7 +2458,7 @@ paths:
         - PoamAssets
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   /poamAssignees:
     get:
@@ -2551,7 +2559,7 @@ paths:
         - PoamAssignees
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
             
   /poamAssignee:
     post:
@@ -2606,7 +2614,7 @@ paths:
         - PoamAssignees
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   /poamExtension/{poamId}:
     get:
@@ -2648,7 +2656,7 @@ paths:
         - PoamExtension
       security:
         - oauth:
-          - 'c-pat:read'
+          - 'c-pat:write'
       parameters:
         - in: path
           name: poamId
@@ -2684,7 +2692,7 @@ paths:
         - PoamExtension
       security:
         - oauth:
-          - 'c-pat:read' 
+          - 'c-pat:write' 
       requestBody:
         content:
           application/json:
@@ -2772,7 +2780,7 @@ paths:
         - PoamLabel
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
             
   /poamLabels/poam/{poamId}:
     parameters:
@@ -2909,7 +2917,7 @@ paths:
         - PoamLabel
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
             
   /poamLabel:
     post:
@@ -2944,7 +2952,7 @@ paths:
         - PoamLabel
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   /poamLog/{poamId}:
     parameters:
@@ -3058,7 +3066,7 @@ paths:
         - PoamMilestones
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
   
   /poamMilestones/{poamId}/{milestoneId}:
     delete:
@@ -3095,7 +3103,7 @@ paths:
         - PoamMilestones
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
     put:
       summary: Update a specific milestone
       description: Updates the milestone identified by milestoneId for a given POAM.
@@ -3142,7 +3150,7 @@ paths:
         - PoamMilestones
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   /poams:
     get:
@@ -3186,7 +3194,7 @@ paths:
         - Poam
       security:
         - oauth:
-            - 'c-pat:op'
+            - 'c-pat:read'
   
   /poam/{poamId}:
     parameters:
@@ -3257,7 +3265,7 @@ paths:
         - Poam
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
   
   /poams/collection/{collectionId}:
     parameters:
@@ -3428,7 +3436,7 @@ paths:
         - Poam
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
     put:
       summary: Update a POAM
       operationId: putPoam
@@ -3461,7 +3469,7 @@ paths:
         - Poam
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   '/poam/status/{poamId}':
     parameters:
@@ -3502,7 +3510,7 @@ paths:
         - Poam
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:write'
 
   '/user':
     get:
@@ -3537,7 +3545,7 @@ paths:
         - User
       security:
         - oauth:
-            - 'c-pat:read'        
+            - 'c-pat:op'
       summary: Update properties of a User
       operationId: updateUser
       parameters:
@@ -3639,6 +3647,41 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
+
+  /user/updateLastCollection:
+    put:
+      summary: Updates a users last collection accessed Id
+      operationId: updateUserLastCollectionAccessed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLastCollectionRequest'
+      responses:
+        '200':
+          description: Successfully updated the users last collection accessed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - User
+      security:
+        - oauth:
+            - 'c-pat:read'
   
   '/users':
     get:
@@ -3680,7 +3723,7 @@ paths:
         - User
       security:
         - oauth:
-            - 'c-pat:op'        
+            - 'c-pat:read'        
       summary: Return a User
       operationId: getUserByUserID
       responses:
@@ -4822,6 +4865,17 @@ components:
       required:
         - userId
         - points
+
+    UpdateLastCollectionRequest:
+      type: object
+      properties:
+        userId:
+          type: integer
+        lastCollectionAccessedId:
+          type: integer
+      required:
+        - userId
+        - lastCollectionAccessedId
 
     basic_user:
       type: object
