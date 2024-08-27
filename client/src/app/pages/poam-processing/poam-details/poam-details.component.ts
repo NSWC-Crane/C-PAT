@@ -17,7 +17,6 @@ import { catchError } from 'rxjs/operators';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { PoamService } from '../poams.service';
 import { AssetService } from '../../asset-processing/assets.service';
 import { ImportService } from '../../import-processing/import.service';
@@ -25,6 +24,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { jsonToPlainText } from "json-to-plain-text";
 import { AAPackageService } from '../../admin-processing/aaPackage-processing/aaPackage-processing.service';
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 interface AAPackage {
   aaPackageId: number;
@@ -48,17 +48,14 @@ interface Permission {
 })
 export class PoamDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table: Table;
-  protected accessLevel: number;
   clonedMilestones: { [s: string]: any; } = {};
   poamLabels: any[] = [];
   labelList: any[] = [];
   errorDialogVisible: boolean = false;
   errorMessage: string = '';
   errorHeader: string = 'Error';
-  user: any;
   poam: any;
   poamId: string = "";
-  payload: any;
   dates: any = {};
   collectionUsers: any;
   collectionApprovers: any;
@@ -85,6 +82,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   stigmanCollectionId: any;
   stateData: any;
   selectedCollection: any;
+  protected accessLevel: any;
+  user: any;
+  payload: any;
+  private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
   private subs = new SubSink();
 
@@ -135,11 +136,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private sharedService: SharedService,
     private router: Router,
-    private userService: UsersService,
     private assetService: AssetService,
     private importService: ImportService,
     private collectionService: CollectionsService,
     private cdr: ChangeDetectorRef,
+    private setPayloadService: PayloadService
   ) { }
 
   onDeleteConfirm() { }
@@ -158,39 +159,21 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.accessLevel = 0;
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
-            collectionId: permission.collectionId,
-            accessLevel: permission.accessLevel,
-          }));
-
-          this.payload = {
-            ...this.user,
-            collections: mappedPermissions
-          };
-          if (mappedPermissions.length > 0) {
-            const selectedPermissions = this.payload.collections.find(
-              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
-            );
-
-            if (selectedPermissions) {
-              this.accessLevel = selectedPermissions.accessLevel;
-            }
-          }
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
           this.getData();
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
-    this.cdr.detectChanges();
+      })
+    );
   }
 
   async getData() {
@@ -276,12 +259,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         iavComplyByDate: this.stateData.iavComplyByDate ? format(new Date(this.stateData.iavComplyByDate), "yyyy-MM-dd") : null,
         submittedDate: format(new Date(), "yyyy-MM-dd"),
         vulnerabilityId: this.pluginData.id || "",
-        description:
-`Title:
-${this.pluginData.name}
-
+        description: `Title:
+${this.pluginData.name ?? ""}
 Description:
-${this.pluginData.description}` || "",
+${this.pluginData.description ?? ""}`,
         rawSeverity: this.mapTenableSeverity(this.tenableVulnResponse.severity.id),
         scheduledCompletionDate: '',
         submitterId: this.payload.userId,
@@ -382,8 +363,7 @@ ${this.pluginData.description}` || "",
 
     try {
       const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
-      if (data.error_msg) {
-      } else {
+      if (!data.error_msg) {      
         this.tenableVulnResponse = data.response.results[0];
       }
     } catch (error) {

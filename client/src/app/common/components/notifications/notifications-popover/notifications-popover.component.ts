@@ -10,16 +10,10 @@
 
 import { Component, Input, OnInit } from '@angular/core';
 import { NotificationService } from '../notifications.service';
-import { SubSink } from 'subsink';
-import { UsersService } from '../../../../pages/admin-processing/user-processing/users.service';
+import { PayloadService } from '../../../../common/services/setPayload.service';
 import { Router } from '@angular/router';
 import { OverlayPanel } from 'primeng/overlaypanel';
-
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'cpat-notifications-popover',
@@ -30,48 +24,37 @@ export class NotificationsPanelComponent implements OnInit {
   @Input() overlayPanel: OverlayPanel;
   notifications: any[] = [];
   public isLoggedIn = false;
+  protected accessLevel: any;
   user: any;
   payload: any;
-  private subs = new SubSink();
+  private payloadSubscription: Subscription[] = [];
 
   constructor(
     private notificationService: NotificationService,
-    private userService: UsersService,
+    private setPayloadService: PayloadService,
     private router: Router,
   ) { }
 
   async ngOnInit() {
-      this.setPayload();
+    this.setPayload();
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-
-          if (this.user.accountStatus === 'ACTIVE') {
-            this.payload = {
-              ...this.user,
-              collections: this.user.permissions.map(
-                (permission: Permission) => ({
-                  collectionId: permission.collectionId,
-                  accessLevel: permission.accessLevel,
-                })
-              ),
-            };
-            this.fetchNotifications();
-          }
-        } else {
-          console.error('User data is not available or user is not active');
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
+          this.fetchNotifications();
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
+      })
+    );
   }
 
   closeOverlay() {

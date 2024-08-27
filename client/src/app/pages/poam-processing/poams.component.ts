@@ -11,15 +11,9 @@
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
 import { PoamService } from './poams.service';
-import { forkJoin } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
-import { UsersService } from '../admin-processing/user-processing/users.service';
-
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+import { PayloadService } from '../../common/services/setPayload.service';
 
 interface LabelInfo {
   poamId: number;
@@ -34,17 +28,19 @@ interface LabelInfo {
 })
 
 export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
+  protected accessLevel: any;
   private subs = new SubSink();
   public isLoggedIn = false;
   poams: any[] = [];
   user: any;
   payload: any;
+  private payloadSubscription: Subscription[] = [];
 
   constructor(
     private poamService: PoamService,
     private router: Router,
-    private userService: UsersService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private setPayloadService: PayloadService
   ) {
   }
 
@@ -58,33 +54,21 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-
-          if (this.user.accountStatus === 'ACTIVE') {
-            this.payload = {
-              ...this.user,
-              collections: this.user.permissions.map(
-                (permission: Permission) => ({
-                  collectionId: permission.collectionId,
-                  accessLevel: permission.accessLevel,
-                })
-              ),
-            };
-            this.getPoamData();
-          }
-        } else {
-          console.error('User data is not available or user is not active');
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
+          this.getPoamData();
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
+      })
+    );
   }
 
   async getPoamData() {

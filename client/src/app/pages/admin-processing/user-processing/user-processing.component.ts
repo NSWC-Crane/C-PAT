@@ -10,19 +10,14 @@
 
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UsersService } from './users.service';
-import { forkJoin } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 import { ConfirmationService, TreeNode } from 'primeng/api';
 import { SubSink } from "subsink";
 import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { TreeTable } from 'primeng/treetable';
 import { Router } from '@angular/router';
-
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 @Component({
   selector: 'cpat-user-processing',
@@ -36,17 +31,17 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   customColumn = 'User';
   defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level'];
   allColumns = [this.customColumn, ...this.defaultColumns];
-  accessLevel: any;
   collectionList: any[] = [];
   users: TreeNode[] = [];
-  user: any = {};
   data: any = [];
   selected: any;
-  payload: any;
   showUserSelect: boolean = true;
   treeData: any[] = [];
   selectedUser: any;
-
+  protected accessLevel: any;
+  user: any = {};
+  payload: any;
+  private payloadSubscription: Subscription[] = [];
   private subs = new SubSink();
 
   constructor(
@@ -54,6 +49,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private confirmationService: ConfirmationService,
     private router: Router,
+    private setPayloadService: PayloadService,
   ) {
   }
 
@@ -66,42 +62,23 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.accessLevel = 0;
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
-            collectionId: permission.collectionId,
-            accessLevel: permission.accessLevel,
-          }));
-
-          this.payload = {
-            ...this.user,
-            collections: mappedPermissions
-          };
-          if (mappedPermissions.length > 0) {
-            const selectedPermissions = this.payload.collections.find(
-              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
-            );
-
-            if (selectedPermissions) {
-              this.accessLevel = selectedPermissions.accessLevel;
-            }
-          }
-          if (this.user.isAdmin) {
-            this.getUserData();
-          } else {
-            this.router.navigate(['/403']);
-          }        
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.user.isAdmin) {
+          this.getUserData();
+        } else {
+          this.router.navigate(['/403']);
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
+      })
+    );
   }
 
   async getUserData() {

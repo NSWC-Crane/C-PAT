@@ -8,17 +8,11 @@
 !########################################################################
 */
 
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
-
 import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { SubSink } from 'subsink';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PoamService } from '../poams.service';
-import { UsersService } from '../../admin-processing/user-processing/users.service';
+import { PayloadService } from '../../../common/services/setPayload.service';
 import { DatePipe } from '@angular/common';
 import { Subscription, forkJoin } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
@@ -37,7 +31,9 @@ import { MessageService } from 'primeng/api';
   ]
 })
 export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
-  protected accessLevel: number;
+  protected accessLevel: any;
+  user: any;
+  payload: any;  
   private subs = new SubSink();
   public isLoggedIn = false;
   hqsChecked: boolean = false;
@@ -48,8 +44,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   dates: any = {};
   comments: any;
   selectedCollection: any;
-  user: any;
-  payload: any;
+  private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
   approvalStatusOptions = [
     { label: 'Not Reviewed', value: 'Not Reviewed' },
@@ -64,7 +59,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     private messageService: MessageService,
     private router: Router,
     private route: ActivatedRoute,
-    private userService: UsersService,
+    private setPayloadService: PayloadService,
     private sharedService: SharedService,
     private poamApproveService: PoamApproveService,
     private poamService: PoamService,
@@ -86,41 +81,22 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.accessLevel = 0;
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
-            collectionId: permission.collectionId,
-            accessLevel: permission.accessLevel,
-          }));
-
-          this.payload = {
-            ...this.user,
-            collections: mappedPermissions
-          };
-          if (mappedPermissions.length > 0) {
-            const selectedPermissions = this.payload.collections.find(
-              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
-            );
-
-            if (selectedPermissions) {
-              this.accessLevel = selectedPermissions.accessLevel;
-            }
-          }
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
           this.getData();
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
-    this.cdr.detectChanges();
+      })
+    );
   }
-
   async getData() {
     forkJoin([
       await this.poamApproveService.getPoamApprovers(this.poamId),

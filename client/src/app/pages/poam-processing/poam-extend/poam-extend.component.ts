@@ -14,16 +14,10 @@ import { ConfirmationService } from 'primeng/api';
 import { Subscription, forkJoin } from 'rxjs';
 import { addDays, format, isAfter } from 'date-fns';
 import { PoamService } from '../poams.service';
-import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { PoamExtensionService } from '../poam-extend/poam-extend.service';
 import { MessageService } from 'primeng/api';
-
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 @Component({
   selector: 'cpat-poam-extend',
@@ -31,8 +25,7 @@ interface Permission {
   styleUrls: ['./poam-extend.component.scss'],
   providers: [ConfirmationService]
 })
-export class PoamExtendComponent implements OnInit, OnDestroy {
-  protected accessLevel: number;
+export class PoamExtendComponent implements OnInit, OnDestroy {  
   displayExtensionDialog: boolean = false;
   dates: any = {};
   poam: any;
@@ -101,22 +94,24 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   selectedCollection: any;
   user: any;
   payload: any;
+  protected accessLevel: any;
   completionDate: any;
   completionDateWithExtension: any;
   labelList: any;
 
   private subscriptions = new Subscription();
+  private payloadSubscription: Subscription[] = [];
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private poamService: PoamService,
-    private userService: UsersService,
     private sharedService: SharedService,
     private poamExtensionService: PoamExtensionService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef,
+    private setPayloadService: PayloadService
   ) { }
 
   ngOnInit() {
@@ -133,39 +128,21 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   }
 
   async setPayload() {
-    this.user = null;
-    this.payload = null;
-    this.accessLevel = 0;
-    (await this.userService.getCurrentUser()).subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          const mappedPermissions = this.user.permissions?.map((permission: Permission) => ({
-            collectionId: permission.collectionId,
-            accessLevel: permission.accessLevel,
-          }));
-
-          this.payload = {
-            ...this.user,
-            collections: mappedPermissions
-          };
-          if (mappedPermissions.length > 0) {
-            const selectedPermissions = this.payload.collections.find(
-              (x: { collectionId: any; }) => x.collectionId == this.payload.lastCollectionAccessedId
-            );
-
-            if (selectedPermissions) {
-              this.accessLevel = selectedPermissions.accessLevel;
-            }
-          }
+    await this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe(payload => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe(level => {
+        this.accessLevel = level;
+        if (this.accessLevel > 0) {
           this.getData();
         }
-      },
-      error: (error) => {
-        console.error('An error occurred:', error);
-      }
-    });
-    this.cdr.detectChanges();
+      })
+    );
   }
 
   async getData() {
