@@ -28,7 +28,10 @@ ENV COMMIT_SHA=${COMMIT_SHA} \
     COMMIT_TAG=${COMMIT_TAG} \
     COMMIT_DESCRIBE=${COMMIT_DESCRIBE}
 USER root
-RUN df -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type d -perm -0002 2>/dev/null | xargs chmod a+t 2>/dev/null || true
+RUN \
+    df -P | awk '{if (NR!=1) print $6}' | \
+    xargs -I '{}' find '{}' -xdev -type d -perm -0002 2>/dev/null | \
+    xargs chmod a+t 2>/dev/null || true
 USER node
 EXPOSE 8086
 CMD ["node", "index.js"]

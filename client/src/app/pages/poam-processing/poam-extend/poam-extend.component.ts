@@ -210,81 +210,99 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   }
 
   async onRowEditSave(milestone: any) {
-    if (!milestone.milestoneChangeComments) {
-      this.messageService.add({ severity: "error", summary: 'Information', detail: "Milestone Change Comments is a required field." });
-      return;
-    }
-    if (!milestone.milestoneChangeDate) {
-      this.messageService.add({ severity: "error", summary: 'Information', detail: "Milestone Change Date is a required field." });
-      return;
-    }
-    if (!milestone.milestoneStatus) {
-      this.messageService.add({ severity: "error", summary: 'Information', detail: "Milestone Status is a required field." });
-      return;
-    }
-    if (!milestone.milestoneTeam) {
-      this.messageService.add({ severity: "error", summary: 'Information', detail: "Milestone Team is a required field." });
-      return;
-    }
-
-    const milestoneDate = format(milestone.milestoneChangeDate, "yyyy-MM-dd");
-
-    if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
-      if (isAfter(milestoneDate, this.dates.scheduledCompletionDate)) {
-        this.messageService.add({ severity: "warn", summary: 'Information', detail: "The Milestone date provided exceeds the POAM scheduled completion date." });
-        return;
-      }
-    } else {
-      const maxAllowedDate = addDays(this.dates.scheduledCompletionDate, this.poam.extensionTimeAllowed);
-
-      if (isAfter(milestoneDate, maxAllowedDate)) {
-        this.messageService.add({ severity: "warn", summary: 'Information', detail: "The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time." });
-        return;
-      }
-    }
+    if (!this.validateMilestoneFields(milestone)) return;
+    if (!this.validateMilestoneDate(milestone)) return;
 
     if (milestone.isNew) {
-      const newMilestone: any = {
-        milestoneDate: null,
-        milestoneComments: null,
-        milestoneChangeComments: milestone.milestoneChangeComments || null,
-        milestoneChangeDate: format(milestone.milestoneChangeDate, "yyyy-MM-dd"),
-        milestoneStatus: milestone.milestoneStatus || 'Pending',
-        milestoneTeam: milestone.milestoneTeam || null,
-        poamLog: [{ userId: this.user.userId }],
-      };
-
-      await (await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone)).subscribe((res: any) => {
-        if (res.null) {
-          this.messageService.add({ severity: "error", summary: 'Information', detail: "Unable to insert row, please validate entry and try again." });
-          return;
-        } else {
-          milestone.milestoneId = res.milestoneId;
-          milestone.isNew = false;
-          delete milestone.editing;
-        }
-      });
+      await this.addNewMilestone(milestone);
     } else {
-      const milestoneUpdate = {
-        ...(milestone.milestoneDate && { milestoneDate: format(milestone.milestoneDate, "yyyy-MM-dd") }),
-        ...(milestone.milestoneComments && { milestoneComments: milestone.milestoneComments }),
-        ...(milestone.milestoneChangeDate && { milestoneChangeDate: format(milestone.milestoneChangeDate, "yyyy-MM-dd") }),
-        ...(milestone.milestoneChangeComments && { milestoneChangeComments: milestone.milestoneChangeComments }),
-        ...(milestone.milestoneStatus && { milestoneStatus: milestone.milestoneStatus }),
-        ...(milestone.milestoneTeam && { milestoneTeam: milestone.milestoneTeam }),
-        poamLog: [{ userId: this.user.userId }],
-      };
-
-      (await this.poamService.updatePoamMilestone(this.poam.poamId, milestone.milestoneId, milestoneUpdate)).subscribe({
-        next: () => {
-          this.getData();
-        },
-        error: (error) => {
-          console.error(error);
-        }
-      });
+      await this.updateExistingMilestone(milestone);
     }
+
     delete this.clonedMilestones[milestone.milestoneId];
+  }
+
+  private validateMilestoneFields(milestone: any): boolean {
+    const requiredFields = [
+      { field: 'milestoneChangeComments', message: "Milestone Change Comments is a required field." },
+      { field: 'milestoneChangeDate', message: "Milestone Change Date is a required field." },
+      { field: 'milestoneStatus', message: "Milestone Status is a required field." },
+      { field: 'milestoneTeam', message: "Milestone Team is a required field." }
+    ];
+
+    for (const { field, message } of requiredFields) {
+      if (!milestone[field]) {
+        this.messageService.add({ severity: "error", summary: 'Information', detail: message });
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private validateMilestoneDate(milestone: any): boolean {
+    const milestoneDate = format(milestone.milestoneChangeDate, "yyyy-MM-dd");
+    const scheduledCompletionDate = format(this.poam.scheduledCompletionDate, "yyyy-MM-dd");
+    const extensionTimeAllowed = this.poam.extensionTimeAllowed;
+
+    if (extensionTimeAllowed === 0 || extensionTimeAllowed == null) {
+      if (isAfter(milestoneDate, scheduledCompletionDate)) {
+        this.messageService.add({ severity: "warn", summary: 'Information', detail: "The Milestone date provided exceeds the POAM scheduled completion date." });
+        return false;
+      }
+    } else {
+      const maxAllowedDate = addDays(scheduledCompletionDate, extensionTimeAllowed);
+      if (isAfter(milestoneDate, maxAllowedDate)) {
+        this.messageService.add({ severity: "warn", summary: 'Information', detail: "The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time." });
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private async addNewMilestone(milestone: any) {
+    const newMilestone: any = {
+      milestoneDate: null,
+      milestoneComments: null,
+      milestoneChangeComments: milestone.milestoneChangeComments || null,
+      milestoneChangeDate: format(milestone.milestoneChangeDate, "yyyy-MM-dd"),
+      milestoneStatus: milestone.milestoneStatus || 'Pending',
+      milestoneTeam: milestone.milestoneTeam || null,
+      poamLog: [{ userId: this.user.userId }],
+    };
+
+    await (await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone)).subscribe((res: any) => {
+      if (res.null) {
+        this.messageService.add({ severity: "error", summary: 'Information', detail: "Unable to insert row, please validate entry and try again." });
+        return;
+      } else {
+        milestone.milestoneId = res.milestoneId;
+        milestone.isNew = false;
+        delete milestone.editing;
+      }
+    });
+  }
+
+  private async updateExistingMilestone(milestone: any) {
+    const milestoneUpdate = {
+      ...(milestone.milestoneDate && { milestoneDate: format(milestone.milestoneDate, "yyyy-MM-dd") }),
+      ...(milestone.milestoneComments && { milestoneComments: milestone.milestoneComments }),
+      ...(milestone.milestoneChangeDate && { milestoneChangeDate: format(milestone.milestoneChangeDate, "yyyy-MM-dd") }),
+      ...(milestone.milestoneChangeComments && { milestoneChangeComments: milestone.milestoneChangeComments }),
+      ...(milestone.milestoneStatus && { milestoneStatus: milestone.milestoneStatus }),
+      ...(milestone.milestoneTeam && { milestoneTeam: milestone.milestoneTeam }),
+      poamLog: [{ userId: this.user.userId }],
+    };
+
+    (await this.poamService.updatePoamMilestone(this.poam.poamId, milestone.milestoneId, milestoneUpdate)).subscribe({
+      next: () => {
+        this.getData();
+      },
+      error: (error) => {
+        console.error(error);
+      }
+    });
   }
 
   onRowEditCancel(milestone: any, index: number) {
