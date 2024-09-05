@@ -51,6 +51,22 @@ interface Poam {
     }[];
   };
 }
+
+interface CellValueMapper {
+  (value: any, poam: Poam, columnKey: string): any;
+}
+
+enum Classification {
+  U = 'U',
+  CUI = 'CUI',
+  FOUO = 'FOUO',
+  C = 'C',
+  S = 'S',
+  TS = 'TS',
+  SCI = 'SCI',
+  NONE = 'NONE'
+}
+
 export class PoamExportService {
 
   private static mapRawSeverity(rawSeverity: string): string {
@@ -76,7 +92,7 @@ export class PoamExportService {
     }
   }
 
-  private static getClassificationText(classification: string): string {
+  private static getClassificationText(classification: Classification): string {
     switch (classification) {
       case 'U':
         return '***** UNCLASSIFIED *****';
@@ -97,7 +113,7 @@ export class PoamExportService {
     }
   }
 
-  private static getClassificationColorCode(classification: string): string {
+  private static getClassificationColorCode(classification: Classification): string {
     switch (classification) {
       case 'U':
         return 'ff007a33';
@@ -204,57 +220,50 @@ export class PoamExportService {
     };
 
     let rowIndex = 8;
-    poams.forEach(poam => {
-      if (poam['status'] === 'Draft') {
-        return;
+    const cellValueMappers: { [key: string]: CellValueMapper } = {
+      rawSeverity: (value: any, _poam: Poam, _columnKey: string): string => this.mapRawSeverity(value),
+      adjSeverity: (value: any, _poam: Poam, _columnKey: string): string => this.mapRawSeverity(value),
+      vulnerabilitySource: (value: any, poam: Poam, _columnKey: string): any =>
+        value === 'STIG' ? poam.stigTitle : this.mapRawSeverity(value),
+      status: (value: any, _poam: Poam, _columnKey: string): string => value === 'Closed' ? 'Completed' : 'Ongoing',
+      scheduledCompletionDate: (value: any, _poam: Poam, _columnKey: string): string =>
+        value ? format(new Date(value), "MM/dd/yyyy") : '',
+      cci: (value: any, _poam: Poam, _columnKey: string): string => `CCI-${value}`,
+      milestones: (value: any, poam: Poam, columnKey: string): string => {
+        const formattedMilestones = this.formatMilestones(poam);
+        if (columnKey === 'I') return formattedMilestones.comments ? '1' : '';
+        if (columnKey === 'J') return formattedMilestones.comments;
+        if (columnKey === 'K') return formattedMilestones.changes;
+        return '';
       }
+    };
+
+    const optionalDefaultValues: { [key: string]: string } = {
+      'D': 'CM-6.5',
+      'N': `CCI-000366\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.`,
+      'T': 'High',
+      'W': 'High',
+      'U': 'ADVERSARIAL - HIGH: Per table D-2 Taxonomy of Threat Sources lists ADVERSARIAL as individual (outsider, insider, trusted insider, privileged insider), therefore the Relevance of Threat defaults to HIGH.',
+      'Z': 'After reviewing documentation, and interviewing system stakeholders, it has been determined that this vulnerability should be mitigated. The ISSO will continue to monitor this vulnerability, and update the POAM as necessary. See mitigations field for detailed mitigation information.'
+    };
+
+    const getCellValue = (poam: Poam, dbKey: string, columnKey: string): any => {
+      if (poam[dbKey] !== undefined && poam[dbKey] !== '') {
+        return cellValueMappers[dbKey]
+          ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey)
+          : poam[dbKey];
+      }
+      return optionalDefaultValues[columnKey] || '';
+    };
+
+    poams.forEach((poam: Poam) => {
+      if (poam.status === 'Draft') return;
 
       const row = worksheet!.getRow(rowIndex);
-      Object.keys(excelColumnToDbColumnMapping).forEach(columnKey => {
-        const dbKey = excelColumnToDbColumnMapping[columnKey];
-        if (poam[dbKey] !== undefined && poam[dbKey] !== '') {
-          if (dbKey === 'rawSeverity') {
-            row.getCell(columnKey).value = this.mapRawSeverity(poam[dbKey]);
-          } else if (dbKey === 'adjSeverity') {
-            row.getCell(columnKey).value = this.mapRawSeverity(poam[dbKey]);
-          } else if (dbKey === 'vulnerabilitySource') {
-            if (poam[dbKey] === 'STIG') {
-              row.getCell(columnKey).value = poam['stigTitle']
-            } else {
-              row.getCell(columnKey).value = this.mapRawSeverity(poam[dbKey]);
-            }
-          } else if (dbKey === 'status') {
-            row.getCell(columnKey).value = poam[dbKey] === 'Closed' ? 'Completed' : 'Ongoing';
-          } else if (dbKey === 'scheduledCompletionDate') {
-            row.getCell(columnKey).value = poam[dbKey] ? format(new Date(poam[dbKey]), "MM/dd/yyyy") : '';
-          } else if (dbKey === 'cci') {
-            row.getCell(columnKey).value = `CCI-${poam[dbKey]}`;
-          } else if (dbKey === 'milestones') {
-            const formattedMilestones = this.formatMilestones(poam);
-            if (columnKey === 'I') {
-              row.getCell(columnKey).value = formattedMilestones.comments ? '1' : '';
-            } else if (columnKey === 'J') {
-              row.getCell(columnKey).value = formattedMilestones.comments;
-            } else if (columnKey === 'K') {
-              row.getCell(columnKey).value = formattedMilestones.changes;
-            }
-          } else {
-            row.getCell(columnKey).value = poam[dbKey];
-          }
-        } else if (columnKey === 'D') {
-            row.getCell(columnKey).value = 'CM-6.5';
-        } else if (columnKey === 'N') {
-            row.getCell(columnKey).value = `CCI-000366
-
-Control mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.`;
-        } else if (columnKey === 'T' || columnKey === 'W') {
-          row.getCell(columnKey).value = 'High';
-        } else if (columnKey === 'U') {
-          row.getCell(columnKey).value = 'ADVERSARIAL - HIGH: Per table D-2 Taxonomy of Threat Sources lists ADVERSARIAL as individual (outsider, insider, trusted insider, privileged insider), therefore the Relevance of Threat defaults to HIGH.';
-        } else if (columnKey === 'Z') {
-          row.getCell(columnKey).value = 'After reviewing documentation, and interviewing system stakeholders, it has been determined that this vulnerability should be mitigated. The ISSO will continue to monitor this vulnerability, and update the POAM as necessary. See mitigations field for detailed mitigation information.';
-        }          
+      Object.entries(excelColumnToDbColumnMapping).forEach(([columnKey, dbKey]) => {
+        row.getCell(columnKey).value = getCellValue(poam, dbKey, columnKey);
       });
+
       row.commit();
       rowIndex++;
     });
