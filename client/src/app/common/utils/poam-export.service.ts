@@ -52,9 +52,7 @@ interface Poam {
   };
 }
 
-interface CellValueMapper {
-  (value: any, poam: Poam, columnKey: string): any;
-}
+type CellValueMapper = (value: any, poam: Poam, columnKey: string) => any;
 
 enum Classification {
   U = 'U',
@@ -221,16 +219,19 @@ export class PoamExportService {
 
     let rowIndex = 8;
     const cellValueMappers: { [key: string]: CellValueMapper } = {
-      rawSeverity: (value: any, _poam: Poam, _columnKey: string): string => this.mapRawSeverity(value),
-      adjSeverity: (value: any, _poam: Poam, _columnKey: string): string => this.mapRawSeverity(value),
+      rawSeverity: (value: any, _poam: Poam, _columnKey: string): string =>
+        PoamExportService.mapRawSeverity(value),
+      adjSeverity: (value: any, _poam: Poam, _columnKey: string): string =>
+        PoamExportService.mapRawSeverity(value),
       vulnerabilitySource: (value: any, poam: Poam, _columnKey: string): any =>
-        value === 'STIG' ? poam.stigTitle : this.mapRawSeverity(value),
-      status: (value: any, _poam: Poam, _columnKey: string): string => value === 'Closed' ? 'Completed' : 'Ongoing',
+        value === 'STIG' ? poam.stigTitle : PoamExportService.mapRawSeverity(value),
+      status: (value: any, _poam: Poam, _columnKey: string): string =>
+        value === 'Closed' ? 'Completed' : 'Ongoing',
       scheduledCompletionDate: (value: any, _poam: Poam, _columnKey: string): string =>
         value ? format(new Date(value), "MM/dd/yyyy") : '',
       cci: (value: any, _poam: Poam, _columnKey: string): string => `CCI-${value}`,
       milestones: (value: any, poam: Poam, columnKey: string): string => {
-        const formattedMilestones = this.formatMilestones(poam);
+        const formattedMilestones = PoamExportService.formatMilestones(poam);
         if (columnKey === 'I') return formattedMilestones.comments ? '1' : '';
         if (columnKey === 'J') return formattedMilestones.comments;
         if (columnKey === 'K') return formattedMilestones.changes;

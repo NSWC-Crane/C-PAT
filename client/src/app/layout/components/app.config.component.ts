@@ -159,9 +159,7 @@ export class AppConfigComponent {
     try {
       if (!this.user?.userId) {
         const userResponse = await (await this.userService.getCurrentUser()).toPromise();
-        if (userResponse?.userId) {
-          this.user = userResponse;
-        }
+        this.user = userResponse ?? null;
       }
       const userThemeUpdate = {
         defaultTheme: newTheme,
