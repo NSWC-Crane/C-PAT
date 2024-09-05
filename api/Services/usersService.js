@@ -73,7 +73,7 @@ exports.getUsers = async function getUsers(elevate, userId) {
 
                 return users;
             } else {
-                throw new Error('Elevate parameter is required');
+                throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {
@@ -181,7 +181,7 @@ exports.getUserByUserID = async function getUserByUserID(requestorId, elevate, u
                     permissions: permissions
                 };
             } else {
-                throw new Error('Elevate parameter is required');
+                throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {
@@ -274,7 +274,7 @@ exports.updateUser = async function updateUser(userId, elevate, req) {
 
             return updatedUser[0];
             } else {
-                throw new Error('Elevate parameter is required');
+                throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {
@@ -321,7 +321,7 @@ exports.updateUserPoints = async function updateUserPoints(elevate, points, user
 
             return { success: true, message: 'User points updated successfully' };
             } else {
-                throw new Error('Elevate parameter is required');
+                throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {
@@ -461,7 +461,7 @@ exports.deleteUser = async function deleteUser(requestorId, elevate, userId) {
 
             return { message: "User deleted" };
             } else {
-                throw new Error('Elevate parameter is required');
+                throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {

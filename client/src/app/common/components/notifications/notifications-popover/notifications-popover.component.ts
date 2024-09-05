@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { NotificationService } from '../notifications.service';
 import { PayloadService } from '../../../../common/services/setPayload.service';
 import { Router } from '@angular/router';
@@ -20,7 +20,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './notifications-popover.component.html',
   styleUrls: ['./notifications-popover.component.scss']
 })
-export class NotificationsPanelComponent implements OnInit {
+export class NotificationsPanelComponent implements OnInit, OnDestroy {
   @Input() overlayPanel: OverlayPanel;
   notifications: any[] = [];
   public isLoggedIn = false;
@@ -102,5 +102,9 @@ export class NotificationsPanelComponent implements OnInit {
   viewAllNotifications() {
     this.router.navigateByUrl('/notifications');
     this.closeOverlay();
+  }
+
+  ngOnDestroy(): void {
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

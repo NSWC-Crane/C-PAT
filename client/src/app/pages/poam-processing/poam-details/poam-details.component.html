@@ -62,7 +62,7 @@
         <!-- Description -->
         <div class="form-group">
           <label for='description'><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Control Vulnerability Description: Describes the vulnerability identified during assessment. This is pulled directly from the assessment procedure entry or technical assessment method (e.g., STIG test case) where applicable. Otherwise it must be manually entered in the NC status for the vulnerability."></i>Description: </label>
-          <textarea pInputTextarea class="w-full" [rows]="8" [(ngModel)]="poam.description" id='description' name='description' [maxlength]="2000" placeholder="Description..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></textarea>
+          <textarea pInputTextarea class="w-full" [rows]="8" [(ngModel)]="poam.description" id='description' name='description' [maxlength]="10000" placeholder="Description..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></textarea>
         </div>
 
         <!-- AA Package -->
@@ -93,22 +93,22 @@
         </div>
 
         <!-- Source Identifying Control Vulnerability - ID # for Non STIGs-->
-        <div class="form-group" *ngIf="poam.vulnerabilitySource !== 'STIG'">          
+        <div class="form-group" *ngIf="poam.vulnerabilitySource !== 'STIG'">
           <label for="vulnerabilityId"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source Identifying Control Vulnerability - ID #: </label>
-          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId' id="vulnerabilityId" placeholder="Vulnerability ID..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" [maxlength]="255" name='vulnerabilityId' id="vulnerabilityId" placeholder="Vulnerability ID..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
         </div>
 
         <!-- Source Identifying Control Vulnerability - ID # for STIG-->
         <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
           <label for="vulnerabilityId"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source Identifying Control Vulnerability - ID #: </label>
-          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" name='vulnerabilityId' id="vulnerabilityId" placeholder="Vulnerability ID..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" [maxlength]="255" name='vulnerabilityId' id="vulnerabilityId" placeholder="Vulnerability ID..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
         </div>
 
         <!-- IAVM # -->
-        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'ACAS Nessus Scanner' || poam.vulnerabilitySource === 'Task Order'">
+        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'Task Order'">
           <label for="iavmNumber">IAVM #: </label>
           <div class="p-inputgroup">
-            <input type="text" pInputText class="w-full" [(ngModel)]="poam.iavmNumber" name='iavmNumber' placeholder="IAVM #..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
+            <input type="text" pInputText class="w-full" [(ngModel)]="poam.iavmNumber" [maxlength]="25" name='iavmNumber' placeholder="IAVM #..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
             <button type="button" pButton icon="pi pi-external-link" (click)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber"></button>
           </div>
         </div>
@@ -122,13 +122,26 @@
         <!-- Raw Severity -->
         <div class="form-group">
           <label for="rawSeverity"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Raw Severity: The initial or starting severity of the vulnerability prior to implementing mitigations and/or compensating Controls."></i>Raw Severity Value: </label>
-          <p-dropdown [options]="severityOptions" [(ngModel)]="poam.rawSeverity" name='rawSeverity' id="rawSeverity" placeholder="Raw Severity..." optionLabel="label" optionValue="value" [style]="{'width':'25rem'}" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></p-dropdown>
+          <p-dropdown [options]="severityOptions" [(ngModel)]="poam.rawSeverity" name='rawSeverity' id="rawSeverity" placeholder="Raw Severity..." optionLabel="label" optionValue="value" [style]="{'width':'25rem'}" (onChange)="onAdjSeverityChange()" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></p-dropdown>
         </div>
 
         <!-- Adj Severity -->
         <div class="form-group">
-          <label for="adjSeverity"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Resulting Residual Risk after Proposed Mitigations: The risk level expected after any proposed mitigations are implemented. Proposed mitigations should be appropriately documented as POA&M milestones"></i>Adjusted Severity Value: </label>
-          <p-dropdown [options]="severityOptions" [(ngModel)]="poam.adjSeverity" name='adjSeverity' id="adjSeverity" placeholder="Adjusted Severity..." optionLabel="label" optionValue="value" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 3" [style]="{'width':'25rem'}"></p-dropdown>
+          <label for="adjSeverity">
+            <i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Resulting Residual Risk after Proposed Mitigations: The risk level expected after any proposed mitigations are implemented. Proposed mitigations should be appropriately documented as POA&M milestones"></i>
+            Adjusted Severity Value:
+          </label>
+          <p-dropdown [options]="severityOptions"
+                      [(ngModel)]="poam.adjSeverity"
+                      name='adjSeverity'
+                      id="adjSeverity"
+                      placeholder="Adjusted Severity..."
+                      optionLabel="label"
+                      optionValue="value"
+                      [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 3"
+                      [style]="{'width':'25rem'}"
+                      (onChange)="onAdjSeverityChange()">
+          </p-dropdown>
         </div>
 
         <!-- Scheduled Completion Date -->
@@ -197,7 +210,7 @@
                       <th scope="col">Approver</th>
                       <th scope="col">Approval Status</th>
                       <th scope="col">Approved Date</th>
-                      <th scope="col">Comments</th>
+                      <th scope="col">Comments For Approver</th>
                       <th scope="col" style="width: 8rem">
                         <button pButton icon="pi pi-plus" (click)="addApprover()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
                       </th>
@@ -213,7 +226,7 @@
                       <td>{{approver.approvedDate ? (approver.approvedDate | date:'yyyy-MM-dd') : 'Not Reviewed'}}</td>
                       <td>
                         <span *ngIf="!approver.isNew">{{approver.comments}}</span>
-                        <textarea *ngIf="approver.isNew" pInputTextarea class="w-full" [(ngModel)]="approver.comments" [rows]="3" [disabled]="accessLevel < 2"></textarea>
+                        <textarea *ngIf="approver.isNew" pInputTextarea class="w-full" [(ngModel)]="approver.comments" [rows]="3" [maxlength]="2000" [disabled]="accessLevel < 2"></textarea>
                       </td>
                       <td>
                         <button *ngIf="poam.status === 'Draft'" pButton icon="pi pi-trash" (click)="deleteApprover(approver, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
@@ -239,7 +252,7 @@
         <p-stepperPanel header="Assets">
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
-              <div *ngIf="(poam.vulnerabilitySource != 'ACAS Nessus Scanner' && poam.vulnerabilitySource != 'STIG') || isEmassCollection" class="stepper-content">
+              <div *ngIf="(poam.vulnerabilitySource != 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.vulnerabilitySource != 'STIG') || isEmassCollection" class="stepper-content">
                 <p-table [value]="poamAssets" [paginator]="false">
       <ng-template pTemplate="header">
         <tr>
@@ -270,7 +283,7 @@
               <div *ngIf="poam.vulnerabilitySource === 'STIG' && !isEmassCollection" class="stepper-content">
                 <stigmanager-poam-assets-table [stigmanCollectionId]="stigmanCollectionId" [groupId]="poam.vulnerabilityId"></stigmanager-poam-assets-table>
               </div>
-                <div *ngIf="poam.vulnerabilitySource === 'ACAS Nessus Scanner' && !isEmassCollection" class="stepper-content">
+                <div *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && !isEmassCollection" class="stepper-content">
                   <tenable-assets-table [pluginID]="poam.vulnerabilityId"></tenable-assets-table>
                 </div>
 
@@ -304,7 +317,7 @@
             <div class="stepper-content-wrapper">
               <div class="stepper-content">
                 <i class="pi pi-info-circle mb-3" style="color: var(--text-color);" pTooltip="Mitigations: Any currently implemented mitigations and/or compensating Controls that will reduce the risk. A planned mitigation or compensating Control cannot lower risk until implemented."></i>
-                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.mitigations" name='mitigations' [rows]="16" [maxlength]="2000" placeholder="Mitigations..." [disabled]="accessLevel < 2"></textarea>
+                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.mitigations" name='mitigations' [rows]="16" [maxlength]="10000" placeholder="Mitigations..." [disabled]="accessLevel < 2"></textarea>
               </div>
               <div class="stepper-buttons">
                 <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
@@ -320,7 +333,7 @@
             <div class="stepper-content-wrapper">
               <div class="stepper-content">
                 <i class="pi pi-info-circle mb-3" style="color: var(--text-color);" pTooltip="Resources Required: Estimated funding or manpower resources required to resolve the security vulnerability (i.e., full-time equivalent)."></i>
-                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.requiredResources" name='requiredResources' [rows]="16" [maxlength]="2000" placeholder="Required Resources..." [disabled]="accessLevel < 2"></textarea>
+                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.requiredResources" name='requiredResources' [rows]="16" [maxlength]="10000" placeholder="Required Resources..." [disabled]="accessLevel < 2"></textarea>
               </div>
               <div class="stepper-buttons">
                 <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
@@ -336,28 +349,35 @@
             <div class="stepper-content-wrapper">
               <div class="stepper-content">
                 <div class="form-group">
-                  <label for="residualRisk"><i class="pi pi-info-circle mr-3" style="color: var(--text-color);" pTooltip="Residual Risk Level: Utilized to determine the risk of the associated security control, which informs the overall system risk. This value is determined as a calculation of the Likelihoodand Impact fields."></i>Residual Risk:</label>
-                  <p-dropdown [options]="ratingOptions" [(ngModel)]="poam.residualRisk" name='residualRisk' placeholder="Residual Risk..." optionLabel="label" optionValue="value" [style]="{'width':'100%'}" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></p-dropdown>
+                  <label for="residualRisk"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Residual Risk is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Residual Risk is determined by the Raw Severity."></i>Residual Risk:</label>
+                  <p-dropdown [options]="ratingOptions"
+                              [(ngModel)]="poam.residualRisk"
+                              name='residualRisk'
+                              placeholder="Residual Risk..."
+                              optionLabel="label"
+                              optionValue="value"
+                              [style]="{'width':'100%'}"
+                              [disabled]="true">
+                  </p-dropdown>
                 </div>
 
                 <div class="form-group">
-                  <label for="likelihood"><i class="pi pi-info-circle mr-3" style="color: var(--text-color);" pTooltip="Likelihood: Weighted risk factor based on an analysis of the probability that a given threat is capable of exploiting a given vulnerability (or set of vulnerabilities). Likelihood can be determined as a combination of the vulnerability severity/predisposing condition pervasiveness and the relevance of the threat. This value is calculated as a result of Severity and Relevance of Threat."></i>Likelihood:</label>
-                  <p-dropdown [options]="ratingOptions" [(ngModel)]="poam.likelihood" id="likelihood" name="likelihood" placeholder="Likelihood..." optionLabel="label" optionValue="value" [style]="{'width':'100%'}" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></p-dropdown>
+                  <label for="likelihood"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Likelihood is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Likelihood is determined by the Raw Severity."></i>Likelihood:</label>
+                  <p-dropdown [options]="ratingOptions"
+                              [(ngModel)]="poam.likelihood"
+                              id="likelihood"
+                              name="likelihood"
+                              placeholder="Likelihood..."
+                              optionLabel="label"
+                              optionValue="value"
+                              [style]="{'width':'100%'}"
+                              [disabled]="true">
+                  </p-dropdown>
                 </div>
 
                 <div class="form-group">
-                  <label for="relevanceOfThreat"><i class="pi pi-info-circle mr-3" style="color: var(--text-color);" pTooltip="Relevance of Threat: Determined by identifying potential threat events, relevance of the events, and threat sources that could initiate the events."></i>Relevance of Threat:</label>
-                  <p-dropdown [options]="ratingOptions" [(ngModel)]="poam.relevanceOfThreat" id="relevanceOfThreat" name="relevanceOfThreat" placeholder="Relevance of Threat..." optionLabel="label" optionValue="value" [style]="{'width':'100%'}" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></p-dropdown>
-                </div>
-
-                <div class="form-group">
-                  <label for="impactRating"><i class="pi pi-info-circle mr-3" style="color: var(--text-color);" pTooltip="Impact: The magnitude of potential harm to organizational operations, organizational, assets, individuals, other organizations, or the nation from the threat event."></i>Impact Rating: </label>
-                  <p-dropdown [options]="ratingOptions" [(ngModel)]="poam.impactRating" name='impactRating' placeholder="Impact..." optionLabel="label" optionValue="value" [style]="{'width':'100%'}" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></p-dropdown>
-                </div>
-
-                <div class="form-group">
-                  <label *ngIf="poam.impactRating === 'Moderate' || poam.impactRating === 'High' || poam.impactRating === 'Very High'" for="impactDescription"><i class="pi pi-info-circle mr-3" style="color: var(--text-color);" pTooltip="Impact Description: Describe the identified impact."></i>Impact Description: </label>
-                  <textarea *ngIf="poam.impactRating === 'Moderate' || poam.impactRating === 'High' || poam.impactRating === 'Very High'" pInputTextarea class="w-full" [(ngModel)]="poam.impactDescription" name='impactDescription' [rows]="16" placeholder="Impact Description..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></textarea>
+                  <label for="impactDescription"><i class="pi pi-info-circle mr-3" style="color: var(--text-color);" pTooltip="Impact Description: Describe the identified impact."></i>Impact Description: </label>
+                  <textarea pInputTextarea class="w-full" [(ngModel)]="poam.impactDescription" name='impactDescription' [rows]="16" [maxlength]="2000" placeholder="Impact Description..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></textarea>
                 </div>
               </div>
               <div class="stepper-buttons">

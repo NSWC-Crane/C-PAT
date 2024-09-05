@@ -122,20 +122,6 @@ module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req,
     }
 };
 
-module.exports.getAvailableCollectionPoamCounts = async function getAvailableCollectionPoamCounts(req, res, next) {
-    try {
-        const userId = req.userObject.userId;
-        const getMetrics = await metricsService.getAvailableCollectionPoamCounts(userId);
-        if (getMetrics) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-    }
-};
-
 module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res, next) {
     try {
         const userId = req.userObject.userId;

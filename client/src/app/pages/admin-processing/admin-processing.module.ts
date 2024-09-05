@@ -91,7 +91,7 @@ import { MessageModule } from 'primeng/message';
     AdminProcessingRoutingModule,
     CommonModule,
     FormsModule,
-    SharedModule,
+    SharedModule
   ],
   providers: [
     ConfirmationService,

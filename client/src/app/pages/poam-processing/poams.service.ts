@@ -119,6 +119,12 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
+  async getPoamAssetsByCollectionId(collectionId: string) {
+    const headers = await this.getAuthHeaders();
+    return this.http.get(`${this.cpatApiBase}/poamAssets/${collectionId}`, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
   async getPoamAssignees(poamId: string) {
         const headers = await this.getAuthHeaders();
     return this.http.get(`${this.cpatApiBase}/poamAssignees/poam/${poamId}`, { headers })
@@ -323,13 +329,6 @@ export class PoamService {
 		return this.http.get(`${this.cpatApiBase}/metrics/available/poamScheduledCompletion`, { headers })
       .pipe(catchError(this.handleError));
   }
-
-  async getAvailableCollectionPoamCounts(userId: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.cpatApiBase}/metrics/available/collectionpoamcount`, { headers })
-      .pipe(catchError(this.handleError));
-  }
-
 
   async getAvailablePoams() {
         const headers = await this.getAuthHeaders();

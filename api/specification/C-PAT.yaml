@@ -1661,31 +1661,6 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/metrics/available/collectionpoamcount':
-    get:
-      summary: Get a count of poams for each collection available to the user
-      operationId: getAvailableCollectionPoamCounts
-      responses:
-        '200':
-          description: POAM counts retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/collectionPoamCounts'
-        '204':
-          description: No Content
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Metrics
-      security:
-        - oauth:
-            - 'c-pat:read'
-
   /notifications/all:
     get:
       summary: Get all notifications for a user
@@ -2262,6 +2237,43 @@ paths:
       responses:
         '200':
           description: PoamAsset array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamAssets_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssets
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/poamAssets/{collectionId}':
+    get:
+      summary: Return poamassets by collectionId
+      operationId: getPoamAssetsByCollectionId
+      parameters:
+        - in: path
+          name: collectionId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PoamAssets array response
           content:
             application/json:
               schema:
@@ -3169,6 +3181,14 @@ paths:
           name: assets
           schema:
             type: boolean
+        - in: query
+          name: labels
+          schema:
+            type: boolean
+        - in: query
+          name: milestones
+          schema:
+            type: boolean
       responses:
         '200':
           description: POAM array response
@@ -3217,6 +3237,14 @@ paths:
             type: boolean
         - in: query
           name: assets
+          schema:
+            type: boolean
+        - in: query
+          name: labels
+          schema:
+            type: boolean
+        - in: query
+          name: milestones
           schema:
             type: boolean
       responses:
@@ -3290,6 +3318,14 @@ paths:
           name: assets
           schema:
             type: boolean
+        - in: query
+          name: labels
+          schema:
+            type: boolean
+        - in: query
+          name: milestones
+          schema:
+            type: boolean
       responses:
         '200':
           description: POAM array response
@@ -3338,6 +3374,14 @@ paths:
             type: boolean
         - in: query
           name: assets
+          schema:
+            type: boolean
+        - in: query
+          name: labels
+          schema:
+            type: boolean
+        - in: query
+          name: milestones
           schema:
             type: boolean
       responses:
@@ -4092,10 +4136,6 @@ components:
         created:
           type: string
           format: date   
-        assetCount:
-          type: integer
-        poamCount:
-          type: integer
         collectionOrigin:
           type: string
           nullable: true
@@ -4384,10 +4424,6 @@ components:
           type: string
         likelihood:
           type: string
-        relevanceOfThreat:
-          type: string
-        impactRating:
-          type: string
         impactDescription:
           type: string
         status:
@@ -4485,12 +4521,6 @@ components:
         likelihood:
           type: string
           nullable: true
-        relevanceOfThreat:
-          type: string
-          nullable: true
-        impactRating:
-          type: string
-          nullable: true
         impactDescription:
           type: string
           nullable: true
@@ -4530,6 +4560,40 @@ components:
             oneOf:
               - required: ['assetId']
               - required: ['assetName']
+            additionalProperties: false
+        labels:
+          type: array
+          items:
+            type: object
+            properties:
+              poamId:
+                type: integer
+              collectionId:
+                type: integer
+              labelId:
+                type: integer
+            additionalProperties: true
+        milestones:
+          type: array
+          items:
+            type: object
+            properties:
+              milestoneId:
+                type: integer
+              poamId:
+                type: integer
+              milestoneDate:
+                type: string
+              milestoneComments:
+                type: string
+              milestoneStatus:
+                type: string
+              milestoneChangeComments:
+                type: string
+              milestoneChangeDate:
+                type: string
+              milestoneTeam:
+                type: string
             additionalProperties: false
 
     poamLabel_Object:
@@ -4757,14 +4821,6 @@ components:
         scheduledCompletion:
           type: string
         scheduledCompletionCount:
-          type: integer
-
-    collectionPoamCounts:
-      type: object
-      properties:
-        collectionName:
-          type: string
-        poamCount:
           type: integer
           
     register:

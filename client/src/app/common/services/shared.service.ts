@@ -102,9 +102,23 @@ export class SharedService {
   }
 
   async getAffectedAssetsFromSTIGMAN(collectionId: string) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=stigs&projection=rules`;
+    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=stigs&projection=rules&projection=ccis`;
     const headers = await this.getSTIGManagerAuthHeaders();
 		return this.http.get<any[]>(url, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async getAffectedAssetsFromSTIGMANByBenchmarkId(collectionId: string, benchmarkId: string) {
+    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`;
+    const headers = await this.getSTIGManagerAuthHeaders();
+    return this.http.get<any[]>(url, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async getCollectionWithAssetsFromSTIGMAN(collectionId: string) {
+    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}?elevate=false&projection=assets`;
+    const headers = await this.getSTIGManagerAuthHeaders();
+    return this.http.get<any[]>(url, { headers })
       .pipe(catchError(this.handleError));
   }
 

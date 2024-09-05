@@ -8,9 +8,8 @@
 !########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NotificationService } from './notifications.service';
-import { SubSink } from 'subsink';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 
@@ -21,7 +20,7 @@ import { Subscription, firstValueFrom } from 'rxjs';
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss']
 })
-export class NotificationsComponent implements OnInit {
+export class NotificationsComponent implements OnInit, OnDestroy {
   notifications: any[] = [];
   filteredNotifications: any[] = [];
   filterStatus: string = 'Unread';
@@ -30,7 +29,6 @@ export class NotificationsComponent implements OnInit {
   user: any;
   payload: any;
   private payloadSubscription: Subscription[] = [];
-  private subs = new SubSink();
   layout: 'list' | 'grid' = 'list';
   sortField: string = 'timestamp';
   sortOrder: number = -1;
@@ -148,7 +146,7 @@ export class NotificationsComponent implements OnInit {
     }
   }
 
-  ngOnDestroy() {
-    this.subs.unsubscribe();
+  ngOnDestroy(): void {
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

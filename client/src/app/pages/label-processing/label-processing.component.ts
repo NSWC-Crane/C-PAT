@@ -152,9 +152,10 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     this.labelDialogVisible = false;
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>

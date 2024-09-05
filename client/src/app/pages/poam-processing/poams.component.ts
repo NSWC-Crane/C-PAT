@@ -10,16 +10,11 @@
 
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
-import { PoamService } from './poams.service';
-import { Subscription, forkJoin } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { PayloadService } from '../../common/services/setPayload.service';
+import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
 
-interface LabelInfo {
-  poamId: number;
-  labelId: number;
-  labelName: string;
-}
 
 @Component({
   selector: 'cpat-poams',
@@ -31,13 +26,14 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   protected accessLevel: any;
   private subs = new SubSink();
   public isLoggedIn = false;
-  poams: any[] = [];
+  poams: any;
   user: any;
   payload: any;
+  selectedCollection: any;
   private payloadSubscription: Subscription[] = [];
 
   constructor(
-    private poamService: PoamService,
+    private collectionService: CollectionsService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     private setPayloadService: PayloadService
@@ -65,40 +61,17 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.setPayloadService.accessLevel$.subscribe(level => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
+          this.selectedCollection = this.user.lastCollectionAccessedId;
           this.getPoamData();
         }
       })
     );
   }
 
+
   async getPoamData() {
-    this.subs.sink = forkJoin([
-      await this.poamService.getPoamsByCollection(
-        this.payload.lastCollectionAccessedId
-      ),
-      await this.poamService.getPoamLabels(
-        this.payload.lastCollectionAccessedId
-      )
-    ]).subscribe(([poams, poamLabelResponse]: any) => {
-      if (!Array.isArray(poamLabelResponse)) {
-        console.error(
-          'poamLabelResponse.poamLabels is not an array',
-          poamLabelResponse
-        );
-        return;
-      }
-      const poamLabelMap: { [poamId: number]: string[] } = {};
-      (poamLabelResponse as LabelInfo[]).forEach(labelInfo => {
-        if (!poamLabelMap[labelInfo.poamId]) {
-          poamLabelMap[labelInfo.poamId] = [];
-        }
-        poamLabelMap[labelInfo.poamId].push(labelInfo.labelName);
-      });
-      this.poams = poams.map((poam: any) => ({
-        ...poam,
-        labels: poamLabelMap[poam.poamId] || ['']
-      }));
-    });
+    const poamData = await (await this.collectionService.getPoamsByCollection(this.selectedCollection)).toPromise();
+      this.poams = poamData;
   }
 
   addPoam() {
@@ -107,5 +80,6 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

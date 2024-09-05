@@ -106,7 +106,7 @@ exports.postPermission = async function postPermission(userId, elevate, req) {
                 return message;
 
             } else {
-                throw new Error('Elevate parameter is required');
+                throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {
@@ -178,7 +178,7 @@ exports.putPermission = async function putPermission(userId, elevate, req) {
                 };
                 return message;
             } else {
-                throw new Error('Elevate parameter is required');
+                throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {
@@ -230,7 +230,7 @@ exports.deletePermission = async function deletePermission(userId, elevate, req)
                     permissions: []
                 };
             } else {
-                throw new Error('Elevate parameter is required');
+                throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {

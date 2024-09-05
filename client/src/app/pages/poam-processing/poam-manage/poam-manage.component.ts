@@ -10,18 +10,11 @@
 
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
-import { PoamService } from '../poams.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { Subscription, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
 import { PayloadService } from '../../../common/services/setPayload.service';
-
-interface LabelInfo {
-  poamId: number;
-  labelId: number;
-  labelName: string;
-}
 
 @Component({
   selector: 'cpat-poam-manage',
@@ -35,16 +28,14 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   private subs = new SubSink();
   public isLoggedIn = false;
   public monthlyPoamStatus: any[] = [];
-  public poamCountData: any[] = [];
   approvalData: any[] = [];
   poams: any[] = [];
   poamsForChart: any[] = [];
   selectedPoamId: any;
   users: any;
-  userPermissions: any = [];
   collection: any;
   selectedCollection: any;
-  selectedCollectionName: any;
+  selectedCollectionId: any;
   allPoams: any[] = [];
   poamsNeedingAttention: any[] = [];
   submittedPoams: any[] = [];
@@ -57,7 +48,6 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private collectionService: CollectionsService,
-    private poamService: PoamService,
     private sharedService: SharedService,
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -68,7 +58,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   async ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
-        this.selectedCollection = collectionId;
+        this.selectedCollectionId = collectionId;
       })
     );
     this.setPayload();
@@ -94,39 +84,14 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async getPoamData() {
     this.subs.sink = forkJoin([
-      await this.poamService.getPoamsByCollection(
-        this.payload.lastCollectionAccessedId, true, true, false
-      ),
-      await this.poamService.getPoamLabels(
-        this.payload.lastCollectionAccessedId
-      ),
+      await this.collectionService.getPoamsByCollection(this.payload.lastCollectionAccessedId),
       await this.collectionService.getCollectionBasicList()
-    ]).subscribe(([poams, poamLabelResponse, basicListData]: any) => {
-      if (!Array.isArray(poamLabelResponse)) {
-        console.error(
-          'poamLabelResponse.poamLabels is not an array',
-          poamLabelResponse
-        );
-      }
+    ]).subscribe(([poams, basicListData]: any) => {
+      this.poams = poams;
 
-      const poamLabelMap: { [poamId: number]: string[] } = {};
-      (poamLabelResponse as LabelInfo[]).forEach(labelInfo => {
-        if (!poamLabelMap[labelInfo.poamId]) {
-          poamLabelMap[labelInfo.poamId] = [];
-        }
-        poamLabelMap[labelInfo.poamId].push(labelInfo.labelName);
-      });
-
-      this.poams = poams.map((poam: any) => ({
-        ...poam,
-        labels: poamLabelMap[poam.poamId] || ['']
-      }));
-
-      const selectedCollection = basicListData.find(
-        (collection: any) => collection.collectionId === this.selectedCollection
+      this.selectedCollection = basicListData.find(
+        (collection: any) => collection.collectionId === this.selectedCollectionId
       );
-      this.selectedCollectionName = selectedCollection?.collectionName;
-
       this.updateGridData();
       this.updateAdvancedPieChart();
     });
@@ -201,5 +166,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+    this.subscriptions.unsubscribe();
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

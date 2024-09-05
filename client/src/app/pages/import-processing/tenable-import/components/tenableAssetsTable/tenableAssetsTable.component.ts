@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ImportService } from '../../../import.service';
-import { Table } from 'primeng/table';
+import { Table, TableLazyLoadEvent } from 'primeng/table';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MultiSelect } from 'primeng/multiselect';
 
@@ -21,6 +21,8 @@ interface ExportColumn {
 })
 export class TenableAssetsTableComponent implements OnInit {
   @Input() pluginID!: string;
+  @Input() assetProcessing: boolean = false;
+  @Input() tenableRepoId: number;
   @ViewChild('dt') table!: Table;
   @ViewChild('ms') multiSelect!: MultiSelect;
 
@@ -39,21 +41,16 @@ export class TenableAssetsTableComponent implements OnInit {
   pluginData: any;
   totalRecords: number = 0;
   filterValue: string = '';
+  selectedCollection: any;
 
   constructor(
     private importService: ImportService,
     private sanitizer: DomSanitizer,
-    private messageService: MessageService,
+    private messageService: MessageService
   ) { }
 
   async ngOnInit() {
     this.initColumnsAndFilters();
-    if (this.pluginID) {
-      await this.getAffectedAssets(this.pluginID);
-    } else {
-      console.error('No pluginID provided');
-      this.showErrorMessage('No plugin ID provided. Please specify a plugin ID.');
-    }
   }
 
   initColumnsAndFilters() {
@@ -75,10 +72,26 @@ export class TenableAssetsTableComponent implements OnInit {
       { field: 'hostUUID', header: 'Host ID', width: '200px', filterable: false },
     ];
     this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));
-    this.resetColumnSelections();
+    this.selectedColumns = this.cols.filter(col => [
+      'pluginID',
+      'pluginName',
+      'family',
+      'severity',
+      'vprScore',
+      'ips',
+      'acrScore',
+      'assetExposureScore',
+      'netbiosName',
+      'dnsName',
+      'macAddress',
+      'port',
+      'protocol',
+      'uuid',
+      'hostUUID'
+    ].includes(col.field));
   }
 
-  async getAffectedAssets(pluginID: string) {
+  async getAffectedAssetsByPluginId(pluginID: string) {
     const analysisParams = {
       query: {
         description: "",
@@ -128,6 +141,78 @@ export class TenableAssetsTableComponent implements OnInit {
         };
       });
       this.totalRecords = this.affectedAssets.length;
+      this.isLoading = false;
+    } catch (error) {
+      console.error('Error fetching affected assets:', error);
+      this.showErrorMessage('Error fetching affected assets. Please try again.');
+    }
+  }
+
+  async lazyOrNot(event: TableLazyLoadEvent) {
+    if (this.pluginID && !this.assetProcessing) {
+      await this.getAffectedAssetsByPluginId(this.pluginID);
+    } else if (this.assetProcessing) {
+      await this.getAffectedAssets(event);
+    }
+  }
+
+
+  async getAffectedAssets(event: TableLazyLoadEvent) {
+    if (!this.tenableRepoId) return;
+    const startOffset = event.first ?? 0;
+    const endOffset = startOffset + (event.rows ?? 20);
+    const repoFilter = {
+      "id": "repository",
+      "filterName": "repository",
+      "operator": "=",
+      "type": "vuln",
+      "isPredefined": true,
+      "value": [
+        {
+          "id": this.tenableRepoId.toString(),
+        }
+      ]
+    };
+    const analysisParams = {
+      query: {
+        description: "",
+        context: "",
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: "vuln",
+        tool: "listvuln",
+        sourceType: "cumulative",
+        startOffset: startOffset,
+        endOffset: endOffset,
+        filters: [repoFilter],
+        vulnTool: "listvuln"
+      },
+      sourceType: "cumulative",
+      columns: [],
+      type: "vuln"
+    };
+
+    try {
+      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
+      this.affectedAssets = data.response.results.map((asset: any) => {
+        const defaultAsset = {
+          pluginID: '',
+          pluginName: '',
+          family: { name: '' },
+          severity: { name: '' },
+          vprScore: '',
+        };
+        return {
+          ...defaultAsset,
+          ...asset,
+          pluginName: asset.name || '',
+          family: asset.family?.name || '',
+          severity: asset.severity?.name || '',
+        };
+      });
+      this.totalRecords = data.response.totalRecords;
       this.isLoading = false;
     } catch (error) {
       console.error('Error fetching affected assets:', error);

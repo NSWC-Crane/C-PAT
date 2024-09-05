@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.35, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 9.0.1, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: cpat
 -- ------------------------------------------------------
--- Server version	8.0.35
+-- Server version	9.0.1
 
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
@@ -80,8 +80,6 @@ CREATE TABLE `collection` (
   `collectionName` varchar(50) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
   `created` datetime DEFAULT CURRENT_TIMESTAMP,
-  `assetCount` int DEFAULT '0',
-  `poamCount` int DEFAULT '0',
   `collectionOrigin` varchar(15) DEFAULT 'C-PAT',
   `originCollectionId` int DEFAULT NULL,
   PRIMARY KEY (`collectionId`),
@@ -223,26 +221,19 @@ CREATE TABLE `poam` (
   `mitigations` text,
   `requiredResources` text,
   `residualRisk` varchar(25) DEFAULT NULL,
-  `securityControlNumber` varchar(25) DEFAULT '',
   `submitterId` int NOT NULL DEFAULT '0',
   `officeOrg` varchar(100) DEFAULT '',
   `predisposingConditions` varchar(2000) DEFAULT '',
   `severity` varchar(25) DEFAULT '',
-  `relevanceOfThreat` varchar(15) DEFAULT '',
-  `threatDescription` varchar(255) DEFAULT '',
   `likelihood` varchar(15) DEFAULT '',
-  `impactRating` varchar(15) DEFAULT '',
   `impactDescription` varchar(2000) DEFAULT '',
   `extensionTimeAllowed` int DEFAULT '0',
   `extensionJustification` varchar(2000) DEFAULT '',
-  `emassStatus` varchar(15) DEFAULT 'Ongoing',
-  `emassPoamId` varchar(20) DEFAULT NULL,
   `hqs` tinyint(1) NOT NULL DEFAULT '0',
   `created` date NOT NULL DEFAULT (curdate()),
   `lastUpdated` date DEFAULT NULL,
   PRIMARY KEY (`poamId`),
   UNIQUE KEY `poamID_UNIQUE` (`poamId`),
-  UNIQUE KEY `emassPoamId_UNIQUE` (`emassPoamId`),
   KEY `idx_poam_collectionId` (`collectionId`),
   KEY `idx_poam_vulnerabilityId` (`vulnerabilityId`),
   KEY `idx_poam_submitterId` (`submitterId`)
@@ -252,55 +243,10 @@ CREATE TABLE `poam` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poam_insert` AFTER INSERT ON `poam` FOR EACH ROW BEGIN
-    UPDATE `collection`
-    SET `poamCount` = `poamCount` + 1
-    WHERE `collectionId` = NEW.`collectionId`;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
 /*!50003 CREATE*/ /*!50003 TRIGGER `prevent_created_update` BEFORE UPDATE ON `poam` FOR EACH ROW BEGIN
     IF NEW.created != OLD.created THEN
         SET NEW.created = OLD.created;
     END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poam_update` AFTER UPDATE ON `poam` FOR EACH ROW BEGIN
-    IF OLD.`collectionId` != NEW.`collectionId` THEN
-        UPDATE `collection` c
-        SET c.`poamCount` = c.`poamCount` - 1
-        WHERE c.`collectionId` = OLD.`collectionId`;
-        
-        UPDATE `collection` c
-        SET c.`poamCount` = c.`poamCount` + 1
-        WHERE c.`collectionId` = NEW.`collectionId`;
-    END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poam_delete` AFTER DELETE ON `poam` FOR EACH ROW BEGIN
-    UPDATE `collection`
-    SET `poamCount` = `poamCount` - 1
-    WHERE `collectionId` = OLD.`collectionId`;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -634,4 +580,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-23 14:22:45
+-- Dump completed on 2024-08-30 11:05:59

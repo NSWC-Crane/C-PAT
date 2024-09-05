@@ -10,7 +10,7 @@
 
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AssetService } from './assets.service';
-import { catchError, forkJoin, Observable, of, Subscription } from 'rxjs';
+import { forkJoin, Observable, Subscription } from 'rxjs';
 import { SubSink } from "subsink";
 import { ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component'
 import { PayloadService } from '../../common/services/setPayload.service';
@@ -99,7 +99,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   selectedCollection: any;
   assetDialogVisible: boolean = false;
   selectedAssets: AssetEntry[] = [];
-  stigmanCollectionId: any;
+  collectionOrigin: any;
+  originCollectionId: any;
   protected accessLevel: any;
   user: any;
   payload: any;
@@ -124,8 +125,19 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
         this.selectedCollection = collectionId;
       })
     );
+    await (await this.collectionService.getCollectionBasicList()).subscribe({
+      next: (data) => {        
+        const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
+        if (selectedCollectionData) {
+          this.collectionOrigin = selectedCollectionData.collectionOrigin;
+          this.originCollectionId = selectedCollectionData.originCollectionId;
+        }
+      },
+      error: (error) => {
+        this.collectionOrigin = '';
+      }
+    });
     this.setPayload();
-    this.validateStigManagerCollection();
     this.initializeColumns();
   }
 
@@ -187,37 +199,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       { field: 'macAddress', header: 'MAC Address' }
     ];
     this.exportColumns = this.cols;
-  }
-
-  async validateStigManagerCollection(background: boolean = true) {
-    forkJoin([
-      await (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
-        catchError((err) => {
-          console.error('Failed to fetch from STIGMAN:', err);
-          return of([]);
-        })
-      ),
-      await (await this.collectionService.getCollectionBasicList()).pipe(
-        catchError((err) => {
-          console.error('Failed to fetch basic collection list:', err);
-          return of([]);
-        })
-      )
-    ]).subscribe(([stigmanData, basicListData]) => {
-      const stigmanCollectionsMap = new Map(stigmanData.map(collection => [collection.name, collection]));
-      const basicListCollectionsMap = new Map(basicListData.map(collection => [collection.collectionId, collection]));
-
-      const selectedCollection = basicListCollectionsMap.get(this.selectedCollection);
-      const selectedCollectionName = selectedCollection!.collectionName;
-
-      const stigmanCollection = selectedCollectionName ? stigmanCollectionsMap.get(selectedCollectionName) : undefined;
-
-      if (!stigmanCollection && !background || !selectedCollectionName && !background) {
-        return;
-      }
-
-      this.stigmanCollectionId = stigmanCollection?.collectionId;
-    });
   }
 
   private initializeChart(): void {
@@ -298,6 +279,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     this.assetLabelChart.data.datasets = datasets;
     this.assetLabelChart.update();
   }
+
   exportChart(chartInstance: Chart, chartName: string) {
     const exportDatalabelsOptions = {
       backgroundColor: function (context: any) {
@@ -357,6 +339,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
     }, 150);
   }
+
   setAsset(assetId: string) {
     const selectedData = this.data.find(asset => asset.assetId === assetId);
     if (selectedData) {
@@ -366,21 +349,28 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       this.asset = { assetId: '', assetName: '', description: '', ipAddress: '', macAddress: '' };
     }
   }
+
   addAsset() {
     this.asset = { assetId: 'ADDASSET', assetName: '', description: '', ipAddress: '', macAddress: '' };
     this.assetDialogVisible = true;
   }
+
   resetData() {
     this.asset = { assetId: '', assetName: '', description: '', ipAddress: '', macAddress: '' };
     this.getAssetData();
     this.allowSelectAssets = true;
   }
+
   closeAssetDialog() {
     this.assetDialogVisible = false;
   }
-  ngOnDestroy() {
+
+  ngOnDestroy(): void {
     this.subs.unsubscribe();
+    this.subscriptions.unsubscribe();
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
+
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
     this.dialogService.open(ConfirmationDialogOptions, {
       closeOnEscape: true,

@@ -28,6 +28,15 @@ module.exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req,
     }
 };
 
+module.exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req, res, next) {
+    try {
+        const poamAssets = await poamAssetService.getPoamAssetsByCollectionId(req, res, next);
+        res.status(200).json(poamAssets);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
 module.exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res, next) {
     try {
         await poamAssetService.deletePoamAssetByPoamId(req, res, next);
