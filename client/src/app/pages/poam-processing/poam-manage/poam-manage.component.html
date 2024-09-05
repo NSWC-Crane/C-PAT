@@ -13,12 +13,12 @@
     <div class="grid">
       <div class="col-12 md:col-7 mb-3">
         <p-card styleClass="h-full">
-          <cpat-poam-advanced-pie class="poam-status-advanced-pie" [pieChartData]="advancedStatusPieChartData" [collectionName]="selectedCollectionName"></cpat-poam-advanced-pie>
+          <cpat-poam-advanced-pie class="poam-status-advanced-pie" [pieChartData]="advancedStatusPieChartData" [collectionName]="selectedCollection?.collectionName"></cpat-poam-advanced-pie>
         </p-card>
       </div>
       <div class="col-12 md:col-5 mb-3">
         <p-card styleClass="h-full">
-          <cpat-poam-advanced-pie class="poam-severity-advanced-pie" [pieChartData]="advancedSeverityseverityPieChartData" [collectionName]="selectedCollectionName"></cpat-poam-advanced-pie>
+          <cpat-poam-advanced-pie class="poam-severity-advanced-pie" [pieChartData]="advancedSeverityseverityPieChartData" [collectionName]="selectedCollection?.collectionName"></cpat-poam-advanced-pie>
         </p-card>
       </div>
     </div>
@@ -41,13 +41,13 @@
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>
-        <p-tabPanel *ngIf="this.userPermissions.accessLevel >= 2" header="My POAMs">
+        <p-tabPanel *ngIf="accessLevel >= 2" header="My POAMs">
           <cpat-poam-assigned-grid [assignedData]="this.submittedPoams"
                                    [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'POAM']"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>
-        <p-tabPanel *ngIf="this.userPermissions.accessLevel >= 3" header="Pending Approval">
+        <p-tabPanel *ngIf="accessLevel >= 3" header="Pending Approval">
           <cpat-poam-assigned-grid [assignedData]="this.poamsPendingApproval"
                                    [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Approval Status', 'POAM']"
                                    [userId]="this.user.userId"

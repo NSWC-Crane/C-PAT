@@ -189,18 +189,8 @@
               </div>
 
               <div class="form-group">
-                <label for="relevanceOfThreat">Relevance of Threat:</label>
-                <p-dropdown [options]="relevanceOfThreatOptions" [(ngModel)]="poam.relevanceOfThreat" id="relevanceOfThreat" name="relevanceOfThreat" placeholder="Relevance of Threat..." optionLabel="label" optionValue="value" appendTo="body" [style]="{'width':'100%'}" [disabled]="accessLevel < 2"></p-dropdown>
-              </div>
-
-              <div class="form-group">
-                <label for="impactRating">Impact Rating: </label>
-                <p-dropdown [options]="impactRatingOptions" [(ngModel)]="poam.impactRating" name='impactRating' placeholder="Impact..." optionLabel="label" optionValue="value" appendTo="body" [style]="{'width':'100%'}" [disabled]="accessLevel < 2"></p-dropdown>
-              </div>
-
-              <div class="form-group">
-                <label *ngIf="poam.impactRating === 'Moderate' || poam.impactRating === 'High' || poam.impactRating === 'Very High'" for="impactDescription">Impact Description: </label>
-                <textarea *ngIf="poam.impactRating === 'Moderate' || poam.impactRating === 'High' || poam.impactRating === 'Very High'" pInputTextarea class="w-full" [(ngModel)]="poam.impactDescription" name='impactDescription' [rows]="16" placeholder="Impact Description..." [disabled]="accessLevel < 2"></textarea>
+                <label for="impactDescription">Impact Description: </label>
+                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.impactDescription" name='impactDescription' [rows]="16" placeholder="Impact Description..." [disabled]="accessLevel < 2"></textarea>
               </div>
             </div>
             <div class="stepper-buttons">

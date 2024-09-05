@@ -76,21 +76,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     { label: 'Very High', value: 'Very High' },
   ];
 
-  relevanceOfThreatOptions = [
-    { label: 'Very Low', value: 'Very Low' },
-    { label: 'Low', value: 'Low' },
-    { label: 'Moderate', value: 'Moderate' },
-    { label: 'High', value: 'High' },
-    { label: 'Very High', value: 'Very High' },
-  ];
-
-  impactRatingOptions = [
-    { label: 'Very Low', value: 'Very Low' },
-    { label: 'Low', value: 'Low' },
-    { label: 'Moderate', value: 'Moderate' },
-    { label: 'High', value: 'High' },
-    { label: 'Very High', value: 'Very High' },
-  ];
   selectedCollection: any;
   user: any;
   payload: any;
@@ -168,8 +153,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             requiredResources: poamData.requiredResources,
             residualRisk: poamData.residualRisk,
             likelihood: poamData.likelihood,
-            relevanceOfThreat: poamData.relevanceOfThreat,
-            impactRating: poamData.impactRating,
             impactDescription: poamData.impactDescription,
             extensionTimeAllowed: extensionData.extensionTimeAllowed,
             extensionJustification: extensionData.extensionJustification,
@@ -190,8 +173,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             requiredResources: '',
             residualRisk: '',
             likelihood: '',
-            relevanceOfThreat: '',
-            impactRating: '',
             impactDescription: '',
           };
           this.extensionJustification = '';
@@ -388,8 +369,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       requiredResources: this.poam.requiredResources,
       residualRisk: this.poam.residualRisk,
       likelihood: this.poam.likelihood,
-      relevanceOfThreat: this.poam.relevanceOfThreat,
-      impactRating: this.poam.impactRating,
       impactDescription: this.poam.impactDescription,
       poamLog: [{ userId: this.user.userId }],
     };
@@ -468,7 +447,8 @@ this.subscriptions.add(
     );
   }
 
-ngOnDestroy() {
-  this.subscriptions.unsubscribe();
-}
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+  }
 }

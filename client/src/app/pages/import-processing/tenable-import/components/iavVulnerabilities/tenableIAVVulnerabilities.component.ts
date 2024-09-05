@@ -340,7 +340,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
       this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
         state: {
-          vulnerabilitySource: 'ACAS Nessus Scanner',
+          vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData,
           iavNumber: pluginIAVData?.iav,
           iavComplyByDate: formattedIavComplyByDate

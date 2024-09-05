@@ -159,8 +159,9 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     this.user.userId = "USER";
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subs.unsubscribe();
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): void => {

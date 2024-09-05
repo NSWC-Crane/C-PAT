@@ -22,6 +22,9 @@ import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { ListboxModule } from 'primeng/listbox';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { VramPopupComponent } from './components/vram-popup/vram-popup.component';
+import { StepperModule } from 'primeng/stepper';
+import { ImageModule } from 'primeng/image';
 
 @NgModule({
   declarations: [
@@ -29,6 +32,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
     NotificationsComponent,    
     NotificationsPanelComponent,
     StatusDialogComponent,
+    VramPopupComponent
   ],
   imports: [
     ButtonModule,
@@ -36,6 +40,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
     DataViewModule,
     DialogModule,
     DropdownModule,
+    StepperModule,
+    ImageModule, 
     ListboxModule,
     ProgressBarModule,
     CommonModule,
@@ -46,6 +52,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
     ConfirmationDialogComponent,
     NotificationsComponent,
     NotificationsPanelComponent,
+    VramPopupComponent,
+    StepperModule,
   ],
   providers: [
     CurrencyPipe,

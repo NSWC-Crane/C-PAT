@@ -89,13 +89,13 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
         if (req.userObject.userName && (refreshFields.lastAccess || refreshFields.lastClaims)) {
             if (req.userObject.userId === null) {
                 const userId = await User.setUserData(req.userObject, refreshFields, true);
-                if (userId.insertId != req.userObject.userId) {
-                    req.userObject.userId = userId.insertId.toString();
+                if (userId?.insertId && userId?.insertId != req.userObject.userId) {
+                    req.userObject.userId = userId?.insertId?.toString();
                 }
             } else {
                 const userId = await User.setUserData(req.userObject, refreshFields, false);
-                if (userId.insertId != req.userObject.userId) {
-                    req.userObject.userId = userId.insertId.toString();
+                if (userId?.insertId && userId?.insertId != req.userObject.userId) {
+                    req.userObject.userId = userId?.insertId?.toString();
                 }
                 if (!config.client.features.marketplaceDisabled && differenceInMinutes(now, response?.lastAccess) >= 720 && response?.points) {
                     await User.dailyPoints(req.userObject.userId);

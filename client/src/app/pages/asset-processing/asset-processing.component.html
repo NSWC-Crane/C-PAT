@@ -7,10 +7,14 @@
 ! CONDITIONS OF THE LICENSE.
 !########################################################################
 -->
-<div class="card" *ngIf="this.stigmanCollectionId">
-  <stigmanager-assets-table [stigmanCollectionId]="stigmanCollectionId"></stigmanager-assets-table>
+<div class="card" *ngIf="collectionOrigin === 'STIG Manager' && originCollectionId">
+  <stigmanager-assets-table [stigmanCollectionId]="originCollectionId"></stigmanager-assets-table>
 </div>
-<div *ngIf="!this.stigmanCollectionId">
+<div class="card" *ngIf="collectionOrigin === 'Tenable' && originCollectionId">
+  <tenable-assets-table [tenableRepoId]="originCollectionId" [assetProcessing]="true"></tenable-assets-table>
+</div>
+
+<div *ngIf="collectionOrigin != 'Tenable' && collectionOrigin != 'STIG Manager'">
 <div class="col-12 row">
   <div class="col">
     <p-card>

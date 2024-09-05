@@ -419,43 +419,6 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(userId) {
     }
 }
 
-exports.getAvailableCollectionPoamCounts = async function getAvailableCollectionPoamCounts(userId) {
-    try {
-        return await withConnection(async (connection) => {
-            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
-            const isAdmin = adminRows[0].isAdmin;
-
-            let sql = `
-        SELECT c.collectionName, c.poamCount
-        FROM cpat.collection c
-      `;
-
-            let params = [];
-
-            if (!isAdmin) {
-                sql += `
-          INNER JOIN cpat.collectionpermissions cp ON c.collectionId = cp.collectionId
-          WHERE cp.userId = ? AND cp.accessLevel >= 3
-        `;
-                params.push(userId);
-            }
-
-            sql += ` HAVING c.poamCount > 0`;
-
-            const [rows] = await connection.query(sql, params);
-
-            const collectionPoamCounts = rows.map(row => ({
-                collectionName: row.collectionName,
-                poamCount: row.poamCount
-            }));
-
-            return { collectionPoamCounts };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-};
-
 exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(userId) {
     try {
         return await withConnection(async (connection) => {

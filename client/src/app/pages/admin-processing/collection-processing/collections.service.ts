@@ -94,7 +94,7 @@ export class CollectionsService {
 
   async getPoamsByCollection(id: any) {
         const headers = await this.getAuthHeaders();
-		return this.http.get(`${this.cpatApiBase}/poams/collection/${id}`, { headers })
+    return this.http.get(`${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true`, { headers })
       .pipe(catchError(this.handleError));
   }
 

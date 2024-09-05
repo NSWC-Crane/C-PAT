@@ -222,6 +222,7 @@ async function setupClient(app, directory) {
             `
 const CPAT = {
   Env: {
+    classification: "${config.settings.setClassification}",
     version: "${config.version}",
     apiBase: "${config.client.apiBase}",
     commit: {

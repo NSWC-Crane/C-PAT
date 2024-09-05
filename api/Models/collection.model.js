@@ -17,14 +17,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,
         },
-        assetCount: {
-            type: DataTypes.INTEGER,
-            defaultValue: '0',
-        },
-        poamCount: {
-            type: DataTypes.INTEGER,
-            defaultValue: '0',
-        },
         collectionOrigin: {
             type: DataTypes.STRING(15),
             allowNull: true,

@@ -44,8 +44,6 @@ exports.putPoamExtension = async function (extensionData) {
                 requiredResources = ?,
                 residualRisk = ?,
                 likelihood = ?,
-                relevanceOfThreat = ?,
-                impactRating = ?,
                 impactDescription = ?,
                 status = ?
                 WHERE poamId = ?`;
@@ -57,8 +55,6 @@ exports.putPoamExtension = async function (extensionData) {
                 extensionData.requiredResources,
                 extensionData.residualRisk,
                 extensionData.likelihood,
-                extensionData.relevanceOfThreat,
-                extensionData.impactRating,
                 extensionData.impactDescription,
                 extensionData.status,
                 extensionData.poamId

@@ -104,7 +104,6 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
             }
         });
     } catch (error) {
-        return { error: error.message };
         throw new SmError.UnprocessableError('Error in mapIAVPluginIDs');
     }
 };

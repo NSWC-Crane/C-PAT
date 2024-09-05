@@ -39,24 +39,6 @@
            [disabled]="true"
            class="w-full">
   </div>
-  <div class="field">
-    <label for="assetcount">Asset Count:</label>
-    <p-inputNumber id="assetcount"
-                   name="assetcount"
-                   [(ngModel)]="collection.assetCount"
-                   [disabled]="true"
-                   class="w-full">
-    </p-inputNumber>
-  </div>
-  <div class="field">
-    <label for="poamcount">POAM Count:</label>
-    <p-inputNumber id="poamcount"
-                   name="poamcount"
-                   [(ngModel)]="collection.poamCount"
-                   [disabled]="true"
-                   class="w-full">
-    </p-inputNumber>
-  </div>
   <!-- Buttons -->
   <div class="buttons">
     <p-button label="Submit" styleClass="p-button-primary p-button-outlined" [disabled]="!form.valid" (click)="onSubmit()" (onKeyUp)="onSubmit()"></p-button>

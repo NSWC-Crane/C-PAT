@@ -8,7 +8,7 @@
 !########################################################################
 */
 
-import { Component, ElementRef, ViewChild, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, AfterViewInit, Renderer2 } from '@angular/core';
+import { Component, ElementRef, ViewChild, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, AfterViewInit, Renderer2, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Chart, ChartData, registerables } from 'chart.js';
 import { addDays, differenceInCalendarDays } from 'date-fns';
@@ -23,7 +23,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './poam-mainchart.component.html',
   styleUrls: ['./poam-mainchart.component.scss']
 })
-export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit {
+export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Output() poamsChange = new EventEmitter<any[]>();
   @Input() poams!: any[];
   @Input() showAddButton: boolean = false;
@@ -56,7 +56,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
   ];
 
   poamVulnerabilityTypes = [
-    { value: 'ACAS Nessus Scanner', label: 'ACAS Nessus Scanner' },
+    { value: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner', label: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' },
     { value: 'STIG', label: 'STIG' },
     { value: 'RMF Controls', label: 'RMF Controls' },
     { value: 'Task Order', label: 'Task Order' },
@@ -193,9 +193,6 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
 
   ngAfterViewInit(): void {
     this.cdr.detectChanges();
-    if (this.poams && this.poams.length > 0) {
-      this.initializeChart();
-    }
     this.applyCanvasStyles();
   }
 
@@ -295,9 +292,9 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     const labelSet = new Set<string>();
     this.poams.forEach(poam => {
       if (poam.labels && poam.labels.length > 0) {
-        poam.labels.forEach((label: string) => {
-          if (label) {
-            labelSet.add(label);
+        poam.labels.forEach((label: { labelName: string }) => {
+          if (label.labelName) {
+            labelSet.add(label.labelName);
           }
         });
       }
@@ -412,7 +409,11 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     }
 
     if (this.selectedOptions['label'] !== null) {
-      filteredPoams = filteredPoams.filter(poam => poam.labels.includes(this.selectedOptions['label']));
+      filteredPoams = filteredPoams.filter(poam =>
+        poam.labels.some((label: { labelName: string }) =>
+          label.labelName === this.selectedOptions['label']
+        )
+      );
     }
 
     if (this.selectedOptions['severity'] !== null) {
@@ -472,9 +473,9 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
     const labelCounts: { [label: string]: number } = {};
     filteredPoams.forEach(poam => {
       if (poam.labels && poam.labels.length > 0) {
-        poam.labels.forEach((label: string) => {
-          if (label) {
-            labelCounts[label] = (labelCounts[label] || 0) + 1;
+        poam.labels.forEach((label: { labelName: string }) => {
+          if (label.labelName) {
+            labelCounts[label.labelName] = (labelCounts[label.labelName] || 0) + 1;
           }
         });
       }
@@ -726,5 +727,9 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit 
       }, 500);
 
     }, 150);
+  }
+
+  ngOnDestroy(): void {
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

@@ -63,8 +63,6 @@ exports.getCollections = async function getCollections(userId, elevate) {
                     collectionName: collection.collectionName,
                     description: collection.description,
                     created: collection.created,
-                    assetCount: collection.assetCount,
-                    poamCount: collection.poamCount
                 }));
             }
         });
@@ -131,17 +129,13 @@ exports.putCollection = async function putCollection(req, res, next) {
     }
     if (!req.body.collectionName) req.body.collectionName = undefined;
     if (!req.body.description) req.body.description = "";
-    if (!req.body.assetCount) req.body.assetCount = 0;
-    if (!req.body.poamCount) req.body.poamCount = 0;
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE cpat.collection SET collectionName=?, description=?, assetCount= ?, poamCount= ? WHERE collectionId = ?";
+            let sql_query = "UPDATE cpat.collection SET collectionName=?, description=? WHERE collectionId = ?";
             await connection.query(sql_query, [
                 req.body.collectionName,
                 req.body.description,
-                req.body.assetCount,
-                req.body.poamCount,
                 req.body.collectionId
             ]);
 
@@ -149,8 +143,6 @@ exports.putCollection = async function putCollection(req, res, next) {
             message.collectionId = req.body.collectionId;
             message.collectionName = req.body.collectionName;
             message.description = req.body.description;
-            message.assetCount = req.body.assetCount;
-            message.poamCount = req.body.poamCount;
             return message;
         });
     }

@@ -75,22 +75,9 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATEONLY,
             defaultValue: '1900-01-01' 
         },
-        emassPoamId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            defaultValue: 0
-        },
-        securityControlNumber: {
-            type: DataTypes.STRING(25),
-            defaultValue: ''
-        },
         officeOrg: {
             type: DataTypes.STRING(100),
             defaultValue: ''
-        },
-        emassStatus: {
-            type: DataTypes.STRING(15),
-            defaultValue: 'Ongoing'
         },
         predisposingConditions: {
             type: DataTypes.STRING(2000),
@@ -100,19 +87,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(15),
             defaultValue: ''
         },
-        relevanceOfThreat: {
-            type: DataTypes.STRING(15),
-            defaultValue: ''
-        },
-        threatDescription: {
-            type: DataTypes.STRING(255),
-            defaultValue: ''
-        },
         likelihood: {
-            type: DataTypes.STRING(15),
-            defaultValue: ''
-        },
-        impactRating: {
             type: DataTypes.STRING(15),
             defaultValue: ''
         },

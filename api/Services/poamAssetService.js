@@ -74,6 +74,36 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
     }
 }
 
+exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req, res, next) {
+    if (!req.params.collectionId) {
+        return next({
+            status: 400,
+            errors: {
+                collectionId: 'is required',
+            }
+        });
+    }
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+                SELECT DISTINCT pa.assetId, a.assetName, pa.poamId
+                FROM cpat.poamassets pa
+                INNER JOIN cpat.asset a ON pa.assetId = a.assetId
+                WHERE a.collectionId = ?
+            `;
+            let [rowPoamAssets] = await connection.query(sql, [req.params.collectionId]);
+            const poamAssets = rowPoamAssets.map(row => ({
+                assetId: row.assetId,
+                assetName: row.assetName,
+                poamId: row.poamId,
+            }));
+            return poamAssets;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+}
+
 exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res, next) {
     if (!req.params.poamId) {
         return next({

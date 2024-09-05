@@ -23,7 +23,7 @@ export class VRAMImportComponent implements OnInit {
   constructor(
     private messageService: MessageService,
     private vramImportService: VRAMImportService,
-    private userService: UsersService
+    private userService: UsersService,
   ) { }
 
   async ngOnInit() {

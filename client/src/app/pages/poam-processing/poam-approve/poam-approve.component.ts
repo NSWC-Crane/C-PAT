@@ -170,8 +170,9 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     this.hqsChecked = checked;
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

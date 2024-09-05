@@ -24,7 +24,6 @@ interface AssetEntry {
   groupId: string;
   title: string;
   severity: string;
-  assetCount: number;
   assets?: AssetEntry[];
 }
 
@@ -425,6 +424,12 @@ ${ruleData.check.content}
 ${ruleData.fix.text}
 ---`;
 
+            const descriptionString = `Title:
+${ruleData.title}
+
+Description:
+${ruleData.detail.vulnDiscussion}`;
+
             if (rowData['Group ID']) {
               (await this.sharedService.getPoamsByVulnerabilityId(rowData['Group ID'])).subscribe({
                 next: (response: any) => {
@@ -436,7 +441,8 @@ ${ruleData.fix.text}
                         vulnerabilityId: rowData['Group ID'],
                         benchmarkId: rowData['Benchmark ID'],
                         severity: rowData['Severity'],
-                        ruleData: ruleDataString
+                        ruleData: ruleDataString,
+                        description: descriptionString,
                       }
                     });
                   } else {
@@ -446,7 +452,8 @@ ${ruleData.fix.text}
                         vulnerabilityId: rowData['Group ID'],
                         benchmarkId: rowData['Benchmark ID'],
                         severity: rowData['Severity'],
-                        ruleData: ruleDataString
+                        ruleData: ruleDataString,
+                        description: descriptionString,
                       }
                     });
                   }

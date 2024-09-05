@@ -18,6 +18,15 @@
           <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear(dt)" (onKeyUp)="clear(dt)" pTooltip="Clear all filters"></p-button>
         </span>
       </div>
+      <div class="right-buttons">
+        <p-button class="ml-2"
+                  icon="pi pi-external-link"
+                  severity="secondary"
+                  [rounded]="true"
+                  [text]="true"
+                  (onClick)="exportCollection()">
+        </p-button>
+      </div>
     </div>
     <div class="table-container" (scroll)="onScroll($event)">
       <p-table #dt
@@ -114,3 +123,4 @@
     </div>
   </ng-template>
 </p-card>
+<p-toast></p-toast>

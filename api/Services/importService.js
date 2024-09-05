@@ -29,9 +29,9 @@ async function withConnection(callback) {
 }
 
 const excelColumnToDbColumnMapping = {
-    "POA&M Item ID": "emassPoamId",
+    "POA&M Item ID": "",
     "Control Vulnerability Description": "description",
-    "Controls / APs": "securityControlNumber",
+    "Controls / APs": "",
     "Office/Org": "officeOrg",
     "Security Checks": "vulnerabilityId",
     "Resources Required": "requiredResources",
@@ -40,20 +40,17 @@ const excelColumnToDbColumnMapping = {
     "Milestone with Completion Dates": "milestones",
     "Milestone Changes": "milestoneChanges",
     "Source Identifying Vulnerability ": "vulnerabilitySource",
-    "Status": "emassStatus",
+    "Status": "",
     "Comments": "notes",
     "Raw Severity": "rawSeverity",
     "Devices Affected": "devicesAffected",
     "Mitigations (in-house and in conjunction with the Navy CSSP)": "mitigations",
     "Predisposing Conditions": "predisposingConditions",
     "Severity": "severity",
-    "Relevance of Threat": "relevanceOfThreat",
     "Threat Description": "threatDescription",
     "Likelihood": "likelihood",
-    "Impact": "impactRating",
     "Impact Description": "impactDescription",
     "Residual Risk Level": "residualRisk",
-    "Recommendations": "recommendations",
     "Resulting Residual Risk after Proposed Mitigations": "adjSeverity"
 };
 
@@ -194,14 +191,6 @@ function extractPoamData(worksheet, userId, collectionId) {
             headers = row.values.slice(1);
         } else if (rowNumber > 7) {
             const rowData = processRow(row, headers, userId, collectionId);
-
-            if (rowData.emassPoamId) {
-                if (currentPoam) {
-                    poamData.push(currentPoam);
-                }
-                currentPoam = rowData;
-                currentPoam.milestones = [];
-            }
 
             if (currentPoam) {
                 if (rowData.milestones) {

@@ -3,7 +3,7 @@
     <div class="p-fluid">
       <div class="toolbar mb-3">
         <div class="left-inputAndButton">
-          <span class="p-input-icon-left">
+          <span *ngIf="!this.assetProcessing" class="p-input-icon-left">
             <i class="pi pi-search"></i>
             <input pInputText type="text" class="w-12rem" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Global Search" />
             <p-button [rounded]="true"
@@ -59,12 +59,14 @@
                  [rowHover]="true"
                  dataKey="pluginID"
                  [resizableColumns]="true"
+                 [lazy]="true"
+                 (onLazyLoad)="lazyOrNot($event)"
                  styleClass="p-datatable-sm p-datatable-gridlines-hidden">
           <ng-template pTemplate="header" let-columns>
             <tr>
               <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}" pResizableColumn scope="col">
                 {{col.header}}
-                <p-columnFilter [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" display="menu"></p-columnFilter>
+                <p-columnFilter *ngIf="!this.assetProcessing" [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" display="menu"></p-columnFilter>
               </th>
             </tr>
           </ng-template>
