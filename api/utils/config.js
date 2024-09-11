@@ -24,6 +24,7 @@ let config = {
         lastAccessResolution: 60,
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || "none"
     },
+    certificates: process.env.NODE_EXTRA_CA_CERTS,
     client: {
         clientId: process.env.CPAT_CLIENT_ID || "c-pat",
         authority: process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
@@ -41,9 +42,7 @@ let config = {
     },
     stigman: {
         clientId: process.env.STIGMAN_CLIENT_ID || "stig-manager",
-        host: process.env.STIGMAN_HOST || "localhost",
-        port: process.env.STIGMAN_PORT || "54000",
-        apiBase: process.env.STIGMAN_API_BASE || "api",
+        apiUrl: process.env.STIGMAN_API_URL || "http://localhost:54000/api",
         scopePrefix: process.env.STIGMAN_SCOPE_PREFIX,
         extraScopes: process.env.STIGMAN_EXTRA_SCOPES,
     },
@@ -59,8 +58,8 @@ let config = {
     http: {
         address: process.env.CPAT_API_ADDRESS || "127.0.0.1",
         port: process.env.CPAT_API_PORT || 8086,
-        maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "31457280",
-        maxUpload: process.env.CPAT_API_MAX_UPLOAD || "1073741824"
+        maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "52428800",
+        maxUpload: process.env.CPAT_API_MAX_UPLOAD || "104857600"
     },
     database: {
         acquire: process.env.CPAT_DB_ACQUIRE || 30000,

@@ -18,7 +18,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 @Injectable({ providedIn: 'root' })
 export class SharedService {
   private cpatApiBase = CPAT.Env.apiBase;
-  private STIGMANAGER_URL = `http://${CPAT.Env.stigman.host}:${CPAT.Env.stigman.port}/${CPAT.Env.stigman.apiBase}`;
+  private STIGMANAGER_URL = CPAT.Env.stigman.apiUrl;
   private _selectedCollection = new BehaviorSubject<any>(null);
   public readonly selectedCollection = this._selectedCollection.asObservable();
   constructor(
@@ -101,10 +101,24 @@ export class SharedService {
       .pipe(catchError(this.handleError));
   }
 
+  async getPOAMAssetsFromSTIGMAN(collectionId: string, benchmarkId: string) {
+    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=assets`;
+    const headers = await this.getSTIGManagerAuthHeaders();
+		return this.http.get<any[]>(url, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async getFindingsFromSTIGMAN(collectionId: string) {
+    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=stigs&projection=rules&projection=ccis`;
+    const headers = await this.getSTIGManagerAuthHeaders();
+    return this.http.get<any[]>(url, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
   async getAffectedAssetsFromSTIGMAN(collectionId: string) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=stigs&projection=rules&projection=ccis`;
     const headers = await this.getSTIGManagerAuthHeaders();
-		return this.http.get<any[]>(url, { headers })
+    return this.http.get<any[]>(url, { headers })
       .pipe(catchError(this.handleError));
   }
 

@@ -252,9 +252,7 @@ const CPAT = {
     },
     stigman: {
         clientId: "${config.stigman.clientId}",
-        host: "${config.stigman.host}",
-        port: "${config.stigman.port}",
-        apiBase: "${config.stigman.apiBase}",
+        apiUrl: "${config.stigman.apiUrl}",
         scopePrefix: "${config.stigman.scopePrefix ?? ''}",
         extraScopes: "${config.stigman.extraScopes ?? ''}",
     },

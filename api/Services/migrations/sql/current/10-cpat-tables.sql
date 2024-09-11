@@ -230,6 +230,7 @@ CREATE TABLE `poam` (
   `extensionTimeAllowed` int DEFAULT '0',
   `extensionJustification` varchar(2000) DEFAULT '',
   `hqs` tinyint(1) NOT NULL DEFAULT '0',
+  `notes` varchar(500) NULL DEFAULT '' ,
   `created` date NOT NULL DEFAULT (curdate()),
   `lastUpdated` date DEFAULT NULL,
   PRIMARY KEY (`poamId`),
@@ -260,7 +261,7 @@ DROP TABLE IF EXISTS `poamapprovers`;
 CREATE TABLE `poamapprovers` (
   `poamId` int NOT NULL,
   `userId` int NOT NULL,
-  `approvalStatus` varchar(12) NOT NULL DEFAULT 'Not Reviewed',
+  `approvalStatus` varchar(50) NOT NULL DEFAULT 'Not Reviewed',
   `approvedDate` datetime DEFAULT CURRENT_TIMESTAMP,
   `comments` varchar(2000) DEFAULT NULL,
   PRIMARY KEY (`poamId`,`userId`)

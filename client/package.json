@@ -31,7 +31,7 @@
     "classlist.js": "^1.1.20150312",
     "date-fns": "^3.6.0",
     "exceljs": "^4.4.0",
-    "instantsearch.js": "^4.74.0",
+    "instantsearch.js": "^4.74.1",
     "json-to-plain-text": "^1.1.4",
     "jsonwebtoken": "^9.0.2",
     "ng2-charts": "^6.0.1",
@@ -39,7 +39,7 @@
     "pace-js": "^1.2.4",
     "primeflex": "^3.3.1",
     "primeicons": "^7.0.0",
-    "primeng": "^17.18.9",
+    "primeng": "^17.18.10",
     "rxjs": "^7.8.1",
     "subsink": "^1.0.2",
     "typescript": "^5.5.4",
@@ -54,7 +54,7 @@
     "@types/d3": "^7.4.3",
     "@types/jasmine": "^5.1.4",
     "@types/jquery": "^3.5.30",
-    "@types/node": "^22.5.3",
-    "jasmine-core": "^5.2.0"
+    "@types/node": "^22.5.4",
+    "jasmine-core": "^5.3.0"
   }
 }

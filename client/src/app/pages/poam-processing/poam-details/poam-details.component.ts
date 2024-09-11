@@ -106,6 +106,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   stigmanCollectionId: any;
   stateData: any;
   selectedCollection: any;
+  submitDialogVisible: boolean = false;
+  notesForApprover: string = "";
   protected accessLevel: any;
   user: any;
   payload: any;
@@ -130,10 +132,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     { label: 'Closed', value: 'Closed', disabled: false },
     { label: 'Expired', value: 'Expired', disabled: false },
     { label: 'Submitted', value: 'Submitted', disabled: true },
-    { label: 'Approved', value: 'Approved', disabled: true },
     { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval', disabled: true },
-    { label: 'Rejected', value: 'Rejected', disabled: true },
     { label: 'Extension Requested', value: 'Extension Requested', disabled: true },
+    { label: 'Approved', value: 'Approved', disabled: true },
+    { label: 'Rejected', value: 'Rejected', disabled: true },
+    { label: 'False-Positive', value: 'False-Positive', disabled: true },
   ];
 
   severityOptions = [
@@ -298,6 +301,7 @@ ${this.pluginData.description ?? ""}`,
         adjSeverity: this.mapTenableSeverity(this.tenableVulnResponse.severity.id),
         submitterId: this.payload.userId,
         status: "Draft",
+        notes: "",
         tenablePluginData: this.pluginData ? JSON.stringify(this.pluginData) : "",
         hqs: false,
       };
@@ -434,6 +438,7 @@ ${this.pluginData.description ?? ""}`,
         likelihood: this.mapToEmassValues(this.stateData.severity),
         submitterId: this.payload.userId,
         status: 'Draft',
+        notes: '',
         submittedDate: format(currentDate, "yyyy-MM-dd"),
         hqs: false,
       };
@@ -496,6 +501,7 @@ ${this.pluginData.description ?? ""}`,
         rawSeverity: "",
         submitterId: this.payload.userId,
         status: "Draft",
+        notes: "",
         submittedDate: format(currentDate, "yyyy-MM-dd"),
         scheduledCompletionDate: format(dateIn30Days, "yyyy-MM-dd"),
         hqs: false,
@@ -594,7 +600,7 @@ ${this.pluginData.description ?? ""}`,
       return;
     }
 
-    (await this.poamService.deletePoamLabel(+event.poamId, +event.labelId, this.user.userId)).subscribe(() => {
+    (await this.poamService.deletePoamLabel(+event.poamId, +event.labelId)).subscribe(() => {
       this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Label deleted successfully.' });
       this.poamLabels = this.poamLabels.filter(l => l.labelId !== event.labelId);
     }, () => {
@@ -789,7 +795,12 @@ ${this.pluginData.description ?? ""}`,
     });
   }
 
-  submitPoam() {
+  verifySubmitPoam() {
+    this.notesForApprover = this.poam?.notes || '';
+    this.submitDialogVisible = true;
+  }
+
+  confirmSubmit() {
     if (this.poam.poamId === "ADDPOAM") {
       this.messageService.add({ severity: "warn", summary: 'Information', detail: "The POAM is currently in an unsaved 'Draft' status. You may not submit a POAM until after it has been saved." });
       return;
@@ -802,7 +813,9 @@ ${this.pluginData.description ?? ""}`,
     this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate ? format(this.dates.scheduledCompletionDate, "yyyy-MM-dd") : null;
     this.poam.submittedDate = this.dates.submittedDate ? format(this.dates.submittedDate, "yyyy-MM-dd") : null;
     this.poam.hqs = 1 ? true : false;
+    this.poam.notes = this.notesForApprover;
     this.savePoam();
+    this.submitDialogVisible = false;
   }
 
   validateData() {
@@ -845,7 +858,7 @@ ${this.pluginData.description ?? ""}`,
     return true;
   }
 
-  cancelPoam() {
+  cancelPoam() { 
     this.router.navigateByUrl("/poam-processing");
   }
 
@@ -987,7 +1000,7 @@ ${this.pluginData.description ?? ""}`,
       header: 'Delete Confirmation',
       icon: 'pi pi-exclamation-triangle',
       accept: async () => {
-        (await this.poamService.deletePoamMilestone(this.poam.poamId, milestone.milestoneId, this.user.userId, false)).subscribe(() => {
+        (await this.poamService.deletePoamMilestone(this.poam.poamId, milestone.milestoneId, false)).subscribe(() => {
           this.poamMilestones.splice(index, 1);
         });
       }
@@ -1054,7 +1067,7 @@ ${this.pluginData.description ?? ""}`,
 
   async confirmDeleteApprover(approver: any) {
     if (this.poam.poamId !== "ADDPOAM" && this.poam.status === "Draft") {
-      (await this.poamService.deletePoamApprover(approver.poamId, approver.userId, this.user.userId)).subscribe(() => {
+      (await this.poamService.deletePoamApprover(approver.poamId, approver.userId)).subscribe(() => {
         this.poamApprovers = this.poamApprovers.filter((a: any) => a.userId !== approver.userId);
       });
     } else if (this.poam.poamId === "ADDPOAM") {
@@ -1133,7 +1146,7 @@ ${this.pluginData.description ?? ""}`,
     }
 
     if (this.poam.poamId !== "ADDPOAM" && assigneeData.userId) {
-      (await this.poamService.deletePoamAssignee(+this.poam.poamId, +assigneeData.userId, this.user.userId)).subscribe(() => {
+      (await this.poamService.deletePoamAssignee(+this.poam.poamId, +assigneeData.userId)).subscribe(() => {
         this.poamAssignees = this.poamAssignees.filter((a: any) => a.userId !== assigneeData.userId);
         this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assigneeName} was removed as an assignee` });
       }, (error) => {
@@ -1214,7 +1227,7 @@ ${this.pluginData.description ?? ""}`,
       return;
     }
 
-    (await this.poamService.deletePoamAsset(+event.poamId, +event.assetId, this.user.userId)).subscribe(() => {
+    (await this.poamService.deletePoamAsset(+event.poamId, +event.assetId)).subscribe(() => {
       this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Asset deleted successfully.' });
       this.poamAssets = this.poamAssets.filter(a => a.assetId !== event.assetId);
     }, () => {

@@ -44,10 +44,12 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   dates: any = {};
   comments: any;
   selectedCollection: any;
+  notesForApprover: string = '';
   private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
   approvalStatusOptions = [
     { label: 'Not Reviewed', value: 'Not Reviewed' },
+    { label: 'False-Positive', value: 'False-Positive' },
     { label: 'Approved', value: 'Approved' },
     { label: 'Rejected', value: 'Rejected' }
   ];
@@ -103,6 +105,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       await this.poamService.getPoam(this.poamId)
     ]).subscribe({
       next: ([approversResponse, poamResponse]: [any, any]) => {
+        this.notesForApprover = poamResponse.notes ? poamResponse.notes : '';
         const currentDate = new Date();
         const userApproval = approversResponse.find((approval: any) => approval.userId === this.user.userId);
         if (userApproval) {

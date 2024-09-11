@@ -2546,12 +2546,6 @@ paths:
           required: true
           schema:
             type: integer
-        - name: requestorId
-          in: header
-          required: false
-          schema:
-            type: integer
-          description: ID of the user making the request for logging purposes
       responses:
         '204':
           description: POAM assignee deleted successfully
@@ -2624,6 +2618,172 @@ paths:
                 $ref: '#/components/schemas/error'
       tags:
         - PoamAssignees
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  '/poamAttachments/poam/{poamId}':
+    get:
+      summary: Return attachments by poamId
+      operationId: getPoamAttachmentsByPoamId
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PoamAttachments array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PoamAttachment_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAttachments
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/poamAttachment':
+    post:
+      summary: Add a POAM attachment
+      operationId: postPoamAttachment
+      x-eov-file-handler: true
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: a file
+                poamId:
+                  type: string
+                  description: ID of the last POAM
+              required:
+                - file
+      responses:
+        '201':
+          description: PoamAttachment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoamAttachment_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAttachments
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  '/poamAttachment/poam/{poamId}/attachment/{attachmentId}':
+    get:
+      summary: Download a POAM attachment
+      operationId: downloadPoamAttachment
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: attachmentId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Attachment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAttachments
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/poamAttachment/poam/{poamId}/{attachmentId}':
+    delete:
+      summary: Delete a PoamAttachment by poamId and attachmentId
+      operationId: deletePoamAttachment
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: attachmentId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No content
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAttachments
       security:
         - oauth:
             - 'c-pat:write'
@@ -4404,6 +4564,25 @@ components:
         assetId:
           type: integer
 
+    PoamAttachment_Object:
+      type: object
+      properties:
+        attachmentId:
+          type: integer
+        poamId:
+          type: integer
+        filename:
+          type: string
+        fileSize:
+          type: integer
+        mimeType:
+          type: string
+        uploadDate:
+          type: string
+          format: date-time
+        uploadedBy:
+          type: integer
+
     poamExtensionObject:
       type: object
       required:
@@ -4531,6 +4710,9 @@ components:
           format: date
         hqs:
           type: boolean
+          nullable: true
+        notes:
+          type: string
           nullable: true
         approvers:
           type: array

@@ -17,14 +17,18 @@ import { SubSink } from "subsink";
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
-import { TreeTable } from 'primeng/treetable';
-import { ConfirmationService, MessageService, TreeNode } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { Table } from 'primeng/table/table';
+
 
 interface AssetEntry {
   groupId: string;
-  title: string;
+  ruleTitle: string;
+  ruleId: string;
+  benchmarkId: string;
   severity: string;
-  assets?: AssetEntry[];
+  assetCount: number;
+  hasExistingPoam: boolean;
 }
 
 @Component({
@@ -33,26 +37,28 @@ interface AssetEntry {
   styleUrls: ['./stigmanager-import.component.scss']
 })
 export class STIGManagerImportComponent implements OnInit, OnDestroy {
-  @ViewChild('stigFindingsTable') table!: TreeTable;
+  @ViewChild('stigFindingsTable') table!: Table;
   @ViewChild('findingChart') findingChart!: ElementRef<HTMLCanvasElement>;
-  customColumn = 'Group ID';
-  defaultColumns = ['Rule Title', 'Benchmark ID', 'Severity', 'Asset Count', 'POAM'];
-  allColumns = [this.customColumn, ...this.defaultColumns];
-  dataSource: TreeNode<AssetEntry>[] = [];
-  sortColumn: string = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
+  allColumns = [
+    { field: 'poam', header: 'POAM', width: '5%', filterType: 'text' },
+    { field: 'groupId', header: 'Group ID', width: '15%', filterType: 'text' },
+    { field: 'ruleTitle', header: 'Rule Title', width: '35%', filterType: 'text' },
+    { field: 'benchmarkId', header: 'Benchmark ID', width: '15%', filterType: 'text' },
+    { field: 'severity', header: 'Severity', width: '15%', filterType: 'text' },
+    { field: 'assetCount', header: 'Asset Count', width: '15%', filterType: 'numeric' }
+  ];
+  private dataSource: AssetEntry[] = [];
+  public displayDataSource: AssetEntry[] = [];
+  loadingTableInfo: boolean = true;
+  loadingSkeletonData: any[] = Array(10).fill({});
+  multiSortMeta: any[] = [];
   selectedFindings: string = '';
   collectionBasicList: any[] = [];
-  sortField: string = '';
-  sortOrder: number = 1;
-  treeData: any[] = [];
-  originalTreeData: any[] = [];
   selectedCollection: any;
   stigmanCollection: { name: string; description: string; collectionId: string; } | undefined;
   user: any;
   private subs = new SubSink();
   private subscriptions = new Subscription();
-
   public findings: any[] = [];
   findingsCount: number = 0;
   findingsChart!: Chart;
@@ -145,16 +151,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    this.subs.unsubscribe();
-    this.subscriptions.unsubscribe();
-  }
-
-  updateSort(event: any) {
-    this.sortField = event.field;
-    this.sortOrder = event.order;
-  }
-
   updateFindingsChartData(findings: any[]): void {
     if (this.findingsChart) {
       const datasets = findings.map((item) => ({
@@ -183,6 +179,15 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     } else {
       console.error('Unable to initialize chart: Element not available.');
     }
+  }
+
+  getSeverityClass(severity: string): string {
+    const severityMap: { [key: string]: string } = {
+      'CAT I - High': 'severity-High',
+      'CAT II - Medium': 'severity-Medium',
+      'CAT III - Low': 'severity-Low'
+    };
+    return severityMap[severity] || 'severity-Info';
   }
 
   filterGlobal(event: Event) {
@@ -280,35 +285,28 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   async getAffectedAssetGrid(stigmanCollection: string) {
     try {
-      const data = await (await this.sharedService.getAffectedAssetsFromSTIGMAN(stigmanCollection)).toPromise();
+      this.loadingTableInfo = true;
+      const data = await (await this.sharedService.getFindingsFromSTIGMAN(stigmanCollection)).toPromise();
       if (!data || data.length === 0) {
         this.showWarn('No affected assets found.');
+        this.loadingTableInfo = false;
         return;
       }
 
-      const mappedData = data.map(item => ({
-        data: {
-          'Group ID': item.groupId,
-          'Rule Title': item.rules[0].title,
-          'ruleId': item.rules[0].ruleId,
-          'Benchmark ID': item.stigs[0].benchmarkId,
-          'Severity': item.severity === 'high' ? 'CAT I - High' :
-            item.severity === 'medium' ? 'CAT II - Medium' :
-              item.severity === 'low' ? 'CAT III - Low' : item.severity,
-          'Asset Count': item.assetCount
-        },
-        children: item.assets.map((asset: { name: any; assetId: any; }) => ({
-          data: {
-            'Rule Title': asset.name,
-            'Benchmark ID': 'Asset ID: ' + asset.assetId,
-          }
-        }))
+      this.dataSource = data.map(item => ({
+        groupId: item.groupId,
+        ruleTitle: item.rules[0].title,
+        ruleId: item.rules[0].ruleId,
+        benchmarkId: item.stigs[0].benchmarkId,
+        severity: item.severity === 'high' ? 'CAT I - High' :
+          item.severity === 'medium' ? 'CAT II - Medium' :
+            item.severity === 'low' ? 'CAT III - Low' : item.severity,
+        assetCount: item.assetCount,
+        hasExistingPoam: false
       }));
 
-      this.originalTreeData = [...mappedData];
-      this.treeData = [...mappedData];
-      this.dataSource = this.convertToTreeNodes(this.treeData);
-      this.findingsCount = this.treeData.length;
+      this.displayDataSource = [...this.dataSource];
+      this.findingsCount = this.displayDataSource.length;
 
       const severityGroups = data.reduce((groups: any, item: any) => {
         const severity = item.severity === 'high' ? 'CAT I - High' :
@@ -338,21 +336,20 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       this.filterFindings();
       this.initializeChart();
       this.updateFindingsChartData(findings);
+      this.loadingTableInfo = false;
     } catch (err) {
       console.error('Failed to fetch affected assets from STIGMAN:', err);
       this.showError('Failed to fetch affected assets. Please try again.');
+      this.loadingTableInfo = false;
     }
   }
 
-  convertToTreeNodes(data: any[]): TreeNode<AssetEntry>[] {
-    return data.map(item => ({
-      data: item.data,
-      children: item.children ? this.convertToTreeNodes(item.children) : []
-    }));
+  updateSort(event: any) {
+    this.multiSortMeta = event.multiSortMeta;
   }
 
   async filterFindings() {
-    (await this.sharedService.getExistingVulnerabilityPoams()).subscribe({
+    await (await this.sharedService.getExistingVulnerabilityPoams()).subscribe({
       next: (response: any) => {
         const existingPoams = response;
         this.updateChartAndGrid(existingPoams);
@@ -365,21 +362,19 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   async updateChartAndGrid(existingPoams: any[]) {
-    const filteredTreeData = this.treeData.map(item => {
-      const hasExistingPoam = existingPoams.some(poam => poam.vulnerabilityId === item.data['Group ID']);
-      item.data.hasExistingPoam = hasExistingPoam;
-      if (this.selectedFindings === 'All' ||
-        (this.selectedFindings === 'Has Existing POAM' && hasExistingPoam) ||
-        (this.selectedFindings === 'No Existing POAM' && !hasExistingPoam)) {
-        return item;
-      }
-      return null;
-    }).filter(item => item !== null);
+    this.dataSource.forEach(item => {
+      item.hasExistingPoam = existingPoams.some(poam => poam.vulnerabilityId === item.groupId);
+    });
 
-    this.dataSource = this.convertToTreeNodes(filteredTreeData);
-    this.findingsCount = filteredTreeData.length;
-    const severityGroups = filteredTreeData.reduce((groups: any, item: any) => {
-      const severity = item.data['Severity'];
+    this.displayDataSource = this.dataSource.filter(item =>
+      this.selectedFindings === 'All' ||
+      (this.selectedFindings === 'Has Existing POAM' && item.hasExistingPoam) ||
+      (this.selectedFindings === 'No Existing POAM' && !item.hasExistingPoam)
+    );
+
+    this.findingsCount = this.displayDataSource.length;
+    const severityGroups = this.displayDataSource.reduce((groups: Record<string, number>, item) => {
+      const severity = item.severity;
       if (!groups[severity]) {
         groups[severity] = 0;
       }
@@ -398,18 +393,17 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         findings.push({ severity, severityCount: 0 });
       }
     });
-
     findings.sort((a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity));
 
     this.updateFindingsChartData(findings);
   }
 
-  async addPoam(node: any) {
-    if (node && node.node && node.node.data) {
-      const rowData = node.node.data;
-      if (rowData['ruleId']) {
-        const ruleId = rowData['ruleId'];
-        (await this.sharedService.getRuleDataFromSTIGMAN(ruleId)).subscribe({
+  async addPoam(rowData: AssetEntry): Promise<void> {
+    if (!rowData || !rowData.ruleId || !rowData.groupId) {
+      this.showError("Invalid data for POAM creation. Please try again.");
+      return;
+    }
+    await (await this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId)).subscribe({
           next: async (ruleData: any) => {
             const ruleDataString = `# Rule data from STIGMAN
 ## Discussion
@@ -430,17 +424,17 @@ ${ruleData.title}
 Description:
 ${ruleData.detail.vulnDiscussion}`;
 
-            if (rowData['Group ID']) {
-              (await this.sharedService.getPoamsByVulnerabilityId(rowData['Group ID'])).subscribe({
+            if (rowData.groupId) {
+              (await this.sharedService.getPoamsByVulnerabilityId(rowData.groupId)).subscribe({
                 next: (response: any) => {
                   if (response && response.length > 0) {
                     const poam = response[0];
                     this.router.navigate(['/poam-processing/poam-details/' + poam.poamId], {
                       state: {
                         vulnerabilitySource: 'STIG',
-                        vulnerabilityId: rowData['Group ID'],
-                        benchmarkId: rowData['Benchmark ID'],
-                        severity: rowData['Severity'],
+                        vulnerabilityId: rowData.groupId,
+                        benchmarkId: rowData.benchmarkId,
+                        severity: rowData.severity,
                         ruleData: ruleDataString,
                         description: descriptionString,
                       }
@@ -449,9 +443,9 @@ ${ruleData.detail.vulnDiscussion}`;
                     this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
                       state: {
                         vulnerabilitySource: 'STIG',
-                        vulnerabilityId: rowData['Group ID'],
-                        benchmarkId: rowData['Benchmark ID'],
-                        severity: rowData['Severity'],
+                        vulnerabilityId: rowData.groupId,
+                        benchmarkId: rowData.benchmarkId,
+                        severity: rowData.severity,
                         ruleData: ruleDataString,
                         description: descriptionString,
                       }
@@ -472,15 +466,7 @@ ${ruleData.detail.vulnDiscussion}`;
             console.error('Error retrieving rule data from STIGMAN:', error);
             this.showError("Error retrieving rule data. Please try again.");
           }
-        });
-      } else {
-        console.error('Rule ID not found in row data:', rowData);
-        this.showError("Error creating POAM. Please try again.");
-      }
-    } else {
-      console.error('Invalid node data:', node);
-      this.showError("Error creating POAM. Please try again.");
-    }
+        });      
   }
 
   showSuccess(message: string) {
@@ -513,5 +499,10 @@ ${ruleData.detail.vulnDiscussion}`;
         }
       });
     });
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 }

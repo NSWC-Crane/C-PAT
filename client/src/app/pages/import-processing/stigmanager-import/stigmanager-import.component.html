@@ -1,71 +1,88 @@
-    <p-card>
-      <p-tabView>
-        <p-tabPanel [header]="'Findings Grid (' + findingsCount + ')'">
-          <input pInputText (input)="filterGlobal($event)" id="search" class="search-input" placeholder="Search...">
-          <div class="table-container">
-            <p-treeTable #stigFindingsTable sortMode="multiple" [value]="dataSource" [filterDelay]="0" [globalFilterFields]="['Group ID', 'Rule Title', 'Benchmark ID', 'Severity']" [columns]="allColumns" [sortMode]="'single'" [sortField]="sortColumn" [sortOrder]="sortDirection === 'asc' ? 1 : -1" (onSort)="updateSort($event)" [scrollable]="true" scrollHeight="55rem">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th scope="col" *ngFor="let col of allColumns" [ttSortableColumn]="col">
-                    {{col}}
-                    <p-treeTableSortIcon [field]="col" *ngIf="col !== 'POAM'"></p-treeTableSortIcon>
-                  </th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-                <tr>
-                  <td *ngFor="let col of allColumns; let i = index">
-                    <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-                    <ng-container [ngSwitch]="col">
-                      <ng-container *ngSwitchCase="'POAM'">
-                        <i *ngIf="rowData.hasExistingPoam"
-                           class="pi pi-check-circle"
-                           style="color: green; font-size: 1.5rem; cursor: pointer;"
-                           (click)="addPoam(rowNode)"
-                           (onKeyUp)="addPoam(rowNode)"
-                           pTooltip="POAM Already Created. Click to view POAM."
-                           tooltipPosition="top">
-                        </i>
-                        <i *ngIf="!rowData.hasExistingPoam"
-                           class="pi pi-times-circle"
-                           style="color: maroon; font-size: 1.5rem; cursor: pointer;"
-                           (click)="addPoam(rowNode)"
-                           (onKeyUp)="addPoam(rowNode)"
-                           pTooltip="No Existing POAM. Click to create draft POAM."
-                           tooltipPosition="top">
-                        </i>
-                      </ng-container>
-                      <ng-container *ngSwitchDefault>
-                        {{rowData[col] || '-'}}
-                      </ng-container>
+<p-card>
+  <p-tabView>
+    <p-tabPanel [header]="'Findings Grid (' + findingsCount + ')'">
+      <input pInputText (input)="filterGlobal($event)" id="search" class="search-input" placeholder="Search...">
+      <div class="table-container">
+        <p-table #stigFindingsTable
+                 [value]="loadingTableInfo ? loadingSkeletonData : displayDataSource"
+                 [columns]="allColumns"
+                 [globalFilterFields]="['groupId', 'ruleTitle', 'benchmarkId', 'severity']"
+                 [sortMode]="'multiple'"
+                 [multiSortMeta]="multiSortMeta"
+                 (onSort)="updateSort($event)"
+                 [scrollable]="true"
+                 [paginator]="true"
+                 [rows]="10"
+                 [rowsPerPageOptions]="[5, 10, 25]"
+                 dataKey="groupId">
+          <ng-template pTemplate="header">
+            <tr>
+              <th *ngFor="let col of allColumns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}">
+                {{col.header}}
+                <p-sortIcon [field]="col.field"></p-sortIcon>
+                <p-columnFilter *ngIf="col.field !== 'poam'" [type]="col.filterType" [field]="col.field" display="menu"></p-columnFilter>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-rowData>
+            <tr>
+              <td *ngFor="let col of allColumns">
+                <ng-container *ngIf="loadingTableInfo; else loadedData">
+                  <p-skeleton [style]="{height: '2rem'}"></p-skeleton>
+                </ng-container>
+                <ng-template #loadedData>
+                  <ng-container [ngSwitch]="col.field">
+                    <ng-container *ngSwitchCase="'poam'">
+                      <i *ngIf="rowData.hasExistingPoam"
+                         class="pi pi-check-circle"
+                         style="color: green; font-size: 1.5rem; cursor: pointer; justify-content: center;"
+                         (click)="addPoam(rowData)"
+                         (keyup.enter)="addPoam(rowData)"
+                         pTooltip="POAM Already Created. Click to view POAM."
+                         tooltipPosition="top">
+                      </i>
+                      <i *ngIf="!rowData.hasExistingPoam"
+                         class="pi pi-times-circle"
+                         style="color: maroon; font-size: 1.5rem; cursor: pointer; justify-content: center;"
+                         (click)="addPoam(rowData)"
+                         (keyup.enter)="addPoam(rowData)"
+                         pTooltip="No Existing POAM. Click to create draft POAM."
+                         tooltipPosition="top">
+                      </i>
                     </ng-container>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-treeTable>
-          </div>
-        </p-tabPanel>
-        <p-tabPanel header="Findings Chart">
-          <div class="canvas" id="canvas" style="margin-top: 20px;">
-            <button pButton pRipple type="button" icon="pi pi-download" class="p-button-rounded p-button-text export-button" (click)="exportChart(findingsChart, 'STIG Manager Findings Chart')"></button>
-            <canvas #findingChart class="findings-chart"></canvas>
-          </div>
-        </p-tabPanel>
-      </p-tabView>
-      <div class="formgrid grid">
-        <div class="field col" style="margin-left: 2rem; margin-right: 2rem;">
-          <p-dropdown id="findingsFilter"
-                      [options]="findingsFilterOptions"
-                      [(ngModel)]="selectedFindings"
-                      (onChange)="filterFindings()"
-                      placeholder="Filter Findings..."
-                      optionLabel="label"
-                      optionValue="value"
-                      [showClear]="true"
-                      styleClass="findings-filter w-full"
-                      appendTo="body">
-          </p-dropdown>
-        </div>
-        </div>
-    </p-card>
+                    <ng-container *ngSwitchCase="'severity'">
+                      <span [class]="'severity-badge ' + getSeverityClass(rowData.severity)">
+                        {{rowData.severity}}
+                      </span>
+                    </ng-container>
+                    <ng-container *ngSwitchDefault>
+                      {{rowData[col.field] || '-'}}
+                    </ng-container>
+                  </ng-container>
+                </ng-template>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabPanel>
+    <p-tabPanel header="Findings Chart">
+      <div class="canvas" id="canvas" style="margin-top: 20px;">
+        <button pButton pRipple type="button" icon="pi pi-download" class="p-button-rounded p-button-text export-button" (click)="exportChart(findingsChart, 'STIG Manager Findings Chart')"></button>
+        <canvas #findingChart class="findings-chart"></canvas>
+      </div>
+    </p-tabPanel>
+  </p-tabView>
+      <p-dropdown id="findingsFilter"
+                  [options]="findingsFilterOptions"
+                  [(ngModel)]="selectedFindings"
+                  (onChange)="filterFindings()"
+                  placeholder="Filter Findings..."
+                  optionLabel="label"
+                  optionValue="value"
+                  [showClear]="true"
+                  styleClass="findings-filter w-full"
+                  appendTo="body">
+      </p-dropdown>
+</p-card>
 <p-toast></p-toast>

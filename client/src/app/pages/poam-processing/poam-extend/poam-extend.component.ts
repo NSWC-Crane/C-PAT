@@ -324,7 +324,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       header: 'Delete Confirmation',
       icon: 'pi pi-exclamation-triangle',
       accept: async () => {
-        (await this.poamService.deletePoamMilestone(this.poam.poamId, milestone.milestoneId, this.user.userId, false)).subscribe(() => {
+        (await this.poamService.deletePoamMilestone(this.poam.poamId, milestone.milestoneId, false)).subscribe(() => {
           this.poamMilestones.splice(index, 1);
         });
       }

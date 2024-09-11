@@ -18,6 +18,8 @@ const { promisify } = require('util');
 const User = require('../Services/usersService')
 const axios = require('axios');
 const SmError = require('./error');
+const https = require('https');
+const fs = require('fs');
 const { differenceInMinutes } = require('date-fns');
 
 let jwksUri
@@ -148,10 +150,30 @@ async function initializeAuth(depStatus) {
         if (!openidConfig.jwks_uri) {
             throw (new Error('No jwks_uri property found'))
         }
-        jwksUri = openidConfig.jwks_uri
-        client = jwksClient({
-            jwksUri: jwksUri
-        })
+        if (config.certificates) {
+            jwksUri = openidConfig.jwks_uri
+            try {
+                client = jwksClient({
+                    jwksUri: jwksUri,
+                    requestAgent: new https.Agent({
+                        ca: fs.readFileSync(config.certificates)
+                    })
+                })
+            } catch (error) {
+                logger.writeError('oidc', 'initializeAuth', {
+                    message: 'Failed to read certificate file',
+                    error: error.message
+                });
+                client = jwksClient({
+                    jwksUri: jwksUri
+                })
+            }
+        } else {
+            jwksUri = openidConfig.jwks_uri
+            client = jwksClient({
+                jwksUri: jwksUri
+            })
+        }
     }
     await retry(getJwks, {
         retries,

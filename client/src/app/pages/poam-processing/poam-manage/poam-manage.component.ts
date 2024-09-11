@@ -123,18 +123,18 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isNaN(scheduledCompletionDate.getTime())) {        
         return false;
       }
-      return scheduledCompletionDate <= thirtyDaysFromNow && poam.status != 'Closed' && poam.status != 'Draft';
+      return scheduledCompletionDate <= thirtyDaysFromNow && poam.status != 'Closed' && poam.status != 'Draft' && poam.status != 'False-Positive';
     });
 
     this.submittedPoams = this.poams.filter(poam => poam.status != 'Closed' && poam.submitterId === this.user.userId);
 
-    this.poamsPendingApproval = this.poams.filter(poam => poam.status === 'Submitted' || poam.status === 'Extension Requested');
+    this.poamsPendingApproval = this.poams.filter(poam => poam.status === 'Submitted' || poam.status === 'Extension Requested' || poam.status === 'Pending CAT-I Approval');
   }
 
   updateAdvancedPieChart(): void {
     const severityOrder = ['CAT I - Critical' || 'CAT I - High', 'CAT II - Medium', 'CAT III - Low' || 'CAT III - Informational'];
     const severityLabel = ['CAT I', 'CAT II', 'CAT III'];
-    const statusOrder = ['Submitted', 'Approved', 'Closed', 'Rejected', 'Extension Requested', 'Expired', 'Draft'];
+    const statusOrder = ['Submitted', 'Pending CAT-I Approval', 'Approved', 'Closed', 'False-Positive', 'Rejected', 'Extension Requested', 'Expired', 'Draft'];
 
     const severityCounts: { [severity: string]: number } = {};
     const statusCounts: { [status: string]: number } = {};
