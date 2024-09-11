@@ -160,15 +160,9 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamAssignee(poamId: any, userId: any, requestorId: any) {
-    const requestBody = { requestorId: requestorId };
+  async deletePoamAssignee(poamId: any, userId: any) {
     const headers = await this.getAuthHeaders();
-    const options = {
-      ...{ headers: headers },
-      body: requestBody
-    };
-
-		return this.http.delete<any>(`${this.cpatApiBase}/poamAssignee/poam/${poamId}/user/${userId}`, options);
+    return this.http.delete<any>(`${this.cpatApiBase}/poamAssignee/poam/${poamId}/user/${userId}`, { headers });
   }
 
   async postPoamAsset(poamAsset: any) {
@@ -178,14 +172,9 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamAsset(poamId: any, assetId: any, requestorId: any) {
-    const requestBody = { requestorId: requestorId };
+  async deletePoamAsset(poamId: any, assetId: any) {
     const headers = await this.getAuthHeaders();
-    const options = {
-      ...{ headers: headers },
-      body: requestBody
-    };
-		return this.http.delete<any>(`${this.cpatApiBase}/poamAsset/poam/${poamId}/asset/${assetId}`, options);
+    return this.http.delete<any>(`${this.cpatApiBase}/poamAsset/poam/${poamId}/asset/${assetId}`, { headers });
   }
 
   async deletePoamAssetByPoamId(poamId: any) {
@@ -215,14 +204,9 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamApprover(poamId: any, userId: any, requestorId: any) {
-    const requestBody = { requestorId: requestorId };
+  async deletePoamApprover(poamId: any, userId: any) {
     const headers = await this.getAuthHeaders();
-    const options = {
-      ...{ headers: headers },
-      body: requestBody
-    };
-		return this.http.delete<any>(`${this.cpatApiBase}/poamApprover/poam/${poamId}/user/${userId}`, options);
+    return this.http.delete<any>(`${this.cpatApiBase}/poamApprover/poam/${poamId}/user/${userId}`, { headers });
   }
 
   async getPoamMilestones(poamId: string) {
@@ -245,8 +229,8 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamMilestone(poamId: string, milestoneId: string, requestorId: any, extension: boolean) {
-    const requestBody = { requestorId: requestorId, extension: extension };
+  async deletePoamMilestone(poamId: string, milestoneId: string, extension: boolean) {
+    const requestBody = { extension: extension };
     const headers = await this.getAuthHeaders();
     const options = {
       ...{ headers: headers },
@@ -290,14 +274,9 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamLabel(poamId: any, labelId: any, requestorId: any) {
-    const requestBody = { requestorId: requestorId };
+  async deletePoamLabel(poamId: any, labelId: any) {
     const headers = await this.getAuthHeaders();
-    const options = {
-      ...{ headers: headers },
-      body: requestBody
-    };
-		return this.http.delete<any>(`${this.cpatApiBase}/poamLabel/poam/${poamId}/label/${labelId}`, options);
+    return this.http.delete<any>(`${this.cpatApiBase}/poamLabel/poam/${poamId}/label/${labelId}`, { headers });
   }
 
   async getAvailablePoamStatus() {

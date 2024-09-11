@@ -19,6 +19,7 @@ import { PoamAssignedGridComponent } from './poam-components/poam-assigned-grid/
 import { PoamGridComponent } from './poam-components/poam-grid/poam-grid.component';
 import { PoamMainchartComponent } from './poam-components/poam-mainchart/poam-mainchart.component';
 import { PoamApproveComponent } from './poam-approve/poam-approve.component';
+import { PoamAttachmentsComponent } from './poam-components/poam-attachments/poam-attachments.component';
 import { PoamDetailsComponent } from './poam-details/poam-details.component';
 import { PoamExtendComponent } from './poam-extend/poam-extend.component';
 import { PoamLogComponent } from './poam-log/poam-log.component';
@@ -27,6 +28,7 @@ import { PoamsComponent } from './poams.component';
 import { PoamProcessingRoutingModule } from './poam-processing-routing.module';
 
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
 import { CardModule } from 'primeng/card';
@@ -40,6 +42,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { Footer, MessageService } from 'primeng/api';
+import { FileUploadModule } from 'primeng/fileupload';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { StepperModule } from 'primeng/stepper';
 import { TableModule } from 'primeng/table';
@@ -52,6 +55,7 @@ import { ImportProcessingModule } from '../import-processing/import-processing.m
 @NgModule({
   declarations: [
     PoamApproveComponent,
+    PoamAttachmentsComponent,
     PoamDetailsComponent,
     PoamExtendComponent,
     PoamLogComponent,
@@ -64,6 +68,7 @@ import { ImportProcessingModule } from '../import-processing/import-processing.m
   ],
   imports: [
     AutoCompleteModule,
+    BadgeModule,
     ButtonModule,
     CalendarModule,
     CardModule,
@@ -71,6 +76,7 @@ import { ImportProcessingModule } from '../import-processing/import-processing.m
     CheckboxModule,
     DialogModule,
     DropdownModule,
+    FileUploadModule,
     Footer,
     InputSwitchModule,
     InputTextModule,

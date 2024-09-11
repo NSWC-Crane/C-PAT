@@ -8,19 +8,41 @@
 !########################################################################
 */
 
-.table-container {
-  height: 60rem;
-  width: 100%;
-}
 
-.search-input {
-  margin-bottom: 1rem;
-}
-
-.grid-p-card {
-  border: none;
-  padding-inline-end: 0;
-  padding-inline-start: 0;
+.severity-badge {
+  border-radius: 2px;
+  padding: .25em .5em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .3px;
+  text-align: center;
+  width: 6rem;
+  &.severity-Critical {
+    background-color: #C63737;
+    color: #ffffff;
+    opacity: 0.9;
+  }
+  &.severity-High {
+    background-color: #FF8800;
+    color: #ffffff;
+    opacity: 0.9;
+  }
+  &.severity-Medium {
+    background-color: #ffcc00;
+    color: #ffffff;
+    opacity: 0.9;
+  }
+  &.severity-Low {
+    background-color: #47d147;
+    color: #ffffff;
+    opacity: 0.9;
+  }
+  &.severity-Info {
+    background-color: #007bff;
+    color: #ffffff;
+    opacity: 0.9;
+  }
 }
 
 .update-POAM-button {
@@ -52,34 +74,4 @@
 
 :host ::ng-deep .p-card .p-card-title {
   font-size: 12pt;
-}
-
-:host ::ng-deep .p-treetable .p-treetable-thead > tr > th {
-  text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-:host ::ng-deep .p-treetable .p-treetable-tbody > tr > td {
-  text-align: center;
-}
-
-:host ::ng-deep .severity-cell.cat-i {
-  color: #d74400;
-  font-weight: bold;
-}
-
-:host ::ng-deep .severity-cell.cat-ii {
-  color: #36c;
-  font-weight: bold;
-}
-
-:host ::ng-deep .severity-cell.cat-iii {
-  color: darkgreen;
-  font-weight: bold;
-}
-
-:host ::ng-deep .p-treetable-wrapper {
-  height: 100%;
 }

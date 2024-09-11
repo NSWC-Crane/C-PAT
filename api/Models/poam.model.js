@@ -71,6 +71,10 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: 'Draft'
         },
+        notes: {
+            type: DataTypes.STRING(500),
+            defaultValue: ''
+        },
         submittedDate: {
             type: DataTypes.DATEONLY,
             defaultValue: '1900-01-01' 

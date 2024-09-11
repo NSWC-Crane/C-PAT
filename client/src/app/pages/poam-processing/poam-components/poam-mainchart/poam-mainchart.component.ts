@@ -46,13 +46,15 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
   selectedOptionsValues: string[] = [];
   selectedPoamId: any;
   poamStatuses = [
-    { value: 'Draft', label: 'Draft' },
-    { value: 'Approved', label: 'Approved' },
-    { value: 'Submitted', label: 'Submitted' },
-    { value: 'Rejected', label: 'Rejected' },
-    { value: 'Closed', label: 'Closed' },
-    { value: 'Expired', label: 'Expired' },
-    { value: 'Extension Requested', label: 'Extension Requested' }
+    { label: 'Draft', value: 'Draft' },
+    { label: 'Closed', value: 'Closed' },
+    { label: 'Expired', value: 'Expired' },
+    { label: 'Submitted', value: 'Submitted' },
+    { label: 'Approved', value: 'Approved' },
+    { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
+    { label: 'Rejected', value: 'Rejected' },
+    { label: 'Extension Requested', value: 'Extension Requested' },
+    { label: 'False-Positive', value: 'False-Positive' },
   ];
 
   poamVulnerabilityTypes = [

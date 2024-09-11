@@ -26,6 +26,7 @@ interface Label {
 export class STIGManagerPoamAssetsTableComponent implements OnInit {
   @Input() stigmanCollectionId!: string;
   @Input() groupId!: string;
+  @Input() benchmarkId: string;
   @ViewChild('dt') table!: Table;
   @ViewChild('ms') multiSelect!: MultiSelect;
 
@@ -69,7 +70,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
   async getAffectedAssets() {
     this.isLoading = true;
     try {
-      const data = await firstValueFrom(await this.sharedService.getAffectedAssetsFromSTIGMAN(this.stigmanCollectionId));
+      const data = await firstValueFrom(await this.sharedService.getPOAMAssetsFromSTIGMAN(this.stigmanCollectionId, this.benchmarkId));
       if (!data || data.length === 0) {
         this.showErrorMessage('No affected assets found.');
         return;

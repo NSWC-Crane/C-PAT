@@ -1,0 +1,66 @@
+/*
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!########################################################################
+*/
+
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { firstValueFrom, Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PoamAttachmentService {
+  private cpatApiBase = CPAT.Env.apiBase;
+
+  constructor(
+    private http: HttpClient,
+    private oidcSecurityService: OidcSecurityService
+  ) { }
+
+  private async getAuthHeaders() {
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
+  }
+
+  async getAttachmentsByPoamId(poamId: number) {
+    const headers = await this.getAuthHeaders();
+    return this.http.get<any[]>(`${this.cpatApiBase}/poamAttachments/poam/${poamId}`, { headers });
+  }
+
+  async uploadAttachment(file: File, poamId: number) {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('poamId', poamId.toString());
+
+    const headers = await this.getAuthHeaders();
+    return this.http.post(`${this.cpatApiBase}/poamAttachment`, formData, {
+      headers,
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
+
+  async downloadAttachment(poamId: number, attachmentId: number) {
+    const headers = await this.getAuthHeaders();
+    return this.http.get(`${this.cpatApiBase}/poamAttachment/poam/${poamId}/attachment/${attachmentId}`, {
+      headers,
+      responseType: 'blob'
+    });
+  }
+
+  async deleteAttachment(poamId: number, attachmentId: number) {
+    const headers = await this.getAuthHeaders();
+
+    return this.http.delete(
+      `${this.cpatApiBase}/poamAttachment/poam/${poamId}/${attachmentId}`,
+      { headers }
+    );
+  }
+}

@@ -180,7 +180,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
 
                 const isNewOrChangedApproval = existingApproval.length === 0 ||
                     (existingApproval[0].approvalStatus !== req.body.approvalStatus &&
-                        (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'Rejected'));
+                    (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'Rejected' || req.body.approvalStatus === 'False-Positive'));
 
                 if (isNewOrChangedApproval && !config.client.features.marketplaceDisabled) {
                     const approverPoints = await marketplaceService.getUserPoints(req.body.userId);
@@ -225,7 +225,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                 const collectionId = poamResult[0].collectionId;
                 const hqs = poamResult[0].hqs;
 
-                if (req.body.approvalStatus === 'Approved') {
+                if (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'False-Positive') {
                     const userPoints = await marketplaceService.getUserPoints(submitterId);
                     if ((hqs === 0 || hqs === false || hqs === null) && req.body.hqs === true) {
                         if (!config.client.features.marketplaceDisabled) {                            
@@ -256,21 +256,21 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                             });
 
                             const pointsNotification = {
-                                title: `POAM Approval Points`,
-                                message: `15 points have been added to your points balance for approval of POAM ${req.body.poamId}.`,
+                                title: `POAM Review Points`,
+                                message: `15 points have been added to your points balance for review of POAM ${req.body.poamId}.`,
                                 userId: submitterId
                             };
                             const pointsNotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
                             await connection.query(pointsNotificationSql, [submitterId, pointsNotification.title, pointsNotification.message]);                        
                     }
                     
-                    let notificationMessage = `POAM ${req.body.poamId} has been approved by ${fullName}.`;
+                    let notificationMessage = `POAM ${req.body.poamId} has been reviewed by ${fullName}.`;
                     if (req.body.hqs === true) {
-                        notificationMessage = `POAM ${req.body.poamId} has been approved and marked as High Quality by ${fullName}.`;
+                        notificationMessage = `POAM ${req.body.poamId} has been reviewed and marked as High Quality by ${fullName}.`;
                     }
 
                     const notification = {
-                        title: `POAM Approved by ${fullName}`,
+                        title: `POAM reviewed by ${fullName}`,
                         message: notificationMessage,
                         userId: submitterId
                     };
@@ -279,7 +279,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                 }
 
                 if (req.body.poamLog[0].userId) {
-                    let action = `POAM ${req.body.poamId} has been ${req.body.approvalStatus.toLowerCase()} by ${fullName}. Approver Comments: ${req.body.comments}.`;
+                    let action = `POAM ${req.body.poamId} has been marked as ${req.body.approvalStatus.toLowerCase()} by ${fullName}. Approver Comments: ${req.body.comments}.`;
                     let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
                     await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
                 }
@@ -288,12 +288,12 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                 const [permissionResult] = await connection.query(permissionSql, [collectionId]);
                 const isApproverInPermissions = permissionResult.some(p => p.userId === req.body.poamLog[0].userId);
 
-                if (req.body.approvalStatus === 'Approved') {
+                if (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'False-Positive') {
                     if ((rawSeverity === "CAT I - Critical" || rawSeverity === "CAT I - High") && !isApproverInPermissions) {
                         for (const perm of permissionResult) {
                             const cat1Notification = {
-                                title: 'CAT-I POAM Pending Approval',
-                                message: `POAM ${req.body.poamId} has been marked approved and is pending CAT-I Approver review.`,
+                                title: 'CAT-I POAM Pending Review',
+                                message: `POAM ${req.body.poamId} has been reviewed and is pending CAT-I Approver review.`,
                                 userId: perm.userId
                             };
                             const cat1NotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
@@ -302,16 +302,29 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                         sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?";
                         await connection.query(sql_query, ["Pending CAT-I Approval", req.body.poamId]);
                     } else {
-                        sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?";
-                        await connection.query(sql_query, ["Approved", req.body.poamId]);
+                        if (req.body.approvalStatus === 'Approved') {
+                            sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?";
+                            await connection.query(sql_query, ["Approved", req.body.poamId]);
 
-                        const statusNotification = {
-                            title: `POAM status changed to Approved`,
-                            message: `POAM ${req.body.poamId} has met the approval requirements. POAM Status has changed to Approved.`,
-                            userId: submitterId
-                        };
-                        const statusNotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
-                        await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
+                            const statusNotification = {
+                                title: `POAM status changed to Approved`,
+                                message: `POAM ${req.body.poamId} has met the approval requirements. POAM Status has changed to Approved.`,
+                                userId: submitterId
+                            };
+                            const statusNotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                            await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
+                        } else if (req.body.approvalStatus === 'False-Positive') {
+                            sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?";
+                            await connection.query(sql_query, ["False-Positive", req.body.poamId]);
+
+                            const statusNotification = {
+                                title: `POAM status changed to False-Positive`,
+                                message: `POAM ${req.body.poamId} has met the review requirements. POAM Status has changed to False-Positive.`,
+                                userId: submitterId
+                            };
+                            const statusNotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                            await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
+                        }
                     }
                 } else if (req.body.approvalStatus === 'Rejected') {
                     sql_query = "UPDATE cpat.poam SET status = ? WHERE poamId = ?";
@@ -368,13 +381,13 @@ exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
             let sql = "DELETE FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
             await connection.query(sql, [req.params.poamId, req.params.userId]);
 
-            if (req.body.requestorId) {
+            if (req.userObject.userId) {
                 let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
                 const [user] = await connection.query(userSql, [req.params.userId]);
                 const fullName = user[0] ? user[0].fullName : "Unknown User";
                 let action = `${fullName} was removed from the Approver List.`;
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
+                await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
 
                 const notification = {
                     title: 'Removed from POAM Approver list',
