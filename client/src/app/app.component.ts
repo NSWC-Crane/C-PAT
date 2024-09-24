@@ -30,7 +30,6 @@ export class AppComponent implements OnInit {
   public async ngOnInit() {
     try {
       await this.authService.initializeAuthentication();
-      this.userProfile = await this.authService.getUserData('cpat');
 
       const apiConfig = await this.sharedService.getApiConfig().toPromise();
       if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {

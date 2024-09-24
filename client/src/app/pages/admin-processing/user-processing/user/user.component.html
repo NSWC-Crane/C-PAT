@@ -1,131 +1,149 @@
 <form #form="ngForm">
-    <div class="field">
-      <label for="userName">First Name: </label>
-      <input pInputText type="text" style="width: 100%" name="userName" [(ngModel)]="user.firstName" placeholder="First Name" required>
+  <div class="field">
+    <label for="userName">First Name: </label>
+    <input pInputText type="text" style="width: 100%" name="userName" [(ngModel)]="user.firstName" placeholder="First Name" required>
+  </div>
+  <div class="field">
+    <label for="lastName">Last Name: </label>
+    <input pInputText type="text" style="width: 100%" name="lastName" [(ngModel)]="user.lastName" placeholder="Last Name">
+  </div>
+  <div class="field">
+    <label for="fullName">Full Name: </label>
+    <input pInputText type="text" style="width: 100%" name="fullName" value="{{user.firstName}} {{user.lastName}}" placeholder="Full Name" disabled>
+  </div>
+  <div class="field">
+    <label for="email">Email: </label>
+    <input pInputText type="text" style="width: 100%" name="email" [(ngModel)]="user.email" placeholder="Email">
+  </div>
+  <div class="field">
+    <label for="phoneNumber">Phone Number: </label>
+    <input pInputText type="text" style="width: 100%" name="phoneNumber" [(ngModel)]="user.phoneNumber" placeholder="Phone Number...">
+  </div>
+  <div class="field">
+    <label for="officeOrg">Office/Organization: </label>
+    <div>
+      <p-autoComplete [(ngModel)]="user.officeOrg"
+                      [suggestions]="filteredOfficeOrgs"
+                      (completeMethod)="filterOfficeOrgs($event)"
+                      [dropdown]="false"
+                      [forceSelection]="false"
+                      [style]="{'width':'13.25%'}"
+                      [inputStyle]="{'width':'100%'}"
+                      name="officeOrg"
+                      id="officeOrg"
+                      placeholder="Office/Org...">
+      </p-autoComplete>
     </div>
-    <div class="field">
-      <label for="lastName">Last Name: </label>
-      <input pInputText type="text" style="width: 100%" name="lastName" [(ngModel)]="user.lastName" placeholder="Last Name">
+  </div>
+  <div class="field">
+    <label for="accountStatus">Account Status:</label>
+    <div>
+      <p-dropdown [options]="[{label: 'Pending', value: 'PENDING'}, {label: 'Active', value: 'ACTIVE'}, {label: 'Expired', value: 'EXPIRED'}]"
+                  [(ngModel)]="user.accountStatus"
+                  [style]="{'width':'13.25%'}"
+                  name="accountStatus"
+                  placeholder="Select Status"
+                  optionLabel="label"
+                  optionValue="value">
+      </p-dropdown>
     </div>
-    <div class="field">
-      <label for="fullName">Full Name: </label>
-      <input pInputText type="text" style="width: 100%" name="fullName" value="{{user.firstName}} {{user.lastName}}" placeholder="Full Name" disabled>
+  </div>
+  <div class="field" *ngIf="marketplaceDisabled === false">
+    <label for="userPoints">User Points:</label>
+    <div class="points-container">
+      <p-inputNumber [(ngModel)]="user.points"
+                     [showButtons]="true"
+                     [min]="0"
+                     [step]="10"
+                     buttonLayout="horizontal"
+                     [style]="{'width':'80%'}"
+                     [inputStyle]="{'width':'100%', 'text-align': 'center'}"
+                     decrementButtonClass="p-button-secondary"
+                     incrementButtonClass="p-button-secondary"
+                     incrementButtonIcon="pi pi-plus"
+                     decrementButtonIcon="pi pi-minus"
+                     name="userPoints"
+                     id="userPoints"
+                     class="userPoints">
+      </p-inputNumber>
     </div>
-    <div class="field">
-      <label for="email">Email: </label>
-      <input pInputText type="text" style="width: 100%" name="email" [(ngModel)]="user.email" placeholder="Email">
-    </div>
-    <div class="field">
-      <label for="officeOrg">Office/Organization: </label>
-      <div>
-        <p-autoComplete [(ngModel)]="user.officeOrg"
-                        [suggestions]="filteredOfficeOrgs"
-                        (completeMethod)="filterOfficeOrgs($event)"
-                        [dropdown]="false"
-                        [forceSelection]="false"
-                        [style]="{'width':'13.25%'}"
-                        [inputStyle]="{'width':'100%'}"
-                        name="officeOrg"
-                        id="officeOrg"
-                        placeholder="Office/Org...">
-        </p-autoComplete>
-      </div>
-    </div>
-    <div class="field">
-      <label for="accountStatus">Account Status:</label>
-      <div>
-        <p-dropdown [options]="[{label: 'Pending', value: 'PENDING'}, {label: 'Active', value: 'ACTIVE'}, {label: 'Expired', value: 'EXPIRED'}]"
-                    [(ngModel)]="user.accountStatus"
-                    [style]="{'width':'13.25%'}"
-                    name="accountStatus"
-                    placeholder="Select Status"
-                    optionLabel="label"
-                    optionValue="value">
-        </p-dropdown>
-      </div>
-    </div>
-    <div class="field" *ngIf="marketplaceDisabled === false">
-      <label for="userPoints">User Points:</label>
-      <div class="points-container">
-        <p-inputNumber [(ngModel)]="user.points"
-                       [showButtons]="true"
-                       [min]="0"
-                       [step]="10"
-                       buttonLayout="horizontal"
-                       [style]="{'width':'80%'}"
-                       [inputStyle]="{'width':'100%', 'text-align': 'center'}"
-                       decrementButtonClass="p-button-secondary"
-                       incrementButtonClass="p-button-secondary"
-                       incrementButtonIcon="pi pi-plus"
-                       decrementButtonIcon="pi pi-minus"
-                       name="userPoints"
-                       id="userPoints"
-                       class="userPoints">
-        </p-inputNumber>
-      </div>
-    </div>
+  </div>
+  <div class="switch-container">
+    <p-inputSwitch [(ngModel)]="checked" name="toggleAdmin" (onChange)="toggleAdmin()">
+    </p-inputSwitch>
+    <label for="toggleAdmin">Grant Admin Privileges</label>
+    <i class="pi pi-info-circle"
+       style="cursor: pointer; color: var(--primary-color); font-size: 1rem; margin-left: 6px;"
+       pTooltip="The user must also be assigned the admin role within the OIDC provider or permissions will be automatically reverted upon token validation."
+       tooltipPosition="top">
+    </i>
+  </div>
+  <div *ngIf="user.lastClaims" class="form-group">
     <div class="switch-container">
-      <p-inputSwitch [(ngModel)]="checked" name="toggleAdmin" (onChange)="toggleAdmin()">
-      </p-inputSwitch>
-      <label for="toggleAdmin">Grant Admin Privileges</label>
-      <i class="pi pi-info-circle"
-         style="cursor: pointer; color: var(--primary-color); font-size: 1rem; margin-left: 6px;"
-         pTooltip="The user must also be assigned the admin role within the OIDC provider or permissions will be automatically reverted upon token validation."
-         tooltipPosition="top">
-      </i>
+      <p-inputSwitch id="showLastClaims" [(ngModel)]="showLastClaims" binary="true" name="showLastClaims"></p-inputSwitch>
+      <label for="showLastClaims">View Last Claims</label>
     </div>
-    <div *ngIf="user.lastClaims" class="form-group">
-      <div class="switch-container">
-        <p-inputSwitch id="showLastClaims" [(ngModel)]="showLastClaims" binary="true" name="showLastClaims"></p-inputSwitch>
-        <label for="showLastClaims">View Last Claims</label>
+    <textarea *ngIf="showLastClaims" pInputTextarea style="font-weight: normal; width: 100%" [value]="user.lastClaims | json" name="lastClaimsTextarea" rows="15" readonly></textarea>
+  </div>
+  <div class="p-card-body">
+    <p-table [value]="collectionPermissions" [columns]="cols" editMode="row">
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th scope="col">
+            <button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewPermission()"></button>
+          </th>
+          <th scope="col" *ngFor="let col of columns">
+            {{col.header}}
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+          <td>
+            <div class="flex">
+              <button *ngIf="!rowData.editing" pButton pRipple type="button" icon="pi pi-pencil" (click)="onEditPermission(rowData)" class="p-button-rounded p-button-text"></button>
+              <button *ngIf="rowData.editing" pButton pRipple type="button" icon="pi pi-check" (click)="onSavePermission(rowData)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+              <button *ngIf="rowData.editing" pButton pRipple type="button" icon="pi pi-times" (click)="onCancelEditPermission(rowData)" class="p-button-rounded p-button-text p-button-danger"></button>
+              <button pButton type="button" icon="pi pi-trash" class="p-button-text" (click)="onDeletePermission(rowData)"></button>
+            </div>
+          </td>
+          <td *ngFor="let col of columns">
+            <span *ngIf="!rowData.editing">{{rowData[col.field]}}</span>
+            <p-dropdown *ngIf="rowData.editing && col.field === 'collectionName'"
+                        [options]="availableCollections"
+                        [(ngModel)]="rowData.collectionId"
+                        name="collectionDropdown"
+                        optionLabel="title"
+                        optionValue="value"
+                        [style]="{'width':'100%'}"
+                        appendTo="body"></p-dropdown>
+            <p-dropdown *ngIf="rowData.editing && col.field === 'accessLevelLabel'"
+                        [options]="accessLevelOptions"
+                        [(ngModel)]="rowData.accessLevel"
+                        name="accessLevelDropdown"
+                        optionLabel="label"
+                        optionValue="value"
+                        [style]="{'width':'100%'}"
+                        appendTo="body"></p-dropdown>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3" style="text-align:center">No Data to Display</td>
+        </tr>
+      </ng-template>
+    </p-table>
+    <br>
+    <div class="formgroup-inline">
+      <div class="field">
+        <p-button label="Submit" [outlined]="true" (onClick)="onSubmit()" [disabled]="!form.valid" styleClass="p-mr-2"></p-button>
       </div>
-      <textarea *ngIf="showLastClaims" pInputTextarea style="font-weight: normal; width: 100%" [value]="user.lastClaims | json" name="lastClaimsTextarea" rows="15" readonly></textarea>
-    </div>
-    <div class="p-card-body">
-      <p-table [value]="collectionPermissions" [columns]="cols" editMode="row">
-        <ng-template pTemplate="header" let-columns>
-          <tr>
-            <th scope="col">
-              <button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewPermission()"></button>
-            </th>
-            <th scope="col" *ngFor="let col of columns">
-              {{col.header}}
-            </th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-rowData let-columns="columns">
-          <tr>
-            <td>
-              <div class="flex">
-                <button *ngIf="!rowData.editing" pButton pRipple type="button" icon="pi pi-pencil" (click)="onEditPermission(rowData)" class="p-button-rounded p-button-text"></button>
-                <button *ngIf="rowData.editing" pButton pRipple type="button" icon="pi pi-check" (click)="onSavePermission(rowData)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
-                <button *ngIf="rowData.editing" pButton pRipple type="button" icon="pi pi-times" (click)="onCancelEditPermission(rowData)" class="p-button-rounded p-button-text p-button-danger"></button>
-                <button pButton type="button" icon="pi pi-trash" class="p-button-text" (click)="onDeletePermission(rowData)"></button>
-              </div>
-            </td>
-            <td *ngFor="let col of columns">
-              <span *ngIf="!rowData.editing">{{rowData[col.field]}}</span>
-              <p-dropdown *ngIf="rowData.editing && col.field === 'collectionName'" [options]="collectionList" [(ngModel)]="rowData.collectionId" name="collectionDropdown" optionLabel="title" optionValue="value" [style]="{'width':'100%'}" appendTo="body"></p-dropdown>
-              <p-dropdown *ngIf="rowData.editing && col.field === 'accessLevelLabel'" [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" [style]="{'width':'100%'}" appendTo="body"></p-dropdown>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="3" style="text-align:center">No Data to Display</td>
-          </tr>
-        </ng-template>
-      </p-table>
-      <br>
-      <div class="formgroup-inline">
-        <div class="field">
-          <p-button label="Submit" [outlined]="true" (onClick)="onSubmit()" [disabled]="!form.valid" styleClass="p-mr-2"></p-button>
-        </div>
-        <div class="field">
-          <p-button label="Cancel" [outlined]="true" (onClick)="resetData()" styleClass="p-button-secondary"></p-button>
-        </div>
+      <div class="field">
+        <p-button label="Cancel" [outlined]="true" (onClick)="resetData()" styleClass="p-button-secondary"></p-button>
       </div>
     </div>
+  </div>
 </form>
 
 <p-toast></p-toast>

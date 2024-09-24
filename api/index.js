@@ -91,6 +91,7 @@ app.use((req, res, next) => {
     }
 })
 
+
 app.use('/api/tenable', proxy(config.tenable.url, {
     proxyReqPathResolver: function (req) {
         const baseUrl = config.tenable.url.endsWith('/')
@@ -225,15 +226,9 @@ const CPAT = {
     classification: "${config.settings.setClassification}",
     version: "${config.version}",
     apiBase: "${config.client.apiBase}",
-    commit: {
-        branch: "${config.commit.branch}",
-        sha: "${config.commit.sha}",
-        tag: "${config.commit.tag}",
-        describe: "${config.commit.describe}"
-    },
     oauth: {
         authority:  "${config.client.authority}",
-        clientId: "${config.client.clientId}",
+        clientId: "${config.oauth.clientId}",
         refreshToken: {
           disabled: ${config.client.refreshToken.disabled}
         },

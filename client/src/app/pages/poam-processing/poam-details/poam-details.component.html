@@ -116,6 +116,12 @@
           <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" [maxlength]="255" name='vulnerabilityId' id="vulnerabilityId" placeholder="Vulnerability ID..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
         </div>
 
+        <!-- Task Order # -->
+        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Task Order'">
+          <label for="taskOrderNumber">Task Order #: </label>
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.taskOrderNumber" [maxlength]="25" name='taskOrderNumber' placeholder="Task Order #..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
+        </div>
+
         <!-- IAVM # -->
         <div class="form-group" *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' || poam.vulnerabilitySource === 'Task Order'">
           <label for="iavmNumber">IAVM #: </label>
@@ -177,32 +183,72 @@
           <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
             <div class="stepper-content-wrapper">
               <div class="stepper-content">
-                <p-table [value]="poamAssignees" [paginator]="false">
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th scope="col">Members Assigned</th>
-                      <th scope="col" style="width: 8rem">
-                        <button pButton icon="pi pi-plus" (click)="addAssignee()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
-                      </th>
-                    </tr>
+                <p-splitter [style]="{'height': '100%'}" [panelSizes]="[50,50]">
+                  <ng-template pTemplate="panel">
+                    <div class="splitter-panel">
+                      <div class="table-container">
+                        <p-table [value]="poamAssignedTeams" [paginator]="false" styleClass="p-datatable-striped full-width-table" [scrollable]="true" scrollHeight="flex">
+                          <ng-template pTemplate="header">
+                            <tr>
+                              <th scope="col">Teams Assigned</th>
+                              <th scope="col">
+                                <button pButton icon="pi pi-plus" (click)="addAssignedTeam()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
+                              </th>
+                            </tr>
+                          </ng-template>
+                          <ng-template pTemplate="body" let-assignedTeam let-rowIndex="rowIndex">
+                            <tr>
+                              <td>
+                                <span *ngIf="!assignedTeam.isNew">{{assignedTeam.assignedTeamName}}</span>
+                                <p-dropdown *ngIf="assignedTeam.isNew" [options]="assignedTeamOptions" [(ngModel)]="assignedTeam.assignedTeamId" optionLabel="assignedTeamName" optionValue="assignedTeamId" [style]="{'width':'100%'}" (onChange)="onAssignedTeamChange(assignedTeam, rowIndex)" appendTo="body" [disabled]="accessLevel < 2"></p-dropdown>
+                              </td>
+                              <td>
+                                <button pButton icon="pi pi-trash" (click)="deleteAssignedTeam(assignedTeam, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+                              </td>
+                            </tr>
+                          </ng-template>
+                          <ng-template pTemplate="emptymessage">
+                            <tr>
+                              <td colspan="2" style="text-align:center">No Data to Display</td>
+                            </tr>
+                          </ng-template>
+                        </p-table>
+                      </div>
+                    </div>
                   </ng-template>
-                  <ng-template pTemplate="body" let-assignee let-rowIndex="rowIndex">
-                    <tr>
-                      <td>
-                        <span *ngIf="!assignee.isNew">{{getAssigneeName(assignee.userId)}}</span>
-                        <p-dropdown *ngIf="assignee.isNew" [options]="collectionUsers" [(ngModel)]="assignee.userId" optionLabel="fullName" optionValue="userId" [style]="{'width':'100%'}" (onChange)="onAssigneeChange(assignee, rowIndex)" appendTo="body" [disabled]="accessLevel < 2"></p-dropdown>
-                      </td>
-                      <td>
-                        <button pButton icon="pi pi-trash" (click)="deleteAssignee(assignee, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
-                      </td>
-                    </tr>
+                  <ng-template pTemplate="panel">
+                    <div class="splitter-panel">
+                      <div class="table-container">
+                        <p-table [value]="poamAssignees" [paginator]="false" styleClass="p-datatable-striped full-width-table" [scrollable]="true" scrollHeight="flex">
+                          <ng-template pTemplate="header">
+                            <tr>
+                              <th scope="col">Members Assigned</th>
+                              <th scope="col">
+                                <button pButton icon="pi pi-plus" (click)="addAssignee()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
+                              </th>
+                            </tr>
+                          </ng-template>
+                          <ng-template pTemplate="body" let-assignee let-rowIndex="rowIndex">
+                            <tr>
+                              <td>
+                                <span *ngIf="!assignee.isNew">{{getAssigneeName(assignee.userId)}}</span>
+                                <p-dropdown *ngIf="assignee.isNew" [options]="collectionUsers" [(ngModel)]="assignee.userId" optionLabel="fullName" optionValue="userId" [style]="{'width':'100%'}" (onChange)="onAssigneeChange(assignee, rowIndex)" appendTo="body" [disabled]="accessLevel < 2"></p-dropdown>
+                              </td>
+                              <td>
+                                <button pButton icon="pi pi-trash" (click)="deleteAssignee(assignee, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+                              </td>
+                            </tr>
+                          </ng-template>
+                          <ng-template pTemplate="emptymessage">
+                            <tr>
+                              <td colspan="2" style="text-align:center">No Data to Display</td>
+                            </tr>
+                          </ng-template>
+                        </p-table>
+                      </div>
+                    </div>
                   </ng-template>
-                  <ng-template pTemplate="emptymessage">
-                    <tr>
-                      <td colspan="2" style="text-align:center">No Data to Display</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
+                </p-splitter>
               </div>
               <div class="stepper-buttons first-panel">
                 <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>
@@ -543,7 +589,7 @@
         </p-stepperPanel>
       </p-stepper>
     </p-footer>
-      <!-- Buttons -->
+    <!-- Buttons -->
     <p-footer>
       <button pButton type="button" label="Save" class="p-button-outlined p-button-primary" [disabled]="accessLevel < 2" (click)="savePoam()" style="margin-left:20px;"></button>
       <button pButton type="button" label="Cancel" class="p-button-outlined p-button-secondary" (click)="cancelPoam()" style="margin-left:20px;"></button>
@@ -557,7 +603,7 @@
     <textarea id="notes" pInputTextarea [(ngModel)]="notesForApprover" [rows]="5" [cols]="30" [maxlength]="500" class="w-full mt-2"></textarea>
   </div>
   <ng-template pTemplate="footer">
-    <p-button [text]="true" [raised]="true" (click)="confirmSubmit()" label="Submit" styleClass="p-button-text"></p-button>
+    <p-button [text]="true" [raised]="true" (click)="confirmSubmit()" (onKeyUp)="confirmSubmit()" label="Submit" styleClass="p-button-text"></p-button>
   </ng-template>
 </p-dialog>
 

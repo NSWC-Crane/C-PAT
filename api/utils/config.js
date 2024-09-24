@@ -13,12 +13,6 @@ const cpatPackage = require("../package.json")
 
 let config = {
     version: cpatPackage.version,
-    commit: {
-        branch: process.env.COMMIT_BRANCH || 'na',
-        sha: process.env.COMMIT_SHA || 'na',
-        tag: process.env.COMMIT_TAG || 'na',
-        describe: process.env.COMMIT_DESCRIBE || 'na'
-    },
     settings: {
         setClassification: process.env.CPAT_CLASSIFICATION || "U",
         lastAccessResolution: 60,
@@ -26,13 +20,12 @@ let config = {
     },
     certificates: process.env.NODE_EXTRA_CA_CERTS,
     client: {
-        clientId: process.env.CPAT_CLIENT_ID || "c-pat",
         authority: process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
-        apiBase: process.env.CPAT_CLIENT_API_BASE || "api",
+        apiBase: process.env.CPAT_API_BASE || "api",
         disabled: process.env.CPAT_CLIENT_DISABLED === "true",
         directory: process.env.CPAT_CLIENT_DIRECTORY || '../client/dist',
-        extraScopes: process.env.CPAT_CLIENT_EXTRA_SCOPES,
-        scopePrefix: process.env.CPAT_CLIENT_SCOPE_PREFIX,
+        extraScopes: process.env.CPAT_EXTRA_SCOPES,
+        scopePrefix: process.env.CPAT_SCOPE_PREFIX,
         refreshToken: {
             disabled: process.env.CPAT_CLIENT_REFRESH_DISABLED ? process.env.CPAT_CLIENT_REFRESH_DISABLED === "true" : false,
         },
@@ -41,7 +34,7 @@ let config = {
         }
     },
     stigman: {
-        clientId: process.env.STIGMAN_CLIENT_ID || "stig-manager",
+        clientId: process.env.STIGMAN_OIDC_CLIENT_ID || "stig-manager",
         apiUrl: process.env.STIGMAN_API_URL || "http://localhost:54000/api",
         scopePrefix: process.env.STIGMAN_SCOPE_PREFIX,
         extraScopes: process.env.STIGMAN_EXTRA_SCOPES,
@@ -52,14 +45,14 @@ let config = {
         secretKey: process.env.TENABLE_SECRET_KEY,
     },
     docs: {
-        disabled: process.env.CPAT_DOCS_DISABLED === "true",
-        docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../docs/_build/html',
+        disabled: process.env.CPAT_DOCS_DISABLED ? process.env.CPAT_DOCS_DISABLED === "true" : false,
+        docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../../docs/_build/html',
     },
     http: {
         address: process.env.CPAT_API_ADDRESS || "127.0.0.1",
         port: process.env.CPAT_API_PORT || 8086,
-        maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "52428800",
-        maxUpload: process.env.CPAT_API_MAX_UPLOAD || "104857600"
+        maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "5242880",
+        maxUpload: process.env.CPAT_API_MAX_UPLOAD || "5242880"
     },
     database: {
         acquire: process.env.CPAT_DB_ACQUIRE || 30000,
@@ -86,11 +79,12 @@ let config = {
     },
     swaggerUi: {
         enabled: process.env.CPAT_SWAGGER_ENABLED === "true",
-        authority: process.env.CPAT_SWAGGER_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
+        authority: process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
         server: process.env.CPAT_SWAGGER_SERVER || "http://localhost:8086/api",
         oauth2RedirectUrl: process.env.CPAT_SWAGGER_REDIRECT || "http://localhost:8086/api-docs/oauth2-redirect.html"
     },
     oauth: {
+        clientId: process.env.CPAT_OIDC_CLIENT_ID || "c-pat",
         authority: process.env.CPAT_OIDC_PROVIDER || "http://192.168.1.101:8080/auth/realms/RMFTools",
         claims: {
             scope: process.env.CPAT_JWT_SCOPE_CLAIM || "scope",

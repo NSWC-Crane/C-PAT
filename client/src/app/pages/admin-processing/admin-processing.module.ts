@@ -18,6 +18,7 @@ import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
 import { UserComponent } from './user-processing/user/user.component';
 import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
+import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
 import { AdminProcessingRoutingModule } from './admin-processing-routing.module';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { CollectionComponent } from './collection-processing/collection/collection.component';
@@ -53,6 +54,7 @@ import { MessageModule } from 'primeng/message';
 @NgModule({
   declarations: [
     AAPackageProcessingComponent,
+    AssignedTeamProcessingComponent,
     CollectionProcessingComponent,
     CollectionComponent,
     STIGManagerAdminComponent,

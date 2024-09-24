@@ -60,26 +60,63 @@ hr {
 }
 
 .showCheckData {
-    background-color: var(--surface-b);
-    border: 1px solid var(--surface-d);
-    padding: 1rem;
-    overflow: auto;
-    max-height: 500px;
+  background-color: var(--surface-b);
+  border: 1px solid var(--surface-d);
+  padding: 1rem;
+  overflow: auto;
+  max-height: 500px;
 }
 
 .showCheckData pre {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
 }
 
 :host ::ng-deep {
   .p-card-content {
-      padding: 0;
+    padding: 0;
   }
 
   .p-stepper-panel {
     height: 100%;
+  }
+
+  .p-splitter {
+    border: none;
+  }
+
+  .splitter-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    padding: 0 2rem;
+    box-sizing: border-box;
+  }
+
+  .table-container {
+    flex: 1;
+    width: 100%;
+    overflow: auto;
+  }
+
+  .full-width-table {
+    width: 100%;
+  }
+
+  .p-datatable {
+    .p-datatable-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+    }
+  }
+
+  .p-datatable-thead > tr > th {
+    background-color: rgba(0, 0, 0, 0.1) !important;
   }
 
   .stepper-content-wrapper {
@@ -100,6 +137,7 @@ hr {
     justify-content: space-between;
     padding: 0 1rem 1rem;
     border-bottom: 1px solid var(--surface-d);
+
     &.first-panel {
       justify-content: flex-end;
     }

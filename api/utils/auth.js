@@ -143,21 +143,21 @@ async function initializeAuth(depStatus) {
     const wellKnown = `${config.oauth.authority}/.well-known/openid-configuration`
     async function getJwks() {
         logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, attempt: ++initAttempt })
-
-        const openidConfig = (await axios.get(wellKnown)).data
-
-        logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, metadata: openidConfig })
-        if (!openidConfig.jwks_uri) {
-            throw (new Error('No jwks_uri property found'))
-        }
         if (config.certificates) {
+            const agent = new https.Agent({
+                ca: fs.readFileSync(config.certificates)
+            })
+            const openidConfig = (await axios.get(wellKnown, { httpsAgent: agent })).data
+
+            logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, metadata: openidConfig })
+            if (!openidConfig.jwks_uri) {
+                throw (new Error('No jwks_uri property found'))
+            }
             jwksUri = openidConfig.jwks_uri
             try {
                 client = jwksClient({
                     jwksUri: jwksUri,
-                    requestAgent: new https.Agent({
-                        ca: fs.readFileSync(config.certificates)
-                    })
+                    requestAgent: agent
                 })
             } catch (error) {
                 logger.writeError('oidc', 'initializeAuth', {
@@ -169,6 +169,12 @@ async function initializeAuth(depStatus) {
                 })
             }
         } else {
+            const openidConfig = (await axios.get(wellKnown)).data
+
+            logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, metadata: openidConfig })
+            if (!openidConfig.jwks_uri) {
+                throw (new Error('No jwks_uri property found'))
+            }
             jwksUri = openidConfig.jwks_uri
             client = jwksClient({
                 jwksUri: jwksUri

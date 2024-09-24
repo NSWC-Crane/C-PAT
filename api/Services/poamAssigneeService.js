@@ -93,11 +93,9 @@ exports.postPoamAssignee = async function postPoamAssignee(req, res, next) {
             const [user] = await connection.query(userSql, [req.body.userId]);
             const fullName = user[0] ? user[0].fullName : "Unknown User";
 
-            if (req.body.poamLog[0].userId) {
                 let action = `${fullName} was added to the Assignee List.`;
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
-            }
+                await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
             const notification = {
                 title: 'Added as POAM Assignee',
@@ -146,11 +144,9 @@ exports.deletePoamAssignee = async function deletePoamAssignee(req, res, next) {
         let sql = "DELETE FROM cpat.poamassignees WHERE userId = ? AND poamId = ?";
         await connection.query(sql, [req.params.userId, req.params.poamId]);
 
-        if (req.body.requestorId) {
             let action = `${fullName} was removed from the Assignee List.`;
             let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
-        }
+            await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
 
         const notification = {
             title: 'Removed from POAM Assignee list',

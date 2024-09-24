@@ -50,6 +50,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     { label: 'Approver', value: 3 },
     { label: 'CAT-I Approver', value: 4 }
   ];
+  availableCollections: any[] = [];
   cols: any[] = [];
   checked: boolean = false;
   collectionList: any = [];
@@ -152,7 +153,13 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  private updateAvailableCollections() {
+    const assignedCollectionIds = new Set(this.collectionPermissions.map(p => p.collectionId));
+    this.availableCollections = this.collectionList.filter((c: any) => !assignedCollectionIds.has(c.value));
+  }
+
   onAddNewPermission() {
+    this.updateAvailableCollections();
     const newPermission: Permission = {
       userId: this.user.userId,
       collectionId: null,
@@ -163,8 +170,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onEditPermission(permission: Permission) {
+    this.updateAvailableCollections();
+    if (permission.collectionId !== null) {
+      this.availableCollections.push(this.collectionList.find((c: any) => c.value === permission.collectionId));
+      permission.oldCollectionId = permission.collectionId;
+    }
     permission.editing = true;
   }
+
 
   async onSavePermission(permission: Permission) {
     if (!permission.accessLevelLabel || !permission.collectionName) {
@@ -189,13 +202,13 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       const updatedPermission: Permission = {
         ...permission,
-        oldCollectionId: permission.collectionId!,
-        newCollectionId: permission.collectionId!
+        newCollectionId: permission.collectionId ?? undefined
       };
       (await this.userService.updatePermission(updatedPermission)).subscribe(
         () => {
           this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Permission updated successfully.' });
           permission.editing = false;
+          delete permission.oldCollectionId;
           this.loadUserData(this.user.userId);
         },
         (error) => {
@@ -204,6 +217,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         }
       );
     }
+    this.updateAvailableCollections();
   }
 
   onCancelEditPermission(permission: Permission) {
@@ -211,7 +225,12 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       this.collectionPermissions = this.collectionPermissions.filter(p => p !== permission);
     } else {
       permission.editing = false;
+      if (permission.oldCollectionId !== undefined) {
+        permission.collectionId = permission.oldCollectionId;
+      }
+      delete permission.oldCollectionId;
     }
+    this.updateAvailableCollections();
   }
 
   async onDeletePermission(permission: Permission) {
@@ -235,6 +254,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         }
       });
     }
+    this.updateAvailableCollections();
   }
 
   getAccessLevelLabel(accessLevel: number): string {

@@ -25,6 +25,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(255),
             defaultValue: ''
         },
+        taskOrderNumber: {
+            type: DataTypes.STRING(50),
+            defaultValue: ''
+        },
         iavmNumber: {
             type: DataTypes.STRING(50),
             defaultValue: ''

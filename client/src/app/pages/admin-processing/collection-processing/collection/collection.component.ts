@@ -45,6 +45,9 @@ export class CollectionComponent implements OnDestroy {
       collectionId: this.collection.collectionId,
       collectionName: this.collection.collectionName,
       description: this.collection.description,
+      systemType: this.collection.systemType,
+      systemName: this.collection.systemName,
+      ccsafa: this.collection.ccsafa,
     };
 
     if (collection.collectionId == "ADDCOLLECTION") {

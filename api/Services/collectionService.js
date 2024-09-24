@@ -62,6 +62,9 @@ exports.getCollections = async function getCollections(userId, elevate) {
                     collectionId: collection.collectionId,
                     collectionName: collection.collectionName,
                     description: collection.description,
+                    systemType: collection.systemType,
+                    systemName: collection.systemName,
+                    ccsafa: collection.ccsafa,
                     created: collection.created,
                 }));
             }
@@ -75,7 +78,7 @@ exports.getCollections = async function getCollections(userId, elevate) {
 exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            const sql = "SELECT collectionId, collectionName, collectionOrigin, originCollectionId FROM collection";
+            const sql = "SELECT collectionId, collectionName, collectionOrigin, originCollectionId, systemType, systemName, ccsafa FROM collection";
             const [rows] = await connection.query(sql);
             return rows;
         });
@@ -102,11 +105,20 @@ exports.postCollection = async function postCollection(req, res, next) {
     if (!req.body.originCollectionId) {
         req.body.originCollectionId = null;
     }
+    if (!req.body.systemType) {
+        req.body.systemType = ""
+    }
+    if (!req.body.systemName) {
+        req.body.systemName = ""
+    }
+    if (!req.body.ccsafa) {
+        req.body.ccsafa = ""
+    }
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.collection (collectionName, description, collectionOrigin, originCollectionId) VALUES (?, ?, ?, ?) `
-            await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.collectionOrigin, req.body.originCollectionId])
+            let sql_query = `INSERT INTO cpat.collection (collectionName, description, collectionOrigin, originCollectionId, systemType, systemName, ccsafa) VALUES (?, ?, ?, ?, ?, ?, ?) `
+            await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.collectionOrigin, req.body.originCollectionId, req.body.systemType, req.body.systemName, req.body.ccsafa])
             let sql = "SELECT * FROM cpat.collection WHERE collectionId = LAST_INSERT_ID();"
             let [rowCollection] = await connection.query(sql)
 
@@ -129,13 +141,19 @@ exports.putCollection = async function putCollection(req, res, next) {
     }
     if (!req.body.collectionName) req.body.collectionName = undefined;
     if (!req.body.description) req.body.description = "";
+    if (!req.body.systemType) req.body.systemType = "";
+    if (!req.body.systemName) req.body.systemName = "";
+    if (!req.body.ccsafa) req.body.ccsafa = "";
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE cpat.collection SET collectionName=?, description=? WHERE collectionId = ?";
+            let sql_query = "UPDATE cpat.collection SET collectionName = ?, description = ?, systemType = ?, systemName = ?, ccsafa = ? WHERE collectionId = ?";
             await connection.query(sql_query, [
                 req.body.collectionName,
                 req.body.description,
+                req.body.systemType,
+                req.body.systemName,
+                req.body.ccsafa,
                 req.body.collectionId
             ]);
 
@@ -143,6 +161,9 @@ exports.putCollection = async function putCollection(req, res, next) {
             message.collectionId = req.body.collectionId;
             message.collectionName = req.body.collectionName;
             message.description = req.body.description;
+            message.systemType = req.body.systemType;
+            message.systemName = req.body.systemName;
+            message.ccsafa = req.body.ccsafa;
             return message;
         });
     }

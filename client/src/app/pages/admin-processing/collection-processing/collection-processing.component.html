@@ -62,6 +62,36 @@
       <label for="description">Description</label>
       <textarea id="description" pInputTextarea [(ngModel)]="editingCollection.description" required rows="3" cols="20"></textarea>
     </div>
+    <div class="field">
+      <label for="systemType">System Type:</label>
+      <input pInputText
+             type="text"
+             id="systemType"
+             name="systemType"
+             [(ngModel)]="editingCollection.systemType"
+             placeholder="System Type"
+             class="w-full">
+    </div>
+    <div class="field">
+      <label for="systemName">System Name:</label>
+      <input pInputText
+             type="text"
+             id="systemName"
+             name="systemName"
+             [(ngModel)]="editingCollection.systemName"
+             placeholder="System Name"
+             class="w-full">
+    </div>
+    <div class="field">
+      <label for="ccsafa">CC/S/A/FA:</label>
+      <input pInputText
+             type="text"
+             id="ccsafa"
+             name="ccsafa"
+             [(ngModel)]="editingCollection.ccsafa"
+             placeholder="CC/S/A/FA"
+             class="w-full">
+    </div>
   </ng-template>
 
   <ng-template pTemplate="footer">

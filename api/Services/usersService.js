@@ -55,6 +55,7 @@ exports.getUsers = async function getUsers(elevate, userId) {
                         userId: user.userId,
                         userName: user.userName,
                         email: user.email,
+                        phoneNumber: user.phoneNumber,
                         firstName: user.firstName,
                         lastName: user.lastName,
                         created: user.created,
@@ -106,6 +107,7 @@ exports.getCurrentUser = async function getCurrentUser(userId) {
                 userId: user.userId,
                 userName: user.userName,
                 email: user.email,
+                phoneNumber: user.phoneNumber,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 created: user.created,
@@ -166,6 +168,7 @@ exports.getUserByUserID = async function getUserByUserID(requestorId, elevate, u
                     userId: user.userId,
                     userName: user.userName,
                     email: user.email,
+                    phoneNumber: user.phoneNumber,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     created: user.created,
@@ -213,6 +216,7 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
                 userId: user.userId,
                 userName: user.userName,
                 email: user.email,
+                phoneNumber: user.phoneNumber,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 created: user.created,
@@ -252,12 +256,13 @@ exports.updateUser = async function updateUser(userId, elevate, req) {
                     throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
                 }
 
-            let sql = "UPDATE user SET firstName = ?, lastName = ?, email = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, isAdmin = ?, points = ? WHERE userId = ?";
+            let sql = "UPDATE user SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, isAdmin = ?, points = ? WHERE userId = ?";
 
             await connection.query(sql, [
                 req.body.firstName,
                 req.body.lastName,
                 req.body.email,
+                req.body.phoneNumber,
                 req.body.lastAccess,
                 req.body.lastCollectionAccessedId,
                 req.body.accountStatus,

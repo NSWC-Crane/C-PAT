@@ -71,6 +71,17 @@ CREATE TABLE `assetlabels` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
+-- Table structure for table `assignedteams`
+--
+
+DROP TABLE IF EXISTS `assignedteams`;
+CREATE TABLE `assignedteams` (
+  `assignedTeamId` int NOT NULL AUTO_INCREMENT,
+  `assignedTeamName` varchar(50) NOT NULL,
+  PRIMARY KEY (`assignedTeamId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
 -- Table structure for table `collection`
 --
 
@@ -79,6 +90,9 @@ CREATE TABLE `collection` (
   `collectionId` int NOT NULL AUTO_INCREMENT,
   `collectionName` varchar(50) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
+  `systemType` varchar(100) DEFAULT NULL,
+  `systemName` varchar(100) DEFAULT NULL,
+  `ccsafa` varchar(100) DEFAULT NULL,
   `created` datetime DEFAULT CURRENT_TIMESTAMP,
   `collectionOrigin` varchar(15) DEFAULT 'C-PAT',
   `originCollectionId` int DEFAULT NULL,
@@ -211,12 +225,13 @@ CREATE TABLE `poam` (
   `submittedDate` date DEFAULT NULL,
   `scheduledCompletionDate` date DEFAULT NULL,
   `closedDate` date DEFAULT NULL,
+  `iavmNumber` varchar(25) DEFAULT '',
   `iavComplyByDate` date DEFAULT NULL,
+  `taskOrderNumber` varchar(25) DEFAULT NULL,
   `stigTitle` varchar(255) DEFAULT NULL,
   `stigBenchmarkId` varchar(255) DEFAULT NULL,
   `stigCheckData` text,
   `tenablePluginData` text,
-  `iavmNumber` varchar(25) DEFAULT '',
   `description` text,
   `mitigations` text,
   `requiredResources` text,
@@ -230,9 +245,9 @@ CREATE TABLE `poam` (
   `extensionTimeAllowed` int DEFAULT '0',
   `extensionJustification` varchar(2000) DEFAULT '',
   `hqs` tinyint(1) NOT NULL DEFAULT '0',
-  `notes` varchar(500) NULL DEFAULT '' ,
   `created` date NOT NULL DEFAULT (curdate()),
   `lastUpdated` date DEFAULT NULL,
+  `notes` varchar(500) DEFAULT '',
   PRIMARY KEY (`poamId`),
   UNIQUE KEY `poamID_UNIQUE` (`poamId`),
   KEY `idx_poam_collectionId` (`collectionId`),
@@ -347,6 +362,57 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
+-- Table structure for table `poamassignedteams`
+--
+
+DROP TABLE IF EXISTS `poamassignedteams`;
+CREATE TABLE `poamassignedteams` (
+  `poamId` int NOT NULL,
+  `assignedTeamId` int NOT NULL,
+  PRIMARY KEY (`poamId`,`assignedTeamId`),
+  KEY `idx_poamassignees_assignedTeamId` (`assignedTeamId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignedteams_insert` AFTER INSERT ON `poamassignedteams` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignedteams_update` AFTER UPDATE ON `poamassignedteams` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = NEW.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignedteams_delete` AFTER DELETE ON `poamassignedteams` FOR EACH ROW BEGIN
+    UPDATE poam
+    SET lastUpdated = CURRENT_DATE
+    WHERE poamId = OLD.poamId;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
 -- Table structure for table `poamassignees`
 --
 
@@ -396,6 +462,26 @@ END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `poamattachments`
+--
+
+DROP TABLE IF EXISTS `poamattachments`;
+CREATE TABLE `poamattachments` (
+  `attachmentId` int NOT NULL AUTO_INCREMENT,
+  `poamId` int NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  `fileSize` int NOT NULL,
+  `mimeType` varchar(100) NOT NULL,
+  `uploadDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `uploadedBy` int NOT NULL,
+  `fileContent` mediumblob,
+  `fileHash` char(64) NOT NULL,
+  PRIMARY KEY (`attachmentId`),
+  KEY `idx_poam_attachments_poamId` (`poamId`),
+  CONSTRAINT `fk_poam_attachments_poamId` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Table structure for table `poamlabels`
@@ -554,9 +640,10 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `userId` int NOT NULL AUTO_INCREMENT,
   `userName` varchar(20) NOT NULL,
-  `email` varchar(100) NOT NULL DEFAULT ' ',
-  `firstName` varchar(50) NOT NULL DEFAULT ' ',
-  `lastName` varchar(50) NOT NULL DEFAULT ' ',
+  `email` varchar(100) NOT NULL DEFAULT '',
+  `phoneNumber` varchar(20) NOT NULL DEFAULT '',
+  `firstName` varchar(50) NOT NULL DEFAULT '',
+  `lastName` varchar(50) NOT NULL DEFAULT '',
   `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `lastAccess` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `lastCollectionAccessedId` int NOT NULL DEFAULT '0',
@@ -581,4 +668,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-30 11:05:59
+-- Dump completed on 2024-09-20 10:43:43

@@ -56,8 +56,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
   initColumnsAndFilters() {
     this.cols = [
       { field: 'assetName', header: 'Asset Name', width: '200px', filterable: true },
-      { field: 'assetId', header: 'Asset ID', width: '150px', filterable: true },
-      { field: 'description', header: 'Description', width: '200px', filterable: true },
       { field: 'fqdn', header: 'FQDN', width: '200px', filterable: true },
       { field: 'ip', header: 'IP Address', width: '150px', filterable: true },
       { field: 'mac', header: 'MAC Address', width: '150px', filterable: true },

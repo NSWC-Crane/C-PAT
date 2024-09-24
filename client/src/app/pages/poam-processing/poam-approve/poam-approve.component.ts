@@ -154,7 +154,6 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       approvedDate: this.approvedDate,
       comments: this.comments,
       hqs: this.hqsChecked,
-      poamLog: [{ userId: this.user.userId }],
     };
 
     (await this.poamApproveService.updatePoamApprover(approvalData)).subscribe(

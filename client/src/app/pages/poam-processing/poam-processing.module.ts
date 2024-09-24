@@ -44,6 +44,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { Footer, MessageService } from 'primeng/api';
 import { FileUploadModule } from 'primeng/fileupload';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { SplitterModule } from 'primeng/splitter';
 import { StepperModule } from 'primeng/stepper';
 import { TableModule } from 'primeng/table';
 import { TabViewModule } from 'primeng/tabview';
@@ -84,6 +85,7 @@ import { ImportProcessingModule } from '../import-processing/import-processing.m
     IconFieldModule,
     InputIconModule,
     MultiSelectModule,
+    SplitterModule,
     StepperModule,
     TableModule,
     TabViewModule,
