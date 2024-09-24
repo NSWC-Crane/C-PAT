@@ -84,14 +84,11 @@ import { TenableAssetsTableComponent } from './tenable-import/components/tenable
     ImportProcessingRoutingModule,
     SharedModule,
   ],
-  providers: [
-    MessageService,
-    ConfirmationService
-  ],
+  providers: [MessageService, ConfirmationService],
   exports: [
     STIGManagerAssetsTableComponent,
     STIGManagerPoamAssetsTableComponent,
     TenableAssetsTableComponent,
-  ]
+  ],
 })
-export class ImportProcessingModule { }
+export class ImportProcessingModule {}

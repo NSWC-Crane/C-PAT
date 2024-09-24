@@ -10,7 +10,7 @@
 
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { SubSink } from "subsink";
+import { SubSink } from 'subsink';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
 import { CollectionsService } from './collections.service';
 import { MessageService } from 'primeng/api';
@@ -50,7 +50,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     'System Name',
     'CC/S/A/FA',
     'Collection Origin',
-    'Origin Collection ID'
+    'Origin Collection ID',
   ];
   allColumns = [this.customColumn, ...this.defaultColumns];
   collectionTreeData: TreeNode<CollectionData>[] = [];
@@ -58,7 +58,14 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   exportCollectionId: any;
   poams: any[] = [];
   collections: any;
-  collection: any = { collectionId: '', collectionName: '', description: '', systemType: '', systemName: '', ccsafa: '' };
+  collection: any = {
+    collectionId: '',
+    collectionName: '',
+    description: '',
+    systemType: '',
+    systemName: '',
+    ccsafa: '',
+  };
   collectionToExport: string = 'Select Collection to Export...';
   data: any = [];
   displayCollectionDialog: boolean = false;
@@ -80,9 +87,8 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     private messageService: MessageService,
     private sharedService: SharedService,
     private importService: ImportService,
-    private poamService: PoamService
-  ) { }
-
+    private poamService: PoamService,
+  ) {}
 
   async ngOnInit() {
     this.setPayload();
@@ -91,30 +97,30 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.getCollectionData();
         }
-      })
+      }),
     );
   }
 
   async getCollectionData() {
     this.collections = null;
-    (await this.collectionService
-      .getAllCollections())
-      .subscribe((result: any) => {
+    (await this.collectionService.getAllCollections()).subscribe(
+      (result: any) => {
         this.data = result;
         this.collections = this.data;
         this.getCollectionsTreeData();
-      });
+      },
+    );
   }
 
   getCollectionsTreeData() {
@@ -141,11 +147,11 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             'System Name': collection.systemName || '',
             'CC/S/A/FA': collection.ccsafa || '',
             'Collection Origin': collection.collectionOrigin || '',
-            'Origin Collection ID': collection.originCollectionId || ''
+            'Origin Collection ID': collection.originCollectionId || '',
           },
           children: myChildren,
         };
-      }
+      },
     );
     this.collectionTreeData = treeViewData;
   }
@@ -158,7 +164,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       originCollectionId: rowData['Origin Collection ID'],
       systemType: rowData['System Type'],
       systemName: rowData['System Name'],
-      ccsafa: rowData['CC/S/A/FA']
+      ccsafa: rowData['CC/S/A/FA'],
     };
 
     if (!exportCollection.collectionId) {
@@ -167,56 +173,73 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const poams = await (await this.collectionService.getPoamsByCollection(exportCollection.collectionId)).toPromise();
+      const poams = await (
+        await this.collectionService.getPoamsByCollection(
+          exportCollection.collectionId,
+        )
+      ).toPromise();
       if (!poams || !Array.isArray(poams) || !poams.length) {
-        this.messageService.add({ severity: 'error', summary: 'No Data', detail: 'There are no POAMs to export for this collection.' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No Data',
+          detail: 'There are no POAMs to export for this collection.',
+        });
         return;
       }
 
       let processedPoams = poams;
 
-      if (exportCollection.collectionOrigin === "STIG Manager") {
-        processedPoams = await this.processPoamsWithStigFindings(poams, exportCollection.originCollectionId);
-      } else if (exportCollection.collectionOrigin === "Tenable") {
-        const vulnerabilityIds = [...new Set(poams.map(poam => poam.vulnerabilityId))];
+      if (exportCollection.collectionOrigin === 'STIG Manager') {
+        processedPoams = await this.processPoamsWithStigFindings(
+          poams,
+          exportCollection.originCollectionId,
+        );
+      } else if (exportCollection.collectionOrigin === 'Tenable') {
+        const vulnerabilityIds = [
+          ...new Set(poams.map((poam) => poam.vulnerabilityId)),
+        ];
         const analysisParams = {
           query: {
-            description: "",
-            context: "",
+            description: '',
+            context: '',
             status: -1,
             createdTime: 0,
             modifiedTime: 0,
             groups: [],
-            type: "vuln",
-            tool: "listvuln",
-            sourceType: "cumulative",
+            type: 'vuln',
+            tool: 'listvuln',
+            sourceType: 'cumulative',
             startOffset: 0,
             endOffset: 10000,
             filters: [
               {
-                id: "pluginID",
-                filterName: "pluginID",
-                operator: "=",
-                type: "vuln",
+                id: 'pluginID',
+                filterName: 'pluginID',
+                operator: '=',
+                type: 'vuln',
                 isPredefined: true,
-                value: vulnerabilityIds.join(',')
-              }
+                value: vulnerabilityIds.join(','),
+              },
             ],
-            vulnTool: "listvuln"
+            vulnTool: 'listvuln',
           },
-          sourceType: "cumulative",
+          sourceType: 'cumulative',
           columns: [],
-          type: "vuln"
+          type: 'vuln',
         };
-        
-        const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
-        this.tenableAffectedAssets = data.response.results.map((asset: any) => ({
-          pluginId: asset.pluginID,
-          dnsName: asset.dnsName ?? '',
-          netbiosName: asset.netbiosName ?? ''
-        }));
 
-        processedPoams = poams.map(poam => {
+        const data = await (
+          await this.importService.postTenableAnalysis(analysisParams)
+        ).toPromise();
+        this.tenableAffectedAssets = data.response.results.map(
+          (asset: any) => ({
+            pluginId: asset.pluginID,
+            dnsName: asset.dnsName ?? '',
+            netbiosName: asset.netbiosName ?? '',
+          }),
+        );
+
+        processedPoams = poams.map((poam) => {
           const affectedDevices = this.tenableAffectedAssets
             .filter((asset: any) => asset.pluginId === poam.vulnerabilityId)
             .map((asset: any) => {
@@ -234,27 +257,35 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
               }
               return null;
             })
-            .filter(Boolean);          
+            .filter(Boolean);
           return {
             ...poam,
-            devicesAffected: affectedDevices.join(' ')
+            devicesAffected: affectedDevices.join(' '),
           };
         });
       } else {
-        this.cpatAffectedAssets = await (await this.poamService.getPoamAssetsByCollectionId(exportCollection.collectionId)).toPromise();
+        this.cpatAffectedAssets = await (
+          await this.poamService.getPoamAssetsByCollectionId(
+            exportCollection.collectionId,
+          )
+        ).toPromise();
 
-        processedPoams = poams.map(poam => {
+        processedPoams = poams.map((poam) => {
           const affectedDevices = this.cpatAffectedAssets
-            .filter((asset: any) => asset.poamId === poam.poamId)          
+            .filter((asset: any) => asset.poamId === poam.poamId)
             .map((asset: any) => asset.assetName.toUpperCase())
             .filter(Boolean);
           return {
             ...poam,
-            devicesAffected: affectedDevices.join(' ')
+            devicesAffected: affectedDevices.join(' '),
           };
         });
       }
-      const excelData = await PoamExportService.convertToExcel(processedPoams, this.user, exportCollection);
+      const excelData = await PoamExportService.convertToExcel(
+        processedPoams,
+        this.user,
+        exportCollection,
+      );
       const excelURL = window.URL.createObjectURL(excelData);
       const exportName = exportCollection.name.replace(' ', '_');
 
@@ -270,11 +301,18 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       window.URL.revokeObjectURL(excelURL);
     } catch (error) {
       console.error('Error exporting POAMs:', error);
-      this.messageService.add({ severity: 'error', summary: 'Export Failed', detail: 'Failed to export POAMs, please try again later.' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Export Failed',
+        detail: 'Failed to export POAMs, please try again later.',
+      });
     }
   }
 
-  async processPoamsWithStigFindings(poams: any[], originCollectionId: string): Promise<any[]> {
+  async processPoamsWithStigFindings(
+    poams: any[],
+    originCollectionId: string,
+  ): Promise<any[]> {
     const processedPoams = [];
 
     for (const poam of poams) {
@@ -284,14 +322,23 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
           if (this.findingsCache.has(poam.stigBenchmarkId)) {
             findings = this.findingsCache.get(poam.stigBenchmarkId)!;
           } else {
-            findings = await (await this.sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, poam.stigBenchmarkId)).toPromise();
+            findings = await (
+              await this.sharedService.getSTIGMANAffectedAssetsByPoam(
+                originCollectionId,
+                poam.stigBenchmarkId,
+              )
+            ).toPromise();
             this.findingsCache.set(poam.stigBenchmarkId, findings);
           }
 
-          const matchingFinding = findings.find(finding => finding.groupId === poam.vulnerabilityId);
+          const matchingFinding = findings.find(
+            (finding) => finding.groupId === poam.vulnerabilityId,
+          );
 
           if (matchingFinding) {
-            const affectedDevices = matchingFinding.assets.map((asset: { name: any; assetId: any; }) => asset.name);
+            const affectedDevices = matchingFinding.assets.map(
+              (asset: { name: any; assetId: any }) => asset.name,
+            );
             const controlAPs = matchingFinding.ccis[0]?.apAcronym;
             const cci = matchingFinding.ccis[0]?.cci;
 
@@ -299,7 +346,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
               ...poam,
               controlAPs,
               cci,
-              devicesAffected: affectedDevices.join(' ')
+              devicesAffected: affectedDevices.join(' '),
             });
           } else {
             processedPoams.push(poam);
@@ -328,7 +375,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       description: '',
       systemType: '',
       systemName: '',
-      ccsafa: ''
+      ccsafa: '',
     };
     this.displayCollectionDialog = true;
   }
@@ -341,7 +388,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       description: rowData['Description'],
       systemType: rowData['System Type'],
       systemName: rowData['System Name'],
-      ccsafa: rowData['CC/S/A/FA']
+      ccsafa: rowData['CC/S/A/FA'],
     };
     this.displayCollectionDialog = true;
   }
@@ -355,33 +402,60 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       if (this.dialogMode === 'add') {
         delete this.editingCollection.collectionId;
       } else {
-        this.editingCollection.collectionId = parseInt(this.editingCollection.collectionId || '', 10).toString();
+        this.editingCollection.collectionId = parseInt(
+          this.editingCollection.collectionId || '',
+          10,
+        ).toString();
       }
 
       const collectionToSave = {
         ...this.editingCollection,
-        collectionId: parseInt(this.editingCollection.collectionId || '0', 10)
+        collectionId: parseInt(this.editingCollection.collectionId || '0', 10),
       };
 
       if (this.dialogMode === 'add') {
-        (await this.collectionService.addCollection(collectionToSave)).subscribe(
+        (
+          await this.collectionService.addCollection(collectionToSave)
+        ).subscribe(
           (response) => {
-            this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Collection Added', life: 3000 });
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Successful',
+              detail: 'Collection Added',
+              life: 3000,
+            });
             this.getCollectionData();
           },
           (error) => {
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add collection: ' + error.message, life: 3000 });
-          }
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to add collection: ' + error.message,
+              life: 3000,
+            });
+          },
         );
       } else {
-        (await this.collectionService.updateCollection(collectionToSave)).subscribe(
+        (
+          await this.collectionService.updateCollection(collectionToSave)
+        ).subscribe(
           (response) => {
-            this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Collection Updated', life: 3000 });
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Successful',
+              detail: 'Collection Updated',
+              life: 3000,
+            });
             this.getCollectionData();
           },
           (error) => {
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update collection: ' + error.message, life: 3000 });
-          }
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to update collection: ' + error.message,
+              life: 3000,
+            });
+          },
         );
       }
       this.displayCollectionDialog = false;
@@ -395,6 +469,8 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) =>
+      subscription.unsubscribe(),
+    );
   }
 }

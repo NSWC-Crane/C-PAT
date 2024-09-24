@@ -93,12 +93,9 @@ import { MessageModule } from 'primeng/message';
     AdminProcessingRoutingModule,
     CommonModule,
     FormsModule,
-    SharedModule
+    SharedModule,
   ],
-  providers: [
-    ConfirmationService,
-    MessageService
-  ],
+  providers: [ConfirmationService, MessageService],
   exports: [
     CollectionProcessingComponent,
     CollectionComponent,
@@ -107,4 +104,4 @@ import { MessageModule } from 'primeng/message';
     UserComponent,
   ],
 })
-export class AdminProcessingModule { }
+export class AdminProcessingModule {}

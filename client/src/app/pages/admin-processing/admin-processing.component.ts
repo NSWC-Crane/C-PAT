@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'cpat-admin-processing',
   templateUrl: './admin-processing.component.html',
-  styleUrls: ['./admin-processing.component.scss']
+  styleUrls: ['./admin-processing.component.scss'],
 })
 export class AdminProcessingComponent implements OnInit {
   user: any;
@@ -25,7 +25,7 @@ export class AdminProcessingComponent implements OnInit {
   constructor(
     private userService: UsersService,
     private router: Router,
-  ) { }
+  ) {}
 
   async ngOnInit() {
     this.user = null;
@@ -37,8 +37,8 @@ export class AdminProcessingComponent implements OnInit {
         }
       },
       error: async (error) => {
-        console.error('An error occurred:', error.message)
-      }
+        console.error('An error occurred:', error.message);
+      },
     });
   }
 }

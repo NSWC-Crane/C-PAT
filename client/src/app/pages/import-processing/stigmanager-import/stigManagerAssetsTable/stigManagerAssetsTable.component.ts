@@ -20,7 +20,7 @@ interface Label {
 @Component({
   selector: 'stigmanager-assets-table',
   templateUrl: './stigManagerAssetsTable.component.html',
-  styleUrls: ['./stigManagerAssetsTable.component.scss']
+  styleUrls: ['./stigManagerAssetsTable.component.scss'],
 })
 export class STIGManagerAssetsTableComponent implements OnInit {
   @Input() stigmanCollectionId!: string;
@@ -39,14 +39,16 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   constructor(
     private messageService: MessageService,
     private sharedService: SharedService,
-  ) { }
+  ) {}
 
   async ngOnInit() {
     this.initColumnsAndFilters();
     if (this.stigmanCollectionId) {
       await Promise.all([this.getAssets(), this.getLabels()]);
     } else {
-      this.showErrorMessage('Unable to fetch STIG Manager Assets, please try again later..');
+      this.showErrorMessage(
+        'Unable to fetch STIG Manager Assets, please try again later..',
+      );
     }
   }
 
@@ -56,24 +58,34 @@ export class STIGManagerAssetsTableComponent implements OnInit {
       { field: 'fqdn', header: 'FQDN', width: '200px', filterable: true },
       { field: 'ip', header: 'IP Address', width: '150px', filterable: true },
       { field: 'mac', header: 'MAC Address', width: '150px', filterable: true },
-      { field: 'collectionName', header: 'Collection Name', width: '200px', filterable: true },
-      { field: 'labels', header: 'Labels', width: '200px', filterable: true }
+      {
+        field: 'collectionName',
+        header: 'Collection Name',
+        width: '200px',
+        filterable: true,
+      },
+      { field: 'labels', header: 'Labels', width: '200px', filterable: true },
     ];
-    this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));
+    this.exportColumns = this.cols.map((col) => ({
+      title: col.header,
+      dataKey: col.field,
+    }));
     this.resetColumnSelections();
   }
 
   async getAssets() {
     this.isLoading = true;
     try {
-      const data = await (await this.sharedService.getAssetsFromSTIGMAN(this.stigmanCollectionId)).toPromise();
+      const data = await (
+        await this.sharedService.getAssetsFromSTIGMAN(this.stigmanCollectionId)
+      ).toPromise();
       if (!data || data.length === 0) {
         this.showErrorMessage('No assets found.');
         return;
       }
-      this.assets = data.map(asset => ({
+      this.assets = data.map((asset) => ({
         ...asset,
-        collectionName: asset.collection.name
+        collectionName: asset.collection.name,
       }));
       this.totalRecords = this.assets.length;
     } catch (err) {
@@ -85,7 +97,11 @@ export class STIGManagerAssetsTableComponent implements OnInit {
 
   async getLabels() {
     try {
-      const labels = await firstValueFrom(await this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId));
+      const labels = await firstValueFrom(
+        await this.sharedService.getLabelsByCollectionSTIGMAN(
+          this.stigmanCollectionId,
+        ),
+      );
       this.labels = labels || [];
     } catch (err) {
       console.error('Failed to fetch labels:', err);
@@ -95,9 +111,13 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   }
 
   getAssetLabels(asset: any): Label[] {
-    return asset.labelIds?.map((labelId: string) => 
-      this.labels.find(label => label.labelId === labelId)
-    ).filter(Boolean) || [];
+    return (
+      asset.labelIds
+        ?.map((labelId: string) =>
+          this.labels.find((label) => label.labelId === labelId),
+        )
+        .filter(Boolean) || []
+    );
   }
 
   showErrorMessage(message: string) {
@@ -105,7 +125,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
       severity: 'error',
       summary: 'Error',
       detail: message,
-      sticky: true
+      sticky: true,
     });
   }
 
@@ -115,7 +135,10 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   }
 
   onGlobalFilter(event: Event) {
-    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    this.table.filterGlobal(
+      (event.target as HTMLInputElement).value,
+      'contains',
+    );
   }
 
   resetColumnSelections() {

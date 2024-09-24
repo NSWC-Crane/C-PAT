@@ -13,12 +13,10 @@ import { NotificationService } from './notifications.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 
-
-
 @Component({
   selector: 'cpat-notifications',
   templateUrl: './notifications.component.html',
-  styleUrls: ['./notifications.component.scss']
+  styleUrls: ['./notifications.component.scss'],
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
   notifications: any[] = [];
@@ -35,14 +33,14 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   sortOptions = [
     { label: 'Newest First', value: '!timestamp' },
     { label: 'Oldest First', value: 'timestamp' },
-    { label: 'Title', value: 'title' }
+    { label: 'Title', value: 'title' },
   ];
   sortKey: string = '!timestamp';
 
   constructor(
     private notificationService: NotificationService,
-    private setPayloadService: PayloadService
-  ) { }
+    private setPayloadService: PayloadService,
+  ) {}
 
   async ngOnInit() {
     await this.setPayload();
@@ -52,24 +50,26 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.fetchNotifications();
         }
-      })
+      }),
     );
   }
 
   async fetchNotifications() {
     try {
-      const notifications = await firstValueFrom(await this.notificationService.getAllNotifications());
+      const notifications = await firstValueFrom(
+        await this.notificationService.getAllNotifications(),
+      );
       this.notifications = notifications;
       this.filterNotifications();
     } catch (error) {
@@ -79,9 +79,13 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   filterNotifications() {
     if (this.filterStatus === 'Read') {
-      this.filteredNotifications = this.notifications.filter(notification => notification.read === 1);
+      this.filteredNotifications = this.notifications.filter(
+        (notification) => notification.read === 1,
+      );
     } else if (this.filterStatus === 'Unread') {
-      this.filteredNotifications = this.notifications.filter(notification => notification.read === 0);
+      this.filteredNotifications = this.notifications.filter(
+        (notification) => notification.read === 0,
+      );
     } else {
       this.filteredNotifications = [...this.notifications];
     }
@@ -92,10 +96,13 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.filterNotifications();
   }
 
-
   async deleteNotification(notification: any) {
     try {
-      await firstValueFrom(await this.notificationService.deleteNotification(notification.notificationId));
+      await firstValueFrom(
+        await this.notificationService.deleteNotification(
+          notification.notificationId,
+        ),
+      );
       const index = this.notifications.indexOf(notification);
       if (index !== -1) {
         this.notifications.splice(index, 1);
@@ -112,7 +119,9 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       return;
     }
     try {
-      await firstValueFrom(await this.notificationService.dismissAllNotifications());
+      await firstValueFrom(
+        await this.notificationService.dismissAllNotifications(),
+      );
       this.fetchNotifications();
     } catch (error) {
       console.error('Failed to dismiss all notifications:', error);
@@ -125,13 +134,19 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       return;
     }
     try {
-      await firstValueFrom(await this.notificationService.deleteAllNotifications());
+      await firstValueFrom(
+        await this.notificationService.deleteAllNotifications(),
+      );
       this.fetchNotifications();
     } catch (error) {
       console.error('Failed to delete all notifications:', error);
     }
-    this.notifications = [{ title: "You have no new notifications...", read: 1 }];
-    this.filteredNotifications = [{ title: "You have no new notifications...", read: 1 }];
+    this.notifications = [
+      { title: 'You have no new notifications...', read: 1 },
+    ];
+    this.filteredNotifications = [
+      { title: 'You have no new notifications...', read: 1 },
+    ];
   }
 
   onSortChange(event: any) {
@@ -147,6 +162,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) =>
+      subscription.unsubscribe(),
+    );
   }
 }

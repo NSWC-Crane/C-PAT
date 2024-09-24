@@ -14,18 +14,20 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class eMASSImportService {
   private cpatApiBase = CPAT.Env.apiBase;
 
   constructor(
     private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) { }
+    private oidcSecurityService: OidcSecurityService,
+  ) {}
 
   private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    const token = await firstValueFrom(
+      this.oidcSecurityService.getAccessToken(),
+    );
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
@@ -40,7 +42,7 @@ export class eMASSImportService {
     return this.http.post(`${this.cpatApiBase}/import/poams`, formData, {
       headers,
       reportProgress: true,
-      observe: 'events'
+      observe: 'events',
     });
   }
 }

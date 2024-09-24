@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'cpat-poam-assigned-grid',
   templateUrl: './poam-assigned-grid.component.html',
-  styleUrls: ['./poam-assigned-grid.component.scss']
+  styleUrls: ['./poam-assigned-grid.component.scss'],
 })
 export class PoamAssignedGridComponent implements OnChanges {
   @Input() userId!: number;
@@ -26,7 +26,7 @@ export class PoamAssignedGridComponent implements OnChanges {
   filteredData: any[] = [];
   globalFilter: string = '';
 
-  constructor(private router: Router) { }
+  constructor(private router: Router) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['assignedData']) {
@@ -38,8 +38,15 @@ export class PoamAssignedGridComponent implements OnChanges {
     let data = this.assignedData;
 
     if (this.assignedColumns.includes('Approval Status')) {
-      data = data.filter(item => {
-        return item.approvers && item.approvers.some((approver: any) => approver.userId === this.userId && approver.approvalStatus != "Approved");
+      data = data.filter((item) => {
+        return (
+          item.approvers &&
+          item.approvers.some(
+            (approver: any) =>
+              approver.userId === this.userId &&
+              approver.approvalStatus != 'Approved',
+          )
+        );
       });
     }
 
@@ -48,7 +55,10 @@ export class PoamAssignedGridComponent implements OnChanges {
       adjSeverity: item.adjSeverity,
       status: item.status,
       submitter: item.submitterName,
-      approvalStatus: item.approvers && item.approvers.find((approver: any) => approver.userId === this.userId)?.approvalStatus,
+      approvalStatus:
+        item.approvers &&
+        item.approvers.find((approver: any) => approver.userId === this.userId)
+          ?.approvalStatus,
     }));
     this.filteredData = [...this.assignedDataSource];
     this.applyFilter();
@@ -60,14 +70,17 @@ export class PoamAssignedGridComponent implements OnChanges {
   }
 
   applyFilter() {
-    const filterValue = this.globalFilter ? this.globalFilter.toLowerCase() : '';
+    const filterValue = this.globalFilter
+      ? this.globalFilter.toLowerCase()
+      : '';
     if (!filterValue) {
       this.filteredData = [...this.assignedDataSource];
     } else {
-      this.filteredData = this.assignedDataSource.filter(poam =>
-        Object.values(poam).some(value =>
-          value && value.toString().toLowerCase().includes(filterValue)
-        )
+      this.filteredData = this.assignedDataSource.filter((poam) =>
+        Object.values(poam).some(
+          (value) =>
+            value && value.toString().toLowerCase().includes(filterValue),
+        ),
       );
     }
   }
@@ -80,12 +93,18 @@ export class PoamAssignedGridComponent implements OnChanges {
 
   getColumnKey(col: string): string {
     switch (col) {
-      case 'POAM ID': return 'poamId';
-      case 'Adjusted Severity': return 'adjSeverity';
-      case 'Poam Status': return 'status';
-      case 'Submitter': return 'submitter';
-      case 'Approval Status': return 'approvalStatus';
-      default: return col.toLowerCase().replace(/\s+/g, '');
+      case 'POAM ID':
+        return 'poamId';
+      case 'Adjusted Severity':
+        return 'adjSeverity';
+      case 'Poam Status':
+        return 'status';
+      case 'Submitter':
+        return 'submitter';
+      case 'Approval Status':
+        return 'approvalStatus';
+      default:
+        return col.toLowerCase().replace(/\s+/g, '');
     }
   }
 }

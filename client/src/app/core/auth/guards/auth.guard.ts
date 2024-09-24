@@ -9,7 +9,12 @@
 */
 
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  CanActivate,
+  Router,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -20,43 +25,45 @@ import { map, switchMap } from 'rxjs/operators';
 export class AuthGuard implements CanActivate {
   constructor(
     private authService: AuthService,
-    private router: Router
-  ) { }
+    private router: Router,
+  ) {}
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot,
+  ): Observable<boolean> {
     const guardType = route.data['guardType'];
 
     if (guardType === 'admin') {
       return this.canAdmin();
     } else {
       return this.authService.isAuthenticated('cpat').pipe(
-        map(isAuthenticated => {
+        map((isAuthenticated) => {
           if (!isAuthenticated) {
             return false;
           }
           return true;
-        })
+        }),
       );
     }
   }
 
   canAdmin(): Observable<boolean> {
     return this.authService.isAuthenticated('cpat').pipe(
-      switchMap(isAuthenticated => {
+      switchMap((isAuthenticated) => {
         if (!isAuthenticated) {
           return of(false);
         }
         return this.authService.getUserData('cpat').pipe(
-          map(userData => {
+          map((userData) => {
             if (userData.isAdmin) {
               return true;
             }
             this.router.navigate(['/403']);
             return false;
-          })
+          }),
         );
-      })
+      }),
     );
   }
 }
-

@@ -32,12 +32,12 @@ import { DropdownModule } from 'primeng/dropdown';
     AppNavigationComponent,
     AppMenuComponent,
     AppMenuitemComponent,
-    AppConfigComponent
+    AppConfigComponent,
   ],
   imports: [
     CommonModule,
     DropdownModule,
-    FormsModule, 
+    FormsModule,
     ReactiveFormsModule,
     RouterModule,
     InputTextModule,
@@ -54,11 +54,8 @@ import { DropdownModule } from 'primeng/dropdown';
     RippleModule,
     SharedModule,
     PanelMenuModule,
-    AppSearchComponent
+    AppSearchComponent,
   ],
-  exports: [
-    AppLayoutComponent,
-    AppConfigComponent
-  ]
+  exports: [AppLayoutComponent, AppConfigComponent],
 })
-export class AppConfigModule { }
+export class AppConfigModule {}

@@ -32,8 +32,8 @@ export class AAPackageProcessingComponent implements OnInit {
 
   constructor(
     private aaPackageService: AAPackageService,
-    private messageService: MessageService
-  ) { }
+    private messageService: MessageService,
+  ) {}
 
   ngOnInit() {
     this.loadAAPackages();
@@ -41,10 +41,16 @@ export class AAPackageProcessingComponent implements OnInit {
 
   async loadAAPackages() {
     try {
-      const response = await (await this.aaPackageService.getAAPackages()).toPromise();
+      const response = await (
+        await this.aaPackageService.getAAPackages()
+      ).toPromise();
       this.aaPackages = response || [];
     } catch (error) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load A&A Packages' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load A&A Packages',
+      });
     }
   }
 
@@ -61,23 +67,37 @@ export class AAPackageProcessingComponent implements OnInit {
   async onRowEditSave(aaPackage: AAPackage) {
     try {
       if (aaPackage.aaPackageId === 0) {
-        const response = await (await this.aaPackageService.postAAPackage(aaPackage)).toPromise();
-        const index = this.aaPackages.findIndex(p => p.aaPackageId === 0);
+        const response = await (
+          await this.aaPackageService.postAAPackage(aaPackage)
+        ).toPromise();
+        const index = this.aaPackages.findIndex((p) => p.aaPackageId === 0);
         this.aaPackages[index] = response!;
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'A&A Package Added' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'A&A Package Added',
+        });
       } else {
         await (await this.aaPackageService.putAAPackage(aaPackage)).toPromise();
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'A&A Package Updated' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'A&A Package Updated',
+        });
       }
       this.editingAAPackage = null;
     } catch (error) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to save A&A Package' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to save A&A Package',
+      });
     }
   }
 
   onRowEditCancel(aaPackage: AAPackage, index: number) {
     if (aaPackage.aaPackageId === 0) {
-      this.aaPackages = this.aaPackages.filter(p => p.aaPackageId !== 0);
+      this.aaPackages = this.aaPackages.filter((p) => p.aaPackageId !== 0);
     } else {
       this.aaPackages[index] = this.editingAAPackage!;
     }
@@ -86,11 +106,23 @@ export class AAPackageProcessingComponent implements OnInit {
 
   async onRowDelete(aaPackage: AAPackage) {
     try {
-      await (await this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId)).toPromise();
-      this.aaPackages = this.aaPackages.filter(p => p.aaPackageId !== aaPackage.aaPackageId);
-      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'A&A Package Deleted' });
+      await (
+        await this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId)
+      ).toPromise();
+      this.aaPackages = this.aaPackages.filter(
+        (p) => p.aaPackageId !== aaPackage.aaPackageId,
+      );
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'A&A Package Deleted',
+      });
     } catch (error) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete A&A Package' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to delete A&A Package',
+      });
     }
   }
 

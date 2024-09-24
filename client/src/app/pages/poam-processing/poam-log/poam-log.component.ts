@@ -8,7 +8,12 @@
 !########################################################################
 */
 
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedService } from '../../../common/services/shared.service';
 import { Subscription } from 'rxjs';
@@ -23,7 +28,7 @@ interface FSEntry {
 @Component({
   selector: 'cpat-poam-log',
   templateUrl: './poam-log.component.html',
-  styleUrls: ['./poam-log.component.scss']
+  styleUrls: ['./poam-log.component.scss'],
 })
 export class PoamLogComponent implements OnInit, AfterViewInit {
   customColumn = 'Timestamp';
@@ -41,10 +46,10 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute,
     private poamLogService: PoamLogService,
     private changeDetectorRef: ChangeDetectorRef,
-  ) { }
+  ) {}
 
   public ngOnInit() {
-    this.route.params.subscribe(async params => {
+    this.route.params.subscribe(async (params) => {
       this.poamId = params['poamId'];
       if (this.poamId) {
         this.fetchPoamLog(this.poamId);
@@ -52,9 +57,9 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
     });
 
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
-      })
+      }),
     );
   }
 
@@ -68,11 +73,11 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
         this.dataSource = response.map((log: FSEntry) => ({
           Timestamp: log.Timestamp,
           User: log.User,
-          Action: log.Action
+          Action: log.Action,
         }));
         this.changeDetectorRef.detectChanges();
       },
-      error: (error: any) => console.error('Error fetching POAM logs:', error)
+      error: (error: any) => console.error('Error fetching POAM logs:', error),
     });
   }
 

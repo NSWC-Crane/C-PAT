@@ -4,10 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
-    "format": "prettier --write \"**/*.{js,ts,d.ts}\"",
-    "watch": "ng build --watch --configuration development",
-    "lint": "ng lint"
+    "build": "npm install --force && ng build --configuration=production",
+    "format": "prettier --write \"**/*.{js,ts,d.ts}\""
   },
   "private": true,
   "dependencies": {

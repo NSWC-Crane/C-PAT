@@ -18,9 +18,8 @@ import { PayloadService } from '../../common/services/setPayload.service';
 
 @Component({
   selector: 'app-menu',
-  templateUrl: './app.menu.component.html'
+  templateUrl: './app.menu.component.html',
 })
-
 export class AppMenuComponent implements OnInit, OnDestroy {
   model: MenuItem[] = [];
   selectedCollection: string;
@@ -34,8 +33,8 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private collectionService: CollectionsService,
     private setPayloadService: PayloadService,
-    private router: Router
-  ) { }
+    private router: Router,
+  ) {}
 
   async ngOnInit() {
     await this.initializeUser();
@@ -43,21 +42,19 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
   async initializeUser() {
     try {
-        await this.setPayloadService.setPayload();
-        this.payloadSubscription.push(
-          this.setPayloadService.user$.subscribe(user => {
-            this.user = user;
-            
-          }),
-          this.setPayloadService.accessLevel$.subscribe(level => {
-            this.accessLevel = level;
-            if (this.accessLevel > 0) {
-              this.selectedCollection = this.user.lastCollectionAccessedId;
-              this.getCollectionType();
-            }
-          })
-        );
-      
+      await this.setPayloadService.setPayload();
+      this.payloadSubscription.push(
+        this.setPayloadService.user$.subscribe((user) => {
+          this.user = user;
+        }),
+        this.setPayloadService.accessLevel$.subscribe((level) => {
+          this.accessLevel = level;
+          if (this.accessLevel > 0) {
+            this.selectedCollection = this.user.lastCollectionAccessedId;
+            this.getCollectionType();
+          }
+        }),
+      );
     } catch (error) {
       console.error('Error initializing user:', error);
     }
@@ -65,22 +62,27 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
   async getCollectionType() {
     try {
-    await (await this.collectionService.getCollectionBasicList()).subscribe({
-      next: (data) => {
-        const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
-        if (selectedCollectionData) {
-          this.collectionType = selectedCollectionData.collectionOrigin!;
-        } else {
+      await (
+        await this.collectionService.getCollectionBasicList()
+      ).subscribe({
+        next: (data) => {
+          const selectedCollectionData = data.find(
+            (collection: any) =>
+              collection.collectionId === this.selectedCollection,
+          );
+          if (selectedCollectionData) {
+            this.collectionType = selectedCollectionData.collectionOrigin!;
+          } else {
+            this.collectionType = 'C-PAT';
+          }
+          this.setMenuItems();
+        },
+        error: (error) => {
           this.collectionType = 'C-PAT';
-        }
-        this.setMenuItems();
-      },
-      error: (error) => {
-        this.collectionType = 'C-PAT';
-      }
-    });
-    } catch(error) {
-    console.error('Error initializing user:', error);
+        },
+      });
+    } catch (error) {
+      console.error('Error initializing user:', error);
     }
   }
 
@@ -114,7 +116,8 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         label: 'STIG Manager',
         icon: 'pi pi-shield',
         routerLink: ['/import-processing/stigmanager-import'],
-        visible: this.accessLevel >= 1 && this.collectionType === 'STIG Manager',
+        visible:
+          this.accessLevel >= 1 && this.collectionType === 'STIG Manager',
       },
       {
         label: 'Tenable',
@@ -139,13 +142,13 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         icon: 'pi pi-sign-out',
         command: () => this.logout(),
         visible: true,
-      }
+      },
     ];
 
-    this.model = menuItems.filter(item => item.visible !== false);
-    this.model.forEach(item => {
+    this.model = menuItems.filter((item) => item.visible !== false);
+    this.model.forEach((item) => {
       if (item.items) {
-        item.items = item.items.filter(subItem => subItem.visible !== false);
+        item.items = item.items.filter((subItem) => subItem.visible !== false);
       }
     });
   }
@@ -157,6 +160,8 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) =>
+      subscription.unsubscribe(),
+    );
   }
 }

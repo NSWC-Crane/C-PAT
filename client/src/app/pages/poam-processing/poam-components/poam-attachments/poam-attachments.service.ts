@@ -14,24 +14,29 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PoamAttachmentService {
   private cpatApiBase = CPAT.Env.apiBase;
 
   constructor(
     private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) { }
+    private oidcSecurityService: OidcSecurityService,
+  ) {}
 
   private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
+    const token = await firstValueFrom(
+      this.oidcSecurityService.getAccessToken(),
+    );
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
   async getAttachmentsByPoamId(poamId: number) {
     const headers = await this.getAuthHeaders();
-    return this.http.get<any[]>(`${this.cpatApiBase}/poamAttachments/poam/${poamId}`, { headers });
+    return this.http.get<any[]>(
+      `${this.cpatApiBase}/poamAttachments/poam/${poamId}`,
+      { headers },
+    );
   }
 
   async uploadAttachment(file: File, poamId: number) {
@@ -43,16 +48,19 @@ export class PoamAttachmentService {
     return this.http.post(`${this.cpatApiBase}/poamAttachment`, formData, {
       headers,
       reportProgress: true,
-      observe: 'events'
+      observe: 'events',
     });
   }
 
   async downloadAttachment(poamId: number, attachmentId: number) {
     const headers = await this.getAuthHeaders();
-    return this.http.get(`${this.cpatApiBase}/poamAttachment/poam/${poamId}/attachment/${attachmentId}`, {
-      headers,
-      responseType: 'blob'
-    });
+    return this.http.get(
+      `${this.cpatApiBase}/poamAttachment/poam/${poamId}/attachment/${attachmentId}`,
+      {
+        headers,
+        responseType: 'blob',
+      },
+    );
   }
 
   async deleteAttachment(poamId: number, attachmentId: number) {
@@ -60,7 +68,7 @@ export class PoamAttachmentService {
 
     return this.http.delete(
       `${this.cpatApiBase}/poamAttachment/poam/${poamId}/${attachmentId}`,
-      { headers }
+      { headers },
     );
   }
 }

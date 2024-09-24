@@ -12,7 +12,7 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UsersService } from './users.service';
 import { Subscription, forkJoin } from 'rxjs';
 import { ConfirmationService, TreeNode } from 'primeng/api';
-import { SubSink } from "subsink";
+import { SubSink } from 'subsink';
 import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { TreeTable } from 'primeng/treetable';
@@ -23,13 +23,20 @@ import { PayloadService } from '../../../common/services/setPayload.service';
   selector: 'cpat-user-processing',
   templateUrl: './user-processing.component.html',
   styleUrls: ['./user-processing.component.scss'],
-  providers: [ConfirmationService]
+  providers: [ConfirmationService],
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('usersTable') usersTable!: TreeTable;
   public isLoggedIn = false;
   customColumn = 'User';
-  defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level'];
+  defaultColumns = [
+    'Status',
+    'First Name',
+    'Last Name',
+    'Email',
+    'Collection',
+    'Access Level',
+  ];
   allColumns = [this.customColumn, ...this.defaultColumns];
   collectionList: any[] = [];
   users: TreeNode[] = [];
@@ -50,8 +57,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     private confirmationService: ConfirmationService,
     private router: Router,
     private setPayloadService: PayloadService,
-  ) {
-  }
+  ) {}
 
   onSubmit() {
     this.resetData();
@@ -64,32 +70,32 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
         if (this.user.isAdmin) {
           this.getUserData();
         } else {
           this.router.navigate(['/403']);
         }
-      })
+      }),
     );
   }
 
   async getUserData() {
     forkJoin([
       await this.userService.getUsers(),
-      await this.collectionsService.getCollectionBasicList()
+      await this.collectionsService.getCollectionBasicList(),
     ]).subscribe(([userData, collectionData]: [any, any]) => {
       this.data = userData;
       this.collectionList = collectionData.map((collection: any) => ({
         collectionId: collection.collectionId,
-        collectionName: collection.collectionName
+        collectionName: collection.collectionName,
       }));
       this.getUsersTree();
     });
@@ -105,36 +111,39 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
 
       if (userPermissions && userPermissions.length > 0) {
         for (const permission of userPermissions) {
-          const collection = this.collectionList.find(c => c.collectionId === permission.collectionId);
+          const collection = this.collectionList.find(
+            (c) => c.collectionId === permission.collectionId,
+          );
           const collectionName = collection ? collection.collectionName : '';
 
           const accessLevelMap: { [key: number]: string } = {
             1: 'Viewer',
             2: 'Submitter',
             3: 'Approver',
-            4: 'CAT-I Approver'
+            4: 'CAT-I Approver',
           };
 
-          const accessLevelDisplay = accessLevelMap[permission.accessLevel] || '';
+          const accessLevelDisplay =
+            accessLevelMap[permission.accessLevel] || '';
 
           children.push({
             data: {
-              'Collection': collectionName,
-              'Access Level': accessLevelDisplay
-            }
+              Collection: collectionName,
+              'Access Level': accessLevelDisplay,
+            },
           });
         }
       }
 
       treeData.push({
         data: {
-          'User': user.userId,
-          'Status': user.accountStatus,
+          User: user.userId,
+          Status: user.accountStatus,
           'First Name': user.firstName,
           'Last Name': user.lastName,
-          'Email': user.email
+          Email: user.email,
         },
-        children: children
+        children: children,
       });
     }
 
@@ -156,12 +165,14 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     this.showUserSelect = true;
     this.selectedUser = '';
     this.getUserData();
-    this.user.userId = "USER";
+    this.user.userId = 'USER';
   }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) =>
+      subscription.unsubscribe(),
+    );
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): void => {
@@ -169,10 +180,8 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
       message: dialogOptions.body,
       header: dialogOptions.header,
       icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-      },
-      reject: () => {
-      }
+      accept: () => {},
+      reject: () => {},
     });
   };
 }

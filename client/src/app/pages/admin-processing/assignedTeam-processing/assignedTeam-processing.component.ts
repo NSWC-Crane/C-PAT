@@ -32,8 +32,8 @@ export class AssignedTeamProcessingComponent implements OnInit {
 
   constructor(
     private assignedTeamService: AssignedTeamService,
-    private messageService: MessageService
-  ) { }
+    private messageService: MessageService,
+  ) {}
 
   ngOnInit() {
     this.loadAssignedTeams();
@@ -41,10 +41,16 @@ export class AssignedTeamProcessingComponent implements OnInit {
 
   async loadAssignedTeams() {
     try {
-      const response = await (await this.assignedTeamService.getAssignedTeams()).toPromise();
+      const response = await (
+        await this.assignedTeamService.getAssignedTeams()
+      ).toPromise();
       this.assignedTeams = response || [];
     } catch (error) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load Assigned Teams' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load Assigned Teams',
+      });
     }
   }
 
@@ -61,23 +67,43 @@ export class AssignedTeamProcessingComponent implements OnInit {
   async onRowEditSave(assignedTeam: AssignedTeam) {
     try {
       if (assignedTeam.assignedTeamId === 0) {
-        const response = await (await this.assignedTeamService.postAssignedTeam(assignedTeam)).toPromise();
-        const index = this.assignedTeams.findIndex(p => p.assignedTeamId === 0);
+        const response = await (
+          await this.assignedTeamService.postAssignedTeam(assignedTeam)
+        ).toPromise();
+        const index = this.assignedTeams.findIndex(
+          (p) => p.assignedTeamId === 0,
+        );
         this.assignedTeams[index] = response!;
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Assigned Team Added' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Assigned Team Added',
+        });
       } else {
-        await (await this.assignedTeamService.putAssignedTeam(assignedTeam)).toPromise();
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Assigned Team Updated' });
+        await (
+          await this.assignedTeamService.putAssignedTeam(assignedTeam)
+        ).toPromise();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Assigned Team Updated',
+        });
       }
       this.editingAssignedTeam = null;
     } catch (error) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to save Assigned Team' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to save Assigned Team',
+      });
     }
   }
 
   onRowEditCancel(assignedTeam: AssignedTeam, index: number) {
     if (assignedTeam.assignedTeamId === 0) {
-      this.assignedTeams = this.assignedTeams.filter(p => p.assignedTeamId !== 0);
+      this.assignedTeams = this.assignedTeams.filter(
+        (p) => p.assignedTeamId !== 0,
+      );
     } else {
       this.assignedTeams[index] = this.editingAssignedTeam!;
     }
@@ -86,11 +112,25 @@ export class AssignedTeamProcessingComponent implements OnInit {
 
   async onRowDelete(assignedTeam: AssignedTeam) {
     try {
-      await (await this.assignedTeamService.deleteAssignedTeam(assignedTeam.assignedTeamId)).toPromise();
-      this.assignedTeams = this.assignedTeams.filter(p => p.assignedTeamId !== assignedTeam.assignedTeamId);
-      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Assigned Team Deleted' });
+      await (
+        await this.assignedTeamService.deleteAssignedTeam(
+          assignedTeam.assignedTeamId,
+        )
+      ).toPromise();
+      this.assignedTeams = this.assignedTeams.filter(
+        (p) => p.assignedTeamId !== assignedTeam.assignedTeamId,
+      );
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Assigned Team Deleted',
+      });
     } catch (error) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete Assigned Team' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to delete Assigned Team',
+      });
     }
   }
 

@@ -8,7 +8,16 @@
 !########################################################################
 */
 
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
@@ -19,7 +28,7 @@ import { CollectionsService } from '../../admin-processing/collection-processing
 @Component({
   selector: 'cpat-asset',
   templateUrl: './asset.component.html',
-  styleUrls: ['./asset.component.scss']
+  styleUrls: ['./asset.component.scss'],
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   @Input() asset: any;
@@ -28,12 +37,12 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   @Output() assetchange = new EventEmitter();
 
   labelList: any;
-  clonedLabels: { [s: string]: any; } = {};
+  clonedLabels: { [s: string]: any } = {};
   collectionList: any;
   collection: any;
   assetLabels: any[] = [];
   data: any = [];
-  tcollectionName: string = "";
+  tcollectionName: string = '';
   selectedCollection: any;
   private subscriptions = new Subscription();
   collectionOptions: any[] = [];
@@ -47,8 +56,8 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     private collectionService: CollectionsService,
     private sharedService: SharedService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
-  ) { }
+    private messageService: MessageService,
+  ) {}
 
   ngOnInit(): void {
     if (this.payload === undefined) return;
@@ -65,32 +74,44 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     await this.getCollectionData();
     if (!this.selectedCollection) {
       this.subscriptions.add(
-        this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.sharedService.selectedCollection.subscribe((collectionId) => {
           this.selectedCollection = collectionId;
-        })
+        }),
       );
     }
     await this.getLabelData();
-    if (this.asset && this.asset.assetId !== "ADDASSET") {
+    if (this.asset && this.asset.assetId !== 'ADDASSET') {
       this.getAssetLabels();
     }
   }
 
   async getLabelData() {
-    this.subs.sink = (await this.assetService.getLabels(this.selectedCollection)).subscribe((labels: any) => {
+    this.subs.sink = (
+      await this.assetService.getLabels(this.selectedCollection)
+    ).subscribe((labels: any) => {
       this.labelList = labels || [];
-      this.labelOptions = this.transformToDropdownOptions(labels, 'labelName', 'labelId');
+      this.labelOptions = this.transformToDropdownOptions(
+        labels,
+        'labelName',
+        'labelId',
+      );
     });
   }
 
   async getCollectionData() {
-    this.subs.sink = (await this.collectionService.getCollections()).subscribe((collections: any) => {
-      this.collectionList = collections || [];
-      this.collectionOptions = this.transformToDropdownOptions(collections, 'collectionName', 'collectionId');
-      if (this.asset.collectionId) {
-        this.setCollection(this.asset.collectionId);
-      }
-    });
+    this.subs.sink = (await this.collectionService.getCollections()).subscribe(
+      (collections: any) => {
+        this.collectionList = collections || [];
+        this.collectionOptions = this.transformToDropdownOptions(
+          collections,
+          'collectionName',
+          'collectionId',
+        );
+        if (this.asset.collectionId) {
+          this.setCollection(this.asset.collectionId);
+        }
+      },
+    );
   }
 
   async getAssetLabels() {
@@ -98,25 +119,39 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       console.error('Asset or assetId is not available');
       return;
     }
-    this.subs.sink = (await this.assetService.getAssetLabels(this.asset.assetId)).subscribe(
+    this.subs.sink = (
+      await this.assetService.getAssetLabels(this.asset.assetId)
+    ).subscribe(
       (assetLabels: any) => {
         this.assetLabels = assetLabels || [];
       },
       (error) => {
         console.error('Error fetching asset labels:', error);
-      }
+      },
     );
   }
 
-  transformToDropdownOptions(data: any[], labelField: string, valueField: string) {
-    return (data || []).map(item => ({ labelName: item[labelField], labelId: item[valueField] }));
+  transformToDropdownOptions(
+    data: any[],
+    labelField: string,
+    valueField: string,
+  ) {
+    return (data || []).map((item) => ({
+      labelName: item[labelField],
+      labelId: item[valueField],
+    }));
   }
 
   setCollection(collectionId: any) {
     this.collection = null;
     this.tcollectionName = '';
 
-    const selectedData = this.collectionList ? this.collectionList.find((collection: { collectionId: any; }) => collection.collectionId === collectionId) : null;
+    const selectedData = this.collectionList
+      ? this.collectionList.find(
+          (collection: { collectionId: any }) =>
+            collection.collectionId === collectionId,
+        )
+      : null;
 
     if (selectedData) {
       this.collection = selectedData;
@@ -131,14 +166,16 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       assetId: +this.asset.assetId,
       labelId: null,
       labelName: null,
-      isNew: true
+      isNew: true,
     };
     this.assetLabels = [...this.assetLabels, newLabel];
   }
 
   onLabelChange(label: any, rowIndex: number) {
     if (label.labelId) {
-      const selectedLabel = this.labelList.find((l: any) => l.labelId === label.labelId);
+      const selectedLabel = this.labelList.find(
+        (l: any) => l.labelId === label.labelId,
+      );
       if (selectedLabel) {
         label.labelName = selectedLabel.labelName;
         label.isNew = false;
@@ -155,48 +192,89 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       header: 'Delete Confirmation',
       icon: 'pi pi-exclamation-triangle',
       accept: async () => {
-        if (this.asset.assetId === "ADDASSET") {
+        if (this.asset.assetId === 'ADDASSET') {
           this.assetLabels.splice(index, 1);
           this.assetLabels = [...this.assetLabels];
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Label removed' });
-        } else if (label.labelId) {
-          (await this.assetService.deleteAssetLabel(this.asset.assetId, label.labelId)).subscribe(() => {
-            this.assetLabels.splice(index, 1);
-            this.assetLabels = [...this.assetLabels];
-            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Label deleted successfully' });
-          }, (error) => {
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete label' });
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Label removed',
           });
+        } else if (label.labelId) {
+          (
+            await this.assetService.deleteAssetLabel(
+              this.asset.assetId,
+              label.labelId,
+            )
+          ).subscribe(
+            () => {
+              this.assetLabels.splice(index, 1);
+              this.assetLabels = [...this.assetLabels];
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Label deleted successfully',
+              });
+            },
+            (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Failed to delete label',
+              });
+            },
+          );
         }
-      }
+      },
     });
   }
 
   async confirmLabelCreate(newLabel: any) {
     let labelName = this.getLabelName(newLabel.labelId);
 
-    if (this.asset.assetId !== "ADDASSET" && newLabel.labelId) {
+    if (this.asset.assetId !== 'ADDASSET' && newLabel.labelId) {
       const assetLabel = {
         assetId: +this.asset.assetId,
         labelId: +newLabel.labelId,
-        collectionId: this.selectedCollection
+        collectionId: this.selectedCollection,
       };
 
-      (await this.assetService.postAssetLabel(assetLabel)).subscribe(async () => {
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Label "${labelName}" was added` });
-        await this.getAssetLabels();
-      }, (error) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add label' });
+      (await this.assetService.postAssetLabel(assetLabel)).subscribe(
+        async () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `Label "${labelName}" was added`,
+          });
+          await this.getAssetLabels();
+        },
+        (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to add label',
+          });
+        },
+      );
+    } else if (this.asset.assetId === 'ADDASSET' && newLabel.labelId) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: `Label "${labelName}" was added`,
       });
-    } else if (this.asset.assetId === "ADDASSET" && newLabel.labelId) {
-      this.messageService.add({ severity: 'success', summary: 'Success', detail: `Label "${labelName}" was added` });
     } else {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to create entry. Invalid input.' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to create entry. Invalid input.',
+      });
     }
   }
 
   getLabelName(labelId: number): string {
-    const label = this.labelList.find((label: any) => label.labelId === labelId);
+    const label = this.labelList.find(
+      (label: any) => label.labelId === labelId,
+    );
     return label ? label.labelName : '';
   }
 
@@ -204,52 +282,71 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.validData()) return;
 
     const asset = {
-      assetId: (this.asset.assetId == "ADDASSET" || !this.asset.assetId) ? 0 : +this.asset.assetId,
+      assetId:
+        this.asset.assetId == 'ADDASSET' || !this.asset.assetId
+          ? 0
+          : +this.asset.assetId,
       assetName: this.asset.assetName,
       description: this.asset.description,
       collectionId: this.selectedCollection,
       fullyQualifiedDomainName: this.asset.fullyQualifiedDomainName,
       ipAddress: this.asset.ipAddress,
-      macAddress: this.asset.macAddress
-    }
+      macAddress: this.asset.macAddress,
+    };
 
     if (asset.assetId === 0) {
       this.subs.sink = (await this.assetService.postAsset(asset)).subscribe(
-        data => {
+        (data) => {
           this.assetchange.emit(data.assetId);
-        }, err => {
-          this.invalidData("unexpected error adding asset");
+        },
+        (err) => {
+          this.invalidData('unexpected error adding asset');
           console.error(err);
-        }
+        },
       );
     } else {
-      this.subs.sink = (await this.assetService.updateAsset(asset)).subscribe(data => {
-        this.asset = data;
-        this.assetchange.emit();
-      });
+      this.subs.sink = (await this.assetService.updateAsset(asset)).subscribe(
+        (data) => {
+          this.asset = data;
+          this.assetchange.emit();
+        },
+      );
     }
   }
 
   resetData() {
-    this.asset = { assetId: '', assetName: '', description: '', fullyQualifiedDomainName: '', collectionId: 0, ipAddress: '', macAddress: '' };
+    this.asset = {
+      assetId: '',
+      assetName: '',
+      description: '',
+      fullyQualifiedDomainName: '',
+      collectionId: 0,
+      ipAddress: '',
+      macAddress: '',
+    };
     this.assetchange.emit();
   }
 
   validData(): boolean {
     if (!this.asset.assetName || this.asset.assetName == undefined) {
-      this.invalidData("Asset name required");
+      this.invalidData('Asset name required');
       return false;
-    } else if (!this.asset.fullyQualifiedDomainName || this.asset.fullyQualifiedDomainName == undefined) {
-      this.invalidData("FQDN required");
+    } else if (
+      !this.asset.fullyQualifiedDomainName ||
+      this.asset.fullyQualifiedDomainName == undefined
+    ) {
+      this.invalidData('FQDN required');
       return false;
     } else if (!this.asset.ipAddress || this.asset.ipAddress == undefined) {
-      this.invalidData("IP Address is required");
+      this.invalidData('IP Address is required');
       return false;
     }
-    if (this.asset.assetId == "ADDASSET") {
-      const exists = this.assets.find((e: { assetName: any; }) => e.assetName === this.asset.assetName);
+    if (this.asset.assetId == 'ADDASSET') {
+      const exists = this.assets.find(
+        (e: { assetName: any }) => e.assetName === this.asset.assetName,
+      );
       if (exists) {
-        this.invalidData("Asset Already Exists");
+        this.invalidData('Asset Already Exists');
         return false;
       }
     }
@@ -261,11 +358,11 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     this.displayInvalidDataDialog = true;
   }
 
-  confirm(options: { header: string, message: string, accept: () => void }) {
+  confirm(options: { header: string; message: string; accept: () => void }) {
     this.confirmationService.confirm({
       header: options.header,
       message: options.message,
-      accept: options.accept
+      accept: options.accept,
     });
   }
 

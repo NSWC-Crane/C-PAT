@@ -26,10 +26,7 @@ import { TableModule } from 'primeng/table';
 import { TreeTableModule } from 'primeng/treetable';
 
 @NgModule({
-  declarations: [
-    LabelProcessingComponent,
-    LabelComponent,
-  ],
+  declarations: [LabelProcessingComponent, LabelComponent],
   imports: [
     ButtonModule,
     CardModule,
@@ -42,9 +39,8 @@ import { TreeTableModule } from 'primeng/treetable';
     CommonModule,
     LabelProcessingRoutingModule,
     FormsModule,
-    SharedModule, 
+    SharedModule,
   ],
-  exports: [
-  ]
+  exports: [],
 })
-export class LabelProcessingModule { }
+export class LabelProcessingModule {}

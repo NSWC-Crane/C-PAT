@@ -9,7 +9,7 @@ import { FileUpload } from 'primeng/fileupload';
 @Component({
   selector: 'app-vram-import',
   templateUrl: './vram-import.component.html',
-  styleUrls: ['./vram-import.component.scss']
+  styleUrls: ['./vram-import.component.scss'],
 })
 export class VRAMImportComponent implements OnInit {
   @ViewChild('fileUpload') fileUpload!: FileUpload;
@@ -24,14 +24,18 @@ export class VRAMImportComponent implements OnInit {
     private messageService: MessageService,
     private vramImportService: VRAMImportService,
     private userService: UsersService,
-  ) { }
+  ) {}
 
   async ngOnInit() {
     try {
       this.user = await firstValueFrom(await this.userService.getCurrentUser());
     } catch (error) {
       console.error('Error fetching user data:', error);
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch user data' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to fetch user data',
+      });
     }
     this.getVramUpdatedDate();
   }
@@ -48,12 +52,16 @@ export class VRAMImportComponent implements OnInit {
       error: (error) => {
         console.error('Error fetching VRAM updated date:', error);
         this.vramUpdatedDate = 'Error';
-      }
+      },
     });
   }
 
   onUpload() {
-    this.messageService.add({ severity: 'info', summary: 'File Uploaded', detail: '' });
+    this.messageService.add({
+      severity: 'info',
+      summary: 'File Uploaded',
+      detail: '',
+    });
   }
 
   onSelect(event: any) {
@@ -64,7 +72,11 @@ export class VRAMImportComponent implements OnInit {
     const file = event.files[0];
     if (!file) {
       console.error('No file selected');
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No file selected' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No file selected',
+      });
       return;
     }
 
@@ -73,23 +85,39 @@ export class VRAMImportComponent implements OnInit {
       upload$.subscribe({
         next: (event: any) => {
           if (event.type === HttpEventType.UploadProgress) {
-            const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+            const percentDone = event.total
+              ? Math.round((100 * event.loaded) / event.total)
+              : 0;
           } else if (event instanceof HttpResponse) {
-            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'File uploaded successfully' });
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'File uploaded successfully',
+            });
             this.fileUpload.clear();
           }
         },
         error: (error: any) => {
           console.error('Error during file upload:', error);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'File upload failed: ' + (error.error?.message || 'Unknown error') });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail:
+              'File upload failed: ' +
+              (error.error?.message || 'Unknown error'),
+          });
         },
         complete: () => {
           this.updateTotalSize();
-        }
+        },
       });
     } catch (error) {
       console.error('Error initiating file upload:', error);
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to initiate file upload' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to initiate file upload',
+      });
     }
   }
 
@@ -101,7 +129,12 @@ export class VRAMImportComponent implements OnInit {
     uploadCallback();
   }
 
-  onRemoveFile(event: Event, file: File, removeCallback: Function, index: number) {
+  onRemoveFile(
+    event: Event,
+    file: File,
+    removeCallback: Function,
+    index: number,
+  ) {
     removeCallback(file);
     this.updateTotalSize();
   }

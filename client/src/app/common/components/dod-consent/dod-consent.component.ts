@@ -16,20 +16,20 @@ import { ConsentDialogComponent } from './consent-dialog.component';
 @Component({
   selector: 'cpat-consent',
   templateUrl: './dod-consent.component.html',
-  providers: [DialogService]
+  providers: [DialogService],
 })
 export class DoDConsentComponent implements AfterViewInit {
   modalWindow: DynamicDialogRef | undefined;
 
   constructor(
     private router: Router,
-    private dialogService: DialogService
-  ) { }
+    private dialogService: DialogService,
+  ) {}
 
   async ngAfterViewInit() {
     this.modalWindow = this.dialogService.open(ConsentDialogComponent, {
       header: 'DoD Consent',
-      width: '70%'
+      width: '70%',
     });
   }
 

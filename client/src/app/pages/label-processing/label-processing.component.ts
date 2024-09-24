@@ -8,11 +8,20 @@
 !########################################################################
 */
 
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { DialogService } from 'primeng/dynamicdialog';
 import { Observable, Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component';
+import {
+  ConfirmationDialogComponent,
+  ConfirmationDialogOptions,
+} from '../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../common/services/shared.service';
 import { LabelService } from './label.service';
 import { Table } from 'primeng/table';
@@ -28,7 +37,7 @@ interface LabelEntry {
   selector: 'cpat-label-processing',
   templateUrl: './label-processing.component.html',
   styleUrls: ['./label-processing.component.scss'],
-  providers: [DialogService]
+  providers: [DialogService],
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;
@@ -59,8 +68,8 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     private labelService: LabelService,
     private dialogService: DialogService,
     private setPayloadService: PayloadService,
-    private sharedService: SharedService) {
-  }
+    private sharedService: SharedService,
+  ) {}
 
   onSubmit() {
     this.resetData();
@@ -68,9 +77,9 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
-      })
+      }),
     );
     this.setPayload();
   }
@@ -78,36 +87,43 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.getLabelData();
         }
-      })
+      }),
     );
   }
 
   async getLabelData() {
     this.labels = [];
-    this.subs.sink = (await this.labelService.getLabels(this.selectedCollection)).subscribe((result: any) => {
-      this.data = (result as LabelEntry[]).map(label => ({
-        ...label,
-        labelId: String(label.labelId)
-      })).sort((a, b) => a.labelId.localeCompare(b.labelId));
-      this.labels = this.data;
-    }, error => {
-      console.error('Error fetching labels:', error);
-    });
+    this.subs.sink = (
+      await this.labelService.getLabels(this.selectedCollection)
+    ).subscribe(
+      (result: any) => {
+        this.data = (result as LabelEntry[])
+          .map((label) => ({
+            ...label,
+            labelId: String(label.labelId),
+          }))
+          .sort((a, b) => a.labelId.localeCompare(b.labelId));
+        this.labels = this.data;
+      },
+      (error) => {
+        console.error('Error fetching labels:', error);
+      },
+    );
   }
 
   setLabel(labelId: string) {
-    const selectedData = this.data.find(label => label.labelId === labelId);
+    const selectedData = this.data.find((label) => label.labelId === labelId);
     if (selectedData) {
       this.label = { ...selectedData };
       this.labelDialogVisible = true;
@@ -121,7 +137,9 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    const filterValue = (event.target as HTMLInputElement).value
+      .trim()
+      .toLowerCase();
     if (this.labelTable) {
       this.labelTable.filterGlobal(filterValue, 'contains');
     }
@@ -135,11 +153,10 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     this.data = [...this.labels];
   }
 
-
   resetData() {
     this.label = { labelId: '', labelName: '', description: '' };
     this.getLabelData();
-    this.label.labelId = "ADDLABEL";
+    this.label.labelId = 'ADDLABEL';
     this.allowSelectLabels = true;
   }
 
@@ -155,7 +172,9 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) =>
+      subscription.unsubscribe(),
+    );
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>

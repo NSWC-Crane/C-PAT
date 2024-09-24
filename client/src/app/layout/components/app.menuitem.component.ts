@@ -1,4 +1,13 @@
-import { ChangeDetectorRef, Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostBinding,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -11,7 +20,7 @@ import { DomHandler } from 'primeng/dom';
   selector: '[app-menuitem]',
   template: `
     <ng-container>
-    <a
+      <a
         *ngIf="(!item.routerLink || item.items) && item.visible !== false"
         [attr.href]="item.url"
         (click)="itemClick($event)"
@@ -22,19 +31,29 @@ import { DomHandler } from 'primeng/dom';
         pRipple
         [pTooltip]="item.label"
         [tooltipDisabled]="!(isSlim && root && !active)"
-    >
+      >
         <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
         <span class="layout-menuitem-text">{{ item.label }}</span>
-        <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>
-    </a>
-    <a
+        <i
+          class="pi pi-fw pi-angle-down layout-submenu-toggler"
+          *ngIf="item.items"
+        ></i>
+      </a>
+      <a
         *ngIf="item.routerLink && !item.items && item.visible !== false"
         (click)="itemClick($event)"
         (mouseenter)="onMouseEnter()"
         [ngClass]="item.class"
         [routerLink]="item.routerLink"
         routerLinkActive="active-route"
-        [routerLinkActiveOptions]="item.routerLinkActiveOptions || { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
+        [routerLinkActiveOptions]="
+          item.routerLinkActiveOptions || {
+            paths: 'exact',
+            queryParams: 'ignored',
+            matrixParams: 'ignored',
+            fragment: 'ignored',
+          }
+        "
         [fragment]="item.fragment"
         [queryParamsHandling]="item.queryParamsHandling"
         [preserveFragment]="item.preserveFragment"
@@ -47,19 +66,28 @@ import { DomHandler } from 'primeng/dom';
         pRipple
         [pTooltip]="item.label"
         [tooltipDisabled]="!(isSlim && root)"
-    >
+      >
         <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
         <span class="layout-menuitem-text">{{ item.label }}</span>
-        <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>
-    </a>
+        <i
+          class="pi pi-fw pi-angle-down layout-submenu-toggler"
+          *ngIf="item.items"
+        ></i>
+      </a>
 
-    <ul #submenu *ngIf="item.items && item.visible !== false">
-    <ng-template ngFor let-child let-i="index" [ngForOf]="item.items">
-        <li app-menuitem [item]="child" [index]="i" [parentKey]="key" [class]="child.badgeClass"></li>
-    </ng-template>
-</ul>
-</ng-container>
-    `,
+      <ul #submenu *ngIf="item.items && item.visible !== false">
+        <ng-template ngFor let-child let-i="index" [ngForOf]="item.items">
+          <li
+            app-menuitem
+            [item]="child"
+            [index]="i"
+            [parentKey]="key"
+            [class]="child.badgeClass"
+          ></li>
+        </ng-template>
+      </ul>
+    </ng-container>
+  `,
 })
 export class AppMenuitemComponent implements OnInit, OnDestroy {
   @Input() item: any;
@@ -71,32 +99,45 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   active = false;
   menuSourceSubscription: Subscription;
   menuResetSubscription: Subscription;
-  key: string = "";
+  key: string = '';
 
-  constructor(public layoutService: LayoutService, private cd: ChangeDetectorRef, public router: Router, private appSidebar: AppNavigationComponent, private menuService: MenuService) {
-    this.menuSourceSubscription = this.menuService.menuSource$.subscribe(value => {
-      Promise.resolve(null).then(() => {
-        if (value.routeEvent) {
-          this.active = (value.key === this.key || value.key.startsWith(this.key + '-')) ? true : false;
-        }
-        else {
-          if (value.key !== this.key && !value.key.startsWith(this.key + '-')) {
-            this.active = false;
+  constructor(
+    public layoutService: LayoutService,
+    private cd: ChangeDetectorRef,
+    public router: Router,
+    private appSidebar: AppNavigationComponent,
+    private menuService: MenuService,
+  ) {
+    this.menuSourceSubscription = this.menuService.menuSource$.subscribe(
+      (value) => {
+        Promise.resolve(null).then(() => {
+          if (value.routeEvent) {
+            this.active =
+              value.key === this.key || value.key.startsWith(this.key + '-')
+                ? true
+                : false;
+          } else {
+            if (
+              value.key !== this.key &&
+              !value.key.startsWith(this.key + '-')
+            ) {
+              this.active = false;
+            }
           }
-        }
-      });
-    });
+        });
+      },
+    );
 
     this.menuResetSubscription = this.menuService.resetSource$.subscribe(() => {
       this.active = false;
     });
 
-    this.router.events.pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(params => {
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((params) => {
         if (this.isSlimPlus || this.isSlim || this.isHorizontal) {
           this.active = false;
-        }
-        else {
+        } else {
           if (this.item.routerLink) {
             this.updateActiveStateFromRoute();
           }
@@ -105,21 +146,41 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.key = this.parentKey ? this.parentKey + '-' + this.index : String(this.index);
+    this.key = this.parentKey
+      ? this.parentKey + '-' + this.index
+      : String(this.index);
 
-    if (!(this.isSlimPlus || this.isSlim || this.isHorizontal) && this.item.routerLink) {
+    if (
+      !(this.isSlimPlus || this.isSlim || this.isHorizontal) &&
+      this.item.routerLink
+    ) {
       this.updateActiveStateFromRoute();
     }
   }
 
   ngAfterViewChecked() {
-    if (this.root && this.active && this.layoutService.isDesktop() && (this.layoutService.isHorizontal() || this.layoutService.isSlim() || this.layoutService.isSlimPlus())) {
-      this.calculatePosition(this.submenu?.nativeElement, this.submenu?.nativeElement.parentElement);
+    if (
+      this.root &&
+      this.active &&
+      this.layoutService.isDesktop() &&
+      (this.layoutService.isHorizontal() ||
+        this.layoutService.isSlim() ||
+        this.layoutService.isSlimPlus())
+    ) {
+      this.calculatePosition(
+        this.submenu?.nativeElement,
+        this.submenu?.nativeElement.parentElement,
+      );
     }
   }
 
   updateActiveStateFromRoute() {
-    let activeRoute = this.router.isActive(this.item.routerLink[0], { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' });
+    let activeRoute = this.router.isActive(this.item.routerLink[0], {
+      paths: 'exact',
+      queryParams: 'ignored',
+      matrixParams: 'ignored',
+      fragment: 'ignored',
+    });
 
     if (activeRoute) {
       this.menuService.onMenuStateChange({ key: this.key, routeEvent: true });
@@ -137,10 +198,15 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
 
       if (this.layoutService.isHorizontal()) {
         const width = left + oWidth + scrollbarWidth;
-        overlay.style.left = vWidth < width ? `${left - (width - vWidth)}px` : `${left}px`;
-      } else if (this.layoutService.isSlim() || this.layoutService.isSlimPlus()) {
+        overlay.style.left =
+          vWidth < width ? `${left - (width - vWidth)}px` : `${left}px`;
+      } else if (
+        this.layoutService.isSlim() ||
+        this.layoutService.isSlimPlus()
+      ) {
         const height = top + oHeight;
-        overlay.style.top = vHeight < height ? `${top - (height - vHeight)}px` : `${top}px`;
+        overlay.style.top =
+          vHeight < height ? `${top - (height - vHeight)}px` : `${top}px`;
       }
     }
   }
@@ -152,7 +218,8 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     }
 
     if (this.isSlim || this.isHorizontal || this.isSlimPlus) {
-      this.layoutService.state.menuHoverActive = !this.layoutService.state.menuHoverActive;
+      this.layoutService.state.menuHoverActive =
+        !this.layoutService.state.menuHoverActive;
     }
 
     if (this.item.command) {
@@ -162,11 +229,13 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     if (this.item.items) {
       this.active = !this.active;
 
-      if (this.active && (this.isSlim || this.isHorizontal || this.isSlimPlus)) {
+      if (
+        this.active &&
+        (this.isSlim || this.isHorizontal || this.isSlimPlus)
+      ) {
         this.layoutService.onOverlaySubmenuOpen();
       }
-    }
-    else {
+    } else {
       if (this.layoutService.isMobile()) {
         this.layoutService.state.staticMenuMobileActive = false;
       }
@@ -181,7 +250,10 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   onMouseEnter() {
-    if ((this.isSlim || this.isHorizontal || this.isSlimPlus) && this.layoutService.isDesktop()) {
+    if (
+      (this.isSlim || this.isHorizontal || this.isSlimPlus) &&
+      this.layoutService.isDesktop()
+    ) {
       if (this.layoutService.state.menuHoverActive) {
         this.active = true;
         this.menuService.onMenuStateChange({ key: this.key });

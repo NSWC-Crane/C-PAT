@@ -8,11 +8,19 @@
 !########################################################################
 */
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { AssetService } from './assets.service';
 import { forkJoin, Observable, Subscription } from 'rxjs';
-import { SubSink } from "subsink";
-import { ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component'
+import { SubSink } from 'subsink';
+import { ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { Chart, registerables, ChartData } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -38,10 +46,13 @@ interface AssetEntry {
   selector: 'cpat-asset-processing',
   templateUrl: './asset-processing.component.html',
   styleUrls: ['./asset-processing.component.scss'],
-  providers: [DialogService]
+  providers: [DialogService],
 })
-export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('assetLabelsChart') assetLabelsChart!: ElementRef<HTMLCanvasElement>;
+export class AssetProcessingComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
+  @ViewChild('assetLabelsChart')
+  assetLabelsChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('assetTable') assetTable!: Table;
   searchValue: string = '';
   public assetLabel: any[] = [];
@@ -59,13 +70,13 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
         beginAtZero: true,
         grace: '5%',
         grid: {
-          display: false
+          display: false,
         },
         ticks: {
           font: {
             weight: 600,
           },
-        }
+        },
       },
     },
     plugins: {
@@ -79,13 +90,19 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
             size: 13,
             family: 'sans-serif',
             weight: 600,
-          }
-        }
+          },
+        },
       },
     },
   };
   customColumn = 'Asset';
-  defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'MAC Address'];
+  defaultColumns = [
+    'Asset Name',
+    'Description',
+    'Collection',
+    'IP Address',
+    'MAC Address',
+  ];
   allColumns = [this.customColumn, ...this.defaultColumns];
   cols!: Column[];
   exportColumns!: Column[];
@@ -93,7 +110,13 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   filterValue: string = '';
   users: any;
   assets: AssetEntry[] = [];
-  asset: AssetEntry = { assetId: '', assetName: '', description: '', ipAddress: '', macAddress: '' };
+  asset: AssetEntry = {
+    assetId: '',
+    assetName: '',
+    description: '',
+    ipAddress: '',
+    macAddress: '',
+  };
   collectionList: any;
   allowSelectAssets = true;
   selectedCollection: any;
@@ -121,13 +144,18 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
   async ngOnInit() {
     this.subscriptions.add(
-      await this.sharedService.selectedCollection.subscribe(collectionId => {
+      await this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
-      })
+      }),
     );
-    await (await this.collectionService.getCollectionBasicList()).subscribe({
-      next: (data) => {        
-        const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
+    await (
+      await this.collectionService.getCollectionBasicList()
+    ).subscribe({
+      next: (data) => {
+        const selectedCollectionData = data.find(
+          (collection: any) =>
+            collection.collectionId === this.selectedCollection,
+        );
         if (selectedCollectionData) {
           this.collectionOrigin = selectedCollectionData.collectionOrigin;
           this.originCollectionId = selectedCollectionData.originCollectionId;
@@ -135,7 +163,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       },
       error: (error) => {
         this.collectionOrigin = '';
-      }
+      },
     });
     this.setPayload();
     this.initializeColumns();
@@ -149,54 +177,70 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.getAssetData();
         }
-      })
+      }),
     );
   }
 
   async getAssetData() {
     if (this.payload == undefined) return;
     this.subs.sink = forkJoin(
-      await this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
-      await this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
-    ).subscribe(([assetData, assetLabelResponse]: any) => {
-      if (!Array.isArray(assetData)) {
-        console.error('Unexpected response format:', assetData);
-      } else if (!Array.isArray(assetLabelResponse.assetLabel)) {
-        console.error('assetLabelResponse.assetLabel is not an array', assetLabelResponse.assetLabel);
-        return;
-      }
+      await this.assetService.getAssetsByCollection(
+        this.user.lastCollectionAccessedId,
+      ),
+      await this.assetService.getCollectionAssetLabel(
+        this.payload.lastCollectionAccessedId,
+      ),
+    ).subscribe(
+      ([assetData, assetLabelResponse]: any) => {
+        if (!Array.isArray(assetData)) {
+          console.error('Unexpected response format:', assetData);
+        } else if (!Array.isArray(assetLabelResponse.assetLabel)) {
+          console.error(
+            'assetLabelResponse.assetLabel is not an array',
+            assetLabelResponse.assetLabel,
+          );
+          return;
+        }
 
-      this.assetLabel = assetLabelResponse.assetLabel;
-      this.setLabelChartData(this.assetLabel);
+        this.assetLabel = assetLabelResponse.assetLabel;
+        this.setLabelChartData(this.assetLabel);
 
-      this.data = (assetData as AssetEntry[]).map(asset => ({
-        ...asset,
-        assetId: String(asset.assetId)
-      })).sort((a, b) => a.assetId.localeCompare(b.assetId));
-      this.assets = this.data;
-    }, error => {
-      console.error('Failed to fetch assets by collection', error);
-    });
+        this.data = (assetData as AssetEntry[])
+          .map((asset) => ({
+            ...asset,
+            assetId: String(asset.assetId),
+          }))
+          .sort((a, b) => a.assetId.localeCompare(b.assetId));
+        this.assets = this.data;
+      },
+      (error) => {
+        console.error('Failed to fetch assets by collection', error);
+      },
+    );
   }
 
   initializeColumns() {
     this.cols = [
-      { field: 'assetId', header: 'Asset ID', customExportHeader: 'Asset Identifier' },
+      {
+        field: 'assetId',
+        header: 'Asset ID',
+        customExportHeader: 'Asset Identifier',
+      },
       { field: 'assetName', header: 'Asset Name' },
       { field: 'description', header: 'Description' },
       { field: 'ipAddress', header: 'IP Address' },
-      { field: 'macAddress', header: 'MAC Address' }
+      { field: 'macAddress', header: 'MAC Address' },
     ];
     this.exportColumns = this.cols;
   }
@@ -225,7 +269,9 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    const filterValue = (event.target as HTMLInputElement).value
+      .trim()
+      .toLowerCase();
     if (this.assetTable) {
       this.assetTable.filterGlobal(filterValue, 'contains');
     }
@@ -252,13 +298,13 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       header: 'Alert',
       body: message,
       button: { text: 'OK', status: 'info' },
-      cancelbutton: 'false'
+      cancelbutton: 'false',
     };
     this.dialogService.open(ConfirmationDialogOptions, {
       closeOnEscape: true,
       data: {
         options: dialogOptions,
-      }
+      },
     });
   }
 
@@ -268,7 +314,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
   updateLabelChartData(assetLabel: any[]): void {
     if (!this.assetLabelChart) {
-      console.warn("Asset Label chart is not initialized.");
+      console.warn('Asset Label chart is not initialized.');
       return;
     }
     const datasets = assetLabel.map((item: any) => ({
@@ -283,7 +329,8 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   exportChart(chartInstance: Chart, chartName: string) {
     const exportDatalabelsOptions = {
       backgroundColor: function (context: any) {
-        const datasetBackgroundColor = context.chart.data.datasets[context.datasetIndex].backgroundColor;
+        const datasetBackgroundColor =
+          context.chart.data.datasets[context.datasetIndex].backgroundColor;
         return Array.isArray(datasetBackgroundColor)
           ? datasetBackgroundColor[context.dataIndex]
           : datasetBackgroundColor;
@@ -292,11 +339,11 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       color: 'white',
       display: true,
       font: {
-        weight: 'bold'
+        weight: 'bold',
       },
       align: 'end',
       anchor: 'end',
-      padding: 6
+      padding: 6,
     };
 
     chartInstance.data.datasets.forEach((dataset: any) => {
@@ -307,7 +354,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     chartInstance.options.plugins!.title = {
       display: true,
       text: `${chartName}`,
-      position: 'bottom'
+      position: 'bottom',
     };
     chartInstance.update();
 
@@ -323,7 +370,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
       setTimeout(() => {
         const disappearDatalabelsOptions = {
-          display: false
+          display: false,
         };
 
         chartInstance.data.datasets.forEach((dataset: any) => {
@@ -336,27 +383,44 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
         };
         chartInstance.update();
       }, 500);
-
     }, 150);
   }
 
   setAsset(assetId: string) {
-    const selectedData = this.data.find(asset => asset.assetId === assetId);
+    const selectedData = this.data.find((asset) => asset.assetId === assetId);
     if (selectedData) {
       this.asset = { ...selectedData };
       this.assetDialogVisible = true;
     } else {
-      this.asset = { assetId: '', assetName: '', description: '', ipAddress: '', macAddress: '' };
+      this.asset = {
+        assetId: '',
+        assetName: '',
+        description: '',
+        ipAddress: '',
+        macAddress: '',
+      };
     }
   }
 
   addAsset() {
-    this.asset = { assetId: 'ADDASSET', assetName: '', description: '', ipAddress: '', macAddress: '' };
+    this.asset = {
+      assetId: 'ADDASSET',
+      assetName: '',
+      description: '',
+      ipAddress: '',
+      macAddress: '',
+    };
     this.assetDialogVisible = true;
   }
 
   resetData() {
-    this.asset = { assetId: '', assetName: '', description: '', ipAddress: '', macAddress: '' };
+    this.asset = {
+      assetId: '',
+      assetName: '',
+      description: '',
+      ipAddress: '',
+      macAddress: '',
+    };
     this.getAssetData();
     this.allowSelectAssets = true;
   }
@@ -368,7 +432,9 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) =>
+      subscription.unsubscribe(),
+    );
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>

@@ -3,88 +3,86 @@ import { Inject, Injectable, effect, signal, PLATFORM_ID } from '@angular/core';
 import { Subject } from 'rxjs';
 
 export type MenuMode =
-    | 'static'
-    | 'overlay'
-    | 'horizontal'
-    | 'slim'
-    | 'slim-plus'
-    | 'reveal';
+  | 'static'
+  | 'overlay'
+  | 'horizontal'
+  | 'slim'
+  | 'slim-plus'
+  | 'reveal';
 
 export type MenuColorScheme = 'colorScheme' | 'primaryColor' | 'transparent';
 
 export interface AppConfig {
-    inputStyle: string;
-    colorScheme: string;
-    theme: string;
-    ripple: boolean;
-    menuMode: MenuMode;
-    scale: number;
-    menuTheme: MenuColorScheme;
+  inputStyle: string;
+  colorScheme: string;
+  theme: string;
+  ripple: boolean;
+  menuMode: MenuMode;
+  scale: number;
+  menuTheme: MenuColorScheme;
 }
 
 interface LayoutState {
-    staticMenuDesktopInactive: boolean;
-    overlayMenuActive: boolean;
-    configSidebarVisible: boolean;
-    staticMenuMobileActive: boolean;
-    menuHoverActive: boolean;
-    sidebarActive: boolean;
-    anchored: boolean;
+  staticMenuDesktopInactive: boolean;
+  overlayMenuActive: boolean;
+  configSidebarVisible: boolean;
+  staticMenuMobileActive: boolean;
+  menuHoverActive: boolean;
+  sidebarActive: boolean;
+  anchored: boolean;
 }
 
 @Injectable({
-    providedIn: 'root',
+  providedIn: 'root',
 })
 export class LayoutService {
-    _config: AppConfig = {
-        ripple: false,
-        inputStyle: 'outlined',
-        menuMode: 'static',
-        colorScheme: 'dark',
-        theme: 'lara-dark-blue',
-        scale: 14,
-        menuTheme: 'colorScheme',
-    };
+  _config: AppConfig = {
+    ripple: false,
+    inputStyle: 'outlined',
+    menuMode: 'static',
+    colorScheme: 'dark',
+    theme: 'lara-dark-blue',
+    scale: 14,
+    menuTheme: 'colorScheme',
+  };
 
-    config = signal<AppConfig>(this._config);
+  config = signal<AppConfig>(this._config);
 
-    state: LayoutState = {
-        staticMenuDesktopInactive: false,
-        overlayMenuActive: false,
-        configSidebarVisible: false,
-        staticMenuMobileActive: false,
-        menuHoverActive: false,
-        sidebarActive: false,
-        anchored: false,
-    };
+  state: LayoutState = {
+    staticMenuDesktopInactive: false,
+    overlayMenuActive: false,
+    configSidebarVisible: false,
+    staticMenuMobileActive: false,
+    menuHoverActive: false,
+    sidebarActive: false,
+    anchored: false,
+  };
 
-    private configUpdate = new Subject<AppConfig>();
+  private configUpdate = new Subject<AppConfig>();
 
-    private overlayOpen = new Subject<any>();
+  private overlayOpen = new Subject<any>();
 
-    configUpdate$ = this.configUpdate.asObservable();
+  configUpdate$ = this.configUpdate.asObservable();
 
-    overlayOpen$ = this.overlayOpen.asObservable();
+  overlayOpen$ = this.overlayOpen.asObservable();
 
-  constructor(
-    @Inject(PLATFORM_ID) private platformId: any,
-  ) {
-        effect(() => {
-            const config = this.config();
-            if (this.updateStyle(config)) {
-                this.changeTheme();
-            }
-            this.changeScale(config.scale);
-            this.onConfigUpdate();
-        });
-    }
+  constructor(@Inject(PLATFORM_ID) private platformId: any) {
+    effect(() => {
+      const config = this.config();
+      if (this.updateStyle(config)) {
+        this.changeTheme();
+      }
+      this.changeScale(config.scale);
+      this.onConfigUpdate();
+    });
+  }
 
-    updateStyle(config: AppConfig) {
-        return (
-            config.theme !== this._config.theme ||
-            config.colorScheme !== this._config.colorScheme
-        );
-    }
+  updateStyle(config: AppConfig) {
+    return (
+      config.theme !== this._config.theme ||
+      config.colorScheme !== this._config.colorScheme
+    );
+  }
 
   toggleColorScheme() {
     const currentTheme = this.config().theme;
@@ -97,7 +95,7 @@ export class LayoutService {
   applyTheme(themeName: string) {
     const isDarkMode = themeName.includes('-dark') ? 'dark' : 'light';
 
-    this.config.update(cfg => ({
+    this.config.update((cfg) => ({
       ...cfg,
       theme: themeName,
       colorScheme: isDarkMode,
@@ -108,7 +106,9 @@ export class LayoutService {
 
   private loadThemeFile(themeName: string) {
     if (isPlatformBrowser(this.platformId)) {
-      const themeLink = document.getElementById('theme-link') as HTMLLinkElement;
+      const themeLink = document.getElementById(
+        'theme-link',
+      ) as HTMLLinkElement;
       if (themeLink) {
         const timestamp = new Date().getTime();
         const newHref = `app/styles/themes/${themeName}/theme.css?_=${timestamp}`;
@@ -122,64 +122,63 @@ export class LayoutService {
     this.applyTheme(userTheme);
   }
 
-    onMenuToggle() {
-        if (this.isOverlay()) {
-            this.state.overlayMenuActive = !this.state.overlayMenuActive;
+  onMenuToggle() {
+    if (this.isOverlay()) {
+      this.state.overlayMenuActive = !this.state.overlayMenuActive;
 
-            if (this.state.overlayMenuActive) {
-                this.overlayOpen.next(null);
-            }
-        }
-
-        if (this.isDesktop()) {
-            this.state.staticMenuDesktopInactive =
-                !this.state.staticMenuDesktopInactive;
-        } else {
-            this.state.staticMenuMobileActive =
-                !this.state.staticMenuMobileActive;
-
-            if (this.state.staticMenuMobileActive) {
-                this.overlayOpen.next(null);
-            }
-        }
-    }
-
-    onOverlaySubmenuOpen() {
+      if (this.state.overlayMenuActive) {
         this.overlayOpen.next(null);
+      }
     }
 
-    showConfigSidebar() {
-        this.state.configSidebarVisible = true;
-    }
+    if (this.isDesktop()) {
+      this.state.staticMenuDesktopInactive =
+        !this.state.staticMenuDesktopInactive;
+    } else {
+      this.state.staticMenuMobileActive = !this.state.staticMenuMobileActive;
 
-    isOverlay() {
-        return this.config().menuMode === 'overlay';
+      if (this.state.staticMenuMobileActive) {
+        this.overlayOpen.next(null);
+      }
     }
+  }
 
-    isDesktop() {
-        return window.innerWidth > 991;
-    }
+  onOverlaySubmenuOpen() {
+    this.overlayOpen.next(null);
+  }
 
-    isSlim() {
-        return this.config().menuMode === 'slim';
-    }
+  showConfigSidebar() {
+    this.state.configSidebarVisible = true;
+  }
 
-    isSlimPlus() {
-        return this.config().menuMode === 'slim-plus';
-    }
+  isOverlay() {
+    return this.config().menuMode === 'overlay';
+  }
 
-    isHorizontal() {
-        return this.config().menuMode === 'horizontal';
-    }
+  isDesktop() {
+    return window.innerWidth > 991;
+  }
 
-    isMobile() {
-        return !this.isDesktop();
-    }
+  isSlim() {
+    return this.config().menuMode === 'slim';
+  }
 
-    onConfigUpdate() {
-        this._config = { ...this.config() };
-        this.configUpdate.next(this.config());
-    }
+  isSlimPlus() {
+    return this.config().menuMode === 'slim-plus';
+  }
+
+  isHorizontal() {
+    return this.config().menuMode === 'horizontal';
+  }
+
+  isMobile() {
+    return !this.isDesktop();
+  }
+
+  onConfigUpdate() {
+    this._config = { ...this.config() };
+    this.configUpdate.next(this.config());
+  }
 
   changeTheme() {
     const config = this.config();
@@ -187,12 +186,17 @@ export class LayoutService {
     const themeLinkHref = themeLink.getAttribute('href')!;
     const newHref = themeLinkHref
       .split('/')
-      .map((el) => (el == this._config.theme ? (el = config.theme) : el == `theme-${this._config.colorScheme}` ? (el = `theme-${config.colorScheme}`) : el))
+      .map((el) =>
+        el == this._config.theme
+          ? (el = config.theme)
+          : el == `theme-${this._config.colorScheme}`
+            ? (el = `theme-${config.colorScheme}`)
+            : el,
+      )
       .join('/');
 
     this.replaceThemeLink(newHref);
   }
-
 
   replaceThemeLink(href: string) {
     const id = 'theme-link';
@@ -209,7 +213,7 @@ export class LayoutService {
     });
   }
 
-    changeScale(value: number) {
-        document.documentElement.style.fontSize = `${value}px`;
-    }
+  changeScale(value: number) {
+    document.documentElement.style.fontSize = `${value}px`;
+  }
 }

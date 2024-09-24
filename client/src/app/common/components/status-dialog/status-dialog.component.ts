@@ -13,8 +13,18 @@ import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 @Component({
   selector: 'status-dialog',
   template: `
-    <p-dialog header="File Upload Status" [(visible)]="display" [modal]="true" [closable]="false" [style]="{width: '50vw'}">
-      <p-progressBar [value]="progress" [showValue]="true" [style]="{ height: '20px' }"></p-progressBar>
+    <p-dialog
+      header="File Upload Status"
+      [(visible)]="display"
+      [modal]="true"
+      [closable]="false"
+      [style]="{ width: '50vw' }"
+    >
+      <p-progressBar
+        [value]="progress"
+        [showValue]="true"
+        [style]="{ height: '20px' }"
+      ></p-progressBar>
       <p *ngIf="message">{{ message + ' ' + countdownMessage }}</p>
     </p-dialog>
   `,

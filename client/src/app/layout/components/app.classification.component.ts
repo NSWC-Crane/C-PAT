@@ -4,19 +4,24 @@ import { SharedService } from '../../common/services/shared.service';
 
 @Component({
   selector: 'app-classification',
-  templateUrl: './app.classification.component.html'
+  templateUrl: './app.classification.component.html',
 })
 export class AppClassificationComponent implements OnInit {
   classification: Classification | undefined;
   isClassificationActive: boolean = false;
 
-  constructor(private sharedService: SharedService) { }
+  constructor(private sharedService: SharedService) {}
 
   public async ngOnInit() {
     try {
       const apiConfig = await this.sharedService.getApiConfig().toPromise();
-      if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {
-        const apiClassification = (apiConfig as { classification: string }).classification;
+      if (
+        apiConfig &&
+        typeof apiConfig === 'object' &&
+        'classification' in apiConfig
+      ) {
+        const apiClassification = (apiConfig as { classification: string })
+          .classification;
         this.classification = new Classification(apiClassification);
         this.isClassificationActive = true;
       } else {

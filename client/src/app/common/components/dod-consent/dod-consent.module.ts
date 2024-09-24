@@ -19,20 +19,15 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
 
 @NgModule({
-  declarations: [
-    DoDConsentComponent,
-    ConsentDialogComponent,
-  ],
-  exports: [
-    DoDConsentComponent,
-  ],
+  declarations: [DoDConsentComponent, ConsentDialogComponent],
+  exports: [DoDConsentComponent],
   imports: [
     CommonModule,
     FormsModule,
     DodConsentRoutingModule,
     DialogModule,
     ButtonModule,
-    DynamicDialogModule
-  ]
+    DynamicDialogModule,
+  ],
 })
-export class DoDConsentModule { }
+export class DoDConsentModule {}

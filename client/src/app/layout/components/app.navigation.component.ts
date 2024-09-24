@@ -1,6 +1,12 @@
 import { AuthService } from '../../core/auth/services/auth.service';
 import { NavigationEnd, Router } from '@angular/router';
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { LayoutService } from '../services/app.layout.service';
 import { MenuItem } from 'primeng/api';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
@@ -18,7 +24,7 @@ interface Permission {
 
 @Component({
   selector: 'app-navigation',
-  templateUrl: './app.navigation.component.html'
+  templateUrl: './app.navigation.component.html',
 })
 export class AppNavigationComponent implements OnInit, OnDestroy {
   collections: any = [];
@@ -46,8 +52,8 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private router: Router,
     private notificationService: NotificationService,
-    public el: ElementRef
-  ) { }
+    public el: ElementRef,
+  ) {}
 
   public async ngOnInit() {
     this.layoutService.setInitialTheme('lara-dark-blue');
@@ -61,40 +67,44 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
       this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
         next: (response: any) => {
           if (response?.userId) {
-          this.user = response;
-          this.fullName = response.fullName;
-          this.userRole = this.user.isAdmin ? 'C-PAT Admin' : 'C-PAT User';
-          if (this.user.defaultTheme) {
-            this.layoutService.setInitialTheme(this.user.defaultTheme);
-          } 
-          if (this.user.accountStatus === 'ACTIVE') {
-            this.payload = {
-              ...this.user,
-              collections: this.user.permissions.map((permission: Permission) => ({
-                collectionId: permission.collectionId,
-                accessLevel: permission.accessLevel,
-              }))
-            };
-            this.getNotificationCount();
-            this.getCollections();
-            this.setMenuItems();
-            this.setupUserMenuActions();
-            this.router.events.pipe(
-              filter(event => event instanceof NavigationEnd),
-              takeUntil(this.destroy$)
-            ).subscribe(() => {
-              if (this.user.userId) {
-                this.getNotificationCount();
-              }
-            });
+            this.user = response;
+            this.fullName = response.fullName;
+            this.userRole = this.user.isAdmin ? 'C-PAT Admin' : 'C-PAT User';
+            if (this.user.defaultTheme) {
+              this.layoutService.setInitialTheme(this.user.defaultTheme);
+            }
+            if (this.user.accountStatus === 'ACTIVE') {
+              this.payload = {
+                ...this.user,
+                collections: this.user.permissions.map(
+                  (permission: Permission) => ({
+                    collectionId: permission.collectionId,
+                    accessLevel: permission.accessLevel,
+                  }),
+                ),
+              };
+              this.getNotificationCount();
+              this.getCollections();
+              this.setMenuItems();
+              this.setupUserMenuActions();
+              this.router.events
+                .pipe(
+                  filter((event) => event instanceof NavigationEnd),
+                  takeUntil(this.destroy$),
+                )
+                .subscribe(() => {
+                  if (this.user.userId) {
+                    this.getNotificationCount();
+                  }
+                });
+            }
+          } else {
+            console.error('User data is not available.');
           }
-        } else {
-          console.error('User data is not available.');
-        }
         },
         error: (error) => {
           console.error('An error occurred:', error.message);
-        }
+        },
       });
     } catch (error) {
       console.error('Error initializing user:', error);
@@ -102,22 +112,28 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   }
 
   async getCollections() {
-    this.subs.sink = (await this.collectionService.getCollections()).subscribe((result: any) => {
-      this.collections = result;
-      if (this.user.lastCollectionAccessedId) {
-        this.selectedCollection = +this.user.lastCollectionAccessedId;
-        this.resetWorkspace(this.selectedCollection);
-      } else if (!this.payload.lastCollectionAccessedId || this.payload.lastCollectionAccessedId === undefined) {
-        this.selectedCollection = null;
-        this.selectCollectionMsg = true;
-      } else {
-
-      }
-    });
+    this.subs.sink = (await this.collectionService.getCollections()).subscribe(
+      (result: any) => {
+        this.collections = result;
+        if (this.user.lastCollectionAccessedId) {
+          this.selectedCollection = +this.user.lastCollectionAccessedId;
+          this.resetWorkspace(this.selectedCollection);
+        } else if (
+          !this.payload.lastCollectionAccessedId ||
+          this.payload.lastCollectionAccessedId === undefined
+        ) {
+          this.selectedCollection = null;
+          this.selectCollectionMsg = true;
+        } else {
+        }
+      },
+    );
   }
 
   async getNotificationCount() {
-    this.subs.sink = (await this.notificationService.getUnreadNotificationCount()).subscribe((result: any) => {
+    this.subs.sink = (
+      await this.notificationService.getUnreadNotificationCount()
+    ).subscribe((result: any) => {
       this.notificationCount = result > 0 ? result : null;
     });
   }
@@ -125,17 +141,31 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   setMenuItems() {
     const marketplaceDisabled = CPAT.Env.features.marketplaceDisabled;
     if (marketplaceDisabled) {
-      this.userMenu = [{ label: 'Log Out', icon: 'pi pi-sign-out', command: () => this.logout() }];
+      this.userMenu = [
+        {
+          label: 'Log Out',
+          icon: 'pi pi-sign-out',
+          command: () => this.logout(),
+        },
+      ];
     } else {
       this.userMenu = [
-        { label: 'Marketplace', icon: 'pi pi-shopping-cart', command: () => this.goToMarketplace() },
-        { label: 'Log Out', icon: 'pi pi-sign-out', command: () => this.logout() }
+        {
+          label: 'Marketplace',
+          icon: 'pi pi-shopping-cart',
+          command: () => this.goToMarketplace(),
+        },
+        {
+          label: 'Log Out',
+          icon: 'pi pi-sign-out',
+          command: () => this.logout(),
+        },
       ];
     }
   }
 
   setupUserMenuActions() {
-    this.userMenu.forEach(item => {
+    this.userMenu.forEach((item) => {
       if (item.label === 'Marketplace') {
         item.command = () => this.goToMarketplace();
       } else if (item.label === 'Log Out') {
@@ -175,7 +205,10 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   onMouseLeave() {
     if (!this.layoutService.state.anchored) {
       if (!this.timeout) {
-        this.timeout = setTimeout(() => this.layoutService.state.sidebarActive = false, 300);
+        this.timeout = setTimeout(
+          () => (this.layoutService.state.sidebarActive = false),
+          300,
+        );
       }
     }
   }
@@ -187,16 +220,22 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   async resetWorkspace(selectedCollection: any) {
     this.selectedCollection = selectedCollection;
     this.selectCollectionMsg = false;
-    this.sharedService.setSelectedCollection(parseInt(this.selectedCollection, 10));
+    this.sharedService.setSelectedCollection(
+      parseInt(this.selectedCollection, 10),
+    );
 
-    const collection = this.collections.find((x: { collectionId: any; }) => x.collectionId == this.selectedCollection);
+    const collection = this.collections.find(
+      (x: { collectionId: any }) => x.collectionId == this.selectedCollection,
+    );
     this.collectionName = 'Collection: ' + collection.collectionName;
     if (collection) {
-      const stWorkspace = document.getElementById('selectedCollection') as HTMLInputElement;
+      const stWorkspace = document.getElementById(
+        'selectedCollection',
+      ) as HTMLInputElement;
       if (stWorkspace) {
-        const att = stWorkspace.querySelector("span");
+        const att = stWorkspace.querySelector('span');
         if (att) {
-          att.textContent = "Collection - " + collection.collectionName;
+          att.textContent = 'Collection - ' + collection.collectionName;
         }
       }
     }
@@ -207,7 +246,9 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
 
     if (this.user.lastCollectionAccessedId !== selectedCollection) {
       try {
-        const result = await (await this.userService.updateUserLastCollection(userUpdate)).toPromise();
+        const result = await (
+          await this.userService.updateUserLastCollection(userUpdate)
+        ).toPromise();
         this.user = result;
         window.location.reload();
       } catch (error) {
