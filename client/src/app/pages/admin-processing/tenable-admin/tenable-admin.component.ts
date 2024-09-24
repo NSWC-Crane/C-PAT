@@ -33,7 +33,7 @@ interface CollectionBasicList {
 @Component({
   selector: 'cpat-tenable-admin',
   templateUrl: './tenable-admin.component.html',
-  styleUrls: ['./tenable-admin.component.scss']
+  styleUrls: ['./tenable-admin.component.scss'],
 })
 export class TenableAdminComponent implements OnInit {
   tenableRepositories: TenableRepository[] = [];
@@ -45,8 +45,8 @@ export class TenableAdminComponent implements OnInit {
     private collectionsService: CollectionsService,
     private importService: ImportService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
-  ) { }
+    private messageService: MessageService,
+  ) {}
 
   ngOnInit() {
     this.fetchDataAndCompare();
@@ -56,36 +56,40 @@ export class TenableAdminComponent implements OnInit {
     forkJoin({
       repositories: from(this.importService.getTenableRepositories()).pipe(
         map((response: any) => response.response),
-        catchError(error => {
+        catchError((error) => {
           console.error('Error fetching Tenable repositories:', error);
           this.showPopup('Unable to connect to Tenable.');
           return of([]);
-        })
+        }),
       ),
       collections: from(this.collectionsService.getCollectionBasicList()).pipe(
-        catchError(error => {
+        catchError((error) => {
           console.error('Error fetching collections:', error);
           this.showPopup('Unable to fetch existing collections.');
           return of([]);
-        })
-      )
+        }),
+      ),
     }).subscribe({
       next: ({ repositories, collections }) => {
         this.tenableRepositories = repositories;
-        this.existingCollections = Array.isArray(collections) ? collections : [];
+        this.existingCollections = Array.isArray(collections)
+          ? collections
+          : [];
         this.filterRepositories();
       },
       error: (error) => {
         console.error('Error in fetching data:', error);
         this.showPopup('An error occurred while fetching data.');
-      }
+      },
     });
   }
 
   filterRepositories() {
-    const existingNames = new Set(this.existingCollections.map(c => c.collectionName.toLowerCase()));
-    this.filteredRepositories = this.tenableRepositories?.filter(repo =>
-      !existingNames.has(repo.name.toLowerCase())
+    const existingNames = new Set(
+      this.existingCollections.map((c) => c.collectionName.toLowerCase()),
+    );
+    this.filteredRepositories = this.tenableRepositories?.filter(
+      (repo) => !existingNames.has(repo.name.toLowerCase()),
     );
 
     if (this.filteredRepositories?.length === 0) {
@@ -111,18 +115,28 @@ export class TenableAdminComponent implements OnInit {
       header: 'Confirm Bulk Import',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        const importObservables = this.filteredRepositories.map(repo => this.importRepository(repo));
+        const importObservables = this.filteredRepositories.map((repo) =>
+          this.importRepository(repo),
+        );
         forkJoin(importObservables).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'All repositories imported successfully' });
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'All repositories imported successfully',
+            });
             this.fetchDataAndCompare();
           },
           error: (error) => {
             console.error('Error during bulk import', error);
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error during bulk import' });
-          }
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error during bulk import',
+            });
+          },
         });
-      }
+      },
     });
   }
 
@@ -136,14 +150,22 @@ export class TenableAdminComponent implements OnInit {
 
     return from(this.collectionsService.addCollection(collectionData)).pipe(
       switchMap((response) => {
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Repository "${repository.name}" imported successfully` });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Repository "${repository.name}" imported successfully`,
+        });
         return response;
       }),
       catchError((error) => {
         console.error(`Error importing repository "${repository.name}"`, error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: `Error importing repository "${repository.name}": ${error.message}` });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error importing repository "${repository.name}": ${error.message}`,
+        });
         throw error;
-      })
+      }),
     );
   }
 
@@ -153,7 +175,7 @@ export class TenableAdminComponent implements OnInit {
       header: 'Alert',
       icon: 'pi pi-info-circle',
       acceptLabel: 'OK',
-      rejectVisible: false
+      rejectVisible: false,
     });
   }
 }

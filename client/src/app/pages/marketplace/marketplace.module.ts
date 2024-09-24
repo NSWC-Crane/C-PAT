@@ -17,15 +17,15 @@ import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
-import { MarketplaceComponent, ImageDialogComponent } from './marketplace.component';
+import {
+  MarketplaceComponent,
+  ImageDialogComponent,
+} from './marketplace.component';
 import { MarketplaceRoutingModule } from './marketplace.routing';
 import { DividerModule } from 'primeng/divider';
 
 @NgModule({
-  declarations: [
-    MarketplaceComponent,
-    ImageDialogComponent
-  ],
+  declarations: [MarketplaceComponent, ImageDialogComponent],
   imports: [
     CommonModule,
     DividerModule,
@@ -39,4 +39,4 @@ import { DividerModule } from 'primeng/divider';
     MarketplaceRoutingModule,
   ],
 })
-export class MarketplaceModule { }
+export class MarketplaceModule {}

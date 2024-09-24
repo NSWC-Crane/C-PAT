@@ -31,10 +31,7 @@ import { ImportProcessingModule } from '../import-processing/import-processing.m
 import { TooltipModule } from 'primeng/tooltip';
 
 @NgModule({
-  declarations: [
-    AssetProcessingComponent,
-    AssetComponent,
-  ],
+  declarations: [AssetProcessingComponent, AssetComponent],
   imports: [
     CommonModule,
     ImportProcessingModule,
@@ -52,10 +49,10 @@ import { TooltipModule } from 'primeng/tooltip';
     DialogModule,
     SharedModule,
   ],
-providers: [
-  provideCharts(withDefaultRegisterables()),
-  ConfirmationService,
-  MessageService,
+  providers: [
+    provideCharts(withDefaultRegisterables()),
+    ConfirmationService,
+    MessageService,
   ],
 })
-export class AssetProcessingModule { }
+export class AssetProcessingModule {}

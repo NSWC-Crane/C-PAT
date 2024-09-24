@@ -18,7 +18,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'cpat-notifications-popover',
   templateUrl: './notifications-popover.component.html',
-  styleUrls: ['./notifications-popover.component.scss']
+  styleUrls: ['./notifications-popover.component.scss'],
 })
 export class NotificationsPanelComponent implements OnInit, OnDestroy {
   @Input() overlayPanel: OverlayPanel;
@@ -33,7 +33,7 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private setPayloadService: PayloadService,
     private router: Router,
-  ) { }
+  ) {}
 
   async ngOnInit() {
     this.setPayload();
@@ -42,18 +42,18 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.fetchNotifications();
         }
-      })
+      }),
     );
   }
 
@@ -65,26 +65,30 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
 
   async fetchNotifications() {
     (await this.notificationService.getUnreadNotifications()).subscribe(
-      notifications => {
+      (notifications) => {
         this.notifications = notifications;
       },
-      error => {
+      (error) => {
         console.error('Failed to fetch notifications:', error);
-      }
+      },
     );
   }
 
   async dismissNotification(notification: any) {
-    (await this.notificationService.dismissNotification(notification.notificationId)).subscribe(
+    (
+      await this.notificationService.dismissNotification(
+        notification.notificationId,
+      )
+    ).subscribe(
       () => {
         const index = this.notifications.indexOf(notification);
         if (index !== -1) {
           this.notifications.splice(index, 1);
         }
       },
-      error => {
+      (error) => {
         console.error('Failed to dismiss notification:', error);
-      }
+      },
     );
   }
 
@@ -93,9 +97,9 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
       () => {
         this.notifications = [];
       },
-      error => {
+      (error) => {
         console.error('Failed to dismiss all notifications:', error);
-      }
+      },
     );
   }
 
@@ -105,6 +109,8 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) =>
+      subscription.unsubscribe(),
+    );
   }
 }

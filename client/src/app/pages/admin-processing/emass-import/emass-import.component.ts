@@ -9,7 +9,7 @@ import { FileUpload } from 'primeng/fileupload';
 @Component({
   selector: 'app-emass-import',
   templateUrl: './emass-import.component.html',
-  styleUrls: ['./emass-import.component.scss']
+  styleUrls: ['./emass-import.component.scss'],
 })
 export class EmassImportComponent implements OnInit {
   @ViewChild('fileUpload') fileUpload!: FileUpload;
@@ -22,20 +22,28 @@ export class EmassImportComponent implements OnInit {
   constructor(
     private messageService: MessageService,
     private eMASSImportService: eMASSImportService,
-    private userService: UsersService
-  ) { }
+    private userService: UsersService,
+  ) {}
 
   async ngOnInit() {
     try {
       this.user = await firstValueFrom(await this.userService.getCurrentUser());
     } catch (error) {
       console.error('Error fetching user data:', error);
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch user data' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to fetch user data',
+      });
     }
   }
 
   onUpload() {
-    this.messageService.add({ severity: 'info', summary: 'File Uploaded', detail: '' });
+    this.messageService.add({
+      severity: 'info',
+      summary: 'File Uploaded',
+      detail: '',
+    });
   }
 
   onSelect(event: any) {
@@ -46,38 +54,65 @@ export class EmassImportComponent implements OnInit {
     const file = event.files[0];
     if (!file) {
       console.error('No file selected');
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No file selected' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No file selected',
+      });
       return;
     }
 
     if (!this.user || !this.user.userId) {
       console.error('User ID is not available');
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'User ID is not available' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'User ID is not available',
+      });
       return;
     }
 
     try {
-      const upload$ = await this.eMASSImportService.upload(file, this.user.userId);
+      const upload$ = await this.eMASSImportService.upload(
+        file,
+        this.user.userId,
+      );
       upload$.subscribe({
         next: (event: any) => {
           if (event.type === HttpEventType.UploadProgress) {
-            const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+            const percentDone = event.total
+              ? Math.round((100 * event.loaded) / event.total)
+              : 0;
           } else if (event instanceof HttpResponse) {
-            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'File uploaded successfully' });
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'File uploaded successfully',
+            });
             this.fileUpload.clear();
           }
         },
         error: (error) => {
           console.error('Error during file upload:', error);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'File upload failed: ' + (error.error?.message || 'Unknown error') });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail:
+              'File upload failed: ' +
+              (error.error?.message || 'Unknown error'),
+          });
         },
         complete: () => {
           this.updateTotalSize();
-        }
+        },
       });
     } catch (error) {
       console.error('Error initiating file upload:', error);
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to initiate file upload' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to initiate file upload',
+      });
     }
   }
 
@@ -89,7 +124,12 @@ export class EmassImportComponent implements OnInit {
     uploadCallback();
   }
 
-  onRemoveFile(event: Event, file: File, removeCallback: Function, index: number) {
+  onRemoveFile(
+    event: Event,
+    file: File,
+    removeCallback: Function,
+    index: number,
+  ) {
     removeCallback(file);
     this.updateTotalSize();
   }

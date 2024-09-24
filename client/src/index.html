@@ -17,44 +17,7 @@
   <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, viewport-fit=cover">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link id="theme-link" rel="stylesheet" type="text/css" href="app/styles/themes/lara-dark-blue/theme.css">
-  <!--<script type="text/javascript" src="cpat/Env.js"></script>-->
-  <script>
-    const CPAT = {
-      Env: {
-        classification: "U",
-        version: "1.0.0-beta.1",
-        apiBase: "http://localhost:8086/api",
-        oauth: {
-          authority: "http://localhost:8080/realms/RMFTools",
-          clientId: "c-pat",
-          refreshToken: {
-            disabled: false
-          },
-          extraScopes: "",
-          scopePrefix: "",
-          claims: {
-            scope: "scope",
-            username: "preferred_username",
-            servicename: "clientId",
-            fullname: "name",
-            firstname: "given_name",
-            lastname: "family_name",
-            privileges: "['realm_access']?.['roles']",
-            email: "email"
-          }
-        },
-        stigman: {
-          clientId: "stig-manager",
-          apiUrl: "http://localhost:54000/api",
-          scopePrefix: "",
-          extraScopes: "",
-        },
-        features: {
-          marketplaceDisabled: false
-        }
-      }
-    }
-  </script>
+  <script type="text/javascript" src="cpat/Env.js"></script>
 </head>
 <body>
   <cpat-app>

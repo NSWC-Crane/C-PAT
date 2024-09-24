@@ -13,10 +13,27 @@ export class AppConfigComponent {
   compactMaterial: boolean = false;
   inputStyles = [
     { label: 'Outlined', value: 'outlined' },
-    { label: 'Filled', value: 'filled' }
+    { label: 'Filled', value: 'filled' },
   ];
-  lightOnlyThemes = ['fluent-light', 'mira', 'nano', 'bootstrap4-light-purple', 'bootstrap4-light-blue', 'soho-light', 'viva-light'];
-  darkOnlyThemes = ['arya-blue', 'arya-green', 'arya-orange', 'arya-purple', 'bootstrap4-dark-purple', 'bootstrap4-dark-blue', 'soho-dark', 'viva-dark'];
+  lightOnlyThemes = [
+    'fluent-light',
+    'mira',
+    'nano',
+    'bootstrap4-light-purple',
+    'bootstrap4-light-blue',
+    'soho-light',
+    'viva-light',
+  ];
+  darkOnlyThemes = [
+    'arya-blue',
+    'arya-green',
+    'arya-orange',
+    'arya-purple',
+    'bootstrap4-dark-purple',
+    'bootstrap4-dark-blue',
+    'soho-dark',
+    'viva-dark',
+  ];
   scales: number[] = [12, 13, 14, 15, 16];
   user: any;
   private subs = new SubSink();
@@ -25,7 +42,7 @@ export class AppConfigComponent {
     public layoutService: LayoutService,
     public menuService: MenuService,
     private userService: UsersService,
-  ) { }
+  ) {}
 
   get visible(): boolean {
     return this.layoutService.state.configSidebarVisible;
@@ -93,7 +110,10 @@ export class AppConfigComponent {
 
   get isDarkToggleDisabled(): boolean {
     const currentTheme = this.layoutService.config().theme;
-    return this.darkOnlyThemes.includes(currentTheme) || this.lightOnlyThemes.includes(currentTheme);
+    return (
+      this.darkOnlyThemes.includes(currentTheme) ||
+      this.lightOnlyThemes.includes(currentTheme)
+    );
   }
 
   get isDarkMode(): boolean {
@@ -106,7 +126,8 @@ export class AppConfigComponent {
 
   isThemeActive(themeFamily: string, color?: string) {
     let themeName: string;
-    let themePrefix = themeFamily === 'md' && this.compactMaterial ? 'mdc' : themeFamily;
+    let themePrefix =
+      themeFamily === 'md' && this.compactMaterial ? 'mdc' : themeFamily;
 
     if (this.lightOnlyThemes.includes(themePrefix)) {
       themeName = themePrefix;
@@ -158,7 +179,9 @@ export class AppConfigComponent {
 
     try {
       if (!this.user?.userId) {
-        const userResponse = await (await this.userService.getCurrentUser()).toPromise();
+        const userResponse = await (
+          await this.userService.getCurrentUser()
+        ).toPromise();
         this.user = userResponse ?? null;
       }
       const userThemeUpdate = {
@@ -166,8 +189,14 @@ export class AppConfigComponent {
         userId: this.user.userId,
       };
 
-      const updateResult = await (await this.userService.updateUserTheme(userThemeUpdate)).toPromise();
-      this.layoutService.config.update((config) => ({ ...config, colorScheme: darkMode, theme: newTheme }));
+      const updateResult = await (
+        await this.userService.updateUserTheme(userThemeUpdate)
+      ).toPromise();
+      this.layoutService.config.update((config) => ({
+        ...config,
+        colorScheme: darkMode,
+        theme: newTheme,
+      }));
     } catch (error) {
       console.error('Error updating theme:', error);
     }

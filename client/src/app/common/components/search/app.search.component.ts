@@ -24,22 +24,25 @@ interface SearchItem {
         [field]="'title'"
         [minLength]="1"
         [scrollHeight]="'500px'"
-        [style]="{'width':'100%'}">
+        [style]="{ width: '100%' }"
+      >
         <ng-template let-item pTemplate="item">
-          <div>{{item.title}}</div>
+          <div>{{ item.title }}</div>
         </ng-template>
       </p-autoComplete>
       <i class="pi pi-search"></i>
     </span>
   `,
-  styles: [`
-    :host ::ng-deep .p-autocomplete {
-      width: 100%;
-    }
-    :host ::ng-deep .p-autocomplete-panel {
-      max-width: 100%;
-    }
-  `]
+  styles: [
+    `
+      :host ::ng-deep .p-autocomplete {
+        width: 100%;
+      }
+      :host ::ng-deep .p-autocomplete-panel {
+        max-width: 100%;
+      }
+    `,
+  ],
 })
 export class AppSearchComponent {
   public filteredItems: SearchItem[] = [];
@@ -68,8 +71,8 @@ export class AppSearchComponent {
   }
 
   search(event: { query: string }) {
-    this.filteredItems = this.searchItems.filter(item =>
-      item.title.toLowerCase().includes(event.query.toLowerCase())
+    this.filteredItems = this.searchItems.filter((item) =>
+      item.title.toLowerCase().includes(event.query.toLowerCase()),
     );
   }
 

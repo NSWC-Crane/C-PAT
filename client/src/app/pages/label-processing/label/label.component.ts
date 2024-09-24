@@ -8,19 +8,31 @@
 !########################################################################
 */
 
-import { Component, OnInit, Input, EventEmitter, Output, OnDestroy, SimpleChanges, OnChanges } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  EventEmitter,
+  Output,
+  OnDestroy,
+  SimpleChanges,
+  OnChanges,
+} from '@angular/core';
 import { LabelService } from '../label.service';
 import { Observable, Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
 import { DialogService } from 'primeng/dynamicdialog';
-import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
+import {
+  ConfirmationDialogComponent,
+  ConfirmationDialogOptions,
+} from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'cpat-label',
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss'],
-  providers: [DialogService]
+  providers: [DialogService],
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   @Input() label: any;
@@ -39,14 +51,14 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   constructor(
     private labelService: LabelService,
     private dialogService: DialogService,
-    private sharedService: SharedService
-  ) { }
+    private sharedService: SharedService,
+  ) {}
 
   ngOnInit() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
-      })
+      }),
     );
   }
 
@@ -59,23 +71,30 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   async onSubmit() {
     if (!this.validData()) return;
     const label = {
-      labelId: (this.label.labelId == "ADDLABEL" || !this.label.labelId) ? 0 : this.label.labelId,
+      labelId:
+        this.label.labelId == 'ADDLABEL' || !this.label.labelId
+          ? 0
+          : this.label.labelId,
       collectionId: this.selectedCollection,
       labelName: this.label.labelName,
       description: this.label.description,
     };
     if (label.labelId === 0) {
-      this.subs.sink = (await this.labelService.addLabel(this.selectedCollection, label)).subscribe(
+      this.subs.sink = (
+        await this.labelService.addLabel(this.selectedCollection, label)
+      ).subscribe(
         (data: any) => {
           this.labelchange.emit(data.labelId);
         },
         (err: any) => {
-          this.invalidData("Unexpected error adding label");
+          this.invalidData('Unexpected error adding label');
           console.error(err);
-        }
+        },
       );
     } else {
-      this.subs.sink = (await this.labelService.updateLabel(this.selectedCollection, label)).subscribe(data => {
+      this.subs.sink = (
+        await this.labelService.updateLabel(this.selectedCollection, label)
+      ).subscribe((data) => {
         this.label = data;
         this.labelchange.emit();
       });
@@ -91,19 +110,21 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     this.dialogService.open(ConfirmationDialogComponent, {
       data: {
         options: dialogOptions,
-      }
+      },
     }).onClose;
 
   validData(): boolean {
     if (!this.label.labelName || this.label.labelName == undefined) {
-      this.invalidData("Label name required");
+      this.invalidData('Label name required');
       return false;
     }
 
-    if (this.label.labelId == "ADDLABEL") {
-      const exists = this.labels.find((e: { labelName: any; }) => e.labelName === this.label.labelName);
+    if (this.label.labelId == 'ADDLABEL') {
+      const exists = this.labels.find(
+        (e: { labelName: any }) => e.labelName === this.label.labelName,
+      );
       if (exists) {
-        this.invalidData("Label Already Exists");
+        this.invalidData('Label Already Exists');
         return false;
       }
     }
@@ -114,14 +135,14 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   invalidData(errMsg: string) {
     this.confirm(
       new ConfirmationDialogOptions({
-        header: "Invalid Data",
+        header: 'Invalid Data',
         body: errMsg,
         button: {
-          text: "ok",
-          status: "warning",
+          text: 'ok',
+          status: 'warning',
         },
-        cancelbutton: "false",
-      })
+        cancelbutton: 'false',
+      }),
     );
   }
 

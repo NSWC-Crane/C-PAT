@@ -6,11 +6,10 @@ import { firstValueFrom, timer } from 'rxjs';
 import { Table } from 'primeng/table';
 import { ImportService } from '../../import-processing/import.service';
 
-
 @Component({
   selector: 'app-nessus-plugin-mapping',
   templateUrl: './nessus-plugin-mapping.component.html',
-  styleUrls: ['./nessus-plugin-mapping.component.scss']
+  styleUrls: ['./nessus-plugin-mapping.component.scss'],
 })
 export class NessusPluginMappingComponent implements OnInit {
   @ViewChild('dt') dt!: Table;
@@ -33,14 +32,18 @@ export class NessusPluginMappingComponent implements OnInit {
     private nessusPluginMappingService: NessusPluginMappingService,
     private userService: UsersService,
     private importService: ImportService,
-  ) { }
+  ) {}
 
   async ngOnInit() {
     try {
       this.user = await firstValueFrom(await this.userService.getCurrentUser());
     } catch (error) {
       console.error('Error fetching user data:', error);
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch user data' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to fetch user data',
+      });
     }
     this.getIAVTableData();
     this.initColumns();
@@ -59,27 +62,39 @@ export class NessusPluginMappingComponent implements OnInit {
       { field: 'supersededBy', header: 'Superseded By' },
       { field: 'knownExploits', header: 'Known Exploits' },
       { field: 'knownDodIncidents', header: 'Known DoD Incidents' },
-      { field: 'nessusPlugins', header: 'Nessus Plugins' }
+      { field: 'nessusPlugins', header: 'Nessus Plugins' },
     ];
   }
 
   async getIAVTableData(): Promise<void> {
     this.loading = true;
     try {
-      const response = await this.nessusPluginMappingService.getIAVTableData().toPromise();
+      const response = await this.nessusPluginMappingService
+        .getIAVTableData()
+        .toPromise();
       if (Array.isArray(response)) {
-        this.tableData = response.map(item => ({
+        this.tableData = response.map((item) => ({
           ...item,
-          pluginID: item.pluginID ? item.pluginID.split(',').map((id: any) => id.trim()) : []
+          pluginID: item.pluginID
+            ? item.pluginID.split(',').map((id: any) => id.trim())
+            : [],
         }));
         this.totalRecords = this.tableData.length;
       } else {
         console.error('Invalid response format:', response);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid data format received' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Invalid data format received',
+        });
       }
     } catch (error) {
       console.error('Error fetching IAV Table Data:', error);
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch IAV Table Data' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to fetch IAV Table Data',
+      });
     } finally {
       this.loading = false;
     }
@@ -97,9 +112,16 @@ export class NessusPluginMappingComponent implements OnInit {
 
       const updateEstimatedProgress = () => {
         const elapsedTime = Date.now() - startTime;
-        const estimatedTotalTime = this.estimatedRequestTime * (totalRecords / this.batchSize);
-        const estimatedProgress = Math.min((elapsedTime / estimatedTotalTime) * 100, 90);
-        this.updateProgress = Math.max(this.updateProgress, Math.round(estimatedProgress));
+        const estimatedTotalTime =
+          this.estimatedRequestTime * (totalRecords / this.batchSize);
+        const estimatedProgress = Math.min(
+          (elapsedTime / estimatedTotalTime) * 100,
+          90,
+        );
+        this.updateProgress = Math.max(
+          this.updateProgress,
+          Math.round(estimatedProgress),
+        );
 
         const remainingTime = Math.max(estimatedTotalTime - elapsedTime, 0);
         this.estimatedTimeRemaining = this.formatTime(remainingTime);
@@ -110,7 +132,10 @@ export class NessusPluginMappingComponent implements OnInit {
 
       while (startOffset < totalRecords) {
         const batchStartTime = Date.now();
-        const batchData = await this.getPluginBatch(startOffset, this.batchSize);
+        const batchData = await this.getPluginBatch(
+          startOffset,
+          this.batchSize,
+        );
         allPluginData = allPluginData.concat(batchData.pluginData);
         totalRecords = batchData.totalRecords;
         startOffset += this.batchSize;
@@ -123,7 +148,9 @@ export class NessusPluginMappingComponent implements OnInit {
 
         const batchDuration = Date.now() - batchStartTime;
         if (batchDuration < this.estimatedRequestTime) {
-          await firstValueFrom(timer(this.estimatedRequestTime - batchDuration));
+          await firstValueFrom(
+            timer(this.estimatedRequestTime - batchDuration),
+          );
         }
       }
 
@@ -134,11 +161,19 @@ export class NessusPluginMappingComponent implements OnInit {
       const mappedData = this.mapPluginDataToVram(allPluginData);
       await this.updateVramTable(mappedData);
 
-      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Plugin IDs successfully mapped.' });
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Plugin IDs successfully mapped.',
+      });
       this.getIAVTableData();
     } catch (error) {
       console.error('Error updating plugin IDs:', error);
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update plugin IDs' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to update plugin IDs',
+      });
     } finally {
       this.isUpdating = false;
     }
@@ -151,47 +186,52 @@ export class NessusPluginMappingComponent implements OnInit {
     return `${minutes}m ${remainingSeconds}s`;
   }
 
-  private async getPluginBatch(startOffset: number, batchSize: number): Promise<{ pluginData: any[], totalRecords: number }> {
+  private async getPluginBatch(
+    startOffset: number,
+    batchSize: number,
+  ): Promise<{ pluginData: any[]; totalRecords: number }> {
     const analysisParams = {
       query: {
-        description: "",
-        context: "",
+        description: '',
+        context: '',
         status: -1,
         createdTime: 0,
         modifiedTime: 0,
         groups: [],
-        type: "vuln",
-        tool: "vulndetails",
-        sourceType: "cumulative",
+        type: 'vuln',
+        tool: 'vulndetails',
+        sourceType: 'cumulative',
         startOffset: startOffset,
         endOffset: startOffset + batchSize,
         filters: [
           {
-            "id": "xref",
-            "filterName": "xref",
-            "operator": "=",
-            "type": "vuln",
-            "isPredefined": true,
-            "value": "IAVA|20*,IAVB|20*,IAVT|20*,IAVA|199*,IAVB|199*,IAVT|199*"
-          }
+            id: 'xref',
+            filterName: 'xref',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: 'IAVA|20*,IAVB|20*,IAVT|20*,IAVA|199*,IAVB|199*,IAVT|199*',
+          },
         ],
-        vulnTool: "vulndetails"
+        vulnTool: 'vulndetails',
       },
-      sourceType: "cumulative",
-      columns: ["pluginID", "xref"],
-      type: "vuln"
+      sourceType: 'cumulative',
+      columns: ['pluginID', 'xref'],
+      type: 'vuln',
     };
 
-    const data = await firstValueFrom(await this.importService.postTenableAnalysis(analysisParams));
+    const data = await firstValueFrom(
+      await this.importService.postTenableAnalysis(analysisParams),
+    );
     return {
       pluginData: data.response.results,
-      totalRecords: data.response.totalRecords
+      totalRecords: data.response.totalRecords,
     };
   }
 
   private mapPluginDataToVram(pluginData: any[]): any[] {
     const iavMap = new Map<string, Set<string>>();
-    pluginData.forEach(plugin => {
+    pluginData.forEach((plugin) => {
       const iavMatch = plugin.xref.match(/IAV[ABT]\s*#\s*(\d{4}-[A-Z]-\d{4})/);
       if (iavMatch) {
         const iav = iavMatch[1];
@@ -204,12 +244,14 @@ export class NessusPluginMappingComponent implements OnInit {
 
     return Array.from(iavMap.entries()).map(([iav, pluginIDs]) => ({
       iav,
-      pluginID: Array.from(pluginIDs).join(', ')
+      pluginID: Array.from(pluginIDs).join(', '),
     }));
   }
 
   private async updateVramTable(mappedData: any[]): Promise<void> {
-    const updateMapping = await firstValueFrom(await this.nessusPluginMappingService.mapIAVPluginIds(mappedData));
+    const updateMapping = await firstValueFrom(
+      await this.nessusPluginMappingService.mapIAVPluginIds(mappedData),
+    );
   }
 
   getFilterType(col: any): string {

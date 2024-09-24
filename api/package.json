@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "prestart": "npm install",
-    "start": "node index.js"
+    "start": "node index.js",
+    "start:build-client": "cd ../client && npm run build && cd ../api && npm install && npm start"
   },
   "author": "Christian Rodriguez",
   "license": "ISC",

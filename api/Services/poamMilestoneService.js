@@ -223,7 +223,7 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
             await connection.query(sql, [poamId, milestoneId]);
 
             let action = `Milestone Deleted.`;
-                if (req.body.extension == true) {
+                if (req.body.extension === true) {
                     action = `Extension milestone deleted.`;
                 }
                 else {

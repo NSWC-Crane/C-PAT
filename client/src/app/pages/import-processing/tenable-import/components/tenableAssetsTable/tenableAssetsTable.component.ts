@@ -17,7 +17,7 @@ interface ExportColumn {
 @Component({
   selector: 'tenable-assets-table',
   templateUrl: './tenableAssetsTable.component.html',
-  styleUrls: ['./tenableAssetsTable.component.scss']
+  styleUrls: ['./tenableAssetsTable.component.scss'],
 })
 export class TenableAssetsTableComponent implements OnInit {
   @Input() pluginID!: string;
@@ -46,8 +46,8 @@ export class TenableAssetsTableComponent implements OnInit {
   constructor(
     private importService: ImportService,
     private sanitizer: DomSanitizer,
-    private messageService: MessageService
-  ) { }
+    private messageService: MessageService,
+  ) {}
 
   async ngOnInit() {
     this.initColumnsAndFilters();
@@ -55,75 +55,117 @@ export class TenableAssetsTableComponent implements OnInit {
 
   initColumnsAndFilters() {
     this.cols = [
-      { field: 'pluginID', header: 'Plugin ID', width: '100px', filterable: true },
+      {
+        field: 'pluginID',
+        header: 'Plugin ID',
+        width: '100px',
+        filterable: true,
+      },
       { field: 'pluginName', header: 'Name', width: '200px', filterable: true },
       { field: 'family', header: 'Family', width: '150px', filterable: true },
-      { field: 'severity', header: 'Severity', width: '100px', filterable: true },
+      {
+        field: 'severity',
+        header: 'Severity',
+        width: '100px',
+        filterable: true,
+      },
       { field: 'vprScore', header: 'VPR', width: '100px', filterable: true },
       { field: 'ips', header: 'IP Address', width: '150px' },
       { field: 'acrScore', header: 'ACR', width: '100px', filterable: false },
-      { field: 'assetExposureScore', header: 'AES', width: '100px', filterable: false },
-      { field: 'netbiosName', header: 'NetBIOS', width: '150px', filterable: false },
+      {
+        field: 'assetExposureScore',
+        header: 'AES',
+        width: '100px',
+        filterable: false,
+      },
+      {
+        field: 'netbiosName',
+        header: 'NetBIOS',
+        width: '150px',
+        filterable: false,
+      },
       { field: 'dnsName', header: 'DNS', width: '200px', filterable: false },
-      { field: 'macAddress', header: 'MAC Address', width: '150px', filterable: false },
+      {
+        field: 'macAddress',
+        header: 'MAC Address',
+        width: '150px',
+        filterable: false,
+      },
       { field: 'port', header: 'Port', width: '100px', filterable: false },
-      { field: 'protocol', header: 'Protocol', width: '100px', filterable: false },
+      {
+        field: 'protocol',
+        header: 'Protocol',
+        width: '100px',
+        filterable: false,
+      },
       { field: 'uuid', header: 'Agent ID', width: '200px', filterable: false },
-      { field: 'hostUUID', header: 'Host ID', width: '200px', filterable: false },
+      {
+        field: 'hostUUID',
+        header: 'Host ID',
+        width: '200px',
+        filterable: false,
+      },
     ];
-    this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));
-    this.selectedColumns = this.cols.filter(col => [
-      'pluginID',
-      'pluginName',
-      'family',
-      'severity',
-      'vprScore',
-      'ips',
-      'acrScore',
-      'assetExposureScore',
-      'netbiosName',
-      'dnsName',
-      'macAddress',
-      'port',
-      'protocol',
-      'uuid',
-      'hostUUID'
-    ].includes(col.field));
+    this.exportColumns = this.cols.map((col) => ({
+      title: col.header,
+      dataKey: col.field,
+    }));
+    this.selectedColumns = this.cols.filter((col) =>
+      [
+        'pluginID',
+        'pluginName',
+        'family',
+        'severity',
+        'vprScore',
+        'ips',
+        'acrScore',
+        'assetExposureScore',
+        'netbiosName',
+        'dnsName',
+        'macAddress',
+        'port',
+        'protocol',
+        'uuid',
+        'hostUUID',
+      ].includes(col.field),
+    );
   }
 
   async getAffectedAssetsByPluginId(pluginID: string) {
     const analysisParams = {
       query: {
-        description: "",
-        context: "",
+        description: '',
+        context: '',
         status: -1,
         createdTime: 0,
         modifiedTime: 0,
         groups: [],
-        type: "vuln",
-        tool: "listvuln",
-        sourceType: "cumulative",
+        type: 'vuln',
+        tool: 'listvuln',
+        sourceType: 'cumulative',
         startOffset: 0,
         endOffset: 5000,
         filters: [
           {
-            id: "pluginID",
-            filterName: "pluginID",
-            operator: "=",
-            type: "vuln",
+            id: 'pluginID',
+            filterName: 'pluginID',
+            operator: '=',
+            type: 'vuln',
             isPredefined: true,
-            value: pluginID
-          }
+            value: pluginID,
+          },
         ],
-        vulnTool: "listvuln"
+        vulnTool: 'listvuln',
       },
-      sourceType: "cumulative",
+      sourceType: 'cumulative',
       columns: [],
-      type: "vuln"
+      type: 'vuln',
     };
 
     try {
-      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
+      const data = await (
+        await this.importService.postTenableAnalysis(analysisParams)
+      ).toPromise();
       this.affectedAssets = data.response.results.map((asset: any) => {
         const defaultAsset = {
           pluginID: '',
@@ -144,7 +186,9 @@ export class TenableAssetsTableComponent implements OnInit {
       this.isLoading = false;
     } catch (error) {
       console.error('Error fetching affected assets:', error);
-      this.showErrorMessage('Error fetching affected assets. Please try again.');
+      this.showErrorMessage(
+        'Error fetching affected assets. Please try again.',
+      );
     }
   }
 
@@ -156,46 +200,47 @@ export class TenableAssetsTableComponent implements OnInit {
     }
   }
 
-
   async getAffectedAssets(event: TableLazyLoadEvent) {
     if (!this.tenableRepoId) return;
     const startOffset = event.first ?? 0;
     const endOffset = startOffset + (event.rows ?? 20);
     const repoFilter = {
-      "id": "repository",
-      "filterName": "repository",
-      "operator": "=",
-      "type": "vuln",
-      "isPredefined": true,
-      "value": [
+      id: 'repository',
+      filterName: 'repository',
+      operator: '=',
+      type: 'vuln',
+      isPredefined: true,
+      value: [
         {
-          "id": this.tenableRepoId.toString(),
-        }
-      ]
+          id: this.tenableRepoId.toString(),
+        },
+      ],
     };
     const analysisParams = {
       query: {
-        description: "",
-        context: "",
+        description: '',
+        context: '',
         status: -1,
         createdTime: 0,
         modifiedTime: 0,
         groups: [],
-        type: "vuln",
-        tool: "listvuln",
-        sourceType: "cumulative",
+        type: 'vuln',
+        tool: 'listvuln',
+        sourceType: 'cumulative',
         startOffset: startOffset,
         endOffset: endOffset,
         filters: [repoFilter],
-        vulnTool: "listvuln"
+        vulnTool: 'listvuln',
       },
-      sourceType: "cumulative",
+      sourceType: 'cumulative',
       columns: [],
-      type: "vuln"
+      type: 'vuln',
     };
 
     try {
-      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
+      const data = await (
+        await this.importService.postTenableAnalysis(analysisParams)
+      ).toPromise();
       this.affectedAssets = data.response.results.map((asset: any) => {
         const defaultAsset = {
           pluginID: '',
@@ -216,7 +261,9 @@ export class TenableAssetsTableComponent implements OnInit {
       this.isLoading = false;
     } catch (error) {
       console.error('Error fetching affected assets:', error);
-      this.showErrorMessage('Error fetching affected assets. Please try again.');
+      this.showErrorMessage(
+        'Error fetching affected assets. Please try again.',
+      );
     }
   }
 
@@ -226,7 +273,9 @@ export class TenableAssetsTableComponent implements OnInit {
         throw new Error('Invalid vulnerability data');
       }
 
-      const data = await (await this.importService.getTenablePlugin(vulnerability.pluginID)).toPromise();
+      const data = await (
+        await this.importService.getTenablePlugin(vulnerability.pluginID)
+      ).toPromise();
 
       if (!data || !data.response) {
         throw new Error('Invalid response from getTenablePlugin');
@@ -234,7 +283,9 @@ export class TenableAssetsTableComponent implements OnInit {
 
       this.pluginData = data.response;
       this.formattedDescription = this.pluginData.description
-        ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replace(/\n\n/g, '<br>'))
+        ? this.sanitizer.bypassSecurityTrustHtml(
+            this.pluginData.description.replace(/\n\n/g, '<br>'),
+          )
         : '';
 
       if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
@@ -252,7 +303,7 @@ export class TenableAssetsTableComponent implements OnInit {
       }
 
       this.selectedVulnerability = vulnerability;
-        this.displayDialog = true;
+      this.displayDialog = true;
     } catch (error) {
       console.error('Error fetching plugin data:', error);
       this.showErrorMessage('Error fetching plugin data. Please try again.');
@@ -298,7 +349,7 @@ export class TenableAssetsTableComponent implements OnInit {
       severity: 'error',
       summary: 'Error',
       detail: message,
-      sticky: true
+      sticky: true,
     });
   }
 
@@ -308,11 +359,24 @@ export class TenableAssetsTableComponent implements OnInit {
   }
 
   onGlobalFilter(event: Event) {
-    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    this.table.filterGlobal(
+      (event.target as HTMLInputElement).value,
+      'contains',
+    );
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter(col => ['netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID'].includes(col.field));
+    this.selectedColumns = this.cols.filter((col) =>
+      [
+        'netbiosName',
+        'dnsName',
+        'macAddress',
+        'port',
+        'protocol',
+        'uuid',
+        'hostUUID',
+      ].includes(col.field),
+    );
   }
 
   toggleAddColumnOverlay() {

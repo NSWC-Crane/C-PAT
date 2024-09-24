@@ -9,14 +9,17 @@
 */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DialogService, DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import {
+  DialogService,
+  DynamicDialogRef,
+  DynamicDialogConfig,
+} from 'primeng/dynamicdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { MarketplaceService } from './marketplace.service';
 import { SubSink } from 'subsink';
 import { forkJoin } from 'rxjs';
 import { UsersService } from '../admin-processing/user-processing/users.service';
 import { LayoutService } from '../../layout/services/app.layout.service';
-
 
 interface Theme {
   themeId: number;
@@ -30,7 +33,7 @@ interface Theme {
   selector: 'cpat-marketplace',
   templateUrl: './marketplace.component.html',
   styleUrls: ['./marketplace.component.scss'],
-  providers: [DialogService, ConfirmationService, MessageService]
+  providers: [DialogService, ConfirmationService, MessageService],
 })
 export class MarketplaceComponent implements OnInit, OnDestroy {
   userPoints = 0;
@@ -49,8 +52,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
     public layoutService: LayoutService,
-
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.loadUserData();
@@ -65,8 +67,12 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         }
       },
       (error: any) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load user data' });
-      }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load user data',
+        });
+      },
     );
   }
 
@@ -76,32 +82,40 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   }
 
   async loadUserPoints() {
-    this.subs.sink = (await this.marketplaceService.getUserPoints(this.user.userId)).subscribe(
+    this.subs.sink = (
+      await this.marketplaceService.getUserPoints(this.user.userId)
+    ).subscribe(
       (response: any) => {
         this.userPoints = response.points;
       },
       (error) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load user points' });
-      }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load user points',
+        });
+      },
     );
   }
 
   async loadThemes() {
     this.subs.sink = forkJoin([
       await this.marketplaceService.getThemes(),
-      await this.marketplaceService.getUserThemes(this.user.userId)
+      await this.marketplaceService.getUserThemes(this.user.userId),
     ]).subscribe(([allThemes, purchasedThemes]: [Theme[], Theme[]]) => {
-      this.themes = allThemes.filter(theme => !purchasedThemes.find(p => p.themeId === theme.themeId));
+      this.themes = allThemes.filter(
+        (theme) => !purchasedThemes.find((p) => p.themeId === theme.themeId),
+      );
       this.purchasedThemes = purchasedThemes;
       this.updateThemeImageUrls();
     });
   }
 
   updateThemeImageUrls() {
-    this.themes.forEach(theme => {
+    this.themes.forEach((theme) => {
       this.themeImageUrls[theme.themeId] = this.getThemeImage(theme.themeId);
     });
-    this.purchasedThemes.forEach(theme => {
+    this.purchasedThemes.forEach((theme) => {
       this.themeImageUrls[theme.themeId] = this.getThemeImage(theme.themeId);
     });
   }
@@ -113,17 +127,30 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         header: 'Confirm Purchase',
         icon: 'pi pi-exclamation-triangle',
         accept: async () => {
-          this.subs.sink = (await (this.marketplaceService.purchaseTheme(this.user.userId, theme.themeId))).subscribe(
+          this.subs.sink = (
+            await this.marketplaceService.purchaseTheme(
+              this.user.userId,
+              theme.themeId,
+            )
+          ).subscribe(
             () => {
               this.userPoints -= theme.cost;
               this.loadThemes();
-              this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Theme purchased successfully' });
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Theme purchased successfully',
+              });
             },
             (error) => {
-              this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to purchase theme' });
-            }
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Failed to purchase theme',
+              });
+            },
           );
-        }
+        },
       });
     } else {
       this.showInsufficientPointsPopup();
@@ -131,7 +158,11 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   }
 
   showInsufficientPointsPopup() {
-    this.messageService.add({ severity: 'warn', summary: 'Insufficient Points', detail: 'You do not have enough points to purchase this theme.' });
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Insufficient Points',
+      detail: 'You do not have enough points to purchase this theme.',
+    });
   }
 
   async setTheme(themeIdentifier: string) {
@@ -145,12 +176,23 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     };
     (await this.userService.updateUserTheme(userThemeUpdate)).subscribe(
       (result: any) => {
-        this.layoutService.config.update((config) => ({ ...config, theme: themeIdentifier }));
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Theme updated successfully' });
+        this.layoutService.config.update((config) => ({
+          ...config,
+          theme: themeIdentifier,
+        }));
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Theme updated successfully',
+        });
       },
       (error) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update theme' });
-      }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update theme',
+        });
+      },
     );
   }
 
@@ -165,10 +207,10 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     this.dialogRef = this.dialogService.open(ImageDialogComponent, {
       data: {
         imageUrl: this.getThemeImage(theme.themeId),
-        themeName: theme.themeName
+        themeName: theme.themeName,
       },
       header: theme.themeName,
-      width: '70%'
+      width: '70%',
     });
   }
 
@@ -184,10 +226,14 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   selector: 'cpat-image-dialog',
   template: `
     <div class="dialog-image-container">
-      <img [src]="config.data.imageUrl" [alt]="config.data.themeName" style="max-width: 100%;">
+      <img
+        [src]="config.data.imageUrl"
+        [alt]="config.data.themeName"
+        style="max-width: 100%;"
+      />
     </div>
-  `
+  `,
 })
 export class ImageDialogComponent {
-  constructor(public config: DynamicDialogConfig) { }
+  constructor(public config: DynamicDialogConfig) {}
 }

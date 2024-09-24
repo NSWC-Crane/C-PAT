@@ -8,7 +8,14 @@
 !########################################################################
 */
 
-import { AsyncPipe, CommonModule, CurrencyPipe, DatePipe, DecimalPipe, PercentPipe } from '@angular/common';
+import {
+  AsyncPipe,
+  CommonModule,
+  CurrencyPipe,
+  DatePipe,
+  DecimalPipe,
+  PercentPipe,
+} from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
@@ -29,10 +36,10 @@ import { ImageModule } from 'primeng/image';
 @NgModule({
   declarations: [
     ConfirmationDialogComponent,
-    NotificationsComponent,    
+    NotificationsComponent,
     NotificationsPanelComponent,
     StatusDialogComponent,
-    VramPopupComponent
+    VramPopupComponent,
   ],
   imports: [
     ButtonModule,
@@ -41,7 +48,7 @@ import { ImageModule } from 'primeng/image';
     DialogModule,
     DropdownModule,
     StepperModule,
-    ImageModule, 
+    ImageModule,
     ListboxModule,
     ProgressBarModule,
     CommonModule,
@@ -55,12 +62,6 @@ import { ImageModule } from 'primeng/image';
     VramPopupComponent,
     StepperModule,
   ],
-  providers: [
-    CurrencyPipe,
-    DatePipe,
-    DecimalPipe,
-    PercentPipe,
-    AsyncPipe,
-  ],
+  providers: [CurrencyPipe, DatePipe, DecimalPipe, PercentPipe, AsyncPipe],
 })
-export class SharedModule { }
+export class SharedModule {}

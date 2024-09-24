@@ -11,58 +11,112 @@
 import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { NotificationsComponent } from './common/components/notifications/notifications.component';
-import { AuthGuard } from './core/auth/guards/auth.guard'
+import { AuthGuard } from './core/auth/guards/auth.guard';
 import { StatusMessageComponent } from './common/components/status-message/status-message.component';
 import { AppLayoutComponent } from './layout/components/app.layout.component';
 
 const routerOptions: ExtraOptions = {
-  anchorScrolling: 'enabled'
+  anchorScrolling: 'enabled',
 };
 
 const routes: Routes = [
-  {    
-    path: '', component: AppLayoutComponent,
-    children:
-    [
-  { path: 'admin-processing', canActivate: [AuthGuard], data: { guardType: 'admin' }, loadChildren: () => import('./pages/admin-processing/admin-processing.module').then(m => m.AdminProcessingModule) },
-  { path: 'asset-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/asset-processing/asset-processing.module').then(m => m.AssetProcessingModule) },
-  { path: 'consent', canActivate: [AuthGuard], loadChildren: () => import('./common/components/dod-consent/dod-consent.module').then(m => m.DoDConsentModule) },
-  { path: 'import-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/import-processing/import-processing.module').then(m => m.ImportProcessingModule) },
-  { path: 'label-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/label-processing/label-processing.module').then(m => m.LabelProcessingModule) },
-  { path: 'notifications', canActivate: [AuthGuard], component: NotificationsComponent },
-  { path: 'poam-processing', canActivate: [AuthGuard], loadChildren: () => import('./pages/poam-processing/poam-processing.module').then(m => m.PoamProcessingModule) },
-  { path: 'marketplace', canActivate: [AuthGuard], loadChildren: () => import('./pages/marketplace/marketplace.module').then(m => m.MarketplaceModule) },
-    ]
+  {
+    path: '',
+    component: AppLayoutComponent,
+    children: [
+      {
+        path: 'admin-processing',
+        canActivate: [AuthGuard],
+        data: { guardType: 'admin' },
+        loadChildren: () =>
+          import('./pages/admin-processing/admin-processing.module').then(
+            (m) => m.AdminProcessingModule,
+          ),
+      },
+      {
+        path: 'asset-processing',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('./pages/asset-processing/asset-processing.module').then(
+            (m) => m.AssetProcessingModule,
+          ),
+      },
+      {
+        path: 'consent',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('./common/components/dod-consent/dod-consent.module').then(
+            (m) => m.DoDConsentModule,
+          ),
+      },
+      {
+        path: 'import-processing',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('./pages/import-processing/import-processing.module').then(
+            (m) => m.ImportProcessingModule,
+          ),
+      },
+      {
+        path: 'label-processing',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('./pages/label-processing/label-processing.module').then(
+            (m) => m.LabelProcessingModule,
+          ),
+      },
+      {
+        path: 'notifications',
+        canActivate: [AuthGuard],
+        component: NotificationsComponent,
+      },
+      {
+        path: 'poam-processing',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('./pages/poam-processing/poam-processing.module').then(
+            (m) => m.PoamProcessingModule,
+          ),
+      },
+      {
+        path: 'marketplace',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('./pages/marketplace/marketplace.module').then(
+            (m) => m.MarketplaceModule,
+          ),
+      },
+    ],
   },
   {
     path: '401',
     component: StatusMessageComponent,
-    data: { statusCode: 401 }
+    data: { statusCode: 401 },
   },
   {
     path: '403',
     component: StatusMessageComponent,
-    data: { statusCode: 403 }
+    data: { statusCode: 403 },
   },
   {
     path: '404',
     component: StatusMessageComponent,
-    data: { statusCode: 404 }
+    data: { statusCode: 404 },
   },
   {
     path: '418',
     component: StatusMessageComponent,
-    data: { statusCode: 418 }
+    data: { statusCode: 418 },
   },
   {
     path: 'not-activated',
     component: StatusMessageComponent,
-    data: { statusCode: 999 }
+    data: { statusCode: 999 },
   },
   { path: '**', redirectTo: 'consent' },
 ];
 @NgModule({
   imports: [RouterModule.forRoot(routes, routerOptions)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

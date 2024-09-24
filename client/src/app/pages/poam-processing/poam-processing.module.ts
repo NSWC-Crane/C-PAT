@@ -97,12 +97,9 @@ import { ImportProcessingModule } from '../import-processing/import-processing.m
     RouterModule,
     NgxChartsModule,
     PoamProcessingRoutingModule,
-    ImportProcessingModule
+    ImportProcessingModule,
   ],
-  providers: [
-    provideCharts(withDefaultRegisterables()),
-    MessageService,
-  ],
+  providers: [provideCharts(withDefaultRegisterables()), MessageService],
   exports: [
     PoamAdvancedPieComponent,
     PoamAssignedGridComponent,
@@ -110,4 +107,4 @@ import { ImportProcessingModule } from '../import-processing/import-processing.m
     PoamMainchartComponent,
   ],
 })
-export class PoamProcessingModule { }
+export class PoamProcessingModule {}

@@ -10,17 +10,22 @@ import { Users } from '../../../pages/admin-processing/user-processing/users.mod
   providedIn: 'root',
 })
 export class AuthService {
-
   constructor(
     private router: Router,
     private oidcSecurityService: OidcSecurityService,
-    private usersService: UsersService
-  ) { }
+    private usersService: UsersService,
+  ) {}
 
-  async initializeAuthentication(): Promise<void> {    
-    const authResult = await firstValueFrom(this.oidcSecurityService.checkAuthMultiple());
-    const isAuthenticatedStigman = authResult.find(auth => auth.configId === 'stigman')?.isAuthenticated;
-    const isAuthenticatedCpat = authResult.find(auth => auth.configId === 'cpat')?.isAuthenticated;
+  async initializeAuthentication(): Promise<void> {
+    const authResult = await firstValueFrom(
+      this.oidcSecurityService.checkAuthMultiple(),
+    );
+    const isAuthenticatedStigman = authResult.find(
+      (auth) => auth.configId === 'stigman',
+    )?.isAuthenticated;
+    const isAuthenticatedCpat = authResult.find(
+      (auth) => auth.configId === 'cpat',
+    )?.isAuthenticated;
 
     if (!isAuthenticatedStigman) {
       await this.oidcSecurityService.authorize('stigman');
@@ -31,11 +36,10 @@ export class AuthService {
     }
   }
 
-
   getAccessToken(configId: string): Observable<string> {
-    return this.oidcSecurityService.getAccessToken(configId).pipe(
-      map(token => token || '')
-    );
+    return this.oidcSecurityService
+      .getAccessToken(configId)
+      .pipe(map((token) => token || ''));
   }
 
   isAuthenticated(configId: string): Observable<boolean> {
@@ -44,17 +48,17 @@ export class AuthService {
 
   getUserData(configId: string): Observable<any> {
     return this.oidcSecurityService.getUserData(configId).pipe(
-      switchMap(oidcUserData => {
+      switchMap((oidcUserData) => {
         return from(this.usersService.getCurrentUser()).pipe(
           switchMap((currentUserObservable: Observable<Users>) => {
             return currentUserObservable.pipe(
-              map(currentUser => {
+              map((currentUser) => {
                 return { ...oidcUserData, ...currentUser };
-              })
+              }),
             );
-          })
+          }),
         );
-      })
+      }),
     );
   }
 
@@ -64,6 +68,8 @@ export class AuthService {
 
   async logout() {
     await this.oidcSecurityService.logoff('stigman', undefined);
-    await this.oidcSecurityService.logoff('cpat', undefined).subscribe((result) => console.log('[C-PAT] Logout Success'));
+    await this.oidcSecurityService
+      .logoff('cpat', undefined)
+      .subscribe((result) => console.log('[C-PAT] Logout Success'));
   }
 }

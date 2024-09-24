@@ -31,7 +31,7 @@ interface CollectionBasicList {
 @Component({
   selector: 'cpat-stigmanager-admin',
   templateUrl: './stigmanager-admin.component.html',
-  styleUrls: ['./stigmanager-admin.component.scss']
+  styleUrls: ['./stigmanager-admin.component.scss'],
 })
 export class STIGManagerAdminComponent implements OnInit {
   stigmanCollections: STIGManagerCollection[] = [];
@@ -43,8 +43,8 @@ export class STIGManagerAdminComponent implements OnInit {
     private collectionsService: CollectionsService,
     private sharedService: SharedService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
-  ) { }
+    private messageService: MessageService,
+  ) {}
 
   ngOnInit() {
     this.fetchDataAndCompare();
@@ -52,43 +52,53 @@ export class STIGManagerAdminComponent implements OnInit {
 
   async fetchDataAndCompare() {
     await forkJoin({
-      stigmanCollections: from(await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
+      stigmanCollections: from(
+        await this.sharedService.getCollectionsFromSTIGMAN(),
+      ).pipe(
         map((collections: any) => collections),
-        catchError(error => {
+        catchError((error) => {
           console.error('Error fetching STIG Manager collections:', error);
           this.showPopup('Unable to connect to STIG Manager.');
           return of([]);
-        })
+        }),
       ),
-      existingCollections: from(await this.collectionsService.getCollectionBasicList()).pipe(
+      existingCollections: from(
+        await this.collectionsService.getCollectionBasicList(),
+      ).pipe(
         map((existingCollection: any) => existingCollection),
-        catchError(error => {
+        catchError((error) => {
           console.error('Error fetching existing collections:', error);
           this.showPopup('Unable to fetch existing collections.');
           return of([]);
-        })
-      )
+        }),
+      ),
     }).subscribe({
       next: ({ stigmanCollections, existingCollections }) => {
         this.stigmanCollections = stigmanCollections;
-        this.existingCollections = Array.isArray(existingCollections) ? existingCollections : [];
+        this.existingCollections = Array.isArray(existingCollections)
+          ? existingCollections
+          : [];
         this.filterCollections();
       },
       error: (error) => {
         console.error('Error in fetching data:', error);
         this.showPopup('An error occurred while fetching data.');
-      }
+      },
     });
   }
 
   filterCollections() {
-    const existingNames = new Set(this.existingCollections.map(c => c.collectionName.toLowerCase()));
-    this.filteredCollections = this.stigmanCollections.filter(collection =>
-      !existingNames.has(collection.name.toLowerCase())
+    const existingNames = new Set(
+      this.existingCollections.map((c) => c.collectionName.toLowerCase()),
+    );
+    this.filteredCollections = this.stigmanCollections.filter(
+      (collection) => !existingNames.has(collection.name.toLowerCase()),
     );
 
     if (this.filteredCollections.length === 0) {
-      this.showPopup('All STIG Manager collections have already been imported.');
+      this.showPopup(
+        'All STIG Manager collections have already been imported.',
+      );
     }
   }
 
@@ -110,18 +120,28 @@ export class STIGManagerAdminComponent implements OnInit {
       header: 'Confirm Bulk Import',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        const importObservables = this.filteredCollections.map(collection => this.importCollection(collection));
+        const importObservables = this.filteredCollections.map((collection) =>
+          this.importCollection(collection),
+        );
         forkJoin(importObservables).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'All collections imported successfully' });
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'All collections imported successfully',
+            });
             this.fetchDataAndCompare();
           },
           error: (error) => {
             console.error('Error during bulk import', error);
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error during bulk import' });
-          }
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error during bulk import',
+            });
+          },
         });
-      }
+      },
     });
   }
 
@@ -135,14 +155,22 @@ export class STIGManagerAdminComponent implements OnInit {
 
     return from(this.collectionsService.addCollection(collectionData)).pipe(
       switchMap((response) => {
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Collection "${collection.name}" imported successfully` });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Collection "${collection.name}" imported successfully`,
+        });
         return response;
       }),
       catchError((error) => {
         console.error(`Error importing collection "${collection.name}"`, error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: `Error importing collection "${collection.name}": ${error.message}` });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error importing collection "${collection.name}": ${error.message}`,
+        });
         throw error;
-      })
+      }),
     );
   }
 
@@ -152,7 +180,7 @@ export class STIGManagerAdminComponent implements OnInit {
       header: 'Alert',
       icon: 'pi pi-info-circle',
       acceptLabel: 'OK',
-      rejectVisible: false
+      rejectVisible: false,
     });
   }
 }

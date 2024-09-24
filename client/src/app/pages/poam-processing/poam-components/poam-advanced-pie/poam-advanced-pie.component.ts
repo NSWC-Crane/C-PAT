@@ -7,7 +7,8 @@ import { Component, Input } from '@angular/core';
       [scheme]="colorScheme"
       [results]="pieChartData"
       [percentageFormatting]="formatPercentages"
-      [label]="collectionName + ' POAMs'">
+      [label]="collectionName + ' POAMs'"
+    >
     </ngx-charts-advanced-pie-chart>
   `,
 })
@@ -24,9 +25,10 @@ export class PoamAdvancedPieComponent {
         'rgba(201, 203, 207, .7)',
         'rgba(255, 99, 132, .7)',
         'rgba(255, 205, 86, .7)',
-        'rgba(255, 159, 64, .7)', 
+        'rgba(255, 159, 64, .7)',
         'rgba(152, 102, 255, .7)',
-      ]};
+      ],
+    };
   }
 
   formatPercentages(value: number): string {

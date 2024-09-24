@@ -32,7 +32,6 @@
               "chalk"
             ],
             "outputPath": "dist",
-            "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
@@ -62,6 +61,7 @@
           },
           "configurations": {
             "production": {
+              "index": "src/index.html",
               "budgets": [
                 {
                   "type": "initial",
@@ -83,6 +83,7 @@
               "buildOptimizer": true
             },
             "development": {
+              "index": "src/development.html",
               "vendorChunk": true,
               "extractLicenses": false,
               "buildOptimizer": false,
@@ -97,10 +98,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "cpat:build:production"
+              "buildTarget": "cpat:build:production"
             },
             "development": {
-              "browserTarget": "cpat:build:development"
+              "buildTarget": "cpat:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -108,7 +109,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "cpat:build"
+            "buildTarget": "cpat:build"
           }
         },
         "lint": {
