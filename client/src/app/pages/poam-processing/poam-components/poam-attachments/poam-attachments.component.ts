@@ -2,7 +2,6 @@ import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { PoamAttachmentService } from './poam-attachments.service';
-import { UsersService } from '../../../admin-processing/user-processing/users.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { FileUpload } from 'primeng/fileupload';
 import { PayloadService } from '../../../../common/services/setPayload.service';
@@ -121,7 +120,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.user || !this.user.userId) {
+    if (!this.user?.userId) {
       console.error('User ID is not available');
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'User ID is not available' });
       return;
@@ -178,7 +177,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
       }
     }
     this.totalSize = this.formatSize(totalSize);
-    this.totalSizePercent = (totalSize / 10000000) * 100;
+    this.totalSizePercent = (totalSize / 5242880) * 100;
   }
 
   formatSize(bytes: number): string {

@@ -13,6 +13,18 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(255),
             allowNull: true,
         },
+        systemType: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        systemName: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        ccsafa: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
         created: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,

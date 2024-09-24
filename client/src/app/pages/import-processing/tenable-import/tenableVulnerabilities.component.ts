@@ -53,6 +53,10 @@ interface ExportColumn {
   title: string;
   dataKey: string;
 }
+interface PoamAssociation {
+  poamId: string;
+  status: string;
+}
 
 @Component({
   selector: 'tenable-vulnerabilities',
@@ -66,7 +70,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   iavReferences: Reference[] = [];
   otherReferences: Reference[] = [];
   allVulnerabilities: any[] = [];
-  existingPoamPluginIDs: any;
   iavInfo: { [key: number]: IAVInfo | undefined } = {};
   loadingIavInfo: boolean = false;
   pluginData: any;
@@ -92,6 +95,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   overlayVisible: boolean = false;
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
+  existingPoamPluginIDs: { [key: string]: PoamAssociation } = {};
   private subscriptions = new Subscription();
   @ViewChild('ms') multiSelect!: MultiSelect;
   @ViewChild('op') overlayPanel!: OverlayPanel;
@@ -2018,18 +2022,17 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   async onPoamIconClick(vulnerability: any, event: Event) {
     event.stopPropagation();
-    if (vulnerability.poam && vulnerability.poamId) {
-      this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
+    const poamAssociation = this.existingPoamPluginIDs[vulnerability.id];
+    if (poamAssociation) {
+      this.router.navigateByUrl(`/poam-processing/poam-details/${poamAssociation.poamId}`);
     } else {
       await this.showDetails(vulnerability, true);
       const pluginIAVData = this.iavInfo[this.pluginData.id];
-
       let formattedIavComplyByDate = null;
       if (pluginIAVData?.navyComplyDate) {
         const complyDate = new Date(pluginIAVData.navyComplyDate);
         formattedIavComplyByDate = format(complyDate, 'yyyy-MM-dd');
       }
-
       this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
         state: {
           vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
@@ -2141,8 +2144,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     try {
       const poamData = await (await this.poamService.getPluginIDsWithPoam()).toPromise();
       if (poamData && Array.isArray(poamData)) {
-        this.existingPoamPluginIDs = poamData.reduce((acc: { [key: string]: string }, item: { vulnerabilityId: string; poamId: string }) => {
-          acc[item.vulnerabilityId] = item.poamId;
+        this.existingPoamPluginIDs = poamData.reduce((acc: { [key: string]: PoamAssociation }, item: { vulnerabilityId: string; poamId: string; status: string }) => {
+          acc[item.vulnerabilityId] = { poamId: item.poamId, status: item.status };
           return acc;
         }, {});
       } else {

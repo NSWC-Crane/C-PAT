@@ -227,15 +227,14 @@ exports.postPoamLabel = async function postPoamLabel(req, res, next) {
             let sql_query = `INSERT INTO cpat.poamlabels (poamId, labelId) VALUES (?, ?)`;
             await connection.query(sql_query, [req.body.poamId, req.body.labelId]);
 
-            if (req.body.poamLog[0].userId) {
                 let labelSql = "SELECT labelName FROM cpat.label WHERE labelId = ?";
                 const [label] = await connection.query(labelSql, [req.body.labelId]);
                 const labelName = label[0] ? label[0].labelName : "Unknown Label";
 
                 let action = `"${labelName}" label was added to the POAM.`;
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
-            }
+                await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
+
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
                 FROM cpat.poamlabels t1
@@ -284,15 +283,14 @@ exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
             let sql = "DELETE FROM cpat.poamlabels WHERE poamId = ? AND labelId = ?";
             await connection.query(sql, [req.params.poamId, req.params.labelId]);
 
-            if (req.body.requestorId) {
                 let labelSql = "SELECT labelName FROM cpat.label WHERE labelId = ?";
                 const [label] = await connection.query(labelSql, [req.params.labelId]);
                 const labelName = label[0] ? label[0].labelName : "Unknown Label";
 
                 let action = `"${labelName}" label was removed from the POAM.`;
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
-            }
+                await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
+
             return {};
         });
     } catch (error) {

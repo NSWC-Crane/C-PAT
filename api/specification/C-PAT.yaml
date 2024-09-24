@@ -15,7 +15,7 @@ info:
   contact:
     name: Christian Rodriguez
     email: christian.a.rodriguez8.ctr@us.navy.mil
-  version: '0.2'
+  version: '1.0.0-beta.1'
 servers:
   - url: 'http://localhost:8086/api'
 paths:
@@ -629,6 +629,163 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
+
+  '/assignedTeams':
+    get:
+      summary: Return all Assigned Team names
+      operationId: getAssignedTeams
+      responses:
+        '200':
+          description: Assigned Teams array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/assignedTeam_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AssignedTeams
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  '/assignedTeams/{assignedTeamId}':
+    parameters:
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return an Assigned Team Name by assignedTeamId
+      operationId: getAssignedTeam
+      responses:
+        '200':
+          description: Assigned Team object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/assignedTeam_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AssignedTeams
+      security:
+        - oauth:
+            - 'c-pat:read'
+    delete:
+      summary: Delete an Assigned Team by assignedTeamId
+      operationId: deleteAssignedTeam
+      responses:
+        '204':
+          description: Assigned Team deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AssignedTeams
+      security:
+        - oauth:
+            - 'c-pat:op'
+  
+  '/assignedTeam':
+    post:
+      summary: Add an Assigned Team
+      operationId: postAssignedTeam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/assignedTeam_Object'
+      responses:
+        '201':
+          description: Assigned Team created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/assignedTeam_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AssignedTeams
+      security:
+        - oauth:
+            - 'c-pat:op'
+    put:
+      summary: Update an Assigned Team Name
+      operationId: putAssignedTeam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/assignedTeam_Object'
+      responses:
+        '200':
+          description: Assigned Team updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/assignedTeam_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AssignedTeams
+      security:
+        - oauth:
+            - 'c-pat:op'
 
   /collections/basiclist:
     get:
@@ -2472,6 +2629,149 @@ paths:
         - oauth:
             - 'c-pat:write'
 
+  /poamAssignedTeams:
+    get:
+      summary: Get all POAMs assigned teams
+      operationId: getPoamAssignedTeams
+      responses:
+        '200':
+          description: Successful response with all POAMs assigned teams
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  poamAssignedTeams:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/poamAssignedTeam_Object'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssignedTeam
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  /poamAssignedTeams/poam/{poamId}:
+    get:
+      summary: Get a POAMs assigned teams by POAM ID
+      operationId: getPoamAssignedTeamsByPoamId
+      parameters:
+        - name: poamId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with POAM assigned teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamAssignedTeam_Object'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssignedTeam
+      security:
+        - oauth:
+            - 'c-pat:read'
+  
+  /poamAssignedTeam/poam/{poamId}/{assignedTeamId}:
+    delete:
+      summary: Delete a POAMs assigned team
+      operationId: deletePoamAssignedTeam
+      parameters:
+        - name: poamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: assignedTeamId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: POAMs assigned team deleted successfully
+        '400':
+          description: Bad request - missing required parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssignedTeam
+      security:
+        - oauth:
+            - 'c-pat:write'
+          
+  /poamAssignedTeam:
+    post:
+      summary: Create a new POAM assigned team
+      operationId: postPoamAssignedTeam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assignedTeamId:
+                  type: integer
+                poamId:
+                  type: integer
+              required:
+                - assignedTeamId
+                - poamId
+      responses:
+        '201':
+          description: POAM assigned team created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  poamId:
+                    type: integer
+                  assignedTeamId:
+                    type: integer
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssignedTeam
+      security:
+        - oauth:
+            - 'c-pat:write'
+
   /poamAssignees:
     get:
       summary: Get all POAM assignees
@@ -2582,13 +2882,6 @@ paths:
                   type: integer
                 poamId:
                   type: integer
-                poamLog:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      userId:
-                        type: integer
               required:
                 - userId
                 - poamId
@@ -3338,6 +3631,10 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: assignedTeams
+          schema:
+            type: boolean
+        - in: query
           name: assets
           schema:
             type: boolean
@@ -3393,6 +3690,10 @@ paths:
             type: boolean
         - in: query
           name: assignees
+          schema:
+            type: boolean
+        - in: query
+          name: assignedTeams
           schema:
             type: boolean
         - in: query
@@ -3475,6 +3776,10 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: assignedTeams
+          schema:
+            type: boolean
+        - in: query
           name: assets
           schema:
             type: boolean
@@ -3530,6 +3835,10 @@ paths:
             type: boolean
         - in: query
           name: assignees
+          schema:
+            type: boolean
+        - in: query
+          name: assignedTeams
           schema:
             type: boolean
         - in: query
@@ -4020,6 +4329,8 @@ paths:
                   properties:
                     poamId:
                       type: integer
+                    status:
+                      type: string
                     vulnerabilityId:
                       type: string
         '500':
@@ -4053,8 +4364,6 @@ components:
       properties:
         classification:
           $ref: '#/components/schemas/ApiClassification'
-        commit:
-          $ref: '#/components/schemas/CommitObject'
         version:
           $ref: '#/components/schemas/ApiVersion'
     ApiDefinition:
@@ -4073,26 +4382,6 @@ components:
           $ref: '#/components/schemas/String45'
         value:
           $ref: '#/components/schemas/String255'
-    CommitBranch:
-      type: string
-    CommitDescribe:
-      type: string
-    CommitObject:
-      type: object
-      additionalProperties: false
-      properties:
-        branch:
-          $ref: '#/components/schemas/CommitBranch'
-        describe:
-          $ref: '#/components/schemas/CommitDescribe'
-        sha:
-          $ref: '#/components/schemas/CommitSha'
-        tag:
-          $ref: '#/components/schemas/CommitTag'
-    CommitSha:
-      type: string
-    CommitTag:
-      type: string
     SuccessMessage:
       type: object
       properties:
@@ -4293,6 +4582,15 @@ components:
         description:
           type: string
           nullable: true
+        systemType:
+          type: string
+          nullable: true
+        systemName:
+          type: string
+          nullable: true
+        ccsafa:
+          type: string
+          nullable: true
         created:
           type: string
           format: date   
@@ -4316,6 +4614,15 @@ components:
           nullable: true
         originCollectionId:
           type: integer
+          nullable: true
+        systemType:
+          type: string
+          nullable: true
+        systemName:
+          type: string
+          nullable: true
+        ccsafa:
+          type: string
           nullable: true
 
     collectionField:
@@ -4376,6 +4683,16 @@ components:
         aaPackageId:
           type: integer
         aaPackage:
+          type: string
+
+    assignedTeam_Object:
+      type: object
+      required:
+        - assignedTeamName
+      properties:
+        assignedTeamId:
+          type: integer
+        assignedTeamName:
           type: string
 
     IAVTableData:
@@ -4536,6 +4853,22 @@ components:
           type: string
           nullable: true
 
+    poamAssignedTeam_Object:
+      type: object
+      required:
+        - poamId
+        - assignedTeamId
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        assignedTeamId:
+          type: integer
+        assignedTeamName:
+          type: string
+        poamStatus:
+          type: string
+
     poamAssignee_Object:
       type: object
       required:
@@ -4607,13 +4940,6 @@ components:
           type: string
         status:
           type: string
-        poamLog:
-          type: array
-          items:
-            type: object
-            properties:
-              userId:
-                type: integer
 
     poam_status_object:
       type: object
@@ -4658,6 +4984,9 @@ components:
           type: string
           nullable: true
         iavmNumber:
+          type: string
+          nullable: true
+        taskOrderNumber:
           type: string
           nullable: true
         iavComplyByDate:
@@ -4720,6 +5049,14 @@ components:
             type: object
             properties:
               userId:
+                type: integer
+            additionalProperties: true
+        assignedTeams:
+          type: array
+          items:
+            type: object
+            properties:
+              assignedTeamId:
                 type: integer
             additionalProperties: true
         assignees:
@@ -5003,39 +5340,7 @@ components:
         scheduledCompletion:
           type: string
         scheduledCompletionCount:
-          type: integer
-          
-    register:
-      required:
-        - email
-        - userName
-        - firstName
-        - lastName
-      type: object
-      additionalProperties: true
-      properties:
-        email:
-          type: string
-        userName:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        collectionAccessRequest:
-          type: array
-          items:
-            type: object
-            properties:
-              collectionId:
-                type: integer  
-
-    register_Response:
-      type: object
-      additionalProperties: false
-      properties:
-        token:
-          type: string 
+          type: integer 
           
     user:
       type: object
@@ -5058,11 +5363,11 @@ components:
           readOnly: true
         email:
           type: string
-          readOnly: true
+        phoneNumber:
+          type: string
         fullName:
           type: string
           maxLength: 255
-          readOnly: true
         officeOrg:
           type: string
           maxLength: 100
@@ -5115,36 +5420,6 @@ components:
         - userId
         - lastCollectionAccessedId
 
-    basic_user:
-      type: object
-      required:
-        - userId
-        - email
-        - fullName
-      additionalProperties: true
-      properties:
-        userId:
-          type: integer
-          readOnly: true
-        email:
-          type: string
-          readOnly: true
-        firstName:
-          type: string
-          maxLength: 50
-          readOnly: true
-        lastName:
-          type: string
-          maxLength: 50
-        fullName:
-          type: string
-          maxLength: 255
-          readOnly: true
-        officeOrg:
-          type: string
-          maxLength: 100
-          nullable: true
-
     current_user_Response:
       type: object
       required:
@@ -5173,11 +5448,12 @@ components:
         email:
           type: string
           maxLength: 100
-          readOnly: true
+        phoneNumber:
+          type: string
+          maxLength: 20
         firstName:
           type: string
           maxLength: 50
-          readOnly: true
         lastName:
           type: string
           maxLength: 50
@@ -5253,11 +5529,12 @@ components:
         email:
           type: string
           maxLength: 100
-          readOnly: true
+        phoneNumber:
+          type: string
+          maxLength: 20
         firstName:
           type: string
           maxLength: 50
-          readOnly: true
         lastName:
           type: string
           maxLength: 50
@@ -5308,6 +5585,8 @@ components:
           type: integer
         email:
           type: string
+        phoneNumber:
+          type: string
         lastAccess:
           type: string
           nullable: true
@@ -5357,6 +5636,8 @@ components:
           type: string
           maxLength: 20
         email:
+          type: string
+        phoneNumber:
           type: string
         firstName:
           type: string
@@ -5427,39 +5708,6 @@ components:
         fullName:
           type: string
         email:
-          type: string
-
-    userCreateOrReplace:
-      required:
-        - userName
-        - email
-        - firstName
-        - lastName
-        - lastCollectionAccessedId
-        - accountStatus
-        - fullName
-        - defaultTheme
-      type: object
-      additionalProperties: false
-      properties:
-        userName:
-          type: string
-        email:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        lastCollectionAccessedId:
-          type: integer
-        accountStatus:
-          type: string
-        fullName:
-          type: string
-        officeOrg:
-          type: string
-          nullable: true
-        defaultTheme:
           type: string
 
   responses:

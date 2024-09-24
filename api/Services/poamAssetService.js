@@ -217,7 +217,7 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
                 WHERE t1.poamId = ? AND t1.assetId = ?`;
             let [rowPoamAsset] = await connection.query(sql, [req.body.poamId, req.body.assetId]);
             const poamAsset = rowPoamAsset.length > 0 ? rowPoamAsset[0] : [];
-            if (req.body.poamLog[0].userId) {
+
             let assetNameQuery = `SELECT assetName FROM cpat.asset WHERE assetId = ?`;
             let [[assetNameResult]] = await connection.query(assetNameQuery, [req.body.assetId]);
             let assetName = "Unknown Asset";
@@ -226,8 +226,8 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
             }
                 let action = `${assetName} was added to the Asset List.`;
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
-            }
+                await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
+            
             return poamAsset;
         });
     } catch (error) {
@@ -260,7 +260,6 @@ exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
             let sql = "DELETE FROM cpat.poamassets WHERE assetId = ? AND poamId = ?";
             await connection.query(sql, [req.params.assetId, req.params.poamId]);
 
-            if (req.body.requestorId) {
                 let assetNameQuery = `SELECT assetName FROM cpat.asset WHERE assetId = ?`;
                 let [[assetNameResult]] = await connection.query(assetNameQuery, [req.params.assetId]);
                 let assetName = "Unknown Asset";
@@ -269,8 +268,8 @@ exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
                 }
                     let action = `${assetName} was removed from the Asset List.`;
                     let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                await connection.query(logSql, [req.params.poamId, action, req.body.requestorId]);
-            }
+            await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
+
             return { poamAsset: [] };
         });
     } catch (error) {

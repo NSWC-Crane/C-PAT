@@ -269,7 +269,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       milestoneChangeDate: format(milestone.milestoneChangeDate, "yyyy-MM-dd"),
       milestoneStatus: milestone.milestoneStatus || 'Pending',
       milestoneTeam: milestone.milestoneTeam || null,
-      poamLog: [{ userId: this.user.userId }],
     };
 
     await (await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone)).subscribe((res: any) => {
@@ -292,7 +291,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       ...(milestone.milestoneChangeComments && { milestoneChangeComments: milestone.milestoneChangeComments }),
       ...(milestone.milestoneStatus && { milestoneStatus: milestone.milestoneStatus }),
       ...(milestone.milestoneTeam && { milestoneTeam: milestone.milestoneTeam }),
-      poamLog: [{ userId: this.user.userId }],
     };
 
     (await this.poamService.updatePoamMilestone(this.poam.poamId, milestone.milestoneId, milestoneUpdate)).subscribe({
@@ -388,7 +386,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       residualRisk: this.poam.residualRisk,
       likelihood: this.poam.likelihood,
       impactDescription: this.poam.impactDescription,
-      poamLog: [{ userId: this.user.userId }],
     };
 
     if (this.poam.extensionTimeAllowed > 0) {

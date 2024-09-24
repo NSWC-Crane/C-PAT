@@ -87,25 +87,6 @@
             "version": {
               "type": "string"
             },
-            "commit": {
-              "type": "object",
-              "required": [],
-              "properties": {
-                "branch": {
-                  "type": "string"
-                },
-                "sha": {
-                  "type": "string"
-                },
-                "tag": {
-                  "type": "string"
-                },
-                "describe": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            },
             "settings": {
               "type": "object",
               "required": [],

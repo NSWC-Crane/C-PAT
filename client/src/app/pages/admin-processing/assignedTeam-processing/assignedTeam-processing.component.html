@@ -1,0 +1,58 @@
+<!--
+!#######################################################################
+! C-PATTM SOFTWARE
+! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
+! crane_C_PAT.1_license.txt, which is part of this software package. BY
+! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!########################################################################
+-->
+
+<div class="grid">
+  <div class="col-12">
+    <p-table #dt [value]="assignedTeams" [globalFilterFields]="['assignedTeamId', 'assignedTeamName']" [rows]="10" [paginator]="true" [rowHover]="true" dataKey="assignedTeamId" editMode="row">
+      <ng-template pTemplate="caption">
+        <div class="flex justify-content-between align-items-center">
+          <p-iconField iconPosition="left">
+            <p-inputIcon>
+              <i class="pi pi-search"></i>
+            </p-inputIcon>
+            <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Teams" class="search-input">
+          </p-iconField>
+          <button pButton type="button" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Add a Team" (click)="onAddNewClick()"></button>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th scope="col">Assigned Team ID</th>
+          <th scope="col">Assigned Team Name</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-assignedTeam let-editing="editing" let-ri="rowIndex">
+        <tr [pEditableRow]="assignedTeam">
+          <td>{{assignedTeam.assignedTeamId}}</td>
+          <td>
+            <p-cellEditor>
+              <ng-template pTemplate="input">
+                <input pInputText type="text" class="w-full" [(ngModel)]="assignedTeam.assignedTeamName" maxlength="50">
+              </ng-template>
+              <ng-template pTemplate="output">
+                {{assignedTeam.assignedTeamName}}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+          <td>
+            <div class="flex align-items-center justify-content-center gap-2">
+              <button *ngIf="!editing" pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(assignedTeam)" class="p-button-rounded p-button-text"></button>
+              <button *ngIf="editing" pButton pRipple type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(assignedTeam)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+              <button *ngIf="editing" pButton pRipple type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(assignedTeam, ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+              <button *ngIf="!editing" pButton pRipple type="button" icon="pi pi-trash" (click)="onRowDelete(assignedTeam)" class="p-button-rounded p-button-text p-button-danger"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+<p-toast></p-toast>

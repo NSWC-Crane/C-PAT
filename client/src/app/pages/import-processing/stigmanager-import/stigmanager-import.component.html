@@ -17,9 +17,8 @@
                  dataKey="groupId">
           <ng-template pTemplate="header">
             <tr>
-              <th *ngFor="let col of allColumns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}">
+              <th id="col" *ngFor="let col of allColumns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}">
                 {{col.header}}
-                <p-sortIcon [field]="col.field"></p-sortIcon>
                 <p-columnFilter *ngIf="col.field !== 'poam'" [type]="col.filterType" [field]="col.field" display="menu"></p-columnFilter>
               </th>
             </tr>
@@ -33,12 +32,20 @@
                 <ng-template #loadedData>
                   <ng-container [ngSwitch]="col.field">
                     <ng-container *ngSwitchCase="'poam'">
-                      <i *ngIf="rowData.hasExistingPoam"
+                      <i *ngIf="rowData.hasExistingPoam && rowData.poamStatus != 'Closed' && rowData.poamStatus != 'False-Positive'"
                          class="pi pi-check-circle"
                          style="color: green; font-size: 1.5rem; cursor: pointer; justify-content: center;"
                          (click)="addPoam(rowData)"
                          (keyup.enter)="addPoam(rowData)"
                          pTooltip="POAM Already Created. Click to view POAM."
+                         tooltipPosition="top">
+                      </i>
+                      <i *ngIf="rowData.hasExistingPoam && (rowData.poamStatus === 'Closed' || rowData.poamStatus === 'False-Positive')"
+                         class="pi pi-times-circle"
+                         style="color: darkorange; font-size: 1.5rem; cursor: pointer; justify-content: center;"
+                         (click)="addPoam(rowData)"
+                         (keyup.enter)="addPoam(rowData)"
+                         pTooltip="POAM status is Closed or False-Positive. Click to review."
                          tooltipPosition="top">
                       </i>
                       <i *ngIf="!rowData.hasExistingPoam"

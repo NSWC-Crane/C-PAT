@@ -18,32 +18,7 @@ import { ImportService } from '../../../import-processing/import.service';
 import { SharedService } from '../../../../common/services/shared.service';
 import { PoamService } from '../../poams.service';
 import { MessageService } from 'primeng/api';
-interface StigFinding {
-  groupId: string;
-  assets: { name: string; assetId: string }[];
-  ccis: [{ cci: string; definition: string; apAcronym: string }];
-}
 
-function processPoamsWithStigFindings(poams: any[], stigFindings: StigFinding[]): any[] {
-  return poams.map(poam => {
-    if (poam.vulnerabilityId) {
-      const matchingFinding = stigFindings.find(finding => finding.groupId === poam.vulnerabilityId);
-
-      if (matchingFinding) {
-        const affectedDevices = matchingFinding.assets.map(asset => asset.name);
-        const controlAPs = matchingFinding.ccis[0]?.apAcronym;
-        const cci = matchingFinding.ccis[0]?.cci;
-        return {
-          ...poam,
-          controlAPs,
-          cci,
-          devicesAffected: affectedDevices.join(' ')
-        };
-      }
-    }
-    return poam;
-  });
-}
 
 @Component({
   selector: 'cpat-poam-grid',
@@ -63,6 +38,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   tenableAffectedAssets: any;
   selectedCollectionId: any;
   selectedCollection: any;
+  private findingsCache: Map<string, any[]> = new Map();
   private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
 
@@ -103,6 +79,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async exportCollection() {
+    this.messageService.add({ severity: 'secondary', summary: 'Export Started', detail: 'Download will automatically start momentarily.' });
     const basicListData = await (await this.collectionService.getCollectionBasicList()).toPromise();
 
     this.selectedCollection = basicListData?.find(
@@ -110,9 +87,6 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     );
 
     const collectionId = this.selectedCollectionId;
-    const name = this.selectedCollection.collectionName;
-    const collectionOrigin = this.selectedCollection.collectionOrigin;
-    const originCollectionId = this.selectedCollection.originCollectionId;
 
     if (!collectionId) {
       console.error('Export collection ID is undefined');
@@ -128,10 +102,9 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
 
       let processedPoams = poams;
 
-      if (collectionOrigin === "STIG Manager") {
-        this.stigmanAffectedAssets = await (await this.sharedService.getAffectedAssetsFromSTIGMAN(originCollectionId)).toPromise();
-        processedPoams = processPoamsWithStigFindings(poams, this.stigmanAffectedAssets);
-      } else if (collectionOrigin === "Tenable") {
+      if (this.selectedCollection.collectionOrigin === "STIG Manager") {
+        processedPoams = await this.processPoamsWithStigFindings(poams, this.selectedCollection.originCollectionId);
+      } else if (this.selectedCollection.collectionOrigin === "Tenable") {
         const vulnerabilityIds = [...new Set(poams.map(poam => poam.vulnerabilityId))];
         const analysisParams = {
           query: {
@@ -208,9 +181,9 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
           };
         });
       }
-      const excelData = await PoamExportService.convertToExcel(processedPoams, this.user);
+      const excelData = await PoamExportService.convertToExcel(processedPoams, this.user, this.selectedCollection);
       const excelURL = window.URL.createObjectURL(excelData);
-      const exportName = name.replace(' ', '_');
+      const exportName = this.selectedCollection.collectionName.replace(' ', '_');
 
       const link = document.createElement('a');
       link.id = 'download-excel';
@@ -226,6 +199,52 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
       console.error('Error exporting POAMs:', error);
       this.messageService.add({ severity: 'error', summary: 'Export Failed', detail: 'Failed to export POAMs, please try again later.' });
     }
+  }
+
+  async processPoamsWithStigFindings(poams: any[], originCollectionId: string): Promise<any[]> {
+    const processedPoams = [];
+
+    for (const poam of poams) {
+      if (poam.vulnerabilityId && poam.stigBenchmarkId) {
+        try {
+          let findings: any[];
+          if (this.findingsCache.has(poam.stigBenchmarkId)) {
+            findings = this.findingsCache.get(poam.stigBenchmarkId)!;
+          } else {
+            findings = await (await this.sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, poam.stigBenchmarkId)).toPromise();
+            this.findingsCache.set(poam.stigBenchmarkId, findings);
+          }
+
+          const matchingFinding = findings.find(finding => finding.groupId === poam.vulnerabilityId);
+
+          if (matchingFinding) {
+            const affectedDevices = matchingFinding.assets.map((asset: { name: any; assetId: any; }) => asset.name);
+            const controlAPs = matchingFinding.ccis[0]?.apAcronym;
+            const cci = matchingFinding.ccis[0]?.cci;
+
+            processedPoams.push({
+              ...poam,
+              controlAPs,
+              cci,
+              devicesAffected: affectedDevices.join(' ')
+            });
+          } else {
+            processedPoams.push(poam);
+          }
+        } catch (error) {
+          console.error(`Error fetching affected assets for POAM ${poam.poamId}:`, error);
+          processedPoams.push(poam);
+        }
+      } else {
+        processedPoams.push(poam);
+      }
+    }
+
+    return processedPoams;
+  }
+
+  clearCache() {
+    this.findingsCache.clear();
   }
 
   resetData() {

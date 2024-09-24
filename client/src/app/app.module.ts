@@ -84,10 +84,10 @@ function getScopeStr(configId: string) {
       config: [
         {
           configId: 'cpat',
-          postLoginRoute: '/verify',
+          postLoginRoute: '/poam-processing',
           authority: CPAT.Env.oauth.authority,
-          redirectUrl: window.location.origin + '/verify',
-          postLogoutRedirectUri: window.location.origin + '/verify',
+          redirectUrl: window.location.origin,
+          postLogoutRedirectUri: window.location.origin,
           clientId: CPAT.Env.oauth.clientId,
           scope: getScopeStr('cpat'),
           responseType: 'code',
@@ -102,8 +102,8 @@ function getScopeStr(configId: string) {
         {
           configId: 'stigman',
           authority: CPAT.Env.oauth.authority,
-          redirectUrl: window.location.origin + '/verify',
-          postLogoutRedirectUri: window.location.origin + '/verify',
+          redirectUrl: window.location.origin,
+          postLogoutRedirectUri: window.location.origin,
           clientId: CPAT.Env.stigman.clientId,
           scope: getScopeStr('stigman'),
           responseType: 'code',

@@ -29,6 +29,7 @@ interface AssetEntry {
   severity: string;
   assetCount: number;
   hasExistingPoam: boolean;
+  poamStatus?: string;
 }
 
 @Component({
@@ -111,7 +112,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   findingsFilterOptions = [
     { label: 'All', value: 'All' },
     { label: 'Has Existing POAM', value: 'Has Existing POAM' },
-    { label: 'No Existing POAM', value: 'No Existing POAM' }
+    { label: 'No Existing POAM', value: 'No Existing POAM' },
+    { label: 'Closed POAM Association', value: 'Closed POAM Association' }
   ];
 
   constructor(
@@ -275,7 +277,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       }
 
       await Promise.all([
-        this.getAffectedAssetGrid(this.stigmanCollection.collectionId)
+        this.getFindingsGrid(this.stigmanCollection.collectionId)
       ]);
     } catch (error) {
       console.error('Error in validateStigManagerCollection:', error);
@@ -283,7 +285,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }
   }
 
-  async getAffectedAssetGrid(stigmanCollection: string) {
+  async getFindingsGrid(stigmanCollection: string) {
     try {
       this.loadingTableInfo = true;
       const data = await (await this.sharedService.getFindingsFromSTIGMAN(stigmanCollection)).toPromise();
@@ -363,13 +365,16 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   async updateChartAndGrid(existingPoams: any[]) {
     this.dataSource.forEach(item => {
-      item.hasExistingPoam = existingPoams.some(poam => poam.vulnerabilityId === item.groupId);
+      const existingPoam = existingPoams.find(poam => poam.vulnerabilityId === item.groupId);
+      item.hasExistingPoam = !!existingPoam;
+      item.poamStatus = existingPoam?.status;
     });
 
     this.displayDataSource = this.dataSource.filter(item =>
       this.selectedFindings === 'All' ||
-      (this.selectedFindings === 'Has Existing POAM' && item.hasExistingPoam) ||
-      (this.selectedFindings === 'No Existing POAM' && !item.hasExistingPoam)
+      (this.selectedFindings === 'Has Existing POAM' && item.hasExistingPoam && item.poamStatus != 'Closed' && item.poamStatus != 'False-Positive') ||
+      (this.selectedFindings === 'No Existing POAM' && !item.hasExistingPoam) ||
+      (this.selectedFindings === 'Closed POAM Association' && item.hasExistingPoam && (item.poamStatus === 'Closed' || item.poamStatus === 'False-Positive'))
     );
 
     this.findingsCount = this.displayDataSource.length;
@@ -399,7 +404,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   async addPoam(rowData: AssetEntry): Promise<void> {
-    if (!rowData || !rowData.ruleId || !rowData.groupId) {
+    if (!rowData?.ruleId || !rowData?.groupId) {
       this.showError("Invalid data for POAM creation. Please try again.");
       return;
     }

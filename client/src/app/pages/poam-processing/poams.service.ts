@@ -68,10 +68,11 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async getPoam(poamId: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssets: boolean = false) {
+  async getPoam(poamId: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssignedTeams: boolean = false, includeAssets: boolean = false) {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignees', includeAssignees.toString())
+      .set('assignedTeams', includeAssignedTeams.toString())
       .set('assets', includeAssets.toString());
 
         const headers = await this.getAuthHeaders();
@@ -81,10 +82,11 @@ export class PoamService {
     }).pipe(catchError(this.handleError));
   }
 
-  async getPoamsByCollection(collectionId: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssets: boolean = false) {
+  async getPoamsByCollection(collectionId: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssignedTeams: boolean = false, includeAssets: boolean = false) {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignees', includeAssignees.toString())
+      .set('assignedTeams', includeAssignedTeams.toString())
       .set('assets', includeAssets.toString());
 
         const headers = await this.getAuthHeaders();
@@ -94,10 +96,11 @@ export class PoamService {
     }).pipe(catchError(this.handleError));
   }
 
-  async getPoamsBySubmitter(submitterId: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssets: boolean = false) {
+  async getPoamsBySubmitter(submitterId: string, includeApprovers: boolean = false, includeAssignees: boolean = false, includeAssignedTeams: boolean = false, includeAssets: boolean = false) {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignees', includeAssignees.toString())
+      .set('assignedTeams', includeAssignedTeams.toString())
       .set('assets', includeAssets.toString());
 
         const headers = await this.getAuthHeaders();
@@ -126,11 +129,16 @@ export class PoamService {
   }
 
   async getPoamAssignees(poamId: string) {
-        const headers = await this.getAuthHeaders();
+    const headers = await this.getAuthHeaders();
     return this.http.get(`${this.cpatApiBase}/poamAssignees/poam/${poamId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
+  async getPoamAssignedTeams(poamId: string) {
+    const headers = await this.getAuthHeaders();
+    return this.http.get(`${this.cpatApiBase}/poamAssignedTeams/poam/${poamId}`, { headers })
+      .pipe(catchError(this.handleError));
+  }
 
   async postPoam(poam: any) {
         const headers = await this.getAuthHeaders();
@@ -154,8 +162,8 @@ export class PoamService {
   }
 
   async postPoamAssignee(poamAssignee: any) {
-        const headers = await this.getAuthHeaders();
-		return this.http
+    const headers = await this.getAuthHeaders();
+    return this.http
       .post<any>(`${this.cpatApiBase}/poamAssignee`, poamAssignee, { headers })
       .pipe(catchError(this.handleError));
   }
@@ -163,6 +171,18 @@ export class PoamService {
   async deletePoamAssignee(poamId: any, userId: any) {
     const headers = await this.getAuthHeaders();
     return this.http.delete<any>(`${this.cpatApiBase}/poamAssignee/poam/${poamId}/user/${userId}`, { headers });
+  }
+
+  async postPoamAssignedTeam(poamAssignedTeam: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .post<any>(`${this.cpatApiBase}/poamAssignedTeam`, poamAssignedTeam, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async deletePoamAssignedTeam(poamId: any, assignedTeamId: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http.delete<any>(`${this.cpatApiBase}/poamAssignedTeam/poam/${poamId}/${assignedTeamId}`, { headers });
   }
 
   async postPoamAsset(poamAsset: any) {

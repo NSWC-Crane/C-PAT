@@ -26,7 +26,7 @@ module.exports.getAAPackages = async function getAAPackages(req, res, next) {
 module.exports.getAAPackage = async function getAAPackage(req, res, next) {
     try {
         const aaPackage = await aaPackageService.getAAPackage(req, res, next);
-            res.status(200).json(aaPackage);
+        res.status(200).json(aaPackage);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });

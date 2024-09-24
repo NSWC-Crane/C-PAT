@@ -43,8 +43,6 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
   async initializeUser() {
     try {
-      const userData = await this.authService.getUserData('cpat');
-      if (userData) {
         await this.setPayloadService.setPayload();
         this.payloadSubscription.push(
           this.setPayloadService.user$.subscribe(user => {
@@ -59,7 +57,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             }
           })
         );
-      }
+      
     } catch (error) {
       console.error('Error initializing user:', error);
     }

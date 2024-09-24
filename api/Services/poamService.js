@@ -15,6 +15,7 @@ const mysql = require('mysql2');
 const poamApproverService = require('./poamApproverService');
 const poamAssetService = require('./poamAssetService');
 const poamAssigneeService = require('./poamAssigneeService');
+const poamAssignedTeamService = require('./poamAssignedTeamService');
 const poamMilestoneService = require('./poamMilestoneService');
 const poamLabelService = require('./poamLabelService');
 
@@ -88,6 +89,11 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
                 poams.forEach((poam, index) => poam.assignees = assigneesData[index] || []);
             }
 
+            if (req.query.assignedTeams) {
+                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
+                poams.forEach((poam, index) => poam.assignedTeams = assignedTeamsData[index] || []);
+            }
+
             if (req.query.assets) {
                 const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
                 poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
@@ -140,6 +146,9 @@ exports.getPoam = async function getPoam(req, res, next) {
             }
             if (req.query.assignees) {
                 poam.assignees = await poamAssigneeService.getPoamAssigneesByPoamId(req.params.poamId);
+            }
+            if (req.query.assignedTeams) {
+                poam.assignedTeams = await poamAssignedTeamService.getPoamAssignedTeamsByPoamId(req.params.poamId);
             }
             if (req.query.assets) {
                 poam.assets = await poamAssetService.getPoamAssetsByPoamId(req, res, next);
@@ -195,6 +204,10 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
             if (req.query.assignees) {
                 const assigneesData = await Promise.all(poams.map(poam => poamAssigneeService.getPoamAssigneesByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => poam.assignees = assigneesData[index] || []);
+            }
+            if (req.query.assignedTeams) {
+                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
+                poams.forEach((poam, index) => poam.assignedTeams = assignedTeamsData[index] || []);
             }
             if (req.query.assets) {
                 const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
@@ -252,6 +265,10 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
                 const assigneesData = await Promise.all(poams.map(poam => poamAssigneeService.getPoamAssigneesByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => poam.assignees = assigneesData[index] || []);
             }
+            if (req.query.assignedTeams) {
+                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
+                poams.forEach((poam, index) => poam.assignedTeams = assignedTeamsData[index] || []);
+            }
             if (req.query.assets) {
                 const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
                 poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
@@ -298,10 +315,10 @@ exports.postPoam = async function postPoam(req) {
     req.body.iavComplyByDate = req.body.iavComplyByDate || null;
 
     let sql_query = `INSERT INTO cpat.poam (collectionId, vulnerabilitySource, stigTitle, stigBenchmarkId, stigCheckData, tenablePluginData,
-                    iavmNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate, scheduledCompletionDate,
-                    submitterId, officeOrg, predisposingConditions, mitigations, requiredResources, residualRisk, likelihood,
-                    impactDescription, status, submittedDate, closedDate, notes)
-                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    iavmNumber, taskOrderNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate,
+                    scheduledCompletionDate, submitterId, officeOrg, predisposingConditions, mitigations, requiredResources, residualRisk,
+                    likelihood, impactDescription, status, submittedDate, closedDate, notes)
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     try {
         return await withConnection(async (connection) => {
@@ -316,7 +333,7 @@ exports.postPoam = async function postPoam(req) {
             }
 
             await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
-                req.body.tenablePluginData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
+                req.body.tenablePluginData, req.body.iavmNumber, req.body.taskOrderNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
                 req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.officeOrg, req.body.predisposingConditions, req.body.mitigations,
                 req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.impactDescription,
                 req.body.status, req.body.submittedDate, req.body.closedDate, req.body.notes]);
@@ -339,6 +356,17 @@ exports.postPoam = async function postPoam(req) {
                     }
                     let sql_query = `INSERT INTO cpat.poamassignees (poamId, userId) values (?, ?)`;
                     await connection.query(sql_query, [poam.poamId, user.userId]);
+                }
+            }
+
+            if (req.body.assignedTeams) {
+                let assignedTeams = req.body.assignedTeams;
+                for (let team of assignedTeams) {
+                    if (!team.assignedTeamId) {
+                        return { status: 400, errors: { "assignedTeams.assignedTeamId": "is required" } };
+                    }
+                    let sql_query = `INSERT INTO cpat.poamassignedTeams (poamId, assignedTeamId) values (?, ?)`;
+                    await connection.query(sql_query, [poam.poamId, team.assignedTeamId]);
                 }
             }
 
@@ -378,11 +406,9 @@ exports.postPoam = async function postPoam(req) {
                 }
             }
 
-            if (req.body.poamLog) {
                 let action = `POAM Created. POAM Status: ${req.body.status}.`;
                 let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [poam.poamId, action, req.body.poamLog[0].userId]);
-            }
+                await connection.query(logSql, [poam.poamId, action, req.userObject.userId]);
 
             return poam;
         });
@@ -410,6 +436,7 @@ exports.putPoam = async function putPoam(req, res, next) {
         "stigCheckData": "STIG Manager Check Data",
         "tenablePluginData": "Tenable Plugin Data",
         "iavmNumber": "IAVM Number",
+        "taskOrderNumber": "Task Order Number",
         "iavComplyByDate": "IAV Comply By Date",
         "aaPackage": "A&A Package",
         "vulnerabilityId": "Source Identifying Control Vulnerability ID #",
@@ -453,14 +480,14 @@ exports.putPoam = async function putPoam(req, res, next) {
             }
 
             const sqlInsertPoam = `UPDATE cpat.poam SET collectionId = ?, vulnerabilitySource = ?, stigTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
-                      tenablePluginData = ?, iavmNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
+                      tenablePluginData = ?, iavmNumber = ?, taskOrderNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
                       iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
                       residualRisk = ?, likelihood = ?, impactDescription = ?, status = ?, submittedDate = ?, closedDate = ?, officeOrg = ?, notes = ? WHERE poamId = ?`;
 
             await connection.query(sqlInsertPoam, [
                 req.body.collectionId, req.body.vulnerabilitySource, req.body.stigTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
-                req.body.tenablePluginData, req.body.iavmNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity,
-                req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions,
+                req.body.tenablePluginData, req.body.iavmNumber, req.body.taskOrderNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description,
+                req.body.rawSeverity, req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions,
                 req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.impactDescription,
                 req.body.status, req.body.submittedDate, req.body.closedDate, req.body.officeOrg, req.body.notes, req.body.poamId
             ]);
@@ -474,9 +501,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
             }))[0];
 
-            if (req.body.poamLog && req.body.poamLog.length > 0) {
-                let poamId = req.body.poamId;
-                let userId = req.body.poamLog[0].userId;
+            let poamId = req.body.poamId;
 
                 const modifiedFields = Object.keys(req.body).filter(field => {
                     return !['poamId', 'collectionId', 'officeOrg', 'poamLog', 'severity', 'extensionTimeAllowed', 'extensionJustification'].includes(field) &&
@@ -486,10 +511,9 @@ exports.putPoam = async function putPoam(req, res, next) {
                 const modifiedFieldFullNames = modifiedFields.map(field => fieldNameMap[field] || field);
                 let action = `POAM Updated. POAM Status: ${req.body.status}, Severity: ${req.body.adjSeverity ? req.body.adjSeverity : req.body.rawSeverity}.<br> ${(modifiedFields.length > 0) ? "Fields modified: " + modifiedFieldFullNames.join(', ') + "." : "No POAM fields modified."}`;
                 let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [poamId, action, userId]).catch(error => {
+                await connection.query(logSql, [poamId, action, req.userObject.userId]).catch(error => {
                     next(error);
                 });
-            }
 
             if (req.body.assets) {
                 let sqlDeletePoamAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?";
@@ -590,16 +614,13 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
                     iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
                 }))[0];
 
-                if (req.body.poamLog && req.body.poamLog.length > 0) {
                     let poamId = req.params.poamId;
-                    let userId = req.body.poamLog[0].userId;
                     let action = `POAM Status Updated. POAM Status: ${req.body.status}.`;
                     let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
 
-                    await connection.query(logSql, [poamId, action, userId]).catch(error => {
+                    await connection.query(logSql, [poamId, action, req.userObject.userId]).catch(error => {
                         next(error);
                     });
-                }
 
                 if (req.body.status === 'Submitted') {
                     let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ?";

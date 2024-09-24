@@ -118,13 +118,12 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
                 req.body.approvedDate, req.body.comments
             ]);
 
-            if (req.body.poamLog[0].userId) {
                 let userSql = "SELECT fullName FROM cpat.user WHERE userId = ?";
                 const [user] = await connection.query(userSql, [req.body.userId]);
                 const fullName = user[0] ? user[0].fullName : "Unknown User";
                 let action = `${fullName} was added to the Approver List.`;
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
+                await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
                     const notification = {
                         title: 'Added to Approver List',
@@ -132,8 +131,8 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
                         userId: req.body.userId
                     };
                     const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(notificationSql, [req.body.userId, notification.title, notification.message]);
-            } 
+            await connection.query(notificationSql, [req.body.userId, notification.title, notification.message]);
+
             let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ? AND userId = ?";
             let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
             const poamApprover = row.map(row => ({
@@ -278,15 +277,13 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                     await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
                 }
 
-                if (req.body.poamLog[0].userId) {
                     let action = `POAM ${req.body.poamId} has been marked as ${req.body.approvalStatus.toLowerCase()} by ${fullName}. Approver Comments: ${req.body.comments}.`;
                     let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
-                    await connection.query(logSql, [req.body.poamId, action, req.body.poamLog[0].userId]);
-                }
+                    await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
                 const permissionSql = "SELECT userId FROM cpat.collectionpermissions WHERE collectionId = ? AND accessLevel = 4";
                 const [permissionResult] = await connection.query(permissionSql, [collectionId]);
-                const isApproverInPermissions = permissionResult.some(p => p.userId === req.body.poamLog[0].userId);
+                const isApproverInPermissions = permissionResult.some(p => p.userId === req.userObject.userId);
 
                 if (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'False-Positive') {
                     if ((rawSeverity === "CAT I - Critical" || rawSeverity === "CAT I - High") && !isApproverInPermissions) {

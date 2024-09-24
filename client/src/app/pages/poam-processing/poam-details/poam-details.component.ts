@@ -24,11 +24,17 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { jsonToPlainText } from "json-to-plain-text";
 import { AAPackageService } from '../../admin-processing/aaPackage-processing/aaPackage-processing.service';
+import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 
 interface AAPackage {
   aaPackageId: number;
   aaPackage: string;
+}
+
+interface AssignedTeam {
+  assignedTeamId: number;
+  assignedTeamName: string;
 }
 interface Permission {
   userId: number;
@@ -81,6 +87,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   poam: any;
   poamId: string = "";
   dates: any = {};
+  assignedTeamOptions: any;
   collectionUsers: any;
   collectionApprovers: any = [];
   collectionBasicList: any[] = [];
@@ -93,6 +100,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   assetList: any[] = [];
   poamAssets: any[] = [];
   poamAssignees: any[] = [];
+  poamAssignedTeams: any[] = [];
   isEmassCollection: boolean = false;
   showCheckData: boolean = false;
   stigmanSTIGs: any;
@@ -165,6 +173,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   constructor(
     private aaPackageService: AAPackageService,
+    private assignedTeamsService: AssignedTeamService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
     private poamService: PoamService,
@@ -228,17 +237,21 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         await this.poamService.getPoam(this.poamId),
         await this.collectionService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
         await this.poamService.getPoamAssignees(this.poamId),
+        await this.poamService.getPoamAssignedTeams(this.poamId),
+        await this.assignedTeamsService.getAssignedTeams(),
         await this.poamService.getPoamApprovers(this.poamId),
         await this.poamService.getPoamMilestones(this.poamId),
         await this.poamService.getPoamLabelsByPoam(this.poamId)
-      ]).subscribe(([poam, users, assignees, poamApprovers, poamMilestones, poamLabels]: any) => {
+      ]).subscribe(([poam, users, assignees, assignedTeams, assignedTeamOptions, poamApprovers, poamMilestones, poamLabels]: any) => {
         this.poam = { ...poam, hqs: poam.hqs === 1 ? true : false };
         this.dates.scheduledCompletionDate = poam.scheduledCompletionDate ? new Date(poam.scheduledCompletionDate) : null;
         this.dates.iavComplyByDate = poam.iavComplyByDate ? new Date(poam.iavComplyByDate) : null;
         this.dates.submittedDate = poam.submittedDate ? new Date(poam.submittedDate) : null;
         this.dates.closedDate = poam.closedDate ? new Date(poam.closedDate) : null;
+        this.assignedTeamOptions = assignedTeamOptions;
         this.collectionUsers = users;
         this.poamAssignees = assignees;
+        this.poamAssignedTeams = assignedTeams;
         this.poamApprovers = poamApprovers;
         this.poamMilestones = poamMilestones.poamMilestones.map((milestone: any) => ({
           ...milestone,
@@ -553,7 +566,7 @@ ${this.pluginData.description ?? ""}`,
       labelId: null,
       isNew: true
     };
-    this.poamLabels = [...this.poamLabels, newLabel];
+    this.poamLabels = [newLabel, ...this.poamLabels];
   }
 
   async onLabelChange(label: any, rowIndex: number) {
@@ -583,7 +596,6 @@ ${this.pluginData.description ?? ""}`,
       const poamLabel = {
         poamId: +this.poam.poamId,
         labelId: +event.labelId,
-        poamLog: [{ userId: this.user.userId }],
       };
 
       (await this.poamService.postPoamLabel(poamLabel)).subscribe(() => {
@@ -615,7 +627,6 @@ ${this.pluginData.description ?? ""}`,
         collectionId: +collectionApprover.collectionId,
         userId: +collectionApprover.userId,
         approvalStatus: 'Not Reviewed',
-        poamLog: [{ userId: this.user.userId }],
       }
       await (await this.poamService.addPoamApprover(approver)).subscribe(() => {
         approver.fullName = collectionApprover.fullName;
@@ -679,7 +690,6 @@ ${this.pluginData.description ?? ""}`,
     this.poam.submittedDate = this.dates.submittedDate ? format(this.dates.submittedDate, "yyyy-MM-dd") : null;
     this.poam.iavComplyByDate = this.dates.iavComplyByDate ? format(this.dates.iavComplyByDate, "yyyy-MM-dd") : null;
     this.poam.requiredResources = this.poam.requiredResources ? this.poam.requiredResources : "";
-    this.poam.poamLog = [{ userId: this.user.userId }];
     if (this.poam.status === "Closed") {
       this.poam.closedDate = format(new Date(), "yyyy-MM-dd");
     } else {
@@ -689,6 +699,7 @@ ${this.pluginData.description ?? ""}`,
     if (this.poam.poamId === "ADDPOAM") {
       this.poam.poamId = 0;
       const assignees: any[] = [];
+      const assignedTeams: any[] = [];
       const assets: any[] = [];
       if (this.poamAssignees) {
         this.poamAssignees.forEach((user: any) => {
@@ -696,6 +707,14 @@ ${this.pluginData.description ?? ""}`,
         });
       }
       this.poam.assignees = assignees;
+
+      if (this.poamAssignedTeams) {
+        this.poamAssignedTeams.forEach((team: any) => {
+          assignedTeams.push({ assignedTeamId: +team.assignedTeamId })
+        });
+      }
+      this.poam.assignedTeams = assignedTeams;
+
       if (this.poamAssets) {
         this.poamAssets.forEach((asset: any) => {
           assets.push({ assetName: asset.assetName });
@@ -851,6 +870,10 @@ ${this.pluginData.description ?? ""}`,
       this.messageService.add({ severity: "error", summary: 'Information', detail: "IAV Comply By Date is required if an IAVM Number is provided." });
       return false;
     }
+    if (this.poam.vulnerabilitySource === "Task Order" && !this.poam.taskOrderNumber) {
+      this.messageService.add({ severity: "error", summary: 'Information', detail: "If Vulnerability Source is Task Order, Task Order # becomes a required field." });
+      return false;
+    }
     if (this.poam.adjSeverity && this.poam.adjSeverity != this.poam.rawSeverity && !this.poam.mitigations) {
       this.messageService.add({ severity: "error", summary: 'Information', detail: "If Adjusted Severity deviates from the Raw Severity, Mitigations becomes a required field." });
       return false;
@@ -947,7 +970,6 @@ ${this.pluginData.description ?? ""}`,
       milestoneComments: milestone.milestoneComments || null,
       milestoneStatus: milestone.milestoneStatus || 'Pending',
       milestoneTeam: milestone.milestoneTeam || null,
-      poamLog: [{ userId: this.user.userId }],
     };
 
     await (await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone)).subscribe((res: any) => {
@@ -968,7 +990,6 @@ ${this.pluginData.description ?? ""}`,
       ...(milestone.milestoneComments && { milestoneComments: milestone.milestoneComments }),
       ...(milestone.milestoneStatus && { milestoneStatus: milestone.milestoneStatus }),
       ...(milestone.milestoneTeam && { milestoneTeam: milestone.milestoneTeam }),
-      poamLog: [{ userId: this.user.userId }],
     };
 
     (await this.poamService.updatePoamMilestone(this.poam.poamId, milestone.milestoneId, milestoneUpdate)).subscribe({
@@ -1019,10 +1040,9 @@ ${this.pluginData.description ?? ""}`,
       approvalStatus: 'Not Reviewed',
       approvedDate: null,
       comments: '',
-      poamLog: [{ userId: this.user.userId }],
       isNew: true
     };
-    this.poamApprovers = [...this.poamApprovers, newApprover];
+    this.poamApprovers = [newApprover, ...this.poamApprovers];
   }
 
   async onApproverChange(approver: any, rowIndex: number) {
@@ -1050,7 +1070,6 @@ ${this.pluginData.description ?? ""}`,
         approvalStatus: newApprover.approvalStatus,
         approvedDate: newApprover.approvedDate,
         comments: newApprover.comments,
-        poamLog: [{ userId: this.user.userId }],
       };
 
       (await this.poamService.addPoamApprover(approver)).subscribe(async () => {
@@ -1087,15 +1106,14 @@ ${this.pluginData.description ?? ""}`,
     const newAssignee = {
       poamId: +this.poam.poamId,
       userId: null,
-      poamLog: [{ userId: this.user.userId }],
       isNew: true
     };
-    this.poamAssignees = [...this.poamAssignees, newAssignee];
+    this.poamAssignees = [newAssignee, ...this.poamAssignees];
   }
 
   async onAssigneeChange(assignee: any, rowIndex: number) {
     if (assignee.userId) {
-      await this.confirmCreate(assignee);
+      await this.confirmCreateAssignee(assignee);
       assignee.isNew = false;
     } else {
       this.poamAssignees.splice(rowIndex, 1);
@@ -1104,13 +1122,13 @@ ${this.pluginData.description ?? ""}`,
 
   async deleteAssignee(assignee: any, rowIndex: number) {
     if (assignee.userId) {
-      await this.confirmDelete(assignee);
+      await this.confirmDeleteAssignee(assignee);
     } else {
       this.poamAssignees.splice(rowIndex, 1);
     }
   }
 
-  async confirmCreate(newAssignee: any) {
+  async confirmCreateAssignee(newAssignee: any) {
     let assigneeName = '';
 
     if (newAssignee.userId) {
@@ -1121,7 +1139,6 @@ ${this.pluginData.description ?? ""}`,
       const poamAssignee = {
         poamId: +this.poam.poamId,
         userId: +newAssignee.userId,
-        poamLog: [{ userId: this.user.userId }],
       };
       (await this.poamService.postPoamAssignee(poamAssignee)).subscribe(async () => {
         (await this.poamService.getPoamAssignees(this.poamId)).subscribe((poamAssignees: any) => {
@@ -1138,7 +1155,7 @@ ${this.pluginData.description ?? ""}`,
     }
   }
 
-  async confirmDelete(assigneeData: any) {
+  async confirmDeleteAssignee(assigneeData: any) {
     let assigneeName = '';
 
     if (assigneeData.userId) {
@@ -1160,6 +1177,81 @@ ${this.pluginData.description ?? ""}`,
     }
   }
 
+  async addAssignedTeam() {
+    const newAssignedTeam = {
+      poamId: +this.poam.poamId,
+      assignedTeamId: null,
+      isNew: true
+    };
+    this.poamAssignedTeams = [newAssignedTeam, ...this.poamAssignedTeams];
+  }
+
+  async onAssignedTeamChange(assignedTeam: any, rowIndex: number) {
+    if (assignedTeam.assignedTeamId) {
+      await this.confirmCreateAssignedTeam(assignedTeam);
+      assignedTeam.isNew = false;
+    } else {
+      this.poamAssignedTeams.splice(rowIndex, 1);
+    }
+  }
+
+  async deleteAssignedTeam(assignedTeam: any, rowIndex: number) {
+    if (assignedTeam.assignedTeamId) {
+      await this.confirmDeleteAssignedTeam(assignedTeam);
+    } else {
+      this.poamAssignedTeams.splice(rowIndex, 1);
+    }
+  }
+
+  async confirmCreateAssignedTeam(newAssignedTeam: any) {
+    let assignedTeamName = '';
+
+    if (newAssignedTeam.assignedTeamName) {
+      assignedTeamName = newAssignedTeam.assignedTeamName;
+    }
+
+    if (this.poam.poamId !== "ADDPOAM" && newAssignedTeam.assignedTeamId) {
+      const poamAssignedTeam = {
+        poamId: +this.poam.poamId,
+        assignedTeamId: +newAssignedTeam.assignedTeamId,
+      };
+      (await this.poamService.postPoamAssignedTeam(poamAssignedTeam)).subscribe(async () => {
+        (await this.poamService.getPoamAssignedTeams(this.poamId)).subscribe((poamAssignedTeams: any) => {
+          this.poamAssignedTeams = poamAssignedTeams;
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assignedTeamName} was added as an assigned team` });
+        });
+      }, (error) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add team' });
+      });
+    } else if (this.poam.poamId === "ADDPOAM" && newAssignedTeam.assignedTeamId) {
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assignedTeamName} was added as an assigned team` });
+    } else {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to create entry. Invalid input.' });
+    }
+  }
+
+  async confirmDeleteAssignedTeam(assignedTeamData: any) {
+    let assignedTeamName = '';
+
+    if (assignedTeamData.assignedTeamName) {
+      assignedTeamName = assignedTeamData.assignedTeamName;
+    }
+
+    if (this.poam.poamId !== "ADDPOAM" && assignedTeamData.assignedTeamId) {
+      (await this.poamService.deletePoamAssignedTeam(+this.poam.poamId, +assignedTeamData.assignedTeamId)).subscribe(() => {
+        this.poamAssignedTeams = this.poamAssignedTeams.filter((a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId);
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assignedTeamName} was removed as an assigned team` });
+      }, (error) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to remove assigned team' });
+      });
+    } else if (this.poam.poamId === "ADDPOAM" && assignedTeamData.assignedTeamId) {
+      this.poamAssignedTeams = this.poamAssignedTeams.filter((a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId);
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: `${assignedTeamName} was removed as an assigned team` });
+    } else {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete entry. Invalid input.' });
+    }
+  }
+
   async fetchAssets() {
     this.subs.sink = await (await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId)).subscribe((response: any) => {
       this.assetList = response.map((asset: any) => ({
@@ -1174,7 +1266,7 @@ ${this.pluginData.description ?? ""}`,
   }
 
   addAsset() {
-    this.poamAssets = [...this.poamAssets, { poamId: this.poam.poamId, assetId: null, isNew: true }];
+    this.poamAssets = [{ poamId: this.poam.poamId, assetId: null, isNew: true }, ...this.poamAssets];
   }
 
   async onAssetChange(asset: any, rowIndex: number) {
@@ -1209,7 +1301,6 @@ ${this.pluginData.description ?? ""}`,
       const poamAsset = {
         poamId: +this.poam.poamId,
         assetId: +event.assetId,
-        poamLog: [{ userId: this.user.userId }],
       };
 
       (await this.poamService.postPoamAsset(poamAsset)).subscribe(() => {

@@ -6,6 +6,7 @@ import { AppNavigationComponent } from './app.navigation.component';
 import { LayoutService } from '../services/app.layout.service';
 import { SubSink } from 'subsink';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { AuthService } from '../../core/auth/services/auth.service';
 
 @Component({
     selector: 'app-layout',
@@ -22,6 +23,7 @@ export class AppLayoutComponent implements OnDestroy {
   @ViewChild(AppNavigationComponent) appTopbar!: AppNavigationComponent;
 
   constructor(
+    private authService: AuthService,
     private menuService: MenuService,
     public layoutService: LayoutService,
     public renderer: Renderer2,
@@ -33,6 +35,7 @@ export class AppLayoutComponent implements OnDestroy {
 
   async initialize() {
     try {
+      await new Promise(resolve => setTimeout(resolve, 500));
       this.user = null;
       this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
         next: (response: any) => {
@@ -50,7 +53,7 @@ export class AppLayoutComponent implements OnDestroy {
       });
     } catch (error) {
       console.error('Error initializing user:', error);
-    }    
+    }
   }
 
   continueInitialization() {

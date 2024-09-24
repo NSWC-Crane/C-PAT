@@ -157,7 +157,7 @@ export class PoamExportService {
 
 
 
-  static async convertToExcel(poams: Poam[], exportingUser: any): Promise<Blob> {
+  static async convertToExcel(poams: Poam[], exportingUser: any, exportCollection: any): Promise<Blob> {
     const workbook = new ExcelJS.Workbook();
     const response = await fetch('../../../assets/eMASS_Template.xlsx');
     const arrayBuffer = await response.arrayBuffer();
@@ -192,7 +192,7 @@ export class PoamExportService {
       "U": "",
       "V": "likelihood",
       "W": "",
-      "X": "impactDescription",
+      "X": "",
       "Y": "residualRisk",
       "Z": "",
       "AA": "adjSeverity",
@@ -201,8 +201,12 @@ export class PoamExportService {
     const currentDate = format(new Date(), 'MM/dd/yyyy');
     worksheet!.getCell('D2').value = currentDate;
     worksheet!.getCell('D3').value = exportingUser.fullName.toUpperCase() ?? '';
+    worksheet!.getCell('D4').value = exportCollection.ccsafa ?? '';
+    worksheet!.getCell('D5').value = exportCollection.systemName ?? '';
     worksheet!.getCell('D6').value = 'N/A';
+    worksheet!.getCell('L2').value = exportCollection.systemType ?? '';
     worksheet!.getCell('L4').value = exportingUser.fullName.toUpperCase() ?? '';
+    worksheet!.getCell('L5').value = exportingUser.phoneNumber.toUpperCase() ?? '';
     worksheet!.getCell('L6').value = exportingUser.email.toUpperCase() ?? '';
     const cellA1 = worksheet!.getCell('A1');
     cellA1.value = PoamExportService.getClassificationText(CPAT.Env.classification);
@@ -224,7 +228,7 @@ export class PoamExportService {
       adjSeverity: (value: any, _poam: Poam, _columnKey: string): string =>
         PoamExportService.mapRawSeverity(value),
       vulnerabilitySource: (value: any, poam: Poam, _columnKey: string): any =>
-        value === 'STIG' ? poam.stigTitle : PoamExportService.mapRawSeverity(value),
+        value === 'STIG' ? poam.stigTitle : poam.vulnerabilitySource,
       status: (value: any, _poam: Poam, _columnKey: string): string =>
         value === 'Closed' ? 'Completed' : 'Ongoing',
       scheduledCompletionDate: (value: any, _poam: Poam, _columnKey: string): string =>
@@ -249,6 +253,17 @@ export class PoamExportService {
     };
 
     const getCellValue = (poam: Poam, dbKey: string, columnKey: string): any => {
+      if (columnKey === 'N') {
+        const cciValue = poam[dbKey] !== undefined && poam[dbKey] !== ''
+          ? cellValueMappers[dbKey]
+            ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey)
+            : poam[dbKey]
+          : optionalDefaultValues[columnKey] || '';
+
+        const impactDescription = poam['impactDescription'] || '';
+        return `${cciValue}\n\nLocal Site Impact:\n${impactDescription}`.trim();
+      }
+
       if (poam[dbKey] !== undefined && poam[dbKey] !== '') {
         return cellValueMappers[dbKey]
           ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey)
