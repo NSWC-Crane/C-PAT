@@ -1,11 +1,11 @@
 #/*
-#!#######################################################################
-#! C-PATTM SOFTWARE
-#! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
-#! crane_C_PAT.1_license.txt, which is part of this software package. BY
-#! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+#!##########################################################################
+#! CRANE PLAN OF ACTION AND MILESTONE (C-PAT) SOFTWARE
+#! Use is governed by the Open Source Academic Research License Agreement
+#! contained in the LICENSE.MD file, which is part of this software package.
+#! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
 #! CONDITIONS OF THE LICENSE.  
-#!########################################################################
+#!##########################################################################
 #*/
 
 openapi: 3.0.1
@@ -4037,7 +4037,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/current_user_Response'
+                $ref: '#/components/schemas/user'
         '404':
           description: User not found
           content:
@@ -4075,7 +4075,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_Response'
+                $ref: '#/components/schemas/user'
         '400':
           description: Bad request
           content:
@@ -4215,7 +4215,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/current_user_Response'
+                  $ref: '#/components/schemas/user'
         '500':
           description: Internal server error
           content:
@@ -5341,51 +5341,6 @@ components:
           type: string
         scheduledCompletionCount:
           type: integer 
-          
-    user:
-      type: object
-      required:
-        - userId
-        - userName
-        - email
-        - fullName
-        - created
-        - lastAccess
-        - isAdmin
-      additionalProperties: true
-      properties:
-        userId:
-          type: integer
-          readOnly: true
-        username:
-          type: string
-          maxLength: 255
-          readOnly: true
-        email:
-          type: string
-        phoneNumber:
-          type: string
-        fullName:
-          type: string
-          maxLength: 255
-        officeOrg:
-          type: string
-          maxLength: 100
-          nullable: true
-        lastClaims:
-          type: object
-          nullable: true
-        points:
-          type: integer
-          nullable: true
-        isAdmin:
-          type: integer
-        created:
-          type: string
-          format: date
-        lastAccess:
-          type: string
-          format: date
 
     UpdateThemeRequest:
       type: object
@@ -5420,23 +5375,14 @@ components:
         - userId
         - lastCollectionAccessedId
 
-    current_user_Response:
+    user:
       type: object
       required:
         - userId
         - userName
-        - email
-        - firstName
-        - lastName
-        - created
-        - lastAccess
         - lastCollectionAccessedId
         - accountStatus
-        - fullName
-        - defaultTheme
-        - isAdmin
-        - permissions
-      additionalProperties: false
+      additionalProperties: true
       properties:
         userId:
           type: integer
@@ -5485,7 +5431,7 @@ components:
           type: integer
           nullable: true
         isAdmin:
-          type: integer
+          type: boolean
         permissions:
           type: array
           items:
@@ -5502,72 +5448,6 @@ components:
               accessLevel:
                 type: integer
 
-    user_Response:
-      type: object
-      required:
-        - userId
-        - userName
-        - email
-        - firstName
-        - lastName
-        - created
-        - lastAccess
-        - lastCollectionAccessedId
-        - accountStatus
-        - fullName
-        - defaultTheme
-        - isAdmin
-      additionalProperties: false
-      properties:
-        userId:
-          type: integer
-          readOnly: true
-        userName:
-          type: string
-          maxLength: 20
-          readOnly: true
-        email:
-          type: string
-          maxLength: 100
-        phoneNumber:
-          type: string
-          maxLength: 20
-        firstName:
-          type: string
-          maxLength: 50
-        lastName:
-          type: string
-          maxLength: 50
-        created:
-          type: string
-          format: date
-        lastAccess:
-          type: string
-          format: date
-        lastCollectionAccessedId:
-          type: integer
-        accountStatus:
-          type: string
-          maxLength: 45
-        fullName:
-          type: string
-          maxLength: 225
-        officeOrg:
-          type: string
-          maxLength: 100
-          nullable: true
-        defaultTheme:
-          type: string
-          maxLength: 20
-        lastClaims:
-          type: object
-          nullable: true
-        points:
-          type: integer
-          nullable: true
-        isAdmin:
-          type: integer
-
     user_Update:
       type: object
       required:
@@ -5578,7 +5458,6 @@ components:
         - accountStatus
         - lastCollectionAccessedId
         - defaultTheme
-        - isAdmin
       additionalProperties: true
       properties:
         userId:
@@ -5613,9 +5492,7 @@ components:
           nullable: true
         points:
           type: integer
-          nullable: true
-        isAdmin:
-          type: integer          
+          nullable: true         
           
     user_Token:
       required:

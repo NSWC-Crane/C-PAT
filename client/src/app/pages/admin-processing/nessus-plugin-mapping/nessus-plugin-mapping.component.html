@@ -1,3 +1,13 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
 <p-progressBar *ngIf="isUpdating" [value]="updateProgress"></p-progressBar>
 
 <button pButton class="p-button-outlined p-button-secondary w-full mb-4"
@@ -8,8 +18,8 @@
 </button>
 
 <p-messages *ngIf="isUpdating"
-           severity="warn"
-           styleClass="w-full mb-4">
+            severity="warn"
+            styleClass="w-full mb-4">
   <ng-template pTemplate="content">
     <div class="flex justify-content-between align-items-center">
       <span>
@@ -69,6 +79,12 @@
           <ng-container [ngSwitch]="col.field">
             <ng-container *ngSwitchCase="'pluginID'">
               {{ rowData[col.field]?.join(', ') || 'N/A' }}
+            </ng-container>
+            <ng-container *ngSwitchCase="'releaseDate'">
+              {{ rowData[col.field] | date:'yyyy-MM-dd' }}
+            </ng-container>
+            <ng-container *ngSwitchCase="'navyComplyDate'">
+              {{ rowData[col.field] | date:'yyyy-MM-dd' }}
             </ng-container>
             <ng-container *ngSwitchDefault>
               {{ rowData[col.field] }}

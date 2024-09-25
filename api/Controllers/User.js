@@ -1,20 +1,19 @@
 /*
-!#######################################################################
-! C-PATTM SOFTWARE
-! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
-! crane_C_PAT.1_license.txt, which is part of this software package. BY
-! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
 ! CONDITIONS OF THE LICENSE.  
-!########################################################################
+!##########################################################################
 */
 
 const userService = require('../Services/usersService');
 
 module.exports.getUsers = async function getUsers(req, res, next) {
     try {
-        const userId = req.userObject.userId;
         const elevate = req.query.elevate;
-        const users = await userService.getUsers(elevate, userId);
+        const users = await userService.getUsers(elevate, req);
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
@@ -37,10 +36,8 @@ module.exports.getCurrentUser = async function getCurrentUser(req, res, next) {
 
 module.exports.getUserByUserID = async function getUserByUserID(req, res, next) {
     try {
-        const userId = req.params.userId;
-        const requestorId = req.userObject.userId;
         const elevate = req.query.elevate;
-        const user = await userService.getUserByUserID(requestorId, elevate, userId);
+        const user = await userService.getUserByUserID(req, elevate);
         res.status(200).json(user);
     } catch (error) {
         if (error.message === "User not found") {
@@ -82,10 +79,7 @@ module.exports.updateUserTheme = async function updateUserTheme(req, res, next) 
 module.exports.updateUserPoints = async function updateUserPoints(req, res, next) {
     try {
         const elevate = req.query.elevate;
-        const points = req.body.points;
-        const requestorId = req.userObject.userId;
-        const userId = req.body.userId;
-        const result = await userService.updateUserPoints(elevate, points, userId, requestorId);
+        const result = await userService.updateUserPoints(elevate, req);
         if (result.success) {
             res.status(200).json(result.message);
         } else {
@@ -113,10 +107,8 @@ module.exports.updateUserLastCollectionAccessed = async function updateUserLastC
 
 module.exports.deleteUser = async function deleteUser(req, res, next) {
     try {
-        const requestorId = req.userObject.userId;
         const elevate = req.query.elevate;
-        const userId = req.params.userId;
-        await userService.deleteUser(requestorId, elevate, userId);
+        await userService.deleteUser(requestorId, elevate, req);
         res.status(200).json({ message: 'User deleted' });
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error', detail: error.message });
