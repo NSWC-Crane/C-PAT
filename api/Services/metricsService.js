@@ -1,11 +1,11 @@
 /*
-!#######################################################################
-! C-PATTM SOFTWARE
-! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
-! crane_C_PAT.1_license.txt, which is part of this software package. BY
-! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
 ! CONDITIONS OF THE LICENSE.  
-!########################################################################
+!##########################################################################
 */
 
 'use strict';
@@ -213,11 +213,9 @@ exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamS
     }
 }
 
-exports.getAvailableAssetLabel = async function getAvailableAssetLabel(userId) {
+exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
     try {
         return await withConnection(async (connection) => {
-            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
-            const isAdmin = adminRows[0].isAdmin;
 
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
@@ -228,12 +226,12 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(userId) {
 
             let params = [];
 
-            if (!isAdmin) {
+            if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [userId]);
+                `, [req.userObject.userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -261,21 +259,18 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(userId) {
     }
 }
 
-exports.getAvailablePoamStatus = async function getAvailablePoamStatus(userId) {
+exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
     try {
         return await withConnection(async (connection) => {
-            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
-            const isAdmin = adminRows[0].isAdmin;
-
             let sql = "SELECT status, COUNT(*) AS statusCount FROM poam";
             let params = [];
 
-            if (!isAdmin) {
+            if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [userId]);
+                `, [req.userObject.userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -304,12 +299,9 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(userId) {
     }
 }
 
-exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamStatus(userId) {
+exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamStatus(req) {
     try {
         return await withConnection(async (connection) => {
-            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
-            const isAdmin = adminRows[0].isAdmin;
-
             let sql = `
         SELECT
           CASE
@@ -324,12 +316,12 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
 
             let params = [];
 
-            if (!isAdmin) {
+            if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
           SELECT collectionId
           FROM cpat.collectionpermissions
           WHERE userId = ? AND accessLevel >= 3
-        `, [userId]);
+        `, [req.userObject.userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -371,12 +363,9 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
     }
 };
 
-exports.getAvailablePoamLabel = async function getAvailablePoamLabel(userId) {
+exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
     try {
         return await withConnection(async (connection) => {
-            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
-            const isAdmin = adminRows[0].isAdmin;
-
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
                 FROM cpat.poamlabels pl
@@ -386,12 +375,12 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(userId) {
 
             let params = [];
 
-            if (!isAdmin) {
+            if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [userId]);
+                `, [req.userObject.userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -419,21 +408,18 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(userId) {
     }
 }
 
-exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(userId) {
+exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) {
     try {
         return await withConnection(async (connection) => {
-            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
-            const isAdmin = adminRows[0].isAdmin;
-
             let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam";
             let params = [];
 
-            if (!isAdmin) {
+            if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [userId]);
+                `, [req.userObject.userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -462,21 +448,18 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(userI
     }
 }
 
-exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(userId) {
+exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(req) {
     try {
         return await withConnection(async (connection) => {
-            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
-            const isAdmin = adminRows[0].isAdmin;
-
             let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam WHERE submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
             let params = [];
 
-            if (!isAdmin) {
+            if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
           SELECT collectionId
           FROM cpat.collectionpermissions
           WHERE userId = ? AND accessLevel >= 3
-        `, [userId]);
+        `, [req.userObject.userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -504,12 +487,9 @@ exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoam
     }
 };
 
-exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(userId) {
+exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(req) {
     try {
         return await withConnection(async (connection) => {
-            const [adminRows] = await connection.query("SELECT isAdmin FROM cpat.user WHERE userId = ?", [userId]);
-            const isAdmin = adminRows[0].isAdmin;
-
             let sql = `
                 SELECT
                     scheduledCompletionDate,
@@ -523,12 +503,12 @@ exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamSch
 
             let params = [];
 
-            if (!isAdmin) {
+            if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId 
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [userId]);
+                `, [req.userObject.userId]);
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 

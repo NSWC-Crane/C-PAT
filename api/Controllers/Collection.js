@@ -1,11 +1,11 @@
 /*
-!#######################################################################
-! C-PATTM SOFTWARE
-! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
-! crane_C_PAT.1_license.txt, which is part of this software package. BY
-! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
 ! CONDITIONS OF THE LICENSE.  
-!########################################################################
+!##########################################################################
 */
 
 const collectionService = require('../Services/collectionService');
@@ -22,9 +22,8 @@ module.exports.getCollectionBasicList = async function getCollectionBasicList(re
 
 module.exports.getCollections = async function getCollections(req, res, next) {
     try {
-        const userId = req.userObject.userId;
         const elevate = req.query.elevate;
-        const getCollections = await collectionService.getCollections(userId, elevate);
+        const getCollections = await collectionService.getCollections(elevate, req);
         if (getCollections.error) {
             res.status(500).json({ error: 'Internal Server Error', detail: getCollections.error });
         } else {

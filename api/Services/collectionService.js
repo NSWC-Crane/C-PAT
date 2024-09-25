@@ -1,11 +1,11 @@
 /*
-!#######################################################################
-! C-PATTM SOFTWARE
-! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
-! crane_C_PAT.1_license.txt, which is part of this software package. BY
-! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
 ! CONDITIONS OF THE LICENSE.  
-!########################################################################
+!##########################################################################
 */
 
 'use strict';
@@ -24,20 +24,13 @@ async function withConnection(callback) {
     }
 }
 
-exports.getCollections = async function getCollections(userId, elevate) {
+exports.getCollections = async function getCollections(elevate, req) {
     try {
         return await withConnection(async (connection) => {
-            if (elevate) {
-                let sql = "SELECT * FROM user WHERE userId = ?";
-                let [rows] = await connection.query(sql, [userId]);
-                if (rows.length === 0) {
-                    throw new SmError.PrivilegeError('User not found');
-                }
-                let isAdmin = rows[0].isAdmin;
+            if (elevate && req.userObject.isAdmin === true) {
                 const user = {
                     collections: []
                 }
-                if (isAdmin == 1) {
                     let sql2 = "SELECT * FROM collection;"
                     let [row2] = await connection.query(sql2)
                     const size = Object.keys(row2).length
@@ -47,9 +40,6 @@ exports.getCollections = async function getCollections(userId, elevate) {
                         });
                     }
                     return user.collections;
-                } else {
-                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
-                }
             } else {
                 let collectionSql = `
                 SELECT c.*
@@ -57,7 +47,7 @@ exports.getCollections = async function getCollections(userId, elevate) {
                 INNER JOIN collectionpermissions cp ON c.collectionId = cp.collectionId
                 WHERE cp.userId = ?;
             `;
-                let [collections] = await connection.query(collectionSql, [userId]);
+                let [collections] = await connection.query(collectionSql, [req.userObject.userId]);
                 return collections.map(collection => ({
                     collectionId: collection.collectionId,
                     collectionName: collection.collectionName,

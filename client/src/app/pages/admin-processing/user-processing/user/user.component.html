@@ -69,12 +69,12 @@
     </div>
   </div>
   <div class="switch-container">
-    <p-inputSwitch [(ngModel)]="checked" name="toggleAdmin" (onChange)="toggleAdmin()">
+    <p-inputSwitch [(ngModel)]="checked" name="isAdmin" disabled>
     </p-inputSwitch>
-    <label for="toggleAdmin">Grant Admin Privileges</label>
+    <label for="isAdmin">C-PAT Admin</label>
     <i class="pi pi-info-circle"
        style="cursor: pointer; color: var(--primary-color); font-size: 1rem; margin-left: 6px;"
-       pTooltip="The user must also be assigned the admin role within the OIDC provider or permissions will be automatically reverted upon token validation."
+       pTooltip="The C-PAT administrative privilege is assigned by granting a user the admin role within the OIDC provider."
        tooltipPosition="top">
     </i>
   </div>

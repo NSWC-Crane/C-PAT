@@ -7,8 +7,6 @@
                  [value]="loadingTableInfo ? loadingSkeletonData : displayDataSource"
                  [columns]="allColumns"
                  [globalFilterFields]="['groupId', 'ruleTitle', 'benchmarkId', 'severity']"
-                 [sortMode]="'multiple'"
-                 [multiSortMeta]="multiSortMeta"
                  (onSort)="updateSort($event)"
                  [scrollable]="true"
                  [paginator]="true"

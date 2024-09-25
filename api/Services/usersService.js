@@ -1,16 +1,19 @@
 /*
-!#######################################################################
-! C-PATTM SOFTWARE
-! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
-! crane_C_PAT.1_license.txt, which is part of this software package. BY
-! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
 ! CONDITIONS OF THE LICENSE.  
-!########################################################################
+!##########################################################################
 */
 
 const dbUtils = require('./utils');
 const logger = require('../utils/logger');
 const SmError = require('../utils/error');
+const config = require('../utils/config');
+
+const privilegeGetter = new Function("obj", "return obj?." + config.oauth.claims.privileges + " || [];");
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,35 +24,27 @@ async function withConnection(callback) {
     }
 }
 
-exports.getUsers = async function getUsers(elevate, userId) {
+exports.getUsers = async function getUsers(elevate, req) {
     try {
         return await withConnection(async (connection) => {
-            if (elevate) {
-                const userSql = "SELECT * FROM user WHERE userId = ?";
-                const [userRows] = await connection.query(userSql, [userId]);
-
-                if (userRows.length === 0) {
-                    throw new SmError.PrivilegeError('User not found');
-                }
-
-                const isAdmin = userRows[0].isAdmin;
-
-                if (isAdmin !== 1) {
-                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
-                }
-
+            if (elevate && req.userObject.isAdmin === true) {
                 const allUsersSql = "SELECT * FROM cpat.user";
                 const [allUsersRows] = await connection.query(allUsersSql);
-
                 const users = await Promise.all(allUsersRows.map(async (user) => {
                     const permissionsSql = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
                     const [permissionRows] = await connection.query(permissionsSql, [user.userId]);
-
                     const permissions = permissionRows.map(permission => ({
                         userId: permission.userId,
                         collectionId: permission.collectionId,
                         accessLevel: permission.accessLevel,
                     }));
+
+                    let isAdmin;
+                    try {
+                        isAdmin = privilegeGetter(user.lastClaims).includes('admin');
+                    } catch (e) {
+                        isAdmin = false;
+                    }
 
                     return {
                         userId: user.userId,
@@ -66,12 +61,11 @@ exports.getUsers = async function getUsers(elevate, userId) {
                         officeOrg: user.officeOrg,
                         defaultTheme: user.defaultTheme,
                         points: user.points,
-                        isAdmin: user.isAdmin,
+                        isAdmin: isAdmin,
                         lastClaims: user.lastClaims,
                         permissions: permissions
                     };
                 }));
-
                 return users;
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
@@ -103,6 +97,13 @@ exports.getCurrentUser = async function getCurrentUser(userId) {
                 accessLevel: permission.accessLevel,
             }));
 
+            let isAdmin;
+            try {
+                isAdmin = privilegeGetter(user.lastClaims).includes('admin');
+            } catch (e) {                
+                isAdmin = false;
+            }
+
             const userObject = {
                 userId: user.userId,
                 userName: user.userName,
@@ -118,7 +119,7 @@ exports.getCurrentUser = async function getCurrentUser(userId) {
                 officeOrg: user.officeOrg,
                 defaultTheme: user.defaultTheme,
                 points: user.points,
-                isAdmin: user.isAdmin,
+                isAdmin: isAdmin,
                 lastClaims: user.lastClaims,
                 permissions: permissions
             }; 
@@ -129,25 +130,12 @@ exports.getCurrentUser = async function getCurrentUser(userId) {
     }
 };
 
-exports.getUserByUserID = async function getUserByUserID(requestorId, elevate, userId) {
+exports.getUserByUserID = async function getUserByUserID(req, elevate) {
     try {
         return await withConnection(async (connection) => {
-            if (elevate) {
-                const userSql = "SELECT * FROM user WHERE userId = ?";
-                const [userRows] = await connection.query(userSql, [requestorId]);
-
-                if (userRows.length === 0) {
-                    throw new SmError.PrivilegeError('User not found');
-                }
-
-                const isAdmin = userRows[0].isAdmin;
-
-                if (isAdmin !== 1) {
-                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
-                }
-
+            if (elevate && req.userObject.isAdmin === true) {
                 let sql = "SELECT * FROM user WHERE userId = ?";
-                const [userQueryRows] = await connection.query(sql, [userId]);
+                const [userQueryRows] = await connection.query(sql, [req.params.userId]);
 
                 if (userQueryRows.length === 0) {
                     return userQueryRows[0];
@@ -164,6 +152,13 @@ exports.getUserByUserID = async function getUserByUserID(requestorId, elevate, u
                     accessLevel: permission.accessLevel,
                 }));
 
+                let isAdmin;
+                try {
+                    isAdmin = privilegeGetter(user.lastClaims).includes('admin');
+                } catch (e) {
+                    isAdmin = false;
+                }
+
                 return {
                     userId: user.userId,
                     userName: user.userName,
@@ -179,7 +174,7 @@ exports.getUserByUserID = async function getUserByUserID(requestorId, elevate, u
                     officeOrg: user.officeOrg,
                     defaultTheme: user.defaultTheme,
                     points: user.points,
-                    isAdmin: user.isAdmin,
+                    isAdmin: isAdmin,
                     lastClaims: user.lastClaims,
                     permissions: permissions
                 };
@@ -212,6 +207,13 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
                 accessLevel: permission.accessLevel,
             }));
 
+            let isAdmin;
+            try {
+                isAdmin = privilegeGetter(user.lastClaims).includes('admin');
+            } catch (e) {
+                isAdmin = false;
+            }
+
             const userObject = {
                 userId: user.userId,
                 userName: user.userName,
@@ -227,7 +229,7 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
                 officeOrg: user.officeOrg,
                 defaultTheme: user.defaultTheme,
                 points: user.points,
-                isAdmin: user.isAdmin,
+                isAdmin: isAdmin,
                 lastClaims: user.lastClaims,
                 permissions: permissions
             };
@@ -242,21 +244,8 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
 exports.updateUser = async function updateUser(userId, elevate, req) {
     try {
         return await withConnection(async (connection) => {
-            if (elevate) {
-                const userSql = "SELECT * FROM user WHERE userId = ?";
-                const [userRows] = await connection.query(userSql, [userId]);
-
-                if (userRows.length === 0) {
-                    throw new SmError.PrivilegeError('User not found');
-                }
-
-                const isAdmin = userRows[0].isAdmin;
-
-                if (isAdmin !== 1) {
-                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
-                }
-
-            let sql = "UPDATE user SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, isAdmin = ?, points = ? WHERE userId = ?";
+            if (elevate && req.userObject.isAdmin === true) {
+            let sql = "UPDATE user SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, points = ? WHERE userId = ?";
 
             await connection.query(sql, [
                 req.body.firstName,
@@ -269,7 +258,6 @@ exports.updateUser = async function updateUser(userId, elevate, req) {
                 `${req.body.firstName} ${req.body.lastName}`,
                 req.body.officeOrg,
                 req.body.defaultTheme,
-                req.body.isAdmin,
                 req.body.points,
                 req.body.userId
             ]);
@@ -304,25 +292,13 @@ exports.updateUserTheme = async function updateUserTheme(req, res, next) {
     }
 };
 
-exports.updateUserPoints = async function updateUserPoints(elevate, points, userId, requestorId) {
+exports.updateUserPoints = async function updateUserPoints(elevate, req) {
     try {
         return await withConnection(async (connection) => {
-            if (elevate) {
-                const userSql = "SELECT * FROM user WHERE userId = ?";
-                const [userRows] = await connection.query(userSql, [requestorId]);
-
-                if (userRows.length === 0) {
-                    throw new SmError.PrivilegeError('User not found');
-                }
-
-                const isAdmin = userRows[0].isAdmin;
-
-                if (isAdmin !== 1) {
-                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
-                }
+            if (elevate && req.userObject.isAdmin === true) {
             let sql = "UPDATE user SET points = ? WHERE userId = ?";
 
-            await connection.query(sql, [points, userId]);
+                await connection.query(sql, [req.body.points, req.body.userId]);
 
             return { success: true, message: 'User points updated successfully' };
             } else {
@@ -441,28 +417,15 @@ exports.setLastAccess = async function (userId, timestamp) {
     }
 };
 
-exports.deleteUser = async function deleteUser(requestorId, elevate, userId) {
+exports.deleteUser = async function deleteUser(elevate, req) {
     try {
         return await withConnection(async (connection) => {
-            if (elevate) {
-                const userSql = "SELECT * FROM user WHERE userId = ?";
-                const [userRows] = await connection.query(userSql, [requestorId]);
-
-                if (userRows.length === 0) {
-                    throw new SmError.PrivilegeError('User not found');
-                }
-
-                const isAdmin = userRows[0].isAdmin;
-
-                if (isAdmin !== 1) {
-                    throw new SmError.PrivilegeError('User requesting Elevate without admin permissions.');
-                }
-
+            if (elevate && req.userObject.isAdmin === true) {
             let sql = 'DELETE FROM `user` WHERE `userId`= ?';
-            await connection.query(sql, [userId]);
+                await connection.query(sql, [req.params.userId]);
 
-            logger.writeInfo("usersService", 'log', { event: 'removed account', userId: userId });
-            logger.writeInfo("usersService", 'notification', { event: 'removed account', userId: userId });
+                logger.writeInfo("usersService", 'log', { event: 'User account deleted', userId: req.params.userId });
+                logger.writeInfo("usersService", 'notification', { event: 'User account deleted', userId: req.params.userId });
 
             return { message: "User deleted" };
             } else {

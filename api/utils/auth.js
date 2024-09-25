@@ -1,11 +1,11 @@
 /*
-!#######################################################################
-! C-PATTM SOFTWARE
-! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
-! crane_C_PAT.1_license.txt, which is part of this software package. BY
-! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
 ! CONDITIONS OF THE LICENSE.  
-!########################################################################
+!##########################################################################
 */
 
 const config = require('../utils/config');
@@ -72,19 +72,19 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
     }
     else {
         let isAdmin = privilegeGetter(decoded).includes('admin');
-        const response = await User.getUserByUserName(req.userObject.userName);
-        if (response?.length > 1) req.userObject = response;
-        const adminValidation = response?.isAdmin === 1 ? isAdmin : 0;
-        req.userObject.isAdmin = adminValidation;
-        req.userObject.userId = response?.userId || null;
+        req.userObject.isAdmin = isAdmin;
+
+        const currentUserData = await User.getUserByUserName(req.userObject.userName);
+        if (currentUserData?.length > 1) req.userObject = currentUserData;        
+        req.userObject.userId = currentUserData?.userId || null;
 
         const refreshFields = {}
         let now = new Date();
 
-        if (!response?.lastAccess || differenceInMinutes(now, response?.lastAccess) >= config.settings.lastAccessResolution) {
+        if (!currentUserData?.lastAccess || differenceInMinutes(now, currentUserData?.lastAccess) >= config.settings.lastAccessResolution) {
             refreshFields.lastAccess = now
         }
-        if (!response?.lastClaims || decoded.jti !== response?.lastClaims?.jti) {
+        if (!currentUserData?.lastClaims || decoded.jti !== currentUserData?.lastClaims?.jti) {
             refreshFields.lastClaims = decoded
         }
 
@@ -99,14 +99,14 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
                 if (userId?.insertId && userId?.insertId != req.userObject.userId) {
                     req.userObject.userId = userId?.insertId?.toString();
                 }
-                if (!config.client.features.marketplaceDisabled && differenceInMinutes(now, response?.lastAccess) >= 720 && response?.points) {
+                if (!config.client.features.marketplaceDisabled && differenceInMinutes(now, currentUserData?.lastAccess) >= 720 && currentUserData?.points) {
                     await User.dailyPoints(req.userObject.userId);
-                } else if (!config.client.features.marketplaceDisabled && differenceInMinutes(now, response?.lastAccess) >= 60 && response?.points) {
+                } else if (!config.client.features.marketplaceDisabled && differenceInMinutes(now, currentUserData?.lastAccess) >= 60 && currentUserData?.points) {
                     await User.hourlyPoints(req.userObject.userId);
                 }
             }                   
         }
-        if ('elevate' in req.query && (req.query.elevate === 'true' && req.userObject.isAdmin != 1)) {
+        if ('elevate' in req.query && (req.query.elevate === 'true' && req.userObject.isAdmin !== true)) {
             throw (new SmError.PrivilegeError("User has insufficient privilege to complete this request."))
         }
         return true;
