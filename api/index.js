@@ -15,6 +15,12 @@ const logger = require('./utils/logger');
 const smErrors = require('./utils/error');
 const { serializeError } = require('./utils/serializeError');
 const packageJson = require("./package.json")
+const RateLimit = require('express-rate-limit');
+
+const limiter = RateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // max 100 requests per windowMs
+});
 logger.writeInfo('index', 'starting', {
     version: packageJson.version,
     env: logger.serializeEnvironment(),
@@ -256,6 +262,8 @@ const CPAT = {
   }
 }    
 `
+        app.use(limiter);
+
         app.get('/cpat/Env.js', function (req, res) {
             req.component = 'static'
             writer.writeWithContentType(res, { payload: envJS, contentType: "application/javascript" })
