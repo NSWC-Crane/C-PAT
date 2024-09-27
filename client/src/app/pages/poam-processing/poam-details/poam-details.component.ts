@@ -1197,22 +1197,10 @@ ${this.pluginData.description ?? ''}`,
 
   private validateMilestoneFields(milestone: any): boolean {
     const requiredFields = [
-      {
-        field: 'milestoneComments',
-        message: 'Milestone Comments is a required field.',
-      },
-      {
-        field: 'milestoneDate',
-        message: 'Milestone Date is a required field.',
-      },
-      {
-        field: 'milestoneStatus',
-        message: 'Milestone Status is a required field.',
-      },
-      {
-        field: 'milestoneTeam',
-        message: 'Milestone Team is a required field.',
-      },
+      { field: 'milestoneComments', message: 'Milestone Comments is a required field.' },
+      { field: 'milestoneDate', message: 'Milestone Date is a required field.' },
+      { field: 'milestoneStatus', message: 'Milestone Status is a required field.' },
+      { field: 'milestoneTeam', message: 'Milestone Team is a required field.' },
     ];
 
     for (const { field, message } of requiredFields) {
@@ -1271,47 +1259,36 @@ ${this.pluginData.description ?? ''}`,
       milestoneTeam: milestone.milestoneTeam || null,
     };
 
-    await (
-      await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone)
-    ).subscribe((res: any) => {
-      if (res.null) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Information',
-          detail: 'Unable to insert row, please validate entry and try again.',
-        });
-        return;
-      } else {
-        milestone.milestoneId = res.milestoneId;
-        milestone.isNew = false;
-        delete milestone.editing;
-      }
-    });
+    await (await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone))
+      .subscribe((res: any) => {
+        if (res.null) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Information',
+            detail: 'Unable to insert row, please validate entry and try again.',
+          });
+          return;
+        } else {
+          milestone.milestoneId = res.milestoneId;
+          milestone.isNew = false;
+          delete milestone.editing;
+        }
+      });
   }
 
   private async updateExistingMilestone(milestone: any) {
     const milestoneUpdate = {
-      ...(milestone.milestoneDate && {
-        milestoneDate: format(milestone.milestoneDate, 'yyyy-MM-dd'),
-      }),
-      ...(milestone.milestoneComments && {
-        milestoneComments: milestone.milestoneComments,
-      }),
-      ...(milestone.milestoneStatus && {
-        milestoneStatus: milestone.milestoneStatus,
-      }),
-      ...(milestone.milestoneTeam && {
-        milestoneTeam: milestone.milestoneTeam,
-      }),
+      ...(milestone.milestoneDate && { milestoneDate: format(milestone.milestoneDate, 'yyyy-MM-dd') }),
+      ...(milestone.milestoneComments && { milestoneComments: milestone.milestoneComments }),
+      ...(milestone.milestoneStatus && { milestoneStatus: milestone.milestoneStatus }),
+      ...(milestone.milestoneTeam && { milestoneTeam: milestone.milestoneTeam }),
     };
 
-    (
-      await this.poamService.updatePoamMilestone(
-        this.poam.poamId,
-        milestone.milestoneId,
-        milestoneUpdate,
-      )
-    ).subscribe({
+    (await this.poamService.updatePoamMilestone(
+      this.poam.poamId,
+      milestone.milestoneId,
+      milestoneUpdate
+    )).subscribe({
       next: () => {
         this.getData();
       },

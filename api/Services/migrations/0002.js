@@ -1,8 +1,9 @@
 const MigrationHandler = require('./lib/MigrationHandler')
 
 const upMigration = [
-    `ALTER TABLE user 
-     DROP COLUMN isAdmin;`
+    `ALTER TABLE user DROP COLUMN isAdmin`,
+
+    `ALTER TABLE assignedteams MODIFY COLUMN assignedTeamName VARCHAR(100) NOT NULL`
 ]
 
 const downMigration = [

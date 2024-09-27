@@ -15,6 +15,12 @@ const logger = require('./utils/logger');
 const smErrors = require('./utils/error');
 const { serializeError } = require('./utils/serializeError');
 const packageJson = require("./package.json")
+const RateLimit = require('express-rate-limit');
+
+const limiter = RateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // max 100 requests per windowMs
+});
 logger.writeInfo('index', 'starting', {
     version: packageJson.version,
     env: logger.serializeEnvironment(),
@@ -90,7 +96,6 @@ app.use((req, res, next) => {
         next(e)
     }
 })
-
 
 app.use('/api/tenable', proxy(config.tenable.url, {
     proxyReqPathResolver: function (req) {
@@ -257,6 +262,8 @@ const CPAT = {
   }
 }    
 `
+        app.use(limiter);
+
         app.get('/cpat/Env.js', function (req, res) {
             req.component = 'static'
             writer.writeWithContentType(res, { payload: envJS, contentType: "application/javascript" })
@@ -269,17 +276,33 @@ const CPAT = {
                 }
             }
         }));
-        const expressStatic = express.static(path.join(__dirname, directory))
-        app.use('*', (req, res, next) => {
-            req.component = 'static'
-            expressStatic(req, res, next)
-        })
+        const angularRoutes = [
+            '/admin-processing',
+            '/asset-processing',
+            '/import-processing/stigmanager-import',
+            '/import-processing/tenable-import',
+            '/label-processing',
+            '/marketplace',
+            '/poam-processing',
+            '/poam-processing/poam-manage',
+            '/poam-processing/poam-approve/:poamId',
+            '/poam-processing/poam-details/:poamId',
+            '/poam-processing/poam-extend/:poamId',
+            '/poam-processing/poam-log/:poamId',
+            '/notifications',
+            '/consent',
+        ];
+
+        angularRoutes.forEach(route => {
+            app.get(route, (req, res) => {
+                res.sendFile(path.join(__dirname, config.client.directory, 'index.html'));
+            });
+        });
     }
     catch (err) {
         logger.writeError('index', 'client', { message: err.message, stack: err.stack })
     }
 }
-
 
 async function startServer(app) {
     const server = http.createServer(app)

@@ -20,7 +20,7 @@ let config = {
     },
     certificates: process.env.NODE_EXTRA_CA_CERTS,
     client: {
-        authority: process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
+        authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
         apiBase: process.env.CPAT_API_BASE || "api",
         disabled: process.env.CPAT_CLIENT_DISABLED === "true",
         directory: process.env.CPAT_CLIENT_DIRECTORY || '../client/dist',
@@ -40,7 +40,7 @@ let config = {
         extraScopes: process.env.STIGMAN_EXTRA_SCOPES,
     },
     tenable: {
-        url: process.env.TENABLE_URL,
+        url: process.env.TENABLE_URL || "",
         accessKey: process.env.TENABLE_ACCESS_KEY,
         secretKey: process.env.TENABLE_SECRET_KEY,
     },

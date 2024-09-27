@@ -18,6 +18,7 @@ import { SharedService } from '../../../common/services/shared.service';
 import { PoamExtensionService } from '../poam-extend/poam-extend.service';
 import { MessageService } from 'primeng/api';
 import { PayloadService } from '../../../common/services/setPayload.service';
+import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
 
 @Component({
   selector: 'cpat-poam-extend',
@@ -26,6 +27,7 @@ import { PayloadService } from '../../../common/services/setPayload.service';
   providers: [ConfirmationService],
 })
 export class PoamExtendComponent implements OnInit, OnDestroy {
+  assignedTeamOptions: any;
   displayExtensionDialog: boolean = false;
   dates: any = {};
   poam: any;
@@ -91,6 +93,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   private payloadSubscription: Subscription[] = [];
 
   constructor(
+    private assignedTeamsService: AssignedTeamService,
     private router: Router,
     private route: ActivatedRoute,
     private poamService: PoamService,
@@ -139,7 +142,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         await this.poamService.getPoam(this.poamId),
         await this.poamExtensionService.getPoamExtension(this.poamId),
         await this.poamService.getPoamMilestones(this.poamId),
-      ]).subscribe(([poamData, extension, poamMilestones]: any) => {
+        await this.assignedTeamsService.getAssignedTeams(),
+      ]).subscribe(([poamData, extension, poamMilestones, assignedTeamOptions]: any) => {
         const extensionDataset = extension;
         this.poamMilestones = poamMilestones.poamMilestones.map(
           (milestone: any) => ({
@@ -152,7 +156,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
               : null,
           }),
         );
-
+        this.assignedTeamOptions = assignedTeamOptions;
         if (extensionDataset.length > 0) {
           const extensionData = extensionDataset[0];
           this.poam = {
