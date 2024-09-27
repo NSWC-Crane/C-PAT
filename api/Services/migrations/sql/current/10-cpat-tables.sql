@@ -77,7 +77,7 @@ CREATE TABLE `assetlabels` (
 DROP TABLE IF EXISTS `assignedteams`;
 CREATE TABLE `assignedteams` (
   `assignedTeamId` int NOT NULL AUTO_INCREMENT,
-  `assignedTeamName` varchar(50) NOT NULL,
+  `assignedTeamName` varchar(100) NOT NULL,
   PRIMARY KEY (`assignedTeamId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -643,7 +643,7 @@ CREATE TABLE `user` (
   `email` varchar(100) NOT NULL DEFAULT '',
   `phoneNumber` varchar(20) NOT NULL DEFAULT '',
   `firstName` varchar(50) NOT NULL DEFAULT '',
-  `lastName` varchar(50) NOT NULL DEFAULT '',
+  `lastName` varchar(50) NOT NULL DEFAULT ' ',
   `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `lastAccess` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `lastCollectionAccessedId` int NOT NULL DEFAULT '0',
@@ -651,7 +651,6 @@ CREATE TABLE `user` (
   `fullName` varchar(100) DEFAULT NULL,
   `officeOrg` varchar(100) DEFAULT 'UNKNOWN',
   `defaultTheme` varchar(50) DEFAULT 'lara-dark-blue',
-  `isAdmin` int NOT NULL DEFAULT '0',
   `lastClaims` json DEFAULT (_utf8mb4'{}'),
   `points` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`userId`),
@@ -668,4 +667,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-09-20 10:43:43
+-- Dump completed on 2024-09-25 17:28:18

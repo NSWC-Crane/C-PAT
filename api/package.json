@@ -4,9 +4,9 @@
   "description": "C-PAT API",
   "main": "index.js",
   "scripts": {
-    "prestart": "npm install",
     "start": "node index.js",
-    "start:build-client": "cd ../client && npm run build && cd ../api && npm install && npm start"
+    "install": "cd ../client && npm run install && cd ../api && npm install && node index.js",
+    "offline-rebuild": "cd ../client && npm run build && cd ../api && node index.js"
   },
   "author": "Christian Rodriguez",
   "license": "ISC",
@@ -28,7 +28,7 @@
     "lodash": "^4.17.21",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.11.3",
-    "npm-check-updates": "^17.1.2",
+    "npm-check-updates": "^17.1.3",
     "on-finished": "^2.4.1",
     "on-headers": "^1.0.2",
     "passport": "^0.7.0",

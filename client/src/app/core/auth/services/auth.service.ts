@@ -32,7 +32,7 @@ export class AuthService {
     } else if (!isAuthenticatedCpat) {
       await this.oidcSecurityService.authorize('cpat');
     } else {
-      this.router.navigate(['/poam-processing']);
+      return;
     }
   }
 

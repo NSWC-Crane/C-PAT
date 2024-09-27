@@ -459,7 +459,6 @@
                       <th scope="col">Milestone Date</th>
                       <th scope="col">Milestone Status</th>
                       <th scope="col">Milestone Team</th>
-                      <th scope="col"></th>
                       <th *ngIf="poam.status === 'Draft'" scope="col"><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()" [disabled]="accessLevel < 2"></button></th>
                       <th *ngIf="poam.status != 'Draft'" scope="col"><button pButton icon="pi pi-plus" class="p-button-text" severity="secondary" pTooltip="Milestones can only be added when the POAM status is Draft" [disabled]="accessLevel < 2"></button></th>
                     </tr>
@@ -499,7 +498,7 @@
                       <td>
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <input type="text" pInputText class="w-full" [(ngModel)]="milestone.milestoneTeam" [disabled]="accessLevel < 2">
+                            <p-dropdown [options]="assignedTeamOptions" [(ngModel)]="milestone.milestoneTeam" optionLabel="assignedTeamName" optionValue="assignedTeamName" [style]="{'width':'100%'}" appendTo="body" [disabled]="accessLevel < 2"></p-dropdown>
                           </ng-template>
                           <ng-template pTemplate="output">
                             {{milestone.milestoneTeam}}
@@ -507,7 +506,6 @@
                         </p-cellEditor>
                       </td>
                       <td>
-                      <td style="text-align:center">
                         <button *ngIf="!editing && poam.status === 'Draft'" pButton type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(milestone)" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
                         <button *ngIf="editing && poam.status === 'Draft'" pButton type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(milestone)" class="p-button-rounded p-button-text p-button-success mr-2" [disabled]="accessLevel < 2"></button>
                         <button *ngIf="editing && poam.status === 'Draft'" pButton type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(milestone, ri)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>

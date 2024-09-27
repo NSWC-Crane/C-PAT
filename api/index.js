@@ -91,7 +91,6 @@ app.use((req, res, next) => {
     }
 })
 
-
 app.use('/api/tenable', proxy(config.tenable.url, {
     proxyReqPathResolver: function (req) {
         const baseUrl = config.tenable.url.endsWith('/')
@@ -269,17 +268,33 @@ const CPAT = {
                 }
             }
         }));
-        const expressStatic = express.static(path.join(__dirname, directory))
-        app.use('*', (req, res, next) => {
-            req.component = 'static'
-            expressStatic(req, res, next)
-        })
+        const angularRoutes = [
+            '/admin-processing',
+            '/asset-processing',
+            '/import-processing/stigmanager-import',
+            '/import-processing/tenable-import',
+            '/label-processing',
+            '/marketplace',
+            '/poam-processing',
+            '/poam-processing/poam-manage',
+            '/poam-processing/poam-approve/:poamId',
+            '/poam-processing/poam-details/:poamId',
+            '/poam-processing/poam-extend/:poamId',
+            '/poam-processing/poam-log/:poamId',
+            '/notifications',
+            '/consent',
+        ];
+
+        angularRoutes.forEach(route => {
+            app.get(route, (req, res) => {
+                res.sendFile(path.join(__dirname, config.client.directory, 'index.html'));
+            });
+        });
     }
     catch (err) {
         logger.writeError('index', 'client', { message: err.message, stack: err.stack })
     }
 }
-
 
 async function startServer(app) {
     const server = http.createServer(app)

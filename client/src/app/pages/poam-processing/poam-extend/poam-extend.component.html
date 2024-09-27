@@ -114,7 +114,7 @@
                     <td>
                       <p-cellEditor>
                         <ng-template pTemplate="input">
-                          <input type="text" pInputText class="w-full" [(ngModel)]="milestone.milestoneTeam" [disabled]="accessLevel < 2">
+                          <p-dropdown [options]="assignedTeamOptions" [(ngModel)]="milestone.milestoneTeam" optionLabel="assignedTeamName" optionValue="assignedTeamName" [style]="{'width':'100%'}" appendTo="body" [disabled]="accessLevel < 2"></p-dropdown>
                         </ng-template>
                         <ng-template pTemplate="output">
                           {{milestone.milestoneTeam}}
