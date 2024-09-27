@@ -1,9 +1,1 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/.vs/C-PAT-AUTH/CopilotIndices/0.2.1627.58842
-/.vs/C-PAT-AUTH/FileContentIndex
-/.vs/C-PAT-AUTH/v17
-/.vs
-/import_realm - Copy.json
+.vscode

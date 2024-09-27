@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <title>It works</title></head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+
+body {
+    max-width:650px;
+    margin:40px auto;
+    padding:0 10px;
+    font:18px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    color:#444;
+}
+
+h1,h2,h3 {
+    line-height:1.2
+}
+
+@media (prefers-color-scheme:dark) {
+    body {
+        color:white;background:#444
+    }
+    a:link {
+        color:#5bf
+    }
+    a:visited {
+        color:#ccf
+    }
+}
+</style>
+
+<body>
+<h2>You did it!</h2>
+
+<p>You can look in the response headers from your browser’s development tools
+to see what information the server could provide about the CAC.</p>
+
+<!--# if expr="$ssl_client_s_dn" -->
+
+<p>Your CAC certificate's subject identifier is: <b><!--# echo var="ssl_client_s_dn" --></b> which
+expires in <b><!--# echo var="ssl_client_v_remain" --></b> days.</p>
+<pre><!--# echo var="ssl_client_raw_cert" --></pre>
+
+<!--# else -->
+
+<p>Something was wrong reading the CAC certificate, or server-side includes were disabled.</p>
+
+<!--# endif -->
+</body>
+</html>

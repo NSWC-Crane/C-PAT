@@ -1,0 +1,88 @@
+# C-PAT & STIG Manager with Non CAC Authentication
+
+version: '3.7'
+
+services:
+  nginx:
+    image: nginx:1.23.1
+    # alternative image from Ironbank
+    # image: registry1.dso.mil/ironbank/opensource/nginx/nginx:1.23.1
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./certs/localhost/localhost.crt:/etc/nginx/cert.pem
+      - ./certs/localhost/localhost.key:/etc/nginx/privkey.pem
+      # - ./certs/dod/Certificates_PKCS7_v5.9_DoD.pem.pem:/etc/nginx/dod-certs.pem
+      - ./nginx/index.html:/usr/share/nginx/html/index.html
+    ports:
+    - "443:443"
+
+  keycloak:
+    image: nuwcdivnpt/stig-manager-auth:latest
+    # image: quay.io/keycloak/keycloak:19.0.2
+    # alternative image from Ironbank
+    # image: registry1.dso.mil/ironbank/opensource/keycloak/keycloak:19.0.2
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=Pa55w0rd
+      - KC_PROXY=edge
+      - KC_HOSTNAME_URL=https://localhost/kc/
+      - KC_HOSTNAME_ADMIN_URL=https://localhost/kc/
+      # - KC_SPI_X509CERT_LOOKUP_PROVIDER=nginx
+      # - KC_SPI_X509CERT_LOOKUP_NGINX_SSL_CLIENT_CERT=SSL-CLIENT-CERT
+      # - KC_SPI_TRUSTSTORE_FILE_FILE=/tmp/truststore.p12
+      # - KC_SPI_TRUSTSTORE_FILE_PASSWORD=password
+    command: start --import-realm
+    volumes:
+      # - ./certs/dod/Certificates_PKCS7_v5.9_DoD.pem.p12:/tmp/truststore.p12
+      # - ./kc/stigman_realm.json:/opt/keycloak/data/import/stigman_realm.json
+      # - ./kc/create-x509-user.jar:/opt/keycloak/providers/create-x509-user.jar
+      # uncomment below to persist Keycloak data
+      - ./kc/h2:/opt/keycloak/data/h2
+
+  cpat:
+    image: nswccrane/c-pat:dev
+    container_name: cpat
+    ports:
+      - "8086:8086"
+    environment:
+      - CPAT_OIDC_PROVIDER=http://keycloak:8080/realms/RMFTools
+      - CPAT_CLIENT_OIDC_PROVIDER=https://localhost/kc/realms/RMFTools
+      - CPAT_DB_HOST=mysql
+      - CPAT_DB_USER=root
+      - CPAT_DB_PASSWORD=rootpw
+      # - TENABLE_URL=http://something.com
+      # - TENABLE_ACCESS_KEY=something
+      # - TENABLE_SECRET_KEY=something
+
+  stigman:
+    image: nuwcdivnpt/stig-manager:latest
+    # alternative image based on Ironbank Node.js
+    # image: nuwcdivnpt/stig-manager:latest-ironbank
+    environment:
+      - STIGMAN_OIDC_PROVIDER=http://keycloak:8080/realms/stigman
+      - STIGMAN_CLIENT_OIDC_PROVIDER=https://localhost/kc/realms/stigman
+      - STIGMAN_CLASSIFICATION=U
+      - STIGMAN_DB_HOST=mysql
+      - STIGMAN_DB_USER=stigman
+      - STIGMAN_DB_PASSWORD=stigmanpw
+      # uncomment below to fetch current STIG library from DISA and import it
+      # - STIGMAN_INIT_IMPORT_STIGS=true
+    init: true
+
+  mysql:
+    image: mysql:8.0.21
+    # alternative image from Ironbank
+    # image: registry1.dso.mil/ironbank/opensource/mysql/mysql8:8.0.21
+    command: --innodb-buffer-pool-size=512M --sort_buffer_size=64M 
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpw
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=rootpw
+      - MYSQL_DATABASE=stigman
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d
+      # - ./mysql-data:/var/lib/mysql
+    # uncomment the line above to persist MySQL data
+    ports:
+      - "3306:3306"
+    
