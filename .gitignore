@@ -17,3 +17,4 @@ client/.angular
 client/.nx
 /docs
 /client/src/development.html
+/api/.env
