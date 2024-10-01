@@ -2343,7 +2343,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       )
     ) {
       this.loadingIavInfo = true;
-      const pluginIDs = this.allVulnerabilities.map((v) => v.pluginID);
+      const pluginIDs = this.allVulnerabilities.map((v) => Number(v.pluginID));
       if (pluginIDs.length > 0) {
         (await this.importService.getIAVInfoForPlugins(pluginIDs)).subscribe(
           (data: any[]) => {

@@ -349,6 +349,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       await this.collectionService.getCollectionPermissions(
         this.payload.lastCollectionAccessedId,
       ),
+      await this.assignedTeamsService.getAssignedTeams(),
     ]).subscribe(async ([users]: any) => {
       const currentDate = new Date();
       this.poam = {
@@ -511,7 +512,8 @@ ${this.pluginData.description ?? ''}`,
       await this.collectionService.getCollectionPermissions(
         this.payload.lastCollectionAccessedId,
       ),
-    ]).subscribe(async ([users]: any) => {
+      await this.assignedTeamsService.getAssignedTeams(),
+    ]).subscribe(async ([users, assignedTeamOptions]: any) => {
       const currentDate = new Date();
       this.poam = {
         poamId: 'ADDPOAM',
@@ -539,6 +541,7 @@ ${this.pluginData.description ?? ''}`,
       );
       this.dates.iavComplyByDate = null;
       this.dates.submittedDate = new Date(this.poam.submittedDate);
+      this.assignedTeamOptions = assignedTeamOptions;
       this.collectionUsers = users;
       this.collectionApprovers = this.collectionUsers.filter(
         (user: Permission) => user.accessLevel >= 3,
@@ -590,7 +593,8 @@ ${this.pluginData.description ?? ''}`,
       await this.assetService.getAssetsByCollection(
         this.payload.lastCollectionAccessedId,
       ),
-    ]).subscribe(async ([users, collectionAssets]: any) => {
+      await this.assignedTeamsService.getAssignedTeams(),
+    ]).subscribe(async ([users, collectionAssets, assignedTeamOptions]: any) => {
       const currentDate = new Date();
       const dateIn30Days = add(currentDate, { days: 30 });
       this.poam = {
@@ -614,6 +618,7 @@ ${this.pluginData.description ?? ''}`,
       );
       this.dates.iavComplyByDate = null;
       this.dates.submittedDate = new Date(this.poam.submittedDate);
+      this.assignedTeamOptions = assignedTeamOptions;
       this.collectionUsers = users;
       this.assets = collectionAssets;
       this.collectionApprovers = this.collectionUsers.filter(

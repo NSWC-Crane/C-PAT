@@ -973,17 +973,23 @@ paths:
           - 'c-pat:read'
 
   /iav/pluginInfo:
-    get:
-      summary: Get IAV and Navy Comply Date for Plugin IDs
+    post:
+      summary: Retrieve IAV and Navy Comply Date for Plugin IDs
       description: Retrieves IAV and Navy Comply Date information for given Plugin IDs
       operationId: getIAVInfoForPlugins
-      parameters:
-        - in: query
-          name: pluginIDs
-          required: true
-          schema:
-            type: string
-          description: Comma-separated list of Plugin IDs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pluginIDs:
+                  type: array
+                  items:
+                    type: integer
+              required:
+                - pluginIDs
       responses:
         '200':
           description: Successful response

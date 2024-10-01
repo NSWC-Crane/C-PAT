@@ -11,6 +11,7 @@ node_modules/
 *.swp
 **/README.md
 **/dist
+**/.env
 /.vs
 client/.angular
 client/.nx

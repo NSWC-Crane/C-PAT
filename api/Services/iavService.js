@@ -132,16 +132,12 @@ exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) {
     }
 };
 
-exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(encodedPluginIDs) {
+exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
     try {
-        const decodedPluginIDs = decodeURIComponent(encodedPluginIDs).split(',');
-
-        const validPluginIDs = decodedPluginIDs
-            .map(id => id.trim())
+        const validPluginIDs = pluginIDs
             .filter(id => {
                 const num = Number(id);
-                const isValid = !isNaN(num) && num > 0 && Number.isInteger(num);
-                return isValid;
+                return !isNaN(num) && num > 0 && Number.isInteger(num);
             });
 
         if (validPluginIDs.length === 0) {
@@ -157,17 +153,11 @@ exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(encodedPlugin
                 WHERE ip.pluginID IN (?)
                 ORDER BY ip.pluginID, i.navyComplyDate DESC
             `;
-
             const [results] = await connection.query(sql, [validPluginIDs]);
-
             const latestResults = validPluginIDs.map(pluginID => {
-                const entries = results.filter(r => {
-                    const match = r.pluginID.toString() === pluginID.toString();
-                    return match;
-                });
+                const entries = results.filter(r => r.pluginID === pluginID);
                 return entries.length > 0 ? entries[0] : null;
             }).filter(Boolean);
-
             return latestResults;
         });
     } catch (error) {
