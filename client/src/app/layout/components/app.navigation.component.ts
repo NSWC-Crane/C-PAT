@@ -130,6 +130,19 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     );
   }
 
+  getTagColor(origin: string): 'secondary' | 'success' | 'warning' | 'danger' | 'info' | undefined {
+    switch (origin) {
+      case 'C-PAT':
+        return;
+      case 'STIG Manager':
+        return 'success';
+      case 'Tenable':
+        return 'danger';
+      default:
+        return 'info';
+    }
+  }
+
   async getNotificationCount() {
     this.subs.sink = (
       await this.notificationService.getUnreadNotificationCount()
@@ -217,34 +230,31 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     this.layoutService.state.anchored = !this.layoutService.state.anchored;
   }
 
-  async resetWorkspace(selectedCollection: any) {
-    this.selectedCollection = selectedCollection;
+  onCollectionClick(event: any) {
+    if (event && event.value) {
+      this.resetWorkspace(event.value.collectionId);
+    }
+  }
+
+  async resetWorkspace(selectedCollectionId: number) {
     this.selectCollectionMsg = false;
-    this.sharedService.setSelectedCollection(
-      parseInt(this.selectedCollection, 10),
-    );
+    this.sharedService.setSelectedCollection(selectedCollectionId);
 
     const collection = this.collections.find(
-      (x: { collectionId: any }) => x.collectionId == this.selectedCollection,
+      (x: { collectionId: number }) => x.collectionId === selectedCollectionId
     );
-    this.collectionName = 'Collection: ' + collection.collectionName;
+
     if (collection) {
-      const stWorkspace = document.getElementById(
-        'selectedCollection',
-      ) as HTMLInputElement;
-      if (stWorkspace) {
-        const att = stWorkspace.querySelector('span');
-        if (att) {
-          att.textContent = 'Collection - ' + collection.collectionName;
-        }
-      }
+      this.collectionName = collection.collectionName;
+      this.selectedCollection = collection;
     }
+
     const userUpdate = {
       userId: this.user.userId,
-      lastCollectionAccessedId: parseInt(selectedCollection),
+      lastCollectionAccessedId: selectedCollectionId,
     };
 
-    if (this.user.lastCollectionAccessedId !== selectedCollection) {
+    if (this.user.lastCollectionAccessedId !== selectedCollectionId) {
       try {
         const result = await (
           await this.userService.updateUserLastCollection(userUpdate)

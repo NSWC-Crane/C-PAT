@@ -432,11 +432,13 @@ exports.importVRAMExcel = async function importVRAMExcel(file) {
 };
 
 function validateVRAMWorksheetHeaders(worksheet) {
-    const expectedHeaders = ['IAV', 'Status', 'Title', 'IAV CAT', 'Type', 'Release Date', 'Navy Comply Date', 'Superseded By', 'Known Exploits', 'Known DoD Incidents', 'Nessus Plugins'];
+    const requiredHeaders = ['IAV', 'Status', 'Title', 'IAV CAT', 'Type', 'Release Date', 'Navy Comply Date', 'Superseded By', 'Known Exploits', 'Known DoD Incidents', 'Nessus Plugins'];
     const actualHeaders = worksheet.getRow(2).values.slice(1);
 
-    if (!expectedHeaders.every(header => actualHeaders.includes(header))) {
-        throw new Error('Invalid file format: Expected VRAM headers not found');
+    const missingHeaders = requiredHeaders.filter(header => !actualHeaders.includes(header));
+
+    if (missingHeaders.length > 0) {
+        throw new Error(`Invalid file format: Missing required headers: ${missingHeaders.join(', ')}`);
     }
 }
 
@@ -489,40 +491,73 @@ function processVRAMRow(row, headers) {
 }
 
 function processVRAMCell(vramEntry, header, value) {
-    const columnName = header.toLowerCase().replace(/\s+/g, '');
-    switch (columnName) {
-        case 'iav':
-        case 'status':
-        case 'title':
-        case 'type':
-        case 'supersededby':
-            vramEntry[columnName] = value ? value.toString() : null;
-            break;
-        case 'iavcat':
-            vramEntry.iavCat = value ? parseInt(value) : null;
-            break;
-        case 'releasedate':
-        case 'navycomplydate':
-            vramEntry[columnName] = value instanceof Date ? format(value, 'yyyy-MM-dd') :
-                (value && typeof value === 'string' ? value : null);
-            break;
-        case 'knownexploits':
-        case 'knowndodincidents':
-            vramEntry[columnName] = value ? value.toString().slice(0, 3) : null;
-            break;
-        case 'nessusplugins':
-            vramEntry.nessusPlugins = value ? parseInt(value) : 0;
-            break;
+    const columnMapping = {
+        'IAV': 'iav',
+        'Status': 'status',
+        'Title': 'title',
+        'IAV CAT': 'iavCat',
+        'Type': 'type',
+        'Release Date': 'releaseDate',
+        'Navy Comply Date': 'navyComplyDate',
+        'Superseded By': 'supersededBy',
+        'Known Exploits': 'knownExploits',
+        'Known DoD Incidents': 'knownDodIncidents',
+        'Nessus Plugins': 'nessusPlugins'
+    };
+
+    const dbColumn = columnMapping[header];
+    if (dbColumn) {
+        switch (dbColumn) {
+            case 'iav':
+            case 'status':
+            case 'title':
+            case 'type':
+            case 'supersededBy':
+                vramEntry[dbColumn] = value ? value.toString() : null;
+                break;
+            case 'iavCat':
+                vramEntry[dbColumn] = value ? parseInt(value) : null;
+                break;
+            case 'releaseDate':
+            case 'navyComplyDate':
+                vramEntry[dbColumn] = processCellDate(value);
+                break;
+            case 'knownExploits':
+            case 'knownDodIncidents':
+                vramEntry[dbColumn] = value ? value.toString().slice(0, 3) : null;
+                break;
+            case 'nessusPlugins':
+                vramEntry[dbColumn] = value ? parseInt(value) : 0;
+                break;
+        }
     }
 }
 
+function processCellDate(value) {
+    if (value instanceof Date) {
+        return format(value, 'yyyy-MM-dd');
+    } else if (typeof value === 'string') {
+        if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return value;
+        }
+        const parsedDate = parse(value, 'yyyy-MM-dd', new Date());
+        if (!isNaN(parsedDate.getTime())) {
+            return format(parsedDate, 'yyyy-MM-dd');
+        }
+    }
+    return null;
+}
+
 async function updateVRAMData(vramData, transaction) {
+    const fieldsToUpdate = [
+        'iav', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate',
+        'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins'
+    ];
+
     await db.IAV.bulkCreate(vramData, {
-        updateOnDuplicate: [
-            'iav', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate',
-            'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins'
-        ],
-        transaction: transaction
+        updateOnDuplicate: fieldsToUpdate,
+        transaction: transaction,
+        fields: fieldsToUpdate
     });
 }
 

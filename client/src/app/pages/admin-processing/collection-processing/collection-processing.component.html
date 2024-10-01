@@ -33,9 +33,11 @@
         </ng-template>
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
           <tr>
-            <td *ngFor="let col of columns; let i = index">
+            <td *ngFor="let col of columns; let i = index" [style]="col === 'Name' ? {'max-width': '200px'} : {}">
               <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-              {{rowData[col]}}
+              <span [style]="col === 'Name' ? {'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', 'display': 'inline-block', 'width': '100%'} : {}">
+                {{rowData[col]}}
+              </span>
             </td>
             <td>
               <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text mr-2" (click)="showModifyCollectionDialog(rowData)"></button>
@@ -92,6 +94,19 @@
              [(ngModel)]="editingCollection.ccsafa"
              placeholder="CC/S/A/FA"
              class="w-full">
+    </div>
+    <div class="field">
+      <label for="aaPackage">A&A Package:</label>
+      <p-autoComplete [(ngModel)]="editingCollection.aaPackage"
+                      [dropdown]="true"
+                      [suggestions]="filteredAAPackages"
+                      (completeMethod)="filterAAPackages($event)"
+                      placeholder="Select from the available options, modify a provided option, or provide a custom option..."
+                      name='aaPackage'
+                      id="aaPackage"
+                      styleClass="w-full"
+                      appendTo="body">
+      </p-autoComplete>
     </div>
   </ng-template>
 

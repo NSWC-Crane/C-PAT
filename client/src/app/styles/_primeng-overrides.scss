@@ -25,3 +25,7 @@
 .p-overlaypanel .p-overlaypanel-content {
     padding: 0;
 }
+
+.p-datatable-resizable-table>.p-datatable-thead>tr>th, .p-datatable-resizable-table>.p-datatable-tfoot>tr>td, .p-datatable-resizable-table>.p-datatable-tbody>tr>td {
+    white-space: normal;
+}

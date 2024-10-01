@@ -83,6 +83,7 @@ function calculateScheduledCompletionDate(rawSeverity: string) {
 export class PoamDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table: Table;
   clonedMilestones: { [s: string]: any } = {};
+  collectionAAPackage: any;
   poamLabels: any[] = [];
   labelList: any[] = [];
   errorDialogVisible: boolean = false;
@@ -355,7 +356,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         collectionId: this.payload.lastCollectionAccessedId,
         vulnerabilitySource:
           'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
-        aaPackage: '',
+        aaPackage: this.collectionAAPackage ?? '',
         iavmNumber: this.stateData.iavNumber ?? '',
         iavComplyByDate: this.stateData.iavComplyByDate
           ? format(new Date(this.stateData.iavComplyByDate), 'yyyy-MM-dd')
@@ -516,7 +517,7 @@ ${this.pluginData.description ?? ''}`,
         poamId: 'ADDPOAM',
         collectionId: this.payload.lastCollectionAccessedId,
         vulnerabilitySource: this.stateData.vulnerabilitySource ?? '',
-        aaPackage: '',
+        aaPackage: this.collectionAAPackage ?? '',
         vulnerabilityId: this.stateData.vulnerabilityId ?? '',
         description: this.stateData.description ?? '',
         rawSeverity: this.stateData.severity ?? '',
@@ -596,7 +597,7 @@ ${this.pluginData.description ?? ''}`,
         poamId: 'ADDPOAM',
         collectionId: this.payload.lastCollectionAccessedId,
         vulnerabilitySource: '',
-        aaPackage: '',
+        aaPackage: this.collectionAAPackage ?? '',
         vulnerabilityId: '',
         description: '',
         rawSeverity: '',
@@ -997,7 +998,7 @@ ${this.pluginData.description ?? ''}`,
       );
       this.isEmassCollection = selectedCollection?.collectionName === 'eMASS';
       const selectedCollectionName = selectedCollection!.collectionName;
-
+      this.collectionAAPackage = selectedCollection?.aaPackage;
       const stigmanCollection = selectedCollectionName
         ? stigmanCollectionsMap.get(selectedCollectionName)
         : undefined;

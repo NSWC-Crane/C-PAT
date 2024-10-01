@@ -52,9 +52,9 @@ export class TenableAdminComponent implements OnInit {
     this.fetchDataAndCompare();
   }
 
-  fetchDataAndCompare() {
-    forkJoin({
-      repositories: from(this.importService.getTenableRepositories()).pipe(
+ async fetchDataAndCompare() {
+    await forkJoin({
+      repositories: await from(await this.importService.getTenableRepositories()).pipe(
         map((response: any) => response.response),
         catchError((error) => {
           console.error('Error fetching Tenable repositories:', error);
@@ -62,7 +62,7 @@ export class TenableAdminComponent implements OnInit {
           return of([]);
         }),
       ),
-      collections: from(this.collectionsService.getCollectionBasicList()).pipe(
+      collections: await from(await this.collectionsService.getCollectionBasicList()).pipe(
         catchError((error) => {
           console.error('Error fetching collections:', error);
           this.showPopup('Unable to fetch existing collections.');

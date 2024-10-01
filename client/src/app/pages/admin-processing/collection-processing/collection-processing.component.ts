@@ -19,13 +19,17 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { ImportService } from '../../import-processing/import.service';
 import { PoamService } from '../../poam-processing/poams.service';
+import { AAPackageService } from '../aaPackage-processing/aaPackage-processing.service';
 
 interface TreeNode<T> {
   data: T;
   children?: TreeNode<T>[];
   expanded?: boolean;
 }
-
+interface AAPackage {
+  aaPackageId: number;
+  aaPackage: string;
+}
 interface CollectionData {
   collectionId?: string;
   collectionName?: string;
@@ -33,6 +37,7 @@ interface CollectionData {
   systemType?: string;
   systemName?: string;
   ccsafa?: string;
+  aaPackage?: string;
 }
 
 @Component({
@@ -49,10 +54,13 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     'System Type',
     'System Name',
     'CC/S/A/FA',
+    'A&A Package',
     'Collection Origin',
     'Origin Collection ID',
   ];
   allColumns = [this.customColumn, ...this.defaultColumns];
+  aaPackages: AAPackage[] = [];
+  filteredAAPackages: string[] = [];
   collectionTreeData: TreeNode<CollectionData>[] = [];
   public isLoggedIn = false;
   exportCollectionId: any;
@@ -65,6 +73,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     systemType: '',
     systemName: '',
     ccsafa: '',
+    aaPackage: '',
   };
   collectionToExport: string = 'Select Collection to Export...';
   data: any = [];
@@ -82,6 +91,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   private subs = new SubSink();
 
   constructor(
+    private aaPackageService: AAPackageService,
     private collectionService: CollectionsService,
     private setPayloadService: PayloadService,
     private messageService: MessageService,
@@ -114,6 +124,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
   async getCollectionData() {
     this.collections = null;
+    this.loadAAPackages();
     (await this.collectionService.getAllCollections()).subscribe(
       (result: any) => {
         this.data = result;
@@ -121,6 +132,28 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         this.getCollectionsTreeData();
       },
     );
+  }
+
+  async loadAAPackages() {
+    try {
+      const response = await (
+        await this.aaPackageService.getAAPackages()
+      ).toPromise();
+      this.aaPackages = response || [];
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load A&A Packages',
+      });
+    }
+  }
+
+  filterAAPackages(event: { query: string }) {
+    const query = event.query.toLowerCase();
+    this.filteredAAPackages = this.aaPackages
+      .filter((aaPackage) => aaPackage.aaPackage.toLowerCase().includes(query))
+      .map((aaPackage) => aaPackage.aaPackage);
   }
 
   getCollectionsTreeData() {
@@ -133,6 +166,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         systemType: any;
         systemName: any;
         ccsafa: any;
+        aaPackage: any;
         collectionOrigin: any;
         originCollectionId: any;
       }) => {
@@ -146,6 +180,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             'System Type': collection.systemType || '',
             'System Name': collection.systemName || '',
             'CC/S/A/FA': collection.ccsafa || '',
+            'A&A Package': collection.aaPackage || '',
             'Collection Origin': collection.collectionOrigin || '',
             'Origin Collection ID': collection.originCollectionId || '',
           },
@@ -165,6 +200,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       systemType: rowData['System Type'],
       systemName: rowData['System Name'],
       ccsafa: rowData['CC/S/A/FA'],
+      aaPackage: rowData['A&A Package'],
     };
 
     if (!exportCollection.collectionId) {
@@ -376,6 +412,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       systemType: '',
       systemName: '',
       ccsafa: '',
+      aaPackage: '',
     };
     this.displayCollectionDialog = true;
   }
@@ -389,6 +426,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       systemType: rowData['System Type'],
       systemName: rowData['System Name'],
       ccsafa: rowData['CC/S/A/FA'],
+      aaPackage: rowData['A&A Package'],
     };
     this.displayCollectionDialog = true;
   }

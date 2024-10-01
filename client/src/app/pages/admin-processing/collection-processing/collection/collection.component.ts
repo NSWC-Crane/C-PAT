@@ -53,6 +53,7 @@ export class CollectionComponent implements OnDestroy {
       systemType: this.collection.systemType,
       systemName: this.collection.systemName,
       ccsafa: this.collection.ccsafa,
+      aaPackage: this.collection.aaPackage,
     };
 
     if (collection.collectionId == 'ADDCOLLECTION') {

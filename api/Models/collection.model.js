@@ -25,6 +25,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(100),
             allowNull: true,
         },
+        aaPackage: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
         created: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,

@@ -24,6 +24,7 @@ import { AppSearchComponent } from '../common/components/search/app.search.compo
 import { SharedModule } from '../common/shared.module';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { DropdownModule } from 'primeng/dropdown';
+import { TagModule } from 'primeng/tag';
 
 @NgModule({
   declarations: [
@@ -53,6 +54,7 @@ import { DropdownModule } from 'primeng/dropdown';
     MenuModule,
     RippleModule,
     SharedModule,
+    TagModule,
     PanelMenuModule,
     AppSearchComponent,
   ],
