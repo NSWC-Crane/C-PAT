@@ -77,7 +77,7 @@ CREATE TABLE `assetlabels` (
 DROP TABLE IF EXISTS `assignedteams`;
 CREATE TABLE `assignedteams` (
   `assignedTeamId` int NOT NULL AUTO_INCREMENT,
-  `assignedTeamName` varchar(100) NOT NULL,
+  `assignedTeamName` varchar(50) NOT NULL,
   PRIMARY KEY (`assignedTeamId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -90,10 +90,6 @@ CREATE TABLE `collection` (
   `collectionId` int NOT NULL AUTO_INCREMENT,
   `collectionName` varchar(50) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
-  `systemType` varchar(100) DEFAULT NULL,
-  `systemName` varchar(100) DEFAULT NULL,
-  `ccsafa` varchar(100) DEFAULT NULL,
-  `aaPackage` varchar(100) DEFAULT NULL,
   `created` datetime DEFAULT CURRENT_TIMESTAMP,
   `collectionOrigin` varchar(15) DEFAULT 'C-PAT',
   `originCollectionId` int DEFAULT NULL,
@@ -641,8 +637,7 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `userId` int NOT NULL AUTO_INCREMENT,
   `userName` varchar(20) NOT NULL,
-  `email` varchar(100) NOT NULL DEFAULT 'None Provided',
-  `phoneNumber` varchar(20) NOT NULL DEFAULT '',
+  `email` varchar(100) NOT NULL DEFAULT '',
   `firstName` varchar(50) NOT NULL DEFAULT '',
   `lastName` varchar(50) NOT NULL DEFAULT ' ',
   `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -652,11 +647,14 @@ CREATE TABLE `user` (
   `fullName` varchar(100) DEFAULT NULL,
   `officeOrg` varchar(100) DEFAULT 'UNKNOWN',
   `defaultTheme` varchar(50) DEFAULT 'lara-dark-blue',
+  `isAdmin` int NOT NULL DEFAULT '0',
   `lastClaims` json DEFAULT (_utf8mb4'{}'),
   `points` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`userId`),
+  UNIQUE KEY `userEmail_UNIQUE` (`email`) USING BTREE,
   UNIQUE KEY `userName_UNIQUE` (`userName`),
-  KEY `idx_user_userName` (`userName`)
+  KEY `idx_user_userName` (`userName`),
+  KEY `idx_user_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

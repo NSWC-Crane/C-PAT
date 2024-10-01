@@ -152,11 +152,8 @@ export class ImportService {
 
   async getIAVInfoForPlugins(pluginIDs: number[]): Promise<Observable<any>> {
     const headers = await this.getAuthHeaders();
-    const encodedPluginIDs = encodeURIComponent(pluginIDs.join(','));
-    const params = new HttpParams().set('pluginIDs', encodedPluginIDs);
-
     return this.http
-      .get(`${this.cpatApiBase}/iav/pluginInfo`, { headers, params })
+      .post(`${this.cpatApiBase}/iav/pluginInfo`, { pluginIDs }, { headers })
       .pipe(catchError(this.handleError));
   }
 

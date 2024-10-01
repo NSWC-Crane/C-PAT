@@ -260,7 +260,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
           await this.userService.updateUserLastCollection(userUpdate)
         ).toPromise();
         this.user = result;
-        window.location.reload();
+        window.location.pathname = '/poam-processing';
       } catch (error) {
         console.error('Error updating user:', error);
       }

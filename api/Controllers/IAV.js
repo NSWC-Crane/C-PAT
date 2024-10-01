@@ -65,7 +65,7 @@ module.exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) 
 
 module.exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(req, res, next) {
     try {
-        const pluginIDs = req.query.pluginIDs;
+        const pluginIDs = req.body.pluginIDs;
         const iavInfo = await iavService.getIAVInfoForPlugins(pluginIDs);
         res.status(200).json(iavInfo);
     } catch (error) {
