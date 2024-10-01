@@ -15,12 +15,6 @@ const logger = require('./utils/logger');
 const smErrors = require('./utils/error');
 const { serializeError } = require('./utils/serializeError');
 const packageJson = require("./package.json")
-const RateLimit = require('express-rate-limit');
-
-const limiter = RateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // max 100 requests per windowMs
-});
 logger.writeInfo('index', 'starting', {
     version: packageJson.version,
     env: logger.serializeEnvironment(),
@@ -50,6 +44,11 @@ const depStatus = {
     db: 'waiting',
     auth: 'waiting'
 }
+const RateLimit = require('express-rate-limit');
+const limiter = RateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: parseInt(config.http.rateLimit),
+});
 
 const eovPath = path.dirname(require.resolve('express-openapi-validator'))
 const eovErrors = require(path.join(eovPath, 'framework', 'types.js'))
@@ -194,11 +193,7 @@ async function run() {
         let spec = fs.readFileSync(apiSpecPath, 'utf8')
         let oasDoc = jsyaml.load(spec)
         oasDoc.info.version = config.version
-        if (oasDoc.servers && oasDoc.servers.length > 0) {
-            oasDoc.servers[0].url = config.swaggerUi.server;
-        } else {
-            logger.writeError('index', 'openapi', { message: 'Missing or empty servers array in OpenAPI specification' });
-        }
+        oasDoc.servers[0].url = config.swaggerUi.server
         oasDoc.components.securitySchemes.oauth.openIdConnectUrl = `${config.client.authority}/.well-known/openid-configuration`
         config.definition = oasDoc
 

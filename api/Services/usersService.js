@@ -76,11 +76,11 @@ exports.getUsers = async function getUsers(elevate, req) {
     }
 };
 
-exports.getCurrentUser = async function getCurrentUser(userId) {
+exports.getCurrentUser = async function getCurrentUser(req) {
     try {
         return await withConnection(async (connection) => {
             const sqlUser = "SELECT * FROM user WHERE userId = ?";
-            const [userRows] = await connection.query(sqlUser, [userId]);
+            const [userRows] = await connection.query(sqlUser, [req.userObject.userId]);
 
             if (userRows.length === 0) {
                 return userRows[0];
@@ -122,7 +122,7 @@ exports.getCurrentUser = async function getCurrentUser(userId) {
                 isAdmin: isAdmin,
                 lastClaims: user.lastClaims,
                 permissions: permissions
-            }; 
+            };
             return userObject;
         });
     } catch (error) {
@@ -192,7 +192,6 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
         return await withConnection(async (connection) => {
             let sql = "SELECT * FROM user WHERE userName = ?";
             const [userRows] = await connection.query(sql, [userName]);
-
             if (userRows.length === 0) {
                 return userRows[0];
             }

@@ -22,8 +22,7 @@ module.exports.getUsers = async function getUsers(req, res, next) {
 
 module.exports.getCurrentUser = async function getCurrentUser(req, res, next) {
     try {
-        const userId = req.userObject.userId;
-        const user = await userService.getCurrentUser(userId);
+        const user = await userService.getCurrentUser(req);
         res.status(200).json(user);
     } catch (error) {
         if (error.message === "User not found") {

@@ -4591,6 +4591,9 @@ components:
         ccsafa:
           type: string
           nullable: true
+        aaPackage:
+          type: string
+          nullable: true
         created:
           type: string
           format: date   
@@ -4622,6 +4625,9 @@ components:
           type: string
           nullable: true
         ccsafa:
+          type: string
+          nullable: true
+        aaPackage:
           type: string
           nullable: true
 

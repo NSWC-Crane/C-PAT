@@ -28,7 +28,6 @@ let client
 const privilegeGetter = new Function("obj", "return obj?." + config.oauth.claims.privileges + " || [];");
 
 const verifyRequest = async function (req, requiredScopes, securityDefinition) {
-
     const token = getBearerToken(req)
     if (!token) {
         throw (new SmError.AuthorizeError("OIDC bearer token must be provided"))
@@ -40,10 +39,10 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
     req.access_token = decoded
     req.bearer = token
     req.userObject = {
-        email: decoded[config.oauth.claims.email] || '',
-        firstName: decoded[config.oauth.claims.firstname] || '',
-        lastName: decoded[config.oauth.claims.lastname] || '',
-        fullName: decoded[config.oauth.claims.fullname] || '',
+        email: decoded[config.oauth.claims.email] ?? 'None Provided',
+        firstName: decoded[config.oauth.claims.firstname] ?? '',
+        lastName: decoded[config.oauth.claims.lastname] ?? '',
+        fullName: decoded[config.oauth.claims.fullname] ?? '',
     }
 
     const usernamePrecedence = [config.oauth.claims.username, "preferred_username", config.oauth.claims.servicename, "azp", "client_id", "clientId"]
@@ -52,7 +51,7 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
         throw (new SmError.PrivilegeError("No token claim mappable to username found"))
     }
 
-    req.userObject.displayName = decoded[config.oauth.claims.name] || req.userObject.userName
+    req.userObject.displayName = decoded[config.oauth.claims.name] ?? req.userObject.userName
     const grantedScopes = typeof decoded[config.oauth.claims.scope] === 'string' ?
         decoded[config.oauth.claims.scope].split(' ') :
         decoded[config.oauth.claims.scope]

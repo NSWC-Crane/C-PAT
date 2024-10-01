@@ -24,6 +24,10 @@ interface CollectionBasicList {
   collectionName: string;
   collectionOrigin?: string;
   originCollectionId?: number;
+  systemType?: string;
+  systemName?: string;
+  ccsafa?: string;
+  aaPackage?: string;
 }
 
 @Injectable({

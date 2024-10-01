@@ -33,17 +33,36 @@
     </a>
     <button class="layout-sidebar-anchor p-link z-2 mb-2" type="button" (click)="anchor()"></button>
   </div>
-  <div class="menu-filter">
-    <p-dropdown [options]="collections"
-                [(ngModel)]="selectedCollection"
-                placeholder="{{ collectionName }}"
-                optionLabel="collectionName"
-                (onChange)="resetWorkspace($event.value.collectionId)"
-                appendTo="body"
-                emptyMessage="No collections assigned..."
-                [style]="{'height': '85%', 'width': '94%', 'align-items': 'center', 'margin-left': '0.5rem', 'margin-bottom': '0.6rem', 'border-radius': '10px', 'border': 'none'}">
-    </p-dropdown>
-  </div>
+<div class="menu-filter">
+  <p-dropdown 
+    [options]="collections"
+    [(ngModel)]="selectedCollection"
+    [optionLabel]="'collectionName'"
+    (onChange)="onCollectionClick($event)"
+    [placeholder]="collectionName || 'Select Collection'"
+    appendTo="body"
+    emptyMessage="No collections assigned..."
+    [style]="{'height': '85%', 'width': '94%', 'align-items': 'center', 'margin-left': '0.5rem', 'margin-bottom': '0.6rem', 'border-radius': '10px', 'border': 'none'}">
+    <ng-template pTemplate="selectedItem">
+      <div *ngIf="selectedCollection">
+        <p-tag 
+          [value]="selectedCollection.collectionOrigin" 
+          [severity]="getTagColor(selectedCollection.collectionOrigin)" 
+          [style]="{'font-size': '0.75rem', 'padding': '0.1rem 0.25rem'}"
+        ></p-tag>
+        <span class="ml-2">{{ selectedCollection.collectionName }}</span>
+      </div>
+    </ng-template>
+    <ng-template let-collection pTemplate="item">
+      <p-tag 
+        [value]="collection.collectionOrigin" 
+        [severity]="getTagColor(collection.collectionOrigin)" 
+        [style]="{'font-size': '0.75rem', 'padding': '0.1rem 0.25rem'}"
+      ></p-tag>
+      <span class="ml-2">{{ collection.collectionName }}</span>
+    </ng-template>
+  </p-dropdown>
+</div>
   <div #menuContainer class="layout-menu-container">
     <app-menu></app-menu>
   </div>

@@ -4,7 +4,8 @@ const upMigration = [
     `ALTER TABLE collection 
 ADD COLUMN systemType VARCHAR(100) NULL DEFAULT NULL AFTER description,
 ADD COLUMN systemName VARCHAR(100) NULL DEFAULT NULL AFTER systemType,
-ADD COLUMN ccsafa VARCHAR(100) NULL DEFAULT NULL AFTER systemName;`
+ADD COLUMN ccsafa VARCHAR(100) NULL DEFAULT NULL AFTER systemName,
+ADD COLUMN aaPackage VARCHAR(100) NULL DEFAULT NULL AFTER ccsafa;`
 ]
 
 const downMigration = [
