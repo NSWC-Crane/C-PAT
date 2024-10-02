@@ -35,30 +35,13 @@ export class PoamAssignedGridComponent implements OnChanges {
   }
 
   updateDataSource() {
-    let data = this.assignedData;
-
-    if (this.assignedColumns.includes('Approval Status')) {
-      data = data.filter((item) => {
-        return (
-          item.approvers &&
-          item.approvers.some(
-            (approver: any) =>
-              approver.userId === this.userId &&
-              approver.approvalStatus != 'Approved',
-          )
-        );
-      });
-    }
-
+    let data = this.assignedData;    
+    
     this.assignedDataSource = data.map((item) => ({
       poamId: item.poamId,
       adjSeverity: item.adjSeverity,
       status: item.status,
       submitter: item.submitterName,
-      approvalStatus:
-        item.approvers &&
-        item.approvers.find((approver: any) => approver.userId === this.userId)
-          ?.approvalStatus,
     }));
     this.filteredData = [...this.assignedDataSource];
     this.applyFilter();

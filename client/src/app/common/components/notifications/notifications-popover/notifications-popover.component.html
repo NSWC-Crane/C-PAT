@@ -13,7 +13,7 @@
     <ng-container *ngIf="notifications.length > 0; else noNotifications">
       <p-listbox [options]="notifications" optionLabel="title" scrollHeight="40vh">
         <ng-template let-notification pTemplate="item">
-          <div class="notification-content">
+          <div class="notification-content" (click)="onNotificationClick($event)">
             <div class="notification-header">
               <div class="notification-icon">
                 <i [class]="notification.icon"></i>
@@ -21,7 +21,7 @@
               <h5>{{ notification.title }}</h5>
               <i *ngIf="notification.notificationId" class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)" (onKeyUp)="dismissNotification(notification)"></i>
             </div>
-            <p>{{ notification.message }}</p>
+            <p [innerHTML]="notification.formattedMessage"></p>
             <small>{{ notification.timestamp | date:'short' }}</small>
           </div>
         </ng-template>

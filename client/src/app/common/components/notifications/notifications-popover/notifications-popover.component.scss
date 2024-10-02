@@ -15,6 +15,16 @@
   flex-direction: column;
   margin-bottom: 0;
 
+  ::ng-deep .poam-link {
+    color: var(--primary-color);
+    font-weight: bold;
+    text-decoration: none;
+  }
+  
+  ::ng-deep .poam-link:hover {
+    text-decoration: underline;
+  }
+
   .header-actions {
     display: flex;
     justify-content: flex-end;
@@ -72,3 +82,4 @@
     text-align: center;
   }
 }
+

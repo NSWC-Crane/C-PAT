@@ -12,6 +12,10 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NotificationService } from './notifications.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { Subscription, firstValueFrom } from 'rxjs';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Router } from '@angular/router';
+import { PoamService } from '../../../pages/poam-processing/poams.service';
+import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
 
 @Component({
   selector: 'cpat-notifications',
@@ -26,6 +30,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   protected accessLevel: any;
   user: any;
   payload: any;
+  poam: any;
   private payloadSubscription: Subscription[] = [];
   layout: 'list' | 'grid' = 'list';
   sortField: string = 'timestamp';
@@ -40,7 +45,11 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   constructor(
     private notificationService: NotificationService,
     private setPayloadService: PayloadService,
-  ) {}
+    private sanitizer: DomSanitizer,
+    private router: Router,
+    private poamService: PoamService,
+    private userService: UsersService
+  ) { }
 
   async ngOnInit() {
     await this.setPayload();
@@ -70,11 +79,30 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       const notifications = await firstValueFrom(
         await this.notificationService.getAllNotifications(),
       );
-      this.notifications = notifications;
+      this.notifications = notifications.map(notification => ({
+        ...notification,
+        formattedMessage: this.formatMessage(notification.message)
+      }));
       this.filterNotifications();
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     }
+  }
+
+  formatMessage(message: string): SafeHtml {
+    const poamRegex = /POAM (\d+)/;
+    const match = message.match(poamRegex);
+
+    if (match) {
+      const poamNumber = match[1];
+      const formattedMessage = message.replace(
+        poamRegex,
+        `<a href="#" data-poam="${poamNumber}" class="poam-link">POAM ${poamNumber}</a>`
+      );
+      return this.sanitizer.bypassSecurityTrustHtml(formattedMessage);
+    }
+
+    return message;
   }
 
   filterNotifications() {
@@ -158,6 +186,37 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     } else {
       this.sortOrder = 1;
       this.sortField = value;
+    }
+  }
+
+  async navigateToPOAM(poamId: string) {
+    try {
+      this.poam = await firstValueFrom(await this.poamService.getPoam(poamId));
+      if (this.user.lastCollectionAccessedId !== this.poam?.collectionId) {
+        const userUpdate = {
+          userId: this.user.userId,
+          lastCollectionAccessedId: this.poam?.collectionId,
+        };
+
+        const result = await firstValueFrom(
+          await this.userService.updateUserLastCollection(userUpdate)
+        );
+        this.user = result;
+      }
+      window.location.pathname = `/poam-processing/poam-details/${poamId}`;
+    } catch (error) {
+      console.error('Error navigating to POAM:', error);
+    }
+  }
+
+  onNotificationClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('poam-link')) {
+      event.preventDefault();
+      const poamNumber = target.getAttribute('data-poam');
+      if (poamNumber) {
+        this.navigateToPOAM(poamNumber);
+      }
     }
   }
 

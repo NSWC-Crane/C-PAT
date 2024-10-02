@@ -77,8 +77,20 @@
                 }
 
                 &.active-route {
+                    position: relative;
                     font-weight: 700;
-                    opacity: 1;
+                    background-color: color-mix(in srgb, var(--menuitem-hover-bg-color) 40%, transparent);
+                }
+                
+                &.active-route::before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                    height: 100%;
+                    width: 4px;
+                    background-color: color-mix(in srgb, var(--primary-color) 80%, transparent) !important;
                 }
 
                 &:hover {
