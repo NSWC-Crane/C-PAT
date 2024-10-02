@@ -75,6 +75,14 @@
                             display: none;
                         }
 
+                        &.active-route {
+                            background-color: color-mix(in srgb, var(--menuitem-hover-bg-color) 80%, transparent);
+                        }
+
+                        &.active-route::before {
+                            background-color: rgba(1, 1, 1, 0) !important;
+                        }
+
                         &:hover {
                             background-color: var(--menuitem-hover-bg-color);
                         }

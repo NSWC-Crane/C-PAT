@@ -80,33 +80,44 @@
         <!-- AA Package -->
         <div class="form-group">
           <label for="aaPackage">A&A Package: </label>
-          <p-autoComplete [(ngModel)]="poam.aaPackage"
-                          [dropdown]="true"
-                          [suggestions]="filteredAAPackages"
-                          (completeMethod)="filterAAPackages($event)"
-                          [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-                          placeholder="Select from the available options, modify a provided option, or provide a custom option..."
-                          name='aaPackage'
-                          id="aaPackage"
-                          styleClass="w-full">
-          </p-autoComplete>
+          <p-dropdown [(ngModel)]="poam.aaPackage"
+                      [options]="aaPackages"
+                      optionLabel="aaPackage"
+                      optionValue="aaPackage"
+                      [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
+                      placeholder="Select A&A Package"
+                      name='aaPackage'
+                      id="aaPackage"
+                      styleClass="w-full">
+          </p-dropdown>
         </div>
 
         <!-- Source -->
         <div class="form-group">
-          <label for="vulnerabilitySource"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."></i>Source Identifying Control Vulnerability: </label>
-          <p-autoComplete class="w-full" [(ngModel)]="poam.vulnerabilitySource" [suggestions]="filteredVulnerabilitySources" (completeMethod)="searchVulnerabilitySources($event)" placeholder="Vulnerability Source..." name="vulnerabilitySource" id="vulnerabilitySource" [dropdown]="true" [style]="{'width':'100%'}" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></p-autoComplete>
+          <label for="vulnerabilitySource">
+            <i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."></i>
+            Source Identifying Control Vulnerability:
+          </label>
+          <p-dropdown [(ngModel)]="poam.vulnerabilitySource"
+                      [options]="vulnerabilitySources"
+                      placeholder="Select Vulnerability Source"
+                      name="vulnerabilitySource"
+                      id="vulnerabilitySource"
+                      [style]="{'width':'100%'}"
+                      [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
+          </p-dropdown>
         </div>
 
         <!-- STIG Title -->
         <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
           <label for="stigInput"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."></i>STIG Title:</label>
-          <p-autoComplete [(ngModel)]="selectedStigTitle" [suggestions]="filteredStigmanSTIGs" (completeMethod)="searchStigTitles($event)" (onSelect)="onStigSelected($event)" name="stigInput" placeholder="Select STIG..." [dropdown]="true" field="title" [style]="{'width':'100%'}" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"></p-autoComplete>
+          <p-autoComplete [(ngModel)]="selectedStigTitle" [suggestions]="filteredStigmanSTIGs" (completeMethod)="searchStigTitles($event)" (onSelect)="onStigSelected($event)" name="stigInput" placeholder="Select STIG..." [dropdown]="true" field="title" [style]="{'width':'100%'}" [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2" readonly></p-autoComplete>
         </div>
 
         <!-- Source Identifying Control Vulnerability - ID # for Non STIGs-->
         <div class="form-group" *ngIf="poam.vulnerabilitySource !== 'STIG'">
-          <label for="vulnerabilityId"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source Identifying Control Vulnerability - ID #: </label>
+          <label *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'" for="vulnerabilityId"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Plugin ID #: </label>
+          <label *ngIf="poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'" for="vulnerabilityId"><i class="pi pi-info-circle mr-2" style="color: var(--text-color);" pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source Identifying Control Vulnerability - ID #: </label>
           <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" [maxlength]="255" name='vulnerabilityId' id="vulnerabilityId" placeholder="Vulnerability ID..." [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2">
         </div>
 

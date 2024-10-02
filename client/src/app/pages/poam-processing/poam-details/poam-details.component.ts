@@ -331,7 +331,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             lastRevisionStr: stig.lastRevisionStr,
             lastRevisionDate: stig.lastRevisionDate,
           }));
-
           if (!data || data.length === 0) {
             console.warn(
               'Unable to retrieve list of current STIGs from STIGMAN.',
@@ -953,7 +952,7 @@ ${this.pluginData.description ?? ''}`,
         (stig: any) => stig.title === event,
       );
     } else {
-      selectedStig = event;
+      selectedStig = event.value;
     }
 
     if (selectedStig) {
@@ -961,7 +960,7 @@ ${this.pluginData.description ?? ''}`,
       this.selectedStigBenchmarkId = selectedStig.benchmarkId;
       this.poam.stigTitle = (() => {
         const [version, release] =
-          selectedStig.lastRevisionStr.match(/\d+/g) || [];
+          selectedStig.lastRevisionStr?.match(/\d+/g) || [];
         const formattedRevision =
           version && release
             ? `Version ${version}, Release: ${release}`

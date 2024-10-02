@@ -13,7 +13,10 @@ import { NotificationService } from '../notifications.service';
 import { PayloadService } from '../../../../common/services/setPayload.service';
 import { Router } from '@angular/router';
 import { OverlayPanel } from 'primeng/overlaypanel';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { PoamService } from '../../../../pages/poam-processing/poams.service';
+import { UsersService } from '../../../../pages/admin-processing/user-processing/users.service';
 
 @Component({
   selector: 'cpat-notifications-popover',
@@ -27,13 +30,17 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   protected accessLevel: any;
   user: any;
   payload: any;
+  poam: any;
   private payloadSubscription: Subscription[] = [];
 
   constructor(
     private notificationService: NotificationService,
     private setPayloadService: PayloadService,
+    private poamService: PoamService,
+    private userService: UsersService,
     private router: Router,
-  ) {}
+    private sanitizer: DomSanitizer
+  ) { }
 
   async ngOnInit() {
     this.setPayload();
@@ -66,12 +73,31 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   async fetchNotifications() {
     (await this.notificationService.getUnreadNotifications()).subscribe(
       (notifications) => {
-        this.notifications = notifications;
+        this.notifications = notifications.map(notification => ({
+          ...notification,
+          formattedMessage: this.formatMessage(notification.message)
+        }));
       },
       (error) => {
         console.error('Failed to fetch notifications:', error);
       },
     );
+  }
+
+  formatMessage(message: string): SafeHtml {
+    const poamRegex = /POAM (\d+)/;
+    const match = message.match(poamRegex);
+
+    if (match) {
+      const poamNumber = match[1];
+      const formattedMessage = message.replace(
+        poamRegex,
+        `<a href="#" data-poam="${poamNumber}" class="poam-link">POAM ${poamNumber}</a>`
+      );
+      return this.sanitizer.bypassSecurityTrustHtml(formattedMessage);
+    }
+
+    return message;
   }
 
   async dismissNotification(notification: any) {
@@ -106,6 +132,38 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   viewAllNotifications() {
     this.router.navigateByUrl('/notifications');
     this.closeOverlay();
+  }
+
+  async navigateToPOAM(poamId: string) {
+    try {
+      this.poam = await firstValueFrom(await this.poamService.getPoam(poamId));
+      if (this.user.lastCollectionAccessedId !== this.poam?.collectionId) {
+        const userUpdate = {
+          userId: this.user.userId,
+          lastCollectionAccessedId: this.poam?.collectionId,
+        };
+
+        const result = await firstValueFrom(
+          await this.userService.updateUserLastCollection(userUpdate)
+        );
+        this.user = result;
+      }
+      window.location.pathname = `/poam-processing/poam-details/${poamId}`;
+    } catch (error) {
+      console.error('Error navigating to POAM:', error);
+    }
+    this.closeOverlay();
+  }
+
+  onNotificationClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('poam-link')) {
+      event.preventDefault();
+      const poamNumber = target.getAttribute('data-poam');
+      if (poamNumber) {
+        this.navigateToPOAM(poamNumber);
+      }
+    }
   }
 
   ngOnDestroy(): void {

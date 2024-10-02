@@ -49,8 +49,7 @@
         </p-tabPanel>
         <p-tabPanel *ngIf="accessLevel >= 3" header="Pending Approval">
           <cpat-poam-assigned-grid [assignedData]="this.poamsPendingApproval"
-                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Approval Status', 'POAM']"
-                                   [userId]="this.user.userId"
+                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'POAM']"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>

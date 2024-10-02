@@ -156,7 +156,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       }),
     );
     this.initializeComponent();
-    this.selectedFindings = 'No Existing POAM';
+    this.selectedFindings = 'All';
   }
 
   private async initializeComponent() {
@@ -391,7 +391,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         (a, b) =>
           allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity),
       );
-      this.selectedFindings = 'No Existing POAM';
+      this.selectedFindings = 'All';
       this.filterFindings();
       this.initializeChart();
       this.updateFindingsChartData(findings);

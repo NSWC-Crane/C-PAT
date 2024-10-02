@@ -30,11 +30,9 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   advancedSeverityseverityPieChartData: any[] = [];
   advancedStatusPieChartData: any[] = [];
-  approvalColumns = ['POAM ID', 'Adjusted Severity', 'Approval Status', 'POAM'];
   private subs = new SubSink();
   public isLoggedIn = false;
   public monthlyPoamStatus: any[] = [];
-  approvalData: any[] = [];
   poams: any[] = [];
   poamsForChart: any[] = [];
   selectedPoamId: any;
@@ -150,7 +148,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
       (poam) =>
         poam.status === 'Submitted' ||
         poam.status === 'Extension Requested' ||
-        poam.status === 'Pending CAT-I Approval',
+        poam.status === 'Pending CAT-I Approval'
     );
   }
 
