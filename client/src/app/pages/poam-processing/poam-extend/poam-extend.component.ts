@@ -12,7 +12,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
 import { Subscription, forkJoin } from 'rxjs';
-import { addDays, format, isAfter } from 'date-fns';
+import { addDays, format, isAfter, parseISO } from 'date-fns';
 import { PoamService } from '../poams.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { PoamExtensionService } from '../poam-extend/poam-extend.service';
@@ -74,6 +74,14 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   ];
 
   likelihoodOptions = [
+    { label: 'Very Low', value: 'Very Low' },
+    { label: 'Low', value: 'Low' },
+    { label: 'Moderate', value: 'Moderate' },
+    { label: 'High', value: 'High' },
+    { label: 'Very High', value: 'Very High' },
+  ];
+
+  localImpactOptions = [
     { label: 'Very Low', value: 'Very Low' },
     { label: 'Low', value: 'Low' },
     { label: 'Moderate', value: 'Moderate' },
@@ -149,14 +157,16 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           (milestone: any) => ({
             ...milestone,
             milestoneDate: milestone.milestoneDate
-              ? new Date(milestone.milestoneDate)
+              ? milestone.milestoneDate.split('T')[0]
               : null,
             milestoneChangeDate: milestone.milestoneChangeDate
-              ? new Date(milestone.milestoneChangeDate)
+              ? milestone.milestoneChangeDate.split('T')[0]
               : null,
           }),
         );
+
         this.assignedTeamOptions = assignedTeamOptions;
+
         if (extensionDataset.length > 0) {
           const extensionData = extensionDataset[0];
           this.poam = {
@@ -166,25 +176,26 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             requiredResources: poamData.requiredResources,
             residualRisk: poamData.residualRisk,
             likelihood: poamData.likelihood,
+            localImpact: poamData.localImpact,
             impactDescription: poamData.impactDescription,
             extensionTimeAllowed: extensionData.extensionTimeAllowed,
             extensionJustification: extensionData.extensionJustification,
-            scheduledCompletionDate: new Date(
-              extensionData.scheduledCompletionDate,
-            ),
+            scheduledCompletionDate: extensionData.scheduledCompletionDate
+              ? extensionData.scheduledCompletionDate.split('T')[0]
+              : '',
           };
+
           this.extensionJustification = this.poam.extensionJustification;
-          this.completionDate = format(
-            this.poam.scheduledCompletionDate,
-            'yyyy-MM-dd',
-          );
-          this.completionDateWithExtension = format(
-            addDays(
-              this.poam.scheduledCompletionDate,
-              this.poam.extensionTimeAllowed,
-            ),
-            'EEE MMM dd yyyy',
-          );
+
+          if (this.poam.scheduledCompletionDate) {
+            const extendedDate = addDays(
+              parseISO(this.poam.scheduledCompletionDate),
+              this.poam.extensionTimeAllowed
+            );
+            this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
+          } else {
+            this.completionDateWithExtension = '';
+          }
         } else {
           this.poam = {
             extensionTimeAllowed: 0,
@@ -194,12 +205,12 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             requiredResources: '',
             residualRisk: '',
             likelihood: '',
+            localImpact: '',
             impactDescription: '',
           };
+
           this.extensionJustification = '';
-          this.completionDateWithExtension = this.poam.scheduledCompletionDate
-            .substr(0, 10)
-            .replaceAll('-', '/');
+          this.completionDateWithExtension = '';
         }
 
         this.getPoamLabels();
@@ -437,12 +448,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         'EEE MMM dd yyyy',
       );
     } else {
-      this.completionDateWithExtension = format(
-        addDays(
-          this.poam.scheduledCompletionDate,
-          this.poam.extensionTimeAllowed,
-        ),
-        'EEE MMM dd yyyy',
+      const extendedDate = addDays(
+        parseISO(this.poam.scheduledCompletionDate),
+        this.poam.extensionTimeAllowed
+      );
+      this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy',
       );
     }
   }
@@ -490,6 +500,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       requiredResources: this.poam.requiredResources,
       residualRisk: this.poam.residualRisk,
       likelihood: this.poam.likelihood,
+      localImpact: this.poam.localImpact,
       impactDescription: this.poam.impactDescription,
     };
 

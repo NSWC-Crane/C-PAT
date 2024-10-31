@@ -18,10 +18,10 @@ import { Router } from '@angular/router';
 })
 export class PoamAssignedGridComponent implements OnChanges {
   @Input() userId!: number;
-  @Input() assignedData!: any[];
-  @Input() assignedColumns!: string[];
+  @Input() assignedData!: any[];  
   @Input() gridHeight!: string;
 
+  assignedColumns: string[] = ['POAM ID', 'Adjusted Severity', 'Status', 'Submitter', 'Assigned Team', 'POAM'];
   assignedDataSource: any[] = [];
   filteredData: any[] = [];
   globalFilter: string = '';
@@ -35,13 +35,16 @@ export class PoamAssignedGridComponent implements OnChanges {
   }
 
   updateDataSource() {
-    let data = this.assignedData;    
-    
+    let data = this.assignedData;
+
     this.assignedDataSource = data.map((item) => ({
       poamId: item.poamId,
       adjSeverity: item.adjSeverity,
       status: item.status,
       submitter: item.submitterName,
+      assignedTeams: item.assignedTeams
+        ? item.assignedTeams.map((team: any) => team.assignedTeamName)
+        : []
     }));
     this.filteredData = [...this.assignedDataSource];
     this.applyFilter();
@@ -80,12 +83,12 @@ export class PoamAssignedGridComponent implements OnChanges {
         return 'poamId';
       case 'Adjusted Severity':
         return 'adjSeverity';
-      case 'Poam Status':
+      case 'Status':
         return 'status';
       case 'Submitter':
         return 'submitter';
-      case 'Approval Status':
-        return 'approvalStatus';
+      case 'Assigned Team':
+        return 'assignedTeams';
       default:
         return col.toLowerCase().replace(/\s+/g, '');
     }

@@ -26,12 +26,13 @@ import { CollectionsService } from '../../admin-processing/collection-processing
 import { PoamService } from '../poams.service';
 import { AssetService } from '../../asset-processing/assets.service';
 import { ImportService } from '../../import-processing/import.service';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { jsonToPlainText } from 'json-to-plain-text';
 import { AAPackageService } from '../../admin-processing/aaPackage-processing/aaPackage-processing.service';
 import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
+import { Menu } from 'primeng/menu';
 
 interface AAPackage {
   aaPackageId: number;
@@ -82,6 +83,8 @@ function calculateScheduledCompletionDate(rawSeverity: string) {
 })
 export class PoamDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table: Table;
+  @ViewChild('menu') menu!: Menu;
+  menuItems: MenuItem[] = [];
   clonedMilestones: { [s: string]: any } = {};
   collectionAAPackage: any;
   poamLabels: any[] = [];
@@ -96,17 +99,17 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   collectionUsers: any;
   collectionApprovers: any = [];
   collectionBasicList: any[] = [];
+  collectionType: string = '';
   aaPackages: AAPackage[] = [];
   filteredAAPackages: string[] = [];
   poamApprovers: any[] = [];
-  poamMilestones: any[] = [];
+  poamMilestones: any;
   pluginData: any;
   assets: any = [];
   assetList: any[] = [];
   poamAssets: any[] = [];
   poamAssignees: any[] = [];
   poamAssignedTeams: any[] = [];
-  isEmassCollection: boolean = false;
   showCheckData: boolean = false;
   stigmanSTIGs: any;
   tenableVulnResponse: any;
@@ -116,7 +119,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   selectedStigTitle: string = '';
   selectedStigObject: any = null;
   selectedStigBenchmarkId: string = '';
-  stigmanCollectionId: any;
+  originCollectionId: any;
   stateData: any;
   selectedCollection: any;
   submitDialogVisible: boolean = false;
@@ -200,8 +203,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     private setPayloadService: PayloadService,
   ) {}
 
-  onDeleteConfirm() {}
-
   async ngOnInit() {
     this.route.params.subscribe(async (params) => {
       this.stateData = history.state;
@@ -224,18 +225,18 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
+      this.setPayloadService.accessLevel$.subscribe(async (level) => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
+          await this.obtainCollectionData(true);
           this.getData();
+          this.updateMenuItems();
         }
       }),
     );
   }
 
-  async getData() {
-    this.validateStigManagerCollection(true);
-    this.getLabelData();
+  async getData() {       
     this.loadAAPackages();
     if (this.poamId === undefined || !this.poamId) {
       return;
@@ -277,16 +278,16 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         ]: any) => {
           this.poam = { ...poam, hqs: poam.hqs === 1 ? true : false };
           this.dates.scheduledCompletionDate = poam.scheduledCompletionDate
-            ? new Date(poam.scheduledCompletionDate)
+            ? poam.scheduledCompletionDate.split('T')[0]
             : null;
           this.dates.iavComplyByDate = poam.iavComplyByDate
-            ? new Date(poam.iavComplyByDate)
+            ? poam.iavComplyByDate.split('T')[0]
             : null;
           this.dates.submittedDate = poam.submittedDate
-            ? new Date(poam.submittedDate)
+            ? poam.submittedDate.split('T')[0]
             : null;
           this.dates.closedDate = poam.closedDate
-            ? new Date(poam.closedDate)
+            ? poam.closedDate.split('T')[0]
             : null;
           this.assignedTeamOptions = assignedTeamOptions;
           this.collectionUsers = users;
@@ -297,7 +298,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             (milestone: any) => ({
               ...milestone,
               milestoneDate: milestone.milestoneDate
-                ? new Date(milestone.milestoneDate)
+                ? milestone.milestoneDate.split('T')[0]
                 : null,
             }),
           );
@@ -306,6 +307,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.collectionApprovers = this.collectionUsers.filter(
             (user: Permission) => user.accessLevel >= 3,
           );
+          this.getLabelData();
           if (
             this.collectionApprovers.length > 0 &&
             (this.poamApprovers == undefined || this.poamApprovers.length == 0)
@@ -317,7 +319,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             this.parsePluginData(this.poam.tenablePluginData);
           }
 
-          if (this.isEmassCollection) {
+          if (this.collectionType === 'C-PAT') {
             this.fetchAssets();
           }
           this.poamLabels = poamLabels;
@@ -337,8 +339,58 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             );
           }
         },
-      });
+      });      
     }
+  }
+
+  private updateMenuItems() {
+    this.menuItems = [
+      {
+        label: 'POAM History',
+        icon: 'pi pi-history',
+        styleClass: 'menu-item-secondary',
+        command: () => {
+          this.poamLog();
+          this.menu.hide();
+        }
+      },
+      {
+        label: 'Request Extension',
+        icon: 'pi pi-hourglass',
+        styleClass: 'menu-item-warning',
+        command: () => {
+          this.extendPoam();
+          this.menu.hide();
+        }
+      },
+      ...(this.accessLevel >= 2 ? [{
+        label: 'Submit for Review',
+        icon: 'pi pi-file-plus',
+        styleClass: 'menu-item-success',
+        command: () => {
+          this.verifySubmitPoam();
+          this.menu.hide();
+        }
+      }] : []),
+      ...(this.accessLevel >= 3 ? [{
+        label: 'POAM Approval',
+        icon: 'pi pi-verified',
+        styleClass: 'menu-item-primary',
+        command: () => {
+          this.poamApproval();
+          this.menu.hide();
+        }
+      }] : []),
+      ...(this.accessLevel >= 4 ? [{
+        label: 'Delete POAM',
+        icon: 'pi pi-trash',
+        styleClass: 'menu-item-danger',
+        command: () => {
+          this.deletePoam();
+          this.menu.hide();
+        }
+      }] : [])
+    ];
   }
 
   async createNewACASPoam() {
@@ -349,7 +401,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.payload.lastCollectionAccessedId,
       ),
       await this.assignedTeamsService.getAssignedTeams(),
-    ]).subscribe(async ([users]: any) => {
+    ]).subscribe(async ([users, assignedTeamOptions]: any) => {
       const currentDate = new Date();
       this.poam = {
         poamId: 'ADDPOAM',
@@ -381,6 +433,7 @@ ${this.pluginData.description ?? ''}`,
           : '',
         hqs: false,
       };
+      this.assignedTeamOptions = assignedTeamOptions;
       this.poam.scheduledCompletionDate = calculateScheduledCompletionDate(
         this.poam.rawSeverity,
       );
@@ -506,7 +559,7 @@ ${this.pluginData.description ?? ''}`,
   }
 
   async createNewSTIGManagerPoam() {
-    this.validateStigManagerCollection(false);
+    await this.obtainCollectionData(false);
     forkJoin([
       await this.collectionService.getCollectionPermissions(
         this.payload.lastCollectionAccessedId,
@@ -915,6 +968,7 @@ ${this.pluginData.description ?? ''}`,
               summary: 'Success',
               detail: `Added POAM: ${res.poamId}`,
             });
+            this.router.navigate(['/poam-processing/poam-manage']);
           }
         },
         error: () => {
@@ -940,6 +994,7 @@ ${this.pluginData.description ?? ''}`,
             summary: 'Success',
             detail: 'POAM successfully updated',
           });
+          this.router.navigate(['/poam-processing/poam-manage']);
         },
       );
     }
@@ -972,63 +1027,65 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async validateStigManagerCollection(background: boolean = true) {
-    forkJoin([
-      (await this.sharedService.getCollectionsFromSTIGMAN()).pipe(
-        catchError((err) => {
-          console.error('Failed to fetch from STIGMAN:', err);
-          return of([]);
-        }),
-      ),
-      (await this.collectionService.getCollectionBasicList()).pipe(
-        catchError((err) => {
-          console.error('Failed to fetch basic collection list:', err);
-          return of([]);
-        }),
-      ),
-    ]).subscribe(([stigmanData, basicListData]) => {
-      const stigmanCollectionsMap = new Map(
-        stigmanData.map((collection) => [collection.name, collection]),
-      );
-      const basicListCollectionsMap = new Map(
-        basicListData.map((collection) => [
-          collection.collectionId,
-          collection,
-        ]),
+  async obtainCollectionData(background: boolean = false) {
+    await (await this.collectionService.getCollectionBasicList()).pipe(
+      catchError((err) => {
+        console.error('Failed to fetch basic collection list:', err);
+        return of([]);
+      })
+    ).subscribe((basicListData) => {
+      const currentCollection = basicListData.find(
+        (collection) => +collection.collectionId === +this.selectedCollection
       );
 
-      const selectedCollection = basicListCollectionsMap.get(
-        this.selectedCollection,
-      );
-      this.isEmassCollection = selectedCollection?.collectionName === 'eMASS';
-      const selectedCollectionName = selectedCollection!.collectionName;
-      this.collectionAAPackage = selectedCollection?.aaPackage;
-      const stigmanCollection = selectedCollectionName
-        ? stigmanCollectionsMap.get(selectedCollectionName)
-        : undefined;
-
-      if (
-        (!stigmanCollection && !background) ||
-        (!selectedCollectionName && !background)
-      ) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Information',
-          detail:
-            'Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are creating the POAM in the correct collection.',
-        });
+      if (!currentCollection) {
+        if (!background) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Information',
+            detail: 'Unable to find the selected collection. Please ensure that you are creating the POAM in the correct collection.',
+          });
+        }
         return;
       }
 
-      this.stigmanCollectionId = stigmanCollection?.collectionId
-        ? stigmanCollection.collectionId
-        : undefined;
+      this.collectionAAPackage = currentCollection.aaPackage;
+      this.collectionType = currentCollection.collectionOrigin ? currentCollection.collectionOrigin : 'C-PAT';
+      if (currentCollection.collectionOrigin === 'STIG Manager' || currentCollection.collectionOrigin === 'Tenable') {
+        this.originCollectionId = currentCollection.originCollectionId;
+      } else {
+        this.originCollectionId = undefined;
+      }
+
+      if (!this.originCollectionId && !background) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Information',
+          detail: 'This collection is not associated with a STIG Manager collection. Asset association may not be available.',
+        });
+      }
     });
   }
 
   verifySubmitPoam() {
-    this.notesForApprover = this.poam?.notes || '';
-    this.submitDialogVisible = true;
+    if (!this.poamMilestones || this.poamMilestones.milestoneComments < 1) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail:
+          'A minimum of 1 POAM milestone is required before a POAM can be submitted for review.',
+      });
+    } else if (this.poamMilestones[0].milestoneComments.length < 15) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail:
+          'A milestone comment has a 15 character count minimum to satisfy the requirement for POAM submission.',
+      });
+    } else {
+      this.notesForApprover = this.poam?.notes || '';
+      this.submitDialogVisible = true;
+    }
   }
 
   confirmSubmit() {
@@ -1041,6 +1098,25 @@ ${this.pluginData.description ?? ''}`,
       });
       return;
     }
+    if (!this.poamMilestones || this.poamMilestones.length < 1) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail:
+          'A minimum of 1 POAM milestone is required before a POAM can be submitted for review.',
+      });
+      return;
+    }
+
+    if (this.poamMilestones[0].milestoneComments.length < 15) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail:
+          'A milestone comment has a 15 character count minimum to satisfy the POAM milestone requirement for POAM submission.',
+      });
+      return;
+    } 
     if (this.poam.status === 'Closed') {
       this.poam.closedDate = format(new Date(), 'yyyy-MM-dd');
     }
@@ -1150,6 +1226,18 @@ ${this.pluginData.description ?? ''}`,
         summary: 'Information',
         detail:
           'If Adjusted Severity deviates from the Raw Severity, Mitigations becomes a required field.',
+      });
+      return false;
+    }
+    if (
+      this.poam.localImpact === 'Moderate' || this.poam.localImpact === 'High' || this.poam.localImpact === 'Very High' &&
+      this.poam.impactDescription.length < 1
+    ) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail:
+          'If Local Impact is Moderate or higher, Impact Description becomes a required field.',
       });
       return false;
     }
@@ -1321,6 +1409,8 @@ ${this.pluginData.description ?? ''}`,
       message: 'Are you sure you want to delete this milestone?',
       header: 'Delete Confirmation',
       icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: 'p-button-primary',
+      rejectButtonStyleClass: 'p-button-secondary',
       accept: async () => {
         (
           await this.poamService.deletePoamMilestone(
@@ -1570,22 +1660,28 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async addAssignedTeam() {
-    const newAssignedTeam = {
-      poamId: +this.poam.poamId,
-      assignedTeamId: null,
-      isNew: true,
-    };
-    this.poamAssignedTeams = [newAssignedTeam, ...this.poamAssignedTeams];
-  }
-
   async onAssignedTeamChange(assignedTeam: any, rowIndex: number) {
     if (assignedTeam.assignedTeamId) {
+      const selectedTeam = this.assignedTeamOptions.find(
+        (team: any) => team.assignedTeamId === assignedTeam.assignedTeamId
+      );
+      assignedTeam.assignedTeamName = selectedTeam ? selectedTeam.assignedTeamName : '';
+
       await this.confirmCreateAssignedTeam(assignedTeam);
       assignedTeam.isNew = false;
     } else {
       this.poamAssignedTeams.splice(rowIndex, 1);
     }
+  }
+
+  async addAssignedTeam() {
+    const newAssignedTeam = {
+      poamId: +this.poam.poamId,
+      assignedTeamId: null,
+      assignedTeamName: '',
+      isNew: true,
+    };
+    this.poamAssignedTeams = [newAssignedTeam, ...this.poamAssignedTeams];
   }
 
   async deleteAssignedTeam(assignedTeam: any, rowIndex: number) {
@@ -1596,11 +1692,15 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async confirmCreateAssignedTeam(newAssignedTeam: any) {
-    let assignedTeamName = '';
 
-    if (newAssignedTeam.assignedTeamName) {
-      assignedTeamName = newAssignedTeam.assignedTeamName;
+  async confirmCreateAssignedTeam(newAssignedTeam: any) {
+    let assignedTeamName = newAssignedTeam.assignedTeamName;
+
+    if (!assignedTeamName) {
+      const matchingTeam = this.assignedTeamOptions.find(
+        (team: any) => team.assignedTeamId === newAssignedTeam.assignedTeamId
+      );
+      assignedTeamName = matchingTeam ? matchingTeam.assignedTeamName : 'Team';
     }
 
     if (this.poam.poamId !== 'ADDPOAM' && newAssignedTeam.assignedTeamId) {
@@ -1616,7 +1716,7 @@ ${this.pluginData.description ?? ''}`,
               this.messageService.add({
                 severity: 'success',
                 summary: 'Success',
-                detail: `${assignedTeamName} was added as an assigned team`,
+                detail: `${assignedTeamName} was successfully added to the assigned teams list`,
               });
             },
           );
@@ -1633,10 +1733,11 @@ ${this.pluginData.description ?? ''}`,
       this.poam.poamId === 'ADDPOAM' &&
       newAssignedTeam.assignedTeamId
     ) {
+      newAssignedTeam.assignedTeamName = assignedTeamName;
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
-        detail: `${assignedTeamName} was added as an assigned team`,
+        detail: `${assignedTeamName} was successfully added to the assigned teams list`,
       });
     } else {
       this.messageService.add({
@@ -1870,6 +1971,41 @@ ${this.pluginData.description ?? ''}`,
     }
     this.poam.likelihood = mappedRating;
     this.poam.residualRisk = mappedRating;
+  }
+
+  deletePoam() {
+    this.confirmationService.confirm({
+      message: `Are you sure you want to delete POAM ${this.poam.poamId}? This action is irreversable.`,
+      header: 'Confirm POAM Deletion',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Yes',
+      rejectLabel: 'No',
+      acceptButtonStyleClass: 'p-button-primary',
+      rejectButtonStyleClass: 'p-button-secondary',
+      accept: async () => {
+        await (
+          await this.poamService.deletePoam(
+            this.poam.poamId
+          )
+        ).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: `POAM ${this.poam.poamId} has been successfully deleted.`,
+            });
+            this.router.navigate(['/poam-processing/poam-manage']);
+          },
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to delete POAM ${this.poam.poamId}. Please try again.`,
+            });
+          }
+        });
+      },
+    });
   }
 
   confirm(options: { header: string; message: string; accept: () => void }) {

@@ -99,6 +99,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(15),
             defaultValue: ''
         },
+        localImpact: {
+            type: DataTypes.STRING(15),
+            defaultValue: ''
+        },
         impactDescription: {
             type: DataTypes.TEXT
         },

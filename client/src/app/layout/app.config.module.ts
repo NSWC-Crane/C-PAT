@@ -23,8 +23,11 @@ import { AppMenuitemComponent } from './components/app.menuitem.component';
 import { AppSearchComponent } from '../common/components/search/app.search.component';
 import { SharedModule } from '../common/shared.module';
 import { PanelMenuModule } from 'primeng/panelmenu';
+import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { DropdownModule } from 'primeng/dropdown';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
 
 @NgModule({
   declarations: [
@@ -37,6 +40,8 @@ import { TagModule } from 'primeng/tag';
   ],
   imports: [
     CommonModule,
+    ConfirmPopupModule,
+    DialogModule,
     DropdownModule,
     FormsModule,
     ReactiveFormsModule,
@@ -55,6 +60,7 @@ import { TagModule } from 'primeng/tag';
     RippleModule,
     SharedModule,
     TagModule,
+    ToastModule,
     PanelMenuModule,
     AppSearchComponent,
   ],

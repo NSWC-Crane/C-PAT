@@ -245,6 +245,9 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                         }
                         const hqsPoamSql = `UPDATE cpat.poam SET hqs = 1 WHERE poamId = ?`;
                         await connection.query(hqsPoamSql, [req.body.poamId]);
+                    } else if ((hqs === 1 || hqs === true) && req.body.hqs === false) {
+                        const hqsPoamSql = `UPDATE cpat.poam SET hqs = 0 WHERE poamId = ?`;
+                        await connection.query(hqsPoamSql, [req.body.poamId]);
                     } else if (!config.client.features.marketplaceDisabled) {                       
                             const newPoints = userPoints.points + 15;
                             await usersService.updateUserPoints({

@@ -7,3 +7,20 @@
 ! CONDITIONS OF THE LICENSE.  
 !##########################################################################
 */
+
+:host ::ng-deep {
+  .p-badge {
+    padding: 0rem 0.5rem;
+    white-space: nowrap;
+    
+    &.hidden {
+      display: none;
+    }
+  }
+  
+  .flex-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}

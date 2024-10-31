@@ -288,25 +288,16 @@
                         <td *ngFor="let col of columns">
                           <ng-container [ngSwitch]="col.field">
                             <ng-container *ngSwitchCase="'poam'">
-                              <ng-container *ngIf="existingPoamPluginIDs[vulnerability.id] as poamAssociation">
-                                <i *ngIf="poamAssociation.status !== 'Closed' && poamAssociation.status !== 'False-Positive'"
-                                   class="pi pi-check-circle"
-                                   style="color: green; font-size: 1.5rem; cursor: pointer;"
+                              <ng-container *ngIf="existingPoamPluginIDs[vulnerability.pluginID] as poamAssociation">
+                                <i class="pi pi-check-circle"
+                                   [ngStyle]="{ 'color': getPoamStatusColor(poamAssociation.status), 'font-size': '1.5rem', 'cursor': 'pointer' }"
                                    (click)="onPoamIconClick(vulnerability, $event)"
                                    (keyup.enter)="onPoamIconClick(vulnerability, $event)"
-                                   pTooltip="POAM Already Created. Click icon to view POAM."
-                                   tooltipPosition="top">
-                                </i>
-                                <i *ngIf="poamAssociation.status === 'Closed' || poamAssociation.status === 'False-Positive'"
-                                   class="pi pi-times-circle"
-                                   style="color: darkorange; font-size: 1.5rem; cursor: pointer;"
-                                   (click)="onPoamIconClick(vulnerability, $event)"
-                                   (keyup.enter)="onPoamIconClick(vulnerability, $event)"
-                                   pTooltip="POAM is Closed or False-Positive. Click icon to review POAM."
+                                   [pTooltip]="getPoamStatusTooltip(poamAssociation.status)"
                                    tooltipPosition="top">
                                 </i>
                               </ng-container>
-                              <i *ngIf="!existingPoamPluginIDs[vulnerability.id]"
+                              <i *ngIf="!existingPoamPluginIDs[vulnerability.pluginID]"
                                  class="pi pi-times-circle"
                                  style="color: maroon; font-size: 1.5rem; cursor: pointer;"
                                  (click)="onPoamIconClick(vulnerability, $event)"

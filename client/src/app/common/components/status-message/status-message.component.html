@@ -8,9 +8,9 @@
 !##########################################################################
 -->
 
-<p-card>
-  <div class="permission_denied">
-    <div class="denied__wrapper">
+<p-card styleClass="status_message_card" class="status_message_card">
+  <div class="container">
+    <div class="wrapper">
       <h1>{{ statusCode }}</h1>
       <h3>LOST IN <span>SPACE</span> C-PAT?</h3>
       <h3>{{ message }}</h3>
@@ -187,7 +187,7 @@
         </g>
       </svg>
       <a routerLink="/poam-processing">
-        <button pButton type="button" label="Refresh?" icon="pi pi-home" class="denied__link p-button-outlined p-button-primary"></button>
+        <button pButton type="button" label="Refresh?" icon="pi pi-home" class="tryRefresh p-button-outlined p-button-primary"></button>
       </a>
     </div>
   </div>

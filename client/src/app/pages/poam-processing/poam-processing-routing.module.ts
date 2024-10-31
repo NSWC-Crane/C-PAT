@@ -23,21 +23,26 @@ const routes: Routes = [
   {
     path: 'poam-approve/:poamId',
     canActivate: [AuthGuard],
+    data: { guardType: 'poam' },
     component: PoamApproveComponent,
   },
   {
     path: 'poam-details/:poamId',
     canActivate: [AuthGuard],
+    data: { guardType: 'poam' },
     component: PoamDetailsComponent,
   },
+
   {
     path: 'poam-extend/:poamId',
     canActivate: [AuthGuard],
+    data: { guardType: 'poam' },
     component: PoamExtendComponent,
   },
   {
     path: 'poam-log/:poamId',
     canActivate: [AuthGuard],
+    data: { guardType: 'poam' },
     component: PoamLogComponent,
   },
   {

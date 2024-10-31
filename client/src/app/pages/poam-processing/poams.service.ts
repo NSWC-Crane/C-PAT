@@ -446,4 +446,12 @@ export class PoamService {
       .get(`${this.cpatApiBase}/poamLabels`, { headers })
       .pipe(catchError(this.handleError));
   }
+
+  async deletePoam(poamId: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http.delete<any>(
+      `${this.cpatApiBase}/poam/${poamId}`,
+      { headers },
+    );
+  }
 }

@@ -8,15 +8,19 @@
 !##########################################################################
 */
 
-.permission_denied {
-  background: var(--surface-a);
+.container {
+  background: var(--surface-ground);
 }
 
-.permission_denied a {
+::ng-deep .status_message_card {
+  background: var(--surface-ground);
+}
+
+.container a {
   text-decoration: none;
 }
 
-.denied__wrapper {
+.wrapper {
   max-width: 35rem;
   width: 100%;
   max-height: 60rem;
@@ -26,7 +30,7 @@
   margin-top: 8vh;
 }
 
-.permission_denied h1 {
+.container h1 {
   text-align: center;
   color: var(--text-color);
   opacity: 0.8;
@@ -36,7 +40,7 @@
   font-weight: 800;
 }
 
-.permission_denied h3 {
+.container h3 {
   text-align: center;
   color: var(--text-color);  
   font-size: 19px;
@@ -47,13 +51,13 @@
   font-weight: 400;
 }
 
-.permission_denied h3 span {
+.container h3 span {
   position: relative;
   width: 65px;
   display: inline-block;
 }
 
-.permission_denied h3 span:after {
+.container h3 span:after {
   content: "";
   border-bottom: 3px solid #ffbb39;
   position: absolute;
@@ -62,7 +66,7 @@
   width: 100%;
 }
 
-.denied__link {
+.tryRefresh {
   margin: 0 auto;
   vertical-align: middle;
   display: block;
@@ -70,7 +74,7 @@
   margin-top: 25px;
 }
 
-.permission_denied .stars {
+.container .stars {
   animation: sparkle 1.6s infinite ease-in-out alternate;
 }
 
@@ -103,18 +107,18 @@
 }
 
 @media (max-width: 600px) {
-  .permission_denied h1 {
+  .container h1 {
     font-size: 75px;
   }
 
-  .permission_denied h3 {
+  .container h3 {
     font-size: 16px;
     width: 200px;
     margin: 0 auto;
     line-height: 23px;
   }
 
-  .permission_denied h3 span {
+  .container h3 span {
     width: 60px;
   }
 

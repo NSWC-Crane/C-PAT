@@ -18,6 +18,7 @@ interface Poam {
   vulnerabilitySource: string;
   stigTitle: string;
   iavmNumber: string;
+  taskOrderNumber: string;
   aaPackage: string;
   vulnerabilityId: string;
   description: string;
@@ -144,11 +145,11 @@ export class PoamExportService {
         const milestoneNumber = index + 1;
 
         if (milestone.milestoneComments) {
-          comments += `Milestone ${milestoneNumber}:\n${milestone.milestoneComments || ''} \nMilestone Date: ${milestone.milestoneDate ? format(new Date(milestone.milestoneDate), 'MM/dd/yyyy') : ''}\nMilestone Status: ${milestone.milestoneStatus}\n\n\n`;
+          comments += `Milestone ${milestoneNumber}:\n${milestone.milestoneComments || ''} \nMilestone Status: ${milestone.milestoneStatus}\nMilestone Date: ${milestone.milestoneDate ? format(new Date(milestone.milestoneDate), 'MM/dd/yyyy') : ''}\n\n\n`;
         }
 
         if (milestone.milestoneChangeComments) {
-          changes += `Milestone ${milestoneNumber} Changes:\n${milestone.milestoneChangeComments || ''} \nMilestone Date Change: ${milestone.milestoneChangeDate ? format(new Date(milestone.milestoneChangeDate), 'MM/dd/yyyy') : ''}\nMilestone Status: ${milestone.milestoneStatus}\n\n\n`;
+          changes += `Milestone ${milestoneNumber} Changes:\n${milestone.milestoneChangeComments || ''} \nMilestone Status: ${milestone.milestoneStatus}\nMilestone Date Change: ${milestone.milestoneChangeDate ? format(new Date(milestone.milestoneChangeDate), 'MM/dd/yyyy') : ''}\n\n\n`;
         }
       });
     }
@@ -243,8 +244,15 @@ export class PoamExportService {
         PoamExportService.mapRawSeverity(value),
       adjSeverity: (value: any, _poam: Poam, _columnKey: string): string =>
         PoamExportService.mapRawSeverity(value),
-      vulnerabilitySource: (value: any, poam: Poam, _columnKey: string): any =>
-        value === 'STIG' ? poam.stigTitle : poam.vulnerabilitySource,
+      vulnerabilitySource: (value: any, poam: Poam, _columnKey: string): any => {
+        if (value === 'STIG') {
+          return poam.stigTitle;
+        } else if (value === 'Task Order') {
+          return `Task Order #: ${poam.taskOrderNumber}`;
+        } else {
+          return poam.vulnerabilitySource;
+        }
+      },
       status: (value: any, _poam: Poam, _columnKey: string): string =>
         value === 'Closed' ? 'Completed' : 'Ongoing',
       scheduledCompletionDate: (
@@ -265,7 +273,7 @@ export class PoamExportService {
 
     const optionalDefaultValues: { [key: string]: string } = {
       D: 'CM-6.5',
-      N: `CCI-000366\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.`,
+      N: `CCI-000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.`,
       T: 'High',
       W: 'High',
       U: 'ADVERSARIAL - HIGH: Per table D-2 Taxonomy of Threat Sources lists ADVERSARIAL as individual (outsider, insider, trusted insider, privileged insider), therefore the Relevance of Threat defaults to HIGH.',
@@ -284,9 +292,15 @@ export class PoamExportService {
               ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey)
               : poam[dbKey]
             : optionalDefaultValues[columnKey] || '';
-
         const impactDescription = poam['impactDescription'] || '';
-        return `${cciValue}\n\nLocal Site Impact:\n${impactDescription}`.trim();
+
+        let result = cciValue;
+
+        if (impactDescription) {
+          result += `\n\nLocal Site Impact:\n${impactDescription}`;
+        }
+
+        return result.trim();
       }
 
       if (poam[dbKey] !== undefined && poam[dbKey] !== '') {

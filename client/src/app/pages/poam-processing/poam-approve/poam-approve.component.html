@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<p-dialog header="POAM Approval" [(visible)]="displayDialog" [modal]="true" [closable]="false" [style]="{width: '70%'}">
+<p-dialog [(visible)]="displayDialog" [modal]="true" [closable]="false" [style]="{width: '70%'}">
   <ng-template pTemplate="content">
     <div class="form-group" *ngIf="notesForApprover">
       <label for="comments">Submission Notes:</label>
@@ -31,7 +31,7 @@
   </ng-template>
   <ng-template pTemplate="footer">
     <div class="p-dialog-footer" style="display: flex; align-items: center; justify-content: space-between;">
-      <p-checkbox [(ngModel)]="hqsChecked" label="High-Quality Submission?" [disabled]="accessLevel < 3"></p-checkbox>
+      <p-checkbox [(ngModel)]="hqsChecked" inputId="hqsChecked" label="High-Quality Submission?" [disabled]="accessLevel < 3"></p-checkbox>
       <div>
         <p-button [outlined]="true" label="Save" icon="pi pi-check" (click)="submitApprovalData()" [disabled]="accessLevel < 3"></p-button>
         <p-button [outlined]="true" severity="secondary" class="ml-2" label="Cancel" icon="pi pi-times" (click)="cancelApproval()" ></p-button>

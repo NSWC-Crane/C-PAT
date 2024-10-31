@@ -54,6 +54,12 @@
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex align-items-center">
+                Vulnerability ID
+                <p-columnFilter type="text" field="vulnerabilityId" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
                 POAM Status
                 <p-columnFilter type="text" field="status" display="menu"></p-columnFilter>
               </div>
@@ -84,6 +90,12 @@
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex align-items-center">
+                Assigned Teams
+                <p-columnFilter type="text" field="assignedTeams" display="menu"></p-columnFilter>
+              </div>
+            </th>
+            <th scope="col" pResizableColumn>
+              <div class="flex align-items-center">
                 Submitted Date
                 <p-columnFilter type="date" field="submittedDate" display="menu"></p-columnFilter>
               </div>
@@ -103,11 +115,22 @@
           <tr>
             <td style="text-align: center;">{{ row.lastUpdated }}</td>
             <td>{{ row.poamId }}</td>
+            <td>{{ row.vulnerabilityId }}</td>
             <td>{{ row.status }}</td>
             <td>{{ row.source }}</td>
             <td>{{ row.stigBenchmarkId }}</td>
             <td>{{ row.adjSeverity }}</td>
             <td>{{ row.submitter }}</td>
+            <td>
+              <div class="flex flex-wrap gap-2">
+                <span *ngFor="let team of row.assignedTeams.split(', ')"
+                      class="p-badge p-component"
+                      [ngStyle]="{'background-color': 'var(--primary-color)', 'margin': '2px'}"
+                      [class.hidden]="!team">
+                  {{team}}
+                </span>
+              </div>
+            </td>
             <td>{{ row.submittedDate }}</td>
             <td>{{ row.scheduledCompletionDate }}</td>
             <td>

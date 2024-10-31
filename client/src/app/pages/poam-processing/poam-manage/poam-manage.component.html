@@ -23,7 +23,7 @@
       </div>
     </div>
     <div class="col-12 p-0 mb-3">
-      <cpat-poam-mainchart [poams]="poams" [showAddButton]="false" [style]="{'height': '33rem', 'width': '30%'}" (poamsChange)="onPoamsChange($event)"></cpat-poam-mainchart>
+      <cpat-poam-mainchart [poams]="poams" [style]="{'height': '33rem', 'width': '30%'}" (poamsChange)="onPoamsChange($event)"></cpat-poam-mainchart>
     </div>
   </div>
   <div class="col-12 md:col-4 mb-3">
@@ -31,25 +31,21 @@
       <p-tabView>
         <p-tabPanel header="All POAMs">
           <cpat-poam-assigned-grid [assignedData]="this.allPoams"
-                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'POAM']"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>
         <p-tabPanel header="Needs Attention">
           <cpat-poam-assigned-grid [assignedData]="this.poamsNeedingAttention"
-                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'POAM']"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>
         <p-tabPanel *ngIf="accessLevel >= 2" header="My POAMs">
           <cpat-poam-assigned-grid [assignedData]="this.submittedPoams"
-                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'POAM']"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>
         <p-tabPanel *ngIf="accessLevel >= 3" header="Pending Approval">
           <cpat-poam-assigned-grid [assignedData]="this.poamsPendingApproval"
-                                   [assignedColumns]="['POAM ID', 'Adjusted Severity', 'Poam Status', 'Submitter', 'POAM']"
                                    (managePoam)="managePoam($event)">
           </cpat-poam-assigned-grid>
         </p-tabPanel>

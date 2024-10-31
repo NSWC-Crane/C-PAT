@@ -120,12 +120,12 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
             ? parseISO(userApproval.approvedDate.substr(0, 10))
             : currentDate;
           this.comments = userApproval.comments;
-          this.hqsChecked = poamResponse.hqs;
+          this.hqsChecked = Boolean(poamResponse.hqs);
         } else {
           this.approvalStatus = null;
           this.dates.approvedDate = currentDate;
           this.comments = null;
-          this.hqsChecked = poamResponse.hqs;
+          this.hqsChecked = Boolean(poamResponse.hqs);
         }
       },
       error: (error) => {

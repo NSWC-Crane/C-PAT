@@ -55,7 +55,7 @@
   </div>
 </div>
 
-<p-dialog [(visible)]="displayCollectionDialog" [style]="{width: '450px'}" [header]="dialogMode === 'add' ? 'Add Collection' : 'Modify Collection'" [modal]="true" styleClass="p-fluid">
+<p-dialog [(visible)]="displayCollectionDialog" [style]="{width: '450px'}" [modal]="true" styleClass="p-fluid">
   <ng-template pTemplate="content">
     <div class="field">
       <label for="collectionName">Collection Name</label>
@@ -64,6 +64,19 @@
     <div class="field">
       <label for="description">Description</label>
       <textarea id="description" pInputTextarea [(ngModel)]="editingCollection.description" required rows="3" cols="20"></textarea>
+    </div>
+    <div class="field">
+      <label for="aaPackage">A&A Package:</label>
+      <p-autoComplete [(ngModel)]="editingCollection.aaPackage"
+                      [dropdown]="true"
+                      [suggestions]="filteredAAPackages"
+                      (completeMethod)="filterAAPackages($event)"
+                      placeholder="Select an A&A Package..."
+                      name='aaPackage'
+                      id="aaPackage"
+                      styleClass="w-full"
+                      readonly>
+      </p-autoComplete>
     </div>
     <div class="field">
       <label for="systemType">System Type:</label>
@@ -94,19 +107,6 @@
              [(ngModel)]="editingCollection.ccsafa"
              placeholder="CC/S/A/FA"
              class="w-full">
-    </div>
-    <div class="field">
-      <label for="aaPackage">A&A Package:</label>
-      <p-autoComplete [(ngModel)]="editingCollection.aaPackage"
-                      [dropdown]="true"
-                      [suggestions]="filteredAAPackages"
-                      (completeMethod)="filterAAPackages($event)"
-                      placeholder="Select from the available options, modify a provided option, or provide a custom option..."
-                      name='aaPackage'
-                      id="aaPackage"
-                      styleClass="w-full"
-                      appendTo="body">
-      </p-autoComplete>
     </div>
   </ng-template>
 

@@ -51,8 +51,8 @@ let config = {
     http: {
         address: process.env.CPAT_API_ADDRESS || "127.0.0.1",
         port: process.env.CPAT_API_PORT || 8086,
-        maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "5242880",
-        maxUpload: process.env.CPAT_API_MAX_UPLOAD || "5242880",
+        maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "52428800",
+        maxUpload: process.env.CPAT_API_MAX_UPLOAD || "52428800",
         rateLimit: process.env.CPAT_API_RATE_LIMIT || "1000"
     },
     database: {
