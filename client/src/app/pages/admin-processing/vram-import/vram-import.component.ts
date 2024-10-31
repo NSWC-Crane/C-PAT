@@ -99,11 +99,19 @@ export class VRAMImportComponent implements OnInit {
               ? Math.round((100 * event.loaded) / event.total)
               : 0;
           } else if (event instanceof HttpResponse) {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: 'File uploaded successfully',
-            });
+            if (event.body && event.body.message === "File is not newer than the last update. No changes made.") {
+              this.messageService.add({
+                severity: 'info',
+                summary: 'Information',
+                detail: event.body.message,
+              });
+            } else {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'File uploaded successfully',
+              });
+            }
             this.fileUpload.clear();
           }
         },

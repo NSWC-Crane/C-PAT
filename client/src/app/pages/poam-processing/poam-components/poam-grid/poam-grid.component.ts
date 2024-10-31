@@ -117,7 +117,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
         return;
       }
 
-      let processedPoams = poams;
+      let processedPoams;
 
       if (this.selectedCollection.collectionOrigin === 'STIG Manager') {
         processedPoams = await this.processPoamsWithStigFindings(
@@ -125,74 +125,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
           this.selectedCollection.originCollectionId,
         );
       } else if (this.selectedCollection.collectionOrigin === 'Tenable') {
-        const vulnerabilityIds = [
-          ...new Set(poams.map((poam) => poam.vulnerabilityId)),
-        ];
-        const analysisParams = {
-          query: {
-            description: '',
-            context: '',
-            status: -1,
-            createdTime: 0,
-            modifiedTime: 0,
-            groups: [],
-            type: 'vuln',
-            tool: 'listvuln',
-            sourceType: 'cumulative',
-            startOffset: 0,
-            endOffset: 10000,
-            filters: [
-              {
-                id: 'pluginID',
-                filterName: 'pluginID',
-                operator: '=',
-                type: 'vuln',
-                isPredefined: true,
-                value: vulnerabilityIds.join(','),
-              },
-            ],
-            vulnTool: 'listvuln',
-          },
-          sourceType: 'cumulative',
-          columns: [],
-          type: 'vuln',
-        };
-
-        const data = await (
-          await this.importService.postTenableAnalysis(analysisParams)
-        ).toPromise();
-        this.tenableAffectedAssets = data.response.results.map(
-          (asset: any) => ({
-            pluginId: asset.pluginID,
-            dnsName: asset.dnsName ?? '',
-            netbiosName: asset.netbiosName ?? '',
-          }),
-        );
-
-        processedPoams = poams.map((poam) => {
-          const affectedDevices = this.tenableAffectedAssets
-            .filter((asset: any) => asset.pluginId === poam.vulnerabilityId)
-            .map((asset: any) => {
-              if (asset.netbiosName) {
-                const parts = asset.netbiosName.split('\\');
-                if (parts.length > 1) {
-                  return parts[parts.length - 1];
-                }
-              }
-              if (asset.dnsName) {
-                const parts = asset.dnsName.split('.');
-                if (parts.length > 0) {
-                  return parts[0].toUpperCase();
-                }
-              }
-              return null;
-            })
-            .filter(Boolean);
-          return {
-            ...poam,
-            devicesAffected: affectedDevices.join(' '),
-          };
-        });
+        processedPoams = await this.processPoamsWithTenableFindings(poams);
       } else {
         this.cpatAffectedAssets = await (
           await this.poamService.getPoamAssetsByCollectionId(collectionId)
@@ -209,6 +142,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
           };
         });
       }
+
       const excelData = await PoamExportService.convertToExcel(
         processedPoams,
         this.user,
@@ -238,6 +172,95 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
         detail: 'Failed to export POAMs, please try again later.',
       });
     }
+  }
+
+  async processPoamsWithTenableFindings(poams: any[]): Promise<any[]> {
+    const processedPoams = [];
+    const vulnerabilityIds = [...new Set(poams.map((poam) => poam.vulnerabilityId))];
+
+    const analysisParams = {
+      query: {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: 'listvuln',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 10000,
+        filters: [
+          {
+            id: 'pluginID',
+            filterName: 'pluginID',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: vulnerabilityIds.join(','),
+          },
+        ],
+        vulnTool: 'listvuln',
+      },
+      sourceType: 'cumulative',
+      columns: [],
+      type: 'vuln',
+    };
+
+    const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
+    this.tenableAffectedAssets = data.response.results.map((asset: any) => ({
+      pluginId: asset.pluginID,
+      dnsName: asset.dnsName ?? '',
+      netbiosName: asset.netbiosName ?? '',
+    }));
+
+    for (const poam of poams) {
+      try {
+        const plugin = await (await this.importService.getTenablePlugin(poam.vulnerabilityId)).toPromise();
+
+        let controlAPs = poam.controlAPs ?? '';
+        let cci = poam.cci ?? '';
+        if (plugin.response?.patchPubDate && plugin.response?.patchPubDate != '') {
+          controlAPs = 'SI-2.9';
+          cci = '002605\n\nControl mapping is unavailable for this vulnerability so it is being mapped to SI-2.9 CCI-002605 by default.';
+        } else {
+          controlAPs = 'CM-6.5';
+          cci = '000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.';
+        }
+
+        const affectedDevices = this.tenableAffectedAssets
+          .filter((asset: any) => asset.pluginId === poam.vulnerabilityId)
+          .map((asset: any) => {
+            if (asset.netbiosName) {
+              const parts = asset.netbiosName.split('\\');
+              if (parts.length > 1) {
+                return parts[parts.length - 1];
+              }
+            }
+            if (asset.dnsName) {
+              const parts = asset.dnsName.split('.');
+              if (parts.length > 0) {
+                return parts[0].toUpperCase();
+              }
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        processedPoams.push({
+          ...poam,
+          controlAPs,
+          cci,
+          devicesAffected: affectedDevices.join(' '),
+        });
+      } catch (error) {
+        console.error(`Error processing Tenable POAM ${poam.poamId}:`, error);
+        processedPoams.push(poam);
+      }
+    }
+
+    return processedPoams;
   }
 
   async processPoamsWithStigFindings(
@@ -312,6 +335,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
         ? new Date(poam.lastUpdated).toISOString().split('T')[0]
         : '',
       poamId: poam.poamId,
+      vulnerabilityId: poam.vulnerabilityId,
       status: poam.status,
       source: poam.vulnerabilitySource,
       stigBenchmarkId: poam.stigBenchmarkId ?? '',
@@ -319,6 +343,11 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
       submitter: poam.submitterName,
       submittedDate: poam.submittedDate?.split('T')[0],
       scheduledCompletionDate: poam.scheduledCompletionDate?.split('T')[0],
+      assignedTeams: poam.assignedTeams
+        ? poam.assignedTeams
+          .map((team: any) => team.assignedTeamName)
+          .join(', ')
+        : ''
     }));
     this.applyFilter();
   }

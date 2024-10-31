@@ -76,9 +76,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   selectedFindings: string = '';
   collectionBasicList: any[] = [];
   selectedCollection: any;
-  stigmanCollection:
-    | { name: string; description: string; collectionId: string }
-    | undefined;
+  stigmanCollection: any;
   user: any;
   private subs = new SubSink();
   private subscriptions = new Subscription();
@@ -133,9 +131,16 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   findingsFilterOptions = [
     { label: 'All', value: 'All' },
-    { label: 'Has Existing POAM', value: 'Has Existing POAM' },
     { label: 'No Existing POAM', value: 'No Existing POAM' },
-    { label: 'Closed POAM Association', value: 'Closed POAM Association' },
+    { label: 'Draft', value: 'Draft' },
+    { label: 'Submitted', value: 'Submitted' },
+    { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
+    { label: 'Extension Requested', value: 'Extension Requested' },
+    { label: 'Approved', value: 'Approved' },
+    { label: 'Expired', value: 'Expired' },
+    { label: 'Rejected', value: 'Rejected' },
+    { label: 'Closed', value: 'Closed' },
+    { label: 'False-Positive', value: 'False-Positive' }
   ];
 
   constructor(
@@ -280,43 +285,43 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   async validateStigManagerCollection() {
     try {
-      const [stigmanData, basicListData] = await Promise.all([
-        (await this.sharedService.getCollectionsFromSTIGMAN()).toPromise(),
-        (await this.collectionService.getCollectionBasicList()).toPromise(),
-      ]);
+      const basicListData = await (await this.collectionService.getCollectionBasicList()).toPromise();
 
-      const stigmanCollectionsMap = new Map(
-        stigmanData?.map((collection) => [collection.name, collection]),
-      );
-      const basicListCollectionsMap = new Map(
-        basicListData?.map((collection) => [
-          collection.collectionId,
-          collection,
-        ]),
+      const selectedCollection = basicListData?.find(
+        (collection) => collection.collectionId === this.user.lastCollectionAccessedId
       );
 
-      const selectedCollection = basicListCollectionsMap.get(
-        this.user.lastCollectionAccessedId,
-      );
-      const selectedCollectionName = selectedCollection?.collectionName;
-      this.stigmanCollection = selectedCollectionName
-        ? stigmanCollectionsMap.get(selectedCollectionName)
-        : undefined;
-
-      if (!this.stigmanCollection || !selectedCollectionName) {
+      if (!selectedCollection) {
         this.showWarn(
-          'Unable to determine matching STIG Manager collection for Asset association. Please ensure that you are viewing a STIG Manager collection.',
+          'Unable to find the selected collection. Please try again.'
         );
         return;
       }
 
-      await Promise.all([
-        this.getFindingsGrid(this.stigmanCollection.collectionId),
-      ]);
+      if (selectedCollection.collectionOrigin !== 'STIG Manager') {
+        this.showWarn(
+          'The current collection is not associated with STIG Manager.'
+        );
+        return;
+      }
+
+      this.stigmanCollection = {
+        collectionId: selectedCollection.originCollectionId!.toString(),
+        name: selectedCollection.collectionName,
+      };
+
+      if (!this.stigmanCollection.collectionId) {
+        this.showWarn(
+          'Unable to determine the matching STIG Manager collection ID. Please try again.'
+        );
+        return;
+      }
+
+      await this.getFindingsGrid(this.stigmanCollection.collectionId);
     } catch (error) {
       console.error('Error in validateStigManagerCollection:', error);
       this.showError(
-        'Failed to validate STIG Manager collection. Please try again.',
+        'Failed to validate STIG Manager collection. Please try again.'
       );
     }
   }
@@ -422,6 +427,43 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     });
   }
 
+  getPoamStatusColor(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'expired':
+      case 'rejected':
+      case 'draft':
+        return 'maroon';
+      case 'submitted':
+      case 'pending cat-i approval':
+      case 'extension requested':
+        return 'gold';
+      case 'false-positive':
+      case 'closed':
+        return 'black';
+      case 'approved':
+        return 'green';
+      default:
+        return 'gray';
+    }
+  }
+
+  getPoamStatusIcon(status: string | undefined, hasExistingPoam: boolean): string {
+    if (!hasExistingPoam) {
+      return 'pi-times-circle';
+    }
+    return 'pi-check-circle';
+  }
+
+  getPoamStatusTooltip(status: string | undefined, hasExistingPoam: boolean): string {
+    if (!hasExistingPoam) {
+      return 'No Existing POAM. Click to create draft POAM.';
+    }
+
+    if (!status) return 'POAM Status Unknown. Click to view POAM.';
+
+    return `POAM Status: ${status}. Click to view POAM.`;
+  }
+
   async updateChartAndGrid(existingPoams: any[]) {
     this.dataSource.forEach((item) => {
       const existingPoam = existingPoams.find(
@@ -431,20 +473,15 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       item.poamStatus = existingPoam?.status;
     });
 
-    this.displayDataSource = this.dataSource.filter(
-      (item) =>
-        this.selectedFindings === 'All' ||
-        (this.selectedFindings === 'Has Existing POAM' &&
-          item.hasExistingPoam &&
-          item.poamStatus != 'Closed' &&
-          item.poamStatus != 'False-Positive') ||
-        (this.selectedFindings === 'No Existing POAM' &&
-          !item.hasExistingPoam) ||
-        (this.selectedFindings === 'Closed POAM Association' &&
-          item.hasExistingPoam &&
-          (item.poamStatus === 'Closed' ||
-            item.poamStatus === 'False-Positive')),
-    );
+    this.displayDataSource = this.dataSource.filter((item) => {
+      if (this.selectedFindings === 'All') {
+        return true;
+      }
+      if (this.selectedFindings === 'No Existing POAM') {
+        return !item.hasExistingPoam;
+      }
+      return item.hasExistingPoam && item.poamStatus === this.selectedFindings;
+    });
 
     this.findingsCount = this.displayDataSource.length;
     const severityGroups = this.displayDataSource.reduce(

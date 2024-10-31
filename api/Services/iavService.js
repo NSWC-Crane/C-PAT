@@ -147,7 +147,7 @@ exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
 
         return await withConnection(async (connection) => {
             const sql = `
-                SELECT ip.pluginID, i.iav, i.navyComplyDate
+                SELECT ip.pluginID, i.iav, i.navyComplyDate, i.supersededBy
                 FROM cpat.iav_plugin ip
                 JOIN cpat.iav i ON ip.iav = i.iav
                 WHERE ip.pluginID IN (?)

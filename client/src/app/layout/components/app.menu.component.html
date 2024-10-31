@@ -14,3 +14,28 @@
     <li *ngIf="item.separator" class="menu-separator"></li>
   </ng-container>
 </ul>
+
+<p-dialog [(visible)]="confirmPopupVisible"
+          [modal]="true"
+          [style]="{width: '450px'}"
+          [baseZIndex]="10000000"
+          [autoZIndex]="true"
+          appendTo="body"
+          [closeOnEscape]="false"
+          [closable]="false">
+  <div class="custom-confirm-popup">
+    <div class="icon-container">
+      <i class="pi pi-exclamation-triangle"></i>
+    </div>
+    <h3>Confirm Manual POAM Entry</h3>
+    <p>To automate a POAM entry please visit the STIG Manager or Tenable tab. Would you like to proceed with a manual POAM entry?</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="confirm-popup-buttons">
+      <button pButton label="Yes" icon="pi pi-check" (click)="onConfirm()" class="p-button-primary"></button>
+      <button pButton label="No" icon="pi pi-times" (click)="onReject()" class="p-button-secondary"></button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-toast></p-toast>

@@ -131,7 +131,7 @@ export class TenableAssetsTableComponent implements OnInit {
     );
   }
 
-  async getAffectedAssetsByPluginId(pluginID: string) {
+  async getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number) {
     const analysisParams = {
       query: {
         description: '',
@@ -153,6 +153,18 @@ export class TenableAssetsTableComponent implements OnInit {
             type: 'vuln',
             isPredefined: true,
             value: pluginID,
+          },
+          {
+            id: 'repository',
+            filterName: 'repository',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: [
+              {
+                id: tenableRepoId.toString(),
+              },
+            ],
           },
         ],
         vulnTool: 'listvuln',
@@ -194,7 +206,7 @@ export class TenableAssetsTableComponent implements OnInit {
 
   async lazyOrNot(event: TableLazyLoadEvent) {
     if (this.pluginID && !this.assetProcessing) {
-      await this.getAffectedAssetsByPluginId(this.pluginID);
+      await this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
     } else if (this.assetProcessing) {
       await this.getAffectedAssets(event);
     }

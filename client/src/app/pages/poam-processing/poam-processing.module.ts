@@ -52,6 +52,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
 import { ImportProcessingModule } from '../import-processing/import-processing.module';
+import { MenuModule } from 'primeng/menu';
 
 @NgModule({
   declarations: [
@@ -84,6 +85,7 @@ import { ImportProcessingModule } from '../import-processing/import-processing.m
     InputTextareaModule,
     IconFieldModule,
     InputIconModule,
+    MenuModule,
     MultiSelectModule,
     SplitterModule,
     StepperModule,

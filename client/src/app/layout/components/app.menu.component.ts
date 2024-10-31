@@ -15,10 +15,13 @@ import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { Router } from '@angular/router';
 import { PayloadService } from '../../common/services/setPayload.service';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-menu',
   templateUrl: './app.menu.component.html',
+  styleUrls: ['./app.menu.component.scss'],
+  providers: [ConfirmationService, MessageService],
 })
 export class AppMenuComponent implements OnInit, OnDestroy {
   model: MenuItem[] = [];
@@ -26,6 +29,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   collectionType: string;
   userRole: string = '';
   user: any;
+  confirmPopupVisible: boolean = false;
   protected accessLevel: any;
   private payloadSubscription: Subscription[] = [];
 
@@ -34,7 +38,9 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     private collectionService: CollectionsService,
     private setPayloadService: PayloadService,
     private router: Router,
-  ) {}
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
+  ) { }
 
   async ngOnInit() {
     await this.initializeUser();
@@ -107,12 +113,6 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         visible: this.accessLevel >= 1,
       },
       {
-        label: 'Add POAM',
-        icon: 'pi pi-file-plus',
-        routerLink: ['/poam-processing/poam-details/ADDPOAM'],
-        visible: this.accessLevel >= 2,
-      },
-      {
         label: 'STIG Manager',
         icon: 'pi pi-shield',
         routerLink: ['/import-processing/stigmanager-import'],
@@ -124,6 +124,12 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         icon: 'pi pi-file-import',
         routerLink: ['/import-processing/tenable-import'],
         visible: this.accessLevel >= 1 && this.collectionType === 'Tenable',
+      },
+      {
+        label: 'Manual POAM Entry',
+        icon: 'pi pi-file-plus',
+        command: () => this.showConfirmPopup(),
+        visible: this.accessLevel >= 2,
       },
       {
         label: 'Asset Processing',
@@ -151,6 +157,20 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         item.items = item.items.filter((subItem) => subItem.visible !== false);
       }
     });
+  }
+
+
+  showConfirmPopup() {
+    this.confirmPopupVisible = true;
+  }
+
+  onConfirm() {
+    this.router.navigate(['/poam-processing/poam-details/ADDPOAM']);
+    this.confirmPopupVisible = false;
+  }
+
+  onReject() {
+    this.confirmPopupVisible = false;
   }
 
   logout() {

@@ -36,12 +36,6 @@
   margin-bottom: 1.5rem;
 }
 
-.button-group {
-  display: flex;
-  margin-right: 1rem;
-  gap: 3rem;
-}
-
 hr {
   background-color: black;
   border-color: black;
@@ -60,8 +54,8 @@ hr {
 }
 
 .showCheckData {
-  background-color: var(--surface-b);
-  border: 1px solid var(--surface-d);
+  background-color: var(--surface-ground);
+  border: 1px solid var(--surface-border);
   padding: 1rem;
   overflow: auto;
   max-height: 500px;
@@ -150,8 +144,116 @@ hr {
   }
 }
 
+    ::ng-deep .poam-control-menu {
+      background-color: var(--surface-card) !important;
+      margin-top: 0.5rem !important;
+      width: 13rem !important;
+    }
 
-::ng-deep .p-dialog {
-  max-height: 90vh;
-  overflow-y: auto;
+    ::ng-deep .poam-control-menu .p-menu-list {
+      background: transparent;
+    }
+
+    ::ng-deep .poam-control-menu .p-menuitem {
+      margin: 0 0.25rem 0;
+      font-size: 1.05rem;
+    }
+
+    ::ng-deep .poam-control-menu .p-menuitem-icon {
+      font-size: 1.4rem;
+      margin-right: 0.5rem;
+      margin-left: -0.35rem;
+    }
+
+    ::ng-deep .poam-control-menu .p-menuitem-link {
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease-in-out;
+    }
+
+    ::ng-deep .poam-control-menu .p-menuitem-link:hover {
+      color: rgba(255, 255, 255, 0.87);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    ::ng-deep .menu-item-secondary .p-menuitem-icon {
+      color: var(--surface-600) !important;
+    }
+
+    ::ng-deep .menu-item-warning .p-menuitem-icon {
+      color: var(--yellow-600) !important;
+    }
+
+    ::ng-deep .menu-item-success .p-menuitem-icon {
+      color: var(--green-600) !important;
+    }
+
+    ::ng-deep .menu-item-primary .p-menuitem-icon {
+      color: var(--blue-600) !important;
+    }
+
+    ::ng-deep .menu-item-danger .p-menuitem-icon {
+      color: var(--red-600) !important;
+    }
+
+
+::ng-deep .p-dialog-mask {
+    z-index: 9999 !important;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+::ng-deep .p-confirm-dialog {
+    background-color: var(--surface-card);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    width: 450px !important;
+
+    .p-dialog-header {
+        padding: 2rem 2rem 0 2rem;
+        background-color: var(--surface-card);
+        color: var(--text-color);
+        border: none;
+        display: flex;
+        justify-content: center;
+        
+        .p-dialog-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+    .p-dialog-content {
+        padding: 2rem;
+        text-align: center;
+        background-color: var(--surface-card);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+
+        .p-confirm-dialog-icon {
+            font-size: 2rem;
+            color: var(--yellow-500);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .p-confirm-dialog-message {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            display: block;
+            width: 100%;
+        }
+    }
+
+    .p-dialog-footer {
+        padding: 0 2rem 2rem 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        border: none;
+        background-color: var(--surface-card);
+    }
 }

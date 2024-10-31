@@ -40,6 +40,11 @@ const { middleware: openApiMiddleware, resolvers } = require('express-openapi-va
 const proxy = require('express-http-proxy');
 const url = require('url');
 const db = require(`./Services/utils`);
+const apiSpecPath = path.join(__dirname, './specification/C-PAT.yaml');
+let spec = fs.readFileSync(apiSpecPath, 'utf8');
+let oasDoc = jsyaml.load(spec);
+oasDoc.servers[0].url = `http://${config.http.host}:${config.http.port}/api`;
+oasDoc.components.securitySchemes.oauth.openIdConnectUrl = `${config.client.authority}/.well-known/openid-configuration`
 const depStatus = {
     db: 'waiting',
     auth: 'waiting'
@@ -129,11 +134,10 @@ app.use('/api/tenable', proxy(config.tenable.url, {
     }
 }));
 
-const apiSpecPath = path.join(__dirname, './specification/C-PAT.yaml');
 app.use(
     '/api',
     openApiMiddleware({
-        apiSpec: apiSpecPath,
+        apiSpec: oasDoc,
         validateRequests: {
             coerceTypes: false,
             allowUnknownQueryParameters: false,
@@ -190,11 +194,8 @@ async function run() {
             logger.writeDebug('index', 'client', { message: 'documentation disabled' })
         }
 
-        let spec = fs.readFileSync(apiSpecPath, 'utf8')
-        let oasDoc = jsyaml.load(spec)
         oasDoc.info.version = config.version
-        oasDoc.servers[0].url = config.swaggerUi.server
-        oasDoc.components.securitySchemes.oauth.openIdConnectUrl = `${config.client.authority}/.well-known/openid-configuration`
+        oasDoc.servers[0].url = config.swaggerUi.server        
         config.definition = oasDoc
 
         if (config.swaggerUi.enabled) {

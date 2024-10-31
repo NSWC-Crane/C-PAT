@@ -42,7 +42,6 @@ export class PoamMainchartComponent
 {
   @Output() poamsChange = new EventEmitter<any[]>();
   @Input() poams!: any[];
-  @Input() showAddButton: boolean = false;
   @Input() canvasHeight = '35rem';
   @Input() canvasWidth = '100rem';
   @ViewChild('poamStatusChart') poamStatusChart!: ElementRef<HTMLCanvasElement>;

@@ -15,6 +15,7 @@ import { UsersService } from '../user-processing/users.service';
 import { firstValueFrom, timer } from 'rxjs';
 import { Table } from 'primeng/table';
 import { ImportService } from '../../import-processing/import.service';
+import { format, parseISO, startOfDay } from 'date-fns';
 
 @Component({
   selector: 'app-nessus-plugin-mapping',
@@ -85,6 +86,8 @@ export class NessusPluginMappingComponent implements OnInit {
       if (Array.isArray(response)) {
         this.tableData = response.map((item) => ({
           ...item,
+          navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : '',
+          releaseDate: item.releaseDate ? item.releaseDate.split('T')[0] : '',
           pluginID: item.pluginID
             ? item.pluginID.split(',').map((id: any) => id.trim())
             : [],

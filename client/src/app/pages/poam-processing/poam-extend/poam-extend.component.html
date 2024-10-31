@@ -7,7 +7,7 @@
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 -->
-<p-dialog header="Request POAM Extension" [(visible)]="displayExtensionDialog" [modal]="true" [style]="{width: '80vw', height: '80vh'}" [draggable]="false" [resizable]="false" [closable]="true" (onHide)="cancelExtension()">
+<p-dialog [(visible)]="displayExtensionDialog" [modal]="true" [style]="{width: '80vw', height: '80vh'}" [draggable]="false" [resizable]="false" [closable]="true" (onHide)="cancelExtension()">
   <div class="container" *ngIf="poam">
     <div class="p-grid">
       <!-- Extension Time Allowed -->
@@ -50,11 +50,11 @@
                 <ng-template pTemplate="header">
                   <tr>
                     <th scope="col">Milestone Comments</th>
-                    <th scope="col">Milestone Date</th>
+                    <th scope="col" pSortableColumn="milestoneDate">Milestone Date</th>
                     <th scope="col">Milestone Change Comments</th>
-                    <th scope="col">Milestone Change Date</th>
-                    <th scope="col">Milestone Status</th>
-                    <th scope="col">Milestone Team</th>
+                    <th scope="col" pSortableColumn="milestoneChangeDate">Milestone Change Date</th>
+                    <th scope="col" pSortableColumn="milestoneStatus">Milestone Status</th>
+                    <th scope="col" pSortableColumn="milestoneTeam">Milestone Team</th>
                     <th scope="col"></th>
                     <th scope="col"><button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()" [disabled]="accessLevel < 2"></button></th>
                   </tr>
@@ -178,6 +178,17 @@
         <ng-template pTemplate="content" let-nextCallback="nextCallback" let-prevCallback="prevCallback" let-index="index">
           <div class="stepper-content-wrapper">
             <div class="stepper-content">
+
+              <div class="form-group">
+                <label for="localImpact">Local Impact:</label>
+                <p-dropdown [options]="localImpactOptions" [(ngModel)]="poam.localImpact" id="localImpact" name="localImpact" placeholder="Local Impact..." optionLabel="label" optionValue="value" appendTo="body" [style]="{'width':'100%'}" [disabled]="accessLevel < 2"></p-dropdown>
+              </div>
+
+              <div class="form-group">
+                <label for="impactDescription">Impact Description: </label>
+                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.impactDescription" name='impactDescription' [rows]="16" placeholder="Impact Description..." [disabled]="accessLevel < 2"></textarea>
+              </div>
+
               <div class="form-group">
                 <label for="residualRisk">Residual Risk:</label>
                 <p-dropdown [options]="residualRiskOptions" [(ngModel)]="poam.residualRisk" name='residualRisk' placeholder="Residual Risk..." optionLabel="label" optionValue="value" appendTo="body" [style]="{'width':'100%'}" [disabled]="accessLevel < 2"></p-dropdown>
@@ -186,11 +197,6 @@
               <div class="form-group">
                 <label for="likelihood">Likelihood:</label>
                 <p-dropdown [options]="likelihoodOptions" [(ngModel)]="poam.likelihood" id="likelihood" name="likelihood" placeholder="Likelihood..." optionLabel="label" optionValue="value" appendTo="body" [style]="{'width':'100%'}" [disabled]="accessLevel < 2"></p-dropdown>
-              </div>
-
-              <div class="form-group">
-                <label for="impactDescription">Impact Description: </label>
-                <textarea pInputTextarea class="w-full" [(ngModel)]="poam.impactDescription" name='impactDescription' [rows]="16" placeholder="Impact Description..." [disabled]="accessLevel < 2"></textarea>
               </div>
             </div>
             <div class="stepper-buttons">

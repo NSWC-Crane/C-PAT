@@ -179,7 +179,7 @@
 
 .filter-panel {
   border-radius: 10px;
-  background-color: var(--surface-a);
+  background-color: var(--surface-card);
   width: 300px;
   position: fixed;
   top: 0;
@@ -208,7 +208,7 @@
   .filter-header {
     border-radius: 10px 10px 0 0;
     padding: 2rem 2rem 0.5rem;
-    background-color: var(--surface-a);
+    background-color: var(--surface-card);
     border-bottom: 1px solid var(--surface-border);
   }
 
@@ -220,7 +220,7 @@
 
   .filter-footer {
     border-radius: 0 0 10px 10px;
-    background-color: var(--surface-a);
+    background-color: var(--surface-card);
     border-top: 1px solid var(--surface-border);
   }
 
@@ -269,3 +269,4 @@
     margin-left: 300px;
   }
 }
+

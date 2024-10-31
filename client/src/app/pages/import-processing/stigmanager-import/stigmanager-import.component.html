@@ -30,28 +30,11 @@
                 <ng-template #loadedData>
                   <ng-container [ngSwitch]="col.field">
                     <ng-container *ngSwitchCase="'poam'">
-                      <i *ngIf="rowData.hasExistingPoam && rowData.poamStatus != 'Closed' && rowData.poamStatus != 'False-Positive'"
-                         class="pi pi-check-circle"
-                         style="color: green; font-size: 1.5rem; cursor: pointer; justify-content: center;"
+                      <i [class]="'pi ' + getPoamStatusIcon(rowData.poamStatus, rowData.hasExistingPoam)"
+                         [ngStyle]="{ 'color': !rowData.hasExistingPoam ? 'maroon' : getPoamStatusColor(rowData.poamStatus), 'font-size': '1.5rem', 'cursor': 'pointer', 'justify-content': 'center' }"
                          (click)="addPoam(rowData)"
                          (keyup.enter)="addPoam(rowData)"
-                         pTooltip="POAM Already Created. Click to view POAM."
-                         tooltipPosition="top">
-                      </i>
-                      <i *ngIf="rowData.hasExistingPoam && (rowData.poamStatus === 'Closed' || rowData.poamStatus === 'False-Positive')"
-                         class="pi pi-times-circle"
-                         style="color: darkorange; font-size: 1.5rem; cursor: pointer; justify-content: center;"
-                         (click)="addPoam(rowData)"
-                         (keyup.enter)="addPoam(rowData)"
-                         pTooltip="POAM status is Closed or False-Positive. Click to review."
-                         tooltipPosition="top">
-                      </i>
-                      <i *ngIf="!rowData.hasExistingPoam"
-                         class="pi pi-times-circle"
-                         style="color: maroon; font-size: 1.5rem; cursor: pointer; justify-content: center;"
-                         (click)="addPoam(rowData)"
-                         (keyup.enter)="addPoam(rowData)"
-                         pTooltip="No Existing POAM. Click to create draft POAM."
+                         [pTooltip]="getPoamStatusTooltip(rowData.poamStatus, rowData.hasExistingPoam)"
                          tooltipPosition="top">
                       </i>
                     </ng-container>

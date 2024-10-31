@@ -44,6 +44,7 @@ exports.putPoamExtension = async function (req, res, next) {
                 requiredResources = ?,
                 residualRisk = ?,
                 likelihood = ?,
+                localImpact = ?,
                 impactDescription = ?,
                 status = ?
                 WHERE poamId = ?`;
@@ -55,6 +56,7 @@ exports.putPoamExtension = async function (req, res, next) {
                 req.body.requiredResources,
                 req.body.residualRisk,
                 req.body.likelihood,
+                req.body.localImpact,
                 req.body.impactDescription,
                 req.body.status,
                 req.body.poamId

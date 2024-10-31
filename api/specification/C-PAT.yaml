@@ -17,7 +17,7 @@ info:
     email: christian.a.rodriguez8.ctr@us.navy.mil
   version: '1.0.0-beta.1'
 servers:
-  - url: 'http://localhost:8086/api'
+  - url: ''
 paths:
   '/aaPackages':
     get:
@@ -1007,6 +1007,8 @@ paths:
                     navyComplyDate:
                       type: string
                       format: date
+                    supersededBy:
+                      type: string
         '400':
           description: Bad Request
           content:
@@ -3902,6 +3904,8 @@ paths:
                   properties:
                     poamId:
                       type: string
+                    status:
+                      type: string
                     vulnerabilityId:
                       type: string
         '400':
@@ -4948,6 +4952,8 @@ components:
           type: string
         likelihood:
           type: string
+        localImpact:
+          type: string
         impactDescription:
           type: string
         status:
@@ -5039,6 +5045,9 @@ components:
           type: string
           nullable: true
         likelihood:
+          type: string
+          nullable: true
+        localImpact:
           type: string
           nullable: true
         impactDescription:
@@ -5663,4 +5672,4 @@ components:
   securitySchemes:
       oauth:
         type: openIdConnect
-        openIdConnectUrl: https://localhost:8080/realms/RMFTools/.well-known/openid-configuration
+        openIdConnectUrl: 

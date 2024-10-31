@@ -66,12 +66,12 @@
         <p-table #dt [value]="IAVVulnerabilities"
                  [columns]="selectedColumns"
                  [paginator]="true"
+                 [filters]="filters"
                  [rows]="20"
                  [totalRecords]="totalRecords"
-                 [loading]="isLoading"
                  [showCurrentPageReport]="true"
                  [rowsPerPageOptions]="[10,20,50]"
-                 [globalFilterFields]="['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID']"
+                 [globalFilterFields]="['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'supersededBy', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID']"
                  [filterDelay]="300"
                  [rowHover]="true"
                  dataKey="pluginID"
@@ -79,9 +79,16 @@
                  styleClass="p-datatable-sm p-datatable-gridlines-hidden">
           <ng-template pTemplate="header" let-columns>
             <tr>
-              <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}" pResizableColumn scope="col">
+              <th *ngFor="let col of columns" [pSortableColumn]="col.field" pResizableColumn scope="col">
                 {{col.header}}
-                <p-columnFilter [type]="col.filterType" [field]="col.field" display="menu"></p-columnFilter>
+                <p-columnFilter [type]="col.filterType"
+                                [field]="col.field"
+                                *ngIf="col.filterable !== false"
+                                [showMatchModes]="true"
+                                [showOperator]="false"
+                                [showAddButton]="false"
+                                display="menu">
+                </p-columnFilter>
               </th>
             </tr>
           </ng-template>
@@ -90,23 +97,22 @@
               <td *ngFor="let col of columns">
                 <ng-container [ngSwitch]="col.field">
                   <ng-container *ngSwitchCase="'poam'">
-                    <i *ngIf="vulnerability.poam"
-                       class="pi pi-check-circle"
-                       style="color: green; font-size: 1.5rem; cursor: pointer;"
-                       (onKeyUp)="onPoamIconClick(vulnerability, $event)"
-                       (click)="onPoamIconClick(vulnerability, $event)"
-                       pTooltip="POAM Already Created. Click icon to view POAM."
-                       tooltipPosition="top">
-                    </i>
-                    <i *ngIf="!vulnerability.poam"
-                       class="pi pi-times-circle"
-                       style="color: maroon; font-size: 1.5rem;"
-                       (onKeyUp)="onPoamIconClick(vulnerability, $event)"
-                       (click)="onPoamIconClick(vulnerability, $event)"
-                       pTooltip="No Existing POAM. Click icon to create draft POAM."
-                       tooltipPosition="top">
-                    </i>
+                    <ng-container *ngTemplateOutlet="poamIcon; context: { $implicit: vulnerability }">
+                    </ng-container>
                   </ng-container>
+
+                  <ng-template #poamIcon let-vulnerability>
+                    <ng-container *ngLet="getPoamStatusInfo(vulnerability) as statusInfo">
+                      <i [class]="'pi ' + statusInfo.icon"
+                         [style.color]="statusInfo.color"
+                         style="font-size: 1.5rem; cursor: pointer;"
+                         (click)="onPoamIconClick(vulnerability, $event)"
+                         (onKeyUp)="onPoamIconClick(vulnerability, $event)"
+                         [pTooltip]="statusInfo.tooltip"
+                         tooltipPosition="top">
+                      </i>
+                    </ng-container>
+                  </ng-template>
                   <ng-container *ngSwitchCase="'pluginID'">
                     <span (click)="onPluginIDClick(vulnerability, $event)" (keyup.enter)="onPluginIDClick(vulnerability, $event)" style="cursor: pointer; color: var(--primary-color); font-weight: bold; text-decoration: underline;">
                       {{vulnerability[col.field]}}

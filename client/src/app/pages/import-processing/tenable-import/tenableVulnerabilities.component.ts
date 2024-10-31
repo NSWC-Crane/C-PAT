@@ -123,12 +123,18 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   tenableDateOptions = [
     { label: 'All', value: 'All' },
     { label: 'Within the last day', value: '0:1' },
+    { label: 'Within the last 3 days', value: '0:3' },
     { label: 'Within the last 7 days', value: '0:7' },
+    { label: 'Within the last 14 days', value: '0:14' },
     { label: 'Within the last 30 days', value: '0:30' },
     { label: 'Within the last 90 days', value: '0:90' },
+    { label: 'Within the last 180 days', value: '0:180' },
+    { label: 'More than 3 days ago', value: '3:all' },
     { label: 'More than 7 days ago', value: '7:all' },
+    { label: 'More than 14 days ago', value: '14:all' },
     { label: 'More than 30 days ago', value: '30:all' },
     { label: 'More than 90 days ago', value: '90:all' },
+    { label: 'More than 180 days ago', value: '180:all' },
     { label: 'Current Month', value: 'currentMonth' },
     { label: 'Last Month', value: 'lastMonth' },
     { label: 'Current Quarter', value: 'currentQuarter' },
@@ -240,8 +246,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   vprScoreOptions = this.customRangeOptions;
 
   premadeFilterOptions = [
+    { label: 'Vulnerability Published 30+ Days', value: 'vulnpublished30' },
     { label: 'Exploitable Findings 7+ Days', value: 'exploitable7' },
     { label: 'Exploitable Findings 30+ Days', value: 'exploitable30' },
+    { label: 'Critical/ High 7+ Days', value: 'criticalHigh7' },
+    { label: 'Critical/ High 14+ Days', value: 'criticalHigh14' },
+    { label: 'Critical/ High 30+ Days', value: 'criticalHigh30' },
+    { label: 'Medium 180+ Days', value: 'medium180' },
+    { label: 'Low 365+ Days', value: 'low365' },
     { label: 'Cisco Findings 30+ Days', value: 'cisco30' },
     { label: 'Database Findings 30+ Days', value: 'database30' },
     { label: 'F5 Findings 30+ Days', value: 'f530' },
@@ -251,9 +263,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       value: 'windowsPatches30',
     },
     { label: 'Security End of Life', value: 'seol' },
-    { label: 'Critical/ High 7+ Days', value: 'criticalHigh7' },
-    { label: 'Medium 180+ Days', value: 'medium180' },
-    { label: 'Low 365+ Days', value: 'low365' },
     { label: 'Non-Credentialed (Bad Scan)', value: 'nonCredentialedBad' },
     { label: 'Non-Credentialed (Good Scan)', value: 'nonCredentialedGood' },
     { label: 'Exploitable Findings', value: 'exploitable' },
@@ -654,7 +663,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }));
     this.tempFilters['severity'] = ['1', '2', '3', '4'];
     this.tempFilters['vulnerabilityLastObserved'] = '0:30';
-    this.tempFilters['vulnerabilityPublished'] = '30:all';
     this.applyFilters();
   }
 
@@ -2003,7 +2011,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   clearFilters(loadVuln: boolean = true) {
     this.tempFilters = this.initializeTempFilters();
+    this.tempFilters['severity'] = ['1', '2', '3', '4'];
+    this.tempFilters['vulnerabilityLastObserved'] = '0:30';
     this.activeFilters = [];
+    this.applyFilters();
     if (loadVuln) {
       this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
       this.selectedPremadeFilter = null;
@@ -2050,47 +2061,67 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         type: 'vuln',
         isPredefined: true,
         value: '0:30',
-      },
-      {
-        id: 'vulnPublished',
-        filterName: 'vulnPublished',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: '30:all',
-      },
+      }
     ];
   }
 
   applyPremadeFilter(event: any) {
     this.clearFilters(false);
     switch (event.value) {
+      case 'vulnpublished30':
+        this.tempFilters['vulnerabilityPublished'] = '30:all';
+        break;
       case 'exploitable7':
         this.tempFilters['exploitAvailable'] = 'true';
-        this.tempFilters['vulnerabilityLastObserved'] = '7:all';
+        this.tempFilters['vulnerabilityPublished'] = '7:all';
         break;
       case 'exploitable30':
         this.tempFilters['exploitAvailable'] = 'true';
-        this.tempFilters['vulnerabilityLastObserved'] = '30:all';
+        this.tempFilters['vulnerabilityPublished'] = '30:all';
+        break;
+      case 'criticalHigh7':
+        this.tempFilters['severity'] = ['3', '4'];
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['vulnerabilityPublished'] = '7:all';
+        break;
+      case 'criticalHigh14':
+        this.tempFilters['severity'] = ['3', '4'];
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['vulnerabilityPublished'] = '14:all';
+        break;
+      case 'criticalHigh30':
+        this.tempFilters['severity'] = ['3', '4'];
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['vulnerabilityPublished'] = '30:all';
+        break;
+      case 'medium180':
+        this.tempFilters['severity'] = ['2'];
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['vulnerabilityPublished'] = '180:all';
+        break;
+      case 'low365':
+        this.tempFilters['severity'] = ['1'];
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['vulnerabilityPublished'] = '365:all';
         break;
       case 'cisco30':
         this.tempFilters['pluginFamily'] = ['33'];
-        this.tempFilters['vulnerabilityLastObserved'] = '30:all';
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'database30':
         this.tempFilters['pluginFamily'] = ['31'];
-        this.tempFilters['vulnerabilityLastObserved'] = '30:all';
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'f530':
         this.tempFilters['pluginFamily'] = ['57'];
-        this.tempFilters['vulnerabilityLastObserved'] = '30:all';
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'linuxUbuntu30':
         this.tempFilters['pluginFamily'] = ['1', '14'];
-        this.tempFilters['vulnerabilityLastObserved'] = '30:all';
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'windowsPatches30':
@@ -2099,24 +2130,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           operator: '=',
           value: 'Security Update',
         };
-        this.tempFilters['vulnerabilityLastObserved'] = '30:all';
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'seol':
         this.tempFilters['pluginName'] = { operator: '=', value: 'SEoL' };
         this.tempFilters['vulnerabilityLastObserved'] = '0:30';
-        break;
-      case 'criticalHigh7':
-        this.tempFilters['severity'] = ['3', '4'];
-        this.tempFilters['vulnerabilityLastObserved'] = '7:all';
-        break;
-      case 'medium180':
-        this.tempFilters['severity'] = ['2'];
-        this.tempFilters['vulnerabilityLastObserved'] = '180:all';
-        break;
-      case 'low365':
-        this.tempFilters['severity'] = ['1'];
-        this.tempFilters['vulnerabilityLastObserved'] = '365:all';
         break;
       case 'nonCredentialedBad':
         this.tempFilters['pluginID'] = { operator: '=', value: '19506' };
@@ -2178,28 +2197,69 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   async onPoamIconClick(vulnerability: any, event: Event) {
     event.stopPropagation();
-    const poamAssociation = this.existingPoamPluginIDs[vulnerability.id];
-    if (poamAssociation) {
+    const poamAssociation = this.existingPoamPluginIDs[vulnerability.pluginID];
+    if (poamAssociation?.poamId) {
       this.router.navigateByUrl(
         `/poam-processing/poam-details/${poamAssociation.poamId}`,
       );
-    } else {
-      await this.showDetails(vulnerability, true);
-      const pluginIAVData = this.iavInfo[this.pluginData.id];
-      let formattedIavComplyByDate = null;
-      if (pluginIAVData?.navyComplyDate) {
-        const complyDate = new Date(pluginIAVData.navyComplyDate);
-        formattedIavComplyByDate = format(complyDate, 'yyyy-MM-dd');
-      }
-      this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
-        state: {
-          vulnerabilitySource:
-            'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
-          pluginData: this.pluginData,
-          iavNumber: pluginIAVData?.iav,
-          iavComplyByDate: formattedIavComplyByDate,
-        },
-      });
+      return;
+    }
+
+    await this.showDetails(vulnerability, true);
+    const pluginIAVData = this.iavInfo[this.pluginData.id];
+    let formattedIavComplyByDate = null;
+    if (pluginIAVData?.navyComplyDate) {
+      const complyDate = new Date(pluginIAVData.navyComplyDate);
+      formattedIavComplyByDate = format(complyDate, 'yyyy-MM-dd');
+    }
+
+    this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
+      state: {
+        vulnerabilitySource:
+          'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
+        pluginData: this.pluginData,
+        iavNumber: pluginIAVData?.iav,
+        iavComplyByDate: formattedIavComplyByDate,
+      },
+    });
+  }
+
+  getPoamStatusColor(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'expired':
+      case 'rejected':
+      case 'draft':
+        return 'maroon';
+      case 'submitted':
+      case 'pending cat-i approval':
+      case 'extension requested':
+        return 'gold';
+      case 'false-positive':
+      case 'closed':
+        return 'black';
+      case 'approved':
+        return 'green';
+      default:
+        return 'gray';
+    }
+  }
+
+  getPoamStatusTooltip(status: string): string {
+    if (!status) return 'POAM Status Unknown';
+
+    switch (status.toLowerCase()) {
+      case 'expired':
+      case 'rejected':
+      case 'draft':
+      case 'submitted':
+      case 'pending cat-i approval':
+      case 'extension requested':
+      case 'false-positive':
+      case 'closed':
+      case 'approved':
+        return `POAM Status: ${status}. Click icon to view POAM.`;
+      default:
+        return 'POAM Status Unknown. Click icon to view POAM.';
     }
   }
 
@@ -2351,7 +2411,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               (acc, item) => {
                 acc[item.pluginID] = {
                   iav: item.iav,
-                  navyComplyDate: item.navyComplyDate,
+                  navyComplyDate: item.navyComplyDate.split('T')[0],
                 };
                 return acc;
               },
