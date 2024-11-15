@@ -94,6 +94,33 @@
           </div>
         </p-tabPanel>
 
+        <!--POAM Task Order Tab-->
+        <p-tabPanel header="Task Order POAMs">
+          <div class="row">
+            <div class="col">
+              <p-dropdown [options]="poamsForChart"
+                          [(ngModel)]="selectedPoamId"
+                          (onChange)="onSelectPoam($event)"
+                          placeholder="Select POAM to Modify"
+                          optionLabel="id"
+                          optionValue="id"
+                          [showClear]="true"
+                          styleClass="w-full"
+                          [style]="{'width': '100%'}">
+                <ng-template let-poam pTemplate="item">
+                  POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{ poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
+                </ng-template>
+              </p-dropdown>
+            </div>
+          </div>
+          <div class="canvas" id="canvas">
+            <canvas #poamTaskOrderChart [style.height]="canvasHeight" [style.width]="canvasWidth"></canvas>
+            <button pButton type="button" class="p-button-text export-button" (click)="exportChart(taskOrderChart, 'C-PAT POAM Task Order Chart')">
+              <i class="pi pi-download"></i>
+            </button>
+          </div>
+        </p-tabPanel>
+
         <!--POAM Label Tab-->
         <p-tabPanel header="POAM Labels">
           <div class="row">
@@ -123,27 +150,27 @@
       </p-tabView>
     </div>
   </p-header>
-      <div class="row align-items-center">
-        <div class="col">
-          <p-multiSelect [options]="filterOptions"
-                         [(ngModel)]="selectedOptionsValues"
-                         placeholder="Filter by..."
-                         (onChange)="onGroupSelect($event)"
-                         optionGroupLabel="label"
-                         [group]="true"
-                         [showClear]="true"
-                         styleClass="w-full"
-                         [style]="{'width': '100%'}"
-                         appendTo="body">
-            <ng-template let-group pTemplate="group">
-              <div class="p-d-flex p-ai-center">
-                <span>{{group.label}}</span>
-              </div>
-            </ng-template>
-          </p-multiSelect>
-        </div>
-        <div class="col-auto">
-          <button pButton type="button" icon="pi pi-refresh" class="p-button-text" pTooltip="Reset Chart Filters" tooltipPosition="top" (click)="resetChartFilters()"></button>
-        </div>
-      </div>
+  <div class="row align-items-center">
+    <div class="col">
+      <p-multiSelect [options]="filterOptions"
+                     [(ngModel)]="selectedOptionsValues"
+                     placeholder="Filter by..."
+                     (onChange)="onGroupSelect($event)"
+                     optionGroupLabel="label"
+                     [group]="true"
+                     [showClear]="true"
+                     styleClass="w-full"
+                     [style]="{'width': '100%'}"
+                     appendTo="body">
+        <ng-template let-group pTemplate="group">
+          <div class="p-d-flex p-ai-center">
+            <span>{{group.label}}</span>
+          </div>
+        </ng-template>
+      </p-multiSelect>
+    </div>
+    <div class="col-auto">
+      <button pButton type="button" icon="pi pi-refresh" class="p-button-text" pTooltip="Reset Chart Filters" tooltipPosition="top" (click)="resetChartFilters()"></button>
+    </div>
+  </div>
 </p-card>

@@ -2923,6 +2923,114 @@ paths:
         - oauth:
             - 'c-pat:write'
 
+  /poamAssociatedVulnerabilities/poam/{poamId}:
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return additional vulnerabilities associated with a POAM by poamId
+      operationId: getPoamAssociatedVulnerabilitiesByPoam
+      responses:
+        '200':
+          description: Associated Vulnerabilities response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/associatedVulnerabilities_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssociatedVulnerability
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /poamAssociatedVulnerabilities:
+    post:
+      summary: Add a poam Associated Vulnerability
+      operationId: postPoamAssociatedVulnerability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/associatedVulnerability_Object'
+      responses:
+        '201':
+          description: Return the added poam response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/associatedVulnerability_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssociatedVulnerability
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  /poamAssociatedVulnerabilities/poam/{poamId}/associatedVulnerability/{associatedVulnerability}:
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: associatedVulnerability
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Delete a Poam Associated Vulnerability by poamId and Associated Vulnerability
+      operationId: deletePoamAssociatedVulnerability
+      responses:
+        '204':
+          description: Successful deletion
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamAssociatedVulnerability
+      security:
+        - oauth:
+            - 'c-pat:write'   
+
   '/poamAttachments/poam/{poamId}':
     get:
       summary: Return attachments by poamId
@@ -3789,6 +3897,10 @@ paths:
             type: boolean
         - in: query
           name: assets
+          schema:
+            type: boolean
+        - in: query
+          name: associatedVulnerabilities
           schema:
             type: boolean
         - in: query
@@ -4946,16 +5058,22 @@ components:
           type: string
         mitigations:
           type: string
+          nullable: true
         requiredResources:
           type: string
+          nullable: true
         residualRisk:
           type: string
+          nullable: true
         likelihood:
           type: string
+          nullable: true
         localImpact:
           type: string
+          nullable: true
         impactDescription:
           type: string
+          nullable: true
         status:
           type: string
 
@@ -4989,7 +5107,7 @@ components:
           type: integer
         vulnerabilitySource:
           type: string
-        stigTitle:
+        vulnerabilityTitle:
           type: string
           nullable: true
         stigBenchmarkId:
@@ -5061,9 +5179,6 @@ components:
         hqs:
           type: boolean
           nullable: true
-        notes:
-          type: string
-          nullable: true
         approvers:
           type: array
           items:
@@ -5101,6 +5216,9 @@ components:
               - required: ['assetId']
               - required: ['assetName']
             additionalProperties: false
+        associatedVulnerabilities:
+          type: string
+          nullable: true
         labels:
           type: array
           items:
@@ -5135,6 +5253,32 @@ components:
               milestoneTeam:
                 type: string
             additionalProperties: false
+
+    associatedVulnerability_Object:
+      type: object
+      required:
+        - poamId
+        - associatedVulnerability
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        associatedVulnerability:
+          type: string
+
+    associatedVulnerabilities_Object:
+      type: object
+      required:
+        - poamId
+        - associatedVulnerability
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        associatedVulnerability:
+          type: string
+        poamStatus:
+          type: string
 
     poamLabel_Object:
       type: object

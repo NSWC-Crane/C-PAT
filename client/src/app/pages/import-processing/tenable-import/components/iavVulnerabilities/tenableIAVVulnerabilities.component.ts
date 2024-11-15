@@ -74,11 +74,24 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   filterValue: string = '';
   iavInfo: { [key: number]: IAVInfo | undefined } = {};
   navyComplyDateFilters: NavyComplyDateFilter[];
+  tenableTool: string = 'sumid';
   selectedNavyComplyDateFilter: NavyComplyDateFilter | null = null;
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
   private subscriptions = new Subscription();
-
+  poamStatusOptions = [
+    { label: 'Any', value: null },
+    { label: 'Approved', value: 'approved' },
+    { label: 'Associated', value: 'associated' },
+    { label: 'Closed', value: 'closed' },
+    { label: 'Draft', value: 'draft' },
+    { label: 'Expired', value: 'expired' },
+    { label: 'Extension Requested', value: 'extension requested' },
+    { label: 'False-Positive', value: 'false-positive' },
+    { label: 'Pending CAT-I Approval', value: 'pending cat-i approval' },
+    { label: 'Rejected', value: 'rejected' },
+    { label: 'Submitted', value: 'submitted' }
+  ];
   constructor(
     private importService: ImportService,
     private sanitizer: DomSanitizer,
@@ -127,7 +140,9 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       {
         field: 'poam',
         header: 'POAM',
-        filterable: false
+        filterField: 'poamStatus',
+        filterType: 'text',
+        filterOptions: this.poamStatusOptions,
       },
       {
         field: 'pluginID',
@@ -163,7 +178,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         field: 'navyComplyDate',
         header: 'Navy Comply Date',
         filterType: 'date',
-        dataType: 'date'
+        dataType: 'date',
+        filterValue: ''
       },
       {
         field: 'supersededBy',
@@ -180,12 +196,15 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       { field: 'protocol', header: 'Protocol', filterType: 'text' },
       { field: 'uuid', header: 'Agent ID', filterType: 'text' },
       { field: 'hostUUID', header: 'Host ID', filterType: 'numeric' },
+      { field: 'total', header: 'Total', filterType: 'numeric' },
+      { field: 'hostTotal', header: 'Host Total', filterType: 'numeric' },
     ];
     this.exportColumns = this.cols.map((col) => ({
       title: col.header,
       dataKey: col.field,
     }));
     this.navyComplyDateFilters = [
+      { label: 'All Overdue', value: 'alloverdue' },
       { label: '90+ Days Overdue', value: 'overdue90Plus' },
       { label: '30-90 Days Overdue', value: 'overdue30To90' },
       { label: '0-30 Days Overdue', value: 'overdue0To30' },
@@ -224,7 +243,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         modifiedTime: 0,
         groups: [],
         type: 'vuln',
-        tool: 'listvuln',
+        tool: this.tenableTool,
         sourceType: 'cumulative',
         startOffset: 0,
         endOffset: 5000,
@@ -250,7 +269,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
             value: pluginIDs,
           },
         ],
-        vulnTool: 'listvuln',
+        vulnTool: this.tenableTool,
       },
       sourceType: 'cumulative',
       columns: [],
@@ -258,9 +277,26 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     };
 
     try {
+      this.isLoading = true;
+
       const data = await (
         await this.importService.postTenableAnalysis(analysisParams)
       ).toPromise();
+
+      const pluginIDList = pluginIDs.split(',').map(Number);
+      const iavData: any[] = await (
+        await this.importService.getIAVInfoForPlugins(pluginIDList)
+      ).toPromise();
+
+      const iavInfoMap = iavData.reduce((acc: { [key: number]: IAVInfo }, item: any) => {
+        acc[item.pluginID] = {
+          iav: item.iav || null,
+          navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null,
+          supersededBy: item.supersededBy || 'N/A'
+        };
+        return acc;
+      }, {});
+
       this.IAVVulnerabilities = data.response.results.map((vuln: any) => {
         const defaultVuln = {
           pluginID: '',
@@ -268,29 +304,58 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           family: { name: '' },
           severity: { name: '' },
           vprScore: '',
+          ips: [],
+          acrScore: '',
+          assetExposureScore: '',
+          netbiosName: '',
+          dnsName: '',
+          macAddress: '',
+          port: '',
+          protocol: '',
+          uuid: '',
+          hostUUID: '',
+          total: '',
+          hostTotal: '',
         };
 
-        const poamInfo = this.existingPoamPluginIDs[vuln.pluginID] || null;
+        const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
+        const iavInfo = iavInfoMap[Number(vuln.pluginID)];
 
         return {
           ...defaultVuln,
           ...vuln,
-          poam: poamInfo !== null,
-          poamId: poamInfo?.poamId || null,
-          poamStatus: poamInfo?.status || null,
+          poam: !!poamAssociation,
+          poamId: poamAssociation?.poamId || null,
+          poamStatus: poamAssociation?.status || null,
+          iav: iavInfo?.iav || '',
+          navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
+          supersededBy: iavInfo?.supersededBy || 'N/A',
           pluginName: vuln.name || '',
           family: vuln.family?.name || '',
           severity: vuln.severity?.name || '',
+          pluginID: vuln.pluginID ? parseInt(vuln.pluginID) : '',
+          vprScore: vuln.vprScore ? parseFloat(vuln.vprScore) : '',
+          total: vuln.total ? parseInt(vuln.total) : '',
+          hostTotal: vuln.hostTotal ? parseInt(vuln.hostTotal) : '',
+          acrScore: vuln.acrScore ? parseFloat(vuln.acrScore) : '',
+          assetExposureScore: vuln.assetExposureScore ? parseInt(vuln.assetExposureScore) : '',
+          port: vuln.port ? parseInt(vuln.port) : '',
         };
       });
+
       this.totalRecords = this.IAVVulnerabilities.length;
-      this.isLoading = false;
-      await this.loadCPATMergerInfo();
+
+      if (this.table) {
+        this.table.filters = { ...this.filters };
+      }
+
     } catch (error) {
       console.error('Error fetching IAV Vulnerabilities:', error);
       this.showErrorMessage(
         'Error fetching IAV Vulnerabilities. Please try again.',
       );
+    } finally {
+      this.isLoading = false;
     }
   }
 
@@ -325,92 +390,53 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  async loadCPATMergerInfo() {
-    try {
-      const pluginIDs = this.iavPluginIDs.split(',').map(Number);
-      const data: any[] = await (
-        await this.importService.getIAVInfoForPlugins(pluginIDs)
-      ).toPromise();
-
-      this.iavInfo = data.reduce(
-        (acc, item) => {
-          acc[item.pluginID] = {
-            iav: item.iav,
-            navyComplyDate: item.navyComplyDate.split('T')[0],
-            supersededBy: item.supersededBy,
-          };
-          return acc;
-        },
-        {} as { [key: number]: IAVInfo },
-      );
-
-      this.IAVVulnerabilities = this.IAVVulnerabilities.map((vuln) => {
-        return {
-          ...vuln,
-          iav: this.iavInfo[vuln.pluginID]?.iav || '',
-          navyComplyDate: this.iavInfo[vuln.pluginID]?.navyComplyDate || '',
-          supersededBy: this.iavInfo[vuln.pluginID]?.supersededBy || 'N/A',
-        };
-      });
-
-      if (this.table) {
-        this.table.filters = { ...this.filters };
-      }
-    } catch (error) {
-      console.error('Error fetching IAV info:', error);
-      this.showErrorMessage('Error fetching IAV info. Please try again.');
-    }
-  }
-
-  getPoamStatusInfo(vulnerability: any): { color: string; tooltip: string; icon: string } {
-    if (!vulnerability.poam) {
-      return {
-        color: 'maroon',
-        tooltip: 'No Existing POAM. Click icon to create draft POAM.',
-        icon: 'pi-times-circle'
-      };
-    }
-
-    switch (vulnerability.poamStatus?.toLowerCase()) {
+  getPoamStatusColor(status: string): string {
+    switch (status?.toLowerCase()) {
       case 'expired':
       case 'rejected':
       case 'draft':
-        return {
-          color: 'maroon',
-          tooltip: `POAM Status: ${vulnerability.poamStatus}. Click icon to view POAM.`,
-          icon: 'pi-check-circle'
-        };
+        return 'maroon';
       case 'submitted':
       case 'pending cat-i approval':
       case 'extension requested':
-        return {
-          color: 'gold',
-          tooltip: `POAM Status: ${vulnerability.poamStatus}. Click icon to view POAM.`,
-          icon: 'pi-check-circle'
-        };
+        return 'gold';
       case 'false-positive':
       case 'closed':
-        return {
-          color: 'black',
-          tooltip: `POAM Status: ${vulnerability.poamStatus}. Click icon to view POAM.`,
-          icon: 'pi-check-circle'
-        };
+        return 'black';
       case 'approved':
-        return {
-          color: 'green',
-          tooltip: 'POAM Status: Approved. Click icon to view POAM.',
-          icon: 'pi-check-circle'
-        };
+        return 'green';
+      case 'associated':
+        return 'dimgray';
       default:
-        return {
-          color: 'gray',
-          tooltip: 'POAM status unknown. Click icon to view POAM.',
-          icon: 'pi-check-circle'
-        };
+        return 'maroon';
+    }
+  }
+
+  getPoamStatusTooltip(status: string | null): string {
+    if (!status && status !== '') {
+      return 'No Existing POAM. Click icon to create draft POAM.';
+    }
+
+    switch (status?.toLowerCase()) {
+      case 'expired':
+      case 'rejected':
+      case 'draft':
+      case 'submitted':
+      case 'pending cat-i approval':
+      case 'extension requested':
+      case 'false-positive':
+      case 'closed':
+      case 'approved':
+        return `POAM Status: ${status}. Click icon to view POAM.`;
+      case 'associated':
+        return 'This vulnerability is associated with an existing master POAM. Click icon to view POAM.';
+      default:
+        return 'POAM Status Unknown. Click icon to view POAM.';
     }
   }
 
   onRowClick(vulnerability: any, event: any) {
+    this.IAVVulnerabilities = [];
     this.filters['pluginID'] = [{
       value: vulnerability.pluginID,
       matchMode: "equals",
@@ -419,29 +445,20 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (this.table) {
       this.table.filters = { ...this.filters };
     }
-    this.selectedColumns = this.cols.filter((col) =>
-      [
-        'poam',
-        'pluginID',
-        'pluginName',
-        'family',
-        'severity',
-        'vprScore',
-        'iav',
-        'navyComplyDate',
-        'supersededBy',
-        'ips',
-        'acrScore',
-        'assetExposureScore',
-        'netbiosName',
-        'dnsName',
-        'macAddress',
-        'port',
-        'protocol',
-        'uuid',
-        'hostUUID',
-      ].includes(col.field),
-    );
+    this.loadVulnList();
+    this.expandColumnSelections();
+  }
+
+  loadVulnList() {
+    this.tenableTool = 'listvuln';
+    this.getIAVFindings(this.iavPluginIDs);
+    this.expandColumnSelections();
+  }
+
+  loadVulnSummary() {
+    this.tenableTool = 'sumid';
+    this.getIAVFindings(this.iavPluginIDs);
+    this.resetColumnSelections();
   }
 
   onPluginIDClick(vulnerability: any, event: Event) {
@@ -565,45 +582,48 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.table.filters['navyComplyDate'] = [];
       }
     } else {
-      const today = new Date();
+      const today = startOfDay(new Date());
       let startDate: Date | null = null;
       let endDate: Date | null = null;
 
       switch (event.value) {
+        case 'alloverdue':
+          endDate = today;
+          break;
         case 'overdue90Plus':
-          endDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+          endDate = startOfDay(new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000));
           break;
         case 'overdue30To90':
-          startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+          startDate = startOfDay(new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000));
+          endDate = startOfDay(new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000));
           break;
         case 'overdue0To30':
-          startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+          startDate = startOfDay(new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000));
           endDate = today;
           break;
         case 'overdue0To14':
-          startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+          startDate = startOfDay(new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000));
           endDate = today;
           break;
         case 'overdue0To7':
-          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          startDate = startOfDay(new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000));
           endDate = today;
           break;
         case 'dueWithin7':
           startDate = today;
-          endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+          endDate = startOfDay(new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000));
           break;
         case 'dueWithin14':
           startDate = today;
-          endDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+          endDate = startOfDay(new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000));
           break;
         case 'dueWithin30':
           startDate = today;
-          endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+          endDate = startOfDay(new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000));
           break;
         case 'dueWithin90':
           startDate = today;
-          endDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+          endDate = startOfDay(new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000));
           break;
       }
 
@@ -626,6 +646,15 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       }
 
       if (this.table && filterConstraints.length > 0) {
+        const col = this.cols.find(c => c.field === 'navyComplyDate');
+        if (col) {
+          col.filterValue = startDate && endDate ?
+            `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}` :
+            startDate ?
+              `After ${format(startDate, 'MM/dd/yyyy')}` :
+              `Before ${format(endDate!, 'MM/dd/yyyy')}`;
+        }
+
         this.table.filters['navyComplyDate'] = filterConstraints;
         this.table._filter();
       }
@@ -633,6 +662,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   clear() {
+    this.table.clear();
     this.filters['supersededBy'] = [{ value: 'N/A', matchMode: "contains", operator: "and" }];
     this.filters['severity'] = [{ value: 'Info', matchMode: "notContains", operator: "and" }];
 
@@ -641,9 +671,9 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.table.filters = { ...this.filters };
       this.table.filterGlobal(null, 'contains');
     }
-
     this.filterValue = '';
     this.selectedNavyComplyDateFilter = null;
+    this.loadVulnSummary();
   }
 
   onGlobalFilter(event: Event) {
@@ -665,6 +695,34 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         'iav',
         'navyComplyDate',
         'supersededBy',
+        'total',
+        'hostTotal'
+      ].includes(col.field),
+    );
+  }
+
+  expandColumnSelections() {
+    this.selectedColumns = this.cols.filter((col) =>
+      [
+        'poam',
+        'pluginID',
+        'pluginName',
+        'family',
+        'severity',
+        'vprScore',
+        'iav',
+        'navyComplyDate',
+        'supersededBy',
+        'ips',
+        'acrScore',
+        'assetExposureScore',
+        'netbiosName',
+        'dnsName',
+        'macAddress',
+        'port',
+        'protocol',
+        'uuid',
+        'hostUUID',
       ].includes(col.field),
     );
   }

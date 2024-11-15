@@ -15,6 +15,7 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges,
+  ViewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { PoamExportService } from '../../../../common/utils/poam-export.service';
@@ -25,6 +26,7 @@ import { ImportService } from '../../../import-processing/import.service';
 import { SharedService } from '../../../../common/services/shared.service';
 import { PoamService } from '../../poams.service';
 import { MessageService } from 'primeng/api';
+import { Table } from 'primeng/table';
 
 @Component({
   selector: 'cpat-poam-grid',
@@ -32,6 +34,7 @@ import { MessageService } from 'primeng/api';
   styleUrls: ['./poam-grid.component.scss'],
 })
 export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
+  @ViewChild('dt') table!: Table;
   @Input() poamsData!: any[];
   @Input() allColumns!: string[];
   globalFilter: string = '';
@@ -47,6 +50,19 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   private findingsCache: Map<string, any[]> = new Map();
   private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
+  poamStatusOptions = [
+    { label: 'Any', value: null },
+    { label: 'Approved', value: 'approved' },
+    { label: 'Associated', value: 'associated' },
+    { label: 'Closed', value: 'closed' },
+    { label: 'Draft', value: 'draft' },
+    { label: 'Expired', value: 'expired' },
+    { label: 'Extension Requested', value: 'extension requested' },
+    { label: 'False-Positive', value: 'false-positive' },
+    { label: 'Pending CAT-I Approval', value: 'pending cat-i approval' },
+    { label: 'Rejected', value: 'rejected' },
+    { label: 'Submitted', value: 'submitted' }
+  ];
 
   constructor(
     private router: Router,
@@ -60,6 +76,11 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
 
   async ngOnInit() {
     this.setPayload();
+    setTimeout(() => {
+      if (this.table) {
+        this.table.filters['status'] = [{ value: 'closed', matchMode: 'notEquals'}];
+      }
+    });
   }
 
   async setPayload() {
@@ -335,10 +356,12 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
         ? new Date(poam.lastUpdated).toISOString().split('T')[0]
         : '',
       poamId: poam.poamId,
-      vulnerabilityId: poam.vulnerabilityId,
       status: poam.status,
+      vulnerabilityId: poam.vulnerabilityId,
+      iavmNumber: poam.iavmNumber,
+      taskOrderNumber: poam.taskOrderNumber,
       source: poam.vulnerabilitySource,
-      stigBenchmarkId: poam.stigBenchmarkId ?? '',
+      vulnerabilityTitle: poam.vulnerabilityTitle ?? '',
       adjSeverity: poam.adjSeverity,
       submitter: poam.submitterName,
       submittedDate: poam.submittedDate?.split('T')[0],
@@ -347,7 +370,8 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
         ? poam.assignedTeams
           .map((team: any) => team.assignedTeamName)
           .join(', ')
-        : ''
+        : '',
+      associatedVulnerabilities: poam.associatedVulnerabilities
     }));
     this.applyFilter();
   }
@@ -400,6 +424,8 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   clear(table: any) {
+    this.table.clear();
+    this.table.filters['status'] = [{ value: 'closed', matchMode: 'notEquals'}];
     this.globalFilter = '';
     this.applyFilter();
   }

@@ -394,6 +394,28 @@ export class PoamService {
     );
   }
 
+  async getPoamAssociatedVulnerabilitiesByPoam(poamId: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .get(`${this.cpatApiBase}/poamAssociatedVulnerabilities/poam/${poamId}`, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async postPoamAssociatedVulnerability(associatedVulnerability: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .post<any>(`${this.cpatApiBase}/poamAssociatedVulnerabilities`, associatedVulnerability, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async deletePoamAssociatedVulnerability(poamId: any, associatedVulnerability: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http.delete<any>(
+      `${this.cpatApiBase}/poamAssociatedVulnerabilities/poam/${poamId}/associatedVulnerability/${associatedVulnerability}`,
+      { headers },
+    );
+  }
+
   async getAvailablePoamStatus() {
     const headers = await this.getAuthHeaders();
     return this.http

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, Renderer2, SimpleChanges, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 import { UsersService } from '../user-processing/users.service';
@@ -22,9 +22,10 @@ import { format, parseISO, startOfDay } from 'date-fns';
   templateUrl: './nessus-plugin-mapping.component.html',
   styleUrls: ['./nessus-plugin-mapping.component.scss'],
 })
-export class NessusPluginMappingComponent implements OnInit {
+export class NessusPluginMappingComponent implements OnInit, OnChanges {
   @ViewChild('dt') dt!: Table;
-
+  @ViewChild('mapButton') mapButton!: ElementRef;
+  @Input() activated: boolean = false;
   tableData: any[] = [];
   user: any;
   loading: boolean = true;
@@ -43,6 +44,7 @@ export class NessusPluginMappingComponent implements OnInit {
     private nessusPluginMappingService: NessusPluginMappingService,
     private userService: UsersService,
     private importService: ImportService,
+    private renderer: Renderer2
   ) {}
 
   async ngOnInit() {
@@ -58,6 +60,29 @@ export class NessusPluginMappingComponent implements OnInit {
     }
     this.getIAVTableData();
     this.initColumns();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['activated'] && changes['activated'].currentValue) {
+      this.triggerButtonAnimation();
+    }
+  }
+
+  private triggerButtonAnimation() {
+    setTimeout(() => {
+      if (this.mapButton?.nativeElement) {
+        this.renderer.removeClass(this.mapButton.nativeElement, 'focus-attention');
+
+        void this.mapButton.nativeElement.offsetWidth;
+
+        this.renderer.addClass(this.mapButton.nativeElement, 'focus-attention');
+        this.mapButton.nativeElement.focus();
+
+        setTimeout(() => {
+          this.renderer.removeClass(this.mapButton.nativeElement, 'focus-attention');
+        }, 2000);
+      }
+    }, 100);
   }
 
   initColumns() {

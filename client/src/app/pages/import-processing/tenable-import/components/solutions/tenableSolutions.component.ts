@@ -1,7 +1,10 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ConfirmationDialogOptions } from '../../../../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../../import.service';
 import { Table } from 'primeng/table';
+import { Subscription } from 'rxjs';
+import { SharedService } from '../../../../../common/services/shared.service';
 
 interface ExportColumn {
   title: string;
@@ -13,7 +16,7 @@ interface ExportColumn {
   templateUrl: './tenableSolutions.component.html',
   styleUrls: ['./tenableSolutions.component.scss'],
 })
-export class TenableSolutionsComponent implements OnInit {
+export class TenableSolutionsComponent implements OnInit, OnDestroy {
   solutions: any[] = [];
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -25,11 +28,18 @@ export class TenableSolutionsComponent implements OnInit {
   loadingVulnDetails: boolean = true;
   filterValue: string = '';
   dialogFilterValue: string = '';
+  selectedCollection: any;
+  tenableRepoId: string | undefined = '';
   @ViewChild('dt') table!: Table;
   @ViewChild('dialogTable') dialogTable!: Table;
   @ViewChild('vulnDetailsTable') vulnDetailsTable!: Table;
+  private subscriptions = new Subscription();
 
-  constructor(private importService: ImportService) {}
+  constructor(
+    private importService: ImportService,
+    private collectionService: CollectionsService,
+    private sharedService: SharedService,
+  ) { }
 
   async ngOnInit() {
     this.cols = [
@@ -44,7 +54,31 @@ export class TenableSolutionsComponent implements OnInit {
       title: col.header,
       dataKey: col.field,
     }));
-    await this.getSolutions();
+    this.subscriptions.add(
+      await this.sharedService.selectedCollection.subscribe((collectionId) => {
+        this.selectedCollection = collectionId;
+      }),
+    );
+    await (
+      await this.collectionService.getCollectionBasicList()
+    ).subscribe({
+      next: async (data) => {
+        const selectedCollectionData = data.find(
+          (collection: any) =>
+            collection.collectionId === this.selectedCollection,
+        );
+        if (selectedCollectionData) {
+          this.tenableRepoId =
+            selectedCollectionData.originCollectionId?.toString();
+          await this.getSolutions();
+        } else {
+          this.tenableRepoId = '';
+        }
+      },
+      error: (error) => {
+        this.tenableRepoId = '';
+      },
+    });
   }
 
   async getSolutions() {
@@ -56,7 +90,20 @@ export class TenableSolutionsComponent implements OnInit {
           sourceType: 'cumulative',
           startOffset: 0,
           endOffset: 1000,
-          filters: [],
+          filters: [
+            {
+              id: 'repository',
+              filterName: 'repository',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: [
+                {
+                  id: this.tenableRepoId,
+                },
+              ],
+            },
+          ],
           sortColumn: 'scorePctg',
           sortDirection: 'desc',
         },
@@ -106,7 +153,20 @@ export class TenableSolutionsComponent implements OnInit {
           sourceType: 'cumulative',
           startOffset: 0,
           endOffset: 3000,
-          filters: [],
+          filters: [
+            {
+              id: 'repository',
+              filterName: 'repository',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: [
+                {
+                  id: this.tenableRepoId,
+                },
+              ],
+            },
+          ],
           sortColumn: 'scorePctg',
           sortDirection: 'desc',
         },
@@ -158,7 +218,20 @@ export class TenableSolutionsComponent implements OnInit {
           sourceType: 'cumulative',
           startOffset: 0,
           endOffset: 3000,
-          filters: [],
+          filters: [
+            {
+              id: 'repository',
+              filterName: 'repository',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: [
+                {
+                  id: this.tenableRepoId,
+                },
+              ],
+            },
+          ],
           sortColumn: 'scorePctg',
           sortDirection: 'desc',
         },
@@ -243,5 +316,9 @@ export class TenableSolutionsComponent implements OnInit {
       (event.target as HTMLInputElement).value,
       'contains',
     );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 }

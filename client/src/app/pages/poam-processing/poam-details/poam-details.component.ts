@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { DatePipe } from '@angular/common';
+import { DatePipe, Location } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
@@ -88,7 +88,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   clonedMilestones: { [s: string]: any } = {};
   collectionAAPackage: any;
   poamLabels: any[] = [];
+  poamAssociatedVulnerabilities: any[] = [];
   labelList: any[] = [];
+  editingMilestoneId: string | null = null;
   errorDialogVisible: boolean = false;
   errorMessage: string = '';
   errorHeader: string = 'Error';
@@ -123,7 +125,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   stateData: any;
   selectedCollection: any;
   submitDialogVisible: boolean = false;
-  notesForApprover: string = '';
   protected accessLevel: any;
   user: any;
   payload: any;
@@ -138,9 +139,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   vulnerabilitySources: string[] = [
     'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
-    'STIG',
-    'RMF Controls',
-    'Task Order',
+    'STIG'
   ];
 
   statusOptions = [
@@ -201,6 +200,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     private collectionService: CollectionsService,
     private cdr: ChangeDetectorRef,
     private setPayloadService: PayloadService,
+    private location: Location,
   ) {}
 
   async ngOnInit() {
@@ -265,6 +265,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         await this.poamService.getPoamApprovers(this.poamId),
         await this.poamService.getPoamMilestones(this.poamId),
         await this.poamService.getPoamLabelsByPoam(this.poamId),
+        await this.poamService.getPoamAssociatedVulnerabilitiesByPoam(this.poamId),
       ]).subscribe(
         ([
           poam,
@@ -275,6 +276,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           poamApprovers,
           poamMilestones,
           poamLabels,
+          poamAssociatedVulnerabilities,
         ]: any) => {
           this.poam = { ...poam, hqs: poam.hqs === 1 ? true : false };
           this.dates.scheduledCompletionDate = poam.scheduledCompletionDate
@@ -302,7 +304,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
                 : null,
             }),
           );
-          this.selectedStigTitle = this.poam.stigTitle;
+          this.selectedStigTitle = this.poam.vulnerabilityTitle;
           this.selectedStigBenchmarkId = this.poam.stigBenchmarkId;
           this.collectionApprovers = this.collectionUsers.filter(
             (user: Permission) => user.accessLevel >= 3,
@@ -323,6 +325,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             this.fetchAssets();
           }
           this.poamLabels = poamLabels;
+          this.poamAssociatedVulnerabilities = poamAssociatedVulnerabilities;
         },
       );
       (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
@@ -415,6 +418,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           : null,
         submittedDate: format(currentDate, 'yyyy-MM-dd'),
         vulnerabilityId: this.pluginData.id ?? '',
+        vulnerabilityTitle: this.pluginData.name ?? '',
         description: `Title:
 ${this.pluginData.name ?? ''}
 Description:
@@ -427,7 +431,6 @@ ${this.pluginData.description ?? ''}`,
         ),
         submitterId: this.payload.userId,
         status: 'Draft',
-        notes: '',
         tenablePluginData: this.pluginData
           ? JSON.stringify(this.pluginData)
           : '',
@@ -580,7 +583,6 @@ ${this.pluginData.description ?? ''}`,
         likelihood: this.mapToEmassValues(this.stateData.severity),
         submitterId: this.payload.userId,
         status: 'Draft',
-        notes: '',
         submittedDate: format(currentDate, 'yyyy-MM-dd'),
         hqs: false,
       };
@@ -628,9 +630,11 @@ ${this.pluginData.description ?? ''}`,
           if (selectedStig) {
             this.selectedStigObject = selectedStig;
             this.selectedStigTitle = selectedStig.title;
+            this.poam.vulnerabilityName = selectedStig.title;
             this.onStigSelected(selectedStig);
           } else {
             this.poam.stigBenchmarkId = benchmarkId;
+            this.poam.vulnerabilityName = benchmarkId;
           }
         },
       });
@@ -659,7 +663,6 @@ ${this.pluginData.description ?? ''}`,
         rawSeverity: '',
         submitterId: this.payload.userId,
         status: 'Draft',
-        notes: '',
         submittedDate: format(currentDate, 'yyyy-MM-dd'),
         scheduledCompletionDate: format(dateIn30Days, 'yyyy-MM-dd'),
         hqs: false,
@@ -716,7 +719,10 @@ ${this.pluginData.description ?? ''}`,
     });
   }
 
-  addLabel() {
+  async addLabel() {
+    if (this.poam.poamId === 'ADDPOAM') {
+      await this.savePoam(true);
+    }
     const newLabel = {
       poamId: this.poam.poamId,
       labelId: null,
@@ -743,16 +749,6 @@ ${this.pluginData.description ?? ''}`,
   }
 
   async confirmCreateLabel(event: any) {
-    if (this.poam.poamId === 'ADDPOAM') {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail:
-          'You may not assign a label until after the POAM has been saved.',
-      });
-      return;
-    }
-
     if (event.labelId) {
       const poamLabel = {
         poamId: +this.poam.poamId,
@@ -807,6 +803,97 @@ ${this.pluginData.description ?? ''}`,
     );
   }
 
+  async getPoamAssociatedVulnerabilities() {
+    this.subs.sink = (
+      await this.poamService.getPoamAssociatedVulnerabilitiesByPoam(this.poamId)
+    ).subscribe((poamAssociatedVulnerabilities: any) => {
+      this.poamAssociatedVulnerabilities = poamAssociatedVulnerabilities;
+    });
+  }
+
+  async addAssociatedVulnerability() {
+    if (this.poam.poamId === 'ADDPOAM') {
+      await this.savePoam(true);
+    }
+    const newAssociatedVulnerability = {
+      poamId: this.poam.poamId,
+      associatedVulnerability: null,
+      isNew: true,
+    };
+    this.poamAssociatedVulnerabilities = [newAssociatedVulnerability, ...this.poamAssociatedVulnerabilities];
+  }
+
+  async onAssociatedVulnerabilityChange(associatedVulnerability: any, rowIndex: number) {
+    if (associatedVulnerability.associatedVulnerability) {
+      await this.postAssociatedVulnerability(associatedVulnerability);
+      associatedVulnerability.isNew = false;
+    } else {
+      this.poamAssociatedVulnerabilities.splice(rowIndex, 1);
+    }
+  }
+
+  async postAssociatedVulnerability(event: any) {
+    if (event.associatedVulnerability) {
+      const poamAssociatedVulnerability = {
+        poamId: +this.poam.poamId,
+        associatedVulnerability: event.associatedVulnerability,
+      };
+
+      await (await this.poamService.postPoamAssociatedVulnerability(poamAssociatedVulnerability)).subscribe(
+        () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Associated Vulnerability added successfully.',
+          });
+          this.getPoamAssociatedVulnerabilities();
+        },
+        () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to add associated vulnerability.',
+          });
+        },
+      );
+    }
+  }
+
+  async deleteAssociatedVulnerability(associatedVulnerability: any, rowIndex: number) {
+    if (associatedVulnerability.associatedVulnerability) {
+      await this.confirmDeleteAssociatedVulnerability(associatedVulnerability);
+    } else {
+      this.poamAssociatedVulnerabilities.splice(rowIndex, 1);
+    }
+  }
+
+  async confirmDeleteAssociatedVulnerability(event: any) {
+    if (this.poam.poamId === 'ADDPOAM') {
+      return;
+    }
+    console.log(event);
+    await (await this.poamService.deletePoamAssociatedVulnerability(+event.poamId, event.associatedVulnerability)
+    ).subscribe(
+      () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Associated Vulnerability deleted successfully.',
+        });
+        this.poamAssociatedVulnerabilities = this.poamAssociatedVulnerabilities.filter(
+          (a) => a.associatedVulnerability !== event.associatedVulnerability,
+        );
+      },
+      () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to delete associated vulnerability.',
+        });
+      },
+    );
+  }
+
   async addDefaultApprovers() {
     this.collectionApprovers.forEach(async (collectionApprover: any) => {
       const approver: any = {
@@ -851,13 +938,7 @@ ${this.pluginData.description ?? ''}`,
 
   poamApproval() {
     if (this.poam.poamId === 'ADDPOAM') {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Information',
-        detail:
-          "The POAM is currently in an unsaved 'Draft' status. Approvals can not be entered until after a POAM has been submitted.",
-      });
-      return;
+      this.savePoam(true);
     }
     if (this.poam.status === 'Draft') {
       this.messageService.add({
@@ -873,33 +954,12 @@ ${this.pluginData.description ?? ''}`,
 
   poamLog() {
     if (this.poam.poamId === 'ADDPOAM') {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Information',
-        detail:
-          "The POAM is currently in an unsaved 'Draft' status. You may not view a POAM log until after the POAM has been saved.",
-      });
-      return;
+      this.savePoam(true);
     }
     this.router.navigate(['/poam-processing/poam-log', this.poam.poamId]);
   }
 
-  closePoam() {
-    if (this.poam.poamId === 'ADDPOAM') {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Information',
-        detail:
-          "The POAM is currently in an unsaved 'Draft' status. You may not close a POAM until after it has been saved.",
-      });
-      return;
-    }
-    this.poam.status = 'Closed';
-    this.poam.closedDate = new Date().toISOString().slice(0, 10);
-    this.savePoam();
-  }
-
-  async savePoam() {
+  async savePoam(quiet: boolean = false) {
     if (!this.validateData()) return;
     this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate
       ? format(this.dates.scheduledCompletionDate, 'yyyy-MM-dd')
@@ -955,7 +1015,7 @@ ${this.pluginData.description ?? ''}`,
 
       (await this.poamService.postPoam(this.poam)).subscribe({
         next: (res) => {
-          if (res.null || res.null == 'null') {
+          if (res.null || res.null == 'null' && !quiet) {
             this.messageService.add({
               severity: 'error',
               summary: 'Information',
@@ -963,19 +1023,20 @@ ${this.pluginData.description ?? ''}`,
             });
           } else {
             this.poam.poamId = res.poamId;
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: `Added POAM: ${res.poamId}`,
-            });
-            this.router.navigate(['/poam-processing/poam-manage']);
+            if (!quiet) {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `Added POAM: ${res.poamId}`,
+              });
+            }
           }
         },
         error: () => {
           this.messageService.add({
             severity: 'error',
             summary: 'Information',
-            detail: 'Unexpected error adding poam',
+            detail: 'Unexpected error, please try again.',
           });
         },
       });
@@ -989,12 +1050,13 @@ ${this.pluginData.description ?? ''}`,
       this.subs.sink = (await this.poamService.updatePoam(this.poam)).subscribe(
         (data) => {
           this.poam = data;
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'POAM successfully updated',
-          });
-          this.router.navigate(['/poam-processing/poam-manage']);
+          if (!quiet) {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'POAM successfully updated',
+            });
+          }
         },
       );
     }
@@ -1013,7 +1075,7 @@ ${this.pluginData.description ?? ''}`,
     if (selectedStig) {
       this.selectedStigTitle = selectedStig.title;
       this.selectedStigBenchmarkId = selectedStig.benchmarkId;
-      this.poam.stigTitle = (() => {
+      this.poam.vulnerabilityTitle = (() => {
         const [version, release] =
           selectedStig.lastRevisionStr?.match(/\d+/g) || [];
         const formattedRevision =
@@ -1068,14 +1130,14 @@ ${this.pluginData.description ?? ''}`,
   }
 
   verifySubmitPoam() {
-    if (!this.poamMilestones || this.poamMilestones.milestoneComments < 1) {
+    if (!this.poamMilestones || this.poamMilestones?.milestoneComments < 1) {
       this.messageService.add({
         severity: 'error',
         summary: 'Information',
         detail:
           'A minimum of 1 POAM milestone is required before a POAM can be submitted for review.',
       });
-    } else if (this.poamMilestones[0].milestoneComments.length < 15) {
+    } else if (this.poamMilestones[0]?.milestoneComments?.length < 15) {
       this.messageService.add({
         severity: 'error',
         summary: 'Information',
@@ -1083,21 +1145,12 @@ ${this.pluginData.description ?? ''}`,
           'A milestone comment has a 15 character count minimum to satisfy the requirement for POAM submission.',
       });
     } else {
-      this.notesForApprover = this.poam?.notes || '';
       this.submitDialogVisible = true;
     }
   }
 
-  confirmSubmit() {
-    if (this.poam.poamId === 'ADDPOAM') {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Information',
-        detail:
-          "The POAM is currently in an unsaved 'Draft' status. You may not submit a POAM until after it has been saved.",
-      });
-      return;
-    }
+  async confirmSubmit() {
+    this.savePoam(true);
     if (!this.poamMilestones || this.poamMilestones.length < 1) {
       this.messageService.add({
         severity: 'error',
@@ -1117,9 +1170,6 @@ ${this.pluginData.description ?? ''}`,
       });
       return;
     } 
-    if (this.poam.status === 'Closed') {
-      this.poam.closedDate = format(new Date(), 'yyyy-MM-dd');
-    }
     this.poam.status = 'Submitted';
     this.poam.iavComplyByDate = this.dates.iavComplyByDate
       ? format(this.dates.iavComplyByDate, 'yyyy-MM-dd')
@@ -1131,10 +1181,14 @@ ${this.pluginData.description ?? ''}`,
       ? format(this.dates.submittedDate, 'yyyy-MM-dd')
       : null;
     this.poam.hqs = 1 ? true : false;
-    this.poam.notes = this.notesForApprover;
-    this.savePoam();
+    await this.savePoam();
     this.submitDialogVisible = false;
+    this.router.navigate(['/poam-processing/poam-manage']);
   }
+
+  cancelSubmit() {
+    this.submitDialogVisible = false;
+   }
 
   validateData() {
     if (!this.poam.description) {
@@ -1205,18 +1259,6 @@ ${this.pluginData.description ?? ''}`,
       return false;
     }
     if (
-      this.poam.vulnerabilitySource === 'Task Order' &&
-      !this.poam.taskOrderNumber
-    ) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Information',
-        detail:
-          'If Vulnerability Source is Task Order, Task Order # becomes a required field.',
-      });
-      return false;
-    }
-    if (
       this.poam.adjSeverity &&
       this.poam.adjSeverity != this.poam.rawSeverity &&
       !this.poam.mitigations
@@ -1245,7 +1287,7 @@ ${this.pluginData.description ?? ''}`,
   }
 
   cancelPoam() {
-    this.router.navigateByUrl('/poam-processing');
+    this.location.back();
   }
 
   isIavmNumberValid(iavmNumber: string): boolean {
@@ -1253,39 +1295,79 @@ ${this.pluginData.description ?? ''}`,
   }
 
   onAddNewMilestone() {
+    if (this.poam.poamId === 'ADDPOAM') {
+      this.savePoam(true);
+    }
+    if (!Array.isArray(this.poamMilestones)) {
+      this.poamMilestones = [];
+    }
+
+    const tempId = this.generateTempId();
     const newMilestone = {
-      milestoneId: this.generateTempId(),
+      milestoneId: tempId,
       milestoneComments: null,
       milestoneDate: new Date(),
       milestoneStatus: 'Pending',
       milestoneTeam: null,
       isNew: true,
-      editing: true,
+      editing: true
     };
+
     this.poamMilestones = [newMilestone, ...this.poamMilestones];
-    this.onRowEditInit(newMilestone);
+    this.editingMilestoneId = tempId;
+    this.clonedMilestones[tempId] = { ...newMilestone };
+
+    setTimeout(() => {
+      if (this.table) {
+        this.table.initRowEdit(newMilestone);
+      }
+    });
+
     this.cdr.detectChanges();
   }
 
-  generateTempId(): string {
-    return 'temp_' + new Date().getTime();
-  }
-
   onRowEditInit(milestone: any) {
+    milestone.editing = true;
+    this.editingMilestoneId = milestone.milestoneId;
     this.clonedMilestones[milestone.milestoneId] = { ...milestone };
   }
 
   async onRowEditSave(milestone: any) {
-    if (!this.validateMilestoneFields(milestone)) return;
-    if (!this.validateMilestoneDate(milestone)) return;
-
-    if (milestone.isNew) {
-      await this.addNewMilestone(milestone);
-    } else {
-      await this.updateExistingMilestone(milestone);
+    if (!this.validateMilestoneFields(milestone) || !this.validateMilestoneDate(milestone)) {
+      return;
     }
 
-    delete this.clonedMilestones[milestone.milestoneId];
+    try {
+      if (milestone.isNew) {
+        await this.addNewMilestone(milestone);
+      } else {
+        await this.updateExistingMilestone(milestone);
+      }
+      milestone.editing = false;
+      this.editingMilestoneId = null;
+      delete this.clonedMilestones[milestone.milestoneId];
+
+      if (this.table) {
+        this.table.saveRowEdit(milestone, milestone.milestoneId);
+      }
+    } catch (error) {
+      return;
+    }
+  }
+
+  onRowEditCancel(milestone: any, index: number) {
+    if (milestone.isNew) {
+      this.poamMilestones.splice(index, 1);
+    } else if (this.clonedMilestones[milestone.milestoneId]) {
+      this.poamMilestones[index] = this.clonedMilestones[milestone.milestoneId];
+      delete this.clonedMilestones[milestone.milestoneId];
+    }
+    milestone.editing = false;
+    this.editingMilestoneId = null;
+  }
+
+  private generateTempId(): string {
+    return 'temp_' + new Date().getTime();
   }
 
   private validateMilestoneFields(milestone: any): boolean {
@@ -1309,6 +1391,7 @@ ${this.pluginData.description ?? ''}`,
 
     return true;
   }
+
 
   private validateMilestoneDate(milestone: any): boolean {
     const milestoneDate = format(milestone.milestoneDate, 'yyyy-MM-dd');
@@ -1353,18 +1436,33 @@ ${this.pluginData.description ?? ''}`,
     };
 
     await (await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone))
-      .subscribe((res: any) => {
-        if (res.null) {
+      .subscribe({
+        next: (res: any) => {
+          if (res.null) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Information',
+              detail: 'Unable to insert row, please validate entry and try again.',
+            });
+            return;
+          } else {
+            milestone.milestoneId = res.milestoneId;
+            milestone.isNew = false;
+            delete milestone.editing;
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Milestone added successfully.',
+            });
+          }
+        },
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
-            summary: 'Information',
-            detail: 'Unable to insert row, please validate entry and try again.',
+            summary: 'Error',
+            detail: 'Failed to add milestone.',
           });
-          return;
-        } else {
-          milestone.milestoneId = res.milestoneId;
-          milestone.isNew = false;
-          delete milestone.editing;
+          console.error('Error adding milestone:', error);
         }
       });
   }
@@ -1384,20 +1482,21 @@ ${this.pluginData.description ?? ''}`,
     )).subscribe({
       next: () => {
         this.getData();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Milestone updated successfully.',
+        });
       },
       error: (error) => {
-        console.error(error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update milestone.',
+        });
+        console.error('Error updating milestone:', error);
       },
     });
-  }
-
-  onRowEditCancel(milestone: any, index: number) {
-    if (milestone.isNew) {
-      this.poamMilestones.splice(index, 1);
-    } else if (this.clonedMilestones[milestone.milestoneId]) {
-      this.poamMilestones[index] = this.clonedMilestones[milestone.milestoneId];
-      delete this.clonedMilestones[milestone.milestoneId];
-    }
   }
 
   async deleteMilestone(milestone: any, index: number) {
@@ -1537,6 +1636,9 @@ ${this.pluginData.description ?? ''}`,
   }
 
   async addAssignee() {
+    if (this.poam.poamId === 'ADDPOAM') {
+      await this.savePoam(true);
+    }
     const newAssignee = {
       poamId: +this.poam.poamId,
       userId: null,
@@ -1675,6 +1777,9 @@ ${this.pluginData.description ?? ''}`,
   }
 
   async addAssignedTeam() {
+    if (this.poam.poamId === 'ADDPOAM') {
+      await this.savePoam(true);
+    }
     const newAssignedTeam = {
       poamId: +this.poam.poamId,
       assignedTeamId: null,
@@ -1820,7 +1925,10 @@ ${this.pluginData.description ?? ''}`,
     });
   }
 
-  addAsset() {
+  async addAsset() {
+    if (this.poam.poamId === 'ADDPOAM') {
+      await this.savePoam(true);
+    }
     this.poamAssets = [
       { poamId: this.poam.poamId, assetId: null, isNew: true },
       ...this.poamAssets,
@@ -1852,16 +1960,6 @@ ${this.pluginData.description ?? ''}`,
   }
 
   async confirmCreateAsset(event: any) {
-    if (this.poam.poamId === 'ADDPOAM') {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail:
-          'You may not assign an asset until after the POAM has been saved.',
-      });
-      return;
-    }
-
     if (event.assetId) {
       const poamAsset = {
         poamId: +this.poam.poamId,
@@ -2006,6 +2104,14 @@ ${this.pluginData.description ?? ''}`,
         });
       },
     });
+  }
+
+  async poamSaved(): Promise<boolean> {
+    if (this.poam.poamId === 'ADDPOAM') {
+      await this.savePoam(true);
+      return true;
+    }
+    return true;
   }
 
   confirm(options: { header: string; message: string; accept: () => void }) {

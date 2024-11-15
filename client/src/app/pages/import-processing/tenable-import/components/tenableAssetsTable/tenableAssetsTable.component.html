@@ -66,7 +66,7 @@
             <tr>
               <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width': col.width}" pResizableColumn scope="col">
                 {{col.header}}
-                <p-columnFilter *ngIf="!this.assetProcessing" [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" display="menu"></p-columnFilter>
+                <p-columnFilter *ngIf="!this.assetProcessing" [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" [showOperator]="false" display="menu"></p-columnFilter>
               </th>
             </tr>
           </ng-template>

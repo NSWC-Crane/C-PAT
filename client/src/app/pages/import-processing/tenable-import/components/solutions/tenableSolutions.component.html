@@ -37,37 +37,37 @@
                 <th scope="col" pResizableColumn>
                   <div class="flex align-items-center">
                     Solution
-                    <p-columnFilter type="text" field="solution" display="menu" />
+                    <p-columnFilter type="text" field="solution" [showOperator]="false" display="menu" />
                   </div>
                 </th>
                 <th scope="col" pResizableColumn>
                   <div class="flex align-items-center">
                     Risk Reduction
-                    <p-columnFilter type="text" field="scorePctg" display="menu" />
+                    <p-columnFilter type="text" field="scorePctg" [showOperator]="false" display="menu" />
                   </div>
                 </th>
                 <th scope="col" pResizableColumn>
                   <div class="flex align-items-center">
                     Hosts Affected
-                    <p-columnFilter type="numeric" field="hostTotal" display="menu" />
+                    <p-columnFilter type="numeric" field="hostTotal" [showOperator]="false" display="menu" />
                   </div>
                 </th>
                 <th scope="col" pResizableColumn>
                   <div class="flex align-items-center">
                     Vulnerabilities
-                    <p-columnFilter type="numeric" field="total" display="menu" />
+                    <p-columnFilter type="numeric" field="total" [showOperator]="false" display="menu" />
                   </div>
                 </th>
                 <th scope="col" pResizableColumn>
                   <div class="flex align-items-center">
                     VPR
-                    <p-columnFilter type="numeric" field="vprScore" display="menu" />
+                    <p-columnFilter type="numeric" field="vprScore" [showOperator]="false" display="menu" />
                   </div>
                 </th>
                 <th scope="col" pResizableColumn>
                   <div class="flex align-items-center">
                     CVSS v3 Base Score
-                    <p-columnFilter type="numeric" field="cvssV3BaseScore" display="menu" />
+                    <p-columnFilter type="numeric" field="cvssV3BaseScore" [showOperator]="false" display="menu" />
                   </div>
                 </th>
               </tr>
@@ -156,25 +156,25 @@
                       <th scope="col" style="max-width:6vw">
                         <div class="flex align-items-center">
                           Plugin
-                          <p-columnFilter type="text" field="pluginID" display="menu" />
+                          <p-columnFilter type="text" field="pluginID" [showOperator]="false" display="menu" />
                         </div>
                       </th>
                       <th scope="col" style="max-width:10vw">
                         <div class="flex align-items-center">
                           VPR
-                          <p-columnFilter type="text" field="vprScore" display="menu" />
+                          <p-columnFilter type="text" field="vprScore" [showOperator]="false" display="menu" />
                         </div>
                       </th>
                       <th scope="col" style="max-width:12vw">
                         <div class="flex align-items-center">
                           CVSS V3
-                          <p-columnFilter type="text" field="cvssV3BaseScore" display="menu" />
+                          <p-columnFilter type="text" field="cvssV3BaseScore" [showOperator]="false" display="menu" />
                         </div>
                       </th>
                       <th scope="col" style="max-width:10vw">
                         <div class="flex align-items-center">
                           Host Total
-                          <p-columnFilter type="text" field="hostTotal" display="menu" />
+                          <p-columnFilter type="text" field="hostTotal" [showOperator]="false" display="menu" />
                         </div>
                       </th>
                     </tr>
@@ -232,31 +232,31 @@
                   <th scope="col" style="max-width:6vw">
                     <div class="flex align-items-center">
                       IP Address
-                      <p-columnFilter type="text" field="ip" display="menu" />
+                      <p-columnFilter type="text" field="ip" [showOperator]="false" display="menu" />
                     </div>
                   </th>
                   <th scope="col" style="max-width:10vw">
                     <div class="flex align-items-center">
                       NetBIOS
-                      <p-columnFilter type="text" field="netbiosName" display="menu" />
+                      <p-columnFilter type="text" field="netbiosName" [showOperator]="false" display="menu" />
                     </div>
                   </th>
                   <th scope="col" style="max-width:12vw">
                     <div class="flex align-items-center">
                       DNS
-                      <p-columnFilter type="text" field="dnsName" display="menu" />
+                      <p-columnFilter type="text" field="dnsName" [showOperator]="false" display="menu" />
                     </div>
                   </th>
                   <th scope="col" style="max-width:10vw">
                     <div class="flex align-items-center">
                       OS CPE
-                      <p-columnFilter type="text" field="osCPE" display="menu" />
+                      <p-columnFilter type="text" field="osCPE" [showOperator]="false" display="menu" />
                     </div>
                   </th>
                   <th scope="col" style="max-width:10vw">
                     <div class="flex align-items-center">
                       Repository
-                      <p-columnFilter type="text" field="repository" display="menu" />
+                      <p-columnFilter type="text" field="repository" [showOperator]="false" display="menu" />
                     </div>
                   </th>
                 </tr>

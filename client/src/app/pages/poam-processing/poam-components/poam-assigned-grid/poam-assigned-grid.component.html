@@ -10,7 +10,8 @@
 
 <p-table [value]="filteredData"
          [scrollable]="true"
-         scrollHeight="63.5rem">
+         scrollHeight="63.5rem"
+         sortMode="multiple">
   <ng-template pTemplate="caption">
     <p-iconField iconPosition="left" class="ml-auto">
       <p-inputIcon>
@@ -21,7 +22,7 @@
   </ng-template>
   <ng-template pTemplate="header">
     <tr>
-      <th scope="col" *ngFor="let col of assignedColumns">
+      <th *ngFor="let col of assignedColumns" [pSortableColumn]="getColumnKey(col)" scope="col">
         {{ col }}
       </th>
     </tr>

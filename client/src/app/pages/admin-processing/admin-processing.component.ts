@@ -8,10 +8,11 @@
 !##########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { UsersService } from './user-processing/users.service';
 import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
+import { TabView } from 'primeng/tabview';
 
 @Component({
   selector: 'cpat-admin-processing',
@@ -19,8 +20,10 @@ import { Router } from '@angular/router';
   styleUrls: ['./admin-processing.component.scss'],
 })
 export class AdminProcessingComponent implements OnInit {
+  activeTabIndex: number = 0;
   user: any;
   private subs = new SubSink();
+  @ViewChild('adminTabView') adminTabView!: TabView;
 
   constructor(
     private userService: UsersService,
@@ -40,5 +43,10 @@ export class AdminProcessingComponent implements OnInit {
         console.error('An error occurred:', error.message);
       },
     });
+  }
+
+  switchToPluginMapping() {
+    const NESSUS_TAB_INDEX = 5;
+    this.activeTabIndex = NESSUS_TAB_INDEX;
   }
 }

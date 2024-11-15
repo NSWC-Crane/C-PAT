@@ -43,7 +43,7 @@ const db = require(`./Services/utils`);
 const apiSpecPath = path.join(__dirname, './specification/C-PAT.yaml');
 let spec = fs.readFileSync(apiSpecPath, 'utf8');
 let oasDoc = jsyaml.load(spec);
-oasDoc.servers[0].url = `http://${config.http.host}:${config.http.port}/api`;
+oasDoc.servers[0].url = `http://${config.http.address}:${config.http.port}/api`;
 oasDoc.components.securitySchemes.oauth.openIdConnectUrl = `${config.client.authority}/.well-known/openid-configuration`
 const depStatus = {
     db: 'waiting',

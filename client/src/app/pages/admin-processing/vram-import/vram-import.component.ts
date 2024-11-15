@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { VRAMImportService } from './vram-import.service';
@@ -23,7 +23,7 @@ import { FileUpload } from 'primeng/fileupload';
 })
 export class VRAMImportComponent implements OnInit {
   @ViewChild('fileUpload') fileUpload!: FileUpload;
-
+  @Output() navigateToPluginMapping = new EventEmitter<void>();
   uploadUrl: string = '/api/import/vram';
   user: any;
   totalSize: string = '0';
@@ -111,6 +111,7 @@ export class VRAMImportComponent implements OnInit {
                 summary: 'Success',
                 detail: 'File uploaded successfully',
               });
+              setTimeout(() => this.navigateToPluginMapping.emit(), 1000);
             }
             this.fileUpload.clear();
           }
