@@ -41,7 +41,7 @@ const excelColumnToDbColumnMapping = {
     "Milestone Changes": "milestoneChanges",
     "Source Identifying Vulnerability ": "vulnerabilitySource",
     "Status": "",
-    "Comments": "notes",
+    "Comments": "",
     "Raw Severity": "rawSeverity",
     "Devices Affected": "devicesAffected",
     "Mitigations (in-house and in conjunction with the Navy CSSP)": "mitigations",
@@ -261,7 +261,7 @@ function formatDate(cellValue, cellString) {
 
 function processVulnerabilitySource(poamEntry, cellValue) {
     if (cellValue.includes("Security Technical Implementation Guide")) {
-        poamEntry.stigTitle = cellValue;
+        poamEntry.vulnerabilityTitle = cellValue;
         poamEntry.vulnerabilitySource = "STIG";
     } else {
         poamEntry.vulnerabilitySource = cellValue;

@@ -46,10 +46,9 @@ export class PoamMainchartComponent
   @Input() canvasWidth = '100rem';
   @ViewChild('poamStatusChart') poamStatusChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('poamLabelChart') poamLabelChart!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('poamSeverityChart')
-  poamSeverityChart!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('poamScheduledCompletionChart')
-  poamScheduledCompletionChart!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('poamTaskOrderChart') poamTaskOrderChart!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('poamSeverityChart') poamSeverityChart!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('poamScheduledCompletionChart') poamScheduledCompletionChart!: ElementRef<HTMLCanvasElement>;
   protected accessLevel: any;
   user: any;
   payload: any;
@@ -59,6 +58,7 @@ export class PoamMainchartComponent
   public selectedStatus: any = null;
   public selectedLabel: any = null;
   public selectedSeverity: any = null;
+  public selectedTaskOrderNumber: any = null;
   public selectedScheduledCompletion: any = null;
   selectedOptionsValues: string[] = [];
   selectedPoamId: any;
@@ -79,9 +79,7 @@ export class PoamMainchartComponent
       value: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
       label: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
     },
-    { value: 'STIG', label: 'STIG' },
-    { value: 'RMF Controls', label: 'RMF Controls' },
-    { value: 'Task Order', label: 'Task Order' },
+    { value: 'STIG', label: 'STIG' }
   ];
 
   poamSeverities = [
@@ -101,6 +99,11 @@ export class PoamMainchartComponent
     { value: '> 365 Days', label: '> 365 Days' },
   ];
 
+  poamTaskOrders = [
+    { value: 'Yes', label: 'Yes' },
+    { value: 'No', label: 'No' },
+  ];
+
   statusChart!: Chart;
   statusChartData: ChartData<'bar'> = {
     labels: [''],
@@ -118,6 +121,11 @@ export class PoamMainchartComponent
   };
   scheduledCompletionChart!: Chart;
   scheduledCompletionChartData: ChartData<'bar'> = {
+    labels: [''],
+    datasets: [],
+  };
+  taskOrderChart!: Chart;
+  taskOrderChartData: ChartData<'bar'> = {
     labels: [''],
     datasets: [],
   };
@@ -176,6 +184,13 @@ export class PoamMainchartComponent
       })),
     },
     {
+      label: 'Task Order',
+      items: this.poamTaskOrders.map((taskOrder) => ({
+        label: taskOrder.label,
+        value: `taskOrder:${taskOrder.value}`,
+      })),
+    },
+    {
       label: 'Severity',
       items: this.poamSeverities.map((severity) => ({
         label: severity.label,
@@ -194,6 +209,15 @@ export class PoamMainchartComponent
       items: [],
     },
   ];
+
+  selectedOptions: { [key: string]: string | null } = {
+    status: null,
+    vulnerabilitySource: null,
+    severity: null,
+    scheduledCompletion: null,
+    taskOrder: null,
+    label: null,
+  };
 
   constructor(
     private router: Router,
@@ -284,6 +308,18 @@ export class PoamMainchartComponent
         this.canvasWidth,
       );
     }
+    if (this.poamTaskOrderChart?.nativeElement) {
+      this.renderer.setStyle(
+        this.poamTaskOrderChart.nativeElement,
+        'height',
+        this.canvasHeight,
+      );
+      this.renderer.setStyle(
+        this.poamTaskOrderChart.nativeElement,
+        'width',
+        this.canvasWidth,
+      );
+    }
     if (this.poamScheduledCompletionChart?.nativeElement) {
       this.renderer.setStyle(
         this.poamScheduledCompletionChart.nativeElement,
@@ -340,6 +376,17 @@ export class PoamMainchartComponent
       console.error('Unable to initialize chart: Element not available.');
     }
 
+    if (this.poamTaskOrderChart?.nativeElement) {
+      this.taskOrderChart = new Chart(this.poamTaskOrderChart.nativeElement, {
+        type: 'bar',
+        data: this.taskOrderChartData,
+        plugins: [ChartDataLabels],
+        options: this.barChartOptions,
+      });
+    } else {
+      console.error('Unable to initialize chart: Element not available.');
+    }
+
     if (this.poamScheduledCompletionChart?.nativeElement) {
       this.scheduledCompletionChart = new Chart(
         this.poamScheduledCompletionChart.nativeElement,
@@ -387,6 +434,13 @@ export class PoamMainchartComponent
           })),
         },
         {
+          label: 'Task Order',
+          items: this.poamTaskOrders.map((taskOrder) => ({
+            label: taskOrder.label,
+            value: `taskOrder:${taskOrder.value}`,
+          })),
+        },
+        {
           label: 'Severity',
           items: this.poamSeverities.map((severity) => ({
             label: severity.label,
@@ -417,6 +471,7 @@ export class PoamMainchartComponent
     this.updateLabelChart();
     this.updateSeverityChart();
     this.updateScheduledCompletionChart();
+    this.updateTaskOrderChart();
   }
 
   updateStatusChart(): void {
@@ -482,6 +537,21 @@ export class PoamMainchartComponent
     this.scheduledCompletionChart.update();
   }
 
+  updateTaskOrderChart(): void {
+    if (!this.taskOrderChart) {
+      console.warn('POAM Task Order chart is not initialized.');
+      return;
+    }
+    const filteredTaskOrders = this.generateChartDataForTaskOrder(this.poamsForChart);
+    const datasets = filteredTaskOrders.map((item) => ({
+      label: item.hasTaskOrder ? 'Has Task Order' : 'No Task Order',
+      data: [item.count],
+      datalabels: {},
+    }));
+    this.taskOrderChart.data.datasets = datasets;
+    this.taskOrderChart.update();
+  }
+
   applyFilters(filterType: string): any[] {
     let filteredPoams = this.poams;
 
@@ -494,8 +564,7 @@ export class PoamMainchartComponent
     if (this.selectedOptions['vulnerabilitySource'] !== null) {
       filteredPoams = filteredPoams.filter(
         (poam) =>
-          poam.vulnerabilitySource ===
-          this.selectedOptions['vulnerabilitySource'],
+          poam.vulnerabilitySource === this.selectedOptions['vulnerabilitySource'],
       );
     }
 
@@ -520,13 +589,21 @@ export class PoamMainchartComponent
       );
     }
 
+    if (this.selectedOptions['taskOrder'] !== null) {
+      filteredPoams = filteredPoams.filter((poam) =>
+        this.filterPoamsByTaskOrder(poam),
+      );
+    }
+
     this.poamsForChart = filteredPoams.map((poam: any) => ({
       id: poam.poamId,
       vulnerabilityId: poam.vulnerabilityId,
       status: poam.status,
       submittedDate: poam.submittedDate ? poam.submittedDate.substr(0, 10) : '',
+      taskOrderNumber: poam.taskOrderNumber,
     }));
     this.poamsChange.emit(filteredPoams);
+
     switch (filterType) {
       case 'status':
         return this.generateChartDataForStatus(filteredPoams);
@@ -538,10 +615,17 @@ export class PoamMainchartComponent
         return this.generateChartDataForSeverity(filteredPoams);
       case 'scheduledCompletion':
         return this.generateChartDataForScheduledCompletion(filteredPoams);
+      case 'taskOrderNumber':
+        return this.generateChartDataForTaskOrder(filteredPoams);
       default:
         return [];
     }
   }
+
+  filterPoamsByTaskOrder = (poam: any) => {
+    const hasTaskOrder = poam.taskOrderNumber != null && poam.taskOrderNumber !== '';
+    return (this.selectedOptions['taskOrder'] === 'Yes') === hasTaskOrder;
+  };
 
   generateChartDataForStatus(filteredPoams: any[]): any[] {
     const statusCounts: { [status: string]: number } = {};
@@ -647,6 +731,32 @@ export class PoamMainchartComponent
     }
   }
 
+  generateChartDataForTaskOrder(filteredPoams: any[]): any[] {
+    const taskOrderCounts = {
+      withTaskOrder: 0,
+      withoutTaskOrder: 0
+    };
+
+    filteredPoams.forEach((poam) => {
+      if (poam.taskOrderNumber != null && poam.taskOrderNumber !== '') {
+        taskOrderCounts.withTaskOrder++;
+      } else {
+        taskOrderCounts.withoutTaskOrder++;
+      }
+    });
+
+    return [
+      {
+        hasTaskOrder: true,
+        count: taskOrderCounts.withTaskOrder
+      },
+      {
+        hasTaskOrder: false,
+        count: taskOrderCounts.withoutTaskOrder
+      }
+    ];
+  }
+
   filterPoamsByScheduledCompletion = (poam: any) => {
     const days = this.calculateDaysDifference(
       poam.scheduledCompletionDate,
@@ -686,14 +796,6 @@ export class PoamMainchartComponent
     }
   }
 
-  selectedOptions: { [key: string]: string | null } = {
-    status: null,
-    vulnerabilitySource: null,
-    severity: null,
-    scheduledCompletion: null,
-    label: null,
-  };
-
   onGroupSelect(event: MultiSelectChangeEvent) {
     this.selectedOptions = {
       status: null,
@@ -729,11 +831,13 @@ export class PoamMainchartComponent
       vulnerabilitySource: null,
       severity: null,
       scheduledCompletion: null,
+      taskOrder: null,
       label: null,
     };
     this.selectedOptionsValues = [];
     this.updateCharts();
   }
+
 
   calculateDaysDifference(
     scheduledCompletionDate: any,
@@ -760,6 +864,9 @@ export class PoamMainchartComponent
       filterSelections.push(
         `Scheduled Completion: ${this.selectedOptions['scheduledCompletion']}`,
       );
+    }
+    if (this.selectedOptions['taskOrder'] !== null) {
+      filterSelections.push(`Task Order: ${this.selectedOptions['taskOrder']}`);
     }
     if (this.selectedOptions['label'] !== null) {
       filterSelections.push(`Label: ${this.selectedOptions['label']}`);

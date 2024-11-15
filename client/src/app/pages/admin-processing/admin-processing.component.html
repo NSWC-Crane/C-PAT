@@ -9,7 +9,7 @@
 -->
 
 <div class="card">
-  <p-tabView>
+  <p-tabView #adminTabView [(activeIndex)]="activeTabIndex">
     <p-tabPanel>
       <ng-template pTemplate="header">
         <i class="pi pi-user" style="margin-right: 0.5rem;"></i>
@@ -43,19 +43,19 @@
     </p-tabPanel>
 
     <!--<p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-upload" style="margin-right: 0.5rem;"></i>
-        eMASS Import
-      </ng-template>
-      <app-emass-import></app-emass-import>
-    </p-tabPanel>-->
+    <ng-template pTemplate="header">
+      <i class="pi pi-upload" style="margin-right: 0.5rem;"></i>
+      eMASS Import
+    </ng-template>
+    <app-emass-import></app-emass-import>
+  </p-tabPanel>-->
 
     <p-tabPanel>
       <ng-template pTemplate="header">
         <i class="pi pi-upload" style="margin-right: 0.5rem;"></i>
         VRAM IAV Import
       </ng-template>
-      <app-vram-import></app-vram-import>
+      <app-vram-import (navigateToPluginMapping)="switchToPluginMapping()"></app-vram-import>
     </p-tabPanel>
 
     <p-tabPanel>
@@ -63,7 +63,7 @@
         <i class="pi pi-bullseye" style="margin-right: 0.5rem;"></i>
         Nessus Plugin Mapping
       </ng-template>
-      <app-nessus-plugin-mapping></app-nessus-plugin-mapping>
+      <app-nessus-plugin-mapping [activated]="activeTabIndex === 5"></app-nessus-plugin-mapping>
     </p-tabPanel>
 
     <p-tabPanel>

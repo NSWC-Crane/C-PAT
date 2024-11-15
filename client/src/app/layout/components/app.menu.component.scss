@@ -42,8 +42,8 @@
     margin-bottom: 1rem;
 }
 
-::ng-deep .confirm-popup-buttons {
+::ng-deep .p-dialog-footer {
     display: flex;
     justify-content: center;
-    gap: 2rem;
+    gap: 8rem;
 }

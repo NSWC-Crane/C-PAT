@@ -16,7 +16,7 @@ interface Poam {
   poamId: number;
   collectionId: number;
   vulnerabilitySource: string;
-  stigTitle: string;
+  vulnerabilityTitle: string;
   iavmNumber: string;
   taskOrderNumber: string;
   aaPackage: string;
@@ -246,7 +246,7 @@ export class PoamExportService {
         PoamExportService.mapRawSeverity(value),
       vulnerabilitySource: (value: any, poam: Poam, _columnKey: string): any => {
         if (value === 'STIG') {
-          return poam.stigTitle;
+          return poam.vulnerabilityTitle;
         } else if (value === 'Task Order') {
           return `Task Order #: ${poam.taskOrderNumber}`;
         } else {

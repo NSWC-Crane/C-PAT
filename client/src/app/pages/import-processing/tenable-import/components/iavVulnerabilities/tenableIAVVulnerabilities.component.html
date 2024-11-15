@@ -23,7 +23,7 @@
                       icon="pi pi-filter-slash"
                       (click)="clear()"
                       (onKeyUp)="clear()"
-                      pTooltip="Clear all filters">
+                      pTooltip="Reset default filters">
             </p-button>
             <p-dropdown #dd
                         [options]="navyComplyDateFilters"
@@ -32,6 +32,8 @@
                         appendTo="body"
                         styleClass="custom-dropdown">
             </p-dropdown>
+            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-plus" *ngIf="this.tenableTool === 'sumid'" (click)="loadVulnList()" (onKeyUp)="loadVulnList()" pTooltip="Load Vulnerability List"></p-button>
+            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-minus" *ngIf="this.tenableTool === 'listvuln'" (click)="loadVulnSummary()" (onKeyUp)="loadVulnSummary()" pTooltip="Load Vulnerability Summary"></p-button>
           </span>
         </div>
         <div class="right-buttons">
@@ -76,19 +78,40 @@
                  [rowHover]="true"
                  dataKey="pluginID"
                  [resizableColumns]="true"
+                 [loading]="isLoading"
                  styleClass="p-datatable-sm p-datatable-gridlines-hidden">
           <ng-template pTemplate="header" let-columns>
             <tr>
               <th *ngFor="let col of columns" [pSortableColumn]="col.field" pResizableColumn scope="col">
                 {{col.header}}
-                <p-columnFilter [type]="col.filterType"
-                                [field]="col.field"
-                                *ngIf="col.filterable !== false"
-                                [showMatchModes]="true"
-                                [showOperator]="false"
-                                [showAddButton]="false"
-                                display="menu">
-                </p-columnFilter>
+                <ng-container *ngIf="col.field === 'poam'">
+                  <p-columnFilter [type]="col.filterType"
+                                  [field]="'poamStatus'"
+                                  [showOperator]="false"
+                                  [showMatchModes]="false"
+                                  [showAddButton]="false"
+                                  [showButtons]="true"
+                                  display="menu">
+                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                      <p-dropdown [ngModel]="value"
+                                  [options]="poamStatusOptions"
+                                  (onChange)="filter($event.value)"
+                                  placeholder="Select Status"
+                                  [showClear]="true"
+                                  styleClass="w-full">
+                      </p-dropdown>
+                    </ng-template>
+                  </p-columnFilter>
+                </ng-container>
+                <ng-container *ngIf="col.field !== 'poam'">
+                  <p-columnFilter [type]="col.filterType"
+                                  [field]="col.field"
+                                  [showMatchModes]="true"
+                                  [showOperator]="false"
+                                  [showAddButton]="false"
+                                  display="menu">
+                  </p-columnFilter>
+                </ng-container>
               </th>
             </tr>
           </ng-template>
@@ -97,22 +120,19 @@
               <td *ngFor="let col of columns">
                 <ng-container [ngSwitch]="col.field">
                   <ng-container *ngSwitchCase="'poam'">
-                    <ng-container *ngTemplateOutlet="poamIcon; context: { $implicit: vulnerability }">
-                    </ng-container>
+                    <i class="pi"
+                       [ngClass]="vulnerability.poam ? 'pi-check-circle' : 'pi-times-circle'"
+                       [ngStyle]="{
+       'color': vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus) : 'maroon',
+       'font-size': '1.5rem',
+       'cursor': 'pointer'
+     }"
+                       (click)="onPoamIconClick(vulnerability, $event)"
+                       (keyup.enter)="onPoamIconClick(vulnerability, $event)"
+                       [pTooltip]="getPoamStatusTooltip(vulnerability.poamStatus)"
+                       tooltipPosition="top">
+                    </i>
                   </ng-container>
-
-                  <ng-template #poamIcon let-vulnerability>
-                    <ng-container *ngLet="getPoamStatusInfo(vulnerability) as statusInfo">
-                      <i [class]="'pi ' + statusInfo.icon"
-                         [style.color]="statusInfo.color"
-                         style="font-size: 1.5rem; cursor: pointer;"
-                         (click)="onPoamIconClick(vulnerability, $event)"
-                         (onKeyUp)="onPoamIconClick(vulnerability, $event)"
-                         [pTooltip]="statusInfo.tooltip"
-                         tooltipPosition="top">
-                      </i>
-                    </ng-container>
-                  </ng-template>
                   <ng-container *ngSwitchCase="'pluginID'">
                     <span (click)="onPluginIDClick(vulnerability, $event)" (keyup.enter)="onPluginIDClick(vulnerability, $event)" style="cursor: pointer; color: var(--primary-color); font-weight: bold; text-decoration: underline;">
                       {{vulnerability[col.field]}}
@@ -144,7 +164,7 @@
   </div>
 </div>
 
-<p-dialog header="Plugin Details" class="pluginDialog" [(visible)]="displayDialog" [modal]="true" [style]="{'width': '50vw'}">
+<p-dialog class="pluginDialog" [(visible)]="displayDialog" [modal]="true" [style]="{'width': '50vw'}">
   <ng-template pTemplate="content">
     <div class="p-grid">
       <div class="p-col-12"><b>Plugin ID:</b> {{selectedVulnerability.pluginID}}</div>

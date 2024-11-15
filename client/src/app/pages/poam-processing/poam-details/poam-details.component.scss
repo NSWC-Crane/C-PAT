@@ -257,3 +257,24 @@ hr {
         background-color: var(--surface-card);
     }
 }
+
+::ng-deep .confirm-popup {
+    text-align: center;
+}
+
+::ng-deep .confirm-popup .icon-container {
+    margin-bottom: 1rem;
+}
+
+::ng-deep .confirm-popup .pi-exclamation-triangle {
+    font-size: 2rem;
+    color: var(--yellow-500, #ffc107);
+}
+
+::ng-deep .confirm-popup h3 {
+    margin-bottom: 0.5rem;
+}
+
+::ng-deep .confirm-popup p {
+    margin-bottom: 1rem;
+}

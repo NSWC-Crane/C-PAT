@@ -25,6 +25,7 @@ import { CollectionsService } from '../../admin-processing/collection-processing
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table/table';
+import { PoamService } from '../../poam-processing/poams.service';
 
 interface AssetEntry {
   groupId: string;
@@ -46,30 +47,36 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   @ViewChild('stigFindingsTable') table!: Table;
   @ViewChild('findingChart') findingChart!: ElementRef<HTMLCanvasElement>;
   allColumns = [
-    { field: 'poam', header: 'POAM', width: '5%', filterType: 'text' },
+    {
+      field: 'poam',
+      header: 'POAM',
+      width: '5%',
+      filterField: 'poamStatus',
+      filterType: 'text',
+      filterOptions: [
+        { label: 'Any', value: null },
+        { label: 'No Existing POAM', value: 'No Existing POAM' },
+        { label: 'Approved', value: 'Approved' },
+        { label: 'Associated', value: 'Associated' },
+        { label: 'Closed', value: 'Closed' },
+        { label: 'Draft', value: 'Draft' },
+        { label: 'Expired', value: 'Expired' },
+        { label: 'Extension Requested', value: 'Extension Requested' },
+        { label: 'False-Positive', value: 'False-Positive' },
+        { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
+        { label: 'Rejected', value: 'Rejected' },
+        { label: 'Submitted', value: 'Submitted' }
+      ]
+    },
     { field: 'groupId', header: 'Group ID', width: '15%', filterType: 'text' },
-    {
-      field: 'ruleTitle',
-      header: 'Rule Title',
-      width: '35%',
-      filterType: 'text',
-    },
-    {
-      field: 'benchmarkId',
-      header: 'Benchmark ID',
-      width: '15%',
-      filterType: 'text',
-    },
+    { field: 'ruleTitle', header: 'Rule Title', width: '35%', filterType: 'text' },
+    { field: 'benchmarkId', header: 'Benchmark ID', width: '15%', filterType: 'text' },
     { field: 'severity', header: 'Severity', width: '15%', filterType: 'text' },
-    {
-      field: 'assetCount',
-      header: 'Asset Count',
-      width: '15%',
-      filterType: 'numeric',
-    },
+    { field: 'assetCount', header: 'Asset Count', width: '15%', filterType: 'numeric' },
   ];
   private dataSource: AssetEntry[] = [];
   public displayDataSource: AssetEntry[] = [];
+  public existingPoams: any[] = [];
   loadingTableInfo: boolean = true;
   loadingSkeletonData: any[] = Array(10).fill({});
   multiSortMeta: any[] = [];
@@ -140,7 +147,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     { label: 'Expired', value: 'Expired' },
     { label: 'Rejected', value: 'Rejected' },
     { label: 'Closed', value: 'Closed' },
-    { label: 'False-Positive', value: 'False-Positive' }
+    { label: 'False-Positive', value: 'False-Positive' },
+    { label: 'Associated', value: 'Associated' },
   ];
 
   constructor(
@@ -150,6 +158,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
+    private poamService: PoamService,
   ) {
     Chart.register(...registerables);
   }
@@ -413,12 +422,53 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   async filterFindings() {
-    await (
-      await this.sharedService.getExistingVulnerabilityPoams()
-    ).subscribe({
+    await (await this.poamService.getPluginIDsWithPoam()).subscribe({
       next: (response: any) => {
-        const existingPoams = response;
-        this.updateChartAndGrid(existingPoams);
+        this.existingPoams = response;
+        this.dataSource.forEach((item) => {
+          const existingPoam = this.existingPoams.find(
+            (poam: any) => poam.vulnerabilityId === item.groupId
+          );
+          item.hasExistingPoam = !!existingPoam;
+          item.poamStatus = existingPoam ? existingPoam.status : 'No Existing POAM';
+        });
+
+        this.displayDataSource = [...this.dataSource];
+        this.findingsCount = this.displayDataSource.length;
+
+        // Use the same severity grouping logic as in updateChartAndGrid
+        const severityGroups = this.displayDataSource.reduce(
+          (groups: Record<string, number>, item) => {
+            const severity = item.severity;
+            if (!groups[severity]) {
+              groups[severity] = 0;
+            }
+            groups[severity]++;
+            return groups;
+          },
+          {},
+        );
+
+        const findings = Object.entries(severityGroups).map(
+          ([severity, count]) => ({
+            severity,
+            severityCount: count,
+          }),
+        );
+
+        const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
+        allSeverities.forEach((severity) => {
+          if (!findings.find((finding) => finding.severity === severity)) {
+            findings.push({ severity, severityCount: 0 });
+          }
+        });
+
+        findings.sort(
+          (a, b) =>
+            allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity),
+        );
+
+        this.updateFindingsChartData(findings);
       },
       error: (error) => {
         console.error('Error retrieving existing POAMs:', error);
@@ -442,6 +492,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         return 'black';
       case 'approved':
         return 'green';
+      case 'associated':
+        return 'dimgray';
       default:
         return 'gray';
     }
@@ -455,11 +507,9 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   getPoamStatusTooltip(status: string | undefined, hasExistingPoam: boolean): string {
-    if (!hasExistingPoam) {
-      return 'No Existing POAM. Click to create draft POAM.';
-    }
-
+    if (!hasExistingPoam) return 'No Existing POAM. Click to create draft POAM.';  
     if (!status) return 'POAM Status Unknown. Click to view POAM.';
+    if (hasExistingPoam && status === 'Associated') return 'This vulnerability is associated with an existing master POAM. Click icon to view POAM.';
 
     return `POAM Status: ${status}. Click to view POAM.`;
   }
@@ -517,16 +567,16 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.updateFindingsChartData(findings);
   }
 
-  async addPoam(rowData: AssetEntry): Promise<void> {
+  async addPoam(rowData: any): Promise<void> {
     if (!rowData?.ruleId || !rowData?.groupId) {
       this.showError('Invalid data for POAM creation. Please try again.');
       return;
     }
-    await (
-      await this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId)
-    ).subscribe({
-      next: async (ruleData: any) => {
-        const ruleDataString = `# Rule data from STIGMAN
+
+    try {
+      const ruleData: any = await (await this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId)).toPromise();
+
+      const ruleDataString = `# Rule data from STIGMAN
 ## Discussion
 ${ruleData.detail.vulnDiscussion}
 ---
@@ -539,63 +589,40 @@ ${ruleData.check.content}
 ${ruleData.fix.text}
 ---`;
 
-        const descriptionString = `Title:
+      const descriptionString = `Title:
 ${ruleData.title}
 
 Description:
 ${ruleData.detail.vulnDiscussion}`;
 
-        if (rowData.groupId) {
-          (
-            await this.sharedService.getPoamsByVulnerabilityId(rowData.groupId)
-          ).subscribe({
-            next: (response: any) => {
-              if (response && response.length > 0) {
-                const poam = response[0];
-                this.router.navigate(
-                  ['/poam-processing/poam-details/' + poam.poamId],
-                  {
-                    state: {
-                      vulnerabilitySource: 'STIG',
-                      vulnerabilityId: rowData.groupId,
-                      benchmarkId: rowData.benchmarkId,
-                      severity: rowData.severity,
-                      ruleData: ruleDataString,
-                      description: descriptionString,
-                    },
-                  },
-                );
-              } else {
-                this.router.navigate(
-                  ['/poam-processing/poam-details/ADDPOAM'],
-                  {
-                    state: {
-                      vulnerabilitySource: 'STIG',
-                      vulnerabilityId: rowData.groupId,
-                      benchmarkId: rowData.benchmarkId,
-                      severity: rowData.severity,
-                      ruleData: ruleDataString,
-                      description: descriptionString,
-                    },
-                  },
-                );
-              }
-            },
-            error: (error) => {
-              console.error('Error retrieving POAM:', error);
-              this.showError('Error creating POAM. Please try again.');
-            },
-          });
-        } else {
-          console.error('Group ID not found in row data:', rowData);
-          this.showError('Error creating POAM. Please try again.');
-        }
-      },
-      error: (error) => {
-        console.error('Error retrieving rule data from STIGMAN:', error);
-        this.showError('Error retrieving rule data. Please try again.');
-      },
-    });
+      let routePath = '/poam-processing/poam-details/';
+      let routeParams = {
+        state: {
+          vulnerabilitySource: 'STIG',
+          vulnerabilityId: rowData.groupId,
+          benchmarkId: rowData.benchmarkId,
+          severity: rowData.severity,
+          ruleData: ruleDataString,
+          description: descriptionString,
+        },
+      };
+
+      const existingPoam = this.existingPoams.find((item: any) =>
+        item.vulnerabilityId === rowData.groupId
+      );
+
+      if (existingPoam) {
+        routePath += existingPoam.poamId;
+      } else {
+        routePath += 'ADDPOAM';
+      }
+
+      this.router.navigate([routePath], routeParams);
+
+    } catch (error) {
+      console.error('Error retrieving rule data from STIGMAN:', error);
+      this.showError('Error retrieving rule data. Please try again.');
+    }
   }
 
   showSuccess(message: string) {

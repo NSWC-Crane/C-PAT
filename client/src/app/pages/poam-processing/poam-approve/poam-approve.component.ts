@@ -48,7 +48,6 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   dates: any = {};
   comments: any;
   selectedCollection: any;
-  notesForApprover: string = '';
   private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
   approvalStatusOptions = [
@@ -109,7 +108,6 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       await this.poamService.getPoam(this.poamId),
     ]).subscribe({
       next: ([approversResponse, poamResponse]: [any, any]) => {
-        this.notesForApprover = poamResponse.notes ? poamResponse.notes : '';
         const currentDate = new Date();
         const userApproval = approversResponse.find(
           (approval: any) => approval.userId === this.user.userId,
@@ -171,9 +169,10 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
           summary: 'Success',
           detail: 'Approval saved successfully.',
         });
-        this.router.navigateByUrl(
-          `/poam-processing/poam-details/${this.poamId}`,
-        );
+        setTimeout(() => {
+          this.displayDialog = false;
+          this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+        }, 1000);
       },
       (error) => {
         this.messageService.add({

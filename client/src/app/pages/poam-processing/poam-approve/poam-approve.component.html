@@ -10,10 +10,6 @@
 
 <p-dialog [(visible)]="displayDialog" [modal]="true" [closable]="false" [style]="{width: '70%'}">
   <ng-template pTemplate="content">
-    <div class="form-group" *ngIf="notesForApprover">
-      <label for="comments">Submission Notes:</label>
-      <textarea pInputTextarea class="w-full" [(ngModel)]="notesForApprover" name="notes" disabled></textarea>
-    </div>
     <div class="container">
       <div class="form-group">
         <label for="approvalStatus">Approval Status:</label>

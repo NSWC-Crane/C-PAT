@@ -78,6 +78,9 @@ export class PoamAssignedGridComponent implements OnChanges {
   }
 
   getColumnKey(col: string): string {
+    if (col === 'POAM') {
+      return '';
+    }
     switch (col) {
       case 'POAM ID':
         return 'poamId';

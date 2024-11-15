@@ -10,7 +10,9 @@
 
 <p-progressBar *ngIf="isUpdating" [value]="updateProgress"></p-progressBar>
 
-<button pButton class="p-button-outlined p-button-secondary w-full mb-4"
+<button #mapButton
+        pButton
+        class="p-button-outlined p-button-secondary w-full mb-4"
         type="button"
         label="Map Plugins to IAV"
         (click)="updatePluginIds()"
@@ -54,7 +56,7 @@
         <th *ngFor="let col of cols" [style.min-width]="col.minWidth" [scope]="'col'">
           <div class="flex align-items-center">
             {{col.header}}
-            <p-columnFilter [type]="getFilterType(col)" [field]="col.field" display="menu">
+            <p-columnFilter [type]="getFilterType(col)" [field]="col.field" [showOperator]="false" display="menu">
               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                 <ng-container [ngSwitch]="getFilterType(col)">
                   <ng-container *ngSwitchCase="'text'">

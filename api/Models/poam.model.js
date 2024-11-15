@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(255),
             defaultValue: ''
         },
-        stigTitle: {
+        vulnerabilityTitle: {
             type: DataTypes.STRING(255),
             defaultValue: ''
         },
@@ -74,10 +74,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(50),
             allowNull: false,
             defaultValue: 'Draft'
-        },
-        notes: {
-            type: DataTypes.STRING(500),
-            defaultValue: ''
         },
         submittedDate: {
             type: DataTypes.DATEONLY,

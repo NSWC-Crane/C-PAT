@@ -512,7 +512,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       (
         await this.poamExtensionService.putPoamExtension(extensionData)
       ).subscribe({
-        next: (res) => {
+        next: async (res) => {
           if (res.null || res.null == 'null') {
             this.messageService.add({
               severity: 'error',
@@ -523,8 +523,16 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
-              detail: `Added POAM: ${res.poamId}`,
+              detail: `Extension requested for POAM: ${res.poamId}`,
             });
+
+            if (this.poam.extensionTimeAllowed > 0) {
+              await this.poamService.updatePoamStatus(this.poamId, extensionData);
+            }            
+            setTimeout(() => {
+              this.displayExtensionDialog = false;
+              this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+            }, 1000);
           }
         },
         error: () => {
@@ -535,11 +543,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           });
         },
       });
-      if (this.poam.extensionTimeAllowed > 0) {
-        await this.poamService.updatePoamStatus(this.poamId, extensionData);
-      }
-      this.displayExtensionDialog = false;
-      this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
     } catch (error) {
       console.error('Failed to update POAM extension:', error);
       this.messageService.add({

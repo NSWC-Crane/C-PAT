@@ -120,7 +120,7 @@ export class CollectionsService {
     const headers = await this.getAuthHeaders();
     return this.http
       .get(
-        `${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true`,
+        `${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true&associatedVulnerabilities=true`,
         { headers },
       )
       .pipe(catchError(this.handleError));
