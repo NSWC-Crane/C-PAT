@@ -77,7 +77,7 @@ CREATE TABLE `assetlabels` (
 DROP TABLE IF EXISTS `assignedteams`;
 CREATE TABLE `assignedteams` (
   `assignedTeamId` int NOT NULL AUTO_INCREMENT,
-  `assignedTeamName` varchar(50) NOT NULL,
+  `assignedTeamName` varchar(100) NOT NULL,
   PRIMARY KEY (`assignedTeamId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -90,6 +90,10 @@ CREATE TABLE `collection` (
   `collectionId` int NOT NULL AUTO_INCREMENT,
   `collectionName` varchar(50) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
+  `systemType` varchar(100) DEFAULT NULL,
+  `systemName` varchar(100) DEFAULT NULL,
+  `ccsafa` varchar(100) DEFAULT NULL,
+  `aaPackage` varchar(100) DEFAULT NULL,
   `created` datetime DEFAULT CURRENT_TIMESTAMP,
   `collectionOrigin` varchar(15) DEFAULT 'C-PAT',
   `originCollectionId` int DEFAULT NULL,
@@ -225,7 +229,7 @@ CREATE TABLE `poam` (
   `iavmNumber` varchar(25) DEFAULT '',
   `iavComplyByDate` date DEFAULT NULL,
   `taskOrderNumber` varchar(25) DEFAULT NULL,
-  `stigTitle` varchar(255) DEFAULT NULL,
+  `vulnerabilityTitle` varchar(255) DEFAULT NULL,
   `stigBenchmarkId` varchar(255) DEFAULT NULL,
   `stigCheckData` text,
   `tenablePluginData` text,
@@ -238,13 +242,13 @@ CREATE TABLE `poam` (
   `predisposingConditions` varchar(2000) DEFAULT '',
   `severity` varchar(25) DEFAULT '',
   `likelihood` varchar(15) DEFAULT '',
+  `localImpact` varchar(15) DEFAULT '',
   `impactDescription` varchar(2000) DEFAULT '',
   `extensionTimeAllowed` int DEFAULT '0',
   `extensionJustification` varchar(2000) DEFAULT '',
   `hqs` tinyint(1) NOT NULL DEFAULT '0',
   `created` date NOT NULL DEFAULT (curdate()),
   `lastUpdated` date DEFAULT NULL,
-  `notes` varchar(500) DEFAULT '',
   PRIMARY KEY (`poamId`),
   UNIQUE KEY `poamID_UNIQUE` (`poamId`),
   KEY `idx_poam_collectionId` (`collectionId`),
@@ -461,6 +465,18 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
+-- Table structure for table `poamassociatedvulnerabilities`
+--
+
+DROP TABLE IF EXISTS `poamassociatedvulnerabilities`;
+CREATE TABLE `poamassociatedvulnerabilities` (
+  `poamId` int NOT NULL,
+  `associatedVulnerability` varchar(15) NOT NULL,
+  PRIMARY KEY (`poamId`,`associatedVulnerability`),
+  CONSTRAINT `fk_poam_vulnerability` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
 -- Table structure for table `poamattachments`
 --
 
@@ -637,7 +653,8 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `userId` int NOT NULL AUTO_INCREMENT,
   `userName` varchar(20) NOT NULL,
-  `email` varchar(100) NOT NULL DEFAULT '',
+  `email` varchar(100) NOT NULL DEFAULT 'None Provided',
+  `phoneNumber` varchar(20) NOT NULL DEFAULT '',
   `firstName` varchar(50) NOT NULL DEFAULT '',
   `lastName` varchar(50) NOT NULL DEFAULT ' ',
   `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -647,14 +664,11 @@ CREATE TABLE `user` (
   `fullName` varchar(100) DEFAULT NULL,
   `officeOrg` varchar(100) DEFAULT 'UNKNOWN',
   `defaultTheme` varchar(50) DEFAULT 'lara-dark-blue',
-  `isAdmin` int NOT NULL DEFAULT '0',
   `lastClaims` json DEFAULT (_utf8mb4'{}'),
   `points` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`userId`),
-  UNIQUE KEY `userEmail_UNIQUE` (`email`) USING BTREE,
   UNIQUE KEY `userName_UNIQUE` (`userName`),
-  KEY `idx_user_userName` (`userName`),
-  KEY `idx_user_email` (`email`)
+  KEY `idx_user_userName` (`userName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -664,4 +678,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-09-25 17:28:18
+-- Dump completed on 2024-11-18 11:46:49
