@@ -118,7 +118,6 @@
                     [(ngModel)]="asset.assetId"
                     placeholder="Select Asset to Modify..."
                     (onChange)="setAsset($event.value.assetId)"
-                    appendTo="body"
                     styleClass="mt-2 w-full"
                     required
                     [disabled]="accessLevel < 2">
@@ -137,7 +136,11 @@
   </div>
 </div>
 
-<p-dialog *ngIf="accessLevel >= 2" header="Manage Assets" [(visible)]="assetDialogVisible" [modal]="true" [style]="{width: '50vw'}">
+<p-dialog *ngIf="accessLevel >= 2"
+          [(visible)]="assetDialogVisible"
+          [modal]="true"
+          [style]="{width: '50vw'}"
+          [baseZIndex]="1000">
   <ng-template pTemplate="content">
     <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData(); closeAssetDialog();"></cpat-asset>
   </ng-template>

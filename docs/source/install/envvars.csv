@@ -1,0 +1,79 @@
+"Variable","Description","Affects"
+"CPAT_API_ADDRESS","| **Default** ``127.0.0.1``
+| The IP address on which the the API server will listen ","API"
+"CPAT_API_MAX_JSON_BODY","| **Default** ``52428800``
+| The maximum size in bytes of the request body when Content-Type is application/json","API"
+"CPAT_API_MAX_UPLOAD","| **Default** ``52428800``
+| The maximum size in bytes of the file uploaded with Content-Type multipart/form-data","API"
+"CPAT_API_RATE_LIMIT","| **Default** ``1000``
+| API rate limit per 15 minutes","API"
+"CPAT_API_PORT","| **Default** ``8086``
+| The TCP port on which the server will listen ","API"
+"CPAT_CLASSIFICATION","| **Default** ``U``
+| Sets the classification banner, if any. Available values: ``NONE`` ``U`` ``FOUO`` ``CUI`` ``C`` ``S`` ``TS`` ``SCI`` ","API, Client"
+"CPAT_API_BASE","| **Default** ``api``
+| The base URL for Client requests to the API relative to the sever root at / ","Client"
+"CPAT_CLIENT_DIRECTORY","| **Default** ``../client/dist``
+| The location of the web client files, relative to the API source directory. Note that if running source from a clone of the GitHub repository, the client is located at `../client/dist` relative to the API directory. ","API, Client"
+"CPAT_CLIENT_DISABLED","| **Default** ``false``
+| Whether to *not* serve the reference web client","Client"
+"CPAT_CLIENT_EXTRA_SCOPES","| **No default**
+| OAuth2 scopes to request in addition to ``c-pat:read`` ``c-pat:write`` ``c-pat:op`` ``openid``. Some OIDC providers (Okta) generate a refresh token only if the scope ``offline_access`` is requested","Client"
+"CPAT_CLIENT_ID","| **Default** ``c-pat``
+| The OIDC clientId for C-PAT","Client"
+"CPAT_SCOPE_PREFIX","| **No default**
+| String used as a prefix for each scope when authenticating to the OIDC Provider. Some providers (Azure AD) expect scope requests in the format ``api://<application_id>/<scope>``, where ``api://<application_id>/`` is the required prefix.","Client"
+"CPAT_CLIENT_REFRESH_DISABLED","| **Default** ``false``
+| Whether the web client should use a provided refresh token to update the access token","Client"
+"CPAT_DB_HOST","| **Default** ``localhost``
+| The database hostname or IP from to the API server","API"
+"CPAT_DB_MAX_CONNECTIONS","| **Default** ``25``
+| The maximum size of the database connection pool ","API"
+"CPAT_DB_USER","| **Default** ``cpat``
+| The user account used to login to the database ","API"
+"CPAT_DB_PASSWORD","| **No default**
+| The password used to login to the database ","API"
+"CPAT_DB_PORT","| **Default** ``3306``
+| The database TCP port relative to the API server","API"
+"CPAT_DB_SCHEMA","| **Default** ``cpat``
+| The schema where the C-PAT object is found","API"
+"CPAT_DB_TLS_CA_FILE","| **No default**
+| A file/path relative to the API /tls directory that contains the PEM encoded CA certificate used to sign the database TLS certificate. Setting this variable enables TLS connections to the database.","API"
+"CPAT_DB_TLS_CERT_FILE","| **No default**
+| A file/path relative to the API /tls directory that contains the PEM encoded Client certificate used when authenticating the database client. Additionally requires setting values for ``CPAT_DB_TLS_CA_FILE`` and ``CPAT_DB_TLS_KEY_FILE``. ","API"
+"CPAT_DB_TLS_KEY_FILE","| **No default**
+| A file/path relative to the API /tls directory that contains the PEM encoded Client private key used when authenticating the database client. Additionally requires setting values for ``CPAT_DB_TLS_CA_FILE`` and ``CPAT_DB_TLS_CERT_FILE``.","API"
+"CPAT_DOCS_DIRECTORY","| **Default** ``./docs``
+| The location of the documentation files, relative to the API source directory. Note that if running source from a clone of the GitHub repository, the docs are located at `../../docs/_build/html` relative to the API directory. ","API, documentation"
+"CPAT_DOCS_DISABLED","| **Default** ``false``
+| Whether to *not* serve the documentation.","Documentation"
+"CPAT_LOG_LEVEL","| **Default** ``3``
+| Controls the granularity of the generated log output, from 1 to 4. Each level is inclusive of the ones before it. Level 1 will log only errors, level 2 includes warnings, level 3 includes status and transaction logs, and level 4 includes debug-level logs","API"
+"CPAT_LOG_MODE","| **Default** ``combined``
+| Controls whether the logs will create one “combined” log entry for http requests that includes both the request and response information; or two separate log entries, one for the request and one for the response, that can be correlated via a generated Request GUID in each entry","API"
+"CPAT_JWT_EMAIL_CLAIM","| **Default** ``email``
+| The access token claim whose value is the user's email address","API, Client"
+"CPAT_JWT_FULL_NAME_CLAIM","| **Default** ``name``
+| The access token claim whose value is the user's full name","API, Client"
+"CPAT_JWT_FIRST_NAME_CLAIM","| **Default** ``given_name``
+| The access token claim whose value is the user's first name","API, Client"
+"CPAT_JWT_LAST_NAME_CLAIM","| **Default** ``family_name``
+| The access token claim whose value is the user's last name","API, Client"
+"CPAT_JWT_PRIVILEGES_CLAIM","| **Default** ``realm_access.roles``
+| The access token claim whose value is the user’s privileges ","API, Client"
+"CPAT_JWT_SCOPE_CLAIM","| **Default** ``scope``
+| The access token claim whose value is the user's scopes. Some OIDC Providers (Okta, Azure AD) use the claim ``scp`` to enumerate scopes","API, Client"
+"CPAT_JWT_SERVICENAME_CLAIM","| **Default** ``clientId``
+| The access token claim whose value is the user's client","API, Client"
+"CPAT_JWT_USERNAME_CLAIM","| **Default** ``preferred_username``
+| The access token claim whose value is the user's username","API, Client"
+"CPAT_OIDC_PROVIDER","| **Default** ``http://localhost:8080/auth/realms/RMFTools``
+| The base URL of the OIDC provider issuing signed JWTs for the API.  The string ``/.well-known/openid-configuration`` will be appended when fetching metadata.","API, Client"
+"CPAT_CLIENT_OIDC_PROVIDER","| **Default** ``CPAT_OIDC_PROVIDER``
+| Client override of the base URL of the OIDC provider issuing signed JWTs for the API.  The string ``/.well-known/openid-configuration`` will be appended when fetching metadata.","API, Client"
+"CPAT_SWAGGER_ENABLED","| **Default** ``false``
+| Whether to enable the SwaggerUI SPA at /api-docs ","API"
+"CPAT_SWAGGER_REDIRECT","| **Default** ``http://localhost:8086/api-docs/oauth2-redirect.html``
+| The redirect URL sent by SwaggerUI to the OIDC provider when authorizing","API"
+"CPAT_SWAGGER_SERVER","| **Default** ``http://localhost:8086/api``
+| The API server URL relative to the SwaggerUI ","API"

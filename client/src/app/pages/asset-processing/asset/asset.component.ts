@@ -38,14 +38,10 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
   labelList: any;
   clonedLabels: { [s: string]: any } = {};
-  collectionList: any;
-  collection: any;
   assetLabels: any[] = [];
   data: any = [];
-  tcollectionName: string = '';
   selectedCollection: any;
   private subscriptions = new Subscription();
-  collectionOptions: any[] = [];
   labelOptions: any[] = [];
   displayInvalidDataDialog: boolean = false;
   invalidDataMessage: string = '';
@@ -71,7 +67,6 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async getData() {
-    await this.getCollectionData();
     if (!this.selectedCollection) {
       this.subscriptions.add(
         this.sharedService.selectedCollection.subscribe((collectionId) => {
@@ -90,28 +85,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       await this.assetService.getLabels(this.selectedCollection)
     ).subscribe((labels: any) => {
       this.labelList = labels || [];
-      this.labelOptions = this.transformToDropdownOptions(
-        labels,
-        'labelName',
-        'labelId',
-      );
     });
-  }
-
-  async getCollectionData() {
-    this.subs.sink = (await this.collectionService.getCollections()).subscribe(
-      (collections: any) => {
-        this.collectionList = collections || [];
-        this.collectionOptions = this.transformToDropdownOptions(
-          collections,
-          'collectionName',
-          'collectionId',
-        );
-        if (this.asset.collectionId) {
-          this.setCollection(this.asset.collectionId);
-        }
-      },
-    );
   }
 
   async getAssetLabels() {
@@ -142,25 +116,6 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     }));
   }
 
-  setCollection(collectionId: any) {
-    this.collection = null;
-    this.tcollectionName = '';
-
-    const selectedData = this.collectionList
-      ? this.collectionList.find(
-          (collection: { collectionId: any }) =>
-            collection.collectionId === collectionId,
-        )
-      : null;
-
-    if (selectedData) {
-      this.collection = selectedData;
-      this.tcollectionName = this.collection.collectionName;
-    } else {
-      console.error(`Collection with ID ${collectionId} not found.`);
-    }
-  }
-
   addNewRow() {
     const newLabel = {
       assetId: +this.asset.assetId,
@@ -168,7 +123,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       labelName: null,
       isNew: true,
     };
-    this.assetLabels = [...this.assetLabels, newLabel];
+    this.assetLabels = [newLabel, ...this.assetLabels];
   }
 
   onLabelChange(label: any, rowIndex: number) {
