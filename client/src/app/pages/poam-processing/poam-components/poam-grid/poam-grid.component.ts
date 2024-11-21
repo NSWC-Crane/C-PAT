@@ -197,7 +197,11 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
 
   async processPoamsWithTenableFindings(poams: any[]): Promise<any[]> {
     const processedPoams = [];
-    const vulnerabilityIds = [...new Set(poams.map((poam) => poam.vulnerabilityId))];
+    const vulnerabilityIds = [...new Set(
+      poams
+        .filter(poam => poam.vulnerabilitySource === "Assured Compliance Assessment Solution (ACAS) Nessus Scanner")
+        .map(poam => poam.vulnerabilityId)
+    )];
 
     const analysisParams = {
       query: {
@@ -291,7 +295,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     const processedPoams = [];
 
     for (const poam of poams) {
-      if (poam.vulnerabilityId && poam.stigBenchmarkId) {
+      if (poam.vulnerabilityId && poam.stigBenchmarkId && poam.vulnerabilitySource === "STIG") {
         try {
           let findings: any[];
           if (this.findingsCache.has(poam.stigBenchmarkId)) {

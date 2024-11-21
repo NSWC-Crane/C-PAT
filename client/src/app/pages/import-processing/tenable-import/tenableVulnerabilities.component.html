@@ -180,7 +180,7 @@
                            styleClass="p-datatable-sm p-datatable-gridlines-hidden">
                     <ng-template pTemplate="header" let-columns>
                       <tr>
-                        <th *ngFor="let col of columns" [ngStyle]="{'width': col.width}" pResizableColumn scope="col">
+                        <th *ngFor="let col of columns" pResizableColumn scope="col">
                           {{col.header}}
                           <ng-container *ngIf="col.field === 'poam' && tenableTool === 'sumid'">
                             <p-columnFilter [field]="'poamStatus'"

@@ -197,7 +197,7 @@ export class PoamExportService {
       U: '',
       V: 'likelihood',
       W: '',
-      X: '',
+      X: 'impactDescription',
       Y: 'residualRisk',
       Z: '',
       AA: 'adjSeverity',
@@ -247,8 +247,8 @@ export class PoamExportService {
       vulnerabilitySource: (value: any, poam: Poam, _columnKey: string): any => {
         if (value === 'STIG') {
           return poam.vulnerabilityTitle;
-        } else if (value === 'Task Order') {
-          return `Task Order #: ${poam.taskOrderNumber}`;
+        } else if (value === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
+          return poam.vulnerabilityTitle;
         } else {
           return poam.vulnerabilitySource;
         }
