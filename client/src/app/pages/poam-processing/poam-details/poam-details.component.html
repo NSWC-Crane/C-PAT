@@ -368,7 +368,6 @@
               <div *ngIf="collectionType === 'Tenable'" class="stepper-content">
                 <tenable-assets-table [pluginID]="poam.vulnerabilityId" [tenableRepoId]="originCollectionId"></tenable-assets-table>
               </div>
-
               <div class="stepper-buttons">
                 <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()"></p-button>
                 <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()"></p-button>

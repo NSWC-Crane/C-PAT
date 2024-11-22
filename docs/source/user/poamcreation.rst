@@ -1,10 +1,11 @@
+
 .. _poamcreation:
 
 POAM Creation
 -------------
 
 Manual POAM Entry
-^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 While not recommended, POAMs can be created manually:
 
    1. All fields must be entered by the user
@@ -31,7 +32,7 @@ When creating a POAM from STIG Manager findings:
    * Assets cannot be manually added/removed as they are managed by STIG Manager
 
 Tenable Integration
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 When creating a POAM from Tenable findings:
 
 1. C-PAT automatically populates:
@@ -51,7 +52,7 @@ When creating a POAM from Tenable findings:
 
 
 Field Definitions
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
 POAM Status
    * Draft - Initial state

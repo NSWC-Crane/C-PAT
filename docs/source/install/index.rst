@@ -24,4 +24,5 @@ These pages describe how to setup and deploy C-PAT
 	environment-variables
 	securing
 	integrations
+	documentation
 
