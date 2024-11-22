@@ -38,7 +38,7 @@ STIG Manager
 
 
 Tenable
-------
+--------
 
   .. list-table:: Tenable Environmenment Variables: 
    :widths: 20 25 55

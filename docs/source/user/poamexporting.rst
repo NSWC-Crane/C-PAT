@@ -1,7 +1,11 @@
-﻿POAM Exporting
+﻿
+.. _poamexporting:
+
+POAM Exporting
 --------------
 
 C-PAT contains the ability to export into the standard eMASS excel format. Listed below are the applicable field mappings for STIG and ACAS originated POAMs.
+
 .. note::
    Draft POAMs are not exported.
 
@@ -139,7 +143,7 @@ Milestone Formatting
 Milestones are formatted in two distinct sections:
 
 Comments (Column J)
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: none
 
@@ -149,7 +153,7 @@ Comments (Column J)
    Milestone Date: {Milestone Due Date (MM/dd/yyyy)}
 
 Changes (Column K)
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: none
 

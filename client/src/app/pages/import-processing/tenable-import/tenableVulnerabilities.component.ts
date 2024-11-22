@@ -37,7 +37,7 @@ interface CustomFilter {
 interface AssetsFilter {
   filterName: string;
   operator: string;
-  value: string | string[] | { id: string }[];
+  value: any;
 }
 interface AccordionItem {
   header: string;
@@ -1322,25 +1322,34 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   createAssetsFilter(value: any): AssetsFilter | null {
-    if (value && value.length > 0) {
-      let formattedValue: any = { id: value[0] };
-      for (let i = 1; i < value.length; i++) {
-        formattedValue = {
-          operator: 'intersection',
-          operand1: formattedValue,
-          operand2: {
-            id: value[i],
-          },
-        };
-      }
+    if (!value || value.length === 0) {
+      return null;
+    }
 
+    if (value.length === 1) {
       return {
         filterName: 'asset',
-        operator: '~',
-        value: formattedValue,
+        operator: '=',
+        value: { id: value[0] }
       };
     }
-    return null;
+
+    let formattedValue: any = { id: value[0] };
+    for (let i = 1; i < value.length; i++) {
+      formattedValue = {
+        operator: 'union',
+        operand1: formattedValue,
+        operand2: {
+          id: value[i],
+        },
+      };
+    }
+
+    return {
+      filterName: 'asset',
+      operator: '~',
+      value: formattedValue,
+    };
   }
 
   createAssetExposureScoreFilter(value: any): CustomFilter | null {
@@ -2220,7 +2229,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   loadVulnList() {
-    this.clearFilters(false);
     this.tenableTool = 'listvuln';
     this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     this.expandColumnSelections();

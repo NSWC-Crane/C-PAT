@@ -623,9 +623,9 @@ ${this.pluginData.description ?? ''}`,
           this.poam.vulnerabilityId = this.stateData.vulnerabilityId;
           this.poam.rawSeverity = this.stateData.severity;
           this.poam.stigCheckData = this.stateData.ruleData;
-          const benchmarkId = this.stateData.benchmarkId;
+          this.poam.stigBenchmarkId = this.stateData.benchmarkId;
           const selectedStig = this.stigmanSTIGs.find(
-            (stig: any) => stig.benchmarkId === benchmarkId,
+            (stig: any) => stig.benchmarkId === this.poam.stigBenchmarkId,
           );
           if (selectedStig) {
             this.selectedStigObject = selectedStig;
@@ -633,8 +633,7 @@ ${this.pluginData.description ?? ''}`,
             this.poam.vulnerabilityName = selectedStig.title;
             this.onStigSelected(selectedStig);
           } else {
-            this.poam.stigBenchmarkId = benchmarkId;
-            this.poam.vulnerabilityName = benchmarkId;
+            this.poam.vulnerabilityName = this.poam.stigBenchmarkId;
           }
         },
       });
@@ -1062,19 +1061,19 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  onStigSelected(event: any) {
+  onStigSelected(event: any) {    
     let selectedStig;
     if (typeof event === 'string') {
       selectedStig = this.stigmanSTIGs.find(
         (stig: any) => stig.title === event,
-      );
+      );      
     } else {
-      selectedStig = event.value;
+      selectedStig = event;
     }
-
     if (selectedStig) {
       this.selectedStigTitle = selectedStig.title;
       this.selectedStigBenchmarkId = selectedStig.benchmarkId;
+      this.poam.stigBenchmarkId = this.selectedStigBenchmarkId;
       this.poam.vulnerabilityTitle = (() => {
         const [version, release] =
           selectedStig.lastRevisionStr?.match(/\d+/g) || [];
@@ -1085,7 +1084,6 @@ ${this.pluginData.description ?? ''}`,
 
         return `${selectedStig.title} :: ${formattedRevision} Benchmark Date: ${selectedStig.lastRevisionDate}`;
       })();
-      this.poam.stigBenchmarkId = selectedStig.benchmarkId;
     }
   }
 

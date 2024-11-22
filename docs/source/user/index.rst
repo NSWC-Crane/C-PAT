@@ -1,5 +1,5 @@
 
-.. _admin-index:
+.. _user-index:
 
 User Guide
 ===============================
