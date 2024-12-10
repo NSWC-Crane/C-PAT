@@ -8,19 +8,12 @@
 !##########################################################################
 */
 
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { Routes } from '@angular/router';
 import { DoDConsentComponent } from './dod-consent.component';
 
-const routes: Routes = [
+export const consentRoute: Routes = [
   {
     path: '',
     component: DoDConsentComponent,
   },
 ];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class DodConsentRoutingModule {}

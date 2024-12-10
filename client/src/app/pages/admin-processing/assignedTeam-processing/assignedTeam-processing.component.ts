@@ -9,9 +9,16 @@
 */
 
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Table } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { MessageService } from 'primeng/api';
 import { AssignedTeamService } from './assignedTeam-processing.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ToastModule } from 'primeng/toast';
+import { ButtonModule } from 'primeng/button';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputTextModule } from 'primeng/inputtext';
 
 interface AssignedTeam {
   assignedTeamId: number;
@@ -22,6 +29,18 @@ interface AssignedTeam {
   selector: 'assigned-team-processing',
   templateUrl: './assignedTeam-processing.component.html',
   styleUrls: ['./assignedTeam-processing.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    FormsModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    TableModule,
+    ToastModule,
+  ],
+  providers: [MessageService],
 })
 export class AssignedTeamProcessingComponent implements OnInit {
   @ViewChild('dt') table!: Table;

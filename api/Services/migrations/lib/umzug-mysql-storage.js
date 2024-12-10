@@ -10,38 +10,38 @@
 
 module.exports = class MyStorage {
     constructor(options) {
-        this.pool = options.pool
-        this.hasMigrationTable = false
+        this.pool = options.pool;
+        this.hasMigrationTable = false;
     }
 
     async createMigrationTable() {
         await this.pool.query(`CREATE TABLE IF NOT EXISTS _migrations (
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP, 
-      updatedAt DATETIME ON UPDATE CURRENT_TIMESTAMP, 
-      name VARCHAR(128) 
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`)
-        this.hasMigrationTable = true
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP, 
+            updatedAt DATETIME ON UPDATE CURRENT_TIMESTAMP, 
+            name VARCHAR(128) 
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`);
+        this.hasMigrationTable = true;
     }
 
-    async logMigration(migrationName) {
+    async logMigration({ name }) {
         if (!this.hasMigrationTable) {
-            await this.createMigrationTable()
+            await this.createMigrationTable();
         }
-        await this.pool.query('INSERT into _migrations (name) VALUES (?)', [migrationName])
+        await this.pool.query('INSERT into _migrations (name) VALUES (?)', [name]);
     }
 
-    async unlogMigration(migrationName) {
+    async unlogMigration({ name }) {
         if (!this.hasMigrationTable) {
-            await this.createMigrationTable()
+            await this.createMigrationTable();
         }
-        await this.pool.query('DELETE from _migrations WHERE name = ?', [migrationName])
+        await this.pool.query('DELETE from _migrations WHERE name = ?', [name]);
     }
 
     async executed() {
         if (!this.hasMigrationTable) {
-            await this.createMigrationTable()
+            await this.createMigrationTable();
         }
-        let [rows] = await this.pool.query('SELECT name from _migrations')
-        return rows.map(r => r.name)
+        let [rows] = await this.pool.query('SELECT name from _migrations');
+        return rows.map(r => ({ name: r.name }));
     }
 }

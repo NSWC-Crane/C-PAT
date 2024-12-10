@@ -8,13 +8,12 @@
 !##########################################################################
 */
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { STIGManagerImportComponent } from './stigmanager-import/stigmanager-import.component';
 import { TenableVulnerabilitiesComponent } from './tenable-import/tenableVulnerabilities.component';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
-const routes: Routes = [
+export const importProcessingRoutes: Routes = [
   {
     path: 'stigmanager-import',
     canActivate: [AuthGuard],
@@ -26,9 +25,3 @@ const routes: Routes = [
     component: TenableVulnerabilitiesComponent,
   },
 ];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class ImportProcessingRoutingModule {}

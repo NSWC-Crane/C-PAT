@@ -19,16 +19,40 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
 import { AssetService } from '../assets.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DropdownModule } from 'primeng/dropdown';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { ToastModule } from 'primeng/toast';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'cpat-asset',
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CardModule,
+    ConfirmDialogModule,
+    DialogModule,
+    DropdownModule,
+    CommonModule,
+    FormsModule,
+    InputTextModule,
+    TableModule,
+    ToastModule,
+  ],
+  providers: [ConfirmationService, MessageService]
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   @Input() asset: any;

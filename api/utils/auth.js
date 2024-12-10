@@ -74,7 +74,7 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
         req.userObject.isAdmin = isAdmin;
 
         const currentUserData = await User.getUserByUserName(req.userObject.userName);
-        if (currentUserData?.length > 1) req.userObject = currentUserData;        
+        if (currentUserData?.length > 1) req.userObject = currentUserData;
         req.userObject.userId = currentUserData?.userId || null;
 
         const refreshFields = {}
@@ -103,7 +103,7 @@ const verifyRequest = async function (req, requiredScopes, securityDefinition) {
                 } else if (!config.client.features.marketplaceDisabled && differenceInMinutes(now, currentUserData?.lastAccess) >= 60 && currentUserData?.points) {
                     await User.hourlyPoints(req.userObject.userId);
                 }
-            }                   
+            }
         }
         if ('elevate' in req.query && (req.query.elevate === 'true' && req.userObject.isAdmin !== true)) {
             throw (new SmError.PrivilegeError("User has insufficient privilege to complete this request."))
@@ -144,7 +144,8 @@ async function initializeAuth(depStatus) {
         logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, attempt: ++initAttempt })
         if (config.certificates) {
             const agent = new https.Agent({
-                ca: fs.readFileSync(config.certificates)
+                ca: fs.readFileSync(config.certificates),
+                timeout: 5000
             })
             const openidConfig = (await axios.get(wellKnown, { httpsAgent: agent })).data
 
@@ -155,6 +156,9 @@ async function initializeAuth(depStatus) {
             jwksUri = openidConfig.jwks_uri
             try {
                 client = jwksClient({
+                    cache: true,
+                    cacheMaxEntries: 5,
+                    cacheMaxAge: 600000,
                     jwksUri: jwksUri,
                     requestAgent: agent
                 })
@@ -164,6 +168,9 @@ async function initializeAuth(depStatus) {
                     error: error.message
                 });
                 client = jwksClient({
+                    cache: true,
+                    cacheMaxEntries: 5,
+                    cacheMaxAge: 600000,
                     jwksUri: jwksUri
                 })
             }
@@ -176,6 +183,9 @@ async function initializeAuth(depStatus) {
             }
             jwksUri = openidConfig.jwks_uri
             client = jwksClient({
+                cache: true,
+                cacheMaxEntries: 5,
+                cacheMaxAge: 600000,
                 jwksUri: jwksUri
             })
         }

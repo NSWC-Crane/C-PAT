@@ -1,9 +1,16 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ImportService } from '../../../import.service';
-import { Table, TableLazyLoadEvent } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { MultiSelect } from 'primeng/multiselect';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface Reference {
   type: string;
@@ -18,7 +25,20 @@ interface ExportColumn {
   selector: 'tenable-assets-table',
   templateUrl: './tenableAssetsTable.component.html',
   styleUrls: ['./tenableAssetsTable.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    MultiSelectModule,
+    DialogModule,
+    ToastModule,
+    TooltipModule
+  ]
 })
+
 export class TenableAssetsTableComponent implements OnInit {
   @Input() pluginID!: string;
   @Input() assetProcessing: boolean = false;

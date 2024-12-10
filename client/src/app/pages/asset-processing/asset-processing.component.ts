@@ -25,9 +25,22 @@ import { PayloadService } from '../../common/services/setPayload.service';
 import { Chart, registerables, ChartData } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { DialogService } from 'primeng/dynamicdialog';
-import { Table } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { SharedService } from '../../common/services/shared.service';
 import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { STIGManagerAssetsTableComponent } from '../import-processing/stigmanager-import/stigManagerAssetsTable/stigManagerAssetsTable.component';
+import { TenableAssetsTableComponent } from '../import-processing/tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
+import { TabViewModule } from 'primeng/tabview';
+import { DialogModule } from 'primeng/dialog';
+import { AssetComponent } from './asset/asset.component';
+import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
+import { DropdownModule } from 'primeng/dropdown';
+import { MessageService } from 'primeng/api';
 
 interface Column {
   field: string;
@@ -46,7 +59,23 @@ interface AssetEntry {
   selector: 'cpat-asset-processing',
   templateUrl: './asset-processing.component.html',
   styleUrls: ['./asset-processing.component.scss'],
-  providers: [DialogService],
+  standalone: true,
+  imports: [
+    AssetComponent,
+    ButtonModule,
+    CardModule,
+    CommonModule,
+    DialogModule,
+    DropdownModule,
+    FormsModule,
+    InputTextModule,
+    STIGManagerAssetsTableComponent,
+    TableModule,
+    TabViewModule,
+    TenableAssetsTableComponent,
+    TooltipModule,
+  ],
+  providers: [DialogService, MessageService],
 })
 export class AssetProcessingComponent
   implements OnInit, AfterViewInit, OnDestroy

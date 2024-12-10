@@ -8,16 +8,32 @@ import {
 import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { ImportService } from '../import.service';
 import { PoamService } from '../../poam-processing/poams.service';
-import { Table, TableLazyLoadEvent } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { OverlayPanel } from 'primeng/overlaypanel';
-import { MultiSelect } from 'primeng/multiselect';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
 import { Subscription } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TabViewModule } from 'primeng/tabview';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
+import { CardModule } from 'primeng/card';
+import { TenableSolutionsComponent } from './components/solutions/tenableSolutions.component';
+import { TenableIAVVulnerabilitiesComponent } from './components/iavVulnerabilities/tenableIAVVulnerabilities.component';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { AccordionModule } from 'primeng/accordion';
+import { TooltipModule } from 'primeng/tooltip';
+import { InputTextareaModule } from 'primeng/inputtextarea';
 interface Reference {
   type: string;
   value: string;
@@ -68,6 +84,27 @@ interface PoamAssociation {
   selector: 'tenable-vulnerabilities',
   templateUrl: './tenableVulnerabilities.component.html',
   styleUrls: ['./tenableVulnerabilities.component.scss'],
+  standalone: true,
+  imports: [
+    AccordionModule,
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    CardModule,
+    DialogModule,
+    DropdownModule,
+    InputNumberModule,
+    InputTextModule,
+    InputTextareaModule,
+    MultiSelectModule,
+    TableModule,
+    TabViewModule,
+    SkeletonModule,
+    TenableSolutionsComponent,
+    TenableIAVVulnerabilitiesComponent,
+    ToastModule,
+    TooltipModule,
+  ],
   providers: [MessageService],
 })
 export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {

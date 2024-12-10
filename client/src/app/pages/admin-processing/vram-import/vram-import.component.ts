@@ -14,12 +14,33 @@ import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { VRAMImportService } from './vram-import.service';
 import { UsersService } from '../user-processing/users.service';
 import { firstValueFrom } from 'rxjs';
-import { FileUpload } from 'primeng/fileupload';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { BadgeModule } from 'primeng/badge';
+import { VramPopupComponent } from '../../../common/components/vram-popup/vram-popup.component';
+import { ToastModule } from 'primeng/toast';
+import { ProgressBarModule } from 'primeng/progressbar';
 
 @Component({
   selector: 'app-vram-import',
   templateUrl: './vram-import.component.html',
   styleUrls: ['./vram-import.component.scss'],
+  standalone: true,
+  imports: [
+    BadgeModule,
+    ButtonModule,
+    CardModule,
+    CommonModule,
+    FileUploadModule,
+    FormsModule,
+    ProgressBarModule,
+    ToastModule,
+    VramPopupComponent,
+  ],
+  providers: [MessageService],
 })
 export class VRAMImportComponent implements OnInit {
   @ViewChild('fileUpload') fileUpload!: FileUpload;

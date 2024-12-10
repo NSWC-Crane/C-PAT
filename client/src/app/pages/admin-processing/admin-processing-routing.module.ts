@@ -8,15 +8,14 @@
 !##########################################################################
 */
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { AdminProcessingComponent } from './admin-processing.component';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
-const routes: Routes = [
+export const adminProcessingRoutes: Routes = [
   {
     path: '',
     canActivate: [AuthGuard],
@@ -42,9 +41,3 @@ const routes: Routes = [
     data: { guardType: 'admin' },
   },
 ];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class AdminProcessingRoutingModule {}

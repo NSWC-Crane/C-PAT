@@ -15,7 +15,7 @@
         <span class="p-input-icon-left">
           <i class="pi pi-search"></i>
           <input pInputText type="text" [(ngModel)]="globalFilter" (input)="onFilterChange($event)" placeholder="Search..." />
-          <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear(dt)" (onKeyUp)="clear(dt)" pTooltip="Clear all filters"></p-button>
+          <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()" pTooltip="Reset default filters"></p-button>
         </span>
       </div>
       <div class="right-buttons">

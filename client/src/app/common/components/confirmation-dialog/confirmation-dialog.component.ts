@@ -8,7 +8,11 @@
 !##########################################################################
 */
 
+import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
@@ -67,6 +71,13 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
       </p-footer>
     </p-dialog>
   `,
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    DialogModule,
+    FormsModule,
+  ],
 })
 export class ConfirmationDialogComponent {
   @Input() options!: ConfirmationDialogOptions;

@@ -8,13 +8,16 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { MenuService } from '../services/app.menu.service';
 import { LayoutService } from '../services/app.layout.service';
 import { AppNavigationComponent } from './app.navigation.component';
 import { DomHandler } from 'primeng/dom';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: '[app-menuitem]',
@@ -88,6 +91,13 @@ import { DomHandler } from 'primeng/dom';
       </ul>
     </ng-container>
   `,
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    TooltipModule,
+    RouterModule,
+  ],
 })
 export class AppMenuitemComponent implements OnInit, OnDestroy {
   @Input() item: any;

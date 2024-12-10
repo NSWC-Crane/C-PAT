@@ -8,13 +8,28 @@
 !##########################################################################
 */
 
+import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { ProgressBarModule } from 'primeng/progressbar';
 
 @Component({
   selector: 'cpat-status-message',
   templateUrl: './status-message.component.html',
   styleUrls: ['./status-message.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CardModule,
+    CommonModule,
+    DialogModule,
+    FormsModule,
+    ProgressBarModule,
+  ],
 })
 export class StatusMessageComponent implements OnInit {
   @Input() statusCode: number;

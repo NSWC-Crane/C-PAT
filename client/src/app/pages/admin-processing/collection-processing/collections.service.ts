@@ -19,7 +19,7 @@ import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Collections } from './collections.model';
 
-interface CollectionBasicList {
+export interface CollectionBasicList {
   collectionId: string;
   collectionName: string;
   collectionOrigin?: string;

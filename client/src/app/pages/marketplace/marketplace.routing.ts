@@ -8,19 +8,12 @@
 !##########################################################################
 */
 
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { Routes } from '@angular/router';
 import { MarketplaceComponent } from './marketplace.component';
 
-const routes: Routes = [
+export const marketplaceRoutes: Routes = [
   {
     path: '',
     component: MarketplaceComponent,
   },
 ];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class MarketplaceRoutingModule {}

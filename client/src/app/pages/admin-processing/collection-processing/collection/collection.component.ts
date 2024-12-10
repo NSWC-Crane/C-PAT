@@ -16,13 +16,25 @@ import {
   Output,
 } from '@angular/core';
 import { SubSink } from 'subsink';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { CollectionsService } from '../collections.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'cpat-collection',
   templateUrl: './collection.component.html',
   styleUrls: ['./collection.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    FormsModule,
+    InputTextModule,
+  ],
+  providers: [ConfirmationService, MessageService],
 })
 export class CollectionComponent implements OnDestroy {
   @Input() collection: any;

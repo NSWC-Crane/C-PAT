@@ -348,7 +348,7 @@
                     <tr>
                       <td>
                         <span *ngIf="!asset.isNew">{{getAssetName(asset.assetId)}}</span>
-                        <p-dropdown *ngIf="asset.isNew" [options]="assets" [(ngModel)]="asset.assetId" optionLabel="assetName" optionValue="assetId" [style]="{'width':'100%'}" (onChange)="onAssetChange(asset, rowIndex)" appendTo="body" [disabled]="accessLevel < 2"></p-dropdown>
+                        <p-dropdown *ngIf="asset.isNew" [options]="assetList" [(ngModel)]="asset.assetId" optionLabel="assetName" optionValue="assetId" [style]="{'width':'100%'}" (onChange)="onAssetChange(asset, rowIndex)" appendTo="body" [disabled]="accessLevel < 2"></p-dropdown>
                       </td>
                       <td>
                         <button pButton icon="pi pi-trash" (click)="deleteAsset(asset, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>

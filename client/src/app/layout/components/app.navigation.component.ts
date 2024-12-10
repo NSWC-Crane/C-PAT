@@ -1,5 +1,5 @@
 import { AuthService } from '../../core/auth/services/auth.service';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import {
   Component,
   ElementRef,
@@ -15,6 +15,17 @@ import { UsersService } from '../../pages/admin-processing/user-processing/users
 import { SubSink } from 'subsink';
 import { SharedService } from '../../common/services/shared.service';
 import { Subject, filter, takeUntil } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MenuModule } from 'primeng/menu';
+import { NotificationsPanelComponent } from '../../common/components/notifications/notifications-popover/notifications-popover.component';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { ButtonModule } from 'primeng/button';
+import { AppSearchComponent } from '../../common/components/search/app.search.component';
+import { AppMenuComponent } from './app.menu.component';
+import { TagModule } from 'primeng/tag';
+import { DropdownModule } from 'primeng/dropdown';
+import { BadgeModule } from 'primeng/badge';
 
 interface Permission {
   userId: number;
@@ -25,6 +36,21 @@ interface Permission {
 @Component({
   selector: 'app-navigation',
   templateUrl: './app.navigation.component.html',
+  standalone: true,
+  imports: [
+    AppMenuComponent,
+    AppSearchComponent,
+    BadgeModule,
+    ButtonModule,
+    CommonModule,
+    DropdownModule,
+    MenuModule,
+    NotificationsPanelComponent,
+    OverlayPanelModule,
+    RouterLink,
+    TagModule,
+    FormsModule,
+  ],
 })
 export class AppNavigationComponent implements OnInit, OnDestroy {
   collections: any = [];

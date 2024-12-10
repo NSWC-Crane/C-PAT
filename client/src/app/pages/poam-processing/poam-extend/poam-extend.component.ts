@@ -19,12 +19,42 @@ import { PoamExtensionService } from '../poam-extend/poam-extend.service';
 import { MessageService } from 'primeng/api';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { ButtonModule } from 'primeng/button';
+import { CalendarModule } from 'primeng/calendar';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { StepperModule } from 'primeng/stepper';
+import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'cpat-poam-extend',
   templateUrl: './poam-extend.component.html',
   styleUrls: ['./poam-extend.component.scss'],
-  providers: [ConfirmationService],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    AutoCompleteModule,
+    ButtonModule,
+    CalendarModule,
+    DialogModule,
+    DropdownModule,
+    InputTextModule,
+    InputTextareaModule,
+    StepperModule,
+    TableModule,
+    ToastModule,
+    ConfirmDialogModule,
+    DatePipe
+  ],
+  providers: [ConfirmationService, MessageService]
 })
 export class PoamExtendComponent implements OnInit, OnDestroy {
   assignedTeamOptions: any;

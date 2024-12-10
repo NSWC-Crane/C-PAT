@@ -18,21 +18,40 @@ import {
 import { SubSink } from 'subsink';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
-import { Subscription, forkJoin } from 'rxjs';
+import { Observable, Subject, Subscription, combineLatest, distinctUntilChanged, filter, forkJoin, from, map, of, switchMap, take, takeUntil, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { PayloadService } from '../../../common/services/setPayload.service';
+import { CommonModule } from '@angular/common';
+import { CardModule } from 'primeng/card';
+import { TabViewModule } from 'primeng/tabview';
+import { PoamAdvancedPieComponent } from '../poam-advanced-pie/poam-advanced-pie.component';
+import { PoamAssignedGridComponent } from '../poam-assigned-grid/poam-assigned-grid.component';
+import { PoamGridComponent } from '../poam-grid/poam-grid.component';
+import { PoamMainchartComponent } from '../poam-mainchart/poam-mainchart.component';
 
 @Component({
   selector: 'cpat-poam-manage',
   templateUrl: './poam-manage.component.html',
   styleUrls: ['./poam-manage.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    CardModule,
+    TabViewModule,
+    PoamAdvancedPieComponent,
+    PoamMainchartComponent,
+    PoamAssignedGridComponent,
+    PoamGridComponent
+  ]
 })
 export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private dataRefresh$ = new Subject<void>();
+
   advancedSeverityseverityPieChartData: any[] = [];
   advancedStatusPieChartData: any[] = [];
-  private subs = new SubSink();
-  public isLoggedIn = false;
-  public monthlyPoamStatus: any[] = [];
+  isLoggedIn = false;
+  monthlyPoamStatus: any[] = [];
   poams: any[] = [];
   poamsForChart: any[] = [];
   selectedPoamId: any;
@@ -46,9 +65,8 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   poamsPendingApproval: any[] = [];
   user: any;
   payload: any;
-  protected accessLevel: any;
-  private subscriptions = new Subscription();
-  private payloadSubscription: Subscription[] = [];
+  protected accessLevel: number = 0;
+  private subs = new SubSink();
 
   constructor(
     private collectionService: CollectionsService,
@@ -56,55 +74,89 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private setPayloadService: PayloadService,
-  ) {}
+  ) { }
 
   async ngOnInit() {
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollectionId = collectionId;
-      }),
-    );
-    this.setPayload();
+    await this.initializeDataStreams();
   }
 
-  async setPayload() {
-    await this.setPayloadService.setPayload();
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
-        this.user = user;
-      }),
-      this.setPayloadService.payload$.subscribe((payload) => {
-        this.payload = payload;
-      }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
-        this.accessLevel = level;
-        if (this.accessLevel > 0) {
-          this.getPoamData();
-        }
-      }),
-    );
-  }
+  private async initializeDataStreams() {
+    try {
+      await this.setPayloadService.setPayload();
 
-  async getPoamData() {
-    this.subs.sink = forkJoin([
-      await this.collectionService.getPoamsByCollection(
-        this.payload.lastCollectionAccessedId,
-      ),
-      await this.collectionService.getCollectionBasicList(),
-    ]).subscribe(([poams, basicListData]: any) => {
-      this.poams = poams;
+      const payloadData$ = combineLatest([
+        this.setPayloadService.user$,
+        this.setPayloadService.payload$,
+        this.setPayloadService.accessLevel$,
+        this.sharedService.selectedCollection
+      ]).pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged((prev, curr) => {
+          return prev[1]?.lastCollectionAccessedId === curr[1]?.lastCollectionAccessedId &&
+            prev[3] === curr[3];
+        }),
+        filter(([user, payload, accessLevel]) => {
+          const isValid = !!user && !!payload && accessLevel > 0;
+          return isValid;
+        }),
+        switchMap(([user, payload, accessLevel, collectionId]): Observable<[any[], any[]]> => {
+          this.user = user;
+          this.payload = payload;
+          this.accessLevel = accessLevel;
+          this.selectedCollectionId = collectionId;
 
-      this.selectedCollection = basicListData.find(
-        (collection: any) =>
-          collection.collectionId === this.selectedCollectionId,
+          if (payload?.lastCollectionAccessedId) {
+            return this.getPoamData().pipe(
+            );
+          }
+          return of([[], []]);
+        }),
+        tap(([poamsResponse, basicListResponse]) => {
+          if (poamsResponse && basicListResponse) {
+            this.poams = poamsResponse;
+            this.selectedCollection = basicListResponse.find(
+              (collection: any) => collection.collectionId === this.selectedCollectionId
+            );
+            this.updateGridData();
+            this.updateAdvancedPieChart();
+            this.cdr.detectChanges();
+          }
+        })
       );
-      this.updateGridData();
-      this.updateAdvancedPieChart();
-    });
+
+      payloadData$.pipe(take(1)).subscribe({
+        error: (error) => console.error('Error in data stream:', error)
+      });
+    } catch (error) {
+      console.error('Error during initialization:', error);
+    }
   }
 
-  ngAfterViewInit(): void {
-    this.cdr.detectChanges();
+  private getPoamData(): Observable<[any[], any[]]> {
+    return forkJoin([
+      from(this.collectionService.getPoamsByCollection(
+        this.payload.lastCollectionAccessedId
+      )).pipe(
+        switchMap(observable => observable),
+        map(response => Array.isArray(response) ? response : [])
+      ),
+      from(this.collectionService.getCollectionBasicList()).pipe(
+        switchMap(observable => observable),
+        map(response => Array.isArray(response) ? response : [])
+      )
+    ]).pipe(
+      takeUntil(this.destroy$)
+    );
+  }
+
+  private updateEmptyState() {
+    this.poams = [];
+    this.allPoams = [];
+    this.poamsNeedingAttention = [];
+    this.submittedPoams = [];
+    this.poamsPendingApproval = [];
+    this.advancedSeverityseverityPieChartData = [];
+    this.advancedStatusPieChartData = [];
   }
 
   onPoamsChange(updatedPoams: any[]) {
@@ -116,94 +168,73 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
   }
 
-  updateGridData() {
-    this.allPoams = this.poams;
+  ngAfterViewInit() {
+    this.cdr.detectChanges();
+  }
 
+  updateGridData() {
     const currentDate = new Date();
     const thirtyDaysFromNow = new Date(
-      currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
+      currentDate.getTime() + 30 * 24 * 60 * 60 * 1000
     );
-    this.poamsNeedingAttention = this.poams.filter((poam) => {
-      if (!poam.scheduledCompletionDate) {
-        return false;
-      }
-      const scheduledCompletionDate = new Date(poam.scheduledCompletionDate);
-      if (isNaN(scheduledCompletionDate.getTime())) {
-        return false;
-      }
-      return (
-        scheduledCompletionDate <= thirtyDaysFromNow &&
-        poam.status != 'Closed' &&
-        poam.status != 'Draft' &&
-        poam.status != 'False-Positive'
-      );
+
+    this.allPoams = [...this.poams];
+
+    this.poamsNeedingAttention = this.poams.filter(poam => {
+      if (!poam.scheduledCompletionDate) return false;
+      const completionDate = new Date(poam.scheduledCompletionDate);
+      return !isNaN(completionDate.getTime()) &&
+        completionDate <= thirtyDaysFromNow &&
+        !['Closed', 'Draft', 'False-Positive'].includes(poam.status);
     });
 
-    this.submittedPoams = this.poams.filter(
-      (poam) =>
-        poam.status != 'Closed' && poam.submitterId === this.user.userId,
+    this.submittedPoams = this.poams.filter(poam =>
+      poam.status !== 'Closed' && poam.submitterId === this.user.userId
     );
 
-    this.poamsPendingApproval = this.poams.filter(
-      (poam) =>
-        poam.status === 'Submitted' ||
-        poam.status === 'Extension Requested' ||
-        poam.status === 'Pending CAT-I Approval'
+    this.poamsPendingApproval = this.poams.filter(poam =>
+      ['Submitted', 'Extension Requested', 'Pending CAT-I Approval'].includes(poam.status)
     );
   }
 
-  updateAdvancedPieChart(): void {
-    const severityOrder = [
-      'CAT I - Critical' || 'CAT I - High',
-      'CAT II - Medium',
-      'CAT III - Low' || 'CAT III - Informational',
-    ];
-    const severityLabel = ['CAT I', 'CAT II', 'CAT III'];
+  updateAdvancedPieChart() {
+    const severityMapping: any = {
+      'CAT I - Critical': 'CAT I',
+      'CAT I - High': 'CAT I',
+      'CAT II - Medium': 'CAT II',
+      'CAT III - Low': 'CAT III',
+      'CAT III - Informational': 'CAT III'
+    };
+
     const statusOrder = [
-      'Submitted',
-      'Pending CAT-I Approval',
-      'Approved',
-      'Closed',
-      'False-Positive',
-      'Rejected',
-      'Extension Requested',
-      'Expired',
-      'Draft',
+      'Submitted', 'Pending CAT-I Approval', 'Approved', 'Closed',
+      'False-Positive', 'Rejected', 'Extension Requested', 'Expired', 'Draft'
     ];
 
-    const severityCounts: { [severity: string]: number } = {};
-    const statusCounts: { [status: string]: number } = {};
+    const severityCounts = this.poams.reduce((acc, poam) => {
+      const mappedSeverity = severityMapping[poam.rawSeverity] || poam.rawSeverity;
+      acc[mappedSeverity] = (acc[mappedSeverity] || 0) + 1;
+      return acc;
+    }, {});
 
-    this.poams.forEach((poam) => {
-      const severity = poam.rawSeverity;
-      severityCounts[severity] = (severityCounts[severity] || 0) + 1;
-    });
+    this.advancedSeverityseverityPieChartData = Object.entries(severityCounts)
+      .map(([name, value]) => ({ name, value }));
 
-    const severityPieChartData = severityOrder.map((severity, index) => ({
-      name: severityLabel[index],
-      value: severityCounts[severity] || 0,
-    }));
+    const statusCounts = this.poams.reduce((acc, poam) => {
+      acc[poam.status] = (acc[poam.status] || 0) + 1;
+      return acc;
+    }, {});
 
-    this.advancedSeverityseverityPieChartData = severityPieChartData;
-
-    this.poams.forEach((poam) => {
-      const status = poam.status;
-      statusCounts[status] = (statusCounts[status] || 0) + 1;
-    });
-
-    const statusPieChartData = statusOrder.map((status, index) => ({
-      name: statusOrder[index],
-      value: statusCounts[status] || 0,
-    }));
-
-    this.advancedStatusPieChartData = statusPieChartData;
+    this.advancedStatusPieChartData = statusOrder
+      .map(status => ({
+        name: status,
+        value: statusCounts[status] || 0
+      }));
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy() {
     this.subs.unsubscribe();
-    this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

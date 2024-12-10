@@ -3,10 +3,27 @@ import { LayoutService, MenuMode } from '../services/app.layout.service';
 import { MenuService } from '../services/app.menu.service';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { SubSink } from 'subsink';
+import { ButtonModule } from 'primeng/button';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { SidebarModule } from 'primeng/sidebar';
+import { RadioButtonModule } from 'primeng/radiobutton';
 
 @Component({
   selector: 'app-config',
   templateUrl: './app.config.component.html',
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    FormsModule,
+    InputSwitchModule,
+    RadioButtonModule,
+    SelectButtonModule,
+    SidebarModule,
+  ],
 })
 export class AppConfigComponent {
   @Input() minimal: boolean = false;
