@@ -23,6 +23,18 @@ import { UsersService } from '../users.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
 import { format } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { ToastModule } from 'primeng/toast';
+import { DropdownModule } from 'primeng/dropdown';
+import { TableModule } from 'primeng/table';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputSwitchModule } from 'primeng/inputswitch';
 
 interface Permission {
   userId: number;
@@ -46,7 +58,22 @@ export interface CollectionsResponse {
   selector: 'cpat-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  providers: [ConfirmationService],
+  standalone: true,
+  imports: [
+    AutoCompleteModule,
+    ButtonModule,
+    CardModule,
+    CommonModule,
+    ConfirmDialogModule,
+    DropdownModule,
+    InputNumberModule,
+    InputSwitchModule,
+    InputTextModule,
+    FormsModule,
+    TableModule,
+    ToastModule,
+  ],
+  providers: [ConfirmationService, MessageService]
 })
 export class UserComponent implements OnInit, OnChanges, OnDestroy {
   @Input() user: any;

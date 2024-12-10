@@ -3,13 +3,34 @@ import { MessageService } from 'primeng/api';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { PoamAttachmentService } from './poam-attachments.service';
 import { Subscription, firstValueFrom } from 'rxjs';
-import { FileUpload } from 'primeng/fileupload';
-import { PayloadService } from '../../../../common/services/setPayload.service';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { BadgeModule } from 'primeng/badge';
+import { ButtonModule } from 'primeng/button';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-poam-attachments',
   templateUrl: './poam-attachments.component.html',
   styleUrls: ['./poam-attachments.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    FileUploadModule,
+    TableModule,
+    ProgressBarModule,
+    BadgeModule,
+    ToastModule,
+    TooltipModule,
+    DatePipe
+  ]
 })
 export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   @ViewChild('fileUpload') fileUpload!: FileUpload;

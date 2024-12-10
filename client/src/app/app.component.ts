@@ -12,10 +12,15 @@ import { Component, OnInit } from '@angular/core';
 import { SharedService } from './common/services/shared.service';
 import { AuthService } from './core/auth/services/auth.service';
 import { Classification } from './common/models/classification.model';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: "cpat-app",
-  templateUrl: './app.component.html'
+  templateUrl: './app.component.html',
+  standalone: true,
+  imports: [
+    RouterOutlet
+  ],
 })
 
 export class AppComponent implements OnInit {

@@ -14,6 +14,13 @@ import { NotificationsComponent } from './common/components/notifications/notifi
 import { AuthGuard } from './core/auth/guards/auth.guard';
 import { StatusMessageComponent } from './common/components/status-message/status-message.component';
 import { AppLayoutComponent } from './layout/components/app.layout.component';
+import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
+import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
+import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
+import { importProcessingRoutes } from './pages/import-processing/import-processing-routing.module';
+import { consentRoute } from './common/components/dod-consent/dod-consent.routing';
+import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
+import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
 
 const routerOptions: ExtraOptions = {
   anchorScrolling: 'enabled',
@@ -28,42 +35,27 @@ const routes: Routes = [
         path: 'admin-processing',
         canActivate: [AuthGuard],
         data: { guardType: 'admin' },
-        loadChildren: () =>
-          import('./pages/admin-processing/admin-processing.module').then(
-            (m) => m.AdminProcessingModule,
-          ),
+        children: adminProcessingRoutes
       },
       {
         path: 'asset-processing',
         canActivate: [AuthGuard],
-        loadChildren: () =>
-          import('./pages/asset-processing/asset-processing.module').then(
-            (m) => m.AssetProcessingModule,
-          ),
+        children: assetProcessingRoutes
       },
       {
         path: 'consent',
         canActivate: [AuthGuard],
-        loadChildren: () =>
-          import('./common/components/dod-consent/dod-consent.module').then(
-            (m) => m.DoDConsentModule,
-          ),
+        children: consentRoute
       },
       {
         path: 'import-processing',
         canActivate: [AuthGuard],
-        loadChildren: () =>
-          import('./pages/import-processing/import-processing.module').then(
-            (m) => m.ImportProcessingModule,
-          ),
+        children: importProcessingRoutes
       },
       {
         path: 'label-processing',
         canActivate: [AuthGuard],
-        loadChildren: () =>
-          import('./pages/label-processing/label-processing.module').then(
-            (m) => m.LabelProcessingModule,
-          ),
+        children: labelProcessingRoutes
       },
       {
         path: 'notifications',
@@ -73,18 +65,12 @@ const routes: Routes = [
       {
         path: 'poam-processing',
         canActivate: [AuthGuard],
-        loadChildren: () =>
-          import('./pages/poam-processing/poam-processing.module').then(
-            (m) => m.PoamProcessingModule,
-          ),
+        children: poamProcessingRoutes,
       },
       {
         path: 'marketplace',
         canActivate: [AuthGuard],
-        loadChildren: () =>
-          import('./pages/marketplace/marketplace.module').then(
-            (m) => m.MarketplaceModule,
-          ),
+        children: marketplaceRoutes
       },
     ],
   },

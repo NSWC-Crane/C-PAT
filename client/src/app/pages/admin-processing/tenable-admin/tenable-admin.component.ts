@@ -14,6 +14,12 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { CollectionsService } from '../collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DropdownModule } from 'primeng/dropdown';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 interface TenableRepository {
   id: string;
@@ -34,6 +40,16 @@ interface CollectionBasicList {
   selector: 'cpat-tenable-admin',
   templateUrl: './tenable-admin.component.html',
   styleUrls: ['./tenable-admin.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    ConfirmDialogModule,
+    DropdownModule,
+    FormsModule,
+    ToastModule,
+  ],
+  providers: [ConfirmationService, MessageService]
 })
 export class TenableAdminComponent implements OnInit {
   tenableRepositories: TenableRepository[] = [];

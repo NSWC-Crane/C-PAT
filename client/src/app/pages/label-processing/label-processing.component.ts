@@ -24,8 +24,17 @@ import {
 } from '../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { SharedService } from '../../common/services/shared.service';
 import { LabelService } from './label.service';
-import { Table } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { PayloadService } from '../../common/services/setPayload.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
+import { LabelComponent } from './label/label.component';
 
 interface LabelEntry {
   labelId: string;
@@ -37,7 +46,20 @@ interface LabelEntry {
   selector: 'cpat-label-processing',
   templateUrl: './label-processing.component.html',
   styleUrls: ['./label-processing.component.scss'],
-  providers: [DialogService],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    CardModule,
+    DialogModule,
+    DropdownModule,
+    InputTextModule,
+    TableModule,
+    TooltipModule,
+    LabelComponent
+  ],
+  providers: [DialogService]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;

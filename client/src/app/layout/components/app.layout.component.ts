@@ -1,5 +1,5 @@
 import { Component, OnDestroy, Renderer2, ViewChild } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { MenuService } from '../services/app.menu.service';
 import { AppNavigationComponent } from './app.navigation.component';
@@ -7,10 +7,23 @@ import { LayoutService } from '../services/app.layout.service';
 import { SubSink } from 'subsink';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { AuthService } from '../../core/auth/services/auth.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { AppConfigComponent } from './app.config.component';
+import { AppClassificationComponent } from './app.classification.component';
 
 @Component({
   selector: 'app-layout',
   templateUrl: './app.layout.component.html',
+  standalone: true,
+  imports: [
+    AppClassificationComponent,
+    AppConfigComponent,
+    AppNavigationComponent,
+    CommonModule,
+    FormsModule,
+    RouterOutlet,
+  ],
 })
 export class AppLayoutComponent implements OnDestroy {
   overlayMenuOpenSubscription: Subscription;

@@ -16,12 +16,27 @@ import { CollectionsService } from '../../pages/admin-processing/collection-proc
 import { Router } from '@angular/router';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
+import { AppMenuitemComponent } from './app.menuitem.component';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-menu',
   templateUrl: './app.menu.component.html',
   styleUrls: ['./app.menu.component.scss'],
   providers: [ConfirmationService, MessageService],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    DialogModule,
+    FormsModule,
+    AppMenuitemComponent,
+    ToastModule,
+  ],
 })
 export class AppMenuComponent implements OnInit, OnDestroy {
   model: MenuItem[] = [];

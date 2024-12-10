@@ -11,10 +11,10 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ImportService } from '../../../import.service';
-import { Table } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Dropdown } from 'primeng/dropdown';
-import { MultiSelect } from 'primeng/multiselect';
+import { Dropdown, DropdownModule } from 'primeng/dropdown';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { Router } from '@angular/router';
 import { format, parseISO, startOfDay } from 'date-fns';
@@ -22,6 +22,13 @@ import { SharedService } from '../../../../../common/services/shared.service';
 import { Subscription } from 'rxjs';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { FilterMetadata } from "primeng/api";
+import { TooltipModule } from 'primeng/tooltip';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 
 interface Reference {
   type: string;
@@ -45,6 +52,19 @@ interface NavyComplyDateFilter {
   selector: 'tenable-iav-vulnerabilities',
   templateUrl: './tenableIAVVulnerabilities.component.html',
   styleUrls: ['./tenableIAVVulnerabilities.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    DialogModule,
+    DropdownModule,
+    FormsModule,
+    InputTextModule,
+    MultiSelectModule,
+    TableModule,
+    ToastModule,
+    TooltipModule,
+  ],
   providers: [MessageService],
 })
 export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {

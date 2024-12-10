@@ -1,5 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { DialogModule } from 'primeng/dialog';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
@@ -43,6 +46,12 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
     </p-footer>
   `,
   styleUrls: ['./dod-consent.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    DialogModule,
+    FormsModule,
+  ],
 })
 export class ConsentDialogComponent {
   constructor(

@@ -8,17 +8,39 @@
 !##########################################################################
 */
 
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { Subscription } from 'rxjs';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'cpat-poam-assigned-grid',
   templateUrl: './poam-assigned-grid.component.html',
   styleUrls: ['./poam-assigned-grid.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    FormsModule,
+    TableModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule
+  ],
+  providers: [MessageService],
 })
 export class PoamAssignedGridComponent implements OnChanges {
   @Input() userId!: number;
-  @Input() assignedData!: any[];  
+  @Input() assignedData!: any[];
   @Input() gridHeight!: string;
 
   assignedColumns: string[] = ['POAM ID', 'Adjusted Severity', 'Status', 'Submitter', 'Assigned Team', 'POAM'];
@@ -26,7 +48,7 @@ export class PoamAssignedGridComponent implements OnChanges {
   filteredData: any[] = [];
   globalFilter: string = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['assignedData']) {

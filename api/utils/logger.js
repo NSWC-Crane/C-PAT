@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-const uuid = require('uuid')
+const { v1: uuidv1 } = require('uuid');
 const onFinished = require('on-finished')
 const onHeaders = require('on-headers')
 const config = require('./config')
@@ -112,7 +112,7 @@ function requestLogger(req, res, next) {
     recordStartTime.call(req)
 
     function logRequest() {
-        req.requestId = uuid.v1()
+        req.requestId = uuidv1();
         writeInfo('rest', 'request', serializeRequest(req))
     }
 

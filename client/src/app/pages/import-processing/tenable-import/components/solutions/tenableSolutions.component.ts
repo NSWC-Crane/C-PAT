@@ -2,9 +2,15 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ConfirmationDialogOptions } from '../../../../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../../import.service';
-import { Table } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { Subscription } from 'rxjs';
 import { SharedService } from '../../../../../common/services/shared.service';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 interface ExportColumn {
   title: string;
@@ -15,6 +21,16 @@ interface ExportColumn {
   selector: 'tenable-solutions',
   templateUrl: './tenableSolutions.component.html',
   styleUrls: ['./tenableSolutions.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    DialogModule,
+    TableModule,
+    InputTextModule,
+    TooltipModule,
+  ],
 })
 export class TenableSolutionsComponent implements OnInit, OnDestroy {
   solutions: any[] = [];

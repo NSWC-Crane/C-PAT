@@ -1,4 +1,9 @@
+import { CommonModule } from '@angular/common';
 import { Component, NgZone } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { ImageModule } from 'primeng/image';
+import { StepperModule } from 'primeng/stepper';
 
 @Component({
   selector: 'cpat-vram-popup',
@@ -109,6 +114,14 @@ import { Component, NgZone } from '@angular/core';
         transition: opacity 0.3s ease-in-out;
       }
     `,
+  ],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    ImageModule,
+    FormsModule,
+    StepperModule,
   ],
 })
 export class VramPopupComponent {

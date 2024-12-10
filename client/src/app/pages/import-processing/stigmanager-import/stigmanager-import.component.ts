@@ -24,8 +24,18 @@ import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { Table } from 'primeng/table/table';
 import { PoamService } from '../../poam-processing/poams.service';
+import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
+import { TabViewModule } from 'primeng/tabview';
+import { SkeletonModule } from 'primeng/skeleton';
+import { DropdownModule } from 'primeng/dropdown';
+import { FormsModule } from '@angular/forms';
+import { CardModule } from 'primeng/card';
+import { Table, TableModule } from 'primeng/table';
+import { TooltipModule } from 'primeng/tooltip';
+import { InputTextModule } from 'primeng/inputtext';
 
 interface AssetEntry {
   groupId: string;
@@ -42,6 +52,21 @@ interface AssetEntry {
   selector: 'cpat-stigmanager-import',
   templateUrl: './stigmanager-import.component.html',
   styleUrls: ['./stigmanager-import.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CardModule,
+    CommonModule,
+    DropdownModule,
+    FormsModule,
+    InputTextModule,
+    SkeletonModule,
+    TableModule,
+    TabViewModule,
+    ToastModule,
+    TooltipModule
+  ],
+  providers: [ConfirmationService, MessageService],
 })
 export class STIGManagerImportComponent implements OnInit, OnDestroy {
   @ViewChild('stigFindingsTable') table!: Table;
