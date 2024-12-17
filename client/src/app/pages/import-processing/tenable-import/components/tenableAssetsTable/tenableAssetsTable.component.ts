@@ -11,6 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { InputTextareaModule } from 'primeng/inputtextarea';
 
 interface Reference {
   type: string;
@@ -32,6 +33,7 @@ interface ExportColumn {
     TableModule,
     ButtonModule,
     InputTextModule,
+    InputTextareaModule,
     MultiSelectModule,
     DialogModule,
     ToastModule,
