@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
+import { InputTextareaModule } from 'primeng/inputtextarea';
 
 interface ExportColumn {
   title: string;
@@ -32,6 +33,7 @@ interface Label {
     CardModule,
     CommonModule,
     FormsModule,
+    InputTextareaModule,
     MultiSelectModule,
     TableModule,
     ToastModule,
