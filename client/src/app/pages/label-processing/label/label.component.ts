@@ -27,12 +27,25 @@ import {
   ConfirmationDialogComponent,
   ConfirmationDialogOptions,
 } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'cpat-label',
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss'],
-  providers: [DialogService],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    DialogModule,
+    InputTextModule
+  ],
+  providers: [DialogService]
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   @Input() label: any;

@@ -8,19 +8,12 @@
 !##########################################################################
 */
 
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { Routes } from '@angular/router';
 import { LabelProcessingComponent } from './label-processing.component';
 
-const routes: Routes = [
+export const labelProcessingRoutes: Routes = [
   {
     path: '',
     component: LabelProcessingComponent,
   },
 ];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class LabelProcessingRoutingModule {}

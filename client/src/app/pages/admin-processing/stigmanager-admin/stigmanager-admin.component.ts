@@ -14,6 +14,12 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { CollectionsService } from '../collection-processing/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { ToastModule } from 'primeng/toast';
 
 interface STIGManagerCollection {
   collectionId: string;
@@ -32,6 +38,16 @@ interface CollectionBasicList {
   selector: 'cpat-stigmanager-admin',
   templateUrl: './stigmanager-admin.component.html',
   styleUrls: ['./stigmanager-admin.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    ConfirmDialogModule,
+    DropdownModule,
+    FormsModule,
+    ToastModule,
+  ],
+  providers: [ConfirmationService, MessageService]
 })
 export class STIGManagerAdminComponent implements OnInit {
   stigmanCollections: STIGManagerCollection[] = [];

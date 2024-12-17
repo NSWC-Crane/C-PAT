@@ -33,7 +33,7 @@
             </div>
           </div>
           <div class="canvas" id="canvas">
-            <canvas #poamStatusChart [style.height]="canvasHeight" [style.width]="canvasWidth"></canvas>
+            <canvas #poamStatusChart></canvas>
             <button pButton type="button" class="p-button-text export-button" (click)="exportChart(statusChart, 'C-PAT POAM Status Chart')">
               <i class="pi pi-download"></i>
             </button>
@@ -60,7 +60,7 @@
             </div>
           </div>
           <div class="canvas" id="canvas">
-            <canvas #poamSeverityChart [style.height]="canvasHeight" [style.width]="canvasWidth"></canvas>
+            <canvas #poamSeverityChart></canvas>
             <button pButton type="button" class="p-button-text export-button" (click)="exportChart(severityChart, 'C-PAT POAM Severity Chart')">
               <i class="pi pi-download"></i>
             </button>
@@ -87,7 +87,7 @@
             </div>
           </div>
           <div class="canvas" id="canvas">
-            <canvas #poamScheduledCompletionChart [style.height]="canvasHeight" [style.width]="canvasWidth"></canvas>
+            <canvas #poamScheduledCompletionChart></canvas>
             <button pButton type="button" class="p-button-text export-button" (click)="exportChart(scheduledCompletionChart, 'C-PAT POAM Scheduled Completion Chart')">
               <i class="pi pi-download"></i>
             </button>
@@ -114,7 +114,7 @@
             </div>
           </div>
           <div class="canvas" id="canvas">
-            <canvas #poamTaskOrderChart [style.height]="canvasHeight" [style.width]="canvasWidth"></canvas>
+            <canvas #poamTaskOrderChart></canvas>
             <button pButton type="button" class="p-button-text export-button" (click)="exportChart(taskOrderChart, 'C-PAT POAM Task Order Chart')">
               <i class="pi pi-download"></i>
             </button>
@@ -141,7 +141,7 @@
             </div>
           </div>
           <div class="canvas" id="canvas">
-            <canvas #poamLabelChart [style.height]="canvasHeight" [style.width]="canvasWidth"></canvas>
+            <canvas #poamLabelChart></canvas>
             <button pButton type="button" class="p-button-text export-button" (click)="exportChart(labelChart, 'C-PAT POAM Label Chart')">
               <i class="pi pi-download"></i>
             </button>

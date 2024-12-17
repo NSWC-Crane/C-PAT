@@ -8,19 +8,37 @@
 !##########################################################################
 */
 
-import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, Renderer2, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnInit, Renderer2, SimpleChanges, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 import { UsersService } from '../user-processing/users.service';
 import { firstValueFrom, timer } from 'rxjs';
-import { Table } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { ImportService } from '../../import-processing/import.service';
-import { format, parseISO, startOfDay } from 'date-fns';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CalendarModule } from 'primeng/calendar';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessagesModule } from 'primeng/messages';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-nessus-plugin-mapping',
   templateUrl: './nessus-plugin-mapping.component.html',
   styleUrls: ['./nessus-plugin-mapping.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    CalendarModule,
+    InputTextModule,
+    FormsModule,
+    MessagesModule,
+    ProgressBarModule,
+    TableModule,
+  ],
+  providers: [MessageService],
 })
 export class NessusPluginMappingComponent implements OnInit, OnChanges {
   @ViewChild('dt') dt!: Table;

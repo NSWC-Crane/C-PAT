@@ -1,16 +1,13 @@
--- MySQL dump 10.13  Distrib 9.0.1, for Win64 (x86_64)
---
--- Host: 127.0.0.1    Database: cpat
--- ------------------------------------------------------
--- Server version	9.0.1
-
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS=0;
+SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
+SET CHARACTER_SET_CLIENT=utf8mb4;
+SET CHARACTER_SET_CONNECTION=utf8mb4;
+SET CHARACTER_SET_DATABASE=utf8mb4;
+SET CHARACTER_SET_RESULTS=utf8mb4;
+SET CHARACTER_SET_SERVER=utf8mb4;
+SET COLLATION_CONNECTION=utf8mb4_0900_ai_ci;
+SET TIME_ZONE='+00:00';
 
 --
 -- Table structure for table `_migrations`
@@ -35,42 +32,6 @@ CREATE TABLE `aapackages` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Table structure for table `asset`
---
-
-DROP TABLE IF EXISTS `asset`;
-CREATE TABLE `asset` (
-  `assetId` int NOT NULL AUTO_INCREMENT,
-  `assetName` varchar(255) NOT NULL,
-  `fullyQualifiedDomainName` varchar(255) DEFAULT NULL,
-  `collectionId` int NOT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `ipAddress` varchar(50) DEFAULT NULL,
-  `macAddress` varchar(50) DEFAULT NULL,
-  `nonComputing` tinyint(1) DEFAULT '0',
-  `assetOrigin` varchar(15) DEFAULT 'C-PAT',
-  PRIMARY KEY (`assetId`),
-  UNIQUE KEY `assetId_UNIQUE` (`assetId`),
-  KEY `idx_asset_collectionId` (`collectionId`),
-  KEY `idx_asset_assetName` (`assetName`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Table structure for table `assetlabels`
---
-
-DROP TABLE IF EXISTS `assetlabels`;
-CREATE TABLE `assetlabels` (
-  `assetId` int NOT NULL,
-  `collectionId` int NOT NULL,
-  `labelId` int NOT NULL,
-  PRIMARY KEY (`assetId`,`labelId`),
-  KEY `fk_assetlabels_collection` (`collectionId`),
-  CONSTRAINT `fk_assetlabels_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE,
-  CONSTRAINT `fk_assetlabels_collection` FOREIGN KEY (`collectionId`) REFERENCES `collection` (`collectionId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
 -- Table structure for table `assignedteams`
 --
 
@@ -79,40 +40,6 @@ CREATE TABLE `assignedteams` (
   `assignedTeamId` int NOT NULL AUTO_INCREMENT,
   `assignedTeamName` varchar(100) NOT NULL,
   PRIMARY KEY (`assignedTeamId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Table structure for table `collection`
---
-
-DROP TABLE IF EXISTS `collection`;
-CREATE TABLE `collection` (
-  `collectionId` int NOT NULL AUTO_INCREMENT,
-  `collectionName` varchar(50) NOT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `systemType` varchar(100) DEFAULT NULL,
-  `systemName` varchar(100) DEFAULT NULL,
-  `ccsafa` varchar(100) DEFAULT NULL,
-  `aaPackage` varchar(100) DEFAULT NULL,
-  `created` datetime DEFAULT CURRENT_TIMESTAMP,
-  `collectionOrigin` varchar(15) DEFAULT 'C-PAT',
-  `originCollectionId` int DEFAULT NULL,
-  PRIMARY KEY (`collectionId`),
-  KEY `idx_collection_collectionName` (`collectionName`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Table structure for table `collectionpermissions`
---
-
-DROP TABLE IF EXISTS `collectionpermissions`;
-CREATE TABLE `collectionpermissions` (
-  `userId` int NOT NULL,
-  `collectionId` int NOT NULL,
-  `accessLevel` int NOT NULL,
-  PRIMARY KEY (`userId`,`collectionId`),
-  KEY `idx_collectionpermissions_userId` (`userId`),
-  KEY `idx_collectionpermissions_collectionId` (`collectionId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -148,6 +75,66 @@ CREATE TABLE `iav` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
+-- Table structure for table `themes`
+--
+
+DROP TABLE IF EXISTS `themes`;
+CREATE TABLE `themes` (
+  `themeId` int NOT NULL AUTO_INCREMENT,
+  `themeIdentifier` varchar(25) NOT NULL,
+  `themeName` varchar(50) NOT NULL,
+  `themeDescription` varchar(255) DEFAULT NULL,
+  `cost` int NOT NULL,
+  PRIMARY KEY (`themeId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `user`
+--
+
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` (
+  `userId` int NOT NULL AUTO_INCREMENT,
+  `userName` varchar(20) NOT NULL,
+  `email` varchar(100) NOT NULL DEFAULT 'None Provided',
+  `phoneNumber` varchar(20) NOT NULL DEFAULT '',
+  `firstName` varchar(50) NOT NULL DEFAULT '',
+  `lastName` varchar(50) NOT NULL DEFAULT ' ',
+  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastAccess` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastCollectionAccessedId` int NOT NULL DEFAULT '0',
+  `accountStatus` varchar(25) NOT NULL DEFAULT 'PENDING',
+  `fullName` varchar(100) DEFAULT NULL,
+  `officeOrg` varchar(100) DEFAULT 'UNKNOWN',
+  `defaultTheme` varchar(50) DEFAULT 'lara-dark-blue',
+  `lastClaims` json DEFAULT (_utf8mb4'{}'),
+  `points` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`userId`),
+  UNIQUE KEY `userName_UNIQUE` (`userName`),
+  KEY `idx_user_userName` (`userName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `collection`
+--
+
+DROP TABLE IF EXISTS `collection`;
+CREATE TABLE `collection` (
+  `collectionId` int NOT NULL AUTO_INCREMENT,
+  `collectionName` varchar(50) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `systemType` varchar(100) DEFAULT NULL,
+  `systemName` varchar(100) DEFAULT NULL,
+  `ccsafa` varchar(100) DEFAULT NULL,
+  `aaPackage` varchar(100) DEFAULT NULL,
+  `created` datetime DEFAULT CURRENT_TIMESTAMP,
+  `collectionOrigin` varchar(15) DEFAULT 'C-PAT',
+  `originCollectionId` int DEFAULT NULL,
+  PRIMARY KEY (`collectionId`),
+  KEY `idx_collection_collectionName` (`collectionName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
 -- Table structure for table `iav_plugin`
 --
 
@@ -158,6 +145,59 @@ CREATE TABLE `iav_plugin` (
   PRIMARY KEY (`iav`,`pluginID`),
   KEY `idx_pluginID` (`pluginID`),
   CONSTRAINT `iav_plugin_ibfk_1` FOREIGN KEY (`iav`) REFERENCES `iav` (`iav`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `asset`
+--
+
+DROP TABLE IF EXISTS `asset`;
+CREATE TABLE `asset` (
+  `assetId` int NOT NULL AUTO_INCREMENT,
+  `assetName` varchar(255) NOT NULL,
+  `fullyQualifiedDomainName` varchar(255) DEFAULT NULL,
+  `collectionId` int NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `ipAddress` varchar(50) DEFAULT NULL,
+  `macAddress` varchar(50) DEFAULT NULL,
+  `nonComputing` tinyint(1) DEFAULT '0',
+  `assetOrigin` varchar(15) DEFAULT 'C-PAT',
+  PRIMARY KEY (`assetId`),
+  UNIQUE KEY `assetId_UNIQUE` (`assetId`),
+  KEY `idx_asset_collectionId` (`collectionId`),
+  KEY `idx_asset_assetName` (`assetName`),
+  CONSTRAINT `fk_asset_collection` FOREIGN KEY (`collectionId`) REFERENCES `collection` (`collectionId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `assetlabels`
+--
+
+DROP TABLE IF EXISTS `assetlabels`;
+CREATE TABLE `assetlabels` (
+  `assetId` int NOT NULL,
+  `collectionId` int NOT NULL,
+  `labelId` int NOT NULL,
+  PRIMARY KEY (`assetId`,`labelId`),
+  KEY `fk_assetlabels_collection` (`collectionId`),
+  CONSTRAINT `fk_assetlabels_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_assetlabels_collection` FOREIGN KEY (`collectionId`) REFERENCES `collection` (`collectionId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `collectionpermissions`
+--
+
+DROP TABLE IF EXISTS `collectionpermissions`;
+CREATE TABLE `collectionpermissions` (
+  `userId` int NOT NULL,
+  `collectionId` int NOT NULL,
+  `accessLevel` int NOT NULL,
+  PRIMARY KEY (`userId`,`collectionId`),
+  KEY `idx_collectionpermissions_userId` (`userId`),
+  KEY `idx_collectionpermissions_collectionId` (`collectionId`),
+  CONSTRAINT `fk_collectionpermissions_collection` FOREIGN KEY (`collectionId`) REFERENCES `collection` (`collectionId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_collectionpermissions_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -173,7 +213,8 @@ CREATE TABLE `label` (
   `stigmanLabelId` varchar(36) DEFAULT NULL,
   PRIMARY KEY (`labelId`),
   UNIQUE KEY `label_collection_UNIQUE` (`labelName`,`collectionId`),
-  KEY `idx_label_collectionId` (`collectionId`)
+  KEY `idx_label_collectionId` (`collectionId`),
+  CONSTRAINT `fk_label_collection` FOREIGN KEY (`collectionId`) REFERENCES `collection` (`collectionId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -206,7 +247,8 @@ CREATE TABLE `notification` (
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
   `read` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`notificationId`),
-  KEY `idx_notification_userId` (`userId`)
+  KEY `idx_notification_userId` (`userId`),
+  CONSTRAINT `fk_notification_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -253,21 +295,10 @@ CREATE TABLE `poam` (
   UNIQUE KEY `poamID_UNIQUE` (`poamId`),
   KEY `idx_poam_collectionId` (`collectionId`),
   KEY `idx_poam_vulnerabilityId` (`vulnerabilityId`),
-  KEY `idx_poam_submitterId` (`submitterId`)
+  KEY `idx_poam_submitterId` (`submitterId`),
+  CONSTRAINT `fk_poam_collection` FOREIGN KEY (`collectionId`) REFERENCES `collection` (`collectionId`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `prevent_created_update` BEFORE UPDATE ON `poam` FOR EACH ROW BEGIN
-    IF NEW.created != OLD.created THEN
-        SET NEW.created = OLD.created;
-    END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
 
 --
 -- Table structure for table `poamapprovers`
@@ -280,47 +311,11 @@ CREATE TABLE `poamapprovers` (
   `approvalStatus` varchar(50) NOT NULL DEFAULT 'Not Reviewed',
   `approvedDate` datetime DEFAULT CURRENT_TIMESTAMP,
   `comments` varchar(2000) DEFAULT NULL,
-  PRIMARY KEY (`poamId`,`userId`)
+  PRIMARY KEY (`poamId`,`userId`),
+  CONSTRAINT `fk_poamapprovers_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_poamapprovers_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamapprovers_insert` AFTER INSERT ON `poamapprovers` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamapprovers_update` AFTER UPDATE ON `poamapprovers` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamapprovers_delete` AFTER DELETE ON `poamapprovers` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = OLD.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
 
 --
 -- Table structure for table `poamassets`
@@ -333,34 +328,10 @@ CREATE TABLE `poamassets` (
   PRIMARY KEY (`poamId`,`assetId`),
   KEY `idx_poamassets_assetId` (`assetId`),
   KEY `idx_poamassets_poamId` (`poamId`),
-  CONSTRAINT `fk_poamassets_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE
+  CONSTRAINT `fk_poamassets_asset` FOREIGN KEY (`assetId`) REFERENCES `asset` (`assetId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_poamassets_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassets_insert` AFTER INSERT ON `poamassets` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassets_delete` AFTER DELETE ON `poamassets` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = OLD.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
 
 --
 -- Table structure for table `poamassignedteams`
@@ -371,47 +342,11 @@ CREATE TABLE `poamassignedteams` (
   `poamId` int NOT NULL,
   `assignedTeamId` int NOT NULL,
   PRIMARY KEY (`poamId`,`assignedTeamId`),
-  KEY `idx_poamassignees_assignedTeamId` (`assignedTeamId`)
+  KEY `idx_poamassignees_assignedTeamId` (`assignedTeamId`),
+  CONSTRAINT `fk_poamassignedteams_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_poamassignedteams_team` FOREIGN KEY (`assignedTeamId`) REFERENCES `assignedteams` (`assignedTeamId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignedteams_insert` AFTER INSERT ON `poamassignedteams` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignedteams_update` AFTER UPDATE ON `poamassignedteams` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignedteams_delete` AFTER DELETE ON `poamassignedteams` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = OLD.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
 
 --
 -- Table structure for table `poamassignees`
@@ -422,47 +357,11 @@ CREATE TABLE `poamassignees` (
   `poamId` int NOT NULL,
   `userId` int NOT NULL,
   PRIMARY KEY (`poamId`,`userId`),
-  KEY `idx_poamassignees_userId` (`userId`)
+  KEY `idx_poamassignees_userId` (`userId`),
+  CONSTRAINT `fk_poamassignees_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_poamassignees_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignees_insert` AFTER INSERT ON `poamassignees` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignees_update` AFTER UPDATE ON `poamassignees` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamassignees_delete` AFTER DELETE ON `poamassignees` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = OLD.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
 
 --
 -- Table structure for table `poamassociatedvulnerabilities`
@@ -504,47 +403,11 @@ DROP TABLE IF EXISTS `poamlabels`;
 CREATE TABLE `poamlabels` (
   `poamId` int NOT NULL,
   `labelId` int NOT NULL,
-  PRIMARY KEY (`poamId`,`labelId`)
+  PRIMARY KEY (`poamId`,`labelId`),
+  CONSTRAINT `fk_poamlabels_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_poamlabels_label` FOREIGN KEY (`labelId`) REFERENCES `label` (`labelId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamlabels_insert` AFTER INSERT ON `poamlabels` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamlabels_update` AFTER UPDATE ON `poamlabels` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamlabels_delete` AFTER DELETE ON `poamlabels` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = OLD.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
 
 --
 -- Table structure for table `poamlogs`
@@ -558,21 +421,11 @@ CREATE TABLE `poamlogs` (
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
   `action` varchar(2000) NOT NULL,
   PRIMARY KEY (`poamLogId`),
-  KEY `idx_poamlogs_poamId` (`poamId`)
+  KEY `idx_poamlogs_poamId` (`poamId`),
+  CONSTRAINT `fk_poamlogs_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_poamlogs_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poamlogs_insert` AFTER INSERT ON `poamlogs` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
 
 --
 -- Table structure for table `poammilestones`
@@ -589,93 +442,113 @@ CREATE TABLE `poammilestones` (
   `milestoneChangeDate` date DEFAULT NULL,
   `milestoneTeam` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`milestoneId`),
-  KEY `idx_poammilestones_poamId` (`poamId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poammilestones_insert` AFTER INSERT ON `poammilestones` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poammilestones_update` AFTER UPDATE ON `poammilestones` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = NEW.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `after_poammilestones_delete` AFTER DELETE ON `poammilestones` FOR EACH ROW BEGIN
-    UPDATE poam
-    SET lastUpdated = CURRENT_DATE
-    WHERE poamId = OLD.poamId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-
---
--- Table structure for table `themes`
---
-
-DROP TABLE IF EXISTS `themes`;
-CREATE TABLE `themes` (
-  `themeId` int NOT NULL AUTO_INCREMENT,
-  `themeIdentifier` varchar(25) NOT NULL,
-  `themeName` varchar(50) NOT NULL,
-  `themeDescription` varchar(255) DEFAULT NULL,
-  `cost` int NOT NULL,
-  PRIMARY KEY (`themeId`)
+  KEY `idx_poammilestones_poamId` (`poamId`),
+  CONSTRAINT `fk_poammilestones_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Table structure for table `user`
---
+SET FOREIGN_KEY_CHECKS=1;
 
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
-  `userId` int NOT NULL AUTO_INCREMENT,
-  `userName` varchar(20) NOT NULL,
-  `email` varchar(100) NOT NULL DEFAULT 'None Provided',
-  `phoneNumber` varchar(20) NOT NULL DEFAULT '',
-  `firstName` varchar(50) NOT NULL DEFAULT '',
-  `lastName` varchar(50) NOT NULL DEFAULT ' ',
-  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `lastAccess` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `lastCollectionAccessedId` int NOT NULL DEFAULT '0',
-  `accountStatus` varchar(25) NOT NULL DEFAULT 'PENDING',
-  `fullName` varchar(100) DEFAULT NULL,
-  `officeOrg` varchar(100) DEFAULT 'UNKNOWN',
-  `defaultTheme` varchar(50) DEFAULT 'lara-dark-blue',
-  `lastClaims` json DEFAULT (_utf8mb4'{}'),
-  `points` int NOT NULL DEFAULT '0',
-  PRIMARY KEY (`userId`),
-  UNIQUE KEY `userName_UNIQUE` (`userName`),
-  KEY `idx_user_userName` (`userName`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+CREATE TRIGGER prevent_created_update 
+BEFORE UPDATE ON poam 
+FOR EACH ROW 
+SET NEW.created = OLD.created;
 
--- Dump completed on 2024-11-18 11:46:49
+CREATE TRIGGER after_poamapprovers_insert 
+AFTER INSERT ON poamapprovers 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poamapprovers_update 
+AFTER UPDATE ON poamapprovers 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poamapprovers_delete 
+AFTER DELETE ON poamapprovers 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
+
+CREATE TRIGGER after_poamassets_insert 
+AFTER INSERT ON poamassets 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poamassets_delete 
+AFTER DELETE ON poamassets 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
+
+CREATE TRIGGER after_poamassignedteams_insert 
+AFTER INSERT ON poamassignedteams 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poamassignedteams_update 
+AFTER UPDATE ON poamassignedteams 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poamassignedteams_delete 
+AFTER DELETE ON poamassignedteams 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
+
+CREATE TRIGGER after_poamassignees_insert 
+AFTER INSERT ON poamassignees 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poamassignees_update 
+AFTER UPDATE ON poamassignees 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poamassignees_delete 
+AFTER DELETE ON poamassignees 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
+
+CREATE TRIGGER after_poamlabels_insert 
+AFTER INSERT ON poamlabels 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poamlabels_update 
+AFTER UPDATE ON poamlabels 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poamlabels_delete 
+AFTER DELETE ON poamlabels 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
+
+CREATE TRIGGER after_poamlogs_insert 
+AFTER INSERT ON poamlogs 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poammilestones_insert 
+AFTER INSERT ON poammilestones 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poammilestones_update 
+AFTER UPDATE ON poammilestones 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
+
+CREATE TRIGGER after_poammilestones_delete 
+AFTER DELETE ON poammilestones 
+FOR EACH ROW 
+UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
+
+CREATE PROCEDURE daily_poam_status_update()
+UPDATE poam 
+SET status = 'Expired'
+WHERE
+    status IN ('Submitted', 'Rejected') AND
+    scheduledCompletionDate + INTERVAL extensionTimeAllowed DAY < CURDATE() AND
+    poamId > 0;

@@ -14,12 +14,28 @@ import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { eMASSImportService } from './emass-import.service';
 import { UsersService } from '../user-processing/users.service';
 import { firstValueFrom } from 'rxjs';
-import { FileUpload } from 'primeng/fileupload';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { ButtonModule } from 'primeng/button';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { BadgeModule } from 'primeng/badge';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-emass-import',
   templateUrl: './emass-import.component.html',
   styleUrls: ['./emass-import.component.scss'],
+  standalone: true,
+  imports: [
+    BadgeModule,
+    ButtonModule,
+    CommonModule,
+    FileUploadModule,
+    FormsModule,
+    ProgressBarModule,
+    ToastModule,
+  ],
 })
 export class EmassImportComponent implements OnInit {
   @ViewChild('fileUpload') fileUpload!: FileUpload;

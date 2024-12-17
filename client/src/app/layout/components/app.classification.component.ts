@@ -1,10 +1,17 @@
 import { Classification } from '../../common/models/classification.model';
 import { Component, OnInit } from '@angular/core';
 import { SharedService } from '../../common/services/shared.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-classification',
   templateUrl: './app.classification.component.html',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+  ],
 })
 export class AppClassificationComponent implements OnInit {
   classification: Classification | undefined;

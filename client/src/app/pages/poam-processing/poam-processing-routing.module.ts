@@ -18,7 +18,7 @@ import { PoamManageComponent } from './poam-manage/poam-manage.component';
 import { PoamsComponent } from './poams.component';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
-const routes: Routes = [
+export const poamProcessingRoutes: Routes = [
   { path: '', component: PoamsComponent },
   {
     path: 'poam-approve/:poamId',
@@ -52,9 +52,3 @@ const routes: Routes = [
   },
   { path: '**', redirectTo: '' },
 ];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class PoamProcessingRoutingModule {}

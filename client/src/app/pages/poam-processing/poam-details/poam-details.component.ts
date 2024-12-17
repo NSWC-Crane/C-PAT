@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { DatePipe, Location } from '@angular/common';
+import { CommonModule, DatePipe, Location } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
@@ -27,22 +27,38 @@ import { PoamService } from '../poams.service';
 import { AssetService } from '../../asset-processing/assets.service';
 import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
-import { Table } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { jsonToPlainText } from 'json-to-plain-text';
 import { AAPackageService } from '../../admin-processing/aaPackage-processing/aaPackage-processing.service';
 import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
-import { Menu } from 'primeng/menu';
+import { Menu, MenuModule } from 'primeng/menu';
+import { FormsModule } from '@angular/forms';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { ButtonModule } from 'primeng/button';
+import { CalendarModule } from 'primeng/calendar';
+import { CardModule } from 'primeng/card';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TabViewModule } from 'primeng/tabview';
+import { ToastModule } from 'primeng/toast';
+import { PoamAttachmentsComponent } from '../poam-attachments/poam-attachments.component';
+import { TagModule } from 'primeng/tag';
+import { StepperModule } from 'primeng/stepper';
+import { TenableAssetsTableComponent } from '../../import-processing/tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
+import { STIGManagerPoamAssetsTableComponent } from '../../import-processing/stigmanager-import/stigManagerPoamAssetsTable/stigManagerPoamAssetsTable.component';
+import { SplitterModule } from 'primeng/splitter';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface AAPackage {
   aaPackageId: number;
   aaPackage: string;
 }
 
-interface AssignedTeam {
-  assignedTeamId: number;
-  assignedTeamName: string;
-}
 interface Permission {
   userId: number;
   collectionId: number;
@@ -79,7 +95,33 @@ function calculateScheduledCompletionDate(rawSeverity: string) {
   selector: 'cpat-poamdetails',
   templateUrl: './poam-details.component.html',
   styleUrls: ['./poam-details.component.scss'],
-  providers: [ConfirmationService, MessageService, DatePipe],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    AutoCompleteModule,
+    ButtonModule,
+    CalendarModule,
+    CardModule,
+    ConfirmDialogModule,
+    DialogModule,
+    DropdownModule,
+    InputSwitchModule,
+    InputTextModule,
+    InputTextareaModule,
+    MenuModule,
+    SplitterModule,
+    StepperModule,
+    STIGManagerPoamAssetsTableComponent,
+    TableModule,
+    TabViewModule,
+    TagModule,
+    TenableAssetsTableComponent,
+    ToastModule,
+    TooltipModule,
+    PoamAttachmentsComponent
+  ],
+  providers: [ConfirmationService, MessageService, DatePipe]
 })
 export class PoamDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table: Table;

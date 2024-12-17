@@ -9,9 +9,16 @@
 */
 
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Table } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { MessageService } from 'primeng/api';
 import { AAPackageService } from './aaPackage-processing.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ToastModule } from 'primeng/toast';
+import { ButtonModule } from 'primeng/button';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
 
 interface AAPackage {
   aaPackageId: number;
@@ -22,6 +29,18 @@ interface AAPackage {
   selector: 'aa-package-processing',
   templateUrl: './aaPackage-processing.component.html',
   styleUrls: ['./aaPackage-processing.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    FormsModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    TableModule,
+    ToastModule,
+  ],
+  providers: [MessageService],
 })
 export class AAPackageProcessingComponent implements OnInit {
   @ViewChild('dt') table!: Table;

@@ -12,12 +12,36 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { UsersService } from './user-processing/users.service';
 import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
-import { TabView } from 'primeng/tabview';
+import { TabView, TabViewModule } from 'primeng/tabview';
+import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
+import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plugin-mapping.component';
+import { VRAMImportComponent } from './vram-import/vram-import.component';
+import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
+import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
+import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
+import { UserProcessingComponent } from './user-processing/user-processing.component';
 
 @Component({
   selector: 'cpat-admin-processing',
   templateUrl: './admin-processing.component.html',
   styleUrls: ['./admin-processing.component.scss'],
+  standalone: true,
+  imports: [
+    AAPackageProcessingComponent,
+    AssignedTeamProcessingComponent,
+    CollectionProcessingComponent,
+    CommonModule,
+    FormsModule,
+    NessusPluginMappingComponent,
+    STIGManagerAdminComponent,
+    TabViewModule,
+    TenableAdminComponent,
+    UserProcessingComponent,
+    VRAMImportComponent,
+  ],
 })
 export class AdminProcessingComponent implements OnInit {
   activeTabIndex: number = 0;

@@ -16,11 +16,26 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { PoamService } from '../../../pages/poam-processing/poams.service';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
+import { ButtonModule } from 'primeng/button';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DropdownModule } from 'primeng/dropdown';
+import { CardModule } from 'primeng/card';
+import { DataViewModule } from 'primeng/dataview';
 
 @Component({
   selector: 'cpat-notifications',
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CardModule,
+    CommonModule,
+    DataViewModule,
+    DropdownModule,
+    FormsModule,
+  ],
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
   notifications: any[] = [];

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-interface Permission {
+export interface Permission {
   userId: number;
   collectionId: number;
   accessLevel: number;

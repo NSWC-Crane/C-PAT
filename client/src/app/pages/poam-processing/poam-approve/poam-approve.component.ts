@@ -20,19 +20,39 @@ import { SubSink } from 'subsink';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PoamService } from '../poams.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
-import { DatePipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Subscription, forkJoin } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { PoamApproveService } from './poam-approve.service';
 import { parseISO, format } from 'date-fns';
 import { ChangeDetectorRef } from '@angular/core';
 import { MessageService } from 'primeng/api';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { CalendarModule } from 'primeng/calendar';
+import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'cpat-poam-approve',
   templateUrl: './poam-approve.component.html',
   styleUrls: ['./poam-approve.component.scss'],
-  providers: [MessageService, DatePipe],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    CalendarModule,
+    CheckboxModule,
+    DialogModule,
+    DropdownModule,
+    InputTextareaModule,
+    ToastModule
+  ],
+  providers: [MessageService, DatePipe]
 })
 export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   protected accessLevel: any;

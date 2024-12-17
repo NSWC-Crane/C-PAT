@@ -14,12 +14,21 @@ import { SubSink } from 'subsink';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
 import { CollectionsService } from './collections.service';
 import { MessageService } from 'primeng/api';
-import { TreeTable } from 'primeng/treetable';
+import { TreeTable, TreeTableModule } from 'primeng/treetable';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { ImportService } from '../../import-processing/import.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { AAPackageService } from '../aaPackage-processing/aaPackage-processing.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { DialogModule } from 'primeng/dialog';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputTextModule } from 'primeng/inputtext';
 
 interface TreeNode<T> {
   data: T;
@@ -44,6 +53,20 @@ interface CollectionData {
   selector: 'cpat-collection-processing',
   templateUrl: './collection-processing.component.html',
   styleUrls: ['./collection-processing.component.scss'],
+  standalone: true,
+  imports: [
+    AutoCompleteModule,
+    ButtonModule,
+    CommonModule,
+    DialogModule,
+    FormsModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    ToastModule,
+    TreeTableModule,
+  ],
+  providers: [MessageService],
 })
 export class CollectionProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table!: TreeTable;

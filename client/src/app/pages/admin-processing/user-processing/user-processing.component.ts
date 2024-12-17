@@ -15,14 +15,36 @@ import { ConfirmationService, TreeNode } from 'primeng/api';
 import { SubSink } from 'subsink';
 import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { TreeTable } from 'primeng/treetable';
+import { TreeTable, TreeTableModule } from 'primeng/treetable';
 import { Router } from '@angular/router';
 import { PayloadService } from '../../../common/services/setPayload.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { UserComponent } from './user/user.component';
+import { DropdownModule } from 'primeng/dropdown';
+import { TableModule } from 'primeng/table';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'cpat-user-processing',
   templateUrl: './user-processing.component.html',
   styleUrls: ['./user-processing.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    DropdownModule,
+    FormsModule,
+    InputIconModule,
+    InputTextModule,
+    IconFieldModule,
+    TableModule,
+    TreeTableModule,
+    UserComponent,
+  ],
   providers: [ConfirmationService],
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {

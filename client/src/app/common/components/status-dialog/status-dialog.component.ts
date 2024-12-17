@@ -8,7 +8,12 @@
 !##########################################################################
 */
 
+import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { ProgressBarModule } from 'primeng/progressbar';
 
 @Component({
   selector: 'status-dialog',
@@ -28,6 +33,14 @@ import { Component, Input, OnInit, OnDestroy } from '@angular/core';
       <p *ngIf="message">{{ message + ' ' + countdownMessage }}</p>
     </p-dialog>
   `,
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    DialogModule,
+    FormsModule,
+    ProgressBarModule,
+  ],
 })
 export class StatusDialogComponent implements OnInit, OnDestroy {
   @Input() progress: number = 0;

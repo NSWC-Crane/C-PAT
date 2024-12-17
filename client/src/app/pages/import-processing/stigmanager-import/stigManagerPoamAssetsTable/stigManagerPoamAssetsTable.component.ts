@@ -1,9 +1,15 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { Table } from 'primeng/table';
-import { MultiSelect } from 'primeng/multiselect';
+import { Table, TableModule } from 'primeng/table';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { SharedService } from 'src/app/common/services/shared.service';
 import { firstValueFrom } from 'rxjs';
+import { ToastModule } from 'primeng/toast';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 
 interface ExportColumn {
   title: string;
@@ -22,6 +28,17 @@ interface Label {
   selector: 'stigmanager-poam-assets-table',
   templateUrl: './stigManagerPoamAssetsTable.component.html',
   styleUrls: ['./stigManagerPoamAssetsTable.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CardModule,
+    CommonModule,
+    FormsModule,
+    InputTextModule,
+    MultiSelectModule,
+    TableModule,
+    ToastModule,
+  ],
 })
 export class STIGManagerPoamAssetsTableComponent implements OnInit {
   @Input() stigmanCollectionId!: string;

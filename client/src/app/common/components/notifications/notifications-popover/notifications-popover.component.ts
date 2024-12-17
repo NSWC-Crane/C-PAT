@@ -17,11 +17,22 @@ import { Subscription, firstValueFrom } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PoamService } from '../../../../pages/poam-processing/poams.service';
 import { UsersService } from '../../../../pages/admin-processing/user-processing/users.service';
+import { ListboxModule } from 'primeng/listbox';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'cpat-notifications-popover',
   templateUrl: './notifications-popover.component.html',
   styleUrls: ['./notifications-popover.component.scss'],
+  standalone: true,
+  imports: [
+    ButtonModule,
+    CommonModule,
+    FormsModule,
+    ListboxModule,
+  ],
 })
 export class NotificationsPanelComponent implements OnInit, OnDestroy {
   @Input() overlayPanel: OverlayPanel;

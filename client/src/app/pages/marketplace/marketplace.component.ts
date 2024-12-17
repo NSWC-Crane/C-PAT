@@ -20,6 +20,12 @@ import { SubSink } from 'subsink';
 import { forkJoin } from 'rxjs';
 import { UsersService } from '../admin-processing/user-processing/users.service';
 import { LayoutService } from '../../layout/services/app.layout.service';
+import { CommonModule } from '@angular/common';
+import { CardModule } from 'primeng/card';
+import { ChipModule } from 'primeng/chip';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DividerModule } from 'primeng/divider';
+import { ToastModule } from 'primeng/toast';
 
 interface Theme {
   themeId: number;
@@ -33,7 +39,16 @@ interface Theme {
   selector: 'cpat-marketplace',
   templateUrl: './marketplace.component.html',
   styleUrls: ['./marketplace.component.scss'],
-  providers: [DialogService, ConfirmationService, MessageService],
+  standalone: true,
+  imports: [
+    CommonModule,
+    CardModule,
+    ChipModule,
+    ConfirmDialogModule,
+    DividerModule,
+    ToastModule
+  ],
+  providers: [DialogService, ConfirmationService, MessageService]
 })
 export class MarketplaceComponent implements OnInit, OnDestroy {
   userPoints = 0;

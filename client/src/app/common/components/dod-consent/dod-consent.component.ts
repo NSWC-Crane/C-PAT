@@ -12,10 +12,19 @@ import { AfterViewInit, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ConsentDialogComponent } from './consent-dialog.component';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'cpat-consent',
   templateUrl: './dod-consent.component.html',
+  standalone: true,
+  imports: [
+    CommonModule,
+    DialogModule,
+    FormsModule,
+  ],
   providers: [DialogService],
 })
 export class DoDConsentComponent implements AfterViewInit {

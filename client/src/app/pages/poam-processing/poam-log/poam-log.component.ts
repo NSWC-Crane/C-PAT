@@ -18,6 +18,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SharedService } from '../../../common/services/shared.service';
 import { Subscription } from 'rxjs';
 import { PoamLogService } from './poam-log.service';
+import { CommonModule } from '@angular/common';
+import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
 
 interface FSEntry {
   Timestamp: string;
@@ -29,6 +32,12 @@ interface FSEntry {
   selector: 'cpat-poam-log',
   templateUrl: './poam-log.component.html',
   styleUrls: ['./poam-log.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    DialogModule,
+    TableModule
+  ]
 })
 export class PoamLogComponent implements OnInit, AfterViewInit {
   customColumn = 'Timestamp';
