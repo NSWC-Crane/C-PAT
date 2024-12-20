@@ -7,6 +7,7 @@
 - Copyright 2023-2024 U.S. Federal Government (in countries where recognized)
 - Copyright 2023-2024 Christian A. Rodriguez, christian.a.rodriguez@mantech.com
 - Copyright 2023-2024 Tyler Forajter, tyler.e.forajter.civ@us.navy.mil
+- Copyright 2024-2025 Austin Songer, austin@songer.me
 - _Add the copyright date, your name, and email address here. (PLEASE KEEP THIS LINE)_
 
 ## Note for U.S. Federal Employees
