@@ -23,6 +23,11 @@ interface AssignedTeam {
   assignedTeamName: string;
 }
 
+interface AssignedTeamPermission {
+  assignedTeamId: number;
+  collectionId: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -89,7 +94,23 @@ export class AssignedTeamService {
   async deleteAssignedTeam(assignedTeamId: number) {
     const headers = await this.getAuthHeaders();
     return this.http
-      .delete(`${this.cpatApiBase}/assignedTeam/${assignedTeamId}`, { headers })
+      .delete(`${this.cpatApiBase}/assignedTeams/${assignedTeamId}`, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  async postAssignedTeamPermission(assignedTeamPermission: AssignedTeamPermission) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .post<AssignedTeamPermission>(`${this.cpatApiBase}/assignedTeams/permissions`, assignedTeamPermission, {
+        headers,
+      })
+      .pipe(catchError(this.handleError));
+  }
+
+  async deleteAssignedTeamPermission(assignedTeamId: number, collectionId: number) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .delete(`${this.cpatApiBase}/assignedTeams/permissions/${assignedTeamId}/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 }

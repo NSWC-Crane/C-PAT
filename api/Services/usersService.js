@@ -39,6 +39,13 @@ exports.getUsers = async function getUsers(elevate, req) {
                         accessLevel: permission.accessLevel,
                     }));
 
+                    const assignedTeamSql = "SELECT * FROM cpat.userassignedteams WHERE userId = ?";
+                    const [assignedTeamsRows] = await connection.query(assignedTeamSql, [user.userId]);
+                    const assignedTeams = assignedTeamsRows.map(assignedTeam => ({
+                        assignedTeamId: assignedTeam.assignedTeamId,
+                        accessLevel: assignedTeam.accessLevel,
+                    }));
+
                     let isAdmin;
                     try {
                         isAdmin = privilegeGetter(user.lastClaims).includes('admin');
@@ -63,7 +70,8 @@ exports.getUsers = async function getUsers(elevate, req) {
                         points: user.points,
                         isAdmin: isAdmin,
                         lastClaims: user.lastClaims,
-                        permissions: permissions
+                        permissions: permissions,
+                        assignedTeams: assignedTeams
                     };
                 }));
                 return users;
@@ -97,6 +105,13 @@ exports.getCurrentUser = async function getCurrentUser(req) {
                 accessLevel: permission.accessLevel,
             }));
 
+            const assignedTeamSql = "SELECT * FROM cpat.userassignedteams WHERE userId = ?";
+            const [assignedTeamsRows] = await connection.query(assignedTeamSql, [user.userId]);
+            const assignedTeams = assignedTeamsRows.map(assignedTeam => ({
+                assignedTeamId: assignedTeam.assignedTeamId,
+                accessLevel: assignedTeam.accessLevel,
+            }));
+
             let isAdmin;
             try {
                 isAdmin = privilegeGetter(user.lastClaims).includes('admin');
@@ -121,7 +136,8 @@ exports.getCurrentUser = async function getCurrentUser(req) {
                 points: user.points,
                 isAdmin: isAdmin,
                 lastClaims: user.lastClaims,
-                permissions: permissions
+                permissions: permissions,
+                assignedTeams: assignedTeams
             };
             return userObject;
         });
@@ -152,6 +168,13 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
                     accessLevel: permission.accessLevel,
                 }));
 
+                const assignedTeamSql = "SELECT * FROM cpat.userassignedteams WHERE userId = ?";
+                const [assignedTeamsRows] = await connection.query(assignedTeamSql, [user.userId]);
+                const assignedTeams = assignedTeamsRows.map(assignedTeam => ({
+                    assignedTeamId: assignedTeam.assignedTeamId,
+                    accessLevel: assignedTeam.accessLevel,
+                }));
+
                 let isAdmin;
                 try {
                     isAdmin = privilegeGetter(user.lastClaims).includes('admin');
@@ -176,7 +199,8 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
                     points: user.points,
                     isAdmin: isAdmin,
                     lastClaims: user.lastClaims,
-                    permissions: permissions
+                    permissions: permissions,
+                    assignedTeams: assignedTeams
                 };
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');

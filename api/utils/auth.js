@@ -122,87 +122,135 @@ const getBearerToken = req => {
 }
 
 function getKey(header, callback) {
-    try {
-        client.getSigningKey(header.kid, function (err, key) {
-            if (!err) {
-                let signingKey = key.publicKey || key.rsaPublicKey;
-                callback(null, signingKey);
-            } else {
-                callback(err, null);
-            }
-        });
-    } catch (error) {
-        callback(error, null);
+    if (!header.kid) {
+        callback(new Error('Missing kid in header'));
+        return;
     }
+
+    let attempts = 0;
+    const maxAttempts = 3;
+    const baseDelay = 1000;
+
+    function attemptGetKey() {
+        try {
+            client.getSigningKey(header.kid, function (err, key) {
+                if (!err) {
+                    let signingKey = key.publicKey || key.rsaPublicKey;
+                    if (!signingKey) {
+                        const error = new Error('No signing key available');
+                        logger.writeError('oidc', 'getKey', {
+                            kid: header.kid,
+                            error: error.message
+                        });
+                        callback(error);
+                        return;
+                    }
+                    callback(null, signingKey);
+                } else {
+                    logger.writeError('oidc', 'getKey', {
+                        kid: header.kid,
+                        error: err.message,
+                        attempt: attempts + 1
+                    });
+
+                    if (attempts < maxAttempts) {
+                        attempts++;
+                        const delay = baseDelay * Math.pow(1.5, attempts - 1);
+                        logger.writeDebug('oidc', 'getKey-retry', {
+                            kid: header.kid,
+                            attempt: attempts,
+                            delay
+                        });
+                        setTimeout(attemptGetKey, delay);
+                    } else {
+                        callback(err);
+                    }
+                }
+            });
+        } catch (error) {
+            logger.writeError('oidc', 'getKey-error', {
+                kid: header.kid,
+                error: error.message,
+                attempt: attempts + 1
+            });
+            callback(error);
+        }
+    }
+
+    attemptGetKey();
 }
 
-let initAttempt = 0
+let initAttempt = 0;
 async function initializeAuth(depStatus) {
-    const retries = 24
-    const wellKnown = `${config.oauth.authority}/.well-known/openid-configuration`
+    const retries = 24;
+    const wellKnown = `${config.oauth.authority}/.well-known/openid-configuration`;
+
     async function getJwks() {
-        logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, attempt: ++initAttempt })
-        if (config.certificates) {
-            const agent = new https.Agent({
-                ca: fs.readFileSync(config.certificates),
-                timeout: 5000
-            })
-            const openidConfig = (await axios.get(wellKnown, { httpsAgent: agent })).data
+        logger.writeDebug('oidc', 'discovery', {
+            metadataUri: wellKnown,
+            attempt: ++initAttempt
+        });
 
-            logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, metadata: openidConfig })
-            if (!openidConfig.jwks_uri) {
-                throw (new Error('No jwks_uri property found'))
-            }
-            jwksUri = openidConfig.jwks_uri
-            try {
-                client = jwksClient({
-                    cache: true,
-                    cacheMaxEntries: 5,
-                    cacheMaxAge: 600000,
-                    jwksUri: jwksUri,
-                    requestAgent: agent
-                })
-            } catch (error) {
-                logger.writeError('oidc', 'initializeAuth', {
-                    message: 'Failed to read certificate file',
-                    error: error.message
-                });
-                client = jwksClient({
-                    cache: true,
-                    cacheMaxEntries: 5,
-                    cacheMaxAge: 600000,
-                    jwksUri: jwksUri
-                })
-            }
-        } else {
-            const openidConfig = (await axios.get(wellKnown)).data
+        try {
+            const openidConfig = (await axios.get(wellKnown)).data;
+            logger.writeDebug('oidc', 'discovery', {
+                metadataUri: wellKnown,
+                metadata: openidConfig
+            });
 
-            logger.writeDebug('oidc', 'discovery', { metadataUri: wellKnown, metadata: openidConfig })
             if (!openidConfig.jwks_uri) {
-                throw (new Error('No jwks_uri property found'))
+                throw new Error('No jwks_uri property found');
             }
-            jwksUri = openidConfig.jwks_uri
+
+            jwksUri = openidConfig.jwks_uri;
             client = jwksClient({
                 cache: true,
-                cacheMaxEntries: 5,
+                cacheMaxEntries: 10,
                 cacheMaxAge: 600000,
-                jwksUri: jwksUri
-            })
+                jwksUri: jwksUri,
+                timeout: 10000,
+                rateLimit: true,
+                jwksRequestsPerMinute: 30,
+                handleSigningKeyError: async (err, cb) => {
+                    logger.writeError('oidc', 'jwks', {
+                        error: err.message,
+                        code: err.code
+                    });
+                    cb(err);
+                }
+            });
+
+        } catch (error) {
+            logger.writeError('oidc', 'discovery-error', {
+                error: error.message,
+                code: error.code
+            });
+            throw error;
         }
     }
+
     await retry(getJwks, {
         retries,
-        factor: 1,
-        minTimeout: 5 * 1000,
-        maxTimeout: 5 * 1000,
+        factor: 1.5,
+        minTimeout: 2 * 1000,
+        maxTimeout: 10 * 1000,
         onRetry: (error) => {
-            logger.writeError('oidc', 'discovery', { success: false, metadataUri: wellKnown, message: error.message })
+            logger.writeError('oidc', 'discovery', {
+                success: false,
+                metadataUri: wellKnown,
+                message: error.message
+            });
         }
-    })
-    logger.writeInfo('oidc', 'discovery', { success: true, metadataUri: wellKnown, jwksUri: jwksUri })
-    depStatus.auth = 'up'
-}
+    });
 
+    logger.writeInfo('oidc', 'discovery', {
+        success: true,
+        metadataUri: wellKnown,
+        jwksUri: jwksUri
+    });
+
+    depStatus.auth = 'up';
+}
 
 module.exports = {
     verifyRequest,

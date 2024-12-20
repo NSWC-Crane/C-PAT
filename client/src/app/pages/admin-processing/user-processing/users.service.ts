@@ -136,4 +136,34 @@ export class UsersService {
       )
       .pipe(catchError(this.handleError));
   }
+
+  async deleteTeamAssignment(userId: number, assignedTeamId: number) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .delete<any>(
+        `${this.cpatApiBase}/user/teams/${userId}/${assignedTeamId}?elevate=true`,
+        { headers },
+      )
+      .pipe(catchError(this.handleError));
+  }
+
+  async postTeamAssignment(assignedTeam: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .post<any>(
+        `${this.cpatApiBase}/user/teams?elevate=true`,
+        assignedTeam,
+        { headers },
+      )
+      .pipe(catchError(this.handleError));
+  }
+
+  async putTeamAssignment(assignedTeam: any) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .put<any>(`${this.cpatApiBase}/user/teams?elevate=true`, assignedTeam, {
+        headers,
+      })
+      .pipe(catchError(this.handleError));
+  }
 }

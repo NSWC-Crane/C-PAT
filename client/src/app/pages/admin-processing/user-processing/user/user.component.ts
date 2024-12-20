@@ -35,10 +35,12 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { AssignedTeamService } from '../../assignedTeam-processing/assignedTeam-processing.service';
+import { StepperModule } from 'primeng/stepper';
 
 interface Permission {
   userId: number;
-  collectionId: number | null;
+  collectionId?: number | null;
   oldCollectionId?: number;
   newCollectionId?: number;
   accessLevel: number;
@@ -47,11 +49,40 @@ interface Permission {
   editing?: boolean;
 }
 
+interface AssignedTeam {
+  assignedTeamId: number | null;
+  oldAssignedTeamId?: number;
+  newAssignedTeamId?: number;
+  userId: number;
+  accessLevel: number;
+  accessLevelLabel?: string;
+  assignedTeamName?: string;
+  editing?: boolean;
+}
+
 export interface CollectionsResponse {
   collections: Array<{
     collectionId: number;
     collectionName: string;
   }>;
+}
+
+interface PermissionChange {
+  collectionId: number;
+  collectionName: string;
+  oldAccessLevel: number;
+  newAccessLevel: number;
+}
+
+interface PermissionAddition {
+  collectionId: number;
+  collectionName: string;
+  accessLevel: number;
+}
+
+interface PermissionChangeSummary {
+  additions: PermissionAddition[];
+  updates: PermissionChange[];
 }
 
 @Component({
@@ -70,6 +101,7 @@ export interface CollectionsResponse {
     InputSwitchModule,
     InputTextModule,
     FormsModule,
+    StepperModule,
     TableModule,
     ToastModule,
   ],
@@ -87,17 +119,25 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     { label: 'CAT-I Approver', value: 4 },
   ];
   availableCollections: any[] = [];
+  availableTeams: any[] = [];
+  assignedTeams: any;
   cols: any[] = [];
   checked: boolean = false;
   collectionList: any = [];
   collectionPermissions: Permission[] = [];
+  userAssignedTeams: AssignedTeam[] = [];
   officeOrgOptions: string[] = ['NAVSEA', 'NSWC CRANE'];
   filteredOfficeOrgs: string[];
   showLastClaims: boolean = false;
   marketplaceDisabled: boolean = false;
   private subs = new SubSink();
+  teamCols: any[] = [
+    { field: 'assignedTeamName', header: 'Assigned Teams' },
+    { field: 'accessLevelLabel', header: 'Access Level' },
+  ];
 
   constructor(
+    private assignedTeamService: AssignedTeamService,
     private collectionsService: CollectionsService,
     private userService: UsersService,
     private confirmationService: ConfirmationService,
@@ -114,6 +154,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         async (currentUser) => {
           this.user = currentUser;
           await this.loadCollections();
+          await this.loadAssignedTeams();
         },
         (error) => {
           console.error('Error fetching current user', error);
@@ -131,6 +172,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       async (userData) => {
         this.user = userData;
         await this.loadCollections();
+        await this.loadAssignedTeams();
         this.getData();
         this.checked = this.user.isAdmin === true;
       },
@@ -138,6 +180,27 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         console.error('Error fetching user data', error);
       },
     );
+  }
+
+  async loadAssignedTeams() {
+    try {
+      const response = await (
+        await this.assignedTeamService.getAssignedTeams()
+      ).toPromise();
+
+      this.assignedTeams = response || [];
+
+      this.availableTeams = this.assignedTeams.map((team: AssignedTeam) => ({
+        title: team.assignedTeamName,
+        value: team.assignedTeamId
+      }));
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load Assigned Teams',
+      });
+    }
   }
 
   private async loadCollections() {
@@ -172,7 +235,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getData() {
-    if (this.user && Array.isArray(this.user.permissions)) {
+    if (this.user && Array.isArray(this.user.permissions) && Array.isArray(this.user.assignedTeams)) {
       this.collectionPermissions = this.user.permissions.map(
         (permission: Permission) => {
           const collection = this.collectionList.find(
@@ -190,6 +253,22 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           };
         },
       );
+
+      this.userAssignedTeams = this.user.assignedTeams.map(
+        (assignment: AssignedTeam) => {
+          const team = this.assignedTeams?.find(
+            (t: AssignedTeam) => t.assignedTeamId === assignment.assignedTeamId
+          );
+          return {
+            userId: assignment.userId,
+            assignedTeamId: assignment.assignedTeamId,
+            assignedTeamName: team ? team.assignedTeamName : '',
+            accessLevel: assignment.accessLevel,
+            accessLevelLabel: this.getAccessLevelLabel(assignment.accessLevel),
+            editing: false,
+          };
+        },
+      );
       this.cdr.detectChanges();
     } else {
       console.error('User or permissions data is not available');
@@ -203,6 +282,18 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     this.availableCollections = this.collectionList.filter(
       (c: any) => !assignedCollectionIds.has(c.value),
     );
+  }
+
+  private updateAvailableTeams() {
+    const assignedTeamIds = new Set(
+      this.userAssignedTeams.map((p) => p.assignedTeamId)
+    );
+    this.availableTeams = this.assignedTeams
+      .filter((team: any) => !assignedTeamIds.has(team.assignedTeamId))
+      .map((team: any) => ({
+        title: team.assignedTeamName,
+        value: team.assignedTeamId
+      }));
   }
 
   onAddNewPermission() {
@@ -332,6 +423,302 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       });
     }
     this.updateAvailableCollections();
+  }
+
+  onAddNewAssignedTeam() {
+    this.updateAvailableTeams();
+    const newAssignedTeam: AssignedTeam = {
+      userId: this.user.userId,
+      assignedTeamId: null,
+      accessLevel: 1,
+      editing: true,
+    };
+    this.userAssignedTeams.unshift(newAssignedTeam);
+  }
+
+  onEditAssignedTeam(assignedTeam: AssignedTeam) {
+    this.updateAvailableTeams();
+    if (assignedTeam.assignedTeamId !== null) {
+      const currentTeam = this.assignedTeams.find(
+        (t: any) => t.assignedTeamId === assignedTeam.assignedTeamId
+      );
+      if (currentTeam) {
+        this.availableTeams.push({
+          title: currentTeam.assignedTeamName,
+          value: currentTeam.assignedTeamId
+        });
+      }
+      assignedTeam.oldAssignedTeamId = assignedTeam.assignedTeamId;
+    }
+    assignedTeam.editing = true;
+  }
+
+  async onSaveAssignedTeam(assignedTeam: AssignedTeam) {
+    const teamData = this.assignedTeams.find(
+      (team: any) => team.assignedTeamId === assignedTeam.assignedTeamId
+    );
+
+    if (!teamData || !teamData.permissions) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Unable to find team permissions'
+      });
+      return;
+    }
+
+    const changes = this.analyzePermissionChanges(
+      this.user.permissions,
+      teamData.permissions,
+      assignedTeam.accessLevel
+    );
+
+    if (changes.additions.length === 0 && changes.updates.length === 0) {
+      await this.confirmAssignedTeam(assignedTeam);
+      return;
+    }
+
+    this.showPermissionChangeConfirmation(changes, async () => {
+      await this.processPermissionChanges(changes);
+      await this.confirmAssignedTeam(assignedTeam);
+    });
+  }
+
+  private analyzePermissionChanges(
+    userPermissions: Permission[],
+    teamPermissions: any[],
+    newTeamAccessLevel: number
+  ): PermissionChangeSummary {
+
+    const changes: PermissionChangeSummary = {
+      additions: [],
+      updates: []
+    };
+
+    const userPermissionMap = new Map(
+      userPermissions.map(p => [p.collectionId, p])
+    );
+
+    teamPermissions.forEach(teamPerm => {
+      const effectiveTeamAccess = newTeamAccessLevel;
+      const userPerm = userPermissionMap.get(teamPerm.collectionId);
+
+      if (!userPerm) {
+        changes.additions.push({
+          collectionId: teamPerm.collectionId,
+          collectionName: teamPerm.collectionName || 'Unknown Collection',
+          accessLevel: effectiveTeamAccess
+        });
+      } else if (userPerm.accessLevel < effectiveTeamAccess) {
+        changes.updates.push({
+          collectionId: teamPerm.collectionId,
+          collectionName: teamPerm.collectionName || 'Unknown Collection',
+          oldAccessLevel: userPerm.accessLevel,
+          newAccessLevel: effectiveTeamAccess
+        });
+      }
+    });
+
+    return changes;
+  }
+
+  private showPermissionChangeConfirmation(
+    changes: PermissionChangeSummary,
+    onConfirm: () => void
+  ) {
+    let message = `
+    <div class="permission-changes">`;
+
+    if (changes.additions.length > 0) {
+      message += `
+      <p><strong>New Permissions to be Added:</strong></p>
+      <ul>`;
+      changes.additions.forEach(addition => {
+        const accessLevelLabel = this.getAccessLevelLabel(addition.accessLevel);
+        message += `<li>${addition.collectionName} (${accessLevelLabel})</li>`;
+      });
+      message += `</ul>`;
+    }
+
+    if (changes.updates.length > 0) {
+      message += `
+      <br>
+      <p><strong>Permissions to be Updated:</strong></p>
+      <ul>`;
+      changes.updates.forEach(update => {
+        const oldAccessLevelLabel = this.getAccessLevelLabel(update.oldAccessLevel);
+        const newAccessLevelLabel = this.getAccessLevelLabel(update.newAccessLevel);
+        message += `<li>${update.collectionName} (${oldAccessLevelLabel} → ${newAccessLevelLabel})</li>`;
+      });
+      message += `</ul>`;
+    }
+
+    message += `</div>`;
+
+    this.confirmationService.confirm({
+      message: message,
+      header: ' ',
+      icon: ' ',
+      acceptLabel: 'Confirm',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-primary',
+      rejectButtonStyleClass: 'p-button-secondary',
+      accept: () => onConfirm(),
+      reject: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Cancelled',
+          detail: 'Permission changes cancelled'
+        });
+      }
+    });
+  }
+
+  private async processPermissionChanges(changes: PermissionChangeSummary) {
+    for (const update of changes.updates) {
+      const updatePermission: Permission = {
+        userId: this.user.userId,
+        oldCollectionId: update.collectionId,
+        newCollectionId: update.collectionId,
+        accessLevel: update.newAccessLevel
+      };
+
+      try {
+        await (await this.userService.updatePermission(updatePermission)).toPromise();
+      } catch (error) {
+        console.error('Error updating permission:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to update permission for ${update.collectionName}`
+        });
+      }
+    }
+
+    for (const addition of changes.additions) {
+      const newPermission: Permission = {
+        userId: this.user.userId,
+        collectionId: addition.collectionId,
+        accessLevel: addition.accessLevel
+      };
+
+      try {
+        await (await this.userService.postPermission(newPermission)).toPromise();
+      } catch (error) {
+        console.error('Error adding permission:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to add permission for ${addition.collectionName}`
+        });
+      }
+    }
+  }
+
+  async confirmAssignedTeam(assignedTeam: AssignedTeam) {
+    if (!assignedTeam.accessLevelLabel || !assignedTeam.assignedTeamName) {
+      const newAssignedTeam: AssignedTeam = {
+        userId: assignedTeam.userId ?? this.user.userId,
+        assignedTeamId: assignedTeam.assignedTeamId,
+        accessLevel: assignedTeam.accessLevel,
+      };
+      (await this.userService.postTeamAssignment(newAssignedTeam)).subscribe(
+        (res: any) => {
+          assignedTeam.userId = res.userId;
+          assignedTeam.assignedTeamId = res.assignedTeamId;
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Team assignment added successfully.',
+          });
+          assignedTeam.editing = false;
+          this.loadUserData(this.user.userId);
+        },
+        (error) => {
+          console.error('Error adding team assignment', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to add the team assignment. Please try again.',
+          });
+        },
+      );
+    } else {
+      const updatedAssignedTeam: AssignedTeam = {
+        ...assignedTeam,
+        userId: assignedTeam.userId ?? this.user.userId,
+        newAssignedTeamId: assignedTeam.assignedTeamId ?? undefined,
+      };
+      (await this.userService.putTeamAssignment(updatedAssignedTeam)).subscribe(
+        () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Team assignment updated successfully.',
+          });
+          assignedTeam.editing = false;
+          delete assignedTeam.oldAssignedTeamId;
+          this.loadUserData(this.user.userId);
+        },
+        (error) => {
+          console.error('Error updating team assignment', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to update the team assignment. Please try again.',
+          });
+        },
+      );
+    }
+    this.updateAvailableTeams();
+  }
+
+  onCancelEditAssignedTeam(assignedTeam: AssignedTeam) {
+    if (assignedTeam.assignedTeamId === null) {
+      this.userAssignedTeams = this.userAssignedTeams.filter(
+        (a) => a !== assignedTeam,
+      );
+    } else {
+      assignedTeam.editing = false;
+      if (assignedTeam.oldAssignedTeamId !== undefined) {
+        assignedTeam.assignedTeamId = assignedTeam.oldAssignedTeamId;
+      }
+      delete assignedTeam.oldAssignedTeamId;
+    }
+    this.updateAvailableTeams();
+  }
+
+  async onDeleteAssignedTeam(assignedTeam: AssignedTeam) {
+    if (assignedTeam.assignedTeamId === null) {
+      this.userAssignedTeams = this.userAssignedTeams.filter(
+        (a) => a !== assignedTeam,
+      );
+    } else {
+      this.confirmationService.confirm({
+        message: 'Are you sure you want to delete this team assignment?',
+        header: 'Delete Confirmation',
+        icon: 'pi pi-exclamation-triangle',
+        accept: async () => {
+          (
+            await this.userService.deleteTeamAssignment(
+              this.user.userId,
+              assignedTeam.assignedTeamId!,
+            )
+          ).subscribe(
+            () => {
+              this.userAssignedTeams = this.userAssignedTeams.filter(
+                (a) => a.assignedTeamId !== assignedTeam.assignedTeamId,
+              );
+              this.loadUserData(this.user.userId);
+            },
+            (error) => {
+              console.error('Error during deleting team assignment: ', error);
+            },
+          );
+        },
+      });
+    }
+    this.updateAvailableTeams();
   }
 
   getAccessLevelLabel(accessLevel: number): string {
