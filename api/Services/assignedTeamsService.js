@@ -25,14 +25,32 @@ async function withConnection(callback) {
 exports.getAssignedTeams = async function getAssignedTeams(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM cpat.assignedteams;";
+            let sql = `
+                SELECT 
+                    t.assignedTeamId,
+                    t.assignedTeamName,
+                    GROUP_CONCAT(CONCAT(p.collectionId, ':', c.collectionName) SEPARATOR ',') as collectionData
+                FROM cpat.assignedteams t
+                LEFT JOIN cpat.assignedteampermissions p 
+                    ON t.assignedTeamId = p.assignedTeamId
+                LEFT JOIN cpat.collection c
+                    ON p.collectionId = c.collectionId
+                GROUP BY t.assignedTeamId, t.assignedTeamName
+            `;
             let [rowAssignedTeams] = await connection.query(sql);
-
             const assignedTeams = rowAssignedTeams.map(row => ({
                 assignedTeamId: row.assignedTeamId,
-                assignedTeamName: row.assignedTeamName
+                assignedTeamName: row.assignedTeamName,
+                permissions: row.collectionData ?
+                    row.collectionData.split(',').map(data => {
+                        const [id, name] = data.split(':');
+                        return {
+                            collectionId: parseInt(id),
+                            collectionName: name || ''
+                        };
+                    }) :
+                    []
             }));
-
             return assignedTeams;
         });
     } catch (error) {
@@ -49,14 +67,38 @@ exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
             }
         });
     }
-
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM cpat.assignedteams WHERE assignedTeamId = ?";
+            let sql = `
+                SELECT 
+                    t.assignedTeamId,
+                    t.assignedTeamName,
+                    GROUP_CONCAT(CONCAT(p.collectionId, ':', c.collectionName) SEPARATOR ',') as collectionData
+                FROM cpat.assignedteams t
+                LEFT JOIN cpat.assignedteampermissions p 
+                    ON t.assignedTeamId = p.assignedTeamId
+                LEFT JOIN cpat.collection c
+                    ON p.collectionId = c.collectionId
+                WHERE t.assignedTeamId = ?
+                GROUP BY t.assignedTeamId, t.assignedTeamName
+            `;
             let [rowAssignedTeam] = await connection.query(sql, [req.params.assignedTeamId]);
-
-            const assignedTeam = rowAssignedTeam.length > 0 ? [rowAssignedTeam[0]] : [];
-
+            if (rowAssignedTeam.length === 0) {
+                return { assignedTeam: [] };
+            }
+            const assignedTeam = [{
+                assignedTeamId: rowAssignedTeam[0].assignedTeamId,
+                assignedTeamName: rowAssignedTeam[0].assignedTeamName,
+                permissions: rowAssignedTeam[0].collectionData ?
+                    rowAssignedTeam[0].collectionData.split(',').map(data => {
+                        const [id, name] = data.split(':');
+                        return {
+                            collectionId: parseInt(id),
+                            collectionName: name || ''
+                        };
+                    }) :
+                    []
+            }];
             return { assignedTeam };
         });
     } catch (error) {
@@ -145,5 +187,54 @@ exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, next) {
         });
     } catch (error) {
         return { error: error.message };
+    }
+}
+
+exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req, res, next) {
+    try {
+        return await withConnection(async (connection) => {
+            const { assignedTeamId, collectionId } = req.body;
+
+            let sql = `
+                INSERT INTO cpat.assignedteampermissions 
+                (assignedTeamId, collectionId) 
+                VALUES (?, ?)
+            `;
+
+            await connection.query(sql, [assignedTeamId, collectionId]);
+
+            return {
+                assignedTeamId,
+                collectionId
+            };
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req, res, next) {
+    try {
+        return await withConnection(async (connection) => {
+            const { assignedTeamId, collectionId } = req.params;
+
+            let sql = `
+                DELETE FROM cpat.assignedteampermissions 
+                WHERE assignedTeamId = ? AND collectionId = ?
+            `;
+
+            const [result] = await connection.query(sql, [assignedTeamId, collectionId]);
+
+            if (result.affectedRows === 0) {
+                throw {
+                    status: 404,
+                    message: 'Permission not found'
+                };
+            }
+
+            return { success: true };
+        });
+    } catch (error) {
+        next(error);
     }
 }

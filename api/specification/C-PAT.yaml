@@ -787,6 +787,91 @@ paths:
         - oauth:
             - 'c-pat:op'
 
+  '/assignedTeams/permissions':
+    post:
+      summary: Create a new team permission
+      operationId: postAssignedTeamPermission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/assignedTeamPermission_Request'
+      responses:
+        '201':
+          description: Team permission created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/assignedTeamPermission_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AssignedTeams
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  '/assignedTeams/permissions/{assignedTeamId}/{collectionId}':
+    parameters:
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Delete a team permission
+      operationId: deleteAssignedTeamPermission
+      responses:
+        '200':
+          description: Team permission deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Permission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AssignedTeams
+      security:
+        - oauth:
+            - 'c-pat:write'
+
   /collections/basiclist:
     get:
       tags:
@@ -4396,6 +4481,149 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
+  '/user/teams/{assignedTeamId}':
+    parameters:
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get all users assigned to a team
+      operationId: getTeamAssignments
+      responses:
+        '200':
+          description: Team assignments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user_team_assignment'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - UserTeamAssignments
+
+  '/user/teams/{userId}/{assignedTeamId}':
+    parameters:
+      - $ref: '#/components/parameters/ElevateQuery'
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Remove a user from a team
+      operationId: deleteTeamAssignment
+      responses:
+        '204':
+          description: Team assignment deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - UserTeamAssignments
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  '/user/teams':
+    post:
+      summary: Add a user to a team
+      operationId: postTeamAssignment
+      parameters:
+        - $ref: '#/components/parameters/ElevateQuery'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user_team_assignment'
+      responses:
+        '201':
+          description: Team assignment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_team_assignment'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - UserTeamAssignments
+      security:
+        - oauth:
+            - 'c-pat:op'  
+    put:
+      summary: Update a users team assignment
+      operationId: putTeamAssignment
+      parameters:
+        - $ref: '#/components/parameters/ElevateQuery'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/update_user_team_assignment'
+      responses:
+        '200':
+          description: Team assignment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_team_assignment'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - UserTeamAssignments
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   '/vulnerability/poam/{vulnerabilityId}':
     parameters:
       - in: path
@@ -4822,6 +5050,50 @@ components:
           type: integer
         assignedTeamName:
           type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/permission_Object'
+          description: Array of collection IDs this team has access to
+
+    assignedTeamPermission_Request:
+      type: object
+      required:
+        - assignedTeamId
+        - collectionId
+      properties:
+        assignedTeamId:
+          type: integer
+          description: ID of the assigned team
+        collectionId:
+          type: integer
+          description: ID of the collection to grant permission for
+
+    assignedTeamPermission_Object:
+      type: object
+      required:
+        - assignedTeamId
+        - collectionId
+      properties:
+        assignedTeamId:
+          type: integer
+          description: ID of the assigned team
+        collectionId:
+          type: integer
+          description: ID of the collection permission is granted for
+
+    permission_Object:
+      type: object
+      required:
+        - collectionId
+        - collectionName
+      properties:
+        collectionId:
+          type: integer
+          description: ID of the collection this team has access to
+        collectionName:
+          type: string
+          description: Name of the collection this team has access to
 
     IAVTableData:
       type: object
@@ -5612,6 +5884,18 @@ components:
                 type: integer
               accessLevel:
                 type: integer
+        assignedTeams:
+          type: array
+          items:
+            type: object
+            required:
+              - userId
+              - accessLevel
+            properties:
+              assignedTeamId:
+                type: integer
+              accessLevel:
+                type: integer
 
     user_Update:
       type: object
@@ -5751,6 +6035,45 @@ components:
           type: string
         email:
           type: string
+
+    user_team_assignment:
+      type: object
+      required:
+        - userId
+        - assignedTeamId
+        - accessLevel
+      additionalProperties: true
+      properties:
+        userId:
+          type: integer
+        assignedTeamId:
+          type: integer
+        accessLevel:
+          type: integer
+        fullName:
+          type: string
+        userName:
+          type: string
+        email:
+          type: string
+
+    update_user_team_assignment:
+      type: object
+      required:
+        - userId
+        - oldAssignedTeamId
+        - newAssignedTeamId
+        - accessLevel
+      additionalProperties: true
+      properties:
+        userId:
+          type: integer
+        oldAssignedTeamId:
+          type: integer
+        newAssignedTeamId:
+          type: integer
+        accessLevel:
+          type: integer
 
   responses:
     forbidden:

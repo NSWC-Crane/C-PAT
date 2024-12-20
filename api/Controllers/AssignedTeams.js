@@ -74,3 +74,31 @@ module.exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, 
         }
     }
 };
+
+module.exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req, res, next) {
+    try {
+        const permission = await assignedTeamsService.postAssignedTeamPermission(req, res, next);
+        res.status(201).json(permission);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
+
+module.exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req, res, next) {
+    try {
+        const result = await assignedTeamsService.deleteAssignedTeamPermission(req, res, next);
+        res.status(200).json(result);
+    } catch (error) {
+        if (error.status === 404) {
+            res.status(404).json({ error: 'Not Found', detail: error.message });
+        } else if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};

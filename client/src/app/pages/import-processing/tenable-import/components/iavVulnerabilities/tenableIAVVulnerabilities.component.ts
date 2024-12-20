@@ -539,14 +539,13 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       );
     } else {
       await this.showDetails(vulnerability, true);
-      const pluginIAVData = this.iavInfo[this.pluginData.id];
       this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
         state: {
           vulnerabilitySource:
             'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData,
-          iavNumber: pluginIAVData?.iav,
-          iavComplyByDate: pluginIAVData?.navyComplyDate,
+          iavNumber: vulnerability.iav,
+          iavComplyByDate: vulnerability.navyComplyDate,
         },
       });
     }

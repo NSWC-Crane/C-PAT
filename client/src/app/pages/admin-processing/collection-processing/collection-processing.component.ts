@@ -29,6 +29,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
 
 interface TreeNode<T> {
   data: T;
@@ -63,6 +64,7 @@ interface CollectionData {
     IconFieldModule,
     InputIconModule,
     InputTextModule,
+    InputTextareaModule,
     ToastModule,
     TreeTableModule,
   ],

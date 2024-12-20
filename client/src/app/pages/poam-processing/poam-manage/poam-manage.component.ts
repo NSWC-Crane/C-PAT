@@ -63,6 +63,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   poamsNeedingAttention: any[] = [];
   submittedPoams: any[] = [];
   poamsPendingApproval: any[] = [];
+  teamPoams: any[] = [];
   user: any;
   payload: any;
   protected accessLevel: number = 0;
@@ -194,6 +195,14 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.poamsPendingApproval = this.poams.filter(poam =>
       ['Submitted', 'Extension Requested', 'Pending CAT-I Approval'].includes(poam.status)
+    );
+
+    this.teamPoams = this.poams.filter(poam =>
+      poam.assignedTeams?.some((poamTeam: any) =>
+        this.user.assignedTeams?.some((userTeam: any) =>
+          userTeam.assignedTeamId === poamTeam.assignedTeamId
+        )
+      )
     );
   }
 

@@ -10,7 +10,8 @@
 
 <div class="grid">
   <div class="col-12">
-    <p-table #dt [value]="assignedTeams" [globalFilterFields]="['assignedTeamId', 'assignedTeamName']" [rows]="10" [paginator]="true" [rowHover]="true" dataKey="assignedTeamId" editMode="row">
+    <p-table #dt [value]="assignedTeams" [globalFilterFields]="['assignedTeamId', 'assignedTeamName']"
+             [rows]="10" [paginator]="true" [rowHover]="true" dataKey="assignedTeamId">
       <ng-template pTemplate="caption">
         <div class="flex justify-content-between align-items-center">
           <p-iconField iconPosition="left">
@@ -19,7 +20,8 @@
             </p-inputIcon>
             <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Teams" class="search-input">
           </p-iconField>
-          <button pButton type="button" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Add a Team" (click)="onAddNewClick()"></button>
+          <button pButton type="button" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true"
+                  severity="primary" pTooltip="Add a Team" (click)="openNew()"></button>
         </div>
       </ng-template>
       <ng-template pTemplate="header">
@@ -29,25 +31,18 @@
           <th scope="col">Actions</th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-assignedTeam let-editing="editing" let-ri="rowIndex">
-        <tr [pEditableRow]="assignedTeam">
+      <ng-template pTemplate="body" let-assignedTeam>
+        <tr>
           <td>{{assignedTeam.assignedTeamId}}</td>
-          <td>
-            <p-cellEditor>
-              <ng-template pTemplate="input">
-                <input pInputText type="text" class="w-full" [(ngModel)]="assignedTeam.assignedTeamName" maxlength="99">
-              </ng-template>
-              <ng-template pTemplate="output">
-                {{assignedTeam.assignedTeamName}}
-              </ng-template>
-            </p-cellEditor>
-          </td>
+          <td>{{assignedTeam.assignedTeamName}}</td>
           <td>
             <div class="flex align-items-center justify-content-center gap-2">
-              <button *ngIf="!editing" pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(assignedTeam)" class="p-button-rounded p-button-text"></button>
-              <button *ngIf="editing" pButton pRipple type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(assignedTeam)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
-              <button *ngIf="editing" pButton pRipple type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(assignedTeam, ri)" class="p-button-rounded p-button-text p-button-danger"></button>
-              <button *ngIf="!editing" pButton pRipple type="button" icon="pi pi-trash" (click)="onRowDelete(assignedTeam)" class="p-button-rounded p-button-text p-button-danger"></button>
+              <button pButton pRipple type="button" icon="pi pi-pencil"
+                      class="p-button-rounded p-button-text"
+                      (click)="editTeam(assignedTeam)"></button>
+              <button pButton pRipple type="button" icon="pi pi-trash"
+                      class="p-button-rounded p-button-text p-button-danger"
+                      (click)="onRowDelete(assignedTeam)"></button>
             </div>
           </td>
         </tr>
@@ -55,4 +50,49 @@
     </p-table>
   </div>
 </div>
+
+<p-dialog [(visible)]="teamDialog"
+          [style]="{'width': '850px'}"
+          [modal]="true"
+          styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <div class="field mb-4">
+      <label for="name">Team Name</label>
+      <input type="text" pInputText id="name"
+             [(ngModel)]="editingAssignedTeam!.assignedTeamName"
+             required autofocus
+             [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.assignedTeamName}"
+             maxlength="99" />
+    </div>
+
+    <div class="field">
+      <label>Team Permissions</label>
+      <p-pickList [source]="availableCollections"
+                  [target]="assignedCollections"
+                  sourceHeader="Available Collections"
+                  targetHeader="Assigned Collections"
+                  [dragdrop]="true"
+                  [responsive]="true"
+                  [showSourceControls]="false"
+                  [showTargetControls]="false"
+                  [sourceStyle]="{'height':'300px'}"
+                  [targetStyle]="{'height':'300px'}"
+                  (onMoveToTarget)="onMoveToTarget($event)"
+                  (onMoveToSource)="onMoveToSource($event)">
+        <ng-template let-collection pTemplate="item">
+          {{collection.collectionName}}
+        </ng-template>
+      </p-pickList>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times"
+            class="p-button-text" (click)="hideDialog()"></button>
+    <button pButton pRipple label="Save" icon="pi pi-check"
+            class="p-button-text" (click)="saveTeam()"
+            [disabled]="!editingAssignedTeam?.assignedTeamName"></button>
+  </ng-template>
+</p-dialog>
+
 <p-toast></p-toast>
