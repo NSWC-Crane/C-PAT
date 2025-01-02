@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
 import { PoamAttachmentService } from './poam-attachments.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
@@ -15,7 +15,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
-  selector: 'app-poam-attachments',
+  selector: 'cpat-poam-attachments',
   templateUrl: './poam-attachments.component.html',
   styleUrls: ['./poam-attachments.component.scss'],
   standalone: true,
@@ -29,8 +29,8 @@ import { TooltipModule } from 'primeng/tooltip';
     BadgeModule,
     ToastModule,
     TooltipModule,
-    DatePipe
-  ]
+    DatePipe,
+  ],
 })
 export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   @ViewChild('fileUpload') fileUpload!: FileUpload;
@@ -82,31 +82,30 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   constructor(
     private messageService: MessageService,
     private poamAttachmentService: PoamAttachmentService,
-    private setPayloadService: PayloadService,
+    private setPayloadService: PayloadService
   ) {}
 
   async ngOnInit() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
+      this.setPayloadService.user$.subscribe(user => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe((payload) => {
+      this.setPayloadService.payload$.subscribe(payload => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
+      this.setPayloadService.accessLevel$.subscribe(level => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.loadAttachedFiles();
         }
-      }),
+      })
     );
   }
 
   async loadAttachedFiles() {
     try {
-      const attachments$ =
-        await this.poamAttachmentService.getAttachmentsByPoamId(this.poamId);
+      const attachments$ = await this.poamAttachmentService.getAttachmentsByPoamId(this.poamId);
       this.attachedFiles = await firstValueFrom(attachments$);
     } catch (error) {
       console.error('Error fetching attached files:', error);
@@ -121,10 +120,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   async downloadFile(attachment: any) {
     try {
       const blob = await (
-        await this.poamAttachmentService.downloadAttachment(
-          this.poamId,
-          attachment.attachmentId,
-        )
+        await this.poamAttachmentService.downloadAttachment(this.poamId, attachment.attachmentId)
       ).toPromise();
       const url = window.URL.createObjectURL(blob!);
       const link = document.createElement('a');
@@ -145,10 +141,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   async deleteAttachment(attachment: any) {
     try {
       await (
-        await this.poamAttachmentService.deleteAttachment(
-          this.poamId,
-          attachment.attachmentId,
-        )
+        await this.poamAttachmentService.deleteAttachment(this.poamId, attachment.attachmentId)
       ).toPromise();
       this.messageService.add({
         severity: 'success',
@@ -175,6 +168,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   }
 
   onSelect(event: any) {
+    event.stopPropagation();
     this.updateTotalSize();
   }
 
@@ -225,17 +219,10 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
 
     try {
       if (this.validateFile(file)) {
-        const upload$ = await this.poamAttachmentService.uploadAttachment(
-          file,
-          +this.poamId,
-        );
+        const upload$ = await this.poamAttachmentService.uploadAttachment(file, +this.poamId);
         upload$.subscribe({
           next: (event: any) => {
-            if (event.type === HttpEventType.UploadProgress) {
-              const percentDone = event.total
-                ? Math.round((100 * event.loaded) / event.total)
-                : 0;
-            } else if (event instanceof HttpResponse) {
+            if (event instanceof HttpResponse) {
               this.messageService.add({
                 severity: 'success',
                 summary: 'Success',
@@ -245,14 +232,12 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
               this.loadAttachedFiles();
             }
           },
-          error: (error) => {
+          error: error => {
             console.error('Error during file upload:', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail:
-                'File upload failed: ' +
-                (error.error?.message || 'Unknown error'),
+              detail: 'File upload failed: ' + (error.error?.message || 'Unknown error'),
             });
           },
           complete: () => {
@@ -273,6 +258,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   }
 
   choose(event: Event, chooseCallback: Function) {
+    event.stopPropagation();
     chooseCallback();
   }
 
@@ -280,12 +266,8 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     uploadCallback();
   }
 
-  onRemoveFile(
-    event: Event,
-    file: File,
-    removeCallback: Function,
-    index: number,
-  ) {
+  onRemoveFile(event: Event, file: File, removeCallback: Function) {
+    event.stopPropagation();
     removeCallback(file);
     this.updateTotalSize();
   }
@@ -293,7 +275,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   updateTotalSize() {
     let totalSize = 0;
     if (this.fileUpload.files) {
-      for (let file of this.fileUpload.files) {
+      for (const file of this.fileUpload.files) {
         totalSize += file.size;
       }
     }
@@ -310,8 +292,6 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

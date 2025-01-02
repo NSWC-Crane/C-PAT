@@ -9,7 +9,6 @@
 */
 
 import { format } from 'date-fns';
-import * as ExcelJS from 'exceljs';
 
 interface Poam {
   [key: string]: any;
@@ -111,9 +110,7 @@ export class PoamExportService {
     }
   }
 
-  private static getClassificationColorCode(
-    classification: Classification,
-  ): string {
+  private static getClassificationColorCode(classification: Classification): string {
     switch (classification) {
       case 'U':
         return 'ff007a33';
@@ -163,8 +160,9 @@ export class PoamExportService {
   static async convertToExcel(
     poams: Poam[],
     exportingUser: any,
-    exportCollection: any,
+    exportCollection: any
   ): Promise<Blob> {
+    const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
     const response = await fetch('../../../assets/eMASS_Template.xlsx');
     const arrayBuffer = await response.arrayBuffer();
@@ -211,20 +209,15 @@ export class PoamExportService {
     worksheet!.getCell('D6').value = 'N/A';
     worksheet!.getCell('L2').value = exportCollection.systemType ?? '';
     worksheet!.getCell('L4').value = exportingUser.fullName.toUpperCase() ?? '';
-    worksheet!.getCell('L5').value =
-      exportingUser.phoneNumber.toUpperCase() ?? '';
+    worksheet!.getCell('L5').value = exportingUser.phoneNumber.toUpperCase() ?? '';
     worksheet!.getCell('L6').value = exportingUser.email.toUpperCase() ?? '';
     const cellA1 = worksheet!.getCell('A1');
-    cellA1.value = PoamExportService.getClassificationText(
-      CPAT.Env.classification,
-    );
+    cellA1.value = PoamExportService.getClassificationText(CPAT.Env.classification);
     cellA1.fill = {
       type: 'pattern',
       pattern: 'solid',
       fgColor: {
-        argb: PoamExportService.getClassificationColorCode(
-          CPAT.Env.classification,
-        ),
+        argb: PoamExportService.getClassificationColorCode(CPAT.Env.classification),
       },
     };
     cellA1.font = {
@@ -255,14 +248,10 @@ export class PoamExportService {
       },
       status: (value: any, _poam: Poam, _columnKey: string): string =>
         value === 'Closed' ? 'Completed' : 'Ongoing',
-      scheduledCompletionDate: (
-        value: any,
-        _poam: Poam,
-        _columnKey: string,
-      ): string => (value ? format(new Date(value), 'MM/dd/yyyy') : ''),
-      cci: (value: any, _poam: Poam, _columnKey: string): string =>
-        `CCI-${value}`,
-      milestones: (value: any, poam: Poam, columnKey: string): string => {
+      scheduledCompletionDate: (value: any, _poam: Poam, _columnKey: string): string =>
+        value ? format(new Date(value), 'MM/dd/yyyy') : '',
+      cci: (value: any, _poam: Poam, _columnKey: string): string => `CCI-${value}`,
+      milestones: (_value: any, poam: Poam, columnKey: string): string => {
         const formattedMilestones = PoamExportService.formatMilestones(poam);
         if (columnKey === 'I') return formattedMilestones.comments ? '1' : '';
         if (columnKey === 'J') return formattedMilestones.comments;
@@ -280,11 +269,7 @@ export class PoamExportService {
       Z: 'After reviewing documentation, and interviewing system stakeholders, it has been determined that this vulnerability should be mitigated. The ISSO will continue to monitor this vulnerability, and update the POAM as necessary. See mitigations field for detailed mitigation information.',
     };
 
-    const getCellValue = (
-      poam: Poam,
-      dbKey: string,
-      columnKey: string,
-    ): any => {
+    const getCellValue = (poam: Poam, dbKey: string, columnKey: string): any => {
       if (columnKey === 'N') {
         const cciValue =
           poam[dbKey] !== undefined && poam[dbKey] !== ''
@@ -315,11 +300,9 @@ export class PoamExportService {
       if (poam.status === 'Draft') return;
 
       const row = worksheet!.getRow(rowIndex);
-      Object.entries(excelColumnToDbColumnMapping).forEach(
-        ([columnKey, dbKey]) => {
-          row.getCell(columnKey).value = getCellValue(poam, dbKey, columnKey);
-        },
-      );
+      Object.entries(excelColumnToDbColumnMapping).forEach(([columnKey, dbKey]) => {
+        row.getCell(columnKey).value = getCellValue(poam, dbKey, columnKey);
+      });
 
       row.commit();
       rowIndex++;

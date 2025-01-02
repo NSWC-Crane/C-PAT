@@ -8,16 +8,25 @@
 !##########################################################################
 -->
 
-<p-table [value]="filteredData"
-         [scrollable]="true"
-         scrollHeight="61.5rem"
-         sortMode="multiple">
+<p-table
+  [value]="filteredData"
+  [scrollable]="true"
+  scrollHeight="61.5rem"
+  sortMode="multiple"
+  styleClass="h-full"
+>
   <ng-template pTemplate="caption">
     <p-iconField iconPosition="left" class="ml-auto">
       <p-inputIcon>
         <i class="pi pi-search"></i>
       </p-inputIcon>
-      <input pInputText type="text" [(ngModel)]="globalFilter" (input)="onFilterChange($event)" placeholder="Search..." />
+      <input
+        pInputText
+        type="text"
+        [(ngModel)]="globalFilter"
+        (input)="onFilterChange($event)"
+        placeholder="Search..."
+      />
     </p-iconField>
   </ng-template>
   <ng-template pTemplate="header">
@@ -33,27 +42,33 @@
         <ng-container [ngSwitch]="col">
           <ng-container *ngSwitchCase="'Assigned Team'">
             <div class="flex flex-wrap gap-2">
-              <span *ngFor="let team of row[getColumnKey(col)]"
-                    class="p-badge p-component"
-                    [ngStyle]="{'background-color': 'var(--primary-color)', 'margin': '2px'}"
-                    [class.hidden]="!team">
-                {{team}}
-              </span>
+              <p-tag
+                *ngFor="let team of row[getColumnKey(col)]"
+                [value]="team"
+                [rounded]="true"
+                [style]="{'margin': '2px'}"
+                [class.hidden]="!team"
+              >
+              </p-tag>
             </div>
           </ng-container>
           <ng-container *ngSwitchCase="'POAM'">
-            <button pButton type="button" icon="pi pi-eye" class="p-button-text" (click)="managePoam(row)"></button>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-eye"
+              class="p-button-text"
+              (click)="managePoam(row)"
+            ></button>
           </ng-container>
-          <ng-container *ngSwitchDefault>
-            {{row[getColumnKey(col)]}}
-          </ng-container>
+          <ng-container *ngSwitchDefault> {{row[getColumnKey(col)]}} </ng-container>
         </ng-container>
       </td>
     </tr>
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td [attr.colspan]="assignedColumns.length" style="text-align: center;">No POAMs found.</td>
+      <td [attr.colspan]="assignedColumns.length" style="text-align: center">No POAMs found.</td>
     </tr>
   </ng-template>
 </p-table>

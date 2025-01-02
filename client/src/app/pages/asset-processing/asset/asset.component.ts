@@ -24,10 +24,9 @@ import { Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
 import { AssetService } from '../assets.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DropdownModule } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -45,14 +44,14 @@ import { InputTextModule } from 'primeng/inputtext';
     CardModule,
     ConfirmDialogModule,
     DialogModule,
-    DropdownModule,
+    Select,
     CommonModule,
     FormsModule,
     InputTextModule,
     TableModule,
     ToastModule,
   ],
-  providers: [ConfirmationService, MessageService]
+  providers: [ConfirmationService, MessageService],
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   @Input() asset: any;
@@ -73,10 +72,9 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(
     private assetService: AssetService,
-    private collectionService: CollectionsService,
     private sharedService: SharedService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
@@ -93,9 +91,9 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   async getData() {
     if (!this.selectedCollection) {
       this.subscriptions.add(
-        this.sharedService.selectedCollection.subscribe((collectionId) => {
+        this.sharedService.selectedCollection.subscribe(collectionId => {
           this.selectedCollection = collectionId;
-        }),
+        })
       );
     }
     await this.getLabelData();
@@ -105,11 +103,11 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async getLabelData() {
-    this.subs.sink = (
-      await this.assetService.getLabels(this.selectedCollection)
-    ).subscribe((labels: any) => {
-      this.labelList = labels || [];
-    });
+    this.subs.sink = (await this.assetService.getLabels(this.selectedCollection)).subscribe(
+      (labels: any) => {
+        this.labelList = labels || [];
+      }
+    );
   }
 
   async getAssetLabels() {
@@ -117,24 +115,18 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       console.error('Asset or assetId is not available');
       return;
     }
-    this.subs.sink = (
-      await this.assetService.getAssetLabels(this.asset.assetId)
-    ).subscribe(
+    this.subs.sink = (await this.assetService.getAssetLabels(this.asset.assetId)).subscribe(
       (assetLabels: any) => {
         this.assetLabels = assetLabels || [];
       },
-      (error) => {
+      error => {
         console.error('Error fetching asset labels:', error);
-      },
+      }
     );
   }
 
-  transformToDropdownOptions(
-    data: any[],
-    labelField: string,
-    valueField: string,
-  ) {
-    return (data || []).map((item) => ({
+  transformToDropdownOptions(data: any[], labelField: string, valueField: string) {
+    return (data || []).map(item => ({
       labelName: item[labelField],
       labelId: item[valueField],
     }));
@@ -152,9 +144,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
   onLabelChange(label: any, rowIndex: number) {
     if (label.labelId) {
-      const selectedLabel = this.labelList.find(
-        (l: any) => l.labelId === label.labelId,
-      );
+      const selectedLabel = this.labelList.find((l: any) => l.labelId === label.labelId);
       if (selectedLabel) {
         label.labelName = selectedLabel.labelName;
         label.isNew = false;
@@ -180,12 +170,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
             detail: 'Label removed',
           });
         } else if (label.labelId) {
-          (
-            await this.assetService.deleteAssetLabel(
-              this.asset.assetId,
-              label.labelId,
-            )
-          ).subscribe(
+          (await this.assetService.deleteAssetLabel(this.asset.assetId, label.labelId)).subscribe(
             () => {
               this.assetLabels.splice(index, 1);
               this.assetLabels = [...this.assetLabels];
@@ -195,13 +180,13 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
                 detail: 'Label deleted successfully',
               });
             },
-            (error) => {
+            (error: Error) => {
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: 'Failed to delete label',
+                detail: `Failed to delete label: ${error.message}`,
               });
-            },
+            }
           );
         }
       },
@@ -209,7 +194,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async confirmLabelCreate(newLabel: any) {
-    let labelName = this.getLabelName(newLabel.labelId);
+    const labelName = this.getLabelName(newLabel.labelId);
 
     if (this.asset.assetId !== 'ADDASSET' && newLabel.labelId) {
       const assetLabel = {
@@ -227,13 +212,13 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
           });
           await this.getAssetLabels();
         },
-        (error) => {
+        (error: Error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to add label',
+            detail: `Failed to add label: ${error.message}`,
           });
-        },
+        }
       );
     } else if (this.asset.assetId === 'ADDASSET' && newLabel.labelId) {
       this.messageService.add({
@@ -251,9 +236,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getLabelName(labelId: number): string {
-    const label = this.labelList.find(
-      (label: any) => label.labelId === labelId,
-    );
+    const label = this.labelList.find((label: any) => label.labelId === labelId);
     return label ? label.labelName : '';
   }
 
@@ -261,10 +244,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.validData()) return;
 
     const asset = {
-      assetId:
-        this.asset.assetId == 'ADDASSET' || !this.asset.assetId
-          ? 0
-          : +this.asset.assetId,
+      assetId: this.asset.assetId == 'ADDASSET' || !this.asset.assetId ? 0 : +this.asset.assetId,
       assetName: this.asset.assetName,
       description: this.asset.description,
       collectionId: this.selectedCollection,
@@ -275,21 +255,19 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
     if (asset.assetId === 0) {
       this.subs.sink = (await this.assetService.postAsset(asset)).subscribe(
-        (data) => {
+        data => {
           this.assetchange.emit(data.assetId);
         },
-        (err) => {
+        err => {
           this.invalidData('unexpected error adding asset');
           console.error(err);
-        },
+        }
       );
     } else {
-      this.subs.sink = (await this.assetService.updateAsset(asset)).subscribe(
-        (data) => {
-          this.asset = data;
-          this.assetchange.emit();
-        },
-      );
+      this.subs.sink = (await this.assetService.updateAsset(asset)).subscribe(data => {
+        this.asset = data;
+        this.assetchange.emit();
+      });
     }
   }
 
@@ -322,7 +300,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     }
     if (this.asset.assetId == 'ADDASSET') {
       const exists = this.assets.find(
-        (e: { assetName: any }) => e.assetName === this.asset.assetName,
+        (e: { assetName: any }) => e.assetName === this.asset.assetName
       );
       if (exists) {
         this.invalidData('Asset Already Exists');

@@ -9,11 +9,7 @@
 */
 
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import {
-  HttpClient,
-  HttpErrorResponse,
-  HttpHeaders,
-} from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -37,33 +33,27 @@ export class CollectionsService {
   private cpatApiBase = CPAT.Env.apiBase;
   constructor(
     private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService,
+    private oidcSecurityService: OidcSecurityService
   ) {}
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(
-        `Backend returned code ${error.status}, ` + ` body was: ${error.error}`,
-      );
+      console.error(`Backend returned code ${error.status}, ` + ` body was: ${error.error}`);
     }
     return throwError(() => error);
   }
 
   private async getAuthHeaders() {
-    const token = await firstValueFrom(
-      this.oidcSecurityService.getAccessToken(),
-    );
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
   async getAllCollections() {
     const headers = await this.getAuthHeaders();
     return this.http
-      .get<
-        Collections[]
-      >(`${this.cpatApiBase}/collections?elevate=true`, { headers })
+      .get<Collections[]>(`${this.cpatApiBase}/collections?elevate=true`, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -77,9 +67,7 @@ export class CollectionsService {
   async getCollectionBasicList() {
     const headers = await this.getAuthHeaders();
     return this.http
-      .get<
-        CollectionBasicList[]
-      >(`${this.cpatApiBase}/collections/basiclist`, { headers })
+      .get<CollectionBasicList[]>(`${this.cpatApiBase}/collections/basiclist`, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -121,7 +109,7 @@ export class CollectionsService {
     return this.http
       .get(
         `${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true&associatedVulnerabilities=true`,
-        { headers },
+        { headers }
       )
       .pipe(catchError(this.handleError));
   }

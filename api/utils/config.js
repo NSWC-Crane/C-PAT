@@ -39,6 +39,7 @@ let config = {
         extraScopes: process.env.STIGMAN_EXTRA_SCOPES,
     },
     tenable: {
+        enabled: process.env.TENABLE_ENABLED !== 'false',
         url: process.env.TENABLE_URL || "",
         accessKey: process.env.TENABLE_ACCESS_KEY,
         secretKey: process.env.TENABLE_SECRET_KEY,

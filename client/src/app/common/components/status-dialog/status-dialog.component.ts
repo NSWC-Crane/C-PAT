@@ -16,7 +16,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 
 @Component({
-  selector: 'status-dialog',
+  selector: 'cpat-status-dialog',
   template: `
     <p-dialog
       header="File Upload Status"
@@ -34,13 +34,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
     </p-dialog>
   `,
   standalone: true,
-  imports: [
-    ButtonModule,
-    CommonModule,
-    DialogModule,
-    FormsModule,
-    ProgressBarModule,
-  ],
+  imports: [ButtonModule, CommonModule, DialogModule, FormsModule, ProgressBarModule],
 })
 export class StatusDialogComponent implements OnInit, OnDestroy {
   @Input() progress: number = 0;

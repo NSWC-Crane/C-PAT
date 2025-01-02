@@ -8,13 +8,7 @@
 !##########################################################################
 */
 
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { SubSink } from 'subsink';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
@@ -28,10 +22,7 @@ import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.componen
   templateUrl: './poams.component.html',
   styleUrls: ['./poams.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    PoamMainchartComponent
-  ]
+  imports: [CommonModule, PoamMainchartComponent],
 })
 export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   protected accessLevel: any;
@@ -47,7 +38,7 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
     private collectionService: CollectionsService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private setPayloadService: PayloadService,
+    private setPayloadService: PayloadService
   ) {}
 
   async ngOnInit() {
@@ -61,19 +52,19 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
+      this.setPayloadService.user$.subscribe(user => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe((payload) => {
+      this.setPayloadService.payload$.subscribe(payload => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
+      this.setPayloadService.accessLevel$.subscribe(level => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.selectedCollection = this.user.lastCollectionAccessedId;
           this.getPoamData();
         }
-      }),
+      })
     );
   }
 
@@ -90,8 +81,6 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

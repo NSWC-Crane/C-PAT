@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -17,10 +17,8 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { PayloadService } from '../../../common/services/setPayload.service';
-import { Subscription } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { TagModule } from 'primeng/tag';
 
 @Component({
   selector: 'cpat-poam-assigned-grid',
@@ -34,7 +32,8 @@ import { MessageService } from 'primeng/api';
     TableModule,
     IconFieldModule,
     InputIconModule,
-    InputTextModule
+    InputTextModule,
+    TagModule,
   ],
   providers: [MessageService],
 })
@@ -43,12 +42,19 @@ export class PoamAssignedGridComponent implements OnChanges {
   @Input() assignedData!: any[];
   @Input() gridHeight!: string;
 
-  assignedColumns: string[] = ['POAM ID', 'Adjusted Severity', 'Status', 'Submitter', 'Assigned Team', 'POAM'];
+  assignedColumns: string[] = [
+    'POAM ID',
+    'Adjusted Severity',
+    'Status',
+    'Submitter',
+    'Assigned Team',
+    'POAM',
+  ];
   assignedDataSource: any[] = [];
   filteredData: any[] = [];
   globalFilter: string = '';
 
-  constructor(private router: Router) { }
+  constructor(private router: Router) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['assignedData']) {
@@ -57,16 +63,16 @@ export class PoamAssignedGridComponent implements OnChanges {
   }
 
   updateDataSource() {
-    let data = this.assignedData;
+    const data = this.assignedData;
 
-    this.assignedDataSource = data.map((item) => ({
+    this.assignedDataSource = data.map(item => ({
       poamId: item.poamId,
       adjSeverity: item.adjSeverity,
       status: item.status,
       submitter: item.submitterName,
       assignedTeams: item.assignedTeams
         ? item.assignedTeams.map((team: any) => team.assignedTeamName)
-        : []
+        : [],
     }));
     this.filteredData = [...this.assignedDataSource];
     this.applyFilter();
@@ -78,17 +84,14 @@ export class PoamAssignedGridComponent implements OnChanges {
   }
 
   applyFilter() {
-    const filterValue = this.globalFilter
-      ? this.globalFilter.toLowerCase()
-      : '';
+    const filterValue = this.globalFilter ? this.globalFilter.toLowerCase() : '';
     if (!filterValue) {
       this.filteredData = [...this.assignedDataSource];
     } else {
-      this.filteredData = this.assignedDataSource.filter((poam) =>
+      this.filteredData = this.assignedDataSource.filter(poam =>
         Object.values(poam).some(
-          (value) =>
-            value && value.toString().toLowerCase().includes(filterValue),
-        ),
+          value => value && value.toString().toLowerCase().includes(filterValue)
+        )
       );
     }
   }

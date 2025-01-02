@@ -16,7 +16,7 @@ import { DialogModule } from 'primeng/dialog';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
-  selector: 'confirmation-dialog',
+  selector: 'cpat-confirmation-dialog',
   styleUrls: ['./confirmation-dialog.component.scss'],
   template: `
     <p-dialog
@@ -44,7 +44,7 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
             label="Cancel"
             icon="pi pi-times"
             style="margin-left: 10%;"
-            class="p-button-outlined p-button-warning"
+            class="p-button-outlined p-button-warn"
             (click)="cancel()"
             *ngIf="options.cancelbutton === 'true'"
           ></button>
@@ -64,7 +64,7 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
             label="{{ options.convertButton.text }}"
             icon="pi pi-refresh"
             style="margin-left: 5%;"
-            class="p-button-outlined p-button-warning"
+            class="p-button-outlined p-button-warn"
             (click)="convert()"
           ></button>
         </div>
@@ -72,12 +72,7 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
     </p-dialog>
   `,
   standalone: true,
-  imports: [
-    ButtonModule,
-    CommonModule,
-    DialogModule,
-    FormsModule,
-  ],
+  imports: [ButtonModule, CommonModule, DialogModule, FormsModule],
 })
 export class ConfirmationDialogComponent {
   @Input() options!: ConfirmationDialogOptions;

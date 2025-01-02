@@ -11,7 +11,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
@@ -29,6 +29,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
     DialogModule,
     FormsModule,
     ProgressBarModule,
+    RouterLink,
   ],
 })
 export class StatusMessageComponent implements OnInit {
@@ -38,10 +39,12 @@ export class StatusMessageComponent implements OnInit {
   constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.route.data.subscribe((data) => {
-      this.statusCode = data['statusCode'];
-      this.setMessage();
-    });
+    if (!this.statusCode) {
+      this.route.data.subscribe(data => {
+        this.statusCode = data['statusCode'];
+      });
+    }
+    this.setMessage();
   }
 
   setMessage() {
@@ -54,30 +57,25 @@ export class StatusMessageComponent implements OnInit {
           "Hmm, looks like the requested authentication has failed or hasn't been provided yet.";
         break;
       case 403:
-        this.message =
-          "Sorry, you don't have permission to access this resource.";
+        this.message = "Sorry, you don't have permission to access this resource.";
         break;
       case 404:
         this.message = "Hmm, looks like that page doesn't exist.";
         break;
       case 405:
-        this.message =
-          "The method you're trying to use is not allowed for this resource.";
+        this.message = "The method you're trying to use is not allowed for this resource.";
         break;
       case 406:
-        this.message =
-          'The requested resource is not available in the format you asked for.';
+        this.message = 'The requested resource is not available in the format you asked for.';
         break;
       case 407:
-        this.message =
-          'Proxy authentication is required to access this resource.';
+        this.message = 'Proxy authentication is required to access this resource.';
         break;
       case 408:
         this.message = 'The server timed out waiting for the request.';
         break;
       case 409:
-        this.message =
-          'There was a conflict with the current state of the resource.';
+        this.message = 'There was a conflict with the current state of the resource.';
         break;
       case 410:
         this.message =
@@ -92,12 +90,10 @@ export class StatusMessageComponent implements OnInit {
           'The server does not meet one of the preconditions that the requester put on the request.';
         break;
       case 413:
-        this.message =
-          'The request is larger than the server is willing or able to process.';
+        this.message = 'The request is larger than the server is willing or able to process.';
         break;
       case 414:
-        this.message =
-          'The URI provided was too long for the server to process.';
+        this.message = 'The URI provided was too long for the server to process.';
         break;
       case 415:
         this.message =
@@ -119,8 +115,7 @@ export class StatusMessageComponent implements OnInit {
           'The request was well-formed but was unable to be followed due to semantic errors.';
         break;
       case 429:
-        this.message =
-          "You've sent too many requests in a given amount of time.";
+        this.message = "You've sent too many requests in a given amount of time.";
         break;
       case 500:
         this.message =
@@ -142,8 +137,12 @@ export class StatusMessageComponent implements OnInit {
           'The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server.';
         break;
       case 505:
+        this.message = 'The server does not support the HTTP protocol version used in the request.';
+        break;
+      case 998:
         this.message =
-          'The server does not support the HTTP protocol version used in the request.';
+          'Hmm, looks like you have not selected a collection. Please click the settings icon in the menu sidebar to make a selection.';
+        this.statusCode = 404;
         break;
       case 999:
         this.message =

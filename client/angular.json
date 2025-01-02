@@ -22,6 +22,14 @@
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "preserveSymlinks": true,
+            "optimization": {
+              "scripts": true,
+              "styles": {
+                "minify": true,
+                "inlineCritical": true
+              },
+              "fonts": true
+            },
             "allowedCommonJsDependencies": [
               "base64-js",
               "js-sha256",
@@ -39,25 +47,30 @@
             "assets": [
               "src/silent-renew.html",
               "src/favicon.ico",
-              "src/assets",
-              {
-                "glob": "**/*",
-                "input": "node_modules/primeng/resources/themes",
-                "output": "app/styles/themes"
-              }
+              "src/assets"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": [ "node_modules/", "src/assets/styles" ]
+            },
             "styles": [
-              "src/app/styles/styles.scss",
-              "src/app/styles/_primeng-overrides.scss",
+              "src/assets/styles/global.scss",
               "node_modules/pace-js/templates/pace-theme-flash.tmpl.css",
-              "node_modules/@fortawesome/fontawesome-free/css/all.css",
-              "node_modules/primeng/resources/primeng.min.css",
-              "node_modules/primeicons/primeicons.css",
-              "node_modules/primeflex/primeflex.css"
+              "node_modules/primeicons/primeicons.css"
             ],
             "scripts": [
               "node_modules/pace-js/pace.min.js"
-            ]
+            ],
+            "sourceMap": {
+              "scripts": true,
+              "styles": true,
+              "vendor": true
+            },
+            "buildOptimizer": true,
+            "aot": true,
+            "vendorChunk": true,
+            "commonChunk": true,
+            "namedChunks": true,
+            "extractLicenses": true
           },
           "configurations": {
             "production": {
@@ -74,13 +87,21 @@
                   "maximumError": "16kb"
                 }
               ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
               "namedChunks": false,
               "extractLicenses": true,
               "vendorChunk": false,
-              "buildOptimizer": true
+              "buildOptimizer": true,
+              "serviceWorker": true,
+              "ngswConfigPath": "ngsw-config.json"
             },
             "development": {
               "index": "src/development.html",

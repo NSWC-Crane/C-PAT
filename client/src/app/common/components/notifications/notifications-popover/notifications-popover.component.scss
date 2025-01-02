@@ -8,6 +8,17 @@
 !##########################################################################
 */
 
+::ng-deep .p-popover {
+  &:before {
+    display: none;
+  }
+
+  &:after {
+    display: none;
+  }
+  margin-top: 0;
+}
+
 .notifications-popover {
   width: 25vw;
   max-height: 50vh;
@@ -16,11 +27,11 @@
   margin-bottom: 0;
 
   ::ng-deep .poam-link {
-    color: var(--primary-color);
+    color: var(--p-primary-color);
     font-weight: bold;
     text-decoration: none;
   }
-  
+
   ::ng-deep .poam-link:hover {
     text-decoration: underline;
   }
@@ -47,6 +58,7 @@
     flex-grow: 1;
     position: relative;
     padding-right: 1rem;
+    padding-bottom: 0.5rem;
   }
 
   .notification-header {
@@ -66,14 +78,39 @@
   }
 
   .dismiss-icon {
-    cursor: pointer;
+    z-index: 99999;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition:
+      box-shadow 0.1s ease,
+      background-color 0.1s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+    }
   }
 
-  ::ng-deep .p-listbox-item {
-    padding: 1rem;
-    border-bottom: 1px solid var(--surface-d);
+  ::ng-deep .p-listbox {
+    border: none;
+    padding: 0;
+    background-color: var(--p-surface-900);
+    border-bottom: 1px solid var(--p-surface-950);
     &:last-child {
       border-bottom: none;
+    }
+    .p-listbox-option {
+      border-bottom: 1px solid var(--p-content-border-color);
+      border-bottom-width: 0;
+      background: linear-gradient(
+          to right,
+          transparent 10px,
+          var(--p-content-border-color) 10px,
+          var(--p-content-border-color) calc(100% - 10px),
+          transparent calc(100% - 10px)
+        )
+        bottom 0 left 0/100% 1px no-repeat;
+      transition: none;
     }
   }
 
@@ -82,4 +119,3 @@
     text-align: center;
   }
 }
-

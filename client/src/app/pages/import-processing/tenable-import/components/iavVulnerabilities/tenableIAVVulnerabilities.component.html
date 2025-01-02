@@ -1,140 +1,220 @@
-<div class="col-12 row">
+<div class="col-span-12 row">
   <div class="col">
     <div class="p-fluid">
-      <div class="toolbar mb-3">
-        <div class="left-inputAndButton">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search"></i>
-            <input pInputText type="text" class="w-12rem" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Global Search" />
-            <p-button icon="pi pi-filter"
-                      class="ml-2"
-                      [rounded]="true"
-                      [text]="true"
-                      [raised]="true"
-                      severity="primary"
-                      (click)="toggleNavyComplyFilter()"
-                      (onKeyUp)="toggleNavyComplyFilter()">
-            </p-button>
-            <p-button [rounded]="true"
-                      [text]="true"
-                      [raised]="true"
-                      severity="secondary"
-                      class="ml-2"
-                      icon="pi pi-filter-slash"
-                      (click)="clear()"
-                      (onKeyUp)="clear()"
-                      pTooltip="Reset default filters">
-            </p-button>
-            <p-dropdown #dd
-                        [options]="navyComplyDateFilters"
-                        [(ngModel)]="selectedNavyComplyDateFilter"
-                        (onChange)="onNavyComplyDateFilterChange($event)"
-                        appendTo="body"
-                        styleClass="custom-dropdown">
-            </p-dropdown>
-            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-plus" *ngIf="this.tenableTool === 'sumid'" (click)="loadVulnList()" (onKeyUp)="loadVulnList()" pTooltip="Load Vulnerability List"></p-button>
-            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-minus" *ngIf="this.tenableTool === 'listvuln'" (click)="loadVulnSummary()" (onKeyUp)="loadVulnSummary()" pTooltip="Load Vulnerability Summary"></p-button>
-          </span>
+      <div class="toolbar mb-4">
+        <div class="flex justify-between items-center">
+          <p-iconField iconPosition="left">
+            <p-inputIcon>
+              <i class="pi pi-search"></i>
+            </p-inputIcon>
+            <input
+              pInputText
+              type="text"
+              class="w-48"
+              [(ngModel)]="filterValue"
+              (input)="onGlobalFilter($event)"
+              placeholder="Global Search"
+            />
+          </p-iconField>
+          <p-button
+            icon="pi pi-filter"
+            class="ml-2"
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            severity="primary"
+            (click)="toggleNavyComplyFilter()"
+            (onKeyUp)="toggleNavyComplyFilter()"
+          >
+          </p-button>
+          <p-button
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            severity="secondary"
+            class="ml-2"
+            icon="pi pi-filter-slash"
+            (click)="clear()"
+            (onKeyUp)="clear()"
+            pTooltip="Reset default filters"
+          >
+          </p-button>
+          <p-select
+            #dd
+            [options]="navyComplyDateFilters"
+            [(ngModel)]="selectedNavyComplyDateFilter"
+            (onChange)="onNavyComplyDateFilterChange($event)"
+            appendTo="body"
+            styleClass="custom-dropdown"
+          >
+          </p-select>
+          <p-button
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            severity="secondary"
+            icon="pi pi-search-plus"
+            *ngIf="this.tenableTool === 'sumid'"
+            (click)="loadVulnList()"
+            (onKeyUp)="loadVulnList()"
+            pTooltip="Load Vulnerability List"
+          ></p-button>
+          <p-button
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            severity="secondary"
+            icon="pi pi-search-minus"
+            *ngIf="this.tenableTool === 'listvuln'"
+            (click)="loadVulnSummary()"
+            (onKeyUp)="loadVulnSummary()"
+            pTooltip="Load Vulnerability Summary"
+          ></p-button>
         </div>
         <div class="right-buttons">
-          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" (onKeyUp)="resetColumnSelections()" pTooltip="Reset column selections"></p-button>
-          <p-button icon="pi pi-plus"
-                    [rounded]="true"
-                    [text]="true"
-                    [raised]="true"
-                    severity="primary"
-                    (onKeyUp)="toggleAddColumnOverlay()"
-                    (click)="toggleAddColumnOverlay()">
+          <p-button
+            class="mr-2"
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            severity="secondary"
+            icon="pi pi-refresh"
+            (click)="resetColumnSelections()"
+            (onKeyUp)="resetColumnSelections()"
+            pTooltip="Reset column selections"
+          ></p-button>
+          <p-button
+            icon="pi pi-plus"
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            severity="primary"
+            (onKeyUp)="toggleAddColumnOverlay()"
+            (click)="toggleAddColumnOverlay()"
+          >
           </p-button>
-          <p-button icon="pi pi-external-link"
-                    severity="secondary"
-                    [rounded]="true"
-                    [text]="true"
-                    (onKeyUp)="dt.exportCSV()"
-                    (onClick)="dt.exportCSV()">
+          <p-button
+            icon="pi pi-external-link"
+            severity="secondary"
+            [rounded]="true"
+            [text]="true"
+            (onKeyUp)="dt.exportCSV()"
+            (onClick)="dt.exportCSV()"
+          >
           </p-button>
-          <p-multiSelect #ms
-                         [options]="cols"
-                         [(ngModel)]="selectedColumns"
-                         optionLabel="header"
-                         styleClass="custom-multiselect"
-                         appendTo="body"
-                         filterPlaceHolder="Add columns..."
-                         [showToggleAll]="true">
+          <p-multiSelect
+            #ms
+            [options]="cols"
+            [(ngModel)]="selectedColumns"
+            optionLabel="header"
+            styleClass="custom-multiselect"
+            appendTo="body"
+            filterPlaceHolder="Add columns..."
+            [showToggleAll]="true"
+          >
           </p-multiSelect>
         </div>
       </div>
       <div class="scrollable-vulnerabilities">
-        <p-table #dt [value]="IAVVulnerabilities"
-                 [columns]="selectedColumns"
-                 [paginator]="true"
-                 [filters]="filters"
-                 [rows]="20"
-                 [totalRecords]="totalRecords"
-                 [showCurrentPageReport]="true"
-                 [rowsPerPageOptions]="[10,20,50]"
-                 [globalFilterFields]="['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'supersededBy', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID']"
-                 [filterDelay]="300"
-                 [rowHover]="true"
-                 dataKey="pluginID"
-                 [resizableColumns]="true"
-                 [loading]="isLoading"
-                 styleClass="p-datatable-sm p-datatable-gridlines-hidden">
+        <p-table
+          #dt
+          [value]="IAVVulnerabilities"
+          [columns]="selectedColumns"
+          [paginator]="true"
+          [filters]="filters"
+          [rows]="20"
+          [totalRecords]="totalRecords"
+          [showCurrentPageReport]="true"
+          [rowsPerPageOptions]="[10,20,50]"
+          [globalFilterFields]="['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'supersededBy', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID']"
+          [filterDelay]="300"
+          [rowHover]="true"
+          dataKey="pluginID"
+          [resizableColumns]="true"
+          [loading]="isLoading"
+          styleClass="p-datatable-sm p-datatable-gridlines-hidden"
+        >
           <ng-template pTemplate="header" let-columns>
             <tr>
-              <th *ngFor="let col of columns" [pSortableColumn]="col.field" pResizableColumn scope="col">
+              <th
+                *ngFor="let col of columns"
+                [pSortableColumn]="col.field"
+                pResizableColumn
+                scope="col"
+              >
                 {{col.header}}
                 <ng-container *ngIf="col.field === 'poam'">
-                  <p-columnFilter [type]="col.filterType"
-                                  [field]="'poamStatus'"
-                                  [showOperator]="false"
-                                  [showMatchModes]="false"
-                                  [showAddButton]="false"
-                                  [showButtons]="true"
-                                  display="menu">
+                  <p-columnFilter
+                    [type]="col.filterType"
+                    [field]="'poamStatus'"
+                    [showOperator]="false"
+                    [showMatchModes]="false"
+                    [showAddButton]="false"
+                    [showButtons]="true"
+                    display="menu"
+                  >
                     <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                      <p-dropdown [ngModel]="value"
-                                  [options]="poamStatusOptions"
-                                  (onChange)="filter($event.value)"
-                                  placeholder="Select Status"
-                                  [showClear]="true"
-                                  styleClass="w-full">
-                      </p-dropdown>
+                      <p-select
+                        [ngModel]="value"
+                        [options]="poamStatusOptions"
+                        (onChange)="filter($event.value)"
+                        placeholder="Select Status"
+                        [showClear]="true"
+                        styleClass="w-full"
+                      >
+                      </p-select>
                     </ng-template>
                   </p-columnFilter>
                 </ng-container>
                 <ng-container *ngIf="col.field !== 'poam'">
-                  <p-columnFilter [type]="col.filterType"
-                                  [field]="col.field"
-                                  [showMatchModes]="true"
-                                  [showOperator]="false"
-                                  [showAddButton]="false"
-                                  display="menu">
+                  <p-columnFilter
+                    [type]="col.filterType"
+                    [field]="col.field"
+                    [showMatchModes]="true"
+                    [showOperator]="false"
+                    [showAddButton]="false"
+                    display="menu"
+                  >
                   </p-columnFilter>
                 </ng-container>
               </th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-vulnerability let-columns="columns">
-            <tr (click)="onRowClick(vulnerability, $event)" (keyup)="onRowClick(vulnerability, $event)" style="cursor: pointer;">
+            <tr
+              (click)="onRowClick(vulnerability, $event)"
+              (keyup)="onRowClick(vulnerability, $event)"
+              style="cursor: pointer"
+            >
               <td *ngFor="let col of columns">
                 <ng-container [ngSwitch]="col.field">
                   <ng-container *ngSwitchCase="'poam'">
-                    <i class="pi"
-                       [ngClass]="vulnerability.poam ? 'pi-check-circle' : 'pi-times-circle'"
-                       [ngStyle]="{
+                    <i
+                      class="pi"
+                      [ngClass]="vulnerability.poam ? 'pi-check-circle' : 'pi-times-circle'"
+                      [ngStyle]="{
        'color': vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus) : 'maroon',
        'font-size': '1.5rem',
        'cursor': 'pointer'
      }"
-                       (click)="onPoamIconClick(vulnerability, $event)"
-                       (keyup.enter)="onPoamIconClick(vulnerability, $event)"
-                       [pTooltip]="getPoamStatusTooltip(vulnerability.poamStatus)"
-                       tooltipPosition="top">
+                      (click)="onPoamIconClick(vulnerability, $event)"
+                      (keyup.enter)="onPoamIconClick(vulnerability, $event)"
+                      [pTooltip]="getPoamStatusTooltip(vulnerability.poamStatus)"
+                      tooltipPosition="top"
+                    >
                     </i>
                   </ng-container>
                   <ng-container *ngSwitchCase="'pluginID'">
-                    <span (click)="onPluginIDClick(vulnerability, $event)" (keyup.enter)="onPluginIDClick(vulnerability, $event)" style="cursor: pointer; color: var(--primary-color); font-weight: bold; text-decoration: underline;">
+                    <span
+                      (click)="onPluginIDClick(vulnerability, $event)"
+                      (keyup.enter)="onPluginIDClick(vulnerability, $event)"
+                      style="
+                        cursor: pointer;
+                        color: var(--p-primary-color);
+                        font-weight: bold;
+                        text-decoration: underline;
+                      "
+                    >
                       {{vulnerability[col.field]}}
                     </span>
                   </ng-container>
@@ -146,16 +226,14 @@
                   <ng-container *ngSwitchCase="'navyComplyDate'">
                     {{vulnerability[col.field] | date:'mediumDate'}}
                   </ng-container>
-                  <ng-container *ngSwitchDefault>
-                    {{vulnerability[col.field]}}
-                  </ng-container>
+                  <ng-container *ngSwitchDefault> {{vulnerability[col.field]}} </ng-container>
                 </ng-container>
               </td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="17" style="text-align:center">No vulnerabilities to display</td>
+              <td colspan="17" style="text-align: center">No vulnerabilities to display</td>
             </tr>
           </ng-template>
         </p-table>
@@ -164,7 +242,12 @@
   </div>
 </div>
 
-<p-dialog class="pluginDialog" [(visible)]="displayDialog" [modal]="true" [style]="{'width': '50vw'}">
+<p-dialog
+  class="pluginDialog"
+  [(visible)]="displayDialog"
+  [modal]="true"
+  [style]="{'width': '50vw'}"
+>
   <ng-template pTemplate="content">
     <div class="p-grid">
       <div class="p-col-12"><b>Plugin ID:</b> {{selectedVulnerability.pluginID}}</div>
@@ -184,7 +267,7 @@
           </ng-template>
           <ng-template pTemplate="body" let-item>
             <tr>
-              <td>{{ item.name }}: </td>
+              <td>{{ item.name }}:</td>
               <td>
                 <span [ngSwitch]="item.type">
                   <span *ngSwitchCase="'boolean'">{{item.value ? 'Yes' : 'No'}}</span>
@@ -207,13 +290,25 @@
         <div class="p-col-12"><b>CVSS Base Score:</b> {{ pluginData.baseScore }}</div>
         <div class="p-col-12"><b>CVSS Temporal Score:</b> {{ pluginData.temporalScore }}</div>
         <div class="p-col-12"><b>CVSS v3 Base Score:</b> {{ pluginData.cvssV3BaseScore }}</div>
-        <div class="p-col-12"><b>CVSS v3 Temporal Score:</b> {{ pluginData.cvssV3TemporalScore }}</div>
+        <div class="p-col-12">
+          <b>CVSS v3 Temporal Score:</b> {{ pluginData.cvssV3TemporalScore }}
+        </div>
         <div class="p-col-12"><b>CVSS v3 Vector:</b> {{ pluginData.cvssV3Vector }}</div>
         <div class="p-col-12"><b>CPE:</b> {{ pluginData.cpe }}</div>
-        <div class="p-col-12"><b>Vulnerability Publication Date: </b>{{ pluginData.pluginPubDate * 1000 | date:'MMMM d, yyyy' }}</div>
-        <div class="p-col-12"><b>Patch Publication Date: </b>{{ pluginData.patchPubDate * 1000 | date:'MMMM d, yyyy' }}</div>
-        <div class="p-col-12"><b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date:'MMMM d, yyyy' }}</div>
-        <div class="p-col-12"><b>Plugin Last Modification Date:</b> {{ pluginData.pluginModDate * 1000 | date:'MMMM d, yyyy' }}</div>
+        <div class="p-col-12">
+          <b>Vulnerability Publication Date: </b>{{ pluginData.pluginPubDate * 1000 | date:'MMMM d,
+          yyyy' }}
+        </div>
+        <div class="p-col-12">
+          <b>Patch Publication Date: </b>{{ pluginData.patchPubDate * 1000 | date:'MMMM d, yyyy' }}
+        </div>
+        <div class="p-col-12">
+          <b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date:'MMMM d, yyyy' }}
+        </div>
+        <div class="p-col-12">
+          <b>Plugin Last Modification Date:</b> {{ pluginData.pluginModDate * 1000 | date:'MMMM d,
+          yyyy' }}
+        </div>
         <div class="p-col-12"><b>Source File:</b> {{ pluginData.sourceFile }}</div>
         <div class="p-col-12"><b>Version:</b> {{ pluginData.version }}</div>
       </div>
@@ -233,9 +328,7 @@
         </ul>
         <h6 *ngIf="otherReferences.length > 0">Cross-References</h6>
         <ul>
-          <li *ngFor="let ref of otherReferences">
-            {{ref.type}}:{{ref.value}}
-          </li>
+          <li *ngFor="let ref of otherReferences">{{ref.type}}:{{ref.value}}</li>
         </ul>
       </div>
     </div>

@@ -9,8 +9,11 @@ import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TextareaModule } from 'primeng/textarea';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
+import { TagModule } from 'primeng/tag';
 
 interface ExportColumn {
   title: string;
@@ -25,7 +28,7 @@ interface Label {
 }
 
 @Component({
-  selector: 'stigmanager-assets-table',
+  selector: 'cpat-stigmanager-assets-table',
   templateUrl: './stigManagerAssetsTable.component.html',
   styleUrls: ['./stigManagerAssetsTable.component.scss'],
   standalone: true,
@@ -35,10 +38,13 @@ interface Label {
     CommonModule,
     FormsModule,
     InputTextModule,
-    InputTextareaModule,
+    InputIconModule,
+    IconFieldModule,
+    TextareaModule,
     MultiSelectModule,
     TableModule,
     ToastModule,
+    TagModule,
   ],
 })
 export class STIGManagerAssetsTableComponent implements OnInit {
@@ -57,7 +63,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
 
   constructor(
     private messageService: MessageService,
-    private sharedService: SharedService,
+    private sharedService: SharedService
   ) {}
 
   async ngOnInit() {
@@ -65,9 +71,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
     if (this.stigmanCollectionId) {
       await Promise.all([this.getAssets(), this.getLabels()]);
     } else {
-      this.showErrorMessage(
-        'Unable to fetch STIG Manager Assets, please try again later..',
-      );
+      this.showErrorMessage('Unable to fetch STIG Manager Assets, please try again later..');
     }
   }
 
@@ -85,7 +89,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
       },
       { field: 'labels', header: 'Labels', width: '200px', filterable: true },
     ];
-    this.exportColumns = this.cols.map((col) => ({
+    this.exportColumns = this.cols.map(col => ({
       title: col.header,
       dataKey: col.field,
     }));
@@ -102,7 +106,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
         this.showErrorMessage('No assets found.');
         return;
       }
-      this.assets = data.map((asset) => ({
+      this.assets = data.map(asset => ({
         ...asset,
         collectionName: asset.collection.name,
       }));
@@ -117,9 +121,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   async getLabels() {
     try {
       const labels = await firstValueFrom(
-        await this.sharedService.getLabelsByCollectionSTIGMAN(
-          this.stigmanCollectionId,
-        ),
+        await this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
       );
       this.labels = labels || [];
     } catch (err) {
@@ -132,9 +134,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   getAssetLabels(asset: any): Label[] {
     return (
       asset.labelIds
-        ?.map((labelId: string) =>
-          this.labels.find((label) => label.labelId === labelId),
-        )
+        ?.map((labelId: string) => this.labels.find(label => label.labelId === labelId))
         .filter(Boolean) || []
     );
   }
@@ -154,10 +154,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   }
 
   onGlobalFilter(event: Event) {
-    this.table.filterGlobal(
-      (event.target as HTMLInputElement).value,
-      'contains',
-    );
+    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
   resetColumnSelections() {

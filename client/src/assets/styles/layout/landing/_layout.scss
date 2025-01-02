@@ -1,0 +1,19 @@
+.landing-layout {
+    .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {
+        background: transparent;
+    }
+
+    .box {
+        box-shadow: var(--home-card-shadow);
+    }
+
+  
+}
+
+@media screen and (min-width: 1660px) {
+    .landing-layout {
+        width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+}

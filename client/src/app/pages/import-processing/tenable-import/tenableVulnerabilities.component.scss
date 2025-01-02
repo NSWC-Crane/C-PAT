@@ -18,7 +18,7 @@
     .p-accordion {
       width: 100%;
 
-      .p-accordion-tab {
+      .p-accordion-panel {
         margin: 0 0 0.5rem;
         border: none;
         border-radius: 0;
@@ -36,17 +36,17 @@
         a {
           border: none;
           border-radius: 0;
-          border-bottom: 1px solid var(--surface-border);
+          border-bottom: 1px solid var(--p-surface-700);
         }
       }
 
       .p-accordion-content {
         border: none;
-        border-bottom: 1px solid var(--surface-border);
+        border-bottom: 1px solid var(--p-surface-700);
         padding: 1rem;
       }
 
-      .p-accordion-tab:last-child {
+      .p-accordion-panel:last-child {
         .p-accordion-header a,
         .p-accordion-content {
           border-bottom: none;
@@ -54,15 +54,6 @@
       }
     }
 
-    .p-tabview {
-      display: flex;
-      flex-direction: column;
-
-      &-panels {
-        flex: 1;
-        overflow-y: auto;
-      }
-    }
     .range-input {
       width: 4rem !important;
 
@@ -75,22 +66,22 @@
 
 .severity-badge {
   border-radius: 2px;
-  padding: .25em .5em;
+  padding: 0.25em 0.5em;
   text-transform: uppercase;
   font-weight: 700;
   font-size: 12px;
-  letter-spacing: .3px;
+  letter-spacing: 0.3px;
   text-align: center;
   width: 6rem;
 
   &.severity-Critical {
-    background-color: #C63737;
+    background-color: #c63737;
     color: #ffffff;
     opacity: 0.9;
   }
 
   &.severity-High {
-    background-color: #FF8800;
+    background-color: #ff8800;
     color: #ffffff;
     opacity: 0.9;
   }
@@ -134,7 +125,8 @@
   align-items: center;
   margin-bottom: 1rem;
 
-  .left-buttons, .right-buttons {
+  .left-buttons,
+  .right-buttons {
     display: flex;
     gap: 0.5rem;
   }
@@ -154,7 +146,7 @@
     overflow: hidden !important;
     top: 3.5rem;
     right: -2rem;
-    
+
     .p-multiselect-label-container,
     .p-multiselect-trigger {
       display: none;
@@ -179,7 +171,7 @@
 
 .filter-panel {
   border-radius: 10px;
-  background-color: var(--surface-card);
+  background-color: var(--p-surface-950);
   width: 300px;
   position: fixed;
   top: 0;
@@ -193,35 +185,35 @@
     transition: transform 0.3s ease-in-out;
     transform: translateX(0);
     left: var(--sidebar-width);
-    top: 10rem;
+    top: 9rem;
     margin-bottom: 2rem;
     border-radius: 10px;
-    height: calc(100vh - 12rem);
+    height: calc(100vh - 10rem);
   }
 
   &.filter-hidden {
     transform: translateX(-100%);
     height: 50vh;
-    top: 10rem;
+    top: 7rem;
   }
 
   .filter-header {
     border-radius: 10px 10px 0 0;
     padding: 2rem 2rem 0.5rem;
-    background-color: var(--surface-card);
-    border-bottom: 1px solid var(--surface-border);
+    background-color: var(--p-surface-900);
+    border-bottom: 1px solid var(--p-surface-700);
   }
 
   .filter-content {
     flex: 1;
     overflow-y: auto;
-    padding: 0 .1rem 0 0;
+    padding: 0 0.1rem 0 0;
   }
 
   .filter-footer {
     border-radius: 0 0 10px 10px;
-    background-color: var(--surface-card);
-    border-top: 1px solid var(--surface-border);
+    background-color: var(--p-surface-900);
+    border-top: 1px solid var(--p-surface-700);
   }
 
   ::ng-deep {
@@ -269,4 +261,3 @@
     margin-left: 300px;
   }
 }
-

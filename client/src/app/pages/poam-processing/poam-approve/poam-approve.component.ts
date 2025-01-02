@@ -8,14 +8,7 @@
 !##########################################################################
 */
 
-import {
-  AfterViewInit,
-  Component,
-  OnDestroy,
-  OnInit,
-  TemplateRef,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { SubSink } from 'subsink';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PoamService } from '../poams.service';
@@ -29,11 +22,11 @@ import { ChangeDetectorRef } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePicker } from 'primeng/datepicker';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { Select } from 'primeng/select';
+import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 
 @Component({
@@ -45,14 +38,14 @@ import { ToastModule } from 'primeng/toast';
     CommonModule,
     FormsModule,
     ButtonModule,
-    CalendarModule,
+    DatePicker,
     CheckboxModule,
     DialogModule,
-    DropdownModule,
-    InputTextareaModule,
-    ToastModule
+    Select,
+    TextareaModule,
+    ToastModule,
   ],
-  providers: [MessageService, DatePipe]
+  providers: [MessageService, DatePipe],
 })
 export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   protected accessLevel: any;
@@ -88,19 +81,19 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     private sharedService: SharedService,
     private poamApproveService: PoamApproveService,
     private poamService: PoamService,
-    private cdr: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef
   ) {}
 
   @ViewChild('approveTemplate') approveTemplate!: TemplateRef<any>;
 
   public async ngOnInit() {
-    this.route.params.subscribe(async (params) => {
+    this.route.params.subscribe(async params => {
       this.poamId = params['poamId'];
     });
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
-      }),
+      })
     );
     this.setPayload();
   }
@@ -108,18 +101,18 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
+      this.setPayloadService.user$.subscribe(user => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe((payload) => {
+      this.setPayloadService.payload$.subscribe(payload => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
+      this.setPayloadService.accessLevel$.subscribe(level => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.getData();
         }
-      }),
+      })
     );
   }
   async getData() {
@@ -130,7 +123,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       next: ([approversResponse, poamResponse]: [any, any]) => {
         const currentDate = new Date();
         const userApproval = approversResponse.find(
-          (approval: any) => approval.userId === this.user.userId,
+          (approval: any) => approval.userId === this.user.userId
         );
         if (userApproval) {
           this.approvalStatus = userApproval.approvalStatus;
@@ -146,7 +139,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
           this.hqsChecked = Boolean(poamResponse.hqs);
         }
       },
-      error: (error) => {
+      error: error => {
         console.error('An error occurred:', error);
       },
     });
@@ -194,15 +187,14 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
           this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
         }, 1000);
       },
-      (error) => {
+      error => {
         this.messageService.add({
           severity: 'warn',
           summary: 'Information',
-          detail:
-            'Failed to update POAM Approval. Please validate data entry and try again.',
+          detail: 'Failed to update POAM Approval. Please validate data entry and try again.',
         });
         console.error('Failed to update POAM Approval:', error);
-      },
+      }
     );
   }
 
@@ -213,8 +205,6 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

@@ -8,46 +8,83 @@
 !##########################################################################
 -->
 
-<div class="grid">
-  <div class="col-12">
+<div class="grid grid-cols-12 gap-4">
+  <div class="col-span-12">
     <div class="scrollable-collections">
-      <p-treeTable #dt [value]="collectionTreeData" [columns]="allColumns" [filterDelay]="0" [globalFilterFields]="['data']">
+      <p-treeTable
+        #dt
+        [value]="collectionTreeData"
+        [columns]="allColumns"
+        [filterDelay]="0"
+        [globalFilterFields]="['data']"
+      >
         <ng-template pTemplate="caption">
-          <div class="flex justify-content-between align-items-center">
+          <div class="flex justify-between items-center">
             <p-iconField iconPosition="left">
               <p-inputIcon>
                 <i class="pi pi-search"></i>
               </p-inputIcon>
-              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections" class="search-input">
+              <input
+                pInputText
+                type="text"
+                (input)="filterGlobal($event)"
+                placeholder="Search Collections"
+                class="search-input"
+              />
             </p-iconField>
-            <button pButton type="button" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Manually Add Collection" (click)="showAddCollectionDialog()"></button>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-plus"
+              [rounded]="true"
+              [text]="true"
+              [raised]="true"
+              severity="primary"
+              pTooltip="Manually Add Collection"
+              (click)="showAddCollectionDialog()"
+            ></button>
           </div>
         </ng-template>
         <ng-template pTemplate="header" let-columns>
           <tr>
-            <th scope="col" *ngFor="let col of columns">
-              {{col}}
-            </th>
+            <th scope="col" *ngFor="let col of columns">{{col}}</th>
             <th scope="col">Actions</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
           <tr>
-            <td *ngFor="let col of columns; let i = index" [style]="col === 'Name' ? {'max-width': '200px'} : {}">
+            <td
+              *ngFor="let col of columns; let i = index"
+              [style]="col === 'Name' ? {'max-width': '200px'} : {}"
+            >
               <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-              <span [style]="col === 'Name' ? {'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', 'display': 'inline-block', 'width': '100%'} : {}">
+              <span
+                [style]="col === 'Name' ? {'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', 'display': 'inline-block', 'width': '100%'} : {}"
+              >
                 {{rowData[col]}}
               </span>
             </td>
             <td>
-              <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text mr-2" (click)="showModifyCollectionDialog(rowData)"></button>
-              <button pButton type="button" icon="pi pi-download" class="p-button-rounded p-button-text" (click)="exportCollection(rowData)"></button>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-pencil"
+                class="p-button-rounded p-button-text mr-2"
+                (click)="showModifyCollectionDialog(rowData)"
+              ></button>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-download"
+                class="p-button-rounded p-button-text"
+                (click)="exportCollection(rowData)"
+              ></button>
             </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="6" style="text-align:center">No Data to Display</td>
+            <td colspan="6" style="text-align: center">No Data to Display</td>
           </tr>
         </ng-template>
       </p-treeTable>
@@ -55,64 +92,100 @@
   </div>
 </div>
 
-<p-dialog [(visible)]="displayCollectionDialog" [style]="{width: '450px'}" [modal]="true" styleClass="p-fluid">
+<p-dialog [(visible)]="displayCollectionDialog" [style]="{width: '450px'}" [modal]="true">
   <ng-template pTemplate="content">
     <div class="field">
-      <label for="collectionName">Collection Name</label>
-      <input type="text" pInputText id="collectionName" [(ngModel)]="editingCollection.collectionName" required autofocus />
+      <label for="collectionName">Collection Name:</label>
+      <input
+        type="text"
+        pInputText
+        id="collectionName"
+        [(ngModel)]="editingCollection.collectionName"
+        required
+      />
     </div>
     <div class="field">
-      <label for="description">Description</label>
-      <textarea id="description" pInputTextarea [(ngModel)]="editingCollection.description" required rows="3" cols="20"></textarea>
+      <label for="description">Description:</label>
+      <textarea
+        pTextarea
+        id="description"
+        class="w-full"
+        [(ngModel)]="editingCollection.description"
+        required
+        rows="3"
+        cols="20"
+      ></textarea>
     </div>
     <div class="field">
       <label for="aaPackage">A&A Package:</label>
-      <p-autoComplete [(ngModel)]="editingCollection.aaPackage"
-                      [dropdown]="true"
-                      [suggestions]="filteredAAPackages"
-                      (completeMethod)="filterAAPackages($event)"
-                      placeholder="Select an A&A Package..."
-                      name='aaPackage'
-                      id="aaPackage"
-                      styleClass="w-full"
-                      readonly>
+      <p-autoComplete
+        [(ngModel)]="editingCollection.aaPackage"
+        [dropdown]="true"
+        [suggestions]="filteredAAPackages"
+        (completeMethod)="filterAAPackages($event)"
+        placeholder="Select an A&A Package..."
+        name="aaPackage"
+        id="aaPackage"
+        styleClass="w-full"
+        readonly
+      >
       </p-autoComplete>
     </div>
     <div class="field">
       <label for="systemType">System Type:</label>
-      <input pInputText
-             type="text"
-             id="systemType"
-             name="systemType"
-             [(ngModel)]="editingCollection.systemType"
-             placeholder="System Type"
-             class="w-full">
+      <input
+        pInputText
+        type="text"
+        id="systemType"
+        name="systemType"
+        [(ngModel)]="editingCollection.systemType"
+        placeholder="System Type"
+        class="w-full"
+      />
     </div>
     <div class="field">
       <label for="systemName">System Name:</label>
-      <input pInputText
-             type="text"
-             id="systemName"
-             name="systemName"
-             [(ngModel)]="editingCollection.systemName"
-             placeholder="System Name"
-             class="w-full">
+      <input
+        pInputText
+        type="text"
+        id="systemName"
+        name="systemName"
+        [(ngModel)]="editingCollection.systemName"
+        placeholder="System Name"
+        class="w-full"
+      />
     </div>
     <div class="field">
       <label for="ccsafa">CC/S/A/FA:</label>
-      <input pInputText
-             type="text"
-             id="ccsafa"
-             name="ccsafa"
-             [(ngModel)]="editingCollection.ccsafa"
-             placeholder="CC/S/A/FA"
-             class="w-full">
+      <input
+        pInputText
+        type="text"
+        id="ccsafa"
+        name="ccsafa"
+        [(ngModel)]="editingCollection.ccsafa"
+        placeholder="CC/S/A/FA"
+        class="w-full"
+      />
     </div>
   </ng-template>
 
   <ng-template pTemplate="footer">
-    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideCollectionDialog()"></button>
-    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveCollection()"></button>
+    <button
+      pButton
+      pRipple
+      label="Cancel"
+      icon="pi pi-times"
+      class="p-button-text"
+      (click)="hideCollectionDialog()"
+    ></button>
+    <button
+      pButton
+      pRipple
+      label="Save"
+      icon="pi pi-check"
+      class="p-button-text"
+      (click)="saveCollection()"
+    ></button>
   </ng-template>
 </p-dialog>
 

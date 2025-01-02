@@ -8,11 +8,7 @@
 !##########################################################################
 */
 
-import {
-  HttpClient,
-  HttpErrorResponse,
-  HttpHeaders,
-} from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -26,24 +22,20 @@ export class NotificationService {
 
   constructor(
     private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService,
+    private oidcSecurityService: OidcSecurityService
   ) {}
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(
-        `Backend returned code ${error.status}, ` + `body was: ${error.error}`,
-      );
+      console.error(`Backend returned code ${error.status}, ` + `body was: ${error.error}`);
     }
     return throwError('Something bad happened; please try again later.');
   }
 
   private async getAuthHeaders() {
-    const token = await firstValueFrom(
-      this.oidcSecurityService.getAccessToken(),
-    );
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
@@ -71,11 +63,7 @@ export class NotificationService {
   async dismissNotification(notificationId: number) {
     const headers = await this.getAuthHeaders();
     return this.http
-      .put<any>(
-        `${this.cpatApiBase}/notifications/dismiss/${notificationId}`,
-        null,
-        { headers },
-      )
+      .put<any>(`${this.cpatApiBase}/notifications/dismiss/${notificationId}`, null, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -91,10 +79,7 @@ export class NotificationService {
   async deleteNotification(notificationId: number) {
     const headers = await this.getAuthHeaders();
     return this.http
-      .delete<any>(
-        `${this.cpatApiBase}/notifications/delete/${notificationId}`,
-        { headers },
-      )
+      .delete<any>(`${this.cpatApiBase}/notifications/delete/${notificationId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 

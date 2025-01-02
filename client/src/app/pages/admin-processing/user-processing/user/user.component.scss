@@ -23,7 +23,7 @@
   flex: 1 1 auto;
 }
 
- .switch-container {
+.switch-container {
   display: flex;
   align-items: center;
   padding-top: 15px;
@@ -34,7 +34,8 @@
 }
 
 .field {
-    font-weight: bold;
+  font-weight: bold;
+  margin-bottom: 1rem;
 }
 
 :host ::ng-deep {
@@ -86,7 +87,7 @@
   }
 
   .p-dialog {
-    background-color: var(--surface-card);
+    background-color: var(--p-surface-950);
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 90vw;
@@ -99,15 +100,15 @@
     }
 
     .p-dialog-content {
-      background-color: var(--surface-card);
-      color: var(--text-color);
+      background-color: var(--p-surface-950);
+      color: var(--p-text-color);
       padding: 0 1.5rem 1.5rem;
-      
-      .permission-changes {       
+
+      .permission-changes {
         ul {
           margin: 0.5rem 0 1.5rem;
           padding-left: 1.5rem;
-          
+
           li {
             margin: 0.5rem 0;
           }
@@ -119,10 +120,10 @@
       display: flex;
       justify-content: center;
       margin-bottom: 1.5rem;
-      
+
       .pi-exclamation-triangle {
         font-size: 2.5rem;
-        color: var(--yellow-500);
+        color: var(--p-yellow-500);
       }
     }
 
@@ -131,8 +132,8 @@
       justify-content: center;
       gap: 1rem;
       padding: 1.5rem;
-      border-top: 1px solid var(--surface-200);
-      
+      border-top: 1px solid var(--p-surface-200);
+
       .p-button {
         min-width: 120px;
       }

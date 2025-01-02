@@ -11,37 +11,75 @@
 <form (ngSubmit)="onSubmit()" #form="ngForm">
   <div class="p-fluid">
     <div class="p-field p-grid">
-      <label for="assetName" class="p-col-fixed" style="width: 10rem;">*Asset Name:</label>
+      <label for="assetName" class="p-col-fixed" style="width: 10rem">*Asset Name:</label>
       <div class="p-col">
-        <input pInputText type="text" id="assetName" name="assetName" [(ngModel)]="asset.assetName" placeholder="Asset Name" required>
+        <input
+          pInputText
+          type="text"
+          id="assetName"
+          name="assetName"
+          [(ngModel)]="asset.assetName"
+          placeholder="Asset Name"
+          required
+        />
       </div>
     </div>
     <br />
     <div class="p-field p-grid">
-      <label for="description" class="p-col-fixed" style="width: 10rem;">Description:</label>
+      <label for="description" class="p-col-fixed" style="width: 10rem">Description:</label>
       <div class="p-col">
-        <input pInputText type="text" id="description" name="description" [(ngModel)]="asset.description" placeholder="Description">
+        <input
+          pInputText
+          type="text"
+          id="description"
+          name="description"
+          [(ngModel)]="asset.description"
+          placeholder="Description"
+        />
       </div>
     </div>
     <br />
     <div class="p-field p-grid">
-      <label for="fullyQualifiedDomainName" class="p-col-fixed" style="width: 10rem;">Fully Qualified Domain Name:</label>
+      <label for="fullyQualifiedDomainName" class="p-col-fixed" style="width: 10rem"
+        >Fully Qualified Domain Name:</label
+      >
       <div class="p-col">
-        <input pInputText type="text" id="fullyQualifiedDomainName" name="fullyQualifiedDomainName" [(ngModel)]="asset.fullyQualifiedDomainName" placeholder="Fully Qualified Domain Name">
+        <input
+          pInputText
+          type="text"
+          id="fullyQualifiedDomainName"
+          name="fullyQualifiedDomainName"
+          [(ngModel)]="asset.fullyQualifiedDomainName"
+          placeholder="Fully Qualified Domain Name"
+        />
       </div>
     </div>
     <br />
     <div class="p-field p-grid">
-      <label for="ipAddress" class="p-col-fixed" style="width: 10rem;">*IP Address:</label>
+      <label for="ipAddress" class="p-col-fixed" style="width: 10rem">*IP Address:</label>
       <div class="p-col">
-        <input pInputText type="text" id="ipAddress" name="ipAddress" [(ngModel)]="asset.ipAddress" placeholder="IP Address">
+        <input
+          pInputText
+          type="text"
+          id="ipAddress"
+          name="ipAddress"
+          [(ngModel)]="asset.ipAddress"
+          placeholder="IP Address"
+        />
       </div>
     </div>
     <br />
     <div class="p-field p-grid">
-      <label for="macAddress" class="p-col-fixed" style="width: 10rem;">*MAC Address:</label>
+      <label for="macAddress" class="p-col-fixed" style="width: 10rem">*MAC Address:</label>
       <div class="p-col">
-        <input pInputText type="text" id="macAddress" name="macAddress" [(ngModel)]="asset.macAddress" placeholder="Mac Address">
+        <input
+          pInputText
+          type="text"
+          id="macAddress"
+          name="macAddress"
+          [(ngModel)]="asset.macAddress"
+          placeholder="Mac Address"
+        />
       </div>
     </div>
     <br />
@@ -49,8 +87,15 @@
       <p-table [value]="assetLabels" dataKey="labelId" [style]="{'overflow': 'visible'}">
         <ng-template pTemplate="header">
           <tr>
-            <th scope="col" style="width:8rem">
-              <button pButton pRipple type="button" icon="pi pi-plus" (click)="addNewRow()" class="p-button-rounded p-button-text"></button>
+            <th scope="col" style="width: 8rem">
+              <button
+                pButton
+                pRipple
+                type="button"
+                icon="pi pi-plus"
+                (click)="addNewRow()"
+                class="p-button-rounded p-button-text"
+              ></button>
             </th>
             <th scope="col">Label</th>
           </tr>
@@ -58,49 +103,81 @@
         <ng-template pTemplate="body" let-label let-ri="rowIndex">
           <tr>
             <td>
-              <button pButton pRipple type="button" icon="pi pi-trash"
-                      (click)="deleteAssetLabel(label, ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+              <button
+                pButton
+                pRipple
+                type="button"
+                icon="pi pi-trash"
+                (click)="deleteAssetLabel(label, ri)"
+                class="p-button-rounded p-button-text p-button-danger"
+              ></button>
             </td>
-            <td style="overflow: visible; position: relative;">
+            <td style="overflow: visible; position: relative">
               <span *ngIf="!label.isNew">{{label.labelName}}</span>
-              <p-dropdown *ngIf="label.isNew"
-                          [options]="labelList"
-                          name="labelList"
-                          appendTo="body"
-                          [(ngModel)]="label.labelId"
-                          optionLabel="labelName"
-                          optionValue="labelId"
-                          [style]="{'width':'100%'}"
-                          [baseZIndex]="99999"
-                          [panelStyle]="{'z-index': '999999'}"
-                          (onChange)="onLabelChange(label, ri)"
-                          placeholder="Select a label">
-              </p-dropdown>
+              <p-select
+                *ngIf="label.isNew"
+                [options]="labelList"
+                name="labelList"
+                appendTo="body"
+                [(ngModel)]="label.labelId"
+                optionLabel="labelName"
+                optionValue="labelId"
+                [style]="{'width':'100%'}"
+                [baseZIndex]="99999"
+                [panelStyle]="{'z-index': '999999'}"
+                (onChange)="onLabelChange(label, ri)"
+                placeholder="Select a label"
+              >
+              </p-select>
             </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="2" style="text-align:center">No Data to Display</td>
+            <td colspan="2" style="text-align: center">No Data to Display</td>
           </tr>
         </ng-template>
       </p-table>
     </div>
   </div>
-  <div class="formgroup-inline" style="margin-top: 6rem;">
-    <div class="field">
-      <button pButton type="submit" [outlined]="true" label="Submit" class="p-mr-2" [disabled]="!form.valid"></button>
-    </div>
-    <div class="field">
-      <button pButton type="button" [outlined]="true" label="Cancel" class="p-button-secondary p-mr-2" (click)="resetData()"></button>
+  <div class="formgroup-inline" style="margin-top: 6rem">
+    <div class="flex justify-between items-center w-full m-2">
+      <button
+        pButton
+        type="submit"
+        [outlined]="true"
+        label="Submit"
+        class="p-mr-2"
+        [disabled]="!form.valid"
+      ></button>
+      <button
+        pButton
+        type="button"
+        [outlined]="true"
+        label="Cancel"
+        class="p-button-secondary p-mr-2"
+        (click)="resetData()"
+      ></button>
     </div>
   </div>
 </form>
 <p-toast></p-toast>
 <p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
-<p-dialog header="Invalid Data" [(visible)]="displayInvalidDataDialog" [modal]="true" [style]="{width: '300px'}" [baseZIndex]="10000">
+<p-dialog
+  header="Invalid Data"
+  [(visible)]="displayInvalidDataDialog"
+  [modal]="true"
+  [style]="{width: '300px'}"
+  [baseZIndex]="10000"
+>
   <p>{{invalidDataMessage}}</p>
   <ng-template pTemplate="footer">
-    <p-button icon="pi pi-check" (click)="displayInvalidDataDialog=false" (onKeyUp)="displayInvalidDataDialog=false" label="OK" styleClass="p-button-full p-button-primary w-full"></p-button>
+    <p-button
+      icon="pi pi-check"
+      (click)="displayInvalidDataDialog=false"
+      (onKeyUp)="displayInvalidDataDialog=false"
+      label="OK"
+      styleClass="p-button-full p-button-primary w-full"
+    ></p-button>
   </ng-template>
 </p-dialog>

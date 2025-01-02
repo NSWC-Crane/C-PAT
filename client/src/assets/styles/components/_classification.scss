@@ -1,0 +1,38 @@
+.layout-light {
+    .layout-classification {
+    box-shadow: none !important;
+    }
+}
+.layout-dark {
+    .layout-classification {
+    box-shadow: 0 .5rem 1rem 0 #1a1f33 !important;
+    }
+}
+
+.layout-classification {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: calc(100% - var(--p-scrollbar-width, 0px));
+    z-index: 1101;
+    height: 1.5rem;
+
+    .layout-classification-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 0%;
+    }
+
+    .layout-classification-text {
+        line-height: 1.5;
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        min-width: 0%;
+        font-weight: 600;
+        color: var(--p-text-hover-color);
+    }
+}

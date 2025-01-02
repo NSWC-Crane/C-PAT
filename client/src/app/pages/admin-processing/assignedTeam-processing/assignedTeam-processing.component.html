@@ -8,90 +8,138 @@
 !##########################################################################
 -->
 
-<div class="grid">
-  <div class="col-12">
-    <p-table #dt [value]="assignedTeams" [globalFilterFields]="['assignedTeamId', 'assignedTeamName']"
-             [rows]="10" [paginator]="true" [rowHover]="true" dataKey="assignedTeamId">
-      <ng-template pTemplate="caption">
-        <div class="flex justify-content-between align-items-center">
-          <p-iconField iconPosition="left">
-            <p-inputIcon>
-              <i class="pi pi-search"></i>
-            </p-inputIcon>
-            <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Teams" class="search-input">
-          </p-iconField>
-          <button pButton type="button" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true"
-                  severity="primary" pTooltip="Add a Team" (click)="openNew()"></button>
-        </div>
-      </ng-template>
-      <ng-template pTemplate="header">
-        <tr>
-          <th scope="col">Assigned Team ID</th>
-          <th scope="col">Assigned Team Name</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-assignedTeam>
-        <tr>
-          <td>{{assignedTeam.assignedTeamId}}</td>
-          <td>{{assignedTeam.assignedTeamName}}</td>
-          <td>
-            <div class="flex align-items-center justify-content-center gap-2">
-              <button pButton pRipple type="button" icon="pi pi-pencil"
-                      class="p-button-rounded p-button-text"
-                      (click)="editTeam(assignedTeam)"></button>
-              <button pButton pRipple type="button" icon="pi pi-trash"
-                      class="p-button-rounded p-button-text p-button-danger"
-                      (click)="onRowDelete(assignedTeam)"></button>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+<div class="grid grid-cols-12 gap-4">
+  <div class="col-span-12">
+    <div class="scrollable-teams">
+      <p-table
+        #dt
+        [value]="assignedTeams"
+        [globalFilterFields]="['assignedTeamId', 'assignedTeamName']"
+        [rows]="10"
+        [paginator]="true"
+        [rowHover]="true"
+        dataKey="assignedTeamId"
+      >
+        <ng-template pTemplate="caption">
+          <div class="flex justify-between items-center">
+            <p-iconField iconPosition="left">
+              <p-inputIcon>
+                <i class="pi pi-search"></i>
+              </p-inputIcon>
+              <input
+                pInputText
+                type="text"
+                (input)="filterGlobal($event)"
+                placeholder="Search Teams"
+                class="search-input"
+              />
+            </p-iconField>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-plus"
+              [rounded]="true"
+              [text]="true"
+              [raised]="true"
+              severity="primary"
+              pTooltip="Add a Team"
+              (click)="openNew()"
+            ></button>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th scope="col">Assigned Team ID</th>
+            <th scope="col">Assigned Team Name</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-assignedTeam>
+          <tr>
+            <td>{{assignedTeam.assignedTeamId}}</td>
+            <td>{{assignedTeam.assignedTeamName}}</td>
+            <td>
+              <div class="flex items-center justify-center gap-2">
+                <button
+                  pButton
+                  pRipple
+                  type="button"
+                  icon="pi pi-pencil"
+                  class="p-button-rounded p-button-text"
+                  (click)="editTeam(assignedTeam)"
+                ></button>
+                <button
+                  pButton
+                  pRipple
+                  type="button"
+                  icon="pi pi-trash"
+                  class="p-button-rounded p-button-text p-button-danger"
+                  (click)="onRowDelete(assignedTeam)"
+                ></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
   </div>
 </div>
 
-<p-dialog [(visible)]="teamDialog"
-          [style]="{'width': '850px'}"
-          [modal]="true"
-          styleClass="p-fluid">
+<p-dialog [(visible)]="teamDialog" [style]="{'width': '850px'}" [modal]="true" styleClass="p-fluid">
   <ng-template pTemplate="content">
-    <div class="field mb-4">
-      <label for="name">Team Name</label>
-      <input type="text" pInputText id="name"
-             [(ngModel)]="editingAssignedTeam!.assignedTeamName"
-             required autofocus
-             [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.assignedTeamName}"
-             maxlength="99" />
+    <div class="mb-6">
+      <label for="name" class="block text-base font-medium mb-2">Team Name:</label>
+      <input
+        type="text"
+        pInputText
+        id="name"
+        [(ngModel)]="editingAssignedTeam!.assignedTeamName"
+        required
+        [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.assignedTeamName}"
+        maxlength="99"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
     </div>
-
-    <div class="field">
-      <label>Team Permissions</label>
-      <p-pickList [source]="availableCollections"
-                  [target]="assignedCollections"
-                  sourceHeader="Available Collections"
-                  targetHeader="Assigned Collections"
-                  [dragdrop]="true"
-                  [responsive]="true"
-                  [showSourceControls]="false"
-                  [showTargetControls]="false"
-                  [sourceStyle]="{'height':'300px'}"
-                  [targetStyle]="{'height':'300px'}"
-                  (onMoveToTarget)="onMoveToTarget($event)"
-                  (onMoveToSource)="onMoveToSource($event)">
-        <ng-template let-collection pTemplate="item">
-          {{collection.collectionName}}
-        </ng-template>
+    <div class="space-y-2">
+      <label class="block text-base font-medium mb-2">Team Permissions:</label>
+      <p-pickList
+        [source]="availableCollections"
+        [target]="assignedCollections"
+        sourceHeader="Available Collections"
+        targetHeader="Assigned Collections"
+        [dragdrop]="true"
+        [responsive]="true"
+        [showSourceControls]="false"
+        [showTargetControls]="false"
+        [sourceStyle]="{'height':'300px'}"
+        [targetStyle]="{'height':'300px'}"
+        (onMoveToTarget)="onMoveToTarget($event)"
+        (onMoveToSource)="onMoveToSource($event)"
+        class="w-full"
+      >
+        <ng-template let-collection pTemplate="item"> {{collection.collectionName}} </ng-template>
       </p-pickList>
     </div>
   </ng-template>
 
   <ng-template pTemplate="footer">
-    <button pButton pRipple label="Cancel" icon="pi pi-times"
-            class="p-button-text" (click)="hideDialog()"></button>
-    <button pButton pRipple label="Save" icon="pi pi-check"
-            class="p-button-text" (click)="saveTeam()"
-            [disabled]="!editingAssignedTeam?.assignedTeamName"></button>
+    <button
+      pButton
+      pRipple
+      label="Cancel"
+      icon="pi pi-times"
+      class="p-button-text"
+      (click)="hideDialog()"
+    ></button>
+    <button
+      pButton
+      pRipple
+      label="Save"
+      icon="pi pi-check"
+      class="p-button-text"
+      (click)="saveTeam()"
+      [disabled]="!editingAssignedTeam?.assignedTeamName"
+    ></button>
   </ng-template>
 </p-dialog>
 

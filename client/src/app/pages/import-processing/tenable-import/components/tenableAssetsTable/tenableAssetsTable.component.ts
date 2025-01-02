@@ -11,7 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TextareaModule } from 'primeng/textarea';
 
 interface Reference {
   type: string;
@@ -23,7 +23,7 @@ interface ExportColumn {
 }
 
 @Component({
-  selector: 'tenable-assets-table',
+  selector: 'cpat-tenable-assets-table',
   templateUrl: './tenableAssetsTable.component.html',
   styleUrls: ['./tenableAssetsTable.component.scss'],
   standalone: true,
@@ -33,14 +33,13 @@ interface ExportColumn {
     TableModule,
     ButtonModule,
     InputTextModule,
-    InputTextareaModule,
+    TextareaModule,
     MultiSelectModule,
     DialogModule,
     ToastModule,
-    TooltipModule
-  ]
+    TooltipModule,
+  ],
 })
-
 export class TenableAssetsTableComponent implements OnInit {
   @Input() pluginID!: string;
   @Input() assetProcessing: boolean = false;
@@ -68,7 +67,7 @@ export class TenableAssetsTableComponent implements OnInit {
   constructor(
     private importService: ImportService,
     private sanitizer: DomSanitizer,
-    private messageService: MessageService,
+    private messageService: MessageService
   ) {}
 
   async ngOnInit() {
@@ -128,11 +127,11 @@ export class TenableAssetsTableComponent implements OnInit {
         filterable: false,
       },
     ];
-    this.exportColumns = this.cols.map((col) => ({
+    this.exportColumns = this.cols.map(col => ({
       title: col.header,
       dataKey: col.field,
     }));
-    this.selectedColumns = this.cols.filter((col) =>
+    this.selectedColumns = this.cols.filter(col =>
       [
         'pluginID',
         'pluginName',
@@ -149,7 +148,7 @@ export class TenableAssetsTableComponent implements OnInit {
         'protocol',
         'uuid',
         'hostUUID',
-      ].includes(col.field),
+      ].includes(col.field)
     );
   }
 
@@ -197,9 +196,7 @@ export class TenableAssetsTableComponent implements OnInit {
     };
 
     try {
-      const data = await (
-        await this.importService.postTenableAnalysis(analysisParams)
-      ).toPromise();
+      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
       this.affectedAssets = data.response.results.map((asset: any) => {
         const defaultAsset = {
           pluginID: '',
@@ -220,9 +217,7 @@ export class TenableAssetsTableComponent implements OnInit {
       this.isLoading = false;
     } catch (error) {
       console.error('Error fetching affected assets:', error);
-      this.showErrorMessage(
-        'Error fetching affected assets. Please try again.',
-      );
+      this.showErrorMessage('Error fetching affected assets. Please try again.');
     }
   }
 
@@ -272,9 +267,7 @@ export class TenableAssetsTableComponent implements OnInit {
     };
 
     try {
-      const data = await (
-        await this.importService.postTenableAnalysis(analysisParams)
-      ).toPromise();
+      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
       this.affectedAssets = data.response.results.map((asset: any) => {
         const defaultAsset = {
           pluginID: '',
@@ -295,9 +288,7 @@ export class TenableAssetsTableComponent implements OnInit {
       this.isLoading = false;
     } catch (error) {
       console.error('Error fetching affected assets:', error);
-      this.showErrorMessage(
-        'Error fetching affected assets. Please try again.',
-      );
+      this.showErrorMessage('Error fetching affected assets. Please try again.');
     }
   }
 
@@ -318,7 +309,7 @@ export class TenableAssetsTableComponent implements OnInit {
       this.pluginData = data.response;
       this.formattedDescription = this.pluginData.description
         ? this.sanitizer.bypassSecurityTrustHtml(
-            this.pluginData.description.replace(/\n\n/g, '<br>'),
+            this.pluginData.description.replace(/\n\n/g, '<br>')
           )
         : '';
 
@@ -353,19 +344,25 @@ export class TenableAssetsTableComponent implements OnInit {
   }
 
   parseReferences(xrefs: string) {
-    const refs = xrefs.split(/\s+/);
+    const refs = xrefs.split(/\s+/).filter(Boolean);
     this.cveReferences = [];
     this.iavReferences = [];
     this.otherReferences = [];
+
     refs.forEach((ref: string) => {
-      let [type, value] = ref.split(':');
-      value = value.replace(/,\s*$/, '');
-      if (type === 'CVE') {
-        this.cveReferences.push({ type, value });
-      } else if (['IAVA', 'IAVB', 'IAVT'].includes(type)) {
-        this.iavReferences.push({ type, value });
+      const [refType, ...valueParts] = ref.split(':');
+      const value = valueParts.join(':').replace(/,\s*$/, '').trim();
+
+      if (refType && value) {
+        if (refType === 'CVE') {
+          this.cveReferences.push({ type: refType, value });
+        } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType)) {
+          this.iavReferences.push({ type: refType, value });
+        } else {
+          this.otherReferences.push({ type: refType, value });
+        }
       } else {
-        this.otherReferences.push({ type, value });
+        console.warn(`Invalid reference: ${ref}`);
       }
     });
   }
@@ -393,23 +390,14 @@ export class TenableAssetsTableComponent implements OnInit {
   }
 
   onGlobalFilter(event: Event) {
-    this.table.filterGlobal(
-      (event.target as HTMLInputElement).value,
-      'contains',
-    );
+    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter((col) =>
-      [
-        'netbiosName',
-        'dnsName',
-        'macAddress',
-        'port',
-        'protocol',
-        'uuid',
-        'hostUUID',
-      ].includes(col.field),
+    this.selectedColumns = this.cols.filter(col =>
+      ['netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID'].includes(
+        col.field
+      )
     );
   }
 

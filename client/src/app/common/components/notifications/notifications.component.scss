@@ -8,22 +8,45 @@
 !##########################################################################
 */
 
-:host ::ng-deep .notifications-container {
-    max-height: 65vh;
-    overflow-x: hidden;
-    overflow-y: auto;
+:host ::ng-deep {
+  .notification-table {
+    .p-datatable-wrapper {
+      border: none;
+    }
+
+    .p-datatable-tbody {
+      > tr {
+        background: transparent;
+
+        > td {
+          border: none;
+          padding: 0;
+          background: transparent;
+        }
+      }
+    }
   }
+
+  .notification-item {
+    border: 1px solid var(--p-datatable-border-color);
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: var(--p-content-hover-background) !important;
+    }
+
+    &:active {
+      background: var(--p-primary-hover-color) !important;
+    }
+  }
+}
 
 ::ng-deep .poam-link {
   color: var(--primary-color);
-  font-weight: bold;
+  font-weight: 600;
   text-decoration: none;
 }
 
 ::ng-deep .poam-link:hover {
-  text-decoration: underline;
-}
-
-.line-height-3 {
-  line-height: 1.5;
+  font-weight: 750;
 }

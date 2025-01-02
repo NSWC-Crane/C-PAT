@@ -38,14 +38,8 @@ import { InputTextModule } from 'primeng/inputtext';
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    DialogModule,
-    InputTextModule
-  ],
-  providers: [DialogService]
+  imports: [CommonModule, FormsModule, ButtonModule, DialogModule, InputTextModule],
+  providers: [DialogService],
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   @Input() label: any;
@@ -64,14 +58,14 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   constructor(
     private labelService: LabelService,
     private dialogService: DialogService,
-    private sharedService: SharedService,
+    private sharedService: SharedService
   ) {}
 
   ngOnInit() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
-      }),
+      })
     );
   }
 
@@ -84,30 +78,25 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   async onSubmit() {
     if (!this.validData()) return;
     const label = {
-      labelId:
-        this.label.labelId == 'ADDLABEL' || !this.label.labelId
-          ? 0
-          : this.label.labelId,
+      labelId: this.label.labelId == 'ADDLABEL' || !this.label.labelId ? 0 : this.label.labelId,
       collectionId: this.selectedCollection,
       labelName: this.label.labelName,
       description: this.label.description,
     };
     if (label.labelId === 0) {
-      this.subs.sink = (
-        await this.labelService.addLabel(this.selectedCollection, label)
-      ).subscribe(
+      this.subs.sink = (await this.labelService.addLabel(this.selectedCollection, label)).subscribe(
         (data: any) => {
           this.labelchange.emit(data.labelId);
         },
         (err: any) => {
           this.invalidData('Unexpected error adding label');
           console.error(err);
-        },
+        }
       );
     } else {
       this.subs.sink = (
         await this.labelService.updateLabel(this.selectedCollection, label)
-      ).subscribe((data) => {
+      ).subscribe(data => {
         this.label = data;
         this.labelchange.emit();
       });
@@ -134,7 +123,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
 
     if (this.label.labelId == 'ADDLABEL') {
       const exists = this.labels.find(
-        (e: { labelName: any }) => e.labelName === this.label.labelName,
+        (e: { labelName: any }) => e.labelName === this.label.labelName
       );
       if (exists) {
         this.invalidData('Label Already Exists');
@@ -152,10 +141,10 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
         body: errMsg,
         button: {
           text: 'ok',
-          status: 'warning',
+          status: 'warn',
         },
         cancelbutton: 'false',
-      }),
+      })
     );
   }
 

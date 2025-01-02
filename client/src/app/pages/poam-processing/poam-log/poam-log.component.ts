@@ -8,12 +8,7 @@
 !##########################################################################
 */
 
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  OnInit,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedService } from '../../../common/services/shared.service';
 import { Subscription } from 'rxjs';
@@ -33,11 +28,7 @@ interface FSEntry {
   templateUrl: './poam-log.component.html',
   styleUrls: ['./poam-log.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    DialogModule,
-    TableModule
-  ]
+  imports: [CommonModule, DialogModule, TableModule],
 })
 export class PoamLogComponent implements OnInit, AfterViewInit {
   customColumn = 'Timestamp';
@@ -54,11 +45,11 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
     private sharedService: SharedService,
     private route: ActivatedRoute,
     private poamLogService: PoamLogService,
-    private changeDetectorRef: ChangeDetectorRef,
+    private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   public ngOnInit() {
-    this.route.params.subscribe(async (params) => {
+    this.route.params.subscribe(async params => {
       this.poamId = params['poamId'];
       if (this.poamId) {
         this.fetchPoamLog(this.poamId);
@@ -66,9 +57,9 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
     });
 
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
-      }),
+      })
     );
   }
 

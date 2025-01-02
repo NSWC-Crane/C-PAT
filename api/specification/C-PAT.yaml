@@ -15,7 +15,7 @@ info:
   contact:
     name: Christian Rodriguez
     email: christian.a.rodriguez8.ctr@us.navy.mil
-  version: '1.0.0-beta.1'
+  version: '1.0.0-rc.3'
 servers:
   - url: ''
 paths:
@@ -5860,7 +5860,7 @@ components:
           nullable: true
         defaultTheme:
           type: string
-          maxLength: 20
+          maxLength: 255
         lastClaims:
           type: object
           nullable: true
@@ -5935,7 +5935,7 @@ components:
           type: integer
         defaultTheme:
           type: string
-          maxLength: 20
+          maxLength: 255
         lastClaims:
           type: object
           nullable: true
@@ -5985,7 +5985,7 @@ components:
           nullable: true
         defaultTheme:
           type: string
-          maxLength: 20
+          maxLength: 255
           
     user_Permissions:
       type: object
@@ -6139,4 +6139,4 @@ components:
   securitySchemes:
       oauth:
         type: openIdConnect
-        openIdConnectUrl: 
+        openIdConnectUrl: ''

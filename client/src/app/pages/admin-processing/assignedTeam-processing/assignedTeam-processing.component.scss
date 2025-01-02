@@ -8,7 +8,16 @@
 !##########################################################################
 */
 
-  ::ng-deep .p-picklist-buttons > button:nth-child(2),
-  ::ng-deep .p-picklist-buttons > button:nth-child(4) {
-      display: none;
-    }
+::ng-deep .p-picklist-buttons > button:nth-child(2),
+::ng-deep .p-picklist-buttons > button:nth-child(4) {
+  display: none;
+}
+
+.scrollable-teams {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header {
+  @apply hidden;
+}

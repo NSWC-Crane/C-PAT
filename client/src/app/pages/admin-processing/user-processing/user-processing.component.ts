@@ -22,7 +22,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { UserComponent } from './user/user.component';
-import { DropdownModule } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -36,7 +36,7 @@ import { InputTextModule } from 'primeng/inputtext';
   imports: [
     ButtonModule,
     CommonModule,
-    DropdownModule,
+    Select,
     FormsModule,
     InputIconModule,
     InputTextModule,
@@ -51,14 +51,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('usersTable') usersTable!: TreeTable;
   public isLoggedIn = false;
   customColumn = 'User';
-  defaultColumns = [
-    'Status',
-    'First Name',
-    'Last Name',
-    'Email',
-    'Collection',
-    'Access Level',
-  ];
+  defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level'];
   allColumns = [this.customColumn, ...this.defaultColumns];
   collectionList: any[] = [];
   users: TreeNode[] = [];
@@ -78,7 +71,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private confirmationService: ConfirmationService,
     private router: Router,
-    private setPayloadService: PayloadService,
+    private setPayloadService: PayloadService
   ) {}
 
   onSubmit() {
@@ -92,20 +85,20 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
+      this.setPayloadService.user$.subscribe(user => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe((payload) => {
+      this.setPayloadService.payload$.subscribe(payload => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
+      this.setPayloadService.accessLevel$.subscribe(level => {
         this.accessLevel = level;
         if (this.user.isAdmin) {
           this.getUserData();
         } else {
           this.router.navigate(['/403']);
         }
-      }),
+      })
     );
   }
 
@@ -134,7 +127,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
       if (userPermissions && userPermissions.length > 0) {
         for (const permission of userPermissions) {
           const collection = this.collectionList.find(
-            (c) => c.collectionId === permission.collectionId,
+            c => c.collectionId === permission.collectionId
           );
           const collectionName = collection ? collection.collectionName : '';
 
@@ -145,8 +138,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
             4: 'CAT-I Approver',
           };
 
-          const accessLevelDisplay =
-            accessLevelMap[permission.accessLevel] || '';
+          const accessLevelDisplay = accessLevelMap[permission.accessLevel] || '';
 
           children.push({
             data: {
@@ -192,9 +184,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): void => {

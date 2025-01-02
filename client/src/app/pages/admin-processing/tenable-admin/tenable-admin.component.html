@@ -8,38 +8,44 @@
 !##########################################################################
 -->
 
-<div class="field">
-  <p-dropdown [options]="filteredRepositories"
-              [(ngModel)]="selectedTenableRepository"
-              (onChange)="onTenableRepositorySelect($event.value)"
-              placeholder="Select Repository to Import..."
-              optionLabel="name"
-              [showClear]="true"
-              styleClass="tenableRepositorySelect"
-              appendTo="body"
-              [style]="{'width':'100%'}">
-  </p-dropdown>
+<div class="field mb-4">
+  <p-select
+    [options]="filteredRepositories"
+    [(ngModel)]="selectedTenableRepository"
+    (onChange)="onTenableRepositorySelect($event.value)"
+    placeholder="Select Repository to Import..."
+    optionLabel="name"
+    [showClear]="true"
+    styleClass="tenableRepositorySelect"
+    appendTo="body"
+    [style]="{'width':'100%'}"
+  >
+  </p-select>
 </div>
-<div class="field">
-  <p-button label="Import Selected"
-            class="import-button"
-            styleClass="p-button-primary"
-            (click)="importTenableRepository()"
-            (onKeyUp)="importTenableRepository()"
-            [disabled]="!selectedTenableRepository"
-            [style]="{'width':'100%', 'margin-bottom': '10px'}"
-            [outlined]="true">
+<div class="field mb-2">
+  <p-button
+    label="Import Selected"
+    class="import-button"
+    styleClass="p-button-primary"
+    (click)="importTenableRepository()"
+    (onKeyUp)="importTenableRepository()"
+    [disabled]="!selectedTenableRepository"
+    [style]="{'width':'100%', 'margin-bottom': '10px'}"
+    [outlined]="true"
+  >
   </p-button>
 </div>
 <div class="field">
-  <p-button label="Import All Remaining"
-            class="import-all-button"
-            styleClass="p-button-warning"
-            (click)="importAllRemainingRepositories()"
-            (onKeyUp)="importAllRemainingRepositories()"
-            [disabled]="!filteredRepositories || filteredRepositories.length === 0"
-            [style]="{'width':'100%'}"
-            [outlined]="true">
+  <p-button
+    label="Import All Remaining"
+    class="import-all-button"
+    styleClass="p-button-warn"
+    (click)="importAllRemainingRepositories()"
+    (onKeyUp)="importAllRemainingRepositories()"
+    [disabled]="!filteredRepositories || filteredRepositories.length === 0"
+    [style]="{'width':'100%'}"
+    [outlined]="true"
+  >
   </p-button>
 </div>
 <p-toast></p-toast>

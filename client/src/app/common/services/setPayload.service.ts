@@ -10,8 +10,9 @@
 
 import { Injectable } from '@angular/core';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
-import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { Users } from '../../pages/admin-processing/user-processing/users.model';
+import { AuthService } from '../../core/auth/services/auth.service';
 
 @Injectable({
   providedIn: 'root',
@@ -25,9 +26,13 @@ export class PayloadService {
   payload$ = this.payloadSubject.asObservable();
   accessLevel$ = this.accessLevelSubject.asObservable();
 
-  constructor(private userService: UsersService) { }
+  constructor(
+    private authService: AuthService,
+    private userService: UsersService
+  ) {}
 
   async setPayload() {
+    await firstValueFrom(this.authService.waitForAuthInitialized());
     try {
       interface Permission {
         collectionId: any;
@@ -38,16 +43,14 @@ export class PayloadService {
         collections: Permission[];
       }
 
-      const response = await firstValueFrom(await this.userService.getCurrentUser()) as Users;
+      const response = (await firstValueFrom(await this.userService.getCurrentUser())) as Users;
 
       if (response?.userId) {
         const user = response;
-        const mappedPermissions: Permission[] = user.permissions?.map(
-          (permission) => ({
-            collectionId: permission.collectionId,
-            accessLevel: permission.accessLevel,
-          })
-        );
+        const mappedPermissions: Permission[] = user.permissions?.map(permission => ({
+          collectionId: permission.collectionId,
+          accessLevel: permission.accessLevel,
+        }));
 
         const payload: Payload = {
           ...user,
@@ -57,7 +60,7 @@ export class PayloadService {
         let accessLevel = 0;
         if (mappedPermissions?.length > 0) {
           const selectedPermissions = payload.collections.find(
-            (x) => x.collectionId === payload.lastCollectionAccessedId
+            x => x.collectionId === payload.lastCollectionAccessedId
           );
           if (selectedPermissions) {
             accessLevel = selectedPermissions.accessLevel;

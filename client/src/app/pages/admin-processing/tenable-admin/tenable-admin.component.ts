@@ -16,7 +16,7 @@ import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DropdownModule } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -41,15 +41,8 @@ interface CollectionBasicList {
   templateUrl: './tenable-admin.component.html',
   styleUrls: ['./tenable-admin.component.scss'],
   standalone: true,
-  imports: [
-    ButtonModule,
-    CommonModule,
-    ConfirmDialogModule,
-    DropdownModule,
-    FormsModule,
-    ToastModule,
-  ],
-  providers: [ConfirmationService, MessageService]
+  imports: [ButtonModule, CommonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
+  providers: [ConfirmationService, MessageService],
 })
 export class TenableAdminComponent implements OnInit {
   tenableRepositories: TenableRepository[] = [];
@@ -61,39 +54,37 @@ export class TenableAdminComponent implements OnInit {
     private collectionsService: CollectionsService,
     private importService: ImportService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit() {
     this.fetchDataAndCompare();
   }
 
- async fetchDataAndCompare() {
+  async fetchDataAndCompare() {
     await forkJoin({
       repositories: await from(await this.importService.getTenableRepositories()).pipe(
         map((response: any) => response.response),
-        catchError((error) => {
+        catchError(error => {
           console.error('Error fetching Tenable repositories:', error);
           this.showPopup('Unable to connect to Tenable.');
           return of([]);
-        }),
+        })
       ),
       collections: await from(await this.collectionsService.getCollectionBasicList()).pipe(
-        catchError((error) => {
+        catchError(error => {
           console.error('Error fetching collections:', error);
           this.showPopup('Unable to fetch existing collections.');
           return of([]);
-        }),
+        })
       ),
     }).subscribe({
       next: ({ repositories, collections }) => {
         this.tenableRepositories = repositories;
-        this.existingCollections = Array.isArray(collections)
-          ? collections
-          : [];
+        this.existingCollections = Array.isArray(collections) ? collections : [];
         this.filterRepositories();
       },
-      error: (error) => {
+      error: error => {
         console.error('Error in fetching data:', error);
         this.showPopup('An error occurred while fetching data.');
       },
@@ -102,14 +93,18 @@ export class TenableAdminComponent implements OnInit {
 
   filterRepositories() {
     const existingNames = new Set(
-      this.existingCollections.map((c) => c.collectionName.toLowerCase()),
+      this.existingCollections.map(c => c.collectionName.toLowerCase())
     );
     this.filteredRepositories = this.tenableRepositories?.filter(
-      (repo) => !existingNames.has(repo.name.toLowerCase()),
+      repo => !existingNames.has(repo.name.toLowerCase())
     );
 
     if (this.filteredRepositories?.length === 0) {
-      this.showPopup('All Tenable repositories have already been imported.');
+      this.messageService.add({
+        severity: 'info',
+        summary: 'No Repositories',
+        detail: 'All Tenable repositories have already been imported.',
+      });
     }
   }
 
@@ -131,8 +126,8 @@ export class TenableAdminComponent implements OnInit {
       header: 'Confirm Bulk Import',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        const importObservables = this.filteredRepositories.map((repo) =>
-          this.importRepository(repo),
+        const importObservables = this.filteredRepositories.map(repo =>
+          this.importRepository(repo)
         );
         forkJoin(importObservables).subscribe({
           next: () => {
@@ -143,7 +138,7 @@ export class TenableAdminComponent implements OnInit {
             });
             this.fetchDataAndCompare();
           },
-          error: (error) => {
+          error: error => {
             console.error('Error during bulk import', error);
             this.messageService.add({
               severity: 'error',
@@ -165,7 +160,7 @@ export class TenableAdminComponent implements OnInit {
     };
 
     return from(this.collectionsService.addCollection(collectionData)).pipe(
-      switchMap((response) => {
+      switchMap(response => {
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
@@ -173,7 +168,7 @@ export class TenableAdminComponent implements OnInit {
         });
         return response;
       }),
-      catchError((error) => {
+      catchError(error => {
         console.error(`Error importing repository "${repository.name}"`, error);
         this.messageService.add({
           severity: 'error',
@@ -181,7 +176,7 @@ export class TenableAdminComponent implements OnInit {
           detail: `Error importing repository "${repository.name}": ${error.message}`,
         });
         throw error;
-      }),
+      })
     );
   }
 

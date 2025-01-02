@@ -21,22 +21,17 @@ export class PoamAttachmentService {
 
   constructor(
     private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService,
+    private oidcSecurityService: OidcSecurityService
   ) {}
 
   private async getAuthHeaders() {
-    const token = await firstValueFrom(
-      this.oidcSecurityService.getAccessToken(),
-    );
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
   async getAttachmentsByPoamId(poamId: number) {
     const headers = await this.getAuthHeaders();
-    return this.http.get<any[]>(
-      `${this.cpatApiBase}/poamAttachments/poam/${poamId}`,
-      { headers },
-    );
+    return this.http.get<any[]>(`${this.cpatApiBase}/poamAttachments/poam/${poamId}`, { headers });
   }
 
   async uploadAttachment(file: File, poamId: number) {
@@ -59,16 +54,15 @@ export class PoamAttachmentService {
       {
         headers,
         responseType: 'blob',
-      },
+      }
     );
   }
 
   async deleteAttachment(poamId: number, attachmentId: number) {
     const headers = await this.getAuthHeaders();
 
-    return this.http.delete(
-      `${this.cpatApiBase}/poamAttachment/poam/${poamId}/${attachmentId}`,
-      { headers },
-    );
+    return this.http.delete(`${this.cpatApiBase}/poamAttachment/poam/${poamId}/${attachmentId}`, {
+      headers,
+    });
   }
 }

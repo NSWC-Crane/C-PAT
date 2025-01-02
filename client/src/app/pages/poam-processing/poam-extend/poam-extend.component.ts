@@ -23,11 +23,11 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePicker } from 'primeng/datepicker';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { Select } from 'primeng/select';
+import { TextareaModule } from 'primeng/textarea';
 import { StepperModule } from 'primeng/stepper';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
@@ -43,18 +43,18 @@ import { InputTextModule } from 'primeng/inputtext';
     FormsModule,
     AutoCompleteModule,
     ButtonModule,
-    CalendarModule,
+    DatePicker,
     DialogModule,
-    DropdownModule,
+    Select,
     InputTextModule,
-    InputTextareaModule,
+    TextareaModule,
     StepperModule,
     TableModule,
     ToastModule,
     ConfirmDialogModule,
-    DatePipe
+    DatePipe,
   ],
-  providers: [ConfirmationService, MessageService]
+  providers: [ConfirmationService, MessageService],
 })
 export class PoamExtendComponent implements OnInit, OnDestroy {
   assignedTeamOptions: any;
@@ -62,9 +62,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   dates: any = {};
   poam: any;
   poamId: any;
-  poamLabels:
-    | [{ poamId: number; labelId: number; labelName: string }]
-    | undefined;
+  poamLabels: [{ poamId: number; labelId: number; labelName: string }] | undefined;
   poamMilestones: any[] = [];
   clonedMilestones: { [s: string]: any } = {};
   milestoneStatusOptions = [
@@ -140,18 +138,18 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef,
-    private setPayloadService: PayloadService,
+    private setPayloadService: PayloadService
   ) {}
 
   ngOnInit() {
     this.openModal();
-    this.route.params.subscribe(async (params) => {
+    this.route.params.subscribe(async params => {
       this.poamId = params['poamId'];
     });
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
-      }),
+      })
     );
     this.setPayload();
   }
@@ -159,18 +157,18 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
+      this.setPayloadService.user$.subscribe(user => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe((payload) => {
+      this.setPayloadService.payload$.subscribe(payload => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
+      this.setPayloadService.accessLevel$.subscribe(level => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.getData();
         }
-      }),
+      })
     );
   }
 
@@ -183,17 +181,13 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         await this.assignedTeamsService.getAssignedTeams(),
       ]).subscribe(([poamData, extension, poamMilestones, assignedTeamOptions]: any) => {
         const extensionDataset = extension;
-        this.poamMilestones = poamMilestones.poamMilestones.map(
-          (milestone: any) => ({
-            ...milestone,
-            milestoneDate: milestone.milestoneDate
-              ? milestone.milestoneDate.split('T')[0]
-              : null,
-            milestoneChangeDate: milestone.milestoneChangeDate
-              ? milestone.milestoneChangeDate.split('T')[0]
-              : null,
-          }),
-        );
+        this.poamMilestones = poamMilestones.poamMilestones.map((milestone: any) => ({
+          ...milestone,
+          milestoneDate: milestone.milestoneDate ? milestone.milestoneDate.split('T')[0] : null,
+          milestoneChangeDate: milestone.milestoneChangeDate
+            ? milestone.milestoneChangeDate.split('T')[0]
+            : null,
+        }));
 
         this.assignedTeamOptions = assignedTeamOptions;
 
@@ -244,7 +238,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         }
 
         this.getPoamLabels();
-      }),
+      })
     );
   }
 
@@ -322,10 +316,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   private validateMilestoneDate(milestone: any): boolean {
     const milestoneDate = format(milestone.milestoneChangeDate, 'yyyy-MM-dd');
-    const scheduledCompletionDate = format(
-      this.poam.scheduledCompletionDate,
-      'yyyy-MM-dd',
-    );
+    const scheduledCompletionDate = format(this.poam.scheduledCompletionDate, 'yyyy-MM-dd');
     const extensionTimeAllowed = this.poam.extensionTimeAllowed;
 
     if (extensionTimeAllowed === 0 || extensionTimeAllowed == null) {
@@ -333,16 +324,12 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'warn',
           summary: 'Information',
-          detail:
-            'The Milestone date provided exceeds the POAM scheduled completion date.',
+          detail: 'The Milestone date provided exceeds the POAM scheduled completion date.',
         });
         return false;
       }
     } else {
-      const maxAllowedDate = addDays(
-        scheduledCompletionDate,
-        extensionTimeAllowed,
-      );
+      const maxAllowedDate = addDays(scheduledCompletionDate, extensionTimeAllowed);
       if (isAfter(milestoneDate, maxAllowedDate)) {
         this.messageService.add({
           severity: 'warn',
@@ -394,10 +381,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         milestoneComments: milestone.milestoneComments,
       }),
       ...(milestone.milestoneChangeDate && {
-        milestoneChangeDate: format(
-          milestone.milestoneChangeDate,
-          'yyyy-MM-dd',
-        ),
+        milestoneChangeDate: format(milestone.milestoneChangeDate, 'yyyy-MM-dd'),
       }),
       ...(milestone.milestoneChangeComments && {
         milestoneChangeComments: milestone.milestoneChangeComments,
@@ -414,13 +398,13 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       await this.poamService.updatePoamMilestone(
         this.poam.poamId,
         milestone.milestoneId,
-        milestoneUpdate,
+        milestoneUpdate
       )
     ).subscribe({
       next: () => {
         this.getData();
       },
-      error: (error) => {
+      error: error => {
         console.error(error);
       },
     });
@@ -446,11 +430,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       icon: 'pi pi-exclamation-triangle',
       accept: async () => {
         (
-          await this.poamService.deletePoamMilestone(
-            this.poam.poamId,
-            milestone.milestoneId,
-            false,
-          )
+          await this.poamService.deletePoamMilestone(this.poam.poamId, milestone.milestoneId, false)
         ).subscribe(() => {
           this.poamMilestones.splice(index, 1);
         });
@@ -460,30 +440,24 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   async getPoamLabels() {
     this.subscriptions.add(
-      (await this.poamService.getPoamLabelsByPoam(this.poamId)).subscribe(
-        (poamLabels: any) => {
-          this.poamLabels = poamLabels;
-        },
-      ),
+      (await this.poamService.getPoamLabelsByPoam(this.poamId)).subscribe((poamLabels: any) => {
+        this.poamLabels = poamLabels;
+      })
     );
   }
 
   computeDeadlineWithExtension() {
-    if (
-      this.poam.extensionTimeAllowed === 0 ||
-      this.poam.extensionTimeAllowed == null
-    ) {
+    if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
       this.completionDateWithExtension = format(
         this.poam.scheduledCompletionDate,
-        'EEE MMM dd yyyy',
+        'EEE MMM dd yyyy'
       );
     } else {
       const extendedDate = addDays(
         parseISO(this.poam.scheduledCompletionDate),
         this.poam.extensionTimeAllowed
       );
-      this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy',
-      );
+      this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
     }
   }
 
@@ -506,8 +480,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   async submitPoamExtension() {
     if (this.poam.extensionTimeAllowed > 0) {
       const hasChangedMilestone = this.poamMilestones.some(
-        (milestone) =>
-          milestone.milestoneChangeComments && milestone.milestoneChangeDate,
+        milestone => milestone.milestoneChangeComments && milestone.milestoneChangeDate
       );
 
       if (!hasChangedMilestone) {
@@ -539,10 +512,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     }
 
     try {
-      (
-        await this.poamExtensionService.putPoamExtension(extensionData)
-      ).subscribe({
-        next: async (res) => {
+      (await this.poamExtensionService.putPoamExtension(extensionData)).subscribe({
+        next: async res => {
           if (res.null || res.null == 'null') {
             this.messageService.add({
               severity: 'error',
@@ -558,7 +529,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
             if (this.poam.extensionTimeAllowed > 0) {
               await this.poamService.updatePoamStatus(this.poamId, extensionData);
-            }            
+            }
             setTimeout(() => {
               this.displayExtensionDialog = false;
               this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
@@ -584,62 +555,49 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   }
 
   async findOrCreateExtendedLabel() {
-    const extendedLabel = this.poamLabels?.find(
-      (label: any) => label.labelName === 'Extended',
-    );
+    const extendedLabel = this.poamLabels?.find((label: any) => label.labelName === 'Extended');
     if (extendedLabel) {
       return;
     }
     this.subscriptions.add(
-      (await this.poamService.getLabels(this.selectedCollection)).subscribe(
-        async (labels: any) => {
-          this.labelList = labels;
-          if (this.labelList) {
-            const extendedLabel = this.labelList.find(
-              (label: any) => label.labelName === 'Extended',
-            );
-            if (extendedLabel) {
-              const extendedPoamLabel = {
-                poamId: +this.poamId,
-                labelId: +extendedLabel.labelId,
-              };
-              (
-                await this.poamService.postPoamLabel(extendedPoamLabel)
-              ).subscribe(function () {});
-            }
-          } else {
-            const extendLabel = {
-              collectionId: this.selectedCollection,
-              labelName: 'Extended',
-              description: 'POAM has been extended',
+      (await this.poamService.getLabels(this.selectedCollection)).subscribe(async (labels: any) => {
+        this.labelList = labels;
+        if (this.labelList) {
+          const extendedLabel = this.labelList.find((label: any) => label.labelName === 'Extended');
+          if (extendedLabel) {
+            const extendedPoamLabel = {
+              poamId: +this.poamId,
+              labelId: +extendedLabel.labelId,
             };
-            this.subscriptions.add(
-              (
-                await this.poamService.postLabel(
-                  this.selectedCollection,
-                  extendLabel,
-                )
-              ).subscribe(() => {
-                this.findOrCreateExtendedLabel();
-              }),
-            );
+            (await this.poamService.postPoamLabel(extendedPoamLabel)).subscribe(function () {});
           }
-        },
-      ),
+        } else {
+          const extendLabel = {
+            collectionId: this.selectedCollection,
+            labelName: 'Extended',
+            description: 'POAM has been extended',
+          };
+          this.subscriptions.add(
+            (await this.poamService.postLabel(this.selectedCollection, extendLabel)).subscribe(
+              () => {
+                this.findOrCreateExtendedLabel();
+              }
+            )
+          );
+        }
+      })
     );
   }
 
   filterJustifications(event: any) {
     const query = event.query;
-    this.filteredJustifications = this.justifications.filter((justification) =>
-      justification.toLowerCase().includes(query.toLowerCase()),
+    this.filteredJustifications = this.justifications.filter(justification =>
+      justification.toLowerCase().includes(query.toLowerCase())
     );
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

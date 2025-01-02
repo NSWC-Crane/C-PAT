@@ -12,7 +12,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { NotificationService } from '../notifications.service';
 import { PayloadService } from '../../../../common/services/setPayload.service';
 import { Router } from '@angular/router';
-import { OverlayPanel } from 'primeng/overlaypanel';
+import { Popover } from 'primeng/popover';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PoamService } from '../../../../pages/poam-processing/poams.service';
@@ -27,15 +27,10 @@ import { ButtonModule } from 'primeng/button';
   templateUrl: './notifications-popover.component.html',
   styleUrls: ['./notifications-popover.component.scss'],
   standalone: true,
-  imports: [
-    ButtonModule,
-    CommonModule,
-    FormsModule,
-    ListboxModule,
-  ],
+  imports: [ButtonModule, CommonModule, FormsModule, ListboxModule],
 })
 export class NotificationsPanelComponent implements OnInit, OnDestroy {
-  @Input() overlayPanel: OverlayPanel;
+  @Input() overlayPanel: Popover;
   notifications: any[] = [];
   public isLoggedIn = false;
   protected accessLevel: any;
@@ -51,7 +46,7 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private router: Router,
     private sanitizer: DomSanitizer
-  ) { }
+  ) {}
 
   async ngOnInit() {
     this.setPayload();
@@ -60,18 +55,18 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
+      this.setPayloadService.user$.subscribe(user => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe((payload) => {
+      this.setPayloadService.payload$.subscribe(payload => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
+      this.setPayloadService.accessLevel$.subscribe(level => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.fetchNotifications();
         }
-      }),
+      })
     );
   }
 
@@ -83,15 +78,15 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
 
   async fetchNotifications() {
     (await this.notificationService.getUnreadNotifications()).subscribe(
-      (notifications) => {
+      notifications => {
         this.notifications = notifications.map(notification => ({
           ...notification,
-          formattedMessage: this.formatMessage(notification.message)
+          formattedMessage: this.formatMessage(notification.message),
         }));
       },
-      (error) => {
+      error => {
         console.error('Failed to fetch notifications:', error);
-      },
+      }
     );
   }
 
@@ -112,20 +107,16 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   }
 
   async dismissNotification(notification: any) {
-    (
-      await this.notificationService.dismissNotification(
-        notification.notificationId,
-      )
-    ).subscribe(
+    (await this.notificationService.dismissNotification(notification.notificationId)).subscribe(
       () => {
         const index = this.notifications.indexOf(notification);
         if (index !== -1) {
           this.notifications.splice(index, 1);
         }
       },
-      (error) => {
+      error => {
         console.error('Failed to dismiss notification:', error);
-      },
+      }
     );
   }
 
@@ -134,9 +125,9 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
       () => {
         this.notifications = [];
       },
-      (error) => {
+      error => {
         console.error('Failed to dismiss all notifications:', error);
-      },
+      }
     );
   }
 
@@ -178,8 +169,6 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

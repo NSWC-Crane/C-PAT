@@ -8,11 +8,7 @@
 !##########################################################################
 */
 
-import {
-  HttpClient,
-  HttpErrorResponse,
-  HttpHeaders,
-} from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
@@ -25,24 +21,20 @@ export class VRAMImportService {
 
   constructor(
     private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService,
+    private oidcSecurityService: OidcSecurityService
   ) {}
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(
-        `Backend returned code ${error.status}, body was: ${error.error}`,
-      );
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
     return throwError('Something bad happened; please try again later.');
   }
 
   private async getAuthHeaders() {
-    const token = await firstValueFrom(
-      this.oidcSecurityService.getAccessToken(),
-    );
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 

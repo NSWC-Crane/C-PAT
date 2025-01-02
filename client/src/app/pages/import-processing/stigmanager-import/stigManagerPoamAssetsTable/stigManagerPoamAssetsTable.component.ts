@@ -10,6 +10,9 @@ import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
+import { TagModule } from 'primeng/tag';
 
 interface ExportColumn {
   title: string;
@@ -25,7 +28,7 @@ interface Label {
 }
 
 @Component({
-  selector: 'stigmanager-poam-assets-table',
+  selector: 'cpat-stigmanager-poam-assets-table',
   templateUrl: './stigManagerPoamAssetsTable.component.html',
   styleUrls: ['./stigManagerPoamAssetsTable.component.scss'],
   standalone: true,
@@ -34,10 +37,13 @@ interface Label {
     CardModule,
     CommonModule,
     FormsModule,
+    InputIconModule,
+    IconFieldModule,
     InputTextModule,
     MultiSelectModule,
     TableModule,
     ToastModule,
+    TagModule,
   ],
 })
 export class STIGManagerPoamAssetsTableComponent implements OnInit {
@@ -58,7 +64,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
 
   constructor(
     private messageService: MessageService,
-    private sharedService: SharedService,
+    private sharedService: SharedService
   ) {}
 
   async ngOnInit() {
@@ -67,7 +73,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
       await Promise.all([this.getAffectedAssets(), this.getLabels()]);
     } else {
       this.showErrorMessage(
-        'No vulnerability ID provided. Please enter a vulnerability ID and re-open the assets tab.',
+        'No vulnerability ID provided. Please enter a vulnerability ID and re-open the assets tab.'
       );
     }
   }
@@ -85,7 +91,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
       { field: 'mac', header: 'MAC Address', width: '150px', filterable: true },
       { field: 'labels', header: 'Labels', width: '200px', filterable: true },
     ];
-    this.exportColumns = this.cols.map((col) => ({
+    this.exportColumns = this.cols.map(col => ({
       title: col.header,
       dataKey: col.field,
     }));
@@ -98,32 +104,26 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
       const data = await firstValueFrom(
         await this.sharedService.getPOAMAssetsFromSTIGMAN(
           this.stigmanCollectionId,
-          this.benchmarkId,
-        ),
+          this.benchmarkId
+        )
       );
       if (!data || data.length === 0) {
         this.showErrorMessage('No affected assets found.');
         return;
       }
-      const matchingItem = data.find((item) => item.groupId === this.groupId);
+      const matchingItem = data.find(item => item.groupId === this.groupId);
       if (!matchingItem) {
-        this.showErrorMessage(
-          `No assets found with vulnerabilityId: ${this.groupId}`,
-        );
+        this.showErrorMessage(`No assets found with vulnerabilityId: ${this.groupId}`);
         return;
       }
-      const mappedAssets = matchingItem.assets.map(
-        (asset: { name: string; assetId: string }) => ({
-          assetName: asset.name,
-          assetId: asset.assetId,
-        }),
-      );
+      const mappedAssets = matchingItem.assets.map((asset: { name: string; assetId: string }) => ({
+        assetName: asset.name,
+        assetId: asset.assetId,
+      }));
       this.affectedAssets = await this.getAffectedAssetDetails(mappedAssets);
       this.totalRecords = this.affectedAssets.length;
     } catch (err) {
-      this.showErrorMessage(
-        'Failed to fetch affected assets. Please try again later.',
-      );
+      this.showErrorMessage('Failed to fetch affected assets. Please try again later.');
     } finally {
       this.isLoading = false;
     }
@@ -132,19 +132,15 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
   async getAffectedAssetDetails(mappedAssets: any[]) {
     try {
       const assetDetails = await firstValueFrom(
-        await this.sharedService.getAssetDetailsFromSTIGMAN(
-          this.stigmanCollectionId,
-        ),
+        await this.sharedService.getAssetDetailsFromSTIGMAN(this.stigmanCollectionId)
       );
       if (!assetDetails || assetDetails.length === 0) {
         console.error('No asset details found.');
         return mappedAssets;
       }
 
-      return mappedAssets.map((asset) => {
-        const details = assetDetails.find(
-          (detail) => detail.assetId === asset.assetId,
-        );
+      return mappedAssets.map(asset => {
+        const details = assetDetails.find(detail => detail.assetId === asset.assetId);
         if (!details) return asset;
 
         return {
@@ -165,9 +161,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
       });
     } catch (err) {
       console.error('Failed to fetch asset details from STIGMAN:', err);
-      this.showErrorMessage(
-        'Failed to fetch asset details. Please try again later.',
-      );
+      this.showErrorMessage('Failed to fetch asset details. Please try again later.');
       return mappedAssets;
     }
   }
@@ -175,9 +169,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
   async getLabels() {
     try {
       const labels = await firstValueFrom(
-        await this.sharedService.getLabelsByCollectionSTIGMAN(
-          this.stigmanCollectionId,
-        ),
+        await this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
       );
       this.labels = labels || [];
     } catch (err) {
@@ -190,12 +182,8 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
   getAssetLabels(asset: any): Label[] {
     return (
       asset.labelIds
-        ?.map((labelId: string) =>
-          this.labels.find((label) => label.labelId === labelId),
-        )
-        .filter(
-          (label: Label | undefined): label is Label => label !== undefined,
-        ) || []
+        ?.map((labelId: string) => this.labels.find(label => label.labelId === labelId))
+        .filter((label: Label | undefined): label is Label => label !== undefined) || []
     );
   }
 
@@ -214,10 +202,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
   }
 
   onGlobalFilter(event: Event) {
-    this.table.filterGlobal(
-      (event.target as HTMLInputElement).value,
-      'contains',
-    );
+    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
   resetColumnSelections() {

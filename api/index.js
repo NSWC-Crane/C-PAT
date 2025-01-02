@@ -101,39 +101,40 @@ app.use((req, res, next) => {
     }
 })
 
-app.use('/api/tenable', proxy(config.tenable.url, {
-    proxyReqPathResolver: function (req) {
-        const baseUrl = config.tenable.url.endsWith('/')
-            ? config.tenable.url.slice(0, -1)
-            : config.tenable.url;
-        const path = '/rest' + req.url.replace('/api/tenable', '');
-        const fullUrl = url.resolve(baseUrl, path);
+if (config.tenable.enabled) {
+    app.use('/api/tenable', proxy(config.tenable.url, {
+        proxyReqPathResolver: function (req) {
+            const baseUrl = config.tenable.url.endsWith('/')
+                ? config.tenable.url.slice(0, -1)
+                : config.tenable.url;
+            const path = '/rest' + req.url.replace('/api/tenable', '');
+            const fullUrl = url.resolve(baseUrl, path);
 
-        return fullUrl;
-    },
-    proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
-        const headersToRemove = ['host', 'referer', 'origin', 'cookie', 'user-agent', 'authorization'];
-        headersToRemove.forEach(header => {
-            delete proxyReqOpts.headers[header.toLowerCase()];
-        });
-        proxyReqOpts.headers['x-apikey'] = `accesskey=${config.tenable.accessKey}; secretkey=${config.tenable.secretKey};`;
-        if (!proxyReqOpts.headers['Content-Type']) {
-            proxyReqOpts.headers['Content-Type'] = 'application/json';
+            return fullUrl;
+        },
+        proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
+            const headersToRemove = ['host', 'referer', 'origin', 'cookie', 'user-agent', 'authorization'];
+            headersToRemove.forEach(header => {
+                delete proxyReqOpts.headers[header.toLowerCase()];
+            });
+            proxyReqOpts.headers['x-apikey'] = `accesskey=${config.tenable.accessKey}; secretkey=${config.tenable.secretKey};`;
+            if (!proxyReqOpts.headers['Content-Type']) {
+                proxyReqOpts.headers['Content-Type'] = 'application/json';
+            }
+            proxyReqOpts.headers['User-Agent'] = 'Integration/1.0 (NAVSEA; CPAT; Build/1.0)';
+            proxyReqOpts.rejectUnauthorized = false;
+
+            return proxyReqOpts;
+        },
+        userResDecorator: function (proxyRes, proxyResData, userReq, userRes) {
+            return proxyResData;
+        },
+        proxyErrorHandler: function (err, res, next) {
+            res.status(500).send('Proxy error: ' + err.message);
+            throw new smErrors.InternalError('Proxy error:', err);
         }
-        proxyReqOpts.headers['User-Agent'] = 'Integration/1.0 (NAVSEA; CPAT; Build/1.0)';
-        proxyReqOpts.rejectUnauthorized = false;
-
-        return proxyReqOpts;
-    },
-    userResDecorator: function (proxyRes, proxyResData, userReq, userRes) {
-        return proxyResData;
-    },
-    proxyErrorHandler: function (err, res, next) {
-        res.status(500).send('Proxy error: ' + err.message);
-        throw new smErrors.InternalError('Proxy error:', err);        
-    }
-}));
-
+    }));
+}
 app.use(
     '/api',
     openApiMiddleware({

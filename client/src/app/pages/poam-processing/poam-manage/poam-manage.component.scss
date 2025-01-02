@@ -4,7 +4,7 @@
   height: 100%;
   min-height: 16rem;
   width: 100%;
-  
+
   ::ng-deep {
     .total-value,
     .item-value,
@@ -17,18 +17,18 @@
 
       .legend-items-container {
         width: 100%;
-        
+
         .legend-items {
           display: flex;
           flex-wrap: wrap;
           width: 100%;
           gap: 0.5rem;
-          
+
           .legend-item {
             flex: 1 1 auto;
             min-width: 0;
             width: fit-content;
-            
+
             .item-label {
               white-space: nowrap;
               overflow: hidden;
@@ -46,7 +46,7 @@
     .legend-items-container .legend-items {
       flex-wrap: nowrap !important;
       justify-content: center;
-      
+
       .legend-item {
         flex: 1;
         min-width: 0;
@@ -61,15 +61,15 @@
     .total-label {
       display: none;
     }
-    
+
     .legend-items-container .legend-items {
       justify-content: flex-end;
-      margin-top: 0.10rem;
-      
+      margin-top: 0.1rem;
+
       .legend-item {
         flex: 1 1 auto;
         margin-bottom: 0.5rem;
-        
+
         @media screen and (min-width: 768px) {
           flex: 1 1 calc(25% - 0.5rem);
         }
@@ -79,23 +79,15 @@
 }
 
 :host ::ng-deep {
+  .assigned-grid .p-card-body {
+    padding: 0rem 0.5rem 0.5rem 0rem;
+  }
   .p-card .p-card-content {
-      padding-bottom: 0;
-  }    
+    padding-bottom: 0;
+  }
   .ngx-poam-assigned-grid {
     &.p-card .p-card-body {
       padding: 0 !important;
-    }
-    .p-tabview {
-      .p-tabview-panels,
-      .p-tabview-panel {
-        padding: 0 !important;
-      }
-
-      .p-tabview-nav {
-        padding-left: 0.25rem;
-        padding-right: 0.25rem;
-      }
     }
 
     cpat-poam-assigned-grid {
@@ -141,4 +133,3 @@
     }
   }
 }
-

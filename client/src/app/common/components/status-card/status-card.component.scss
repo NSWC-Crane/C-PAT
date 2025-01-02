@@ -23,7 +23,7 @@
       height: 100%;
 
       .p-card-content {
-         padding: 0;      
+        padding: 0;
       }
     }
 
@@ -61,37 +61,37 @@
 
       i {
         font-size: 3rem;
-        color: var(--primary-color-text);
+        color: var(--p-text-color);
       }
 
       &.status-primary {
-        background-image: linear-gradient(to right, var(--primary-500), var(--primary-600));
+        background-image: linear-gradient(to right, var(--p-primary-500), var(--p-primary-600));
         &:hover {
-          background-image: linear-gradient(to right, var(--primary-600), var(--primary-500));
+          background-image: linear-gradient(to right, var(--p-primary-600), var(--p-primary-500));
         }
       }
       &.status-success {
-        background-image: linear-gradient(to right, var(--green-500), var(--green-400));
+        background-image: linear-gradient(to right, var(--p-green-500), var(--p-green-400));
         &:hover {
-          background-image: linear-gradient(to right, var(--green-400), var(--green-300));
+          background-image: linear-gradient(to right, var(--p-green-400), var(--p-green-300));
         }
       }
       &.status-info {
-        background-image: linear-gradient(to right, var(--cyan-700), var(--cyan-600));
+        background-image: linear-gradient(to right, var(--p-cyan-700), var(--p-cyan-600));
         &:hover {
-          background-image: linear-gradient(to right, var(--cyan-600), var(--cyan-500));
+          background-image: linear-gradient(to right, var(--p-cyan-600), var(--p-cyan-500));
         }
       }
-      &.status-warning {
-        background-image: linear-gradient(to right, var(--yellow-700), var(--yellow-600));
+      &.status-warn {
+        background-image: linear-gradient(to right, var(--p-yellow-700), var(--p-yellow-600));
         &:hover {
-          background-image: linear-gradient(to right, var(--yellow-600), var(--yellow-500));
+          background-image: linear-gradient(to right, var(--p-yellow-600), var(--p-yellow-500));
         }
       }
       &.status-danger {
-        background-image: linear-gradient(to right, var(--red-700), var(--red-600));
+        background-image: linear-gradient(to right, var(--p-red-700), var(--p-red-600));
         &:hover {
-          background-image: linear-gradient(to right, var(--red-600), var(--red-500));
+          background-image: linear-gradient(to right, var(--p-red-600), var(--p-red-500));
         }
       }
     }
