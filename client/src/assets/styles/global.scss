@@ -1,0 +1,28 @@
+@import './tailwind/main.css';
+@import 'primeicons/primeicons.css';
+@import './layout/layout.scss';
+@import './components/_pace-theme.scss';
+@import './components/_scrollbar.scss';
+
+@include ngx-pace-theme();
+  * {
+    @include custom-scrollbar( var(--p-surface-900), var(--p-surface-700) );
+  }
+
+
+html, body {
+  @include custom-scrollbar( var(--p-surface-900), var(--p-surface-700) );
+}
+
+.tenable-icon {
+   width: 1rem;
+   height: 1rem;
+   transform: scale(1.4);
+   mask: url('/assets/icons/tenable.svg') no-repeat center;
+   -webkit-mask: url('/assets/icons/tenable.svg') no-repeat center;
+   mask-size: contain;
+   -webkit-mask-size: contain;
+   background-color: currentColor;
+   display: inline-block;
+   font-weight: 900;
+}

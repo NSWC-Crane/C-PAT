@@ -21,10 +21,10 @@
     width: 0 !important;
     height: 0 !important;
     overflow: hidden !important;
-    left: 6rem;
-    top: 3.5rem;
+    left: 16rem;
+    top: 8rem;
 
-    .p-dropdown-panel {
+    .p-select-panel {
       visibility: visible;
       pointer-events: auto;
       position: fixed;
@@ -36,23 +36,23 @@
 
 .severity-badge {
   border-radius: 2px;
-  padding: .25em .5em;
+  padding: 0.25em 0.5em;
   text-transform: uppercase;
   font-weight: 700;
   font-size: 12px;
-  letter-spacing: .3px;
+  letter-spacing: 0.3px;
   text-align: center;
   width: 6rem;
 }
 
 .severity-badge.severity-Critical {
-    background-color: #C63737;
-    color: #ffffff;
-    opacity: 0.9;
+  background-color: #c63737;
+  color: #ffffff;
+  opacity: 0.9;
 }
 
 .severity-badge.severity-High {
-  background-color: #FF8800;
+  background-color: #ff8800;
   color: #ffffff;
   opacity: 0.9;
 }
@@ -76,17 +76,17 @@
 }
 
 .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .description {
-    margin: 1rem 0;
+  margin: 1rem 0;
 
-    h6 {
-        margin-bottom: 0.5rem !important;
-    }
+  h6 {
+    margin-bottom: 0.5rem !important;
+  }
 }
 
 .toolbar {

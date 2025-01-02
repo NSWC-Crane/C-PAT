@@ -13,7 +13,6 @@ import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { NotificationsComponent } from './common/components/notifications/notifications.component';
 import { AuthGuard } from './core/auth/guards/auth.guard';
 import { StatusMessageComponent } from './common/components/status-message/status-message.component';
-import { AppLayoutComponent } from './layout/components/app.layout.component';
 import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
 import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
 import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
@@ -21,41 +20,47 @@ import { importProcessingRoutes } from './pages/import-processing/import-process
 import { consentRoute } from './common/components/dod-consent/dod-consent.routing';
 import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
 import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
+import { AppNavigationComponent } from './layout/components/app.navigation.component';
 
 const routerOptions: ExtraOptions = {
   anchorScrolling: 'enabled',
 };
 
-const routes: Routes = [
+export const routes: Routes = [
   {
     path: '',
-    component: AppLayoutComponent,
+    component: AppNavigationComponent,
     children: [
+      {
+        path: '',
+        redirectTo: 'poam-processing',
+        pathMatch: 'full',
+      },
       {
         path: 'admin-processing',
         canActivate: [AuthGuard],
         data: { guardType: 'admin' },
-        children: adminProcessingRoutes
+        children: adminProcessingRoutes,
       },
       {
         path: 'asset-processing',
         canActivate: [AuthGuard],
-        children: assetProcessingRoutes
+        children: assetProcessingRoutes,
       },
       {
         path: 'consent',
         canActivate: [AuthGuard],
-        children: consentRoute
+        children: consentRoute,
       },
       {
         path: 'import-processing',
         canActivate: [AuthGuard],
-        children: importProcessingRoutes
+        children: importProcessingRoutes,
       },
       {
         path: 'label-processing',
         canActivate: [AuthGuard],
-        children: labelProcessingRoutes
+        children: labelProcessingRoutes,
       },
       {
         path: 'notifications',
@@ -70,7 +75,7 @@ const routes: Routes = [
       {
         path: 'marketplace',
         canActivate: [AuthGuard],
-        children: marketplaceRoutes
+        children: marketplaceRoutes,
       },
     ],
   },

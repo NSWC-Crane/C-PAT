@@ -10,32 +10,48 @@
 
 <form (ngSubmit)="onSubmit()" #form="ngForm">
   <div class="field">
-    <label for="labelname" class="p-col-fixed" style="width: 10rem;">Label Name:</label>
-    <input pInputText
-           type="text"
-           id="labelname"
-           name="labelname"
-           [(ngModel)]="label.labelName"
-           placeholder="Label Name"
-           class="w-full"
-           required>
+    <label for="labelname" class="p-col-fixed" style="width: 10rem">Label Name:</label>
+    <input
+      pInputText
+      type="text"
+      id="labelname"
+      name="labelname"
+      [(ngModel)]="label.labelName"
+      placeholder="Label Name"
+      class="w-full"
+      required
+    />
   </div>
   <div class="field">
-    <label for="description" class="p-col-fixed" style="width: 10rem;">Description:</label>
-    <input pInputText
-           type="text"
-           id="description"
-           name="description"
-           [(ngModel)]="label.description"
-           placeholder="Description"
-           class="w-full">
+    <label for="description" class="p-col-fixed" style="width: 10rem">Description:</label>
+    <input
+      pInputText
+      type="text"
+      id="description"
+      name="description"
+      [(ngModel)]="label.description"
+      placeholder="Description"
+      class="w-full"
+    />
   </div>
   <div class="formgroup-inline">
-    <div class="field">
-      <button pButton type="submit" [outlined]="true" label="Submit" class="p-mr-2" [disabled]="!form.valid"></button>
-    </div>
-    <div class="field">
-      <button pButton type="button" [outlined]="true" label="Cancel" class="p-button-secondary p-mr-2" (click)="resetData()"></button>
+    <div class="flex justify-between items-center w-full m-4">
+      <button
+        pButton
+        type="submit"
+        [outlined]="true"
+        label="Submit"
+        class="p-mr-2"
+        [disabled]="!form.valid"
+      ></button>
+      <button
+        pButton
+        type="button"
+        [outlined]="true"
+        label="Cancel"
+        class="p-button-secondary p-mr-2"
+        (click)="resetData()"
+      ></button>
     </div>
   </div>
 </form>

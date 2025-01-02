@@ -8,13 +8,7 @@
 !##########################################################################
 */
 
-import {
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Chart, ChartData, registerables } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -28,9 +22,9 @@ import { PoamService } from '../../poam-processing/poams.service';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { TabViewModule } from 'primeng/tabview';
+import { TabsModule } from 'primeng/tabs';
 import { SkeletonModule } from 'primeng/skeleton';
-import { DropdownModule } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { Table, TableModule } from 'primeng/table';
@@ -57,14 +51,14 @@ interface AssetEntry {
     ButtonModule,
     CardModule,
     CommonModule,
-    DropdownModule,
+    Select,
     FormsModule,
     InputTextModule,
     SkeletonModule,
     TableModule,
-    TabViewModule,
+    TabsModule,
     ToastModule,
-    TooltipModule
+    TooltipModule,
   ],
   providers: [ConfirmationService, MessageService],
 })
@@ -90,8 +84,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         { label: 'False-Positive', value: 'False-Positive' },
         { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
         { label: 'Rejected', value: 'Rejected' },
-        { label: 'Submitted', value: 'Submitted' }
-      ]
+        { label: 'Submitted', value: 'Submitted' },
+      ],
     },
     { field: 'groupId', header: 'Group ID', width: '15%', filterType: 'text' },
     { field: 'ruleTitle', header: 'Rule Title', width: '35%', filterType: 'text' },
@@ -183,16 +177,16 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
-    private poamService: PoamService,
+    private poamService: PoamService
   ) {
     Chart.register(...registerables);
   }
 
   async ngOnInit() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
-      }),
+      })
     );
     this.initializeComponent();
     this.selectedFindings = 'All';
@@ -215,7 +209,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   updateFindingsChartData(findings: any[]): void {
     if (this.findingsChart) {
-      const datasets = findings.map((item) => ({
+      const datasets = findings.map(item => ({
         label: item.severity,
         data: [item.severityCount],
         datalabels: {},
@@ -277,7 +271,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       padding: 6,
     };
 
-    chartInstance.data.datasets.forEach((dataset) => {
+    chartInstance.data.datasets.forEach(dataset => {
       if (dataset.datalabels) {
         Object.assign(dataset.datalabels, exportDatalabelsOptions);
       }
@@ -304,7 +298,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
           display: false,
         };
 
-        chartInstance.data.datasets.forEach((dataset) => {
+        chartInstance.data.datasets.forEach(dataset => {
           if (dataset.datalabels) {
             Object.assign(dataset.datalabels, disappearDatalabelsOptions);
           }
@@ -319,23 +313,21 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   async validateStigManagerCollection() {
     try {
-      const basicListData = await (await this.collectionService.getCollectionBasicList()).toPromise();
+      const basicListData = await (
+        await this.collectionService.getCollectionBasicList()
+      ).toPromise();
 
       const selectedCollection = basicListData?.find(
-        (collection) => collection.collectionId === this.user.lastCollectionAccessedId
+        collection => collection.collectionId === this.user.lastCollectionAccessedId
       );
 
       if (!selectedCollection) {
-        this.showWarn(
-          'Unable to find the selected collection. Please try again.'
-        );
+        this.showWarn('Unable to find the selected collection. Please try again.');
         return;
       }
 
       if (selectedCollection.collectionOrigin !== 'STIG Manager') {
-        this.showWarn(
-          'The current collection is not associated with STIG Manager.'
-        );
+        this.showWarn('The current collection is not associated with STIG Manager.');
         return;
       }
 
@@ -354,9 +346,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       await this.getFindingsGrid(this.stigmanCollection.collectionId);
     } catch (error) {
       console.error('Error in validateStigManagerCollection:', error);
-      this.showError(
-        'Failed to validate STIG Manager collection. Please try again.'
-      );
+      this.showError('Failed to validate STIG Manager collection. Please try again.');
     }
   }
 
@@ -372,7 +362,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.dataSource = data.map((item) => ({
+      this.dataSource = data.map(item => ({
         groupId: item.groupId,
         ruleTitle: item.rules[0].title,
         ruleId: item.rules[0].ruleId,
@@ -408,27 +398,20 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         return groups;
       }, {});
 
-      const findings = Object.entries(severityGroups).map(
-        ([severity, count]) => ({
-          severity,
-          severityCount: count,
-        }),
-      );
+      const findings = Object.entries(severityGroups).map(([severity, count]) => ({
+        severity,
+        severityCount: count,
+      }));
 
-      const allSeverities = [
-        'CAT I - High',
-        'CAT II - Medium',
-        'CAT III - Low',
-      ];
-      allSeverities.forEach((severity) => {
-        if (!findings.find((finding) => finding.severity === severity)) {
+      const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
+      allSeverities.forEach(severity => {
+        if (!findings.find(finding => finding.severity === severity)) {
           findings.push({ severity, severityCount: 0 });
         }
       });
 
       findings.sort(
-        (a, b) =>
-          allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity),
+        (a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity)
       );
       this.selectedFindings = 'All';
       this.filterFindings();
@@ -447,10 +430,12 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   async filterFindings() {
-    await (await this.poamService.getPluginIDsWithPoam()).subscribe({
+    await (
+      await this.poamService.getPluginIDsWithPoam()
+    ).subscribe({
       next: (response: any) => {
         this.existingPoams = response;
-        this.dataSource.forEach((item) => {
+        this.dataSource.forEach(item => {
           const existingPoam = this.existingPoams.find(
             (poam: any) => poam.vulnerabilityId === item.groupId
           );
@@ -461,7 +446,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         this.displayDataSource = [...this.dataSource];
         this.findingsCount = this.displayDataSource.length;
 
-        // Use the same severity grouping logic as in updateChartAndGrid
         const severityGroups = this.displayDataSource.reduce(
           (groups: Record<string, number>, item) => {
             const severity = item.severity;
@@ -471,31 +455,28 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
             groups[severity]++;
             return groups;
           },
-          {},
+          {}
         );
 
-        const findings = Object.entries(severityGroups).map(
-          ([severity, count]) => ({
-            severity,
-            severityCount: count,
-          }),
-        );
+        const findings = Object.entries(severityGroups).map(([severity, count]) => ({
+          severity,
+          severityCount: count,
+        }));
 
         const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
-        allSeverities.forEach((severity) => {
-          if (!findings.find((finding) => finding.severity === severity)) {
+        allSeverities.forEach(severity => {
+          if (!findings.find(finding => finding.severity === severity)) {
             findings.push({ severity, severityCount: 0 });
           }
         });
 
         findings.sort(
-          (a, b) =>
-            allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity),
+          (a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity)
         );
 
         this.updateFindingsChartData(findings);
       },
-      error: (error) => {
+      error: error => {
         console.error('Error retrieving existing POAMs:', error);
         this.showError('Error retrieving existing POAMs. Please try again.');
       },
@@ -524,7 +505,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }
   }
 
-  getPoamStatusIcon(status: string | undefined, hasExistingPoam: boolean): string {
+  getPoamStatusIcon(hasExistingPoam: boolean): string {
     if (!hasExistingPoam) {
       return 'pi-times-circle';
     }
@@ -532,23 +513,22 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   getPoamStatusTooltip(status: string | undefined, hasExistingPoam: boolean): string {
-    if (!hasExistingPoam) return 'No Existing POAM. Click to create draft POAM.';  
+    if (!hasExistingPoam) return 'No Existing POAM. Click to create draft POAM.';
     if (!status) return 'POAM Status Unknown. Click to view POAM.';
-    if (hasExistingPoam && status === 'Associated') return 'This vulnerability is associated with an existing master POAM. Click icon to view POAM.';
+    if (hasExistingPoam && status === 'Associated')
+      return 'This vulnerability is associated with an existing master POAM. Click icon to view POAM.';
 
     return `POAM Status: ${status}. Click to view POAM.`;
   }
 
   async updateChartAndGrid(existingPoams: any[]) {
-    this.dataSource.forEach((item) => {
-      const existingPoam = existingPoams.find(
-        (poam) => poam.vulnerabilityId === item.groupId,
-      );
+    this.dataSource.forEach(item => {
+      const existingPoam = existingPoams.find(poam => poam.vulnerabilityId === item.groupId);
       item.hasExistingPoam = !!existingPoam;
       item.poamStatus = existingPoam?.status;
     });
 
-    this.displayDataSource = this.dataSource.filter((item) => {
+    this.displayDataSource = this.dataSource.filter(item => {
       if (this.selectedFindings === 'All') {
         return true;
       }
@@ -559,35 +539,27 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     });
 
     this.findingsCount = this.displayDataSource.length;
-    const severityGroups = this.displayDataSource.reduce(
-      (groups: Record<string, number>, item) => {
-        const severity = item.severity;
-        if (!groups[severity]) {
-          groups[severity] = 0;
-        }
-        groups[severity]++;
-        return groups;
-      },
-      {},
-    );
+    const severityGroups = this.displayDataSource.reduce((groups: Record<string, number>, item) => {
+      const severity = item.severity;
+      if (!groups[severity]) {
+        groups[severity] = 0;
+      }
+      groups[severity]++;
+      return groups;
+    }, {});
 
-    const findings = Object.entries(severityGroups).map(
-      ([severity, count]) => ({
-        severity,
-        severityCount: count,
-      }),
-    );
+    const findings = Object.entries(severityGroups).map(([severity, count]) => ({
+      severity,
+      severityCount: count,
+    }));
 
     const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
-    allSeverities.forEach((severity) => {
-      if (!findings.find((finding) => finding.severity === severity)) {
+    allSeverities.forEach(severity => {
+      if (!findings.find(finding => finding.severity === severity)) {
         findings.push({ severity, severityCount: 0 });
       }
     });
-    findings.sort(
-      (a, b) =>
-        allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity),
-    );
+    findings.sort((a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity));
 
     this.updateFindingsChartData(findings);
   }
@@ -599,7 +571,9 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const ruleData: any = await (await this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId)).toPromise();
+      const ruleData: any = await (
+        await this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId)
+      ).toPromise();
 
       const ruleDataString = `# Rule data from STIGMAN
 ## Discussion
@@ -621,7 +595,7 @@ Description:
 ${ruleData.detail.vulnDiscussion}`;
 
       let routePath = '/poam-processing/poam-details/';
-      let routeParams = {
+      const routeParams = {
         state: {
           vulnerabilitySource: 'STIG',
           vulnerabilityId: rowData.groupId,
@@ -632,8 +606,8 @@ ${ruleData.detail.vulnDiscussion}`;
         },
       };
 
-      const existingPoam = this.existingPoams.find((item: any) =>
-        item.vulnerabilityId === rowData.groupId
+      const existingPoam = this.existingPoams.find(
+        (item: any) => item.vulnerabilityId === rowData.groupId
       );
 
       if (existingPoam) {
@@ -643,7 +617,6 @@ ${ruleData.detail.vulnDiscussion}`;
       }
 
       this.router.navigate([routePath], routeParams);
-
     } catch (error) {
       console.error('Error retrieving rule data from STIGMAN:', error);
       this.showError('Error retrieving rule data. Please try again.');
@@ -683,7 +656,7 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   confirm(message: string): Observable<boolean> {
-    return new Observable<boolean>((observer) => {
+    return new Observable<boolean>(observer => {
       this.confirmationService.confirm({
         message: message,
         accept: () => {

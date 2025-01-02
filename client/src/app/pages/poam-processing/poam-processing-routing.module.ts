@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { PoamApproveComponent } from './poam-approve/poam-approve.component';
 import { PoamDetailsComponent } from './poam-details/poam-details.component';
 import { PoamExtendComponent } from './poam-extend/poam-extend.component';

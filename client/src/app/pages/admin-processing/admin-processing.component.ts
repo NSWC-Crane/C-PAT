@@ -8,11 +8,11 @@
 !##########################################################################
 */
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { UsersService } from './user-processing/users.service';
 import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
-import { TabView, TabViewModule } from 'primeng/tabview';
+import { TabsModule } from 'primeng/tabs';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -37,21 +37,20 @@ import { UserProcessingComponent } from './user-processing/user-processing.compo
     FormsModule,
     NessusPluginMappingComponent,
     STIGManagerAdminComponent,
-    TabViewModule,
+    TabsModule,
     TenableAdminComponent,
     UserProcessingComponent,
     VRAMImportComponent,
   ],
 })
 export class AdminProcessingComponent implements OnInit {
-  activeTabIndex: number = 0;
+  value: number = 0;
   user: any;
   private subs = new SubSink();
-  @ViewChild('adminTabView') adminTabView!: TabView;
 
   constructor(
     private userService: UsersService,
-    private router: Router,
+    private router: Router
   ) {}
 
   async ngOnInit() {
@@ -63,14 +62,13 @@ export class AdminProcessingComponent implements OnInit {
           this.router.navigate(['/403']);
         }
       },
-      error: async (error) => {
+      error: async error => {
         console.error('An error occurred:', error.message);
       },
     });
   }
 
   switchToPluginMapping() {
-    const NESSUS_TAB_INDEX = 5;
-    this.activeTabIndex = NESSUS_TAB_INDEX;
+    this.value = 5;
   }
 }

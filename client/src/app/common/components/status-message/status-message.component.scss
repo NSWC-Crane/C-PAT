@@ -8,14 +8,6 @@
 !##########################################################################
 */
 
-.container {
-  background: var(--surface-ground);
-}
-
-::ng-deep .status_message_card {
-  background: var(--surface-ground);
-}
-
 .container a {
   text-decoration: none;
 }
@@ -32,9 +24,9 @@
 
 .container h1 {
   text-align: center;
-  color: var(--text-color);
+  color: var(--p-text-color);
   opacity: 0.8;
-  font-family: "Dosis", sans-serif;
+  font-family: 'Dosis', sans-serif;
   font-size: 100px;
   margin-bottom: 0px;
   font-weight: 800;
@@ -42,12 +34,12 @@
 
 .container h3 {
   text-align: center;
-  color: var(--text-color);  
+  color: var(--p-text-color);
   font-size: 19px;
   line-height: 23px;
   max-width: 330px;
   margin: 0px auto 30px auto;
-  font-family: "Dosis", sans-serif;
+  font-family: 'Dosis', sans-serif;
   font-weight: 400;
 }
 
@@ -58,7 +50,7 @@
 }
 
 .container h3 span:after {
-  content: "";
+  content: '';
   border-bottom: 3px solid #ffbb39;
   position: absolute;
   left: 0;

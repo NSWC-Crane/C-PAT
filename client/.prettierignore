@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+
+/dist
+/.angular
+
+.DS_Store
+Thumbs.db
+
+/.idea
+.project
+.classpath
+*.launch
+.settings/

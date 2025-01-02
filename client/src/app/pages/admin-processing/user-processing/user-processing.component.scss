@@ -8,17 +8,9 @@
 !##########################################################################
 */
 
-
 .scrollable-users {
   max-height: 60vh;
   overflow-y: auto;
-}
-
-.search-label {
-  display: block;
-}
-.search-input {
-  margin-bottom: 1rem;
 }
 
 .form-container {
@@ -31,6 +23,6 @@
   font-weight: bold;
 }
 .form-group input,
-.form-group p-dropdown {
+.form-group p-select {
   width: 100%;
 }

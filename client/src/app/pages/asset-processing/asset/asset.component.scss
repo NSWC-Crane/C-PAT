@@ -8,24 +8,25 @@
 !##########################################################################
 */
 
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1rem;
-  }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
 
-  .form-group label {
-    margin-bottom: 0.5rem;
-  }
+.form-group label {
+  margin-bottom: 0.5rem;
+}
 
-  .form-group input, .form-group p-dropdown {
-    margin-bottom: 0.5rem;
-  }
+.form-group input,
+.form-group p-select {
+  margin-bottom: 0.5rem;
+}
 
-  .buttons {
-    padding-top: 1rem;
-  }
+.buttons {
+  padding-top: 1rem;
+}
 
-  .ml-2 {
-    margin-left: 0.5rem;
-  }
+.ml-2 {
+  margin-left: 0.5rem;
+}

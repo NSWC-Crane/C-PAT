@@ -23,7 +23,7 @@
     overflow: hidden !important;
     top: 3.5rem;
     right: -2rem;
-    
+
     .p-multiselect-label-container,
     .p-multiselect-trigger {
       display: none;
@@ -42,17 +42,17 @@
 }
 
 .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .description {
-    margin: 1rem 0;
+  margin: 1rem 0;
 
-    h6 {
-        margin-bottom: 0.5rem !important;
-    }
+  h6 {
+    margin-bottom: 0.5rem !important;
+  }
 }
 
 .toolbar {

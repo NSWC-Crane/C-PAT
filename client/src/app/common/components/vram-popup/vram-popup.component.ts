@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, NgZone } from '@angular/core';
+import { Component, NgZone, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ImageModule } from 'primeng/image';
@@ -17,19 +17,13 @@ import { StepperModule } from 'primeng/stepper';
     >
     </p-button>
 
-    <div *ngIf="isPopupOpen" class="card mt-4">
+    <div *ngIf="isPopupOpen" class="card mt-6">
       <p-stepper orientation="vertical">
-        <p-stepperPanel header="VRAM IAV Export">
-          <ng-template
-            pTemplate="content"
-            let-nextCallback="nextCallback"
-            let-index="index"
-          >
+        <p-step-panel header="VRAM IAV Export">
+          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index">
             <p>The VRAM IAV Table is currently open in a separate window.</p>
-            <p class="text-sm">
-              You can close the window at any point to hide this message.
-            </p>
-            <div class="flex py-4">
+            <p class="text-sm">You can close the window at any point to hide this message.</p>
+            <div class="flex py-6">
               <p-button
                 styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                 icon="pi pi-arrow-right"
@@ -38,9 +32,9 @@ import { StepperModule } from 'primeng/stepper';
               ></p-button>
             </div>
           </ng-template>
-        </p-stepperPanel>
+        </p-step-panel>
 
-        <p-stepperPanel header="Set Default Column Options">
+        <p-step-panel header="Set Default Column Options">
           <ng-template
             pTemplate="content"
             let-prevCallback="prevCallback"
@@ -56,13 +50,13 @@ import { StepperModule } from 'primeng/stepper';
             ></p-image>
             <br />
             <p-image
-              styleClass="mt-4"
+              styleClass="mt-6"
               src="../../../assets/vram/columnOptions.png"
               alt="Image"
               width="600"
               [preview]="true"
             ></p-image>
-            <div class="flex py-4 gap-2">
+            <div class="flex py-6 gap-2">
               <p-button
                 styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                 icon="pi pi-arrow-left"
@@ -76,26 +70,23 @@ import { StepperModule } from 'primeng/stepper';
               ></p-button>
             </div>
           </ng-template>
-        </p-stepperPanel>
+        </p-step-panel>
 
-        <p-stepperPanel header="Export">
+        <p-step-panel header="Export">
           <ng-template
             pTemplate="content"
             let-prevCallback="prevCallback"
             let-nextCallback="nextCallback"
             let-index="index"
           >
-            <p>
-              Click to export. The exported file can be imported to C-PAT
-              directly below.
-            </p>
+            <p>Click to export. The exported file can be imported to C-PAT directly below.</p>
             <p-image
               src="../../../assets/vram/step2.png"
               alt="Image"
               width="600"
               [preview]="true"
             ></p-image>
-            <div class="flex py-4 gap-2">
+            <div class="flex py-6 gap-2">
               <p-button
                 styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                 icon="pi pi-arrow-left"
@@ -103,7 +94,7 @@ import { StepperModule } from 'primeng/stepper';
               ></p-button>
             </div>
           </ng-template>
-        </p-stepperPanel>
+        </p-step-panel>
       </p-stepper>
     </div>
   `,
@@ -116,15 +107,9 @@ import { StepperModule } from 'primeng/stepper';
     `,
   ],
   standalone: true,
-  imports: [
-    ButtonModule,
-    CommonModule,
-    ImageModule,
-    FormsModule,
-    StepperModule,
-  ],
+  imports: [ButtonModule, CommonModule, ImageModule, FormsModule, StepperModule],
 })
-export class VramPopupComponent {
+export class VramPopupComponent implements OnDestroy {
   authWindow: Window | null = null;
   isPopupOpen = false;
   checkInterval: any;
@@ -135,7 +120,7 @@ export class VramPopupComponent {
     this.authWindow = window.open(
       'https://vram.navy.mil/iav',
       'Auth Window',
-      'width=600,height=600',
+      'width=600,height=600'
     );
 
     if (this.authWindow) {

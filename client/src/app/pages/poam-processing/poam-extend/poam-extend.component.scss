@@ -36,7 +36,7 @@
 
 :host ::ng-deep {
   .p-card-content {
-      padding: 0;
+    padding: 0;
   }
 
   .p-stepper-panel {
@@ -53,14 +53,14 @@
     flex: 1;
     overflow-y: auto;
     padding: 1rem;
-    margin-bottom: .5rem;
+    margin-bottom: 0.5rem;
   }
 
   .stepper-buttons {
     display: flex;
     justify-content: space-between;
     padding: 0 1rem 1rem;
-    border-bottom: 1px solid var(--surface-d);
+    border-bottom: 1px solid var(--p-surface-700);
     &.first-panel {
       justify-content: flex-end;
     }

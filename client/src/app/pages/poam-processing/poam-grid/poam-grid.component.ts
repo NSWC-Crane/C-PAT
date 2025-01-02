@@ -31,10 +31,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { DropdownModule } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
+import { TagModule } from 'primeng/tag';
 
 @Component({
   selector: 'cpat-poam-grid',
@@ -46,11 +49,14 @@ import { TooltipModule } from 'primeng/tooltip';
     FormsModule,
     ButtonModule,
     CardModule,
-    DropdownModule,
+    Select,
     InputTextModule,
+    InputIconModule,
+    IconFieldModule,
     TableModule,
     TooltipModule,
-    ToastModule
+    ToastModule,
+    TagModule,
   ],
   providers: [MessageService],
 })
@@ -82,7 +88,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     { label: 'False-Positive', value: 'false-positive' },
     { label: 'Pending CAT-I Approval', value: 'pending cat-i approval' },
     { label: 'Rejected', value: 'rejected' },
-    { label: 'Submitted', value: 'submitted' }
+    { label: 'Submitted', value: 'submitted' },
   ];
 
   constructor(
@@ -92,8 +98,8 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     private importService: ImportService,
     private sharedService: SharedService,
     private poamService: PoamService,
-    private messageService: MessageService,
-  ) { }
+    private messageService: MessageService
+  ) {}
 
   async ngOnInit() {
     this.setPayload();
@@ -106,15 +112,15 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
 
   async setPayload() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollectionId = collectionId;
-      }),
+      })
     );
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
+      this.setPayloadService.user$.subscribe(user => {
         this.user = user;
-      }),
+      })
     );
   }
 
@@ -132,13 +138,10 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
       summary: 'Export Started',
       detail: 'Download will automatically start momentarily.',
     });
-    const basicListData = await (
-      await this.collectionService.getCollectionBasicList()
-    ).toPromise();
+    const basicListData = await (await this.collectionService.getCollectionBasicList()).toPromise();
 
     this.selectedCollection = basicListData?.find(
-      (collection: any) =>
-        collection.collectionId === this.selectedCollectionId,
+      (collection: any) => collection.collectionId === this.selectedCollectionId
     );
 
     const collectionId = this.selectedCollectionId;
@@ -164,7 +167,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
       if (this.selectedCollection.collectionOrigin === 'STIG Manager') {
         processedPoams = await this.processPoamsWithStigFindings(
           poams,
-          this.selectedCollection.originCollectionId,
+          this.selectedCollection.originCollectionId
         );
       } else if (this.selectedCollection.collectionOrigin === 'Tenable') {
         processedPoams = await this.processPoamsWithTenableFindings(poams);
@@ -173,7 +176,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
           await this.poamService.getPoamAssetsByCollectionId(collectionId)
         ).toPromise();
 
-        processedPoams = poams.map((poam) => {
+        processedPoams = poams.map(poam => {
           const affectedDevices = this.cpatAffectedAssets
             .filter((asset: any) => asset.poamId === poam.poamId)
             .map((asset: any) => asset.assetName.toUpperCase())
@@ -188,13 +191,10 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
       const excelData = await PoamExportService.convertToExcel(
         processedPoams,
         this.user,
-        this.selectedCollection,
+        this.selectedCollection
       );
       const excelURL = window.URL.createObjectURL(excelData);
-      const exportName = this.selectedCollection.collectionName.replace(
-        ' ',
-        '_',
-      );
+      const exportName = this.selectedCollection.collectionName.replace(' ', '_');
 
       const link = document.createElement('a');
       link.id = 'download-excel';
@@ -218,11 +218,17 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
 
   async processPoamsWithTenableFindings(poams: any[]): Promise<any[]> {
     const processedPoams = [];
-    const vulnerabilityIds = [...new Set(
-      poams
-        .filter(poam => poam.vulnerabilitySource === "Assured Compliance Assessment Solution (ACAS) Nessus Scanner")
-        .map(poam => poam.vulnerabilityId)
-    )];
+    const vulnerabilityIds = [
+      ...new Set(
+        poams
+          .filter(
+            poam =>
+              poam.vulnerabilitySource ===
+              'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'
+          )
+          .map(poam => poam.vulnerabilityId)
+      ),
+    ];
 
     const analysisParams = {
       query: {
@@ -263,16 +269,20 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
 
     for (const poam of poams) {
       try {
-        const plugin = await (await this.importService.getTenablePlugin(poam.vulnerabilityId)).toPromise();
+        const plugin = await (
+          await this.importService.getTenablePlugin(poam.vulnerabilityId)
+        ).toPromise();
 
         let controlAPs = poam.controlAPs ?? '';
         let cci = poam.cci ?? '';
         if (plugin.response?.patchPubDate && plugin.response?.patchPubDate != '') {
           controlAPs = 'SI-2.9';
-          cci = '002605\n\nControl mapping is unavailable for this vulnerability so it is being mapped to SI-2.9 CCI-002605 by default.';
+          cci =
+            '002605\n\nControl mapping is unavailable for this vulnerability so it is being mapped to SI-2.9 CCI-002605 by default.';
         } else {
           controlAPs = 'CM-6.5';
-          cci = '000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.';
+          cci =
+            '000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.';
         }
 
         const affectedDevices = this.tenableAffectedAssets
@@ -309,14 +319,11 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     return processedPoams;
   }
 
-  async processPoamsWithStigFindings(
-    poams: any[],
-    originCollectionId: string,
-  ): Promise<any[]> {
+  async processPoamsWithStigFindings(poams: any[], originCollectionId: string): Promise<any[]> {
     const processedPoams = [];
 
     for (const poam of poams) {
-      if (poam.vulnerabilityId && poam.stigBenchmarkId && poam.vulnerabilitySource === "STIG") {
+      if (poam.vulnerabilityId && poam.stigBenchmarkId && poam.vulnerabilitySource === 'STIG') {
         try {
           let findings: any[];
           if (this.findingsCache.has(poam.stigBenchmarkId)) {
@@ -325,19 +332,19 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
             findings = await (
               await this.sharedService.getSTIGMANAffectedAssetsByPoam(
                 originCollectionId,
-                poam.stigBenchmarkId,
+                poam.stigBenchmarkId
               )
             ).toPromise();
             this.findingsCache.set(poam.stigBenchmarkId, findings);
           }
 
           const matchingFinding = findings.find(
-            (finding) => finding.groupId === poam.vulnerabilityId,
+            finding => finding.groupId === poam.vulnerabilityId
           );
 
           if (matchingFinding) {
             const affectedDevices = matchingFinding.assets.map(
-              (asset: { name: any; assetId: any }) => asset.name,
+              (asset: { name: any; assetId: any }) => asset.name
             );
             const controlAPs = matchingFinding.ccis[0]?.apAcronym;
             const cci = matchingFinding.ccis[0]?.cci;
@@ -352,10 +359,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
             processedPoams.push(poam);
           }
         } catch (error) {
-          console.error(
-            `Error fetching affected assets for POAM ${poam.poamId}:`,
-            error,
-          );
+          console.error(`Error fetching affected assets for POAM ${poam.poamId}:`, error);
           processedPoams.push(poam);
         }
       } else {
@@ -376,10 +380,8 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   updateFilteredData() {
-    this.filteredData = this.poamsData.map((poam) => ({
-      lastUpdated: poam.lastUpdated
-        ? new Date(poam.lastUpdated).toISOString().split('T')[0]
-        : '',
+    this.filteredData = this.poamsData.map(poam => ({
+      lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
       poamId: poam.poamId,
       status: poam.status,
       vulnerabilityId: poam.vulnerabilityId,
@@ -392,11 +394,9 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
       submittedDate: poam.submittedDate?.split('T')[0],
       scheduledCompletionDate: poam.scheduledCompletionDate?.split('T')[0],
       assignedTeams: poam.assignedTeams
-        ? poam.assignedTeams
-          .map((team: any) => team.assignedTeamName)
-          .join(', ')
+        ? poam.assignedTeams.map((team: any) => team.assignedTeamName).join(', ')
         : '',
-      associatedVulnerabilities: poam.associatedVulnerabilities
+      associatedVulnerabilities: poam.associatedVulnerabilities,
     }));
     this.applyFilter();
   }
@@ -411,8 +411,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   onScroll(event: Event) {
     const tableViewHeight = (event.target as HTMLElement).offsetHeight;
     const tableScrollHeight = (event.target as HTMLElement).scrollHeight;
-    const scrollPosition =
-      (event.target as HTMLElement).scrollTop + tableViewHeight;
+    const scrollPosition = (event.target as HTMLElement).scrollTop + tableViewHeight;
 
     if (
       scrollPosition >= tableScrollHeight &&
@@ -434,11 +433,10 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     const filterValue = this.globalFilter.toLowerCase();
-    this.displayedData = this.filteredData.filter((poam) =>
+    this.displayedData = this.filteredData.filter(poam =>
       Object.values(poam).some(
-        (value) =>
-          value && value.toString().toLowerCase().includes(filterValue),
-      ),
+        value => value && value.toString().toLowerCase().includes(filterValue)
+      )
     );
   }
 
@@ -457,8 +455,6 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

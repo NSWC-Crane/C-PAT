@@ -9,17 +9,16 @@
 */
 
 :host ::ng-deep .pointsBalance .p-card.p-component {
-    padding: 1rem 1.25rem;
-    margin-bottom: 0;
-    padding-bottom: 0;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 :host ::ng-deep .pointsBalance .p-card.p-component .p-card-body {
-    height: 0;
-    margin-bottom: 0;
-    padding: 8px;
+  height: 0;
+  margin-bottom: 0;
+  padding: 8px;
 }
-
 
 :host ::ng-deep {
   .p-grid {
@@ -47,9 +46,12 @@
       height: 100%;
       border: 1px solid rgba(0, 0, 0, 0.2);
       border-radius: 6px;
-      box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
+      box-shadow:
+        rgba(0, 0, 0, 0.3) 0px 19px 38px,
+        rgba(0, 0, 0, 0.22) 0px 15px 12px;
 
-      .p-card-header, .p-card-footer {
+      .p-card-header,
+      .p-card-footer {
         text-align: center;
       }
 
@@ -74,7 +76,9 @@
       }
 
       &:hover {
-        box-shadow: rgba(0, 0, 0, 0.35) 0px 22px 44px, rgba(0, 0, 0, 0.26) 0px 30px 24px;
+        box-shadow:
+          rgba(0, 0, 0, 0.35) 0px 22px 44px,
+          rgba(0, 0, 0, 0.26) 0px 30px 24px;
       }
     }
 

@@ -8,13 +8,8 @@
 !##########################################################################
 */
 
-import { EventEmitter, Injectable } from '@angular/core';
-import {
-  HttpClient,
-  HttpHeaders,
-  HttpErrorResponse,
-  HttpParams,
-} from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
@@ -26,24 +21,20 @@ export class PoamService {
 
   constructor(
     private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService,
+    private oidcSecurityService: OidcSecurityService
   ) {}
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(
-        `Backend returned code ${error.status}, body was: ${error.error}`,
-      );
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
     return throwError('Something bad happened; please try again later.');
   }
 
   private async getAuthHeaders() {
-    const token = await firstValueFrom(
-      this.oidcSecurityService.getAccessToken(),
-    );
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
@@ -77,20 +68,14 @@ export class PoamService {
   async getCollectionPoamScheduledCompletion(id: string) {
     const headers = await this.getAuthHeaders();
     return this.http
-      .get(
-        `${this.cpatApiBase}/metrics/collection/${id}/poamScheduledCompletion`,
-        { headers },
-      )
+      .get(`${this.cpatApiBase}/metrics/collection/${id}/poamScheduledCompletion`, { headers })
       .pipe(catchError(this.handleError));
   }
 
   async getCollectionMonthlyPoamStatus(collectionId: string) {
     const headers = await this.getAuthHeaders();
     return this.http
-      .get(
-        `${this.cpatApiBase}/metrics/collection/${collectionId}/monthlypoamstatus`,
-        { headers },
-      )
+      .get(`${this.cpatApiBase}/metrics/collection/${collectionId}/monthlypoamstatus`, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -99,7 +84,7 @@ export class PoamService {
     includeApprovers: boolean = false,
     includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
-    includeAssets: boolean = false,
+    includeAssets: boolean = false
   ) {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
@@ -121,7 +106,7 @@ export class PoamService {
     includeApprovers: boolean = false,
     includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
-    includeAssets: boolean = false,
+    includeAssets: boolean = false
   ) {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
@@ -143,7 +128,7 @@ export class PoamService {
     includeApprovers: boolean = false,
     includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
-    includeAssets: boolean = false,
+    includeAssets: boolean = false
   ) {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
@@ -227,10 +212,9 @@ export class PoamService {
 
   async deletePoamAssignee(poamId: any, userId: any) {
     const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(
-      `${this.cpatApiBase}/poamAssignee/poam/${poamId}/user/${userId}`,
-      { headers },
-    );
+    return this.http.delete<any>(`${this.cpatApiBase}/poamAssignee/poam/${poamId}/user/${userId}`, {
+      headers,
+    });
   }
 
   async postPoamAssignedTeam(poamAssignedTeam: any) {
@@ -246,7 +230,7 @@ export class PoamService {
     const headers = await this.getAuthHeaders();
     return this.http.delete<any>(
       `${this.cpatApiBase}/poamAssignedTeam/poam/${poamId}/${assignedTeamId}`,
-      { headers },
+      { headers }
     );
   }
 
@@ -259,10 +243,9 @@ export class PoamService {
 
   async deletePoamAsset(poamId: any, assetId: any) {
     const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(
-      `${this.cpatApiBase}/poamAsset/poam/${poamId}/asset/${assetId}`,
-      { headers },
-    );
+    return this.http.delete<any>(`${this.cpatApiBase}/poamAsset/poam/${poamId}/asset/${assetId}`, {
+      headers,
+    });
   }
 
   async deletePoamAssetByPoamId(poamId: any) {
@@ -295,10 +278,9 @@ export class PoamService {
 
   async deletePoamApprover(poamId: any, userId: any) {
     const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(
-      `${this.cpatApiBase}/poamApprover/poam/${poamId}/user/${userId}`,
-      { headers },
-    );
+    return this.http.delete<any>(`${this.cpatApiBase}/poamApprover/poam/${poamId}/user/${userId}`, {
+      headers,
+    });
   }
 
   async getPoamMilestones(poamId: string) {
@@ -317,26 +299,16 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async updatePoamMilestone(
-    poamId: string,
-    milestoneId: string,
-    milestone: any,
-  ) {
+  async updatePoamMilestone(poamId: string, milestoneId: string, milestone: any) {
     const headers = await this.getAuthHeaders();
     return this.http
-      .put<any>(
-        `${this.cpatApiBase}/poamMilestones/${poamId}/${milestoneId}`,
-        milestone,
-        { headers },
-      )
+      .put<any>(`${this.cpatApiBase}/poamMilestones/${poamId}/${milestoneId}`, milestone, {
+        headers,
+      })
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamMilestone(
-    poamId: string,
-    milestoneId: string,
-    extension: boolean,
-  ) {
+  async deletePoamMilestone(poamId: string, milestoneId: string, extension: boolean) {
     const requestBody = { extension: extension };
     const headers = await this.getAuthHeaders();
     const options = {
@@ -345,7 +317,7 @@ export class PoamService {
     };
     return this.http.delete<any>(
       `${this.cpatApiBase}/poamMilestones/${poamId}/${milestoneId}`,
-      options,
+      options
     );
   }
 
@@ -388,10 +360,9 @@ export class PoamService {
 
   async deletePoamLabel(poamId: any, labelId: any) {
     const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(
-      `${this.cpatApiBase}/poamLabel/poam/${poamId}/label/${labelId}`,
-      { headers },
-    );
+    return this.http.delete<any>(`${this.cpatApiBase}/poamLabel/poam/${poamId}/label/${labelId}`, {
+      headers,
+    });
   }
 
   async getPoamAssociatedVulnerabilitiesByPoam(poamId: any) {
@@ -404,7 +375,9 @@ export class PoamService {
   async postPoamAssociatedVulnerability(associatedVulnerability: any) {
     const headers = await this.getAuthHeaders();
     return this.http
-      .post<any>(`${this.cpatApiBase}/poamAssociatedVulnerabilities`, associatedVulnerability, { headers })
+      .post<any>(`${this.cpatApiBase}/poamAssociatedVulnerabilities`, associatedVulnerability, {
+        headers,
+      })
       .pipe(catchError(this.handleError));
   }
 
@@ -412,7 +385,7 @@ export class PoamService {
     const headers = await this.getAuthHeaders();
     return this.http.delete<any>(
       `${this.cpatApiBase}/poamAssociatedVulnerabilities/poam/${poamId}/associatedVulnerability/${associatedVulnerability}`,
-      { headers },
+      { headers }
     );
   }
 
@@ -462,7 +435,7 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async getAvailablePoamLabels(userId: any) {
+  async getAvailablePoamLabels() {
     const headers = await this.getAuthHeaders();
     return this.http
       .get(`${this.cpatApiBase}/poamLabels`, { headers })
@@ -471,9 +444,6 @@ export class PoamService {
 
   async deletePoam(poamId: any) {
     const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(
-      `${this.cpatApiBase}/poam/${poamId}`,
-      { headers },
-    );
+    return this.http.delete<any>(`${this.cpatApiBase}/poam/${poamId}`, { headers });
   }
 }

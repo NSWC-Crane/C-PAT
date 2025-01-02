@@ -13,7 +13,7 @@ import { MessageService } from 'primeng/api';
 import { ImportService } from '../../../import.service';
 import { Table, TableModule } from 'primeng/table';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Dropdown, DropdownModule } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { Router } from '@angular/router';
@@ -21,7 +21,7 @@ import { format, parseISO, startOfDay } from 'date-fns';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { Subscription } from 'rxjs';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
-import { FilterMetadata } from "primeng/api";
+import { FilterMetadata } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,6 +29,8 @@ import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
 
 interface Reference {
   type: string;
@@ -49,7 +51,7 @@ interface NavyComplyDateFilter {
 }
 
 @Component({
-  selector: 'tenable-iav-vulnerabilities',
+  selector: 'cpat-tenable-iav-vulnerabilities',
   templateUrl: './tenableIAVVulnerabilities.component.html',
   styleUrls: ['./tenableIAVVulnerabilities.component.scss'],
   standalone: true,
@@ -57,9 +59,11 @@ interface NavyComplyDateFilter {
     ButtonModule,
     CommonModule,
     DialogModule,
-    DropdownModule,
+    Select,
     FormsModule,
     InputTextModule,
+    InputIconModule,
+    IconFieldModule,
     MultiSelectModule,
     TableModule,
     ToastModule,
@@ -69,11 +73,11 @@ interface NavyComplyDateFilter {
 })
 export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table!: Table;
-  @ViewChild('dd') dropDown!: Dropdown;
+  @ViewChild('dd') select!: Select;
   @ViewChild('ms') multiSelect!: MultiSelect;
   readonly filters: { [key: string]: FilterMetadata[] } = {
-    supersededBy: [{ value: 'N/A', matchMode: "contains", operator: "and" }],
-    severity: [{ value: 'Info', matchMode: "notContains", operator: "and" }],
+    supersededBy: [{ value: 'N/A', matchMode: 'contains', operator: 'and' }],
+    severity: [{ value: 'Info', matchMode: 'notContains', operator: 'and' }],
   };
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -110,7 +114,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'False-Positive', value: 'false-positive' },
     { label: 'Pending CAT-I Approval', value: 'pending cat-i approval' },
     { label: 'Rejected', value: 'rejected' },
-    { label: 'Submitted', value: 'submitted' }
+    { label: 'Submitted', value: 'submitted' },
   ];
   constructor(
     private importService: ImportService,
@@ -119,31 +123,29 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     private poamService: PoamService,
     private collectionService: CollectionsService,
     private sharedService: SharedService,
-    private router: Router,
-  ) { }
+    private router: Router
+  ) {}
 
   async ngOnInit() {
     this.subscriptions.add(
-      await this.sharedService.selectedCollection.subscribe((collectionId) => {
+      await this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
-      }),
+      })
     );
     await (
       await this.collectionService.getCollectionBasicList()
     ).subscribe({
-      next: (data) => {
+      next: data => {
         const selectedCollectionData = data.find(
-          (collection: any) =>
-            collection.collectionId === this.selectedCollection,
+          (collection: any) => collection.collectionId === this.selectedCollection
         );
         if (selectedCollectionData) {
-          this.tenableRepoId =
-            selectedCollectionData.originCollectionId?.toString();
+          this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
         } else {
           this.tenableRepoId = '';
         }
       },
-      error: (error) => {
+      error: () => {
         this.tenableRepoId = '';
       },
     });
@@ -167,44 +169,44 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       {
         field: 'pluginID',
         header: 'Plugin ID',
-        filterType: 'text'
+        filterType: 'text',
       },
       {
         field: 'pluginName',
         header: 'Name',
-        filterType: 'text'
+        filterType: 'text',
       },
       {
         field: 'family',
         header: 'Family',
-        filterType: 'text'
+        filterType: 'text',
       },
       {
         field: 'severity',
         header: 'Severity',
-        filterType: 'text'
+        filterType: 'text',
       },
       {
         field: 'vprScore',
         header: 'VPR',
-        filterType: 'numeric'
+        filterType: 'numeric',
       },
       {
         field: 'iav',
         header: 'IAV',
-        filterType: 'text'
+        filterType: 'text',
       },
       {
         field: 'navyComplyDate',
         header: 'Navy Comply Date',
         filterType: 'date',
         dataType: 'date',
-        filterValue: ''
+        filterValue: '',
       },
       {
         field: 'supersededBy',
         header: 'Superseded By',
-        filterType: 'text'
+        filterType: 'text',
       },
       { field: 'ips', header: 'IP Address', filterType: 'text' },
       { field: 'acrScore', header: 'ACR', filterType: 'numeric' },
@@ -219,7 +221,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       { field: 'total', header: 'Total', filterType: 'numeric' },
       { field: 'hostTotal', header: 'Host Total', filterType: 'numeric' },
     ];
-    this.exportColumns = this.cols.map((col) => ({
+    this.exportColumns = this.cols.map(col => ({
       title: col.header,
       dataKey: col.field,
     }));
@@ -240,16 +242,12 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   async getIAVPluginIDs() {
     try {
-      const data = await (
-        await this.importService.getIAVPluginIds()
-      ).toPromise();
+      const data = await (await this.importService.getIAVPluginIds()).toPromise();
       this.iavPluginIDs = data;
       await this.getIAVFindings(this.iavPluginIDs);
     } catch (error) {
       console.error('Error fetching IAV mapped pluginIDs:', error);
-      this.showErrorMessage(
-        'Error fetching IAV mapped pluginIDs. Please try again.',
-      );
+      this.showErrorMessage('Error fetching IAV mapped pluginIDs. Please try again.');
     }
   }
 
@@ -299,9 +297,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     try {
       this.isLoading = true;
 
-      const data = await (
-        await this.importService.postTenableAnalysis(analysisParams)
-      ).toPromise();
+      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
 
       const pluginIDList = pluginIDs.split(',').map(Number);
       const iavData: any[] = await (
@@ -312,7 +308,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         acc[item.pluginID] = {
           iav: item.iav || null,
           navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null,
-          supersededBy: item.supersededBy || 'N/A'
+          supersededBy: item.supersededBy || 'N/A',
         };
         return acc;
       }, {});
@@ -368,12 +364,9 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       if (this.table) {
         this.table.filters = { ...this.filters };
       }
-
     } catch (error) {
       console.error('Error fetching IAV Vulnerabilities:', error);
-      this.showErrorMessage(
-        'Error fetching IAV Vulnerabilities. Please try again.',
-      );
+      this.showErrorMessage('Error fetching IAV Vulnerabilities. Please try again.');
     } finally {
       this.isLoading = false;
     }
@@ -381,28 +374,24 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   async loadPoamAssociations() {
     try {
-      const poamData = await (
-        await this.poamService.getPluginIDsWithPoam()
-      ).toPromise();
+      const poamData = await (await this.poamService.getPluginIDsWithPoam()).toPromise();
       if (poamData && Array.isArray(poamData)) {
         this.existingPoamPluginIDs = poamData.reduce(
           (
             acc: { [key: string]: { poamId: string; status: string } },
-            item: { vulnerabilityId: string; status: string; poamId: string },
+            item: { vulnerabilityId: string; status: string; poamId: string }
           ) => {
             acc[item.vulnerabilityId] = {
               poamId: item.poamId,
-              status: item.status
+              status: item.status,
             };
             return acc;
           },
-          {},
+          {}
         );
       } else {
         console.error('Unexpected POAM data format:', poamData);
-        this.showErrorMessage(
-          'Error loading POAM data. Unexpected data format.',
-        );
+        this.showErrorMessage('Error loading POAM data. Unexpected data format.');
       }
     } catch (error) {
       console.error('Error loading POAM associations:', error);
@@ -456,12 +445,15 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   onRowClick(vulnerability: any, event: any) {
+    event.stopPropagation();
     this.IAVVulnerabilities = [];
-    this.filters['pluginID'] = [{
-      value: vulnerability.pluginID,
-      matchMode: "equals",
-      operator: "and"
-    }];
+    this.filters['pluginID'] = [
+      {
+        value: vulnerability.pluginID,
+        matchMode: 'equals',
+        operator: 'and',
+      },
+    ];
     if (this.table) {
       this.table.filters = { ...this.filters };
     }
@@ -503,8 +495,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.pluginData = data.response;
       this.formattedDescription = this.pluginData.description
         ? this.sanitizer.bypassSecurityTrustHtml(
-          this.pluginData.description.replace(/\n\n/g, '<br>'),
-        )
+            this.pluginData.description.replace(/\n\n/g, '<br>')
+          )
         : '';
 
       if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
@@ -534,15 +526,12 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   async onPoamIconClick(vulnerability: any, event: Event) {
     event.stopPropagation();
     if (vulnerability.poam && vulnerability.poamId) {
-      this.router.navigateByUrl(
-        `/poam-processing/poam-details/${vulnerability.poamId}`,
-      );
+      this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
     } else {
       await this.showDetails(vulnerability, true);
       this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
         state: {
-          vulnerabilitySource:
-            'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
+          vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData,
           iavNumber: vulnerability.iav,
           iavComplyByDate: vulnerability.navyComplyDate,
@@ -560,19 +549,25 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   parseReferences(xrefs: string) {
-    const refs = xrefs.split(/\s+/);
+    const refs = xrefs.split(/\s+/).filter(Boolean);
     this.cveReferences = [];
     this.iavReferences = [];
     this.otherReferences = [];
+
     refs.forEach((ref: string) => {
-      let [type, value] = ref.split(':');
-      value = value.replace(/,\s*$/, '');
-      if (type === 'CVE') {
-        this.cveReferences.push({ type, value });
-      } else if (['IAVA', 'IAVB', 'IAVT'].includes(type)) {
-        this.iavReferences.push({ type, value });
+      const [refType, ...valueParts] = ref.split(':');
+      const value = valueParts.join(':').replace(/,\s*$/, '').trim();
+
+      if (refType && value) {
+        if (refType === 'CVE') {
+          this.cveReferences.push({ type: refType, value });
+        } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType)) {
+          this.iavReferences.push({ type: refType, value });
+        } else {
+          this.otherReferences.push({ type: refType, value });
+        }
       } else {
-        this.otherReferences.push({ type, value });
+        console.warn(`Invalid reference: ${ref}`);
       }
     });
   }
@@ -651,27 +646,28 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       if (startDate) {
         filterConstraints.push({
           value: startDate,
-          matchMode: "dateAfter",
-          operator: "and"
+          matchMode: 'dateAfter',
+          operator: 'and',
         });
       }
 
       if (endDate) {
         filterConstraints.push({
           value: endDate,
-          matchMode: "dateBefore",
-          operator: "and"
+          matchMode: 'dateBefore',
+          operator: 'and',
         });
       }
 
       if (this.table && filterConstraints.length > 0) {
         const col = this.cols.find(c => c.field === 'navyComplyDate');
         if (col) {
-          col.filterValue = startDate && endDate ?
-            `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}` :
-            startDate ?
-              `After ${format(startDate, 'MM/dd/yyyy')}` :
-              `Before ${format(endDate!, 'MM/dd/yyyy')}`;
+          col.filterValue =
+            startDate && endDate
+              ? `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}`
+              : startDate
+                ? `After ${format(startDate, 'MM/dd/yyyy')}`
+                : `Before ${format(endDate!, 'MM/dd/yyyy')}`;
         }
 
         this.table.filters['navyComplyDate'] = filterConstraints;
@@ -682,8 +678,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   clear() {
     this.table.clear();
-    this.filters['supersededBy'] = [{ value: 'N/A', matchMode: "contains", operator: "and" }];
-    this.filters['severity'] = [{ value: 'Info', matchMode: "notContains", operator: "and" }];
+    this.filters['supersededBy'] = [{ value: 'N/A', matchMode: 'contains', operator: 'and' }];
+    this.filters['severity'] = [{ value: 'Info', matchMode: 'notContains', operator: 'and' }];
 
     if (this.table) {
       this.table.filters['navyComplyDate'] = [];
@@ -703,7 +699,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter((col) =>
+    this.selectedColumns = this.cols.filter(col =>
       [
         'poam',
         'pluginID',
@@ -715,13 +711,13 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         'navyComplyDate',
         'supersededBy',
         'total',
-        'hostTotal'
-      ].includes(col.field),
+        'hostTotal',
+      ].includes(col.field)
     );
   }
 
   expandColumnSelections() {
-    this.selectedColumns = this.cols.filter((col) =>
+    this.selectedColumns = this.cols.filter(col =>
       [
         'poam',
         'pluginID',
@@ -742,15 +738,15 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         'protocol',
         'uuid',
         'hostUUID',
-      ].includes(col.field),
+      ].includes(col.field)
     );
   }
 
   toggleNavyComplyFilter() {
-    if (this.dropDown.overlayVisible) {
-      this.dropDown.hide();
+    if (this.select.overlayVisible) {
+      this.select.hide();
     } else {
-      this.dropDown.show();
+      this.select.show();
     }
   }
 

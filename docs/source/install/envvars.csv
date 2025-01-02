@@ -19,7 +19,7 @@
 | Whether to *not* serve the reference web client","Client"
 "CPAT_CLIENT_EXTRA_SCOPES","| **No default**
 | OAuth2 scopes to request in addition to ``c-pat:read`` ``c-pat:write`` ``c-pat:op`` ``openid``. Some OIDC providers (Okta) generate a refresh token only if the scope ``offline_access`` is requested","Client"
-"CPAT_CLIENT_ID","| **Default** ``c-pat``
+"CPAT_OIDC_CLIENT_ID","| **Default** ``c-pat``
 | The OIDC clientId for C-PAT","Client"
 "CPAT_SCOPE_PREFIX","| **No default**
 | String used as a prefix for each scope when authenticating to the OIDC Provider. Some providers (Azure AD) expect scope requests in the format ``api://<application_id>/<scope>``, where ``api://<application_id>/`` is the required prefix.","Client"
@@ -77,3 +77,21 @@
 | The redirect URL sent by SwaggerUI to the OIDC provider when authorizing","API"
 "CPAT_SWAGGER_SERVER","| **Default** ``http://localhost:8086/api``
 | The API server URL relative to the SwaggerUI ","API"
+"STIGMAN_OIDC_CLIENT_ID","| **Default** ``stig-manager``
+| The OIDC clientId for STIG Manager","Api, Client"
+"STIGMAN_API_URL","| **Default** ``http://localhost:54000/api``
+| The API server URL for STIG Manager ","API"
+"STIGMAN_SCOPE_PREFIX","| **No default**
+| String used as a prefix for each scope when authenticating to the OIDC Provider. Some providers (Azure AD) expect scope requests in the format ``api://<application_id>/<scope>``, where ``api://<application_id>/`` is the required prefix.","Client"
+"STIGMAN_EXTRA_SCOPES","| **No default**
+| OAuth2 scopes to request in addition to ``stig-manager:stig`` ``stig-manager:stig:read`` ``stig-manager:collection`` ``stig-manager:user`` ``stig-manager:user:read`` ``stig-manager:op`` ``openid``. Some OIDC providers (Okta) generate a refresh token only if the scope ``offline_access`` is requested","Client"
+"TENABLE_ENABLED","| **Default** ``true``
+| API proxying for Tenable enabled. ","API"
+"TENABLE_URL","| **No default**
+| The URL for Tenable.sc. No trailing slash required. ","API"
+"TENABLE_ACCESS_KEY","| **No default**
+| The access key provided by Tenable for API access. ","API"
+"TENABLE_SECRET_KEY","| **No default**
+| The secret key provided by Tenable for API access. ","API"
+"CPAT_MARKETPLACE_DISABLED","| **false**
+| Disabled C-PAT theme marketplace feature. ","Client"

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AutoCompleteModule } from 'primeng/autocomplete';
+import { AutoComplete } from 'primeng/autocomplete';
 
 interface SearchItem {
   title: string;
@@ -10,28 +10,25 @@ interface SearchItem {
 }
 
 @Component({
-  selector: 'app-search',
+  selector: 'cpat-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, AutoCompleteModule],
+  imports: [CommonModule, FormsModule, AutoComplete],
   template: `
-    <span class="p-input-icon-right">
-      <p-autoComplete
-        [(ngModel)]="query"
-        [suggestions]="filteredItems"
-        (completeMethod)="search($event)"
-        (onSelect)="navigateTo($event)"
-        [placeholder]="placeholder"
-        [field]="'title'"
-        [minLength]="1"
-        [scrollHeight]="'500px'"
-        [style]="{ width: '100%' }"
-      >
-        <ng-template let-item pTemplate="item">
-          <div>{{ item.title }}</div>
-        </ng-template>
-      </p-autoComplete>
-      <i class="pi pi-search"></i>
-    </span>
+    <p-autoComplete
+      [(ngModel)]="query"
+      [suggestions]="filteredItems"
+      (completeMethod)="search($event)"
+      (onSelect)="navigateTo($event)"
+      [placeholder]="placeholder"
+      [field]="'title'"
+      [minLength]="1"
+      [scrollHeight]="'500px'"
+      [style]="{ width: '100%' }"
+    >
+      <ng-template let-item pTemplate="item">
+        <div>{{ item.title }}</div>
+      </ng-template>
+    </p-autoComplete>
   `,
   styles: [
     `
@@ -71,8 +68,8 @@ export class AppSearchComponent {
   }
 
   search(event: { query: string }) {
-    this.filteredItems = this.searchItems.filter((item) =>
-      item.title.toLowerCase().includes(event.query.toLowerCase()),
+    this.filteredItems = this.searchItems.filter(item =>
+      item.title.toLowerCase().includes(event.query.toLowerCase())
     );
   }
 

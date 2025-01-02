@@ -10,7 +10,7 @@
 
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
 import { VRAMImportService } from './vram-import.service';
 import { UsersService } from '../user-processing/users.service';
 import { firstValueFrom } from 'rxjs';
@@ -25,7 +25,7 @@ import { ToastModule } from 'primeng/toast';
 import { ProgressBarModule } from 'primeng/progressbar';
 
 @Component({
-  selector: 'app-vram-import',
+  selector: 'cpat-vram-import',
   templateUrl: './vram-import.component.html',
   styleUrls: ['./vram-import.component.scss'],
   standalone: true,
@@ -54,7 +54,7 @@ export class VRAMImportComponent implements OnInit {
   constructor(
     private messageService: MessageService,
     private vramImportService: VRAMImportService,
-    private userService: UsersService,
+    private userService: UsersService
   ) {}
 
   async ngOnInit() {
@@ -80,7 +80,7 @@ export class VRAMImportComponent implements OnInit {
           this.vramUpdatedDate = 'N/A';
         }
       },
-      error: (error) => {
+      error: error => {
         console.error('Error fetching VRAM updated date:', error);
         this.vramUpdatedDate = 'Error';
       },
@@ -96,6 +96,7 @@ export class VRAMImportComponent implements OnInit {
   }
 
   onSelect(event: any) {
+    event.stopPropagation();
     this.updateTotalSize();
   }
 
@@ -115,12 +116,11 @@ export class VRAMImportComponent implements OnInit {
       const upload$ = await this.vramImportService.upload(file);
       upload$.subscribe({
         next: (event: any) => {
-          if (event.type === HttpEventType.UploadProgress) {
-            const percentDone = event.total
-              ? Math.round((100 * event.loaded) / event.total)
-              : 0;
-          } else if (event instanceof HttpResponse) {
-            if (event.body && event.body.message === "File is not newer than the last update. No changes made.") {
+          if (event instanceof HttpResponse) {
+            if (
+              event.body &&
+              event.body.message === 'File is not newer than the last update. No changes made.'
+            ) {
               this.messageService.add({
                 severity: 'info',
                 summary: 'Information',
@@ -142,9 +142,7 @@ export class VRAMImportComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail:
-              'File upload failed: ' +
-              (error.error?.message || 'Unknown error'),
+            detail: 'File upload failed: ' + (error.error?.message || 'Unknown error'),
           });
         },
         complete: () => {
@@ -162,6 +160,7 @@ export class VRAMImportComponent implements OnInit {
   }
 
   choose(event: Event, chooseCallback: Function) {
+    event.stopPropagation();
     chooseCallback();
   }
 
@@ -169,12 +168,8 @@ export class VRAMImportComponent implements OnInit {
     uploadCallback();
   }
 
-  onRemoveFile(
-    event: Event,
-    file: File,
-    removeCallback: Function,
-    index: number,
-  ) {
+  onRemoveFile(event: Event, file: File, removeCallback: Function) {
+    event.stopPropagation();
     removeCallback(file);
     this.updateTotalSize();
   }
@@ -182,7 +177,7 @@ export class VRAMImportComponent implements OnInit {
   updateTotalSize() {
     let totalSize = 0;
     if (this.fileUpload.files) {
-      for (let file of this.fileUpload.files) {
+      for (const file of this.fileUpload.files) {
         totalSize += file.size;
       }
     }

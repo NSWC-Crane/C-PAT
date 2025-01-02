@@ -26,7 +26,7 @@ interface AAPackage {
 }
 
 @Component({
-  selector: 'aa-package-processing',
+  selector: 'cpat-aa-package-processing',
   templateUrl: './aaPackage-processing.component.html',
   styleUrls: ['./aaPackage-processing.component.scss'],
   standalone: true,
@@ -51,7 +51,7 @@ export class AAPackageProcessingComponent implements OnInit {
 
   constructor(
     private aaPackageService: AAPackageService,
-    private messageService: MessageService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit() {
@@ -60,9 +60,7 @@ export class AAPackageProcessingComponent implements OnInit {
 
   async loadAAPackages() {
     try {
-      const response = await (
-        await this.aaPackageService.getAAPackages()
-      ).toPromise();
+      const response = await (await this.aaPackageService.getAAPackages()).toPromise();
       this.aaPackages = response || [];
     } catch (error) {
       this.messageService.add({
@@ -86,10 +84,8 @@ export class AAPackageProcessingComponent implements OnInit {
   async onRowEditSave(aaPackage: AAPackage) {
     try {
       if (aaPackage.aaPackageId === 0) {
-        const response = await (
-          await this.aaPackageService.postAAPackage(aaPackage)
-        ).toPromise();
-        const index = this.aaPackages.findIndex((p) => p.aaPackageId === 0);
+        const response = await (await this.aaPackageService.postAAPackage(aaPackage)).toPromise();
+        const index = this.aaPackages.findIndex(p => p.aaPackageId === 0);
         this.aaPackages[index] = response!;
         this.messageService.add({
           severity: 'success',
@@ -116,7 +112,7 @@ export class AAPackageProcessingComponent implements OnInit {
 
   onRowEditCancel(aaPackage: AAPackage, index: number) {
     if (aaPackage.aaPackageId === 0) {
-      this.aaPackages = this.aaPackages.filter((p) => p.aaPackageId !== 0);
+      this.aaPackages = this.aaPackages.filter(p => p.aaPackageId !== 0);
     } else {
       this.aaPackages[index] = this.editingAAPackage!;
     }
@@ -125,12 +121,8 @@ export class AAPackageProcessingComponent implements OnInit {
 
   async onRowDelete(aaPackage: AAPackage) {
     try {
-      await (
-        await this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId)
-      ).toPromise();
-      this.aaPackages = this.aaPackages.filter(
-        (p) => p.aaPackageId !== aaPackage.aaPackageId,
-      );
+      await (await this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId)).toPromise();
+      this.aaPackages = this.aaPackages.filter(p => p.aaPackageId !== aaPackage.aaPackageId);
       this.messageService.add({
         severity: 'success',
         summary: 'Success',

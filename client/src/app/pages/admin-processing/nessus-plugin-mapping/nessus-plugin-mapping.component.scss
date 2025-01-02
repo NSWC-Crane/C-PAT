@@ -15,7 +15,7 @@
 
 @keyframes glow-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgb(255,255,255);
+    box-shadow: 0 0 0 0 var(--primary-color);
   }
   50% {
     box-shadow: 0 0 0 10px transparent;
@@ -32,7 +32,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgb(255,255,255);
+  background-color: rgb(255, 255, 255);
   opacity: 0;
   animation: background-flash 2s ease-out;
   border-radius: inherit;
@@ -45,4 +45,10 @@
   100% {
     opacity: 0;
   }
+}
+
+.scrollable-plugins {
+  padding-top: 0rem;
+  max-height: 60vh;
+  overflow-y: auto;
 }

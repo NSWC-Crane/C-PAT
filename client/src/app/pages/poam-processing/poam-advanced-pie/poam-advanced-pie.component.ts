@@ -13,9 +13,7 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
     </ngx-charts-advanced-pie-chart>
   `,
   standalone: true,
-  imports: [
-    NgxChartsModule,
-  ],
+  imports: [NgxChartsModule],
 })
 export class PoamAdvancedPieComponent {
   @Input() pieChartData!: any[];

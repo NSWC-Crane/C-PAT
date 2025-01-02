@@ -9,77 +9,49 @@
 -->
 
 <div class="card">
-  <p-tabView #adminTabView [(activeIndex)]="activeTabIndex">
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-user" style="margin-right: 0.5rem;"></i>
-        User Management
-      </ng-template>
-      <cpat-user-processing></cpat-user-processing>
-    </p-tabPanel>
+  <p-tabs [(value)]="value">
+    <p-tablist>
+      <p-tab [value]="0">User Management</p-tab>
+      <p-tab [value]="1">Collection Management</p-tab>
+      <p-tab [value]="2">STIG Manager</p-tab>
+      <p-tab [value]="3">Tenable Import</p-tab>
+      <p-tab [value]="4">VRAM IAV Import</p-tab>
+      <p-tab [value]="5">Nessus Plugin Mapping</p-tab>
+      <p-tab [value]="6">Set A&A Packages</p-tab>
+      <p-tab [value]="7">Set Assigned Teams</p-tab>
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel [value]="0">
+        <cpat-user-processing></cpat-user-processing>
+      </p-tabpanel>
 
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-inbox" style="margin-right: 0.5rem;"></i>
-        Collection Management
-      </ng-template>
-      <cpat-collection-processing></cpat-collection-processing>
-    </p-tabPanel>
+      <p-tabpanel [value]="1">
+        <cpat-collection-processing></cpat-collection-processing>
+      </p-tabpanel>
 
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-flag" style="margin-right: 0.5rem;"></i>
-        STIG Manager
-      </ng-template>
-      <cpat-stigmanager-admin></cpat-stigmanager-admin>
-    </p-tabPanel>
+      <p-tabpanel [value]="2">
+        <cpat-stigmanager-admin></cpat-stigmanager-admin>
+      </p-tabpanel>
 
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-star" style="margin-right: 0.5rem;"></i>
-        Tenable Import
-      </ng-template>
-      <cpat-tenable-admin></cpat-tenable-admin>
-    </p-tabPanel>
+      <p-tabpanel [value]="3">
+        <cpat-tenable-admin></cpat-tenable-admin>
+      </p-tabpanel>
 
-    <!--<p-tabPanel>
-    <ng-template pTemplate="header">
-      <i class="pi pi-upload" style="margin-right: 0.5rem;"></i>
-      eMASS Import
-    </ng-template>
-    <app-emass-import></app-emass-import>
-  </p-tabPanel>-->
+      <p-tabpanel [value]="4">
+        <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()"></cpat-vram-import>
+      </p-tabpanel>
 
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-upload" style="margin-right: 0.5rem;"></i>
-        VRAM IAV Import
-      </ng-template>
-      <app-vram-import (navigateToPluginMapping)="switchToPluginMapping()"></app-vram-import>
-    </p-tabPanel>
+      <p-tabpanel [value]="5">
+        <cpat-nessus-plugin-mapping [activated]="value === 5"></cpat-nessus-plugin-mapping>
+      </p-tabpanel>
 
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-bullseye" style="margin-right: 0.5rem;"></i>
-        Nessus Plugin Mapping
-      </ng-template>
-      <app-nessus-plugin-mapping [activated]="activeTabIndex === 5"></app-nessus-plugin-mapping>
-    </p-tabPanel>
+      <p-tabpanel [value]="6">
+        <cpat-aa-package-processing></cpat-aa-package-processing>
+      </p-tabpanel>
 
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-exclamation-triangle" style="margin-right: 0.5rem;"></i>
-        Set A&A Packages
-      </ng-template>
-      <aa-package-processing></aa-package-processing>
-    </p-tabPanel>
-
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <i class="pi pi-exclamation-triangle" style="margin-right: 0.5rem;"></i>
-        Set Assigned Teams
-      </ng-template>
-      <assigned-team-processing></assigned-team-processing>
-    </p-tabPanel>
-  </p-tabView>
+      <p-tabpanel [value]="7">
+        <cpat-assigned-team-processing></cpat-assigned-team-processing>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
 </div>

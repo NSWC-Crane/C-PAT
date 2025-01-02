@@ -1,58 +1,82 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+! CONDITIONS OF THE LICENSE.  
+!##########################################################################
+*/
+
 import { AuthService } from '../../core/auth/services/auth.service';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import {
+  afterNextRender,
+  booleanAttribute,
   Component,
+  computed,
   ElementRef,
+  inject,
+  Inject,
+  Input,
   OnDestroy,
   OnInit,
+  Renderer2,
   ViewChild,
 } from '@angular/core';
-import { LayoutService } from '../services/app.layout.service';
 import { MenuItem } from 'primeng/api';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../common/services/shared.service';
-import { Subject, filter, takeUntil } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { Subject, Subscription, filter, take, takeUntil } from 'rxjs';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuModule } from 'primeng/menu';
-import { NotificationsPanelComponent } from '../../common/components/notifications/notifications-popover/notifications-popover.component';
-import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { ButtonModule } from 'primeng/button';
-import { AppSearchComponent } from '../../common/components/search/app.search.component';
-import { AppMenuComponent } from './app.menu.component';
 import { TagModule } from 'primeng/tag';
-import { DropdownModule } from 'primeng/dropdown';
 import { BadgeModule } from 'primeng/badge';
-
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+import { AppConfigService } from '../services/appconfigservice';
+import { AppTopBarComponent } from './app.topbar.component';
+import { AppLayoutComponent } from './app.layout.component';
+import { AppFooterComponent } from './app.footer.component';
+import { AppClassificationComponent } from './app.classification.component';
+import { PayloadService } from '../../common/services/setPayload.service';
 
 @Component({
-  selector: 'app-navigation',
-  templateUrl: './app.navigation.component.html',
+  selector: 'cpat-navigation',
   standalone: true,
   imports: [
-    AppMenuComponent,
-    AppSearchComponent,
+    AppClassificationComponent,
+    AppTopBarComponent,
+    AppLayoutComponent,
     BadgeModule,
     ButtonModule,
     CommonModule,
-    DropdownModule,
+    AppFooterComponent,
     MenuModule,
-    NotificationsPanelComponent,
-    OverlayPanelModule,
-    RouterLink,
     TagModule,
     FormsModule,
   ],
+  template: `
+    <div class="landing">
+      <cpat-classification></cpat-classification>
+      <cpat-topbar></cpat-topbar>
+      <cpat-layout></cpat-layout>
+      <cpat-footer></cpat-footer>
+    </div>
+  `,
 })
 export class AppNavigationComponent implements OnInit, OnDestroy {
+  @Input({ transform: booleanAttribute }) showConfigurator = true;
+
+  @Input({ transform: booleanAttribute }) showMenuButton = true;
+
+  scrollListener: VoidFunction | null;
+
+  private window: Window;
+
   collections: any = [];
   user: any;
   payload: any;
@@ -66,100 +90,128 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   private subs = new SubSink();
   timeout: any = null;
   private destroy$ = new Subject<void>();
-
+  private payloadSubscription: Subscription[] = [];
   @ViewChild('menubutton') menuButton!: ElementRef;
   @ViewChild('menuContainer') menuContainer!: ElementRef;
-
+  readonly user$ = inject(AuthService).user$;
   constructor(
+    @Inject(DOCUMENT) private document: Document,
+    private renderer: Renderer2,
+    private configService: AppConfigService,
     private authService: AuthService,
     private collectionService: CollectionsService,
-    public layoutService: LayoutService,
     private sharedService: SharedService,
     private userService: UsersService,
     private router: Router,
+    private setPayloadService: PayloadService,
     private notificationService: NotificationService,
-    public el: ElementRef,
-  ) {}
+    public el: ElementRef
+  ) {
+    this.window = this.document.defaultView as Window;
 
-  public async ngOnInit() {
-    this.layoutService.setInitialTheme('lara-dark-blue');
-    this.initializeUser();
+    afterNextRender(() => {
+      this.bindScrollListener();
+    });
+  }
+
+  async ngOnInit() {
+    this.authService.user$
+      .pipe(
+        filter(user => !!user),
+        take(1)
+      )
+      .subscribe(user => {
+        this.user = user;
+        this.getNotificationCount();
+        this.getCollections();
+      });
+  }
+
+  isNewsActive = computed(() => this.configService.newsActive());
+
+  isDarkMode = computed(() => this.configService.appState().darkTheme);
+
+  isMenuActive = computed(() => this.configService.appState().menuActive);
+
+  landingClass = computed(() => {
+    return {
+      'layout-dark': this.isDarkMode(),
+      'layout-light': !this.isDarkMode(),
+      'layout-news-active': this.isNewsActive(),
+    };
+  });
+
+  toggleDarkMode() {
+    this.configService.appState.update(state => ({ ...state, darkTheme: !state.darkTheme }));
+  }
+
+  bindScrollListener() {
+    if (!this.scrollListener) {
+      this.scrollListener = this.renderer.listen(this.window, 'scroll', () => {
+        if (this.window.scrollY > 0) {
+          this.el.nativeElement.children[0].classList.add('layout-topbar-sticky');
+        } else {
+          this.el.nativeElement.children[0].classList.remove('layout-topbar-sticky');
+        }
+      });
+    }
+  }
+
+  unbindScrollListener() {
+    if (this.scrollListener) {
+      this.scrollListener();
+      this.scrollListener = null;
+    }
   }
 
   async initializeUser() {
     try {
-      this.user = null;
-      this.payload = null;
-      this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
-        next: (response: any) => {
-          if (response?.userId) {
-            this.user = response;
-            this.fullName = response.fullName;
-            this.userRole = this.user.isAdmin ? 'C-PAT Admin' : 'C-PAT User';
-            if (this.user.defaultTheme) {
-              this.layoutService.setInitialTheme(this.user.defaultTheme);
-            }
-            if (this.user.accountStatus === 'ACTIVE') {
-              this.payload = {
-                ...this.user,
-                collections: this.user.permissions.map(
-                  (permission: Permission) => ({
-                    collectionId: permission.collectionId,
-                    accessLevel: permission.accessLevel,
-                  }),
-                ),
-              };
-              this.getNotificationCount();
-              this.getCollections();
-              this.setMenuItems();
-              this.setupUserMenuActions();
-              this.router.events
-                .pipe(
-                  filter((event) => event instanceof NavigationEnd),
-                  takeUntil(this.destroy$),
-                )
-                .subscribe(() => {
-                  if (this.user.userId) {
-                    this.getNotificationCount();
-                  }
-                });
-            }
-          } else {
-            console.error('User data is not available.');
-          }
-        },
-        error: (error) => {
-          console.error('An error occurred:', error.message);
-        },
-      });
+      await this.setPayloadService.setPayload();
+      this.payloadSubscription.push(
+        this.setPayloadService.user$.subscribe(user => {
+          this.user = user;
+          this.getNotificationCount();
+          this.getCollections();
+          this.setMenuItems();
+          this.setupUserMenuActions();
+          this.router.events
+            .pipe(
+              filter(event => event instanceof NavigationEnd),
+              takeUntil(this.destroy$)
+            )
+            .subscribe(() => {
+              if (this.user.userId) {
+                this.getNotificationCount();
+              }
+            });
+        })
+      );
     } catch (error) {
       console.error('Error initializing user:', error);
     }
   }
 
   async getCollections() {
-    this.subs.sink = (await this.collectionService.getCollections()).subscribe(
-      (result: any) => {
-        this.collections = result;
-        if (this.user.lastCollectionAccessedId) {
-          this.selectedCollection = +this.user.lastCollectionAccessedId;
-          this.resetWorkspace(this.selectedCollection);
-        } else if (
-          !this.payload.lastCollectionAccessedId ||
-          this.payload.lastCollectionAccessedId === undefined
-        ) {
-          this.selectedCollection = null;
-          this.selectCollectionMsg = true;
-        } else {
-        }
-      },
-    );
+    this.subs.sink = (await this.collectionService.getCollections()).subscribe((result: any) => {
+      this.collections = result;
+      if (this.user.lastCollectionAccessedId) {
+        this.selectedCollection = +this.user.lastCollectionAccessedId;
+        this.resetWorkspace(this.selectedCollection);
+      } else if (
+        !this.payload.lastCollectionAccessedId ||
+        this.payload.lastCollectionAccessedId === undefined
+      ) {
+        this.selectedCollection = null;
+        this.selectCollectionMsg = true;
+      } else {
+      }
+    });
   }
 
-  getTagColor(origin: string): 'secondary' | 'success' | 'warning' | 'danger' | 'info' | undefined {
+  getTagColor(origin: string): 'secondary' | 'success' | 'warn' | 'danger' | 'info' | undefined {
     switch (origin) {
       case 'C-PAT':
-        return;
+        return 'secondary';
       case 'STIG Manager':
         return 'success';
       case 'Tenable':
@@ -170,15 +222,15 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   }
 
   async getNotificationCount() {
-    this.subs.sink = (
-      await this.notificationService.getUnreadNotificationCount()
-    ).subscribe((result: any) => {
-      this.notificationCount = result > 0 ? result : null;
-    });
+    this.subs.sink = (await this.notificationService.getUnreadNotificationCount()).subscribe(
+      (result: any) => {
+        this.notificationCount = result > 0 ? result : null;
+      }
+    );
   }
 
   setMenuItems() {
-    const marketplaceDisabled = CPAT.Env.features.marketplaceDisabled;
+    const marketplaceDisabled = CPAT.Env.features.marketplaceDisabled ?? false;
     if (marketplaceDisabled) {
       this.userMenu = [
         {
@@ -204,7 +256,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   }
 
   setupUserMenuActions() {
-    this.userMenu.forEach((item) => {
+    this.userMenu.forEach(item => {
       if (item.label === 'Marketplace') {
         item.command = () => this.goToMarketplace();
       } else if (item.label === 'Log Out') {
@@ -221,39 +273,6 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     this.authService.logout().then(() => {
       this.router.navigate(['/login']);
     });
-  }
-
-  onMenuButtonClick() {
-    this.layoutService.onMenuToggle();
-  }
-
-  showConfig() {
-    this.layoutService.showConfigSidebar();
-  }
-
-  onMouseEnter() {
-    if (!this.layoutService.state.anchored) {
-      if (this.timeout) {
-        clearTimeout(this.timeout);
-        this.timeout = null;
-      }
-      this.layoutService.state.sidebarActive = true;
-    }
-  }
-
-  onMouseLeave() {
-    if (!this.layoutService.state.anchored) {
-      if (!this.timeout) {
-        this.timeout = setTimeout(
-          () => (this.layoutService.state.sidebarActive = false),
-          300,
-        );
-      }
-    }
-  }
-
-  anchor() {
-    this.layoutService.state.anchored = !this.layoutService.state.anchored;
   }
 
   onCollectionClick(event: any) {
@@ -294,6 +313,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.unbindScrollListener();
     this.destroy$.next();
     this.destroy$.complete();
     this.subs.unsubscribe();

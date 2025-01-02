@@ -8,7 +8,16 @@
 !##########################################################################
 */
 
-import { Component, ElementRef, Input, OnChanges, OnInit, Renderer2, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  OnInit,
+  Renderer2,
+  SimpleChanges,
+  ViewChild,
+} from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 import { UsersService } from '../user-processing/users.service';
@@ -17,21 +26,25 @@ import { Table, TableModule } from 'primeng/table';
 import { ImportService } from '../../import-processing/import.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePicker } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessagesModule } from 'primeng/messages';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ButtonModule } from 'primeng/button';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 @Component({
-  selector: 'app-nessus-plugin-mapping',
+  selector: 'cpat-nessus-plugin-mapping',
   templateUrl: './nessus-plugin-mapping.component.html',
   styleUrls: ['./nessus-plugin-mapping.component.scss'],
   standalone: true,
   imports: [
     ButtonModule,
     CommonModule,
-    CalendarModule,
+    DatePicker,
+    IconFieldModule,
+    InputIconModule,
     InputTextModule,
     FormsModule,
     MessagesModule,
@@ -123,17 +136,13 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
   async getIAVTableData(): Promise<void> {
     this.loading = true;
     try {
-      const response = await this.nessusPluginMappingService
-        .getIAVTableData()
-        .toPromise();
+      const response = await this.nessusPluginMappingService.getIAVTableData().toPromise();
       if (Array.isArray(response)) {
-        this.tableData = response.map((item) => ({
+        this.tableData = response.map(item => ({
           ...item,
           navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : '',
           releaseDate: item.releaseDate ? item.releaseDate.split('T')[0] : '',
-          pluginID: item.pluginID
-            ? item.pluginID.split(',').map((id: any) => id.trim())
-            : [],
+          pluginID: item.pluginID ? item.pluginID.split(',').map((id: any) => id.trim()) : [],
         }));
         this.totalRecords = this.tableData.length;
       } else {
@@ -168,16 +177,9 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
 
       const updateEstimatedProgress = () => {
         const elapsedTime = Date.now() - startTime;
-        const estimatedTotalTime =
-          this.estimatedRequestTime * (totalRecords / this.batchSize);
-        const estimatedProgress = Math.min(
-          (elapsedTime / estimatedTotalTime) * 100,
-          90,
-        );
-        this.updateProgress = Math.max(
-          this.updateProgress,
-          Math.round(estimatedProgress),
-        );
+        const estimatedTotalTime = this.estimatedRequestTime * (totalRecords / this.batchSize);
+        const estimatedProgress = Math.min((elapsedTime / estimatedTotalTime) * 100, 90);
+        this.updateProgress = Math.max(this.updateProgress, Math.round(estimatedProgress));
 
         const remainingTime = Math.max(estimatedTotalTime - elapsedTime, 0);
         this.estimatedTimeRemaining = this.formatTime(remainingTime);
@@ -188,10 +190,7 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
 
       while (startOffset < totalRecords) {
         const batchStartTime = Date.now();
-        const batchData = await this.getPluginBatch(
-          startOffset,
-          this.batchSize,
-        );
+        const batchData = await this.getPluginBatch(startOffset, this.batchSize);
         allPluginData = allPluginData.concat(batchData.pluginData);
         totalRecords = batchData.totalRecords;
         startOffset += this.batchSize;
@@ -204,9 +203,7 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
 
         const batchDuration = Date.now() - batchStartTime;
         if (batchDuration < this.estimatedRequestTime) {
-          await firstValueFrom(
-            timer(this.estimatedRequestTime - batchDuration),
-          );
+          await firstValueFrom(timer(this.estimatedRequestTime - batchDuration));
         }
       }
 
@@ -244,7 +241,7 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
 
   private async getPluginBatch(
     startOffset: number,
-    batchSize: number,
+    batchSize: number
   ): Promise<{ pluginData: any[]; totalRecords: number }> {
     const analysisParams = {
       query: {
@@ -276,9 +273,7 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
       type: 'vuln',
     };
 
-    const data = await firstValueFrom(
-      await this.importService.postTenableAnalysis(analysisParams),
-    );
+    const data = await firstValueFrom(await this.importService.postTenableAnalysis(analysisParams));
     return {
       pluginData: data.response.results,
       totalRecords: data.response.totalRecords,
@@ -287,7 +282,7 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
 
   private mapPluginDataToVram(pluginData: any[]): any[] {
     const iavMap = new Map<string, Set<string>>();
-    pluginData.forEach((plugin) => {
+    pluginData.forEach(plugin => {
       const iavMatch = plugin.xref.match(/IAV[ABT]\s*#\s*(\d{4}-[A-Z]-\d{4})/);
       if (iavMatch) {
         const iav = iavMatch[1];
@@ -306,8 +301,10 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
 
   private async updateVramTable(mappedData: any[]): Promise<void> {
     const updateMapping = await firstValueFrom(
-      await this.nessusPluginMappingService.mapIAVPluginIds(mappedData),
+      await this.nessusPluginMappingService.mapIAVPluginIds(mappedData)
     );
+
+    return updateMapping;
   }
 
   getFilterType(col: any): string {

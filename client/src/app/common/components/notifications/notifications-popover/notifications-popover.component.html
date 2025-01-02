@@ -19,7 +19,12 @@
                 <i [class]="notification.icon"></i>
               </div>
               <h5>{{ notification.title }}</h5>
-              <i *ngIf="notification.notificationId" class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)" (onKeyUp)="dismissNotification(notification)"></i>
+              <i
+                *ngIf="notification.notificationId"
+                class="dismiss-icon pi pi-times"
+                (click)="dismissNotification(notification)"
+                (onKeyUp)="dismissNotification(notification)"
+              ></i>
             </div>
             <p [innerHTML]="notification.formattedMessage"></p>
             <small>{{ notification.timestamp | date:'short' }}</small>
@@ -28,13 +33,19 @@
       </p-listbox>
     </ng-container>
     <ng-template #noNotifications>
-      <div class="p-4 text-center">
-        <i class="pi pi-inbox text-5xl mb-3" style="color: var(--text-color-secondary);"></i>
+      <div class="p-6 text-center">
+        <i class="pi pi-inbox text-5xl mb-4" style="color: var(--p-text-color)"></i>
         <p>No notifications found.</p>
       </div>
     </ng-template>
   </div>
   <div class="p-card-footer">
-    <button pButton label="See all notifications" class="p-button-outlined p-button-contrast p-button-sm w-full" (click)="viewAllNotifications(); closeOverlay()" appendTo="body"></button>
+    <button
+      pButton
+      label="See all notifications"
+      class="p-button-outlined p-button-contrast p-button-sm w-full"
+      (click)="viewAllNotifications(); closeOverlay()"
+      appendTo="body"
+    ></button>
   </div>
 </div>

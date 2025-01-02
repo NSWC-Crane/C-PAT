@@ -13,29 +13,21 @@ import { NotificationService } from './notifications.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Router } from '@angular/router';
 import { PoamService } from '../../../pages/poam-processing/poams.service';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DropdownModule } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { CardModule } from 'primeng/card';
-import { DataViewModule } from 'primeng/dataview';
+import { TableModule } from 'primeng/table';
 
 @Component({
   selector: 'cpat-notifications',
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss'],
   standalone: true,
-  imports: [
-    ButtonModule,
-    CardModule,
-    CommonModule,
-    DataViewModule,
-    DropdownModule,
-    FormsModule,
-  ],
+  imports: [ButtonModule, CardModule, CommonModule, TableModule, Select, FormsModule],
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
   notifications: any[] = [];
@@ -47,7 +39,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   payload: any;
   poam: any;
   private payloadSubscription: Subscription[] = [];
-  layout: 'list' | 'grid' = 'list';
+  layout: 'list' | 'grid grid-cols-12 gap-4' = 'list';
   sortField: string = 'timestamp';
   sortOrder: number = -1;
   sortOptions = [
@@ -61,10 +53,9 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private setPayloadService: PayloadService,
     private sanitizer: DomSanitizer,
-    private router: Router,
     private poamService: PoamService,
     private userService: UsersService
-  ) { }
+  ) {}
 
   async ngOnInit() {
     await this.setPayload();
@@ -74,29 +65,29 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
+      this.setPayloadService.user$.subscribe(user => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe((payload) => {
+      this.setPayloadService.payload$.subscribe(payload => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
+      this.setPayloadService.accessLevel$.subscribe(level => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.fetchNotifications();
         }
-      }),
+      })
     );
   }
 
   async fetchNotifications() {
     try {
       const notifications = await firstValueFrom(
-        await this.notificationService.getAllNotifications(),
+        await this.notificationService.getAllNotifications()
       );
       this.notifications = notifications.map(notification => ({
         ...notification,
-        formattedMessage: this.formatMessage(notification.message)
+        formattedMessage: this.formatMessage(notification.message),
       }));
       this.filterNotifications();
     } catch (error) {
@@ -123,11 +114,11 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   filterNotifications() {
     if (this.filterStatus === 'Read') {
       this.filteredNotifications = this.notifications.filter(
-        (notification) => notification.read === 1,
+        notification => notification.read === 1
       );
     } else if (this.filterStatus === 'Unread') {
       this.filteredNotifications = this.notifications.filter(
-        (notification) => notification.read === 0,
+        notification => notification.read === 0
       );
     } else {
       this.filteredNotifications = [...this.notifications];
@@ -142,9 +133,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   async deleteNotification(notification: any) {
     try {
       await firstValueFrom(
-        await this.notificationService.deleteNotification(
-          notification.notificationId,
-        ),
+        await this.notificationService.deleteNotification(notification.notificationId)
       );
       const index = this.notifications.indexOf(notification);
       if (index !== -1) {
@@ -162,9 +151,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       return;
     }
     try {
-      await firstValueFrom(
-        await this.notificationService.dismissAllNotifications(),
-      );
+      await firstValueFrom(await this.notificationService.dismissAllNotifications());
       this.fetchNotifications();
     } catch (error) {
       console.error('Failed to dismiss all notifications:', error);
@@ -177,19 +164,13 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       return;
     }
     try {
-      await firstValueFrom(
-        await this.notificationService.deleteAllNotifications(),
-      );
+      await firstValueFrom(await this.notificationService.deleteAllNotifications());
       this.fetchNotifications();
     } catch (error) {
       console.error('Failed to delete all notifications:', error);
     }
-    this.notifications = [
-      { title: 'You have no new notifications...', read: 1 },
-    ];
-    this.filteredNotifications = [
-      { title: 'You have no new notifications...', read: 1 },
-    ];
+    this.notifications = [{ title: 'You have no new notifications...', read: 1 }];
+    this.filteredNotifications = [{ title: 'You have no new notifications...', read: 1 }];
   }
 
   onSortChange(event: any) {
@@ -236,8 +217,6 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 }

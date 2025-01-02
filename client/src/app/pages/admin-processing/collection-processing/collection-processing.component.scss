@@ -9,6 +9,24 @@
 */
 
 ::ng-deep .p-dialog .p-dialog-content {
-    padding-top: 1rem;
-    padding-bottom: 1.5rem;
+  padding-top: 1rem;
+  padding-bottom: 1.5rem;
+}
+
+.scrollable-collections {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.field {
+  margin-bottom: 15px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header {
+  @apply hidden;
 }

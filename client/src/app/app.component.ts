@@ -15,26 +15,23 @@ import { Classification } from './common/models/classification.model';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
-  selector: "cpat-app",
+  selector: 'cpat-app',
   templateUrl: './app.component.html',
   standalone: true,
-  imports: [
-    RouterOutlet
-  ],
+  imports: [RouterOutlet],
 })
-
 export class AppComponent implements OnInit {
   classification: Classification | undefined;
   userProfile: any = null;
 
   constructor(
     private authService: AuthService,
-    private sharedService: SharedService,
-  ) { }
+    private sharedService: SharedService
+  ) {}
 
   public async ngOnInit() {
     try {
-      await this.authService.initializeAuthentication();
+      await this.authService.initializeApplication();
 
       const apiConfig = await this.sharedService.getApiConfig().toPromise();
       if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {

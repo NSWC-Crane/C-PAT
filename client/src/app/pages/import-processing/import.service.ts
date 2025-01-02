@@ -9,12 +9,7 @@
 */
 
 import { Injectable } from '@angular/core';
-import {
-  HttpClient,
-  HttpHeaders,
-  HttpErrorResponse,
-  HttpParams,
-} from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, firstValueFrom, throwError } from 'rxjs';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
@@ -26,24 +21,20 @@ export class ImportService {
 
   constructor(
     private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService,
+    private oidcSecurityService: OidcSecurityService
   ) {}
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(
-        `Backend returned code ${error.status}, body was: ${error.error}`,
-      );
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
     return throwError('Something bad happened; please try again later.');
   }
 
   private async getAuthHeaders() {
-    const token = await firstValueFrom(
-      this.oidcSecurityService.getAccessToken(),
-    );
+    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
@@ -66,7 +57,7 @@ export class ImportService {
     return this.http
       .get(
         `${this.cpatApiBase}/tenable/asset?filter=excludeWatchlists,excludeAllDefined,usable&fields=name`,
-        { headers },
+        { headers }
       )
       .pipe(catchError(this.handleError));
   }
@@ -92,10 +83,7 @@ export class ImportService {
   async getTenableUsersFilter(): Promise<Observable<any>> {
     const headers = await this.getAuthHeaders();
     return this.http
-      .get(
-        `${this.cpatApiBase}/tenable/user?fields=name,username,firstname,lastname`,
-        { headers },
-      )
+      .get(`${this.cpatApiBase}/tenable/user?fields=name,username,firstname,lastname`, { headers })
       .pipe(catchError(this.handleError));
   }
 
@@ -124,29 +112,20 @@ export class ImportService {
 
   async postTenableSolutionAssets(
     solutionParams: any,
-    solutionId: number,
+    solutionId: number
   ): Promise<Observable<any>> {
     const headers = await this.getAuthHeaders();
     return this.http
-      .post(
-        `${this.cpatApiBase}/tenable/solutions/${solutionId}/asset`,
-        solutionParams,
-        { headers },
-      )
+      .post(`${this.cpatApiBase}/tenable/solutions/${solutionId}/asset`, solutionParams, {
+        headers,
+      })
       .pipe(catchError(this.handleError));
   }
 
-  async postTenableSolutionVuln(
-    solutionParams: any,
-    solutionId: number,
-  ): Promise<Observable<any>> {
+  async postTenableSolutionVuln(solutionParams: any, solutionId: number): Promise<Observable<any>> {
     const headers = await this.getAuthHeaders();
     return this.http
-      .post(
-        `${this.cpatApiBase}/tenable/solutions/${solutionId}/vuln`,
-        solutionParams,
-        { headers },
-      )
+      .post(`${this.cpatApiBase}/tenable/solutions/${solutionId}/vuln`, solutionParams, { headers })
       .pipe(catchError(this.handleError));
   }
 

@@ -23,7 +23,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 
 @Component({
-  selector: 'app-emass-import',
+  selector: 'cpat-emass-import',
   templateUrl: './emass-import.component.html',
   styleUrls: ['./emass-import.component.scss'],
   standalone: true,
@@ -48,7 +48,7 @@ export class EmassImportComponent implements OnInit {
   constructor(
     private messageService: MessageService,
     private eMASSImportService: eMASSImportService,
-    private userService: UsersService,
+    private userService: UsersService
   ) {}
 
   async ngOnInit() {
@@ -99,16 +99,11 @@ export class EmassImportComponent implements OnInit {
     }
 
     try {
-      const upload$ = await this.eMASSImportService.upload(
-        file,
-        this.user.userId,
-      );
+      const upload$ = await this.eMASSImportService.upload(file, this.user.userId);
       upload$.subscribe({
         next: (event: any) => {
           if (event.type === HttpEventType.UploadProgress) {
-            const percentDone = event.total
-              ? Math.round((100 * event.loaded) / event.total)
-              : 0;
+            const percentDone = event.total ? Math.round((100 * event.loaded) / event.total) : 0;
           } else if (event instanceof HttpResponse) {
             this.messageService.add({
               severity: 'success',
@@ -118,14 +113,12 @@ export class EmassImportComponent implements OnInit {
             this.fileUpload.clear();
           }
         },
-        error: (error) => {
+        error: error => {
           console.error('Error during file upload:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail:
-              'File upload failed: ' +
-              (error.error?.message || 'Unknown error'),
+            detail: 'File upload failed: ' + (error.error?.message || 'Unknown error'),
           });
         },
         complete: () => {
@@ -150,12 +143,7 @@ export class EmassImportComponent implements OnInit {
     uploadCallback();
   }
 
-  onRemoveFile(
-    event: Event,
-    file: File,
-    removeCallback: Function,
-    index: number,
-  ) {
+  onRemoveFile(event: Event, file: File, removeCallback: Function, index: number) {
     removeCallback(file);
     this.updateTotalSize();
   }
@@ -163,7 +151,7 @@ export class EmassImportComponent implements OnInit {
   updateTotalSize() {
     let totalSize = 0;
     if (this.fileUpload.files) {
-      for (let file of this.fileUpload.files) {
+      for (const file of this.fileUpload.files) {
         totalSize += file.size;
       }
     }

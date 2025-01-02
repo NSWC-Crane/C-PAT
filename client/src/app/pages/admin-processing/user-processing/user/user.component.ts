@@ -29,15 +29,15 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
-import { DropdownModule } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { InputTextModule } from 'primeng/inputtext';
-import { InputSwitchModule } from 'primeng/inputswitch';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { AssignedTeamService } from '../../assignedTeam-processing/assignedTeam-processing.service';
 import { StepperModule } from 'primeng/stepper';
-
+import { TooltipModule } from 'primeng/tooltip';
 interface Permission {
   userId: number;
   collectionId?: number | null;
@@ -96,16 +96,17 @@ interface PermissionChangeSummary {
     CardModule,
     CommonModule,
     ConfirmDialogModule,
-    DropdownModule,
+    Select,
     InputNumberModule,
-    InputSwitchModule,
+    ToggleSwitch,
     InputTextModule,
     FormsModule,
     StepperModule,
     TableModule,
     ToastModule,
+    TooltipModule,
   ],
-  providers: [ConfirmationService, MessageService]
+  providers: [ConfirmationService, MessageService],
 })
 export class UserComponent implements OnInit, OnChanges, OnDestroy {
   @Input() user: any;
@@ -142,7 +143,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     private userService: UsersService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
-    private cdr: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
@@ -151,14 +152,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       await this.loadUserData(this.user.userId);
     } else {
       (await this.userService.getCurrentUser()).subscribe(
-        async (currentUser) => {
+        async currentUser => {
           this.user = currentUser;
           await this.loadCollections();
           await this.loadAssignedTeams();
         },
-        (error) => {
+        error => {
           console.error('Error fetching current user', error);
-        },
+        }
       );
     }
     this.cols = [
@@ -169,30 +170,28 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
   private async loadUserData(userId: number) {
     (await this.userService.getUser(userId)).subscribe(
-      async (userData) => {
+      async userData => {
         this.user = userData;
         await this.loadCollections();
         await this.loadAssignedTeams();
         this.getData();
         this.checked = this.user.isAdmin === true;
       },
-      (error) => {
+      error => {
         console.error('Error fetching user data', error);
-      },
+      }
     );
   }
 
   async loadAssignedTeams() {
     try {
-      const response = await (
-        await this.assignedTeamService.getAssignedTeams()
-      ).toPromise();
+      const response = await (await this.assignedTeamService.getAssignedTeams()).toPromise();
 
       this.assignedTeams = response || [];
 
       this.availableTeams = this.assignedTeams.map((team: AssignedTeam) => ({
         title: team.assignedTeamName,
-        value: team.assignedTeamId
+        value: team.assignedTeamId,
       }));
     } catch (error) {
       this.messageService.add({
@@ -204,29 +203,20 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private async loadCollections() {
-    (await this.userService.getCurrentUser()).subscribe(
-      async (currentUser) => {
-        (await this.collectionsService.getAllCollections()).subscribe(
-          (response: any) => {
-            this.collectionList = [];
-            response.forEach(
-              (collection: { collectionName: any; collectionId: any }) => {
-                this.collectionList.push({
-                  title: collection.collectionName,
-                  value: collection.collectionId,
-                });
-              },
-            );
-            this.getData();
-          },
-          (error) => {
-            console.error('Error fetching collections', error);
-          },
-        );
+    (await this.collectionsService.getAllCollections()).subscribe(
+      (response: any) => {
+        this.collectionList = [];
+        response.forEach((collection: { collectionName: any; collectionId: any }) => {
+          this.collectionList.push({
+            title: collection.collectionName,
+            value: collection.collectionId,
+          });
+        });
+        this.getData();
       },
-      (error) => {
-        console.error('Error fetching current user for collections', error);
-      },
+      error => {
+        console.error('Error fetching collections', error);
+      }
     );
   }
 
@@ -235,40 +225,39 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getData() {
-    if (this.user && Array.isArray(this.user.permissions) && Array.isArray(this.user.assignedTeams)) {
-      this.collectionPermissions = this.user.permissions.map(
-        (permission: Permission) => {
-          const collection = this.collectionList.find(
-            (c: { title: string; value: number }) =>
-              c.value === permission.collectionId,
-          );
-          const collectionName = collection ? collection.title : '';
-          return {
-            collectionId: permission.collectionId,
-            collectionName: collectionName,
-            accessLevel: permission.accessLevel,
-            accessLevelLabel: this.getAccessLevelLabel(permission.accessLevel),
-            userId: permission.userId,
-            editing: false,
-          };
-        },
-      );
+    if (
+      this.user &&
+      Array.isArray(this.user.permissions) &&
+      Array.isArray(this.user.assignedTeams)
+    ) {
+      this.collectionPermissions = this.user.permissions.map((permission: Permission) => {
+        const collection = this.collectionList.find(
+          (c: { title: string; value: number }) => c.value === permission.collectionId
+        );
+        const collectionName = collection ? collection.title : '';
+        return {
+          collectionId: permission.collectionId,
+          collectionName: collectionName,
+          accessLevel: permission.accessLevel,
+          accessLevelLabel: this.getAccessLevelLabel(permission.accessLevel),
+          userId: permission.userId,
+          editing: false,
+        };
+      });
 
-      this.userAssignedTeams = this.user.assignedTeams.map(
-        (assignment: AssignedTeam) => {
-          const team = this.assignedTeams?.find(
-            (t: AssignedTeam) => t.assignedTeamId === assignment.assignedTeamId
-          );
-          return {
-            userId: assignment.userId,
-            assignedTeamId: assignment.assignedTeamId,
-            assignedTeamName: team ? team.assignedTeamName : '',
-            accessLevel: assignment.accessLevel,
-            accessLevelLabel: this.getAccessLevelLabel(assignment.accessLevel),
-            editing: false,
-          };
-        },
-      );
+      this.userAssignedTeams = this.user.assignedTeams.map((assignment: AssignedTeam) => {
+        const team = this.assignedTeams?.find(
+          (t: AssignedTeam) => t.assignedTeamId === assignment.assignedTeamId
+        );
+        return {
+          userId: assignment.userId,
+          assignedTeamId: assignment.assignedTeamId,
+          assignedTeamName: team ? team.assignedTeamName : '',
+          accessLevel: assignment.accessLevel,
+          accessLevelLabel: this.getAccessLevelLabel(assignment.accessLevel),
+          editing: false,
+        };
+      });
       this.cdr.detectChanges();
     } else {
       console.error('User or permissions data is not available');
@@ -276,23 +265,19 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private updateAvailableCollections() {
-    const assignedCollectionIds = new Set(
-      this.collectionPermissions.map((p) => p.collectionId),
-    );
+    const assignedCollectionIds = new Set(this.collectionPermissions.map(p => p.collectionId));
     this.availableCollections = this.collectionList.filter(
-      (c: any) => !assignedCollectionIds.has(c.value),
+      (c: any) => !assignedCollectionIds.has(c.value)
     );
   }
 
   private updateAvailableTeams() {
-    const assignedTeamIds = new Set(
-      this.userAssignedTeams.map((p) => p.assignedTeamId)
-    );
+    const assignedTeamIds = new Set(this.userAssignedTeams.map(p => p.assignedTeamId));
     this.availableTeams = this.assignedTeams
       .filter((team: any) => !assignedTeamIds.has(team.assignedTeamId))
       .map((team: any) => ({
         title: team.assignedTeamName,
-        value: team.assignedTeamId
+        value: team.assignedTeamId,
       }));
   }
 
@@ -311,9 +296,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     this.updateAvailableCollections();
     if (permission.collectionId !== null) {
       this.availableCollections.push(
-        this.collectionList.find(
-          (c: any) => c.value === permission.collectionId,
-        ),
+        this.collectionList.find((c: any) => c.value === permission.collectionId)
       );
       permission.oldCollectionId = permission.collectionId;
     }
@@ -339,14 +322,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           permission.editing = false;
           this.loadUserData(this.user.userId);
         },
-        (error) => {
+        error => {
           console.error('Error adding permission', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: 'Failed to add the permission. Please try again.',
           });
-        },
+        }
       );
     } else {
       const updatedPermission: Permission = {
@@ -364,14 +347,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           delete permission.oldCollectionId;
           this.loadUserData(this.user.userId);
         },
-        (error) => {
+        error => {
           console.error('Error updating permission', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: 'Failed to update the permission. Please try again.',
           });
-        },
+        }
       );
     }
     this.updateAvailableCollections();
@@ -379,9 +362,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
   onCancelEditPermission(permission: Permission) {
     if (permission.collectionId === null) {
-      this.collectionPermissions = this.collectionPermissions.filter(
-        (p) => p !== permission,
-      );
+      this.collectionPermissions = this.collectionPermissions.filter(p => p !== permission);
     } else {
       permission.editing = false;
       if (permission.oldCollectionId !== undefined) {
@@ -394,9 +375,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
   async onDeletePermission(permission: Permission) {
     if (permission.collectionId === null) {
-      this.collectionPermissions = this.collectionPermissions.filter(
-        (p) => p !== permission,
-      );
+      this.collectionPermissions = this.collectionPermissions.filter(p => p !== permission);
     } else {
       this.confirmationService.confirm({
         message: 'Are you sure you want to delete this permission?',
@@ -404,20 +383,17 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         icon: 'pi pi-exclamation-triangle',
         accept: async () => {
           (
-            await this.userService.deletePermission(
-              this.user.userId,
-              permission.collectionId,
-            )
+            await this.userService.deletePermission(this.user.userId, permission.collectionId)
           ).subscribe(
             () => {
               this.collectionPermissions = this.collectionPermissions.filter(
-                (p) => p.collectionId !== permission.collectionId,
+                p => p.collectionId !== permission.collectionId
               );
               this.loadUserData(this.user.userId);
             },
-            (error) => {
+            error => {
               console.error('Error during deletePermission: ', error);
-            },
+            }
           );
         },
       });
@@ -445,7 +421,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       if (currentTeam) {
         this.availableTeams.push({
           title: currentTeam.assignedTeamName,
-          value: currentTeam.assignedTeamId
+          value: currentTeam.assignedTeamId,
         });
       }
       assignedTeam.oldAssignedTeamId = assignedTeam.assignedTeamId;
@@ -462,7 +438,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Unable to find team permissions'
+        detail: 'Unable to find team permissions',
       });
       return;
     }
@@ -489,15 +465,12 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     teamPermissions: any[],
     newTeamAccessLevel: number
   ): PermissionChangeSummary {
-
     const changes: PermissionChangeSummary = {
       additions: [],
-      updates: []
+      updates: [],
     };
 
-    const userPermissionMap = new Map(
-      userPermissions.map(p => [p.collectionId, p])
-    );
+    const userPermissionMap = new Map(userPermissions.map(p => [p.collectionId, p]));
 
     teamPermissions.forEach(teamPerm => {
       const effectiveTeamAccess = newTeamAccessLevel;
@@ -507,14 +480,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         changes.additions.push({
           collectionId: teamPerm.collectionId,
           collectionName: teamPerm.collectionName || 'Unknown Collection',
-          accessLevel: effectiveTeamAccess
+          accessLevel: effectiveTeamAccess,
         });
       } else if (userPerm.accessLevel < effectiveTeamAccess) {
         changes.updates.push({
           collectionId: teamPerm.collectionId,
           collectionName: teamPerm.collectionName || 'Unknown Collection',
           oldAccessLevel: userPerm.accessLevel,
-          newAccessLevel: effectiveTeamAccess
+          newAccessLevel: effectiveTeamAccess,
         });
       }
     });
@@ -568,9 +541,9 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         this.messageService.add({
           severity: 'info',
           summary: 'Cancelled',
-          detail: 'Permission changes cancelled'
+          detail: 'Permission changes cancelled',
         });
-      }
+      },
     });
   }
 
@@ -580,7 +553,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         userId: this.user.userId,
         oldCollectionId: update.collectionId,
         newCollectionId: update.collectionId,
-        accessLevel: update.newAccessLevel
+        accessLevel: update.newAccessLevel,
       };
 
       try {
@@ -590,7 +563,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to update permission for ${update.collectionName}`
+          detail: `Failed to update permission for ${update.collectionName}`,
         });
       }
     }
@@ -599,7 +572,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       const newPermission: Permission = {
         userId: this.user.userId,
         collectionId: addition.collectionId,
-        accessLevel: addition.accessLevel
+        accessLevel: addition.accessLevel,
       };
 
       try {
@@ -609,7 +582,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to add permission for ${addition.collectionName}`
+          detail: `Failed to add permission for ${addition.collectionName}`,
         });
       }
     }
@@ -634,14 +607,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           assignedTeam.editing = false;
           this.loadUserData(this.user.userId);
         },
-        (error) => {
+        error => {
           console.error('Error adding team assignment', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: 'Failed to add the team assignment. Please try again.',
           });
-        },
+        }
       );
     } else {
       const updatedAssignedTeam: AssignedTeam = {
@@ -660,14 +633,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           delete assignedTeam.oldAssignedTeamId;
           this.loadUserData(this.user.userId);
         },
-        (error) => {
+        error => {
           console.error('Error updating team assignment', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: 'Failed to update the team assignment. Please try again.',
           });
-        },
+        }
       );
     }
     this.updateAvailableTeams();
@@ -675,9 +648,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
   onCancelEditAssignedTeam(assignedTeam: AssignedTeam) {
     if (assignedTeam.assignedTeamId === null) {
-      this.userAssignedTeams = this.userAssignedTeams.filter(
-        (a) => a !== assignedTeam,
-      );
+      this.userAssignedTeams = this.userAssignedTeams.filter(a => a !== assignedTeam);
     } else {
       assignedTeam.editing = false;
       if (assignedTeam.oldAssignedTeamId !== undefined) {
@@ -690,9 +661,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
   async onDeleteAssignedTeam(assignedTeam: AssignedTeam) {
     if (assignedTeam.assignedTeamId === null) {
-      this.userAssignedTeams = this.userAssignedTeams.filter(
-        (a) => a !== assignedTeam,
-      );
+      this.userAssignedTeams = this.userAssignedTeams.filter(a => a !== assignedTeam);
     } else {
       this.confirmationService.confirm({
         message: 'Are you sure you want to delete this team assignment?',
@@ -702,18 +671,18 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           (
             await this.userService.deleteTeamAssignment(
               this.user.userId,
-              assignedTeam.assignedTeamId!,
+              assignedTeam.assignedTeamId!
             )
           ).subscribe(
             () => {
               this.userAssignedTeams = this.userAssignedTeams.filter(
-                (a) => a.assignedTeamId !== assignedTeam.assignedTeamId,
+                a => a.assignedTeamId !== assignedTeam.assignedTeamId
               );
               this.loadUserData(this.user.userId);
             },
-            (error) => {
+            error => {
               console.error('Error during deleting team assignment: ', error);
-            },
+            }
           );
         },
       });
@@ -737,12 +706,12 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   filterOfficeOrgs(event: any) {
-    let filtered: string[] = [];
-    let query = event.query.toLowerCase();
+    const filtered: string[] = [];
+    const query = event.query.toLowerCase();
 
     for (let i = 0; i < this.officeOrgOptions.length; i++) {
-      let officeOrg = this.officeOrgOptions[i];
-      if (officeOrg.toLowerCase().indexOf(query) === 0) {
+      const officeOrg = this.officeOrgOptions[i];
+      if (officeOrg?.toLowerCase().indexOf(query) === 0) {
         filtered.push(officeOrg);
       }
     }
@@ -751,10 +720,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async onSubmit() {
-    const formattedLastAccess = format(
-      new Date(this.user.lastAccess),
-      'yyyy-MM-dd HH:mm:ss',
-    );
+    const formattedLastAccess = format(new Date(this.user.lastAccess), 'yyyy-MM-dd HH:mm:ss');
     this.user.lastAccess = formattedLastAccess;
     this.user.fullName = this.user.firstName + ' ' + this.user.lastName;
 

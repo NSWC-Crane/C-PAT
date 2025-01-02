@@ -34,13 +34,15 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { STIGManagerAssetsTableComponent } from '../import-processing/stigmanager-import/stigManagerAssetsTable/stigManagerAssetsTable.component';
 import { TenableAssetsTableComponent } from '../import-processing/tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
-import { TabViewModule } from 'primeng/tabview';
+import { TabsModule } from 'primeng/tabs';
 import { DialogModule } from 'primeng/dialog';
 import { AssetComponent } from './asset/asset.component';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
-import { DropdownModule } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { MessageService } from 'primeng/api';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
 
 interface Column {
   field: string;
@@ -66,20 +68,20 @@ interface AssetEntry {
     CardModule,
     CommonModule,
     DialogModule,
-    DropdownModule,
+    Select,
     FormsModule,
+    InputIconModule,
+    IconFieldModule,
     InputTextModule,
     STIGManagerAssetsTableComponent,
     TableModule,
-    TabViewModule,
+    TabsModule,
     TenableAssetsTableComponent,
     TooltipModule,
   ],
   providers: [DialogService, MessageService],
 })
-export class AssetProcessingComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('assetLabelsChart')
   assetLabelsChart!: ElementRef<HTMLCanvasElement>;
   @ViewChild('assetTable') assetTable!: Table;
@@ -125,13 +127,7 @@ export class AssetProcessingComponent
     },
   };
   customColumn = 'Asset';
-  defaultColumns = [
-    'Asset Name',
-    'Description',
-    'Collection',
-    'IP Address',
-    'MAC Address',
-  ];
+  defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'MAC Address'];
   allColumns = [this.customColumn, ...this.defaultColumns];
   cols!: Column[];
   exportColumns!: Column[];
@@ -166,31 +162,30 @@ export class AssetProcessingComponent
     private dialogService: DialogService,
     private setPayloadService: PayloadService,
     private sharedService: SharedService,
-    private collectionService: CollectionsService,
+    private collectionService: CollectionsService
   ) {
     Chart.register(...registerables);
   }
 
   async ngOnInit() {
     this.subscriptions.add(
-      await this.sharedService.selectedCollection.subscribe((collectionId) => {
+      await this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
-      }),
+      })
     );
     await (
       await this.collectionService.getCollectionBasicList()
     ).subscribe({
-      next: (data) => {
+      next: data => {
         const selectedCollectionData = data.find(
-          (collection: any) =>
-            collection.collectionId === this.selectedCollection,
+          (collection: any) => collection.collectionId === this.selectedCollection
         );
         if (selectedCollectionData) {
           this.collectionOrigin = selectedCollectionData.collectionOrigin;
           this.originCollectionId = selectedCollectionData.originCollectionId;
         }
       },
-      error: (error) => {
+      error: () => {
         this.collectionOrigin = '';
       },
     });
@@ -206,30 +201,26 @@ export class AssetProcessingComponent
   async setPayload() {
     await this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
+      this.setPayloadService.user$.subscribe(user => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe((payload) => {
+      this.setPayloadService.payload$.subscribe(payload => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
+      this.setPayloadService.accessLevel$.subscribe(level => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
           this.getAssetData();
         }
-      }),
+      })
     );
   }
 
   async getAssetData() {
     if (this.payload == undefined) return;
     this.subs.sink = forkJoin(
-      await this.assetService.getAssetsByCollection(
-        this.user.lastCollectionAccessedId,
-      ),
-      await this.assetService.getCollectionAssetLabel(
-        this.payload.lastCollectionAccessedId,
-      ),
+      await this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
+      await this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
     ).subscribe(
       ([assetData, assetLabelResponse]: any) => {
         if (!Array.isArray(assetData)) {
@@ -237,7 +228,7 @@ export class AssetProcessingComponent
         } else if (!Array.isArray(assetLabelResponse.assetLabel)) {
           console.error(
             'assetLabelResponse.assetLabel is not an array',
-            assetLabelResponse.assetLabel,
+            assetLabelResponse.assetLabel
           );
           return;
         }
@@ -246,16 +237,16 @@ export class AssetProcessingComponent
         this.setLabelChartData(this.assetLabel);
 
         this.data = (assetData as AssetEntry[])
-          .map((asset) => ({
+          .map(asset => ({
             ...asset,
             assetId: String(asset.assetId),
           }))
           .sort((a, b) => a.assetId.localeCompare(b.assetId));
         this.assets = this.data;
       },
-      (error) => {
+      error => {
         console.error('Failed to fetch assets by collection', error);
-      },
+      }
     );
   }
 
@@ -298,9 +289,7 @@ export class AssetProcessingComponent
   }
 
   applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value
-      .trim()
-      .toLowerCase();
+    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
     if (this.assetTable) {
       this.assetTable.filterGlobal(filterValue, 'contains');
     }
@@ -416,7 +405,7 @@ export class AssetProcessingComponent
   }
 
   setAsset(assetId: string) {
-    const selectedData = this.data.find((asset) => asset.assetId === assetId);
+    const selectedData = this.data.find(asset => asset.assetId === assetId);
     if (selectedData) {
       this.asset = { ...selectedData };
       this.assetDialogVisible = true;
@@ -461,9 +450,7 @@ export class AssetProcessingComponent
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach((subscription) =>
-      subscription.unsubscribe(),
-    );
+    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
