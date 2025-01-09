@@ -10,7 +10,7 @@
 
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
 import { eMASSImportService } from './emass-import.service';
 import { UsersService } from '../user-processing/users.service';
 import { firstValueFrom } from 'rxjs';
@@ -72,7 +72,7 @@ export class EmassImportComponent implements OnInit {
     });
   }
 
-  onSelect(event: any) {
+  onSelect(_event: any) {
     this.updateTotalSize();
   }
 
@@ -102,9 +102,7 @@ export class EmassImportComponent implements OnInit {
       const upload$ = await this.eMASSImportService.upload(file, this.user.userId);
       upload$.subscribe({
         next: (event: any) => {
-          if (event.type === HttpEventType.UploadProgress) {
-            const percentDone = event.total ? Math.round((100 * event.loaded) / event.total) : 0;
-          } else if (event instanceof HttpResponse) {
+          if (event instanceof HttpResponse) {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
@@ -135,7 +133,7 @@ export class EmassImportComponent implements OnInit {
     }
   }
 
-  choose(event: Event, chooseCallback: Function) {
+  choose(_event: Event, chooseCallback: Function) {
     chooseCallback();
   }
 
@@ -143,7 +141,7 @@ export class EmassImportComponent implements OnInit {
     uploadCallback();
   }
 
-  onRemoveFile(event: Event, file: File, removeCallback: Function, index: number) {
+  onRemoveFile(_event: Event, file: File, removeCallback: Function, _index: number) {
     removeCallback(file);
     this.updateTotalSize();
   }

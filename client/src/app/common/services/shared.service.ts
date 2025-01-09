@@ -84,73 +84,73 @@ export class SharedService {
       .pipe(catchError(this.handleError));
   }
 
-  async selectedCollectionFromSTIGMAN(collectionId: string) {
+  async selectedCollectionFromSTIGMAN(collectionId: number) {
     const endpoint = `${this.STIGMANAGER_URL}/collections/${collectionId}?projection=labels`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(endpoint, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getAssetsFromSTIGMAN(collectionId: string) {
+  async getAssetsFromSTIGMAN(collectionId: number) {
     const endpoint = `${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(endpoint, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getSTIGAssociatedAssets(collectionId: string, benchmarkId: string) {
+  async getSTIGAssociatedAssets(collectionId: number, benchmarkId: string) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getPOAMAssetsFromSTIGMAN(collectionId: string, benchmarkId: string) {
+  async getPOAMAssetsFromSTIGMAN(collectionId: number, benchmarkId: string) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=assets`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getFindingsFromSTIGMAN(collectionId: string) {
+  async getFindingsFromSTIGMAN(collectionId: number) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=stigs&projection=rules`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getAffectedAssetsFromSTIGMAN(collectionId: string) {
+  async getAffectedAssetsFromSTIGMAN(collectionId: number) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=stigs&projection=rules&projection=ccis`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getSTIGMANAffectedAssetsForExport(collectionId: string) {
+  async getSTIGMANAffectedAssetsForExport(collectionId: number) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=ccis`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getSTIGMANAffectedAssetsByPoam(collectionId: string, benchmarkId: string) {
+  async getSTIGMANAffectedAssetsByPoam(collectionId: number, benchmarkId: string) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=assets&projection=ccis`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getAffectedAssetsFromSTIGMANByBenchmarkId(collectionId: string, benchmarkId: string) {
+  async getAffectedAssetsFromSTIGMANByBenchmarkId(collectionId: number, benchmarkId: string) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getCollectionWithAssetsFromSTIGMAN(collectionId: string) {
+  async getCollectionWithAssetsFromSTIGMAN(collectionId: number) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}?elevate=false&projection=assets`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getAssetDetailsFromSTIGMAN(collectionId: string) {
+  async getAssetDetailsFromSTIGMAN(collectionId: number) {
     const url = `${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async getLabelsByCollectionSTIGMAN(collectionId: string) {
+  async getLabelsByCollectionSTIGMAN(collectionId: number) {
     const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/labels`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
@@ -162,7 +162,7 @@ export class SharedService {
     return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
   }
 
-  async selectedAssetsFromSTIGMAN(assetId: string) {
+  async selectedAssetsFromSTIGMAN(assetId: number) {
     const endpoint = `${this.STIGMANAGER_URL}/assets/${assetId}`;
     const headers = await this.getSTIGManagerAuthHeaders();
     return this.http.get<any>(endpoint, { headers }).pipe(catchError(this.handleError));

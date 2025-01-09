@@ -18,8 +18,6 @@ const { promisify } = require('util');
 const User = require('../Services/usersService')
 const axios = require('axios');
 const SmError = require('./error');
-const https = require('https');
-const fs = require('fs');
 const { differenceInMinutes } = require('date-fns');
 
 let jwksUri

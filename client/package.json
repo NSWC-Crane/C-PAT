@@ -22,7 +22,6 @@
     "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
     "json-to-plain-text": "^1.1.4",
-    "ng2-charts": "^7.0.0",
     "pace-js": "^1.2.4",
     "primeicons": "^7.0.0",
     "primeng": "^19.0.2",
@@ -38,13 +37,13 @@
     "@angular/service-worker": "^19.0.5",
     "@types/chart.js": "^2.9.41",
     "@types/jasmine": "^5.1.5",
-    "@types/node": "^22.10.2",
+    "@types/node": "^22.10.5",
     "autoprefixer": "^10.4.20",
     "jasmine-core": "^5.5.0",
     "npm-check-updates": "^17.1.13",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
-    "sass": "^1.83.0",
+    "sass": "^1.83.1",
     "tailwindcss": "^3.4.17"
   }
 }

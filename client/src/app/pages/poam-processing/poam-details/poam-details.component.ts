@@ -155,7 +155,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   selectedStigTitle: string = '';
   selectedStigObject: any = null;
   selectedStigBenchmarkId: string = '';
-  originCollectionId: any;
+  originCollectionId: number;
   stateData: any;
   selectedCollection: any;
   submitDialogVisible: boolean = false;

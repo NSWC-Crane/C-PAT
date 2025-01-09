@@ -8,11 +8,14 @@
 !##########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { SharedService } from './common/services/shared.service';
-import { AuthService } from './core/auth/services/auth.service';
 import { Classification } from './common/models/classification.model';
 import { RouterOutlet } from '@angular/router';
+import { PayloadService } from './common/services/setPayload.service';
+import { AuthService } from './core/auth/services/auth.service';
+import { Subscription } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'cpat-app',
@@ -20,20 +23,38 @@ import { RouterOutlet } from '@angular/router';
   standalone: true,
   imports: [RouterOutlet],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   classification: Classification | undefined;
-  userProfile: any = null;
+  private authSubscription: Subscription | undefined;
 
   constructor(
     private authService: AuthService,
-    private sharedService: SharedService
-  ) {}
+    private sharedService: SharedService,
+    private payloadService: PayloadService
+  ) { }
 
   public async ngOnInit() {
     try {
-      await this.authService.initializeApplication();
+      this.authSubscription = this.authService.authState$.subscribe({
+        next: async (authState) => {
+          await this.handleAuthState(authState.isAuthenticatedStigman, authState.isAuthenticatedCpat);
+        },
+        error: (error) => console.error('Auth state subscription error:', error)
+      });
+    } catch (error) {
+      console.error('Application initialization error:', error);
+    }
+  }
 
-      const apiConfig = await this.sharedService.getApiConfig().toPromise();
+  private async handleAuthState(isAuthenticatedStigman: boolean, isAuthenticatedCpat: boolean) {
+    try {
+      if (!isAuthenticatedStigman || !isAuthenticatedCpat) {
+        await this.authService.handleAuthFlow();
+        return;
+      }
+
+      await this.payloadService.setPayload();
+      const apiConfig = await firstValueFrom(this.sharedService.getApiConfig());
       if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {
         const apiClassification = (apiConfig as { classification: string }).classification;
         this.classification = new Classification(apiClassification);
@@ -41,7 +62,13 @@ export class AppComponent implements OnInit {
         console.error('Invalid API configuration response');
       }
     } catch (error) {
-      console.error('Authentication Error:', error);
+      console.error('Auth state handling error:', error);
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
     }
   }
 }

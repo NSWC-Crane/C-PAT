@@ -8,33 +8,10 @@
 !##########################################################################
 */
 
-.canvas {
-  position: relative;
-  overflow: hidden;
-}
-
-.export-button {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin-right: 0;
-}
-
-hr {
-  display: block;
-  height: 1px;
-  border: 0;
-  border-top: 1px solid #ccc;
-  margin: 1em 0;
-  padding: 0;
-}
-
-.row.align-items-center {
-  display: flex;
-  align-items: center;
-}
-
-.col-auto {
-  display: flex;
-  align-items: center;
-}
+  .export-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    margin: 0;
+    z-index: 1;
+  }

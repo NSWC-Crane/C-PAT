@@ -17,8 +17,7 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app/app-routing.module';
 import { providePrimeNG } from 'primeng/config';
 import { provideHttpClient } from '@angular/common/http';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { AuthModule } from 'angular-auth-oidc-client';
+import { provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
 import { APP_BASE_HREF } from '@angular/common';
 import Noir from './app/app-theme';
 import { BrowserModule } from '@angular/platform-browser';
@@ -68,58 +67,62 @@ bootstrapApplication(AppComponent, {
     provideHttpClient(),
     provideAnimationsAsync(),
     provideRouter(routes),
-    provideCharts(withDefaultRegisterables()),
     providePrimeNG({ theme: Noir, ripple: false, inputStyle: 'outlined' }),
     importProvidersFrom(
       BrowserModule,
       BrowserAnimationsModule,
-      FormsModule,
-      AuthModule.forRoot({
-        config: [
-          {
-            configId: 'cpat',
-            postLoginRoute: '/poam-processing',
-            unauthorizedRoute: '/403',
-            forbiddenRoute: '/401',
-            authority: CPAT.Env.oauth.authority,
-            redirectUrl: window.location.origin,
-            postLogoutRedirectUri: window.location.origin,
-            clientId: CPAT.Env.oauth.clientId,
-            scope: getScopeStr('cpat'),
-            responseType: 'code',
-            silentRenew: true,
-            silentRenewUrl: `${window.location.origin}/silent-renew.html`,
-            renewTimeBeforeTokenExpiresInSeconds: 60,
-            allowUnsafeReuseRefreshToken: true,
-            useRefreshToken: true,
-            refreshTokenRetryInSeconds: 6,
-            tokenRefreshInSeconds: 6,
-            autoUserInfo: true,
-            ignoreNonceAfterRefresh: true,
-            triggerRefreshWhenIdTokenExpired: false,
-          },
-          {
-            configId: 'stigman',
-            unauthorizedRoute: '/403',
-            forbiddenRoute: '/401',
-            authority: CPAT.Env.oauth.authority,
-            redirectUrl: window.location.origin,
-            postLogoutRedirectUri: window.location.origin,
-            clientId: CPAT.Env.stigman.clientId,
-            scope: getScopeStr('stigman'),
-            responseType: 'code',
-            silentRenew: true,
-            silentRenewUrl: `${window.location.origin}/silent-renew.html`,
-            renewTimeBeforeTokenExpiresInSeconds: 60,
-            allowUnsafeReuseRefreshToken: true,
-            useRefreshToken: true,
-            refreshTokenRetryInSeconds: 6,
-            tokenRefreshInSeconds: 6,
-            ignoreNonceAfterRefresh: true,
-            triggerRefreshWhenIdTokenExpired: false,
-          },
-        ],
-      })
-    )
+      FormsModule
+    ),
+    provideAuth({
+      config: [
+        {
+          configId: 'cpat',
+          authority: CPAT.Env.oauth.authority,
+          redirectUrl: window.location.origin,
+          postLogoutRedirectUri: window.location.origin,
+          clientId: CPAT.Env.oauth.clientId,
+          scope: getScopeStr('cpat'),
+          responseType: 'code',
+          useRefreshToken: true,
+          silentRenew: true,
+          silentRenewUrl: `${window.location.origin}/silent-renew.html`,
+          autoUserInfo: true,
+          renewUserInfoAfterTokenRenew: true,
+          triggerAuthorizationResultEvent: true,
+          startCheckSession: true,
+          postLoginRoute: '/poam-processing',
+          unauthorizedRoute: '/403',
+          forbiddenRoute: '/401',
+          tokenRefreshInSeconds: 6,
+          refreshTokenRetryInSeconds: 6,
+          ignoreNonceAfterRefresh: true,
+          maxIdTokenIatOffsetAllowedInSeconds: 600,
+          disableRefreshIdTokenAuthTimeValidation: true
+        },
+        {
+          configId: 'stigman',
+          authority: CPAT.Env.oauth.authority,
+          redirectUrl: window.location.origin,
+          postLogoutRedirectUri: window.location.origin,
+          clientId: CPAT.Env.stigman.clientId,
+          scope: getScopeStr('stigman'),
+          responseType: 'code',
+          useRefreshToken: true,
+          silentRenew: true,
+          silentRenewUrl: `${window.location.origin}/silent-renew.html`,
+          autoUserInfo: true,
+          renewUserInfoAfterTokenRenew: true,
+          triggerAuthorizationResultEvent: true,
+          startCheckSession: true,
+          unauthorizedRoute: '/403',
+          forbiddenRoute: '/401',
+          tokenRefreshInSeconds: 6,
+          refreshTokenRetryInSeconds: 6,
+          ignoreNonceAfterRefresh: true,
+          maxIdTokenIatOffsetAllowedInSeconds: 600,
+          disableRefreshIdTokenAuthTimeValidation: true
+        }
+      ]
+    }, withAppInitializerAuthCheck())
   ]
 }).catch(err => console.error(err));

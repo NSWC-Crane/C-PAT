@@ -4832,7 +4832,7 @@ components:
       type: object
       properties:
         collectionId:
-          type: string
+          type: integer
         name:
           type: string
         description:

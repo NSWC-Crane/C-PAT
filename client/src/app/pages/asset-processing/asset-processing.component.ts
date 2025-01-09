@@ -9,21 +9,15 @@
 */
 
 import {
-  AfterViewInit,
-  ChangeDetectorRef,
   Component,
-  ElementRef,
   OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
 import { AssetService } from './assets.service';
-import { forkJoin, Observable, Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
-import { ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { PayloadService } from '../../common/services/setPayload.service';
-import { Chart, registerables, ChartData } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { DialogService } from 'primeng/dynamicdialog';
 import { Table, TableModule } from 'primeng/table';
 import { SharedService } from '../../common/services/shared.service';
@@ -32,6 +26,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { ChartModule } from 'primeng/chart';
 import { STIGManagerAssetsTableComponent } from '../import-processing/stigmanager-import/stigManagerAssetsTable/stigManagerAssetsTable.component';
 import { TenableAssetsTableComponent } from '../import-processing/tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
 import { TabsModule } from 'primeng/tabs';
@@ -40,7 +35,6 @@ import { AssetComponent } from './asset/asset.component';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { Select } from 'primeng/select';
-import { MessageService } from 'primeng/api';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 
@@ -66,6 +60,7 @@ interface AssetEntry {
     AssetComponent,
     ButtonModule,
     CardModule,
+    ChartModule,
     CommonModule,
     DialogModule,
     Select,
@@ -79,61 +74,17 @@ interface AssetEntry {
     TenableAssetsTableComponent,
     TooltipModule,
   ],
-  providers: [DialogService, MessageService],
+  providers: [DialogService],
 })
-export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('assetLabelsChart')
-  assetLabelsChart!: ElementRef<HTMLCanvasElement>;
+export class AssetProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('assetTable') assetTable!: Table;
-  searchValue: string = '';
   public assetLabel: any[] = [];
-  assetLabelChart!: Chart;
-  assetLabelChartData: ChartData<'bar'> = {
-    labels: [''],
-    datasets: [],
-  };
-  barChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: { grid: { display: true } },
-      y: {
-        beginAtZero: true,
-        grace: '5%',
-        grid: {
-          display: false,
-        },
-        ticks: {
-          font: {
-            weight: 600,
-          },
-        },
-      },
-    },
-    plugins: {
-      title: {
-        display: false,
-      },
-      legend: {
-        display: true,
-        labels: {
-          font: {
-            size: 13,
-            family: 'sans-serif',
-            weight: 600,
-          },
-        },
-      },
-    },
-  };
-  customColumn = 'Asset';
-  defaultColumns = ['Asset Name', 'Description', 'Collection', 'IP Address', 'MAC Address'];
-  allColumns = [this.customColumn, ...this.defaultColumns];
+  chartData: any;
+  chartOptions: any;
   cols!: Column[];
   exportColumns!: Column[];
   data: AssetEntry[] = [];
   filterValue: string = '';
-  users: any;
   assets: AssetEntry[] = [];
   asset: AssetEntry = {
     assetId: '',
@@ -142,14 +93,12 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     ipAddress: '',
     macAddress: '',
   };
-  collectionList: any;
-  allowSelectAssets = true;
   selectedCollection: any;
   assetDialogVisible: boolean = false;
   selectedAssets: AssetEntry[] = [];
-  collectionOrigin: any;
-  originCollectionId: any;
-  protected accessLevel: any;
+  collectionOrigin: string;
+  originCollectionId: number;
+  protected accessLevel: number;
   user: any;
   payload: any;
   private payloadSubscription: Subscription[] = [];
@@ -158,13 +107,11 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
 
   constructor(
     private assetService: AssetService,
-    private cdr: ChangeDetectorRef,
-    private dialogService: DialogService,
     private setPayloadService: PayloadService,
     private sharedService: SharedService,
     private collectionService: CollectionsService
   ) {
-    Chart.register(...registerables);
+    this.initializeChartOptions();
   }
 
   async ngOnInit() {
@@ -193,9 +140,34 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     this.initializeColumns();
   }
 
-  ngAfterViewInit() {
-    this.initializeChart();
-    this.cdr.detectChanges();
+  private initializeChartOptions() {
+    this.chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: true } },
+        y: {
+          beginAtZero: true,
+          grace: '5%',
+          grid: { display: false },
+          ticks: {
+            font: { weight: 600 }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            font: {
+              size: 13,
+              family: 'sans-serif',
+              weight: 600
+            }
+          }
+        }
+      }
+    };
   }
 
   async setPayload() {
@@ -262,30 +234,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       { field: 'ipAddress', header: 'IP Address' },
       { field: 'macAddress', header: 'MAC Address' },
     ];
-    this.exportColumns = this.cols;
-  }
-
-  private initializeChart(): void {
-    if (!this.assetLabelsChart?.nativeElement) {
-      console.error('Unable to initialize chart: Element not available.');
-      return;
-    }
-
-    Chart.defaults.set('plugins.datalabels', {
-      display: false,
-    });
-    this.cdr.detectChanges();
-
-    this.assetLabelChart = new Chart(this.assetLabelsChart.nativeElement, {
-      type: 'bar',
-      data: this.assetLabelChartData,
-      plugins: [ChartDataLabels],
-      options: this.barChartOptions,
-    });
-
-    if (this.assetLabel) {
-      this.updateLabelChartData(this.assetLabel);
-    }
   }
 
   applyFilter(event: Event) {
@@ -295,15 +243,7 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     }
   }
 
-  onGlobalFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    if (this.assetTable) {
-      this.assetTable.filterGlobal(filterValue, 'contains');
-    }
-  }
-
   clear() {
-    this.searchValue = '';
     if (this.assetTable) {
       this.assetTable.clear();
     }
@@ -311,97 +251,24 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     this.data = [...this.assets];
   }
 
-  showPopup(message: string) {
-    const dialogOptions: ConfirmationDialogOptions = {
-      header: 'Alert',
-      body: message,
-      button: { text: 'OK', status: 'info' },
-      cancelbutton: 'false',
-    };
-    this.dialogService.open(ConfirmationDialogOptions, {
-      closeOnEscape: true,
-      data: {
-        options: dialogOptions,
-      },
-    });
-  }
-
   setLabelChartData(assetLabel: any[]) {
-    this.updateLabelChartData(assetLabel);
+    this.chartData = {
+      labels: ['Assets'],
+      datasets: assetLabel.map(item => ({
+        label: item.label,
+        data: [item.labelCount]
+      }))
+    };
   }
 
-  updateLabelChartData(assetLabel: any[]): void {
-    if (!this.assetLabelChart) {
-      console.warn('Asset Label chart is not initialized.');
-      return;
-    }
-    const datasets = assetLabel.map((item: any) => ({
-      label: item.label,
-      data: [item.labelCount],
-      datalabels: {},
-    }));
-    this.assetLabelChart.data.datasets = datasets;
-    this.assetLabelChart.update();
-  }
-
-  exportChart(chartInstance: Chart, chartName: string) {
-    const exportDatalabelsOptions = {
-      backgroundColor: function (context: any) {
-        const datasetBackgroundColor =
-          context.chart.data.datasets[context.datasetIndex].backgroundColor;
-        return Array.isArray(datasetBackgroundColor)
-          ? datasetBackgroundColor[context.dataIndex]
-          : datasetBackgroundColor;
-      },
-      borderRadius: 4,
-      color: 'white',
-      display: true,
-      font: {
-        weight: 'bold',
-      },
-      align: 'end',
-      anchor: 'end',
-      padding: 6,
-    };
-
-    chartInstance.data.datasets.forEach((dataset: any) => {
-      if (dataset.datalabels) {
-        Object.assign(dataset.datalabels, exportDatalabelsOptions);
-      }
-    });
-    chartInstance.options.plugins!.title = {
-      display: true,
-      text: `${chartName}`,
-      position: 'bottom',
-    };
-    chartInstance.update();
-
-    setTimeout(() => {
-      const canvas = chartInstance.canvas;
-      const dataURL = canvas.toDataURL('image/png');
+  exportChart() {
+    const canvas = document.getElementsByTagName('canvas')[0];
+    if (canvas) {
       const link = document.createElement('a');
-      link.download = `${chartName}_Export.png`;
-      link.href = dataURL;
-      document.body.appendChild(link);
+      link.download = 'C-PAT_Asset_Label_Chart.png';
+      link.href = canvas.toDataURL('image/png');
       link.click();
-      document.body.removeChild(link);
-
-      setTimeout(() => {
-        const disappearDatalabelsOptions = {
-          display: false,
-        };
-
-        chartInstance.data.datasets.forEach((dataset: any) => {
-          if (dataset.datalabels) {
-            Object.assign(dataset.datalabels, disappearDatalabelsOptions);
-          }
-        });
-        chartInstance.options.plugins!.title = {
-          display: false,
-        };
-        chartInstance.update();
-      }, 500);
-    }, 150);
+    }
   }
 
   setAsset(assetId: string) {
@@ -440,7 +307,6 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
       macAddress: '',
     };
     this.getAssetData();
-    this.allowSelectAssets = true;
   }
 
   closeAssetDialog() {
@@ -452,12 +318,4 @@ export class AssetProcessingComponent implements OnInit, AfterViewInit, OnDestro
     this.subscriptions.unsubscribe();
     this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
   }
-
-  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-    this.dialogService.open(ConfirmationDialogOptions, {
-      closeOnEscape: true,
-      data: {
-        options: dialogOptions,
-      },
-    }).onClose;
 }

@@ -72,7 +72,7 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionMonthlyPoamStatus(collectionId: string) {
+  async getCollectionMonthlyPoamStatus(collectionId: number) {
     const headers = await this.getAuthHeaders();
     return this.http
       .get(`${this.cpatApiBase}/metrics/collection/${collectionId}/monthlypoamstatus`, { headers })
@@ -102,7 +102,7 @@ export class PoamService {
   }
 
   async getPoamsByCollection(
-    collectionId: string,
+    collectionId: number,
     includeApprovers: boolean = false,
     includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
@@ -159,7 +159,7 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamAssetsByCollectionId(collectionId: string) {
+  async getPoamAssetsByCollectionId(collectionId: number) {
     const headers = await this.getAuthHeaders();
     return this.http
       .get(`${this.cpatApiBase}/poamAssets/${collectionId}`, { headers })
@@ -321,14 +321,14 @@ export class PoamService {
     );
   }
 
-  async getLabels(collectionId: string) {
+  async getLabels(collectionId: number) {
     const headers = await this.getAuthHeaders();
     return this.http
       .get(`${this.cpatApiBase}/labels/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async postLabel(collectionId: string, label: any) {
+  async postLabel(collectionId: number, label: any) {
     const headers = await this.getAuthHeaders();
     return this.http
       .post<any>(`${this.cpatApiBase}/label/${collectionId}`, label, {

@@ -47,7 +47,7 @@ interface Label {
   ],
 })
 export class STIGManagerPoamAssetsTableComponent implements OnInit {
-  @Input() stigmanCollectionId!: string;
+  @Input() stigmanCollectionId!: number;
   @Input() groupId!: string;
   @Input() benchmarkId: string;
   @ViewChild('dt') table!: Table;

@@ -16,96 +16,80 @@
           <p-inputIcon>
             <i class="pi pi-search"></i>
           </p-inputIcon>
-          <input
-            pInputText
-            type="text"
-            [(ngModel)]="globalFilter"
-            (input)="onFilterChange($event)"
-            placeholder="Search..."
-          />
+          <input pInputText
+                 type="text"
+                 [(ngModel)]="globalFilter"
+                 (input)="onFilterChange($event)"
+                 placeholder="Search..." />
         </p-iconField>
-        <p-button
-          class="ml-2"
-          [rounded]="true"
-          [text]="true"
-          [raised]="true"
-          severity="secondary"
-          icon="pi pi-filter-slash"
-          (click)="clear()"
-          (onKeyUp)="clear()"
-          pTooltip="Reset default filters"
-        ></p-button>
+        <p-button class="ml-2"
+                  [rounded]="true"
+                  [text]="true"
+                  [raised]="true"
+                  severity="secondary"
+                  icon="pi pi-filter-slash"
+                  (click)="clear()"
+                  (onKeyUp)="clear()"
+                  pTooltip="Reset default filters"></p-button>
       </div>
       <div class="right-buttons">
-        <p-button
-          class="ml-2"
-          icon="pi pi-external-link"
-          severity="secondary"
-          [rounded]="true"
-          [text]="true"
-          (onClick)="exportCollection()"
-          (onKeyUp)="exportCollection()"
-        >
+        <p-button class="ml-2"
+                  icon="pi pi-external-link"
+                  severity="secondary"
+                  [rounded]="true"
+                  [text]="true"
+                  (onClick)="exportCollection()"
+                  (onKeyUp)="exportCollection()">
         </p-button>
       </div>
     </div>
-    <div class="table-container" (scroll)="onScroll($event)">
-      <p-table
-        #dt
-        [value]="displayedData"
-        [resizableColumns]="true"
-        [scrollable]="true"
-        scrollHeight="50rem"
-        [paginator]="false"
-        columnResizeMode="fit"
-        [globalFilterFields]="['lastUpdated', 'poamId', 'status', 'taskOrderNumber', 'iavmNumber', 'vulnerabilityTitle', 'adjSeverity', 'submitter', 'assignedTeams', 'associatedVulnerabilities', 'submittedDate', 'scheduledCompletionDate']"
-      >
+    <div class="table-container">
+      <p-table #dt
+               [value]="displayedData"
+               [resizableColumns]="true"
+               [scrollable]="true"
+               scrollHeight="50rem"
+               [paginator]="false"
+               columnResizeMode="fit"
+               [globalFilterFields]="['lastUpdated', 'poamId', 'status', 'taskOrderNumber', 'iavmNumber', 'vulnerabilityTitle', 'adjSeverity', 'submitter', 'assignedTeams', 'associatedVulnerabilities', 'submittedDate', 'scheduledCompletionDate']">
         <ng-template pTemplate="header">
           <tr>
             <th scope="col" pResizableColumn style="text-align: center">
               <div class="flex justify-center items-center" style="height: 100%">
                 <i class="pi pi-clock" style="font-size: 1.5rem" pTooltip="Last Updated"></i>
-                <p-columnFilter
-                  type="date"
-                  field="lastUpdated"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="date"
+                                field="lastUpdated"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 POAM ID
-                <p-columnFilter
-                  type="text"
-                  field="poamId"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="poamId"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 POAM Status
-                <p-columnFilter
-                  type="text"
-                  field="status"
-                  [type]="'text'"
-                  [showOperator]="false"
-                  [showMatchModes]="true"
-                  [showAddButton]="false"
-                  [showButtons]="true"
-                  display="menu"
-                >
+                <p-columnFilter type="text"
+                                field="status"
+                                [type]="'text'"
+                                [showOperator]="false"
+                                [showMatchModes]="true"
+                                [showAddButton]="false"
+                                [showButtons]="true"
+                                display="menu">
                   <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                    <p-select
-                      [ngModel]="value"
-                      [options]="poamStatusOptions"
-                      (onChange)="filter($event.value)"
-                      placeholder="Select Status"
-                      [showClear]="true"
-                      styleClass="w-full"
-                    >
+                    <p-select [ngModel]="value"
+                              [options]="poamStatusOptions"
+                              (onChange)="filter($event.value)"
+                              placeholder="Select Status"
+                              [showClear]="true"
+                              styleClass="w-full">
                     </p-select>
                   </ng-template>
                 </p-columnFilter>
@@ -114,122 +98,100 @@
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Vulnerability Source
-                <p-columnFilter
-                  type="text"
-                  field="source"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="source"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Vulnerability ID
-                <p-columnFilter
-                  type="text"
-                  field="vulnerabilityId"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="vulnerabilityId"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Associated Vulnerabilities
-                <p-columnFilter
-                  type="text"
-                  field="associatedVulnerabilities"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="associatedVulnerabilities"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Task Order #
-                <p-columnFilter
-                  type="text"
-                  field="taskOrderNumber"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="taskOrderNumber"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 IAV
-                <p-columnFilter
-                  type="text"
-                  field="iavmNumber"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="iavmNumber"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Vulnerability Name
-                <p-columnFilter
-                  type="text"
-                  field="vulnerabilityTitle"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="vulnerabilityTitle"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Adjusted Severity
-                <p-columnFilter
-                  type="text"
-                  field="adjSeverity"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="adjSeverity"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Submitter
-                <p-columnFilter
-                  type="text"
-                  field="submitter"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="submitter"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Assigned Teams
-                <p-columnFilter
-                  type="text"
-                  field="assignedTeams"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="text"
+                                field="assignedTeams"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Submitted Date
-                <p-columnFilter
-                  type="date"
-                  field="submittedDate"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="date"
+                                field="submittedDate"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>
               <div class="flex items-center">
                 Scheduled Completion
-                <p-columnFilter
-                  type="date"
-                  field="scheduledCompletionDate"
-                  [showOperator]="false"
-                  display="menu"
-                ></p-columnFilter>
+                <p-columnFilter type="date"
+                                field="scheduledCompletionDate"
+                                [showOperator]="false"
+                                display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn>POAM</th>
@@ -245,12 +207,10 @@
             <td>
               <div class="flex flex-wrap gap-2">
                 <ng-container *ngFor="let vuln of row.associatedVulnerabilities.split(',')">
-                  <p-tag
-                    *ngIf="vuln?.trim()"
-                    [rounded]="true"
-                    [value]="vuln.trim()"
-                    [style]="{'margin': '2px'}"
-                  >
+                  <p-tag *ngIf="vuln?.trim()"
+                         [rounded]="true"
+                         [value]="vuln.trim()"
+                         [style]="{'margin': '2px'}">
                   </p-tag>
                 </ng-container>
               </div>
@@ -263,12 +223,10 @@
             <td>
               <div class="flex flex-wrap gap-2">
                 <ng-container *ngFor="let team of row.assignedTeams.split(', ')">
-                  <p-tag
-                    *ngIf="team?.trim()"
-                    [rounded]="true"
-                    [value]="team.trim()"
-                    [style]="{'margin': '2px'}"
-                  >
+                  <p-tag *ngIf="team?.trim()"
+                         [rounded]="true"
+                         [value]="team.trim()"
+                         [style]="{'margin': '2px'}">
                   </p-tag>
                 </ng-container>
               </div>
@@ -276,13 +234,11 @@
             <td>{{ row.submittedDate }}</td>
             <td>{{ row.scheduledCompletionDate }}</td>
             <td>
-              <button
-                pButton
-                type="button"
-                icon="pi pi-eye"
-                class="p-button-text"
-                (click)="managePoam(row)"
-              ></button>
+              <button pButton
+                      type="button"
+                      icon="pi pi-eye"
+                      class="p-button-text"
+                      (click)="managePoam(row)"></button>
             </td>
           </tr>
         </ng-template>

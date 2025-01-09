@@ -115,14 +115,13 @@
                     li {
                         a {
                             border-inline-start: 1px solid var(--border-color);
-                            transition: all .2s;
                             font-weight: 450;
                             display: flex;
                             align-items: center;
                             padding: .5rem;
                             padding-inline-start: 1rem;
                             color: var(--text-secondary-color);
-                            transition: outline-color 0.2s, border-color .2s;
+                            transition: all .2s, outline-color 0.2s, border-color .2s;
                             outline-color: transparent;
                             position: relative;
                             --p-focus-ring-offset: -1px;

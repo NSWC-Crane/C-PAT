@@ -12,7 +12,16 @@ import { Injectable } from '@angular/core';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { Users } from '../../pages/admin-processing/user-processing/users.model';
-import { AuthService } from '../../core/auth/services/auth.service';
+
+interface Permission {
+  collectionId: any;
+  accessLevel: number;
+}
+
+interface Payload extends Users {
+  collections: Permission[];
+}
+
 
 @Injectable({
   providedIn: 'root',
@@ -27,22 +36,11 @@ export class PayloadService {
   accessLevel$ = this.accessLevelSubject.asObservable();
 
   constructor(
-    private authService: AuthService,
     private userService: UsersService
-  ) {}
+  ) { }
 
   async setPayload() {
-    await firstValueFrom(this.authService.waitForAuthInitialized());
     try {
-      interface Permission {
-        collectionId: any;
-        accessLevel: number;
-      }
-
-      interface Payload extends Users {
-        collections: Permission[];
-      }
-
       const response = (await firstValueFrom(await this.userService.getCurrentUser())) as Users;
 
       if (response?.userId) {

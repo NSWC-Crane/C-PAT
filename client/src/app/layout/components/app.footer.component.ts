@@ -7,7 +7,7 @@ import { RouterModule } from '@angular/router';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <section class="landing-footer pt-20 px-8 lg:px-20">
+    <section class="landing-footer bottom-0">
       <div class="landing-footer-container">
         <hr class="section-divider" />
 
