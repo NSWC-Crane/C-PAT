@@ -22,16 +22,16 @@ import { Select } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 
 interface STIGManagerCollection {
-  collectionId: string;
+  collectionId: number;
   name: string;
   description?: string;
 }
 
 interface CollectionBasicList {
-  collectionId: string;
+  collectionId: number;
   collectionName: string;
   collectionOrigin?: string;
-  originCollectionId?: string;
+  originCollectionId?: number;
 }
 
 @Component({

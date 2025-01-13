@@ -16,9 +16,9 @@ const Umzug = require('umzug');
 const path = require('path');
 const fs = require("fs");
 const semverLt = require('semver/functions/lt');
+const semverCoerce = require('semver/functions/coerce');
 const Importer = require('./migrations/lib/mysql-import.js');
-const MyStorage = require('./migrations/lib/umzug-mysql-storage.js')
-const minMySqlVersion = '8.0.14';
+const minMySqlVersion = '8.0.21';
 let _this = this;
 let initAttempt = 0;
 
@@ -116,11 +116,10 @@ module.exports.initializeDatabase = async function (depStatus) {
         minTimeout: 5 * 1000,
         maxTimeout: 5 * 1000,
         onRetry: (error) => {
-            logger.writeError('mysql', 'preflight', { success: false, message: error.message });
+            logger.writeError('mysql', 'preflight', { success: false, message: error.message })
         }
-    });
-
-    if (semverLt(detectedMySqlVersion, minMySqlVersion)) {
+    })
+    if (semverLt(semverCoerce(detectedMySqlVersion), minMySqlVersion)) {
         logger.writeError('mysql', 'preflight', { success: false, message: `MySQL release ${detectedMySqlVersion} is too old. Update to release ${minMySqlVersion} or later.` })
         process.exit(1)
     }
@@ -170,6 +169,8 @@ module.exports.initializeDatabase = async function (depStatus) {
             logger.writeInfo('mysql', 'migration', { message: `MySQL schema is up to date` })
         }
         depStatus.db = 'up'
+        const migrated = await umzug.executed()
+        config.lastMigration = parseInt(migrated[migrated.length - 1].file.substring(0, 4))
     }
     catch (error) {
         logger.writeError('mysql', 'initalization', { message: error.message })

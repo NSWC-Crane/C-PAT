@@ -30,6 +30,7 @@
               <tr>
                 <th
                   *ngFor="let col of allColumns"
+                  id="col"
                   [pSortableColumn]="col.field"
                   [ngStyle]="{'width': col.width}"
                 >
@@ -103,15 +104,15 @@
       </p-tabpanel>
       <p-tabpanel value="1">
         <div class="canvas" id="canvas" style="margin-top: 20px">
-          <button
-            pButton
-            pRipple
-            type="button"
-            icon="pi pi-download"
-            class="p-button-rounded p-button-text export-button"
-            (click)="exportChart(findingsChart, 'STIG Manager Findings Chart')"
-          ></button>
-          <canvas #findingChart class="findings-chart"></canvas>
+          <button pButton
+                  type="button"
+                  icon="pi pi-download"
+                  class="p-button-rounded p-button-text export-button"
+                  (click)="exportChart()"></button>
+          <p-chart type="bar"
+                   [data]="chartData"
+                   [options]="chartOptions"
+                   styleClass="w-full h-96"></p-chart>
         </div>
       </p-tabpanel>
     </p-tabpanels>

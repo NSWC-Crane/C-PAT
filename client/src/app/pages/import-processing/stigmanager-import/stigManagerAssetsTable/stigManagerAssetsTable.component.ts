@@ -48,7 +48,7 @@ interface Label {
   ],
 })
 export class STIGManagerAssetsTableComponent implements OnInit {
-  @Input() stigmanCollectionId!: string;
+  @Input() stigmanCollectionId!: number;
   @ViewChild('dt') table!: Table;
   @ViewChild('ms') multiSelect!: MultiSelect;
 

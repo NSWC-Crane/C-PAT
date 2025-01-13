@@ -8,16 +8,13 @@
 !##########################################################################
 */
 
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { Chart, ChartData, registerables } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { Observable, Subscription } from 'rxjs';
-import { SubSink } from 'subsink';
+import { Subscription } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../admin-processing/user-processing/users.service';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { PoamService } from '../../poam-processing/poams.service';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
@@ -30,6 +27,7 @@ import { CardModule } from 'primeng/card';
 import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
+import { ChartModule } from 'primeng/chart';
 
 interface AssetEntry {
   groupId: string;
@@ -50,6 +48,7 @@ interface AssetEntry {
   imports: [
     ButtonModule,
     CardModule,
+    ChartModule,
     CommonModule,
     Select,
     FormsModule,
@@ -60,11 +59,10 @@ interface AssetEntry {
     ToastModule,
     TooltipModule,
   ],
-  providers: [ConfirmationService, MessageService],
+  providers: [MessageService],
 })
 export class STIGManagerImportComponent implements OnInit, OnDestroy {
   @ViewChild('stigFindingsTable') table!: Table;
-  @ViewChild('findingChart') findingChart!: ElementRef<HTMLCanvasElement>;
   allColumns = [
     {
       field: 'poam',
@@ -100,24 +98,16 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   loadingSkeletonData: any[] = Array(10).fill({});
   multiSortMeta: any[] = [];
   selectedFindings: string = '';
-  collectionBasicList: any[] = [];
   selectedCollection: any;
   stigmanCollection: any;
   user: any;
-  private subs = new SubSink();
   private subscriptions = new Subscription();
-  public findings: any[] = [];
   findingsCount: number = 0;
-  findingsChart!: Chart;
-  findingsChartData: ChartData<'bar'> = {
-    labels: [''],
-    datasets: [],
-  };
-  public selectedPosition: any = 'bottom';
-  barChartOptions = {
+  chartData: any;
+  chartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y' as const,
+    indexAxis: 'y',
     scales: {
       x: {
         beginAtZero: true,
@@ -138,12 +128,9 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       },
     },
     plugins: {
-      title: {
-        display: false,
-      },
       legend: {
         display: true,
-        position: this.selectedPosition,
+        position: 'bottom',
         labels: {
           font: {
             size: 13,
@@ -155,32 +142,14 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     },
   };
 
-  findingsFilterOptions = [
-    { label: 'All', value: 'All' },
-    { label: 'No Existing POAM', value: 'No Existing POAM' },
-    { label: 'Draft', value: 'Draft' },
-    { label: 'Submitted', value: 'Submitted' },
-    { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
-    { label: 'Extension Requested', value: 'Extension Requested' },
-    { label: 'Approved', value: 'Approved' },
-    { label: 'Expired', value: 'Expired' },
-    { label: 'Rejected', value: 'Rejected' },
-    { label: 'Closed', value: 'Closed' },
-    { label: 'False-Positive', value: 'False-Positive' },
-    { label: 'Associated', value: 'Associated' },
-  ];
-
   constructor(
     private router: Router,
     private collectionService: CollectionsService,
     private sharedService: SharedService,
     private userService: UsersService,
-    private confirmationService: ConfirmationService,
     private messageService: MessageService,
     private poamService: PoamService
-  ) {
-    Chart.register(...registerables);
-  }
+  ) {}
 
   async ngOnInit() {
     this.subscriptions.add(
@@ -207,34 +176,14 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }
   }
 
-  updateFindingsChartData(findings: any[]): void {
-    if (this.findingsChart) {
-      const datasets = findings.map(item => ({
+  private updateFindingsChartData(findings: any[]): void {
+    this.chartData = {
+      labels: [''],
+      datasets: findings.map(item => ({
         label: item.severity,
-        data: [item.severityCount],
-        datalabels: {},
-      }));
-      this.findingsChart.data.datasets = datasets;
-      this.findingsChart.update();
-    } else {
-      console.warn('Findings chart is not initialized.');
-    }
-  }
-
-  private initializeChart(): void {
-    Chart.defaults.set('plugins.datalabels', {
-      display: false,
-    });
-    if (this.findingChart?.nativeElement) {
-      this.findingsChart = new Chart(this.findingChart.nativeElement, {
-        type: 'bar',
-        data: this.findingsChartData,
-        plugins: [ChartDataLabels],
-        options: this.barChartOptions,
-      });
-    } else {
-      console.error('Unable to initialize chart: Element not available.');
-    }
+        data: [item.severityCount]
+      }))
+    };
   }
 
   getSeverityClass(severity: string): string {
@@ -251,64 +200,16 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.table.filterGlobal(inputValue, 'contains');
   }
 
-  exportChart(chartInstance: Chart, chartName: string) {
-    const exportDatalabelsOptions = {
-      backgroundColor: function (context: any) {
-        const datasetBackgroundColor =
-          context.chart.data.datasets[context.datasetIndex].backgroundColor;
-        return Array.isArray(datasetBackgroundColor)
-          ? datasetBackgroundColor[context.dataIndex]
-          : datasetBackgroundColor;
-      },
-      borderRadius: 4,
-      color: 'white',
-      display: true,
-      font: {
-        weight: 'bold',
-      },
-      align: 'end',
-      anchor: 'end',
-      padding: 6,
-    };
-
-    chartInstance.data.datasets.forEach(dataset => {
-      if (dataset.datalabels) {
-        Object.assign(dataset.datalabels, exportDatalabelsOptions);
+  exportChart() {
+    if (document) {
+      const canvas = document.getElementsByTagName('canvas')[0];
+      if (canvas) {
+        const link = document.createElement('a');
+        link.download = 'STIG_Manager_Findings_Chart.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
       }
-    });
-    chartInstance.options.plugins!.title = {
-      display: true,
-      text: `${chartName}`,
-      position: 'bottom',
-    };
-    chartInstance.update();
-
-    setTimeout(() => {
-      const canvas = chartInstance.canvas;
-      const dataURL = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `${chartName}_Export.png`;
-      link.href = dataURL;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      setTimeout(() => {
-        const disappearDatalabelsOptions = {
-          display: false,
-        };
-
-        chartInstance.data.datasets.forEach(dataset => {
-          if (dataset.datalabels) {
-            Object.assign(dataset.datalabels, disappearDatalabelsOptions);
-          }
-        });
-        chartInstance.options.plugins!.title = {
-          display: false,
-        };
-        chartInstance.update();
-      }, 500);
-    }, 150);
+    }
   }
 
   async validateStigManagerCollection() {
@@ -318,7 +219,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       ).toPromise();
 
       const selectedCollection = basicListData?.find(
-        collection => collection.collectionId === this.user.lastCollectionAccessedId
+        collection => +collection.collectionId === +this.user.lastCollectionAccessedId
       );
 
       if (!selectedCollection) {
@@ -332,7 +233,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       }
 
       this.stigmanCollection = {
-        collectionId: selectedCollection.originCollectionId!.toString(),
+        collectionId: selectedCollection.originCollectionId,
         name: selectedCollection.collectionName,
       };
 
@@ -350,7 +251,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }
   }
 
-  async getFindingsGrid(stigmanCollection: string) {
+  async getFindingsGrid(stigmanCollection: number) {
     try {
       this.loadingTableInfo = true;
       const data = await (
@@ -415,7 +316,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       );
       this.selectedFindings = 'All';
       this.filterFindings();
-      this.initializeChart();
       this.updateFindingsChartData(findings);
       this.loadingTableInfo = false;
     } catch (err) {
@@ -623,22 +523,6 @@ ${ruleData.detail.vulnDiscussion}`;
     }
   }
 
-  showSuccess(message: string) {
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: message,
-    });
-  }
-
-  showInfo(message: string) {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Info',
-      detail: message,
-    });
-  }
-
   showWarn(message: string) {
     this.messageService.add({
       severity: 'warn',
@@ -655,24 +539,7 @@ ${ruleData.detail.vulnDiscussion}`;
     });
   }
 
-  confirm(message: string): Observable<boolean> {
-    return new Observable<boolean>(observer => {
-      this.confirmationService.confirm({
-        message: message,
-        accept: () => {
-          observer.next(true);
-          observer.complete();
-        },
-        reject: () => {
-          observer.next(false);
-          observer.complete();
-        },
-      });
-    });
-  }
-
   ngOnDestroy() {
-    this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
   }
 }

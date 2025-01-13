@@ -37,7 +37,13 @@ export class AuthGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    return this.authService.user$.pipe(
+    if (route.data['guardType'] === 'admin') {
+      return this.canAdmin();
+    }
+
+    return this.authService.authState$.pipe(
+      filter(authState => authState.isAuthenticatedStigman && authState.isAuthenticatedCpat),
+      switchMap(() => this.authService.user$),
       filter(user => user !== null),
       take(1),
       switchMap(user => {
@@ -47,9 +53,7 @@ export class AuthGuard implements CanActivate {
 
         const guardType = route.data['guardType'];
 
-        if (guardType === 'admin' && !user.isAdmin) {
-          return of(this.router.parseUrl('/403'));
-        } else if (guardType === 'poam') {
+        if (guardType === 'poam') {
           return this.checkCollectionAccess(route.params['poamId'], state);
         }
 
@@ -59,13 +63,17 @@ export class AuthGuard implements CanActivate {
   }
 
   canAdmin(): Observable<boolean | UrlTree> {
-    return this.authService.isAuthenticated('cpat').pipe(
-      switchMap(isAuthenticated =>
-        isAuthenticated ? this.authService.getUserData('cpat') : of(null)
-      ),
-      map(userData => {
-        if (userData?.isAdmin) return true;
-        return this.router.parseUrl('/403');
+    return this.authService.authState$.pipe(
+      filter(authState => authState.isAuthenticatedCpat),
+      switchMap(async () => {
+        try {
+          const user = await (await this.userService.getCurrentUser()).toPromise();
+          if (user?.isAdmin) return true;
+          return this.router.parseUrl('/403');
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          return this.router.parseUrl('/403');
+        }
       })
     );
   }

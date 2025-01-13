@@ -10,35 +10,27 @@
 
 import {
   Component,
-  ElementRef,
-  ViewChild,
   Input,
-  Output,
-  EventEmitter,
-  OnInit,
   OnChanges,
   SimpleChanges,
   ChangeDetectorRef,
-  AfterViewInit,
-  Renderer2,
   OnDestroy,
   NgZone,
   ChangeDetectionStrategy,
+  ViewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { Chart, ChartData, registerables } from 'chart.js';
 import { addDays, differenceInCalendarDays } from 'date-fns';
 import { Select } from 'primeng/select';
-import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { PayloadService } from '../../../common/services/setPayload.service';
-import { Subject, Subscription, debounceTime, takeUntil } from 'rxjs';
+import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect'
+import { Subject } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { ButtonModule } from 'primeng/button';
+import { ChartModule } from 'primeng/chart';
 
 interface SelectedOptions {
   status: string | null;
@@ -49,12 +41,6 @@ interface SelectedOptions {
   label: string | null;
   [key: string]: string | null;
 }
-interface ChartConfig {
-  element: ElementRef<HTMLCanvasElement>;
-  key: string;
-  data: ChartData<'bar'>;
-  updateFn: (chart: Chart) => void;
-}
 
 @Component({
   selector: 'cpat-poam-mainchart',
@@ -64,6 +50,7 @@ interface ChartConfig {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ButtonModule,
+    ChartModule,
     CommonModule,
     FormsModule,
     CardModule,
@@ -73,36 +60,67 @@ interface ChartConfig {
     NgxChartsModule,
   ],
 })
-export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
-  @Output() poamsChange = new EventEmitter<any[]>();
+export class PoamMainchartComponent implements OnChanges, OnDestroy {
   @Input() poams!: any[];
-  @Input() canvasHeight = '33rem';
-  @Input() canvasWidth: string;
-  @ViewChild('poamStatusChart') poamStatusChart!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('poamLabelChart') poamLabelChart!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('poamTaskOrderChart') poamTaskOrderChart!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('poamSeverityChart') poamSeverityChart!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('poamScheduledCompletionChart')
-  poamScheduledCompletionChart!: ElementRef<HTMLCanvasElement>;
-  protected accessLevel: any;
-  user: any;
-  payload: any;
-  private payloadSubscription: Subscription[] = [];
-  private chartConfigs: ChartConfig[];
-  private filteredDataCache = new Map<string, any[]>();
+  @Input() canvasHeight = '35rem';
+  @ViewChild('statusChart') statusChartRef: any;
+  @ViewChild('labelChart') labelChartRef: any;
+  @ViewChild('severityChart') severityChartRef: any;
+  @ViewChild('scheduledCompletionChart') scheduledCompletionChartRef: any;
+  @ViewChild('taskOrderChart') taskOrderChartRef: any;
+  private labelSetCache: Set<string> | null = null;
+  private chartDataCache = new Map<string, any>();
   poamsForChart: any[] = [];
   public poamLabel: any[] = [];
+  selectedOptionsValues: string[] = [];
+  selectedPoamId: any;
+  statusChartData: any;
+  labelChartData: any;
+  severityChartData: any;
+  scheduledCompletionChartData: any;
+  taskOrderChartData: any;
   public selectedStatus: any = null;
   public selectedLabel: any = null;
   public selectedSeverity: any = null;
   public selectedTaskOrderNumber: any = null;
   public selectedScheduledCompletion: any = null;
-  selectedOptionsValues: string[] = [];
-  selectedPoamId: any;
-  private chartInitialized = false;
-  private updateCharts$ = new Subject<void>();
-  private charts: Map<string, Chart> = new Map();
-  private destroy$ = new Subject<void>();
+
+  chartOptions = {
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          font: {
+            size: 13,
+            family: 'sans-serif',
+            weight: 600,
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: false
+        },
+        ticks: {
+          font: {
+            size: 13,
+            family: 'sans-serif',
+            weight: 600
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: true
+        }
+      }
+    }
+  };
+
   poamStatuses = [
     { label: 'Draft', value: 'Draft' },
     { label: 'Closed', value: 'Closed' },
@@ -144,70 +162,6 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
     { value: 'Yes', label: 'Yes' },
     { value: 'No', label: 'No' },
   ];
-
-  statusChart: Chart | undefined;
-  statusChartData: ChartData<'bar'> = {
-    labels: [''],
-    datasets: [],
-  };
-  labelChart: Chart | undefined;
-  labelChartData: ChartData<'bar'> = {
-    labels: [''],
-    datasets: [],
-  };
-  severityChart: Chart | undefined;
-  severityChartData: ChartData<'bar'> = {
-    labels: [''],
-    datasets: [],
-  };
-  scheduledCompletionChart: Chart | undefined;
-  scheduledCompletionChartData: ChartData<'bar'> = {
-    labels: [''],
-    datasets: [],
-  };
-  taskOrderChart: Chart | undefined;
-  taskOrderChartData: ChartData<'bar'> = {
-    labels: [''],
-    datasets: [],
-  };
-  public bottom: any = 'bottom';
-  barChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: { grid: { display: true } },
-      y: {
-        beginAtZero: true,
-        grace: '5%',
-        grid: {
-          display: false,
-        },
-        ticks: {
-          font: {
-            size: 13,
-            family: 'sans-serif',
-            weight: 600,
-          },
-        },
-      },
-    },
-    plugins: {
-      title: {
-        display: false,
-      },
-      legend: {
-        display: true,
-        position: this.bottom,
-        labels: {
-          font: {
-            size: 13,
-            family: 'sans-serif',
-            weight: 600,
-          },
-        },
-      },
-    },
-  };
 
   filterOptions: any[] = [
     {
@@ -259,107 +213,45 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
     taskOrder: null,
     label: null,
   };
+  private destroy$ = new Subject<void>();
+  private initialized = false;
 
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private renderer: Renderer2,
-    private setPayloadService: PayloadService,
     private zone: NgZone
-  ) {
-    Chart.register(...registerables);
-    this.updateCharts$.pipe(debounceTime(250), takeUntil(this.destroy$)).subscribe(() => {
-      this.zone.runOutsideAngular(() => {
-        this.performChartUpdates();
-        this.filteredDataCache.clear();
-      });
-    });
-  }
-
-  async ngOnInit() {
-    if (this.poams) {
-      await this.setPayload();
-      this.initializePoamLabel();
-      if (this.poams.length > 0 && !this.chartInitialized) {
-        this.initializeChart();
-      }
-    }
-  }
+  ) { }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['poams'] && this.poams) {
-      this.poamsForChart = [...this.poams];
-      if (this.chartInitialized) {
-        this.updateCharts$.next();
-      } else if (this.poams.length > 0 && !this.chartInitialized) {
-        this.initializeChart();
-      }
-      this.initializePoamLabel();
+    if (changes['poams'] &&
+      changes['poams'].currentValue?.length > 0 &&
+      (!this.initialized)) {
+
+      this.zone.run(() => {
+        this.initialized = true;
+        this.initializeComponent();
+      });
     }
   }
 
-  ngAfterViewInit(): void {
-    this.chartConfigs = [
-      {
-        element: this.poamStatusChart,
-        key: 'status',
-        data: this.statusChartData,
-        updateFn: (chart: Chart) => this.updateStatusChart(chart),
-      },
-      {
-        element: this.poamLabelChart,
-        key: 'label',
-        data: this.labelChartData,
-        updateFn: (chart: Chart) => this.updateLabelChart(chart),
-      },
-      {
-        element: this.poamSeverityChart,
-        key: 'severity',
-        data: this.severityChartData,
-        updateFn: (chart: Chart) => this.updateSeverityChart(chart),
-      },
-      {
-        element: this.poamTaskOrderChart,
-        key: 'taskOrder',
-        data: this.taskOrderChartData,
-        updateFn: (chart: Chart) => this.updateTaskOrderChart(chart),
-      },
-      {
-        element: this.poamScheduledCompletionChart,
-        key: 'scheduledCompletion',
-        data: this.scheduledCompletionChartData,
-        updateFn: (chart: Chart) => this.updateScheduledCompletionChart(chart),
-      },
-    ];
+  private initializeComponent(): void {
+    if (!this.poams || this.poams.length === 0) {
+      return;
+    }
+
+    this.initializePoamLabel();
+    this.updateAllCharts();
+    this.cdr.detectChanges();
   }
 
-  async setPayload() {
-    await this.setPayloadService.setPayload();
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
-        this.user = user;
-      }),
-      this.setPayloadService.payload$.subscribe(payload => {
-        this.payload = payload;
-      }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
-        this.accessLevel = level;
-      })
-    );
-  }
-
-  private applyCanvasStyles(): void {
-    if (!this.chartConfigs?.length) return;
-
-    this.zone.runOutsideAngular(() => {
-      this.chartConfigs.forEach(config => {
-        if (config.element?.nativeElement) {
-          const canvas = config.element.nativeElement;
-          this.renderer.setStyle(canvas, 'height', this.canvasHeight);
-          this.renderer.setStyle(canvas, 'width', this.canvasWidth);
-        }
-      });
-      this.zone.run(() => this.cdr.detectChanges());
+  private updateAllCharts(): void {
+    requestAnimationFrame(() => {
+      this.updateStatusChart();
+      this.updateLabelChart();
+      this.updateSeverityChart();
+      this.updateScheduledCompletionChart();
+      this.updateTaskOrderChart();
+      this.cdr.markForCheck();
     });
   }
 
@@ -367,269 +259,187 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
     this.router.navigateByUrl('/poam-processing/poam-details/ADDPOAM');
   }
 
-  private initializeChart(): void {
-    if (this.chartInitialized) return;
-
-    Chart.defaults.set('plugins.datalabels', {
-      display: false,
-    });
-
-    requestAnimationFrame(() => {
-      this.zone.runOutsideAngular(() => {
-        this.initializeChartSequence();
-      });
-    });
-  }
-
-  private initializeChartSequence(): void {
-    if (this.chartInitialized) return;
-    let currentIndex = 0;
-
-    const initNextChart = () => {
-      if (currentIndex >= this.chartConfigs.length) {
-        this.chartInitialized = true;
-        this.zone.run(() => {
-          this.performChartUpdates();
-          this.applyCanvasStyles();
-          this.cdr.detectChanges();
-        });
-        return;
-      }
-
-      const config = this.chartConfigs[currentIndex];
-
-      if (config?.element?.nativeElement && !this.charts.has(config.key)) {
-        const chart = new Chart(config.element.nativeElement, {
-          type: 'bar',
-          data: config.data,
-          plugins: [ChartDataLabels],
-          options: this.barChartOptions,
-        });
-
-        this.charts.set(config.key, chart);
-
-        switch (config.key) {
-          case 'status':
-            this.statusChart = chart;
-            break;
-          case 'label':
-            this.labelChart = chart;
-            break;
-          case 'severity':
-            this.severityChart = chart;
-            break;
-          case 'scheduledCompletion':
-            this.scheduledCompletionChart = chart;
-            break;
-          case 'taskOrder':
-            this.taskOrderChart = chart;
-            break;
+  initializePoamLabel(): void {
+    if (!this.labelSetCache) {
+      this.labelSetCache = new Set<string>();
+      for (const poam of this.poams) {
+        if (poam.labels?.length > 0) {
+          for (const label of poam.labels) {
+            if (label.labelName) {
+              this.labelSetCache.add(label.labelName);
+            }
+          }
         }
-
-        config.updateFn(chart);
       }
-
-      currentIndex++;
-      requestAnimationFrame(initNextChart);
-    };
-
-    initNextChart();
-  }
-
-  private performChartUpdates(): void {
-    if (!this.chartInitialized) {
-      this.initializeChart();
     }
 
-    requestAnimationFrame(() => {
-      this.charts.forEach((chart, key) => {
-        const updateFn = this.chartConfigs.find(c => c.key === key)?.updateFn;
-        if (updateFn) {
-          updateFn(chart);
-        }
-      });
-    });
-  }
-
-  initializePoamLabel(): void {
-    const labelSet = new Set<string>();
-    this.poams.forEach(poam => {
-      if (poam.labels && poam.labels.length > 0) {
-        poam.labels.forEach((label: { labelName: string }) => {
-          if (label.labelName) {
-            labelSet.add(label.labelName);
-          }
-        });
-      }
-    });
-
-    const newPoamLabel = Array.from(labelSet).map(label => ({ label }));
+    const newPoamLabel = Array.from(this.labelSetCache).map(label => ({ label }));
     if (JSON.stringify(this.poamLabel) !== JSON.stringify(newPoamLabel)) {
       this.poamLabel = newPoamLabel;
-      this.filterOptions = [
-        {
-          label: 'Status',
-          items: this.poamStatuses.map(status => ({
-            label: status.label,
-            value: `status:${status.value}`,
-          })),
-        },
-        {
-          label: 'Vulnerability Source',
-          items: this.poamVulnerabilityTypes.map(vulnerabilitySource => ({
-            label: vulnerabilitySource.label,
-            value: `vulnerabilitySource:${vulnerabilitySource.value}`,
-          })),
-        },
-        {
-          label: 'Task Order',
-          items: this.poamTaskOrders.map(taskOrder => ({
-            label: taskOrder.label,
-            value: `taskOrder:${taskOrder.value}`,
-          })),
-        },
-        {
-          label: 'Severity',
-          items: this.poamSeverities.map(severity => ({
-            label: severity.label,
-            value: `severity:${severity.value}`,
-          })),
-        },
-        {
-          label: 'Scheduled Completion',
-          items: this.poamScheduledCompletions.map(completion => ({
-            label: completion.label,
-            value: `scheduledCompletion:${completion.value}`,
-          })),
-        },
-        {
-          label: 'Label',
-          items: this.poamLabel.map(label => ({
-            label: label.label,
-            value: `label:${label.label}`,
-          })),
-        },
-      ];
-      this.cdr.detectChanges();
+      this.updateFilterOptions();
     }
   }
 
-  updateCharts(): void {
-    this.updateCharts$.next();
+  private updateFilterOptions(): void {
+    this.filterOptions = [
+      {
+        label: 'Status',
+        items: this.poamStatuses.map(status => ({
+          label: status.label,
+          value: `status:${status.value}`,
+        })),
+      },
+      {
+        label: 'Vulnerability Source',
+        items: this.poamVulnerabilityTypes.map(vulnerabilitySource => ({
+          label: vulnerabilitySource.label,
+          value: `vulnerabilitySource:${vulnerabilitySource.value}`,
+        })),
+      },
+      {
+        label: 'Task Order',
+        items: this.poamTaskOrders.map(taskOrder => ({
+          label: taskOrder.label,
+          value: `taskOrder:${taskOrder.value}`,
+        })),
+      },
+      {
+        label: 'Severity',
+        items: this.poamSeverities.map(severity => ({
+          label: severity.label,
+          value: `severity:${severity.value}`,
+        })),
+      },
+      {
+        label: 'Scheduled Completion',
+        items: this.poamScheduledCompletions.map(completion => ({
+          label: completion.label,
+          value: `scheduledCompletion:${completion.value}`,
+        })),
+      },
+      {
+        label: 'Label',
+        items: this.poamLabel.map(label => ({
+          label: label.label,
+          value: `label:${label.label}`,
+        })),
+      },
+    ];
   }
 
-  private updateStatusChart(chart: Chart): void {
+  private updateStatusChart(): void {
     const filteredPoamStatus = this.applyFilters('status');
-    const datasets = filteredPoamStatus.map(item => ({
-      label: item.status,
-      data: [item.statusCount],
-      datalabels: {},
-    }));
-    chart.data.datasets = datasets;
-    chart.update('none');
+    this.statusChartData = {
+      labels: [''],
+      datasets: filteredPoamStatus.map(item => ({
+        label: item.status,
+        data: [item.statusCount]
+      }))
+    };
   }
 
-  private updateLabelChart(chart: Chart): void {
+  private updateLabelChart(): void {
     const filteredPoamLabel = this.applyFilters('label');
-    const datasets = filteredPoamLabel.map(item => ({
-      label: item.label,
-      data: [item.labelCount],
-      datalabels: {},
-    }));
-    chart.data.datasets = datasets;
-    chart.update('none');
+    this.labelChartData = {
+      labels: [''],
+      datasets: filteredPoamLabel.map(item => ({
+        label: item.label,
+        data: [item.labelCount]
+      }))
+    };
   }
 
-  private updateSeverityChart(chart: Chart): void {
+  private updateSeverityChart(): void {
     const filteredPoamSeverity = this.applyFilters('severity');
-    const datasets = filteredPoamSeverity.map(item => ({
-      label: item.severity,
-      data: [item.severityCount],
-      datalabels: {},
-    }));
-    chart.data.datasets = datasets;
-    chart.update('none');
+    this.severityChartData = {
+      labels: [''],
+      datasets: filteredPoamSeverity.map(item => ({
+        label: item.severity,
+        data: [item.severityCount]
+      }))
+    };
   }
 
-  private updateScheduledCompletionChart(chart: Chart): void {
+  private updateScheduledCompletionChart(): void {
     const filteredPoamScheduledCompletion = this.applyFilters('scheduledCompletion');
-    const datasets = filteredPoamScheduledCompletion.map(item => ({
-      label: item.scheduledCompletion,
-      data: [item.scheduledCompletionCount],
-      datalabels: {},
-    }));
-    chart.data.datasets = datasets;
-    chart.update('none');
+    this.scheduledCompletionChartData = {
+      labels: [''],
+      datasets: filteredPoamScheduledCompletion.map(item => ({
+        label: item.scheduledCompletion,
+        data: [item.scheduledCompletionCount]
+      }))
+    };
   }
 
-  private updateTaskOrderChart(chart: Chart): void {
-    const filteredTaskOrders = this.generateChartDataForTaskOrder(this.poamsForChart);
-    const datasets = filteredTaskOrders.map(item => ({
-      label: item.hasTaskOrder ? 'Has Task Order' : 'No Task Order',
-      data: [item.count],
-      datalabels: {},
-    }));
-    chart.data.datasets = datasets;
-    chart.update('none');
+  private updateTaskOrderChart(): void {
+    const filteredTaskOrders = this.applyFilters('taskOrder');
+    this.taskOrderChartData = {
+      labels: [''],
+      datasets: filteredTaskOrders.map(item => ({
+        label: item.hasTaskOrder ? 'Has Task Order' : 'No Task Order',
+        data: [item.count]
+      }))
+    };
   }
 
   private applyFilters(filterType: string): any[] {
-    const cacheKey = `${filterType}-${JSON.stringify(this.selectedOptions)}`;
-    if (this.filteredDataCache.has(cacheKey)) {
-      return this.filteredDataCache.get(cacheKey)!;
-    }
-
     let filteredPoams = this.poams;
-    Object.entries(this.selectedOptions).forEach(([key, value]) => {
-      if (value !== null) {
-        switch (key) {
-          case 'status':
-            filteredPoams = filteredPoams.filter(poam => poam.status === value);
-            break;
-          case 'vulnerabilitySource':
-            filteredPoams = filteredPoams.filter(poam => poam.vulnerabilitySource === value);
-            break;
-          case 'label':
-            filteredPoams = filteredPoams.filter(poam =>
-              poam.labels?.some((label: { labelName: string }) => label.labelName === value)
-            );
-            break;
-          case 'severity':
-            filteredPoams = filteredPoams.filter(poam => poam.rawSeverity === value);
-            break;
-          case 'scheduledCompletion':
-            filteredPoams = filteredPoams.filter(poam => {
+    const activeFilters = Object.entries(this.selectedOptions)
+      .filter(([, value]) => value !== null);
+    if (activeFilters.length > 0) {
+      filteredPoams = this.poams.filter(poam =>
+        activeFilters.every(([key, value]) => {
+          switch (key) {
+            case 'status':
+              return poam.status === value;
+            case 'vulnerabilitySource':
+              return poam.vulnerabilitySource === value;
+            case 'label':
+              return poam.labels?.some((label: { labelName: string }) =>
+                label.labelName === value);
+            case 'severity':
+              return poam.rawSeverity === value;
+            case 'scheduledCompletion':
               const days = this.calculateDaysDifference(
                 poam.scheduledCompletionDate,
                 poam.extensionTimeAllowed
               );
               return this.getScheduledCompletionLabel(days) === value;
-            });
-            break;
-          case 'taskOrder':
-            filteredPoams = filteredPoams.filter(poam => {
-              const hasTaskOrder = poam.taskOrderNumber != null && poam.taskOrderNumber !== '';
+            case 'taskOrder':
+              const hasTaskOrder = poam.taskOrderNumber != null &&
+                poam.taskOrderNumber !== '';
               return (value === 'Yes') === hasTaskOrder;
-            });
-            break;
-        }
-      }
-    });
-    this.poamsForChart = filteredPoams.map((poam: any) => ({
-      id: poam.poamId,
-      vulnerabilityId: poam.vulnerabilityId,
-      status: poam.status,
-      submittedDate: poam.submittedDate ? poam.submittedDate.substr(0, 10) : '',
-      taskOrderNumber: poam.taskOrderNumber,
-    }));
+            default:
+              return true;
+          }
+        })
+      );
+    }
 
-    this.poamsChange.emit(filteredPoams);
+    this.poamsForChart = filteredPoams.map(({ poamId, vulnerabilityId, status,
+      submittedDate, taskOrderNumber }) => ({
+        poamId,
+        vulnerabilityId,
+        status,
+        submittedDate: submittedDate ? submittedDate.substr(0, 10) : '',
+        taskOrderNumber,
+      }));
     const result = this.generateChartData(filterType, filteredPoams);
-    this.filteredDataCache.set(cacheKey, result);
     return result;
   }
 
   private generateChartData(filterType: string, filteredPoams: any[]): any[] {
+    const cacheKey = `${filterType}-${filteredPoams.length}`;
+    if (this.chartDataCache.has(cacheKey)) {
+      return this.chartDataCache.get(cacheKey)!;
+    }
+
+    const result = this.computeChartData(filterType, filteredPoams);
+    this.chartDataCache.set(cacheKey, result);
+    return result;
+  }
+
+  private computeChartData(filterType: string, filteredPoams: any[]): any[] {
     switch (filterType) {
       case 'status':
         return this.generateChartDataForStatus(filteredPoams);
@@ -645,11 +455,6 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
         return [];
     }
   }
-
-  filterPoamsByTaskOrder = (poam: any) => {
-    const hasTaskOrder = poam.taskOrderNumber != null && poam.taskOrderNumber !== '';
-    return (this.selectedOptions['taskOrder'] === 'Yes') === hasTaskOrder;
-  };
 
   private generateChartDataForStatus(filteredPoams: any[]): any[] {
     const statusCounts: { [status: string]: number } = {};
@@ -778,15 +583,6 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
     ];
   }
 
-  filterPoamsByScheduledCompletion = (poam: any) => {
-    const days = this.calculateDaysDifference(
-      poam.scheduledCompletionDate,
-      poam.extensionTimeAllowed
-    );
-    const scheduledCompletion = this.getScheduledCompletionLabel(days);
-    return scheduledCompletion === this.selectedOptions['scheduledCompletion'];
-  };
-
   getScheduledCompletionLabel(days: number): string {
     if (days < 0) {
       return 'OVERDUE';
@@ -805,9 +601,9 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
 
   onSelectPoam(event: any) {
     const poamId = event.value;
-    const selectedPoam = this.poamsForChart.find((poam: any) => poam.id === poamId);
+    const selectedPoam = this.poamsForChart.find((poam: any) => poam.poamId === poamId);
     if (selectedPoam) {
-      this.router.navigateByUrl(`/poam-processing/poam-details/${selectedPoam.id}`);
+      this.router.navigateByUrl(`/poam-processing/poam-details/${selectedPoam.poamId}`);
     } else {
       console.error('POAM not found');
     }
@@ -835,7 +631,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
       .map(([key, value]) => `${key}:${value}`);
 
     this.zone.run(() => {
-      this.updateCharts$.next();
+      this.updateAllCharts();
       this.cdr.detectChanges();
     });
   }
@@ -856,7 +652,7 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
       label: null,
     };
     this.selectedOptionsValues = [];
-    this.updateCharts$.next();
+    this.updateAllCharts();
   }
 
   calculateDaysDifference(scheduledCompletionDate: any, extensionTimeAllowed: any): number {
@@ -887,69 +683,76 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
     return filterSelections.join(', ');
   }
 
-  exportChart(chartInstance: Chart | undefined, chartName: string) {
-    if (!chartInstance) {
-      console.error('Chart instance not found');
+  exportChart(chartType: string): void {
+    let chartRef: any;
+    let chartName: string;
+
+    switch (chartType) {
+      case 'status':
+        chartRef = this.statusChartRef;
+        chartName = 'C-PAT POAM Status Chart';
+        break;
+      case 'label':
+        chartRef = this.labelChartRef;
+        chartName = 'C-PAT POAM Label Chart';
+        break;
+      case 'severity':
+        chartRef = this.severityChartRef;
+        chartName = 'C-PAT POAM Severity Chart';
+        break;
+      case 'scheduledCompletion':
+        chartRef = this.scheduledCompletionChartRef;
+        chartName = 'C-PAT POAM Scheduled Completion Chart';
+        break;
+      case 'taskOrder':
+        chartRef = this.taskOrderChartRef;
+        chartName = 'C-PAT POAM Task Order Chart';
+        break;
+      default:
+        console.error('Invalid chart type');
+        return;
+    }
+
+    if (!chartRef) {
+      console.error('Chart reference not found');
       return;
     }
 
-    const exportDatalabelsOptions = {
-      backgroundColor: function (context: any) {
-        const datasetBackgroundColor =
-          context.chart.data.datasets[context.datasetIndex].backgroundColor;
-        return Array.isArray(datasetBackgroundColor)
-          ? datasetBackgroundColor[context.dataIndex]
-          : datasetBackgroundColor;
-      },
-      borderRadius: 4,
-      color: 'white',
-      display: true,
-      font: {
-        weight: 'bold',
-      },
-      align: 'end',
-      anchor: 'end',
-      padding: 6,
-    };
-    chartInstance.data.datasets.forEach(dataset => {
-      if (dataset.datalabels) {
-        Object.assign(dataset.datalabels, exportDatalabelsOptions);
-      }
-    });
+    const chart = chartRef.chart;
 
     const chartSubtitle = this.getChartSubtitle();
-
-    chartInstance.options.plugins!.title = {
+    chart.options.plugins.title = {
       display: true,
-      position: 'bottom',
-      text: chartSubtitle,
-      font: {
-        size: 14,
-        family: 'sans-serif',
-        weight: 600,
-      },
-      padding: {
-        bottom: 0,
-      },
-    };
-    chartInstance.options.plugins!.subtitle = {
-      display: true,
-      position: 'bottom',
       text: chartName,
       font: {
         size: 16,
         family: 'sans-serif',
-        weight: 600,
+        weight: 600
+      },
+      padding: {
+        top: 10,
+        bottom: 5
+      }
+    };
+
+    chart.options.plugins.subtitle = {
+      display: true,
+      text: chartSubtitle,
+      font: {
+        size: 14,
+        family: 'sans-serif',
+        weight: 600
       },
       padding: {
         top: 5,
-        bottom: 10,
-      },
+        bottom: 10
+      }
     };
-    chartInstance.update();
+
+    chart.update();
 
     setTimeout(() => {
-      const canvas = chartInstance.canvas;
+      const canvas = chart.canvas;
       const dataURL = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.download = `${chartName}_Export.png`;
@@ -959,33 +762,18 @@ export class PoamMainchartComponent implements OnInit, OnChanges, AfterViewInit,
       document.body.removeChild(link);
 
       setTimeout(() => {
-        const disappearDatalabelsOptions = {
-          display: false,
-        };
-
-        chartInstance.data.datasets.forEach(dataset => {
-          if (dataset.datalabels) {
-            Object.assign(dataset.datalabels, disappearDatalabelsOptions);
-          }
-        });
-        chartInstance.options.plugins!.title = {
-          display: false,
-        };
-        chartInstance.options.plugins!.subtitle = {
-          display: false,
-        };
-        chartInstance.update();
+        chart.options.plugins.subtitle = {};
+        chart.options.plugins.title = {};
+        chart.update();
       }, 500);
     }, 150);
   }
 
   ngOnDestroy(): void {
-    this.filteredDataCache.clear();
-    this.charts.forEach(chart => chart.destroy());
-    this.charts.clear();
+    this.initialized = false;
     this.destroy$.next();
     this.destroy$.complete();
-    this.updateCharts$.complete();
-    this.payloadSubscription = [];
+    this.chartDataCache.clear();
+    this.labelSetCache?.clear();
   }
 }

@@ -41,7 +41,7 @@ interface AAPackage {
   aaPackage: string;
 }
 interface CollectionData {
-  collectionId?: string;
+  collectionId?: number;
   collectionName?: string;
   description?: string;
   systemType?: string;
@@ -189,7 +189,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         ccsafa: any;
         aaPackage: any;
         collectionOrigin: any;
-        originCollectionId: any;
+        originCollectionId: number;
       }) => {
         const myChildren: never[] = [];
 
@@ -203,7 +203,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             'CC/S/A/FA': collection.ccsafa || '',
             'A&A Package': collection.aaPackage || '',
             'Collection Origin': collection.collectionOrigin || '',
-            'Origin Collection ID': collection.originCollectionId || '',
+            'Origin Collection ID': collection.originCollectionId ?? 0,
           },
           children: myChildren,
         };
@@ -358,7 +358,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     }
   }
 
-  async processPoamsWithStigFindings(poams: any[], originCollectionId: string): Promise<any[]> {
+  async processPoamsWithStigFindings(poams: any[], originCollectionId: number): Promise<any[]> {
     const processedPoams = [];
 
     for (const poam of poams) {

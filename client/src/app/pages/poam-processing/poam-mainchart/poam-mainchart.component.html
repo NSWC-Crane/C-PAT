@@ -11,7 +11,7 @@
 <p-card>
   <p-header>
     <div class="row">
-      <p-tabs value="0" class="mt-2">
+      <p-tabs class="mt-2" value="0">
         <p-tablist>
           <p-tab value="0">POAM Status</p-tab>
           <p-tab value="1">POAM Severity</p-tab>
@@ -20,176 +20,166 @@
           <p-tab value="4">POAM Labels</p-tab>
         </p-tablist>
         <p-tabpanels>
-          <!--POAM Status Tab-->
           <p-tabpanel value="0">
-            <div class="row">
-              <div class="col">
-                <p-select
-                  [options]="poamsForChart"
-                  [(ngModel)]="selectedPoamId"
-                  (onChange)="onSelectPoam($event)"
-                  placeholder="Select POAM to Modify"
-                  optionLabel="id"
-                  optionValue="id"
-                  [showClear]="true"
-                  styleClass="w-full mb-2"
-                  [style]="{'width': '100%'}"
-                >
-                  <ng-template let-poam pTemplate="item">
-                    POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
-                    poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
-                  </ng-template>
-                </p-select>
-              </div>
+            <div class="mb-4">
+              <p-select [options]="poamsForChart"
+                        [(ngModel)]="selectedPoamId"
+                        (onChange)="onSelectPoam($event)"
+                        placeholder="Select POAM to Modify"
+                        optionLabel="poamId"
+                        optionValue="poamId"
+                        [showClear]="true"
+                        styleClass="w-full">
+                <ng-template let-poam pTemplate="item">
+                  POAM ID: {{ poam.poamId }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
+                  poam.vulnerabilityId
+                  }} - Submitted Date: {{ poam.submittedDate }}
+                </ng-template>
+              </p-select>
             </div>
-            <div class="canvas" id="canvas">
-              <canvas #poamStatusChart></canvas>
-              <button
-                pButton
-                type="button"
-                class="p-button-text export-button"
-                (click)="exportChart(statusChart, 'C-PAT POAM Status Chart')"
-              >
+            <div class="relative">
+              <p-chart #statusChart
+                       type="bar"
+                       [data]="statusChartData"
+                       [options]="chartOptions"
+                       [height]="canvasHeight">
+              </p-chart>
+              <button pButton
+                      type="button"
+                      class="p-button-text export-button"
+                      (click)="exportChart('status')">
                 <i class="pi pi-download"></i>
               </button>
             </div>
           </p-tabpanel>
 
-          <!--POAM Severity Tab-->
           <p-tabpanel value="1">
-            <div class="row">
-              <div class="col">
-                <p-select
-                  [options]="poamsForChart"
-                  [(ngModel)]="selectedPoamId"
-                  (onChange)="onSelectPoam($event)"
-                  placeholder="Select POAM to Modify"
-                  optionLabel="id"
-                  optionValue="id"
-                  [showClear]="true"
-                  styleClass="w-full mb-2"
-                  [style]="{'width': '100%'}"
-                >
-                  <ng-template let-poam pTemplate="item">
-                    POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
-                    poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
-                  </ng-template>
-                </p-select>
-              </div>
+            <div class="mb-4">
+              <p-select [options]="poamsForChart"
+                        [(ngModel)]="selectedPoamId"
+                        (onChange)="onSelectPoam($event)"
+                        placeholder="Select POAM to Modify"
+                        optionLabel="poamId"
+                        optionValue="poamId"
+                        [showClear]="true"
+                        styleClass="w-full">
+                <ng-template let-poam pTemplate="item">
+                  POAM ID: {{ poam.poamId }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
+                  poam.vulnerabilityId
+                  }} - Submitted Date: {{ poam.submittedDate }}
+                </ng-template>
+              </p-select>
             </div>
-            <div class="canvas" id="canvas">
-              <canvas #poamSeverityChart></canvas>
-              <button
-                pButton
-                type="button"
-                class="p-button-text export-button"
-                (click)="exportChart(severityChart, 'C-PAT POAM Severity Chart')"
-              >
+            <div class="relative">
+              <p-chart #severityChart
+                       type="bar"
+                       [data]="severityChartData"
+                       [options]="chartOptions"
+                       [height]="canvasHeight">
+              </p-chart>
+              <button pButton
+                      type="button"
+                      class="p-button-text export-button"
+                      (click)="exportChart('severity')">
                 <i class="pi pi-download"></i>
               </button>
             </div>
           </p-tabpanel>
 
-          <!--POAM Scheduled Completion Tab-->
           <p-tabpanel value="2">
-            <div class="row">
-              <div class="col">
-                <p-select
-                  [options]="poamsForChart"
-                  [(ngModel)]="selectedPoamId"
-                  (onChange)="onSelectPoam($event)"
-                  placeholder="Select POAM to Modify"
-                  optionLabel="id"
-                  optionValue="id"
-                  [showClear]="true"
-                  styleClass="w-full mb-2"
-                  [style]="{'width': '100%'}"
-                >
-                  <ng-template let-poam pTemplate="item">
-                    POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
-                    poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
-                  </ng-template>
-                </p-select>
-              </div>
+            <div class="mb-4">
+              <p-select [options]="poamsForChart"
+                        [(ngModel)]="selectedPoamId"
+                        (onChange)="onSelectPoam($event)"
+                        placeholder="Select POAM to Modify"
+                        optionLabel="poamId"
+                        optionValue="poamId"
+                        [showClear]="true"
+                        styleClass="w-full">
+                <ng-template let-poam pTemplate="item">
+                  POAM ID: {{ poam.poamId }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
+                  poam.vulnerabilityId
+                  }} - Submitted Date: {{ poam.submittedDate }}
+                </ng-template>
+              </p-select>
             </div>
-            <div class="canvas" id="canvas">
-              <canvas #poamScheduledCompletionChart></canvas>
-              <button
-                pButton
-                type="button"
-                class="p-button-text export-button"
-                (click)="exportChart(scheduledCompletionChart, 'C-PAT POAM Scheduled Completion Chart')"
-              >
+            <div class="relative">
+              <p-chart #scheduledCompletionChart
+                       type="bar"
+                       [data]="scheduledCompletionChartData"
+                       [options]="chartOptions"
+                       [height]="canvasHeight">
+              </p-chart>
+              <button pButton
+                      type="button"
+                      class="p-button-text export-button"
+                      (click)="exportChart('scheduledCompletion')">
                 <i class="pi pi-download"></i>
               </button>
             </div>
           </p-tabpanel>
 
-          <!--POAM Task Order Tab-->
           <p-tabpanel value="3">
-            <div class="row">
-              <div class="col">
-                <p-select
-                  [options]="poamsForChart"
-                  [(ngModel)]="selectedPoamId"
-                  (onChange)="onSelectPoam($event)"
-                  placeholder="Select POAM to Modify"
-                  optionLabel="id"
-                  optionValue="id"
-                  [showClear]="true"
-                  styleClass="w-full mb-2"
-                  [style]="{'width': '100%'}"
-                >
-                  <ng-template let-poam pTemplate="item">
-                    POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
-                    poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
-                  </ng-template>
-                </p-select>
-              </div>
+            <div class="mb-4">
+              <p-select [options]="poamsForChart"
+                        [(ngModel)]="selectedPoamId"
+                        (onChange)="onSelectPoam($event)"
+                        placeholder="Select POAM to Modify"
+                        optionLabel="poamId"
+                        optionValue="poamId"
+                        [showClear]="true"
+                        styleClass="w-full">
+                <ng-template let-poam pTemplate="item">
+                  POAM ID: {{ poam.poamId }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
+                  poam.vulnerabilityId
+                  }} - Submitted Date: {{ poam.submittedDate }}
+                </ng-template>
+              </p-select>
             </div>
-            <div class="canvas" id="canvas">
-              <canvas #poamTaskOrderChart></canvas>
-              <button
-                pButton
-                type="button"
-                class="p-button-text export-button"
-                (click)="exportChart(taskOrderChart, 'C-PAT POAM Task Order Chart')"
-              >
+            <div class="relative">
+              <p-chart #taskOrderChart
+                       type="bar"
+                       [data]="taskOrderChartData"
+                       [options]="chartOptions"
+                       [height]="canvasHeight">
+              </p-chart>
+              <button pButton
+                      type="button"
+                      class="p-button-text export-button"
+                      (click)="exportChart('taskOrder')">
                 <i class="pi pi-download"></i>
               </button>
             </div>
           </p-tabpanel>
 
-          <!--POAM Label Tab-->
           <p-tabpanel value="4">
-            <div class="row">
-              <div class="col">
-                <p-select
-                  [options]="poamsForChart"
-                  [(ngModel)]="selectedPoamId"
-                  (onChange)="onSelectPoam($event)"
-                  placeholder="Select POAM to Modify"
-                  optionLabel="id"
-                  optionValue="id"
-                  [showClear]="true"
-                  styleClass="w-full mb-2"
-                  [style]="{'width': '100%'}"
-                >
-                  <ng-template let-poam pTemplate="item">
-                    POAM ID: {{ poam.id }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
-                    poam.vulnerabilityId }} - Submitted Date: {{ poam.submittedDate }}
-                  </ng-template>
-                </p-select>
-              </div>
+            <div class="mb-4">
+              <p-select [options]="poamsForChart"
+                        [(ngModel)]="selectedPoamId"
+                        (onChange)="onSelectPoam($event)"
+                        placeholder="Select POAM to Modify"
+                        optionLabel="poamId"
+                        optionValue="poamId"
+                        [showClear]="true"
+                        styleClass="w-full">
+                <ng-template let-poam pTemplate="item">
+                  POAM ID: {{ poam.poamId }} - POAM Status: {{ poam.status }} - Vulnerability ID: {{
+                  poam.vulnerabilityId
+                  }} - Submitted Date: {{ poam.submittedDate }}
+                </ng-template>
+              </p-select>
             </div>
-            <div class="canvas" id="canvas">
-              <canvas #poamLabelChart></canvas>
-              <button
-                pButton
-                type="button"
-                class="p-button-text export-button"
-                (click)="exportChart(labelChart, 'C-PAT POAM Label Chart')"
-              >
+            <div class="relative">
+              <p-chart #labelChart
+                       type="bar"
+                       [data]="labelChartData"
+                       [options]="chartOptions"
+                       [height]="canvasHeight">
+              </p-chart>
+              <button pButton
+                      type="button"
+                      class="p-button-text export-button"
+                      (click)="exportChart('label')">
                 <i class="pi pi-download"></i>
               </button>
             </div>
@@ -198,20 +188,18 @@
       </p-tabs>
     </div>
   </p-header>
-  <div class="flex items-center gap-2 w-full">
+
+  <div class="flex items-center gap-2 w-full mt-4">
     <div class="flex-grow">
-      <p-multiSelect
-        [options]="filterOptions"
-        [(ngModel)]="selectedOptionsValues"
-        placeholder="Filter by..."
-        (onChange)="onGroupSelect($event)"
-        optionGroupLabel="label"
-        [group]="true"
-        [showClear]="true"
-        styleClass="w-full"
-        [style]="{'width': '100%'}"
-        appendTo="body"
-      >
+      <p-multiSelect [options]="filterOptions"
+                     [(ngModel)]="selectedOptionsValues"
+                     placeholder="Filter by..."
+                     (onChange)="onGroupSelect($event)"
+                     optionGroupLabel="label"
+                     [group]="true"
+                     [showClear]="true"
+                     styleClass="w-full"
+                     appendTo="body">
         <ng-template let-group pTemplate="group">
           <div class="flex items-center">
             <span>{{group.label}}</span>
@@ -220,15 +208,13 @@
       </p-multiSelect>
     </div>
     <div class="flex-none">
-      <button
-        pButton
-        type="button"
-        icon="pi pi-refresh"
-        class="p-button-text"
-        pTooltip="Reset Chart Filters"
-        tooltipPosition="top"
-        (click)="resetChartFilters()"
-      ></button>
+      <button pButton
+              type="button"
+              icon="pi pi-refresh"
+              class="p-button-text"
+              pTooltip="Reset Chart Filters"
+              tooltipPosition="top"
+              (click)="resetChartFilters()"></button>
     </div>
   </div>
 </p-card>

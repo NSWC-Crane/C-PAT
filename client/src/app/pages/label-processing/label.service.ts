@@ -40,21 +40,21 @@ export class LabelService {
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
-  async getLabels(collectionId: string) {
+  async getLabels(collectionId: number) {
     const headers = await this.getAuthHeaders();
     return this.http
       .get(`${this.cpatApiBase}/labels/${collectionId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async getLabel(collectionId: string, labelId: string) {
+  async getLabel(collectionId: number, labelId: string) {
     const headers = await this.getAuthHeaders();
     return this.http
       .get(`${this.cpatApiBase}/label/${collectionId}/${labelId}`, { headers })
       .pipe(catchError(this.handleError));
   }
 
-  async addLabel(collectionId: string, label: any) {
+  async addLabel(collectionId: number, label: any) {
     const headers = await this.getAuthHeaders();
     return this.http
       .post<Label>(`${this.cpatApiBase}/label/${collectionId}`, label, {
@@ -63,7 +63,7 @@ export class LabelService {
       .pipe(catchError(this.handleError));
   }
 
-  async updateLabel(collectionId: string, label: any) {
+  async updateLabel(collectionId: number, label: any) {
     const headers = await this.getAuthHeaders();
     return this.http
       .put<Label>(`${this.cpatApiBase}/label/${collectionId}`, label, {
@@ -72,7 +72,7 @@ export class LabelService {
       .pipe(catchError(this.handleError));
   }
 
-  async deleteLabel(collectionId: string, labelId: string) {
+  async deleteLabel(collectionId: number, labelId: string) {
     const headers = await this.getAuthHeaders();
     return this.http
       .delete<Label>(`${this.cpatApiBase}/label/${collectionId}/${labelId}`, {

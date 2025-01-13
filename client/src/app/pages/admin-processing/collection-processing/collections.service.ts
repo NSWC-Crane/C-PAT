@@ -16,7 +16,7 @@ import { catchError } from 'rxjs/operators';
 import { Collections } from './collections.model';
 
 export interface CollectionBasicList {
-  collectionId: string;
+  collectionId: number;
   collectionName: string;
   collectionOrigin?: string;
   originCollectionId?: number;

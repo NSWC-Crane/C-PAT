@@ -13,30 +13,23 @@
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 md:col-span-7 mb-4">
         <p-card styleClass="h-full p-8">
-          <cpat-poam-advanced-pie
-            class="poam-status-advanced-pie"
-            [pieChartData]="advancedStatusPieChartData"
-            [collectionName]="selectedCollection?.collectionName"
-          ></cpat-poam-advanced-pie>
+          <cpat-poam-advanced-pie class="poam-status-advanced-pie"
+                                  [pieChartData]="advancedStatusPieChartData"
+                                  [collectionName]="selectedCollection?.collectionName"></cpat-poam-advanced-pie>
         </p-card>
       </div>
       <div class="col-span-12 md:col-span-5 mb-4">
         <p-card styleClass="h-full">
-          <cpat-poam-advanced-pie
-            class="poam-severity-advanced-pie"
-            [pieChartData]="advancedSeverityseverityPieChartData"
-            [collectionName]="selectedCollection?.collectionName"
-          ></cpat-poam-advanced-pie>
+          <cpat-poam-advanced-pie class="poam-severity-advanced-pie"
+                                  [pieChartData]="advancedSeverityseverityPieChartData"
+                                  [collectionName]="selectedCollection?.collectionName"></cpat-poam-advanced-pie>
         </p-card>
       </div>
     </div>
     <div class="col-span-12 p-0 mb-4">
-      <cpat-poam-mainchart
-        [poams]="poams"
-        canvasHeight="35rem"
-        canvasWidth="30%"
-        (poamsChange)="onPoamsChange($event)"
-      ></cpat-poam-mainchart>
+      <cpat-poam-mainchart *ngIf="poams"
+                           [poams]="poams"
+                           canvasHeight="34rem"></cpat-poam-mainchart>
     </div>
   </div>
   <div class="col-span-12 md:col-span-4 mb-4 rounded-3xl">
@@ -53,50 +46,40 @@
         <p-tabpanels>
           <p-tabpanel value="0" styleClass="flex-1 flex flex-col">
             <div class="flex-1 overflow-hidden">
-              <cpat-poam-assigned-grid
-                [assignedData]="this.allPoams"
-                (managePoam)="managePoam($event)"
-              >
+              <cpat-poam-assigned-grid [assignedData]="this.allPoams"
+                                       (managePoam)="managePoam($event)">
               </cpat-poam-assigned-grid>
             </div>
           </p-tabpanel>
 
           <p-tabpanel value="1" styleClass="flex-1 flex flex-col">
             <div class="flex-1 overflow-hidden">
-              <cpat-poam-assigned-grid
-                [assignedData]="this.poamsNeedingAttention"
-                (managePoam)="managePoam($event)"
-              >
+              <cpat-poam-assigned-grid [assignedData]="this.poamsNeedingAttention"
+                                       (managePoam)="managePoam($event)">
               </cpat-poam-assigned-grid>
             </div>
           </p-tabpanel>
 
           <p-tabpanel *ngIf="accessLevel >= 2" value="2" styleClass="flex-1 flex flex-col">
             <div class="flex-1 overflow-hidden">
-              <cpat-poam-assigned-grid
-                [assignedData]="this.submittedPoams"
-                (managePoam)="managePoam($event)"
-              >
+              <cpat-poam-assigned-grid [assignedData]="this.submittedPoams"
+                                       (managePoam)="managePoam($event)">
               </cpat-poam-assigned-grid>
             </div>
           </p-tabpanel>
 
           <p-tabpanel *ngIf="accessLevel >= 1" value="3" styleClass="flex-1 flex flex-col">
             <div class="flex-1 overflow-hidden">
-              <cpat-poam-assigned-grid
-                [assignedData]="this.teamPoams"
-                (managePoam)="managePoam($event)"
-              >
+              <cpat-poam-assigned-grid [assignedData]="this.teamPoams"
+                                       (managePoam)="managePoam($event)">
               </cpat-poam-assigned-grid>
             </div>
           </p-tabpanel>
 
           <p-tabpanel *ngIf="accessLevel >= 3" value="4" styleClass="flex-1 flex flex-col">
             <div class="flex-1 overflow-hidden">
-              <cpat-poam-assigned-grid
-                [assignedData]="this.poamsPendingApproval"
-                (managePoam)="managePoam($event)"
-              >
+              <cpat-poam-assigned-grid [assignedData]="this.poamsPendingApproval"
+                                       (managePoam)="managePoam($event)">
               </cpat-poam-assigned-grid>
             </div>
           </p-tabpanel>
@@ -105,9 +88,7 @@
     </p-card>
   </div>
 </div>
-<cpat-poam-grid
-  [poamsData]="poamsForChart"
-  [allColumns]="['Last Updated', 'POAM ID', 'POAM Status', 'Adjusted Severity', 'Submitter', 'Submitted Date', 'Scheduled Completion Date', 'POAM']"
-  (managePoam)="managePoam($event)"
->
+<cpat-poam-grid [poamsData]="poams"
+                [allColumns]="['Last Updated', 'POAM ID', 'POAM Status', 'Adjusted Severity', 'Submitter', 'Submitted Date', 'Scheduled Completion Date', 'POAM']"
+                (managePoam)="managePoam($event)">
 </cpat-poam-grid>

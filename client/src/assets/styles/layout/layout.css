@@ -569,20 +569,19 @@ textarea {
   padding: 0.25rem 0;
   list-style: none;
 }
-.layout-sidebar .layout-menu > li > div ol li a {
-  border-inline-start: 1px solid var(--border-color);
-  transition: all 0.2s;
-  font-weight: 450;
-  display: flex;
-  align-items: center;
-  padding: 0.5rem;
-  padding-inline-start: 1rem;
-  color: var(--text-secondary-color);
-  transition: outline-color 0.2s, border-color 0.2s;
-  outline-color: transparent;
-  position: relative;
-  --p-focus-ring-offset: -1px;
-}
+  .layout-sidebar .layout-menu > li > div ol li a {
+    border-inline-start: 1px solid var(--border-color);
+    transition: all 0.2s, outline-color 0.2s, border-color 0.2s;
+    font-weight: 450;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    padding-inline-start: 1rem;
+    color: var(--text-secondary-color);
+    outline-color: transparent;
+    position: relative;
+    --p-focus-ring-offset: -1px;
+  }
 .layout-sidebar .layout-menu > li > div ol li a:focus-visible {
   outline: 1px solid var(--primary-color);
   outline-offset: var(--p-focus-ring-offset);
@@ -1757,7 +1756,6 @@ pre[class*=language-] code {
 .animated-text::before {
   border-radius: var(--rounded-base);
   animation: color-animation 2s linear infinite;
-  background-size: auto auto;
   background-clip: border-box;
   background-size: 200% auto;
   content: "";
@@ -1774,7 +1772,6 @@ pre[class*=language-] code {
   z-index: 3;
   background-image: linear-gradient(-225deg, var(--p-blue-400) 30%, var(--p-cyan-400) 60%, var(--p-purple-400) 80%);
   animation: color-animation 2s linear infinite;
-  background-size: auto auto;
   background-clip: border-box;
   background-size: 200% auto;
   background-clip: text;
@@ -2332,7 +2329,6 @@ pre[class*=language-] code {
   width: 28px;
   height: 28px;
   background-color: transparent;
-  border: none;
   cursor: pointer;
 }
 .designer [type=color]::-webkit-color-swatch {

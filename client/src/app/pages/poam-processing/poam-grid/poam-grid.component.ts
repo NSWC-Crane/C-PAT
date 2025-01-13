@@ -20,7 +20,7 @@ import {
 import { Router } from '@angular/router';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
 import { SharedService } from '../../../common/services/shared.service';
@@ -69,12 +69,14 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   displayedData: any[] = [];
   batchSize = 20;
   user: any;
+  private filterSubject = new Subject<string>();
   cpatAffectedAssets: any;
   stigmanAffectedAssets: any;
   tenableAffectedAssets: any;
   selectedCollectionId: any;
   selectedCollection: any;
   private findingsCache: Map<string, any[]> = new Map();
+  private memoizedFilteredData: { [key: string]: any[] } = {};
   private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
   poamStatusOptions = [
@@ -99,7 +101,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     private sharedService: SharedService,
     private poamService: PoamService,
     private messageService: MessageService
-  ) {}
+  ) { }
 
   async ngOnInit() {
     this.setPayload();
@@ -108,6 +110,14 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
         this.table.filters['status'] = [{ value: 'closed', matchMode: 'notEquals' }];
       }
     });
+    this.subscriptions.add(
+      this.filterSubject.pipe(
+        debounceTime(300),
+        distinctUntilChanged()
+      ).subscribe(() => {
+        this.applyFilter();
+      })
+    );
   }
 
   async setPayload() {
@@ -128,7 +138,6 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['poamsData']) {
       this.resetData();
       this.updateFilteredData();
-      this.loadMoreData();
     }
   }
 
@@ -319,7 +328,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     return processedPoams;
   }
 
-  async processPoamsWithStigFindings(poams: any[], originCollectionId: string): Promise<any[]> {
+  async processPoamsWithStigFindings(poams: any[], originCollectionId: number): Promise<any[]> {
     const processedPoams = [];
 
     for (const poam of poams) {
@@ -380,6 +389,12 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   updateFilteredData() {
+    const cacheKey = JSON.stringify(this.poamsData);
+    if (this.memoizedFilteredData[cacheKey]) {
+      this.filteredData = this.memoizedFilteredData[cacheKey];
+      return;
+    }
+
     this.filteredData = this.poamsData.map(poam => ({
       lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
       poamId: poam.poamId,
@@ -399,26 +414,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
       associatedVulnerabilities: poam.associatedVulnerabilities,
     }));
     this.applyFilter();
-  }
-
-  loadMoreData() {
-    const startIndex = this.displayedData.length;
-    const endIndex = startIndex + this.batchSize;
-    const newData = this.filteredData.slice(startIndex, endIndex);
-    this.displayedData = [...this.displayedData, ...newData];
-  }
-
-  onScroll(event: Event) {
-    const tableViewHeight = (event.target as HTMLElement).offsetHeight;
-    const tableScrollHeight = (event.target as HTMLElement).scrollHeight;
-    const scrollPosition = (event.target as HTMLElement).scrollTop + tableViewHeight;
-
-    if (
-      scrollPosition >= tableScrollHeight &&
-      this.displayedData.length < this.filteredData.length
-    ) {
-      this.loadMoreData();
-    }
+    this.memoizedFilteredData[cacheKey] = this.filteredData;
   }
 
   managePoam(row: any) {
@@ -443,7 +439,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   onFilterChange(event: Event) {
     const target = event.target as HTMLInputElement;
     this.globalFilter = target.value;
-    this.applyFilter();
+    this.filterSubject.next(this.globalFilter);
   }
 
   clear() {

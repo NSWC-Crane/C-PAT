@@ -166,19 +166,20 @@
             </p-tabpanel>
             <p-tabpanel value="1">
               <div class="canvas" id="canvas" style="margin-top: 20px">
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-download"
-                  class="p-button-rounded p-button-text export-button"
-                  (click)="exportChart(assetLabelChart, 'C-PAT Asset Label Chart')"
-                ></button>
-                <canvas #assetLabelsChart class="asset-label-chart"></canvas>
+                <button pButton
+                        type="button"
+                        icon="pi pi-download"
+                        class="p-button-rounded p-button-text export-button"
+                        (click)="exportChart()"></button>
+                <p-chart type="bar"
+                         [data]="chartData"
+                         [options]="chartOptions"
+                         styleClass="w-full h-50"></p-chart>
               </div>
             </p-tabpanel>
           </p-tabpanels>
         </p-tabs>
-        <div class="field mb-4">
+        <div class="field mb-4 mt-4">
           <p-select
             id="assetid"
             [options]="data"

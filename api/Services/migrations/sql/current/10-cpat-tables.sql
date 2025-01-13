@@ -39,7 +39,8 @@ DROP TABLE IF EXISTS `assignedteams`;
 CREATE TABLE `assignedteams` (
   `assignedTeamId` int NOT NULL AUTO_INCREMENT,
   `assignedTeamName` varchar(100) NOT NULL,
-  PRIMARY KEY (`assignedTeamId`)
+  PRIMARY KEY (`assignedTeamId`),
+  UNIQUE KEY `assignedTeamName_UNIQUE` (`assignedTeamName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -312,6 +313,7 @@ CREATE TABLE `poamapprovers` (
   `approvedDate` datetime DEFAULT CURRENT_TIMESTAMP,
   `comments` varchar(2000) DEFAULT NULL,
   PRIMARY KEY (`poamId`,`userId`),
+  KEY `fk_poamapprovers_user` (`userId`),
   CONSTRAINT `fk_poamapprovers_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
   CONSTRAINT `fk_poamapprovers_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -404,8 +406,9 @@ CREATE TABLE `poamlabels` (
   `poamId` int NOT NULL,
   `labelId` int NOT NULL,
   PRIMARY KEY (`poamId`,`labelId`),
-  CONSTRAINT `fk_poamlabels_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
-  CONSTRAINT `fk_poamlabels_label` FOREIGN KEY (`labelId`) REFERENCES `label` (`labelId`) ON DELETE CASCADE
+  KEY `fk_poamlabels_label` (`labelId`),
+  CONSTRAINT `fk_poamlabels_label` FOREIGN KEY (`labelId`) REFERENCES `label` (`labelId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_poamlabels_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
@@ -422,8 +425,9 @@ CREATE TABLE `poamlogs` (
   `action` varchar(2000) NOT NULL,
   PRIMARY KEY (`poamLogId`),
   KEY `idx_poamlogs_poamId` (`poamId`),
+  KEY `fk_poamlogs_user` (`userId`),
   CONSTRAINT `fk_poamlogs_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
-  CONSTRAINT `fk_poamlogs_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE NO ACTION
+  CONSTRAINT `fk_poamlogs_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 

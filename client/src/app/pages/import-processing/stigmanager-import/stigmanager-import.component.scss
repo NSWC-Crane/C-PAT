@@ -44,20 +44,8 @@
   }
 }
 
-.update-POAM-button {
-  margin: auto;
-  display: flex;
-  justify-content: center;
-}
-
-.findings-chart {
-  height: 400px;
-  width: 100%;
-}
-
 .canvas {
   position: relative;
-  max-height: 400px;
 }
 
 .export-button {
@@ -65,8 +53,5 @@
   top: 0;
   right: 0;
   margin-right: 0;
-}
-
-:host ::ng-deep .p-card .p-card-title {
-  font-size: 12pt;
+  z-index: 9999;
 }
