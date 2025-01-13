@@ -36,7 +36,7 @@
     "sequelize": "^6.37.5",
     "swagger-ui-express": "^5.0.1",
     "umzug": "^2.3.0",
-    "uuid": "^11.0.4"
+    "uuid": "^11.0.5"
   },
   "devDependencies": {
     "npm-check-updates": "^17.1.13"
