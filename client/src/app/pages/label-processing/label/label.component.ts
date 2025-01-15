@@ -32,14 +32,17 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { MessageService } from 'primeng/api';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'cpat-label',
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, DialogModule, InputTextModule],
-  providers: [DialogService],
+  imports: [CommonModule, FormsModule, ButtonModule, DialogModule, InputTextModule, ToastModule],
+  providers: [MessageService, DialogService],
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   @Input() label: any;
@@ -49,16 +52,18 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
 
   errorMessage: string = '';
   data: any = [];
-  deleteEvent: any;
   showLaborCategorySelect: boolean = false;
   selectedCollection: any;
   private subscriptions = new Subscription();
   private subs = new SubSink();
+  protected accessLevel: any;
 
   constructor(
     private labelService: LabelService,
     private dialogService: DialogService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private messageService: MessageService,
+    private setPayloadService: PayloadService,
   ) {}
 
   ngOnInit() {
@@ -67,6 +72,9 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
         this.selectedCollection = collectionId;
       })
     );
+    this.setPayloadService.accessLevel$.subscribe(async level => {
+      this.accessLevel = level;
+    })
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -146,6 +154,28 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
         cancelbutton: 'false',
       })
     );
+  }
+
+  async deleteLabel(label: any) {
+    await (
+      await this.labelService.deleteLabel(label.collectionId, label.labelId)
+    ).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Label has been successfully deleted.`,
+        });
+        this.labelchange.emit();
+      },
+      error: (error: Error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to delete label: ${error.message}`,
+        });
+      },
+    });
   }
 
   ngOnDestroy() {

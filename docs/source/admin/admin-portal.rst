@@ -136,6 +136,15 @@ Click to export. The exported file can now be imported to C-PAT.
    :title: Step 2 - Export
 
 
+Importing VRAM Data Into C-PAT
+------------------------------
+
+The exported VRAM excel document can now be imported into C-PAT by navigating to the "VRAM IAV Import" tab within the admin portal. The import process will automatically parse the required columns and populate the IAV table in C-PAT, allowing the requisite data for plugin mapping and subsequent processing.
+
+.. note::
+   After selecting the file to import or dragging and dropping the appropriate file, you MUST click the green import button.
+
+
 Nessus Plugin Mapping
 ---------------------
 

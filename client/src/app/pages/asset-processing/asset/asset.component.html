@@ -146,25 +146,30 @@
     </div>
   </div>
   <div class="formgroup-inline" style="margin-top: 6rem">
-    <div class="flex justify-between items-center w-full m-2">
-      <button
-        pButton
-        type="submit"
-        [outlined]="true"
-        label="Submit"
-        class="p-mr-2"
-        [disabled]="!form.valid"
-      ></button>
-      <button
-        pButton
-        type="button"
-        [outlined]="true"
-        label="Cancel"
-        class="p-button-secondary p-mr-2"
-        (click)="resetData()"
-      ></button>
+    <div class="flex justify-between items-center w-full mt-8">
+      <div class="flex gap-6">
+        <button pButton
+                type="submit"
+                [outlined]="true"
+                label="Submit"
+                class="p-mr-2"
+                [disabled]="!form.valid"></button>
+        <button pButton
+                type="button"
+                [outlined]="true"
+                label="Cancel"
+                class="p-button-secondary p-mr-2"
+                (click)="resetData()"></button>
+      </div>
+      <button pButton
+              type="button"
+              [outlined]="true"
+              label="Delete Asset"
+              class="p-button-danger"
+              (click)="deleteAsset(asset)"
+              [disabled]="accessLevel < 2"></button>
     </div>
-  </div>
+    </div>
 </form>
 <p-toast></p-toast>
 <p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
