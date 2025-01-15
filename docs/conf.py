@@ -4,8 +4,8 @@ project = 'C-PAT'
 copyright = '2024 U.S. Federal Government (in countries where recognized)'
 author = 'Christian Rodriguez'
 
-release = '1.0.0-rc.3'
-version = '1.0.0-rc.3'
+release = '1.0.0-rc.6'
+version = '1.0.0-rc.6'
 
 html_css_files = [
     'css/custom.css',
@@ -16,7 +16,7 @@ extensions = [
     'sphinx.ext.todo',
     'myst_parser',    
     'sphinx_tabs.tabs',
-    'sphinxcontrib.images'
+    'sphinxcontrib.images',
 ]
 html_logo = 'assets/images/cpat.svg'
 images_config = {
