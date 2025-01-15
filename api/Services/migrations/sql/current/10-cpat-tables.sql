@@ -107,7 +107,7 @@ CREATE TABLE `user` (
   `accountStatus` varchar(25) NOT NULL DEFAULT 'PENDING',
   `fullName` varchar(100) DEFAULT NULL,
   `officeOrg` varchar(100) DEFAULT 'UNKNOWN',
-  `defaultTheme` varchar(50) DEFAULT 'lara-dark-blue',
+  `defaultTheme` varchar(255) DEFAULT NULL,
   `lastClaims` json DEFAULT (_utf8mb4'{}'),
   `points` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`userId`),
@@ -133,6 +133,20 @@ CREATE TABLE `collection` (
   `originCollectionId` int DEFAULT NULL,
   PRIMARY KEY (`collectionId`),
   KEY `idx_collection_collectionName` (`collectionName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `assignedteampermissions`
+--
+
+DROP TABLE IF EXISTS `assignedteampermissions`;
+CREATE TABLE `assignedteampermissions` (
+  `assignedTeamId` int NOT NULL,
+  `collectionId` int NOT NULL,
+  PRIMARY KEY (`assignedTeamId`,`collectionId`),
+  KEY `fk_assignedteampermissions_collection_idx` (`collectionId`),
+  CONSTRAINT `fk_assignedteampermissions_assignedteams` FOREIGN KEY (`assignedTeamId`) REFERENCES `assignedteams` (`assignedTeamId`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_assignedteampermissions_collection` FOREIGN KEY (`collectionId`) REFERENCES `collection` (`collectionId`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --

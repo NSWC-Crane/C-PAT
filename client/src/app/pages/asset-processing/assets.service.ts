@@ -104,4 +104,11 @@ export class AssetService {
       .delete<any>(`${this.cpatApiBase}/assets/${poamId}`, { headers })
       .pipe(catchError(this.handleError));
   }
+
+  async deleteAssetsByAssetId(assetId: number) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .delete<any>(`${this.cpatApiBase}/asset/${assetId}`, { headers })
+      .pipe(catchError(this.handleError));
+  }
 }

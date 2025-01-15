@@ -33,6 +33,7 @@ import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 @Component({
   selector: 'cpat-asset',
@@ -69,16 +70,21 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   displayInvalidDataDialog: boolean = false;
   invalidDataMessage: string = '';
   private subs = new SubSink();
+  protected accessLevel: any;
 
   constructor(
     private assetService: AssetService,
     private sharedService: SharedService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private setPayloadService: PayloadService,
   ) {}
 
   ngOnInit(): void {
     if (this.payload === undefined) return;
+    this.setPayloadService.accessLevel$.subscribe(async level => {
+      this.accessLevel = level;
+    })
     this.getData();
   }
 
@@ -308,6 +314,28 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
     return true;
+  }
+
+  async deleteAsset(asset: any) {
+    await (
+      await this.assetService.deleteAssetsByAssetId(asset.assetId)
+    ).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Asset has been successfully deleted.`,
+        });
+        this.assetchange.emit();
+      },
+      error: (error: Error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to delete asset: ${error.message}`,
+        });
+      },
+    });
   }
 
   invalidData(errMsg: string) {

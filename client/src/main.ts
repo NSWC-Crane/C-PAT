@@ -38,8 +38,7 @@ function getScopeStr(configId: string) {
       `${cpatScopePrefix}c-pat:read`,
       `${cpatScopePrefix}c-pat:write`,
       `${cpatScopePrefix}c-pat:op`,
-      'openid',
-      'offline_access'
+      'openid'
     ];
   } else if (configId === 'stigman') {
     scopes = [
@@ -49,7 +48,7 @@ function getScopeStr(configId: string) {
       `${stigmanScopePrefix}stig-manager:user`,
       `${stigmanScopePrefix}stig-manager:user:read`,
       `${stigmanScopePrefix}stig-manager:op`,
-      'openid',
+      'openid'
     ];
   }
 

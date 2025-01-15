@@ -1,18 +1,6 @@
 const MigrationHandler = require('./lib/MigrationHandler')
 
-const upMigration = [
-    `ALTER TABLE user
-CHANGE COLUMN defaultTheme defaultTheme VARCHAR(255) NULL;`,
-    `CREATE TABLE userassignedteams (
-  userId int NOT NULL,
-  assignedTeamId int NOT NULL,
-  accessLevel int NOT NULL,
-  PRIMARY KEY (userId,assignedTeamId),
-  KEY fk_userassignedteams_assignedteams (assignedTeamId),
-  CONSTRAINT fk_userassignedteams_assignedteams FOREIGN KEY (assignedTeamId) REFERENCES assignedteams (assignedTeamId) ON DELETE CASCADE ON UPDATE RESTRICT,
-  CONSTRAINT fk_userassignedteams_user FOREIGN KEY (userId) REFERENCES user (userId) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-  `,
+const upMigration = [    
     `INSERT INTO themes (themeId, themeIdentifier, themeName, themeDescription, cost)
    VALUES ('1', 'carbide', 'Carbon Copy Security', 'For when your POAMs need military-grade encryption and a dash of industrial chic. So secure, even your cursor needs two-factor authentication.', '100')
    ON DUPLICATE KEY UPDATE

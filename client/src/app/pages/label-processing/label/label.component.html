@@ -9,7 +9,7 @@
 -->
 
 <form (ngSubmit)="onSubmit()" #form="ngForm">
-  <div class="field">
+  <div class="field mb-4">
     <label for="labelname" class="p-col-fixed" style="width: 10rem">Label Name:</label>
     <input
       pInputText
@@ -18,11 +18,11 @@
       name="labelname"
       [(ngModel)]="label.labelName"
       placeholder="Label Name"
-      class="w-full"
+      class="w-full mt-2"
       required
     />
   </div>
-  <div class="field">
+  <div class="field mb-4">
     <label for="description" class="p-col-fixed" style="width: 10rem">Description:</label>
     <input
       pInputText
@@ -31,27 +31,33 @@
       name="description"
       [(ngModel)]="label.description"
       placeholder="Description"
-      class="w-full"
+      class="w-full mt-2"
     />
   </div>
   <div class="formgroup-inline">
-    <div class="flex justify-between items-center w-full m-4">
-      <button
-        pButton
-        type="submit"
-        [outlined]="true"
-        label="Submit"
-        class="p-mr-2"
-        [disabled]="!form.valid"
-      ></button>
-      <button
-        pButton
-        type="button"
-        [outlined]="true"
-        label="Cancel"
-        class="p-button-secondary p-mr-2"
-        (click)="resetData()"
-      ></button>
+    <div class="flex justify-between items-center w-full mt-8">
+      <div class="flex gap-6">
+        <button pButton
+                type="submit"
+                [outlined]="true"
+                label="Submit"
+                [disabled]="!form.valid"></button>
+        <button pButton
+                type="button"
+                [outlined]="true"
+                label="Cancel"
+                class="p-button-secondary"
+                (click)="resetData()"></button>
+      </div>
+      <button pButton
+              type="button"
+              [outlined]="true"
+              label="Delete Label"
+              class="p-button-danger"
+              (click)="deleteLabel(label)"
+              [disabled]="accessLevel < 2"></button>
     </div>
   </div>
 </form>
+
+<p-toast />

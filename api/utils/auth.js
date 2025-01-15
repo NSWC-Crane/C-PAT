@@ -19,6 +19,8 @@ const User = require('../Services/usersService')
 const axios = require('axios');
 const SmError = require('./error');
 const { differenceInMinutes } = require('date-fns');
+const https = require('https');
+const http = require('http');
 
 let jwksUri
 let client
@@ -126,7 +128,7 @@ function getKey(header, callback) {
     }
 
     let attempts = 0;
-    const maxAttempts = 3;
+    const maxAttempts = 5;
     const baseDelay = 1000;
 
     function attemptGetKey() {
@@ -182,25 +184,39 @@ let initAttempt = 0;
 async function initializeAuth(depStatus) {
     const retries = 24;
     const wellKnown = `${config.oauth.authority}/.well-known/openid-configuration`;
-
     async function getJwks() {
         logger.writeDebug('oidc', 'discovery', {
             metadataUri: wellKnown,
             attempt: ++initAttempt
         });
-
         try {
             const openidConfig = (await axios.get(wellKnown)).data;
             logger.writeDebug('oidc', 'discovery', {
                 metadataUri: wellKnown,
                 metadata: openidConfig
             });
-
             if (!openidConfig.jwks_uri) {
                 throw new Error('No jwks_uri property found');
             }
-
             jwksUri = openidConfig.jwks_uri;
+
+            const isHttps = jwksUri.toLowerCase().startsWith('https');
+            const requestAgent = isHttps ?
+                new https.Agent({
+                    keepAlive: true,
+                    keepAliveMsecs: 3000,
+                    maxSockets: 25,
+                    maxFreeSockets: 12,
+                    timeout: 10000
+                }) :
+                new http.Agent({
+                    keepAlive: true,
+                    keepAliveMsecs: 3000,
+                    maxSockets: 25,
+                    maxFreeSockets: 12,
+                    timeout: 10000
+                });
+
             client = jwksClient({
                 cache: true,
                 cacheMaxEntries: 10,
@@ -209,15 +225,18 @@ async function initializeAuth(depStatus) {
                 timeout: 10000,
                 rateLimit: true,
                 jwksRequestsPerMinute: 30,
+                requestAgent,
                 handleSigningKeyError: async (err, cb) => {
                     logger.writeError('oidc', 'jwks', {
                         error: err.message,
                         code: err.code
                     });
+                    if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') {
+                        client.getSigningKey.cache.reset();
+                    }
                     cb(err);
                 }
             });
-
         } catch (error) {
             logger.writeError('oidc', 'discovery-error', {
                 error: error.message,
