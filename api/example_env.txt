@@ -16,7 +16,7 @@ CPAT_CLASSIFICATION="U"
 #client config
 CPAT_API_BASE="api"
 CPAT_CLIENT_DISABLED="false"
-CPAT_CLIENT_DIRECTORY="../client/dist"
+CPAT_CLIENT_DIRECTORY="../client/dist/browser"
 CPAT_CLIENT_REFRESH_DISABLED="false"
 
 #docs config

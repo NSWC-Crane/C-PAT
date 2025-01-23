@@ -331,7 +331,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   async filterFindings() {
     await (
-      await this.poamService.getPluginIDsWithPoam()
+      await this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)
     ).subscribe({
       next: (response: any) => {
         this.existingPoams = response;

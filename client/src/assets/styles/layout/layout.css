@@ -113,7 +113,7 @@
   --primary-hover-color: var(--p-primary-hover-color);
   --text-color: var(--p-surface-700);
   --text-secondary-color: var(--p-surface-500);
-  --glow-image: url(../../pattern.png);
+  --glow-image: url(../../images/pattern.png);
   --glow-blend: hard-light, multiply;
   --topbar-sticky-background:rgba(255,255,255,.7);
   --mobile-menu-background: #ffffff;
@@ -142,7 +142,7 @@
     --primary-hover-color: var(--p-primary-hover-color);
     --text-color: var(--p-surface-0);
     --text-secondary-color: var(--p-surface-400);
-    --glow-image: url(../../pattern.png), radial-gradient(50% 50% at center -25px, var(--p-primary-color) 0%, #000000 100%);
+    --glow-image: url(../../images/pattern.png), radial-gradient(50% 50% at center -25px, var(--p-primary-color) 0%, #000000 100%);
     --glow-blend: hard-light, color-dodge;
     --topbar-sticky-background: rgba(0,0,0,.3);
     --mobile-menu-background: rgba(0,0,0,.3);

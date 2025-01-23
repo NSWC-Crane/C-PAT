@@ -23,6 +23,7 @@ import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
 import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'cpat-admin-processing',
@@ -32,6 +33,7 @@ import { UserProcessingComponent } from './user-processing/user-processing.compo
   imports: [
     AAPackageProcessingComponent,
     AssignedTeamProcessingComponent,
+    ButtonModule,
     CollectionProcessingComponent,
     CommonModule,
     FormsModule,
@@ -66,6 +68,10 @@ export class AdminProcessingComponent implements OnInit {
         console.error('An error occurred:', error.message);
       },
     });
+  }
+
+  navigateToAppInfo() {
+    this.router.navigate(['/admin-processing/app-info']);
   }
 
   switchToPluginMapping() {

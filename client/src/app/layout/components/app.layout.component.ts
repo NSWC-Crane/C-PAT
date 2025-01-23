@@ -191,7 +191,7 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
                     (click)="menu.toggle($event)"
                   >
                     <p-avatar
-                      image="assets/user.png"
+                      image="assets/images/user.png"
                       size="large"
                       shape="circle"
                       [style]="{ width: '3rem', height: '3rem' }"

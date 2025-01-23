@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'cpat-footer',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TooltipModule],
   template: `
     <section class="landing-footer bottom-0">
       <div class="landing-footer-container">
@@ -44,20 +46,44 @@ import { RouterModule } from '@angular/router';
           </a>
           <div class="flex items-center gap-2">
             <a
+              href="/docs"
+              *ngIf="docsDisabled === false"
+              pTooltip="C-PAT Documentation"
+              tooltipPosition="top"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="linkbox linkbox-icon">
+                <i class="pi pi-info-circle"></i>
+            </a>
+            <a
+              href="/api-docs"
+              *ngIf="swaggerUiEnabled === true"
+              pTooltip="API Documentation"
+              tooltipPosition="top"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="linkbox linkbox-icon">
+                <i class="pi pi-code"></i>
+            </a>
+            <a
               href="https://github.com/NSWC-Crane/C-PAT"
               target="_blank"
               rel="noopener noreferrer"
-              class="linkbox linkbox-icon"
-            >
+              class="linkbox linkbox-icon">
               <i class="pi pi-github"></i>
             </a>
-            <!--  <a href="https://github.com/NSWC-Crane/C-PAT" target="_blank" rel="noopener noreferrer" class="linkbox linkbox-icon">
-                            <i class="pi pi-github"></i>
-                        </a> -->
           </div>
         </div>
       </div>
     </section>
   `,
 })
-export class AppFooterComponent {}
+export class AppFooterComponent {
+  readonly docsDisabled: boolean;
+  readonly swaggerUiEnabled: boolean;
+
+  constructor() {
+    this.docsDisabled = CPAT.Env?.features?.docsDisabled ?? false;
+    this.swaggerUiEnabled = CPAT.Env?.features?.swaggerUiEnabled ?? true;
+  }
+}

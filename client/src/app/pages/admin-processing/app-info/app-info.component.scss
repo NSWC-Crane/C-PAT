@@ -7,25 +7,3 @@
 ! CONDITIONS OF THE LICENSE.  
 !##########################################################################
 */
-
-@use 'sass:math';
-@use 'tailwind/main.css';
-@use 'primeicons/primeicons.css';
-
-@mixin custom-scrollbar($track-color, $thumb-color) {
-  ::-webkit-scrollbar {
-    width: 0.4rem;
-    height: 0.4rem;
-  }
-  ::-webkit-scrollbar-track {
-    background: $track-color;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: $thumb-color;
-    cursor: pointer;
-    border-radius: math.div(0.4rem, 2);
-  }
-  ::-webkit-scrollbar-corner {
-    background: #192038;
-  }
-}

@@ -1,3 +1,5 @@
+@use './_mixins' as *;
+
 .layout-sidebar {
     position: sticky;
     inset-inline-start: 0;

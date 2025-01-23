@@ -1,3 +1,5 @@
+@use '../_mixins' as *;
+
 .landing {
     scroll-behavior: smooth;
     padding-top: 4rem;

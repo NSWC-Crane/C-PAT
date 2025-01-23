@@ -1097,7 +1097,7 @@ ${this.pluginData.description ?? ''}`,
       )
       .subscribe(basicListData => {
         const currentCollection = basicListData.find(
-          collection => +collection.collectionId === +this.selectedCollection
+          collection => +collection.collectionId === this.selectedCollection
         );
 
         if (!currentCollection) {

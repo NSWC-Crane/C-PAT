@@ -152,6 +152,13 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
+  async getPluginIDsWithPoamByCollection(collectionId: number) {
+    const headers = await this.getAuthHeaders();
+    return this.http
+      .get(`${this.cpatApiBase}/poam/pluginIDs/${collectionId}`, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
   async getPoamAssets(poamId: string) {
     const headers = await this.getAuthHeaders();
     return this.http

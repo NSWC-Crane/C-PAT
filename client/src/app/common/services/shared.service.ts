@@ -46,7 +46,7 @@ export class SharedService {
     return new HttpHeaders().set('Authorization', 'Bearer ' + token);
   }
 
-  public setSelectedCollection(collection: any) {
+  public setSelectedCollection(collection: number) {
     this._selectedCollection.next(collection);
   }
 

@@ -317,6 +317,30 @@ exports.getPluginIDsWithPoam = async function getPluginIDsWithPoam(req, res, nex
     }
 };
 
+exports.getPluginIDsWithPoamByCollection = async function getPluginIDsWithPoamByCollection(req, res, next) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+                SELECT poamId, status, vulnerabilityId 
+                FROM cpat.poam WHERE collectionId = ?
+                UNION ALL
+                SELECT p.poamId, 'Associated' as status, p.associatedVulnerability as vulnerabilityId
+                FROM cpat.poamassociatedvulnerabilities p
+                WHERE NOT EXISTS (
+                    SELECT 1 
+                    FROM cpat.poam 
+                    WHERE vulnerabilityId = p.associatedVulnerability
+                )
+                ORDER BY poamId;
+            `;
+            let [PluginIDs] = await connection.query(sql, [req.params.collectionId]);
+            return PluginIDs;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
 exports.postPoam = async function postPoam(req) {
     const requiredFields = ['collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'submitterId'];
     for (let field of requiredFields) {

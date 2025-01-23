@@ -2500,7 +2500,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   async loadPoamAssociations() {
     try {
-      const poamData = await (await this.poamService.getPluginIDsWithPoam()).toPromise();
+      const poamData = await (await this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)).toPromise();
       if (poamData && Array.isArray(poamData)) {
         this.existingPoamPluginIDs = poamData.reduce(
           (

@@ -139,7 +139,7 @@ Procedure
    - ``npm run offline-rebuild``. This command will build the client files and start the API which dynamically serves the client.
 
 .. note::
-  When running from source, the client files are located at ``../client/dist`` relative to the API directory. If these files are moved, set the ``CPAT_CLIENT_DIRECTORY`` environment variable as appropriate.
+  When running from source, the client files are located at ``../client/dist/browser`` relative to the API directory. If these files are moved, set the ``CPAT_CLIENT_DIRECTORY`` environment variable as appropriate.
 
 
 Updating C-PAT

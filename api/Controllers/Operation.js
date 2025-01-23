@@ -10,6 +10,7 @@
 
 const operationService = require('../Services/operationService');
 const config = require('../utils/config');
+const SmError = require('../utils/error.js');
 
 module.exports.getConfiguration = async function getConfiguration(req, res, next) {
     try {
@@ -52,3 +53,19 @@ module.exports.deleteConfigurationItem = async function deleteConfigurationItem(
         next(err);
     }
 };
+
+module.exports.getAppInfo = async function getAppInfo(req, res, next) {
+    try {
+        let elevate = req.query.elevate
+        if (elevate) {
+            const response = await operationService.getAppInfo();
+            res.json(response);
+        }
+        else {
+            throw new SmError.PrivilegeError();
+        }
+    }
+    catch (err) {
+        next(err);
+    }
+}

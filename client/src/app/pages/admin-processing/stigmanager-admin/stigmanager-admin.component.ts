@@ -11,7 +11,7 @@
 import { Component, OnInit } from '@angular/core';
 import { forkJoin, from, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
-import { CollectionsService } from '../collection-processing/collections.service';
+import { CollectionsService, CollectionBasicList } from '../collection-processing/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CommonModule } from '@angular/common';
@@ -25,13 +25,6 @@ interface STIGManagerCollection {
   collectionId: number;
   name: string;
   description?: string;
-}
-
-interface CollectionBasicList {
-  collectionId: number;
-  collectionName: string;
-  collectionOrigin?: string;
-  originCollectionId?: number;
 }
 
 @Component({

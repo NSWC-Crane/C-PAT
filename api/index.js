@@ -254,7 +254,9 @@ const CPAT = {
         extraScopes: "${config.stigman.extraScopes ?? ''}",
     },
     features: {
-        marketplaceDisabled: ${config.client.features.marketplaceDisabled}
+        marketplaceDisabled: ${config.client.features.marketplaceDisabled},
+        docsDisabled: ${config.docs.disabled},
+        swaggerUiEnabled: ${config.swaggerUi.enabled}
     }
   }
 }    
