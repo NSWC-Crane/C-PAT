@@ -16,13 +16,14 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideRouter } from '@angular/router';
 import { routes } from './app/app-routing.module';
 import { providePrimeNG } from 'primeng/config';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
 import { APP_BASE_HREF } from '@angular/common';
 import Noir from './app/app-theme';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
+import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
 
 if (environment.production) {
   enableProdMode();
@@ -122,6 +123,7 @@ bootstrapApplication(AppComponent, {
           disableRefreshIdTokenAuthTimeValidation: true
         }
       ]
-    }, withAppInitializerAuthCheck())
+    }, withAppInitializerAuthCheck()),
+    provideHttpClient(withInterceptors([authInterceptor]))
   ]
 }).catch(err => console.error(err));

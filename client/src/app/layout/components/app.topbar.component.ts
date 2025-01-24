@@ -18,13 +18,12 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { StyleClass } from 'primeng/styleclass';
 import { AppSearchComponent } from '../../common/components/search/app.search.component';
 import { AppConfiguratorComponent } from '../components/app.configurator.component';
-import { SubSink } from 'subsink';
-import { Subject, filter, take, takeUntil } from 'rxjs';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { Observable, Subject, catchError, filter, map, merge, of, switchMap, takeUntil } from 'rxjs';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { Popover } from 'primeng/popover';
 import { NotificationsPanelComponent } from '../../common/components/notifications/notifications-popover/notifications-popover.component';
 import { AuthService } from '../../core/auth/services/auth.service';
+
 
 @Component({
   selector: 'cpat-topbar',
@@ -156,22 +155,17 @@ import { AuthService } from '../../core/auth/services/auth.service';
 })
 export class AppTopBarComponent implements OnInit, OnDestroy {
   @Input({ transform: booleanAttribute }) showConfigurator = true;
-  scrollListener: VoidFunction | null;
+  scrollListener: VoidFunction | null = null;
   private window: Window;
-  notificationCount: any = null;
-  user: any;
-  payload: any;
-  private subs = new SubSink();
+  notificationCount: number | null = null;
   private destroy$ = new Subject<void>();
   readonly user$ = inject(AuthService).user$;
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
-    private authService: AuthService,
     private el: ElementRef,
     private renderer: Renderer2,
     private configService: AppConfigService,
-    private userService: UsersService,
     private router: Router,
     private notificationService: NotificationService
   ) {
@@ -184,84 +178,77 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
 
   isDarkMode = computed(() => this.configService.appState().darkTheme);
 
-  async ngOnInit() {
-    this.authService.user$
-      .pipe(
-        filter(user => !!user),
-        take(1)
-      )
-      .subscribe(user => {
-        this.user = user;
-        this.getNotificationCount();
-      });
+  ngOnInit(): void {
+    this.setupNotifications();
+  }
+
+  private setupNotifications(): void {
+    const navigationEvents$ = this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+    );
+
+    this.user$.pipe(
+      filter((user): user is NonNullable<typeof user> => !!user && user.accountStatus === 'ACTIVE'),
+      switchMap(() => merge(of(null), navigationEvents$).pipe(
+        switchMap(() => this.fetchNotificationCount())
+      )),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: count => {
+        this.notificationCount = count > 0 ? count : null;
+      },
+      error: error => {
+        console.error('Error getting notification count:', error);
+        this.notificationCount = null;
+      }
+    });
+  }
+
+  private fetchNotificationCount(): Observable<number> {
+    return this.notificationService.getUnreadNotificationCount().pipe(
+      map((response: unknown): number => {
+        if (typeof response === 'number') {
+          return response;
+        }
+        if (Array.isArray(response)) {
+          return response.length;
+        }
+        const parsed = parseInt(String(response), 10);
+        return !isNaN(parsed) ? parsed : 0;
+      }),
+      catchError(error => {
+        console.error('Error fetching notification count:', error);
+        return of(0);
+      })
+    );
   }
 
   toggleDarkMode() {
     this.configService.appState.update(state => ({ ...state, darkTheme: !state.darkTheme }));
   }
 
-  bindScrollListener() {
+  private bindScrollListener(): void {
     if (!this.scrollListener) {
       this.scrollListener = this.renderer.listen(this.window, 'scroll', () => {
-        if (this.window.scrollY > 0) {
-          this.el.nativeElement.children[0].classList.add('layout-topbar-sticky');
-        } else {
-          this.el.nativeElement.children[0].classList.remove('layout-topbar-sticky');
-        }
+        const topbarElement = this.el.nativeElement.children[0];
+        if (!topbarElement) return;
+
+        const shouldBeSticky = this.window.scrollY > 0;
+        topbarElement.classList.toggle('layout-topbar-sticky', shouldBeSticky);
       });
     }
   }
 
-  unbindScrollListener() {
+  private unbindScrollListener(): void {
     if (this.scrollListener) {
       this.scrollListener();
       this.scrollListener = null;
     }
   }
 
-  async initializeUser() {
-    try {
-      this.user = null;
-      this.payload = null;
-      this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
-        next: (response: any) => {
-          if (response?.userId) {
-            this.user = response;
-            if (this.user.accountStatus === 'ACTIVE') {
-              this.getNotificationCount();
-              this.router.events
-                .pipe(
-                  filter(event => event instanceof NavigationEnd),
-                  takeUntil(this.destroy$)
-                )
-                .subscribe(() => {
-                  if (this.user.userId) {
-                    this.getNotificationCount();
-                  }
-                });
-            }
-          } else {
-            console.error('User data is not available.');
-          }
-        },
-        error: error => {
-          console.error('An error occurred:', error.message);
-        },
-      });
-    } catch (error) {
-      console.error('Error initializing user:', error);
-    }
-  }
-
-  async getNotificationCount() {
-    this.subs.sink = (await this.notificationService.getUnreadNotificationCount()).subscribe(
-      (result: any) => {
-        this.notificationCount = result > 0 ? result : null;
-      }
-    );
-  }
-
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.unbindScrollListener();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

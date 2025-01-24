@@ -3,7 +3,7 @@ import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { SharedService } from 'src/app/common/services/shared.service';
-import { firstValueFrom } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
@@ -22,7 +22,7 @@ interface ExportColumn {
 interface Label {
   color: string;
   description: string;
-  labelId: string;
+  labelId: number;
   name: string;
   uses: number;
 }
@@ -66,13 +66,43 @@ export class STIGManagerAssetsTableComponent implements OnInit {
     private sharedService: SharedService
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.initColumnsAndFilters();
     if (this.stigmanCollectionId) {
-      await Promise.all([this.getAssets(), this.getLabels()]);
+      this.loadData();
     } else {
       this.showErrorMessage('Unable to fetch STIG Manager Assets, please try again later..');
     }
+  }
+
+  loadData() {
+    this.isLoading = true;
+    forkJoin({
+      assets: this.sharedService.getAssetsFromSTIGMAN(this.stigmanCollectionId),
+      labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
+    }).subscribe({
+      next: ({ assets, labels }) => {
+        if (!assets || assets.length === 0) {
+          this.showErrorMessage('No assets found.');
+          return;
+        }
+
+        this.assets = assets.map(asset => ({
+          ...asset,
+          collectionName: asset.collection.name,
+        }));
+        this.totalRecords = this.assets.length;
+
+        this.labels = labels || [];
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.showErrorMessage('Failed to fetch data. Please try again later.');
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   initColumnsAndFilters() {
@@ -96,45 +126,10 @@ export class STIGManagerAssetsTableComponent implements OnInit {
     this.resetColumnSelections();
   }
 
-  async getAssets() {
-    this.isLoading = true;
-    try {
-      const data = await (
-        await this.sharedService.getAssetsFromSTIGMAN(this.stigmanCollectionId)
-      ).toPromise();
-      if (!data || data.length === 0) {
-        this.showErrorMessage('No assets found.');
-        return;
-      }
-      this.assets = data.map(asset => ({
-        ...asset,
-        collectionName: asset.collection.name,
-      }));
-      this.totalRecords = this.assets.length;
-    } catch (err) {
-      this.showErrorMessage('Failed to fetch assets. Please try again later.');
-    } finally {
-      this.isLoading = false;
-    }
-  }
-
-  async getLabels() {
-    try {
-      const labels = await firstValueFrom(
-        await this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
-      );
-      this.labels = labels || [];
-    } catch (err) {
-      console.error('Failed to fetch labels:', err);
-      this.showErrorMessage('Failed to fetch labels. Please try again later.');
-      this.labels = [];
-    }
-  }
-
   getAssetLabels(asset: any): Label[] {
     return (
       asset.labelIds
-        ?.map((labelId: string) => this.labels.find(label => label.labelId === labelId))
+        ?.map((labelId: number) => this.labels.find(label => label.labelId === labelId))
         .filter(Boolean) || []
     );
   }

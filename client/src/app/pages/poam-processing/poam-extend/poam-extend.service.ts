@@ -9,10 +9,9 @@
 */
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { firstValueFrom, throwError } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root',
@@ -20,43 +19,32 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 export class PoamExtensionService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(`Backend returned code ${error.status}, ` + `body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
-    return throwError('Something bad happened; please try again later.');
+    return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async getPoamExtension(poamId: string) {
-    const headers = await this.getAuthHeaders();
+  getPoamExtension(poamId: number): Observable<any> {
     return this.http
-      .get<any>(`${this.cpatApiBase}/poamExtension/${poamId}`, { headers })
+      .get<any>(`${this.cpatApiBase}/poamExtension/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async putPoamExtension(extensionData: any) {
-    const headers = await this.getAuthHeaders();
+  putPoamExtension(extensionData: any): Observable<any> {
     return this.http
-      .put<any>(`${this.cpatApiBase}/poamExtension`, extensionData, { headers })
+      .put<any>(`${this.cpatApiBase}/poamExtension`, extensionData)
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamExtension(poamId: string) {
-    const headers = await this.getAuthHeaders();
+  deletePoamExtension(poamId: number): Observable<any> {
     return this.http
-      .delete<any>(`${this.cpatApiBase}/poamExtension/${poamId}`, { headers })
+      .delete<any>(`${this.cpatApiBase}/poamExtension/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 }

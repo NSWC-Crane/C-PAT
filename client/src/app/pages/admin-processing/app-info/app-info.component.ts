@@ -18,6 +18,7 @@ import { TabsModule } from 'primeng/tabs';
 import { ChartModule } from 'primeng/chart';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
 import { PanelModule } from 'primeng/panel';
+import { catchError, EMPTY } from 'rxjs';
 interface OperationInfo {
   totalRequests: number;
   totalDuration: number;
@@ -266,13 +267,17 @@ export class AppInfoComponent implements OnInit {
     }
   }
 
-  async getAppInfo() {
-    try {
-      const response = await (await this.adminProcessingService.getAppInfo()).toPromise();
-      this.appInfo = response as AppInfoData;
-    } catch (error) {
-      console.error('Error fetching app info:', error);
-    }
+  getAppInfo(): void {
+    this.adminProcessingService.getAppInfo()
+      .pipe(
+        catchError(error => {
+          console.error('Error fetching app info:', error);
+          return EMPTY;
+        })
+      )
+      .subscribe((response: AppInfoData) => {
+        this.appInfo = response;
+      });
   }
 
   private processOperations() {
@@ -336,10 +341,10 @@ export class AppInfoComponent implements OnInit {
     }
   }
 
-  private getUsernameById(userId: string): string {
+  private getUsernameById(userId: number | string): string {
     if (userId === 'unknown') return 'unknown';
     const user = this.appInfo.users.userInfo[userId];
-    return user ? user.username : userId;
+    return user ? user.username : `User ID: ${userId}`;
   }
 
   formatBytes(bytes: number): string {

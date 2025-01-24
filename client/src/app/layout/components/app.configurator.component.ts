@@ -14,6 +14,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectButton } from 'primeng/selectbutton';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { switchMap, take } from 'rxjs';
 
 const presets = {
   Aura,
@@ -23,11 +24,6 @@ const presets = {
 };
 
 type PresetType = 'Aura' | 'Material' | 'Lara' | 'Nora';
-
-interface UserThemePreferences {
-  userId: number;
-  defaultTheme: string;
-}
 
 @Component({
   selector: 'cpat-configurator',
@@ -167,60 +163,68 @@ export class AppConfiguratorComponent implements OnInit {
     this.loadUserPreferences();
   }
 
-  async loadUserPreferences() {
-    try {
-      const user = await (await this.userService.getCurrentUser()).toPromise();
-      if (user?.defaultTheme) {
-        const defaults = {
-          preset: 'Aura',
-          primary: 'slate',
-          surface: 'slate',
-          darkTheme: false,
-          rtl: false,
-        };
+  loadUserPreferences() {
+    this.userService.getCurrentUser().pipe(
+      take(1)
+    ).subscribe({
+      next: (user) => {
+        if (user?.defaultTheme) {
+          const defaults = {
+            preset: 'Aura',
+            primary: 'slate',
+            surface: 'slate',
+            darkTheme: false,
+            rtl: false,
+          };
 
-        const prefs = JSON.parse(user.defaultTheme);
+          try {
+            const prefs = JSON.parse(user.defaultTheme);
+            this.configService.appState.update(state => ({
+              ...state,
+              preset: this.presets.includes(prefs.preset) ? prefs.preset : defaults.preset,
+              primary: this.primaryColors().some(c => c.name === prefs.primary)
+                ? prefs.primary
+                : defaults.primary,
+              surface: this.surfaces.some(s => s.name === prefs.surface)
+                ? prefs.surface
+                : defaults.surface,
+              darkTheme: typeof prefs.darkTheme === 'boolean' ? prefs.darkTheme : defaults.darkTheme,
+              RTL: typeof prefs.rtl === 'boolean' ? prefs.rtl : defaults.rtl,
+            }));
 
-        this.configService.appState.update(state => ({
-          ...state,
-          preset: this.presets.includes(prefs.preset) ? prefs.preset : defaults.preset,
-          primary: this.primaryColors().some(c => c.name === prefs.primary)
-            ? prefs.primary
-            : defaults.primary,
-          surface: this.surfaces.some(s => s.name === prefs.surface)
-            ? prefs.surface
-            : defaults.surface,
-          darkTheme: typeof prefs.darkTheme === 'boolean' ? prefs.darkTheme : defaults.darkTheme,
-          RTL: typeof prefs.rtl === 'boolean' ? prefs.rtl : defaults.rtl,
-        }));
-
-        this.onPresetChange(prefs.preset);
-      }
-    } catch (error) {
-      console.error('Error loading user preferences:', error);
-    }
+            this.onPresetChange(prefs.preset);
+          } catch (error) {
+            console.error('Error parsing user preferences:', error);
+          }
+        }
+      },
+      error: (error) => console.error('Error loading user preferences:', error)
+    });
   }
 
-  async saveUserPreferences() {
-    try {
-      const currentState = this.configService.appState();
-      const user = await (await this.userService.getCurrentUser()).toPromise();
+  saveUserPreferences() {
+    this.userService.getCurrentUser().pipe(
+      take(1),
+      switchMap(user => {
+        if (!user) throw new Error('No user found');
 
-      const preferences: UserThemePreferences = {
-        userId: user!.userId,
-        defaultTheme: JSON.stringify({
-          preset: currentState.preset,
-          primary: currentState.primary,
-          surface: currentState.surface,
-          darkTheme: currentState.darkTheme,
-          rtl: currentState.RTL,
-        }),
-      };
+        const currentState = this.configService.appState();
+        const preferences = {
+          userId: user.userId,
+          defaultTheme: JSON.stringify({
+            preset: currentState.preset,
+            primary: currentState.primary,
+            surface: currentState.surface,
+            darkTheme: currentState.darkTheme,
+            rtl: currentState.RTL,
+          })
+        };
 
-      await (await this.userService.updateUserTheme(preferences)).toPromise();
-    } catch (error) {
-      console.error('Error saving user preferences:', error);
-    }
+        return this.userService.updateUserTheme(preferences);
+      })
+    ).subscribe({
+      error: (error) => console.error('Error saving user preferences:', error)
+    });
   }
 
   displayedSurfaces = computed(() => this.surfaces.filter(s => s.display));

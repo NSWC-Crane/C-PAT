@@ -10,128 +10,120 @@
 
 import { Injectable } from '@angular/core';
 import {
-  ActivatedRouteSnapshot,
-  CanActivate,
-  Router,
-  RouterStateSnapshot,
-  UrlTree,
+    ActivatedRouteSnapshot,
+    CanActivate,
+    Router,
+    RouterStateSnapshot,
+    UrlTree,
 } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { Observable, from, of } from 'rxjs';
-import { filter, map, switchMap, take } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, filter, map, switchMap, take } from 'rxjs/operators';
 import { PoamService } from '../../../pages/poam-processing/poams.service';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
-  constructor(
-    private poamService: PoamService,
-    private userService: UsersService,
-    private authService: AuthService,
-    private router: Router
-  ) {}
+    constructor(
+        private poamService: PoamService,
+        private userService: UsersService,
+        private authService: AuthService,
+        private router: Router
+    ) { }
 
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): Observable<boolean | UrlTree> {
-    if (route.data['guardType'] === 'admin') {
-      return this.canAdmin();
+    canActivate(
+        route: ActivatedRouteSnapshot,
+        state: RouterStateSnapshot
+    ): Observable<boolean | UrlTree> {
+        if (route.data['guardType'] === 'admin') {
+            return this.canAdmin();
+        }
+
+        return this.authService.authState$.pipe(
+            filter(authState => authState.isAuthenticatedStigman && authState.isAuthenticatedCpat),
+            switchMap(() => this.authService.user$),
+            filter(user => user !== null),
+            take(1),
+            switchMap(user => {
+                if (!user) {
+                    return of(this.router.parseUrl('/login'));
+                }
+
+                const guardType = route.data['guardType'];
+
+                if (guardType === 'poam') {
+                    return this.checkCollectionAccess(route.params['poamId'], state);
+                }
+
+                return of(true);
+            })
+        );
     }
 
-    return this.authService.authState$.pipe(
-      filter(authState => authState.isAuthenticatedStigman && authState.isAuthenticatedCpat),
-      switchMap(() => this.authService.user$),
-      filter(user => user !== null),
-      take(1),
-      switchMap(user => {
-        if (!user) {
-          return of(this.router.parseUrl('/login'));
-        }
+    canAdmin(): Observable<boolean | UrlTree> {
+        return this.authService.authState$.pipe(
+            filter(authState => authState.isAuthenticatedCpat),
+            switchMap(() => this.userService.getCurrentUser()),
+            map(user => {
+                if (user?.isAdmin) return true;
+                return this.router.parseUrl('/403');
+            }),
+            catchError(error => {
+                console.error('Error checking admin status:', error);
+                return of(this.router.parseUrl('/403'));
+            })
+        );
+    }
 
-        const guardType = route.data['guardType'];
+    private checkCollectionAccess(
+        poamId: any,
+        _state: RouterStateSnapshot
+    ): Observable<boolean | UrlTree> {
+        return this.userService.getCurrentUser().pipe(
+            switchMap(user => {
+                if (!user) {
+                    return of(this.router.parseUrl('/403'));
+                }
 
-        if (guardType === 'poam') {
-          return this.checkCollectionAccess(route.params['poamId'], state);
-        }
+                if (poamId === 'ADDPOAM') {
+                    const hasAccess = user.permissions.some(
+                        (permission: any) => permission.accessLevel >= 2
+                    );
+                    return of(hasAccess ? true : this.router.parseUrl('/403'));
+                }
 
-        return of(true);
-      })
-    );
-  }
+                return this.poamService.getPoam(poamId).pipe(
+                    switchMap(poam => {
+                        if (!poam) {
+                            return of(this.router.parseUrl('/404'));
+                        }
 
-  canAdmin(): Observable<boolean | UrlTree> {
-    return this.authService.authState$.pipe(
-      filter(authState => authState.isAuthenticatedCpat),
-      switchMap(async () => {
-        try {
-          const user = await (await this.userService.getCurrentUser()).toPromise();
-          if (user?.isAdmin) return true;
-          return this.router.parseUrl('/403');
-        } catch (error) {
-          console.error('Error checking admin status:', error);
-          return this.router.parseUrl('/403');
-        }
-      })
-    );
-  }
+                        const hasAccess = user.permissions.some(
+                            (permission: any) =>
+                                permission.collectionId === poam.collectionId && permission.accessLevel >= 1
+                        );
 
-  private checkCollectionAccess(
-    poamId: string,
-    _state: RouterStateSnapshot
-  ): Observable<boolean | UrlTree> {
-    return from(Promise.resolve()).pipe(
-      switchMap(async () => {
-        try {
-          const user = await (await this.userService.getCurrentUser()).toPromise();
+                        if (!hasAccess) {
+                            return of(this.router.parseUrl('/403'));
+                        }
 
-          if (poamId === 'ADDPOAM') {
-            const hasAccess = user?.permissions.some(
-              (permission: any) => permission.accessLevel >= 2
-            );
+                        if (hasAccess && user.lastCollectionAccessedId !== poam.collectionId) {
+                            return this.userService
+                                .updateUserLastCollection({
+                                    userId: user.userId,
+                                    lastCollectionAccessedId: poam.collectionId,
+                                })
+                                .pipe(map(() => true));
+                        }
 
-            if (!hasAccess) {
-              return this.router.parseUrl('/403');
-            }
-          } else {
-            const poam = (await (await this.poamService.getPoam(poamId)).toPromise()) as any;
-
-            if (!poam) {
-              return this.router.parseUrl('/404');
-            }
-
-            const hasAccess = user?.permissions.some(
-              (permission: any) =>
-                permission.collectionId === poam.collectionId && permission.accessLevel >= 1
-            );
-
-            if (!hasAccess) {
-              return this.router.parseUrl('/403');
-            }
-
-            if (user?.lastCollectionAccessedId !== poam.collectionId) {
-              await (
-                await this.userService.updateUserLastCollection({
-                  userId: user?.userId,
-                  lastCollectionAccessedId: poam.collectionId,
-                })
-              ).toPromise();
-            }
-          }
-
-          return true;
-        } catch (error) {
-          return this.router.parseUrl('/404');
-        }
-      }),
-      map(result => {
-        if (result instanceof UrlTree) {
-          return result;
-        }
-        return result as boolean;
-      })
-    );
-  }
+                        return of(true);
+                    }),
+                    catchError(() => of(this.router.parseUrl('/404')))
+                );
+            }),
+            catchError(() => of(this.router.parseUrl('/404')))
+        );
+    }
 }

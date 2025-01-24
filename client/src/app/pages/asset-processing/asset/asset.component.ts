@@ -81,10 +81,12 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    if (this.payload === undefined) return;
-    this.setPayloadService.accessLevel$.subscribe(async level => {
+    if (!this.payload) return;
+
+    this.setPayloadService.accessLevel$.subscribe(level => {
       this.accessLevel = level;
-    })
+    });
+
     this.getData();
   }
 
@@ -94,7 +96,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  async getData() {
+  getData() {
     if (!this.selectedCollection) {
       this.subscriptions.add(
         this.sharedService.selectedCollection.subscribe(collectionId => {
@@ -102,34 +104,39 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
         })
       );
     }
-    await this.getLabelData();
+
+    this.getLabelData();
     if (this.asset && this.asset.assetId !== 'ADDASSET') {
       this.getAssetLabels();
     }
   }
 
-  async getLabelData() {
-    this.subs.sink = (await this.assetService.getLabels(this.selectedCollection)).subscribe(
-      (labels: any) => {
-        this.labelList = labels || [];
-      }
-    );
+  getLabelData() {
+    this.subs.sink = this.assetService.getLabels(this.selectedCollection)
+      .subscribe(
+        (labels: any) => {
+          this.labelList = labels || [];
+        }
+      );
   }
 
-  async getAssetLabels() {
+  getAssetLabels() {
     if (!this.asset?.assetId) {
       console.error('Asset or assetId is not available');
       return;
     }
-    this.subs.sink = (await this.assetService.getAssetLabels(this.asset.assetId)).subscribe(
-      (assetLabels: any) => {
-        this.assetLabels = assetLabels || [];
-      },
-      error => {
-        console.error('Error fetching asset labels:', error);
-      }
-    );
+
+    this.subs.sink = this.assetService.getAssetLabels(this.asset.assetId)
+      .subscribe(
+        (assetLabels: any) => {
+          this.assetLabels = assetLabels || [];
+        },
+        error => {
+          console.error('Error fetching asset labels:', error);
+        }
+      );
   }
+
 
   transformToDropdownOptions(data: any[], labelField: string, valueField: string) {
     return (data || []).map(item => ({
@@ -161,12 +168,12 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  async deleteAssetLabel(label: any, index: number) {
+  deleteAssetLabel(label: any, index: number) {
     this.confirmationService.confirm({
       message: 'Are you sure you want to delete this label?',
       header: 'Delete Confirmation',
       icon: 'pi pi-exclamation-triangle',
-      accept: async () => {
+      accept: () => {
         if (this.asset.assetId === 'ADDASSET') {
           this.assetLabels.splice(index, 1);
           this.assetLabels = [...this.assetLabels];
@@ -176,30 +183,31 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
             detail: 'Label removed',
           });
         } else if (label.labelId) {
-          (await this.assetService.deleteAssetLabel(this.asset.assetId, label.labelId)).subscribe(
-            () => {
-              this.assetLabels.splice(index, 1);
-              this.assetLabels = [...this.assetLabels];
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'Label deleted successfully',
-              });
-            },
-            (error: Error) => {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Failed to delete label: ${error.message}`,
-              });
-            }
-          );
+          this.assetService.deleteAssetLabel(this.asset.assetId, label.labelId)
+            .subscribe(
+              () => {
+                this.assetLabels.splice(index, 1);
+                this.assetLabels = [...this.assetLabels];
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Success',
+                  detail: 'Label deleted successfully',
+                });
+              },
+              (error: Error) => {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Failed to delete label: ${error.message}`,
+                });
+              }
+            );
         }
       },
     });
   }
 
-  async confirmLabelCreate(newLabel: any) {
+  confirmLabelCreate(newLabel: any) {
     const labelName = this.getLabelName(newLabel.labelId);
 
     if (this.asset.assetId !== 'ADDASSET' && newLabel.labelId) {
@@ -209,14 +217,14 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
         collectionId: this.selectedCollection,
       };
 
-      (await this.assetService.postAssetLabel(assetLabel)).subscribe(
-        async () => {
+      this.assetService.postAssetLabel(assetLabel).subscribe(
+        () => {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
             detail: `Label "${labelName}" was added`,
           });
-          await this.getAssetLabels();
+          this.getAssetLabels();
         },
         (error: Error) => {
           this.messageService.add({
@@ -246,7 +254,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     return label ? label.labelName : '';
   }
 
-  async onSubmit() {
+  onSubmit() {
     if (!this.validData()) return;
 
     const asset = {
@@ -260,7 +268,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     };
 
     if (asset.assetId === 0) {
-      this.subs.sink = (await this.assetService.postAsset(asset)).subscribe(
+      this.subs.sink = this.assetService.postAsset(asset).subscribe(
         data => {
           this.assetchange.emit(data.assetId);
         },
@@ -270,10 +278,12 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
         }
       );
     } else {
-      this.subs.sink = (await this.assetService.updateAsset(asset)).subscribe(data => {
-        this.asset = data;
-        this.assetchange.emit();
-      });
+      this.subs.sink = this.assetService.updateAsset(asset).subscribe(
+        data => {
+          this.asset = data;
+          this.assetchange.emit();
+        }
+      );
     }
   }
 
@@ -316,26 +326,25 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     return true;
   }
 
-  async deleteAsset(asset: any) {
-    await (
-      await this.assetService.deleteAssetsByAssetId(asset.assetId)
-    ).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `Asset has been successfully deleted.`,
-        });
-        this.assetchange.emit();
-      },
-      error: (error: Error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to delete asset: ${error.message}`,
-        });
-      },
-    });
+  deleteAsset(asset: any) {
+    this.assetService.deleteAssetsByAssetId(asset.assetId)
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `Asset has been successfully deleted.`,
+          });
+          this.assetchange.emit();
+        },
+        error: (error: Error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to delete asset: ${error.message}`,
+          });
+        },
+      });
   }
 
   invalidData(errMsg: string) {

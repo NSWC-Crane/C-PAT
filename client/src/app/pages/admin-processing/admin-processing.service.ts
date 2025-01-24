@@ -8,20 +8,16 @@
 !##########################################################################
 */
 
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { firstValueFrom, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({ providedIn: 'root' })
 export class AdminProcessingService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) { }
+  constructor(private http: HttpClient) { }
 
   private handleError(error: any) {
     let errorMessage = 'An unknown error occurred!';
@@ -34,15 +30,9 @@ export class AdminProcessingService {
     return throwError(() => new Error(errorMessage));
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async getAppInfo() {
-    const headers = await this.getAuthHeaders();
+  getAppInfo(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/op/appinfo?elevate=true`, { headers })
+      .get(`${this.cpatApiBase}/op/appinfo?elevate=true`)
       .pipe(catchError(this.handleError));
   }
 }

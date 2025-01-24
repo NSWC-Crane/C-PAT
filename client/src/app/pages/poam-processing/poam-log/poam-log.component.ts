@@ -67,8 +67,8 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
     this.openModal();
   }
 
-  private async fetchPoamLog(poamId: string) {
-    (await this.poamLogService.getPoamLogByPoamId(poamId)).subscribe({
+  private fetchPoamLog(poamId: number) {
+    this.poamLogService.getPoamLogByPoamId(poamId).subscribe({
       next: (response: any) => {
         this.dataSource = response.map((log: FSEntry) => ({
           Timestamp: log.Timestamp,

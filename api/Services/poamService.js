@@ -321,19 +321,21 @@ exports.getPluginIDsWithPoamByCollection = async function getPluginIDsWithPoamBy
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT poamId, status, vulnerabilityId 
-                FROM cpat.poam WHERE collectionId = ?
+                SELECT poamId, status, vulnerabilityId
+                FROM cpat.poam
+                WHERE collectionId = ?
                 UNION ALL
                 SELECT p.poamId, 'Associated' as status, p.associatedVulnerability as vulnerabilityId
                 FROM cpat.poamassociatedvulnerabilities p
-                WHERE NOT EXISTS (
-                    SELECT 1 
-                    FROM cpat.poam 
-                    WHERE vulnerabilityId = p.associatedVulnerability
+                WHERE EXISTS (
+                    SELECT 1
+                    FROM cpat.poam po
+                    WHERE po.vulnerabilityId = p.associatedVulnerability
+                      AND po.collectionId = ?
                 )
                 ORDER BY poamId;
             `;
-            let [PluginIDs] = await connection.query(sql, [req.params.collectionId]);
+            let [PluginIDs] = await connection.query(sql, [req.params.collectionId, req.params.collectionId]);
             return PluginIDs;
         });
     } catch (error) {

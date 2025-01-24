@@ -19,7 +19,7 @@ import { PoamService } from '../../../../poam-processing/poams.service';
 import { Router } from '@angular/router';
 import { format, parseISO, startOfDay } from 'date-fns';
 import { SharedService } from '../../../../../common/services/shared.service';
-import { Subscription } from 'rxjs';
+import { EMPTY, Subscription, catchError, finalize, map, switchMap } from 'rxjs';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { FilterMetadata } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
@@ -121,20 +121,19 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private messageService: MessageService,
     private poamService: PoamService,
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private sharedService: SharedService,
     private router: Router
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.subscriptions.add(
-      await this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
       })
     );
-    await (
-      await this.collectionService.getCollectionBasicList()
-    ).subscribe({
+
+    this.collectionsService.getCollectionBasicList().subscribe({
       next: data => {
         const selectedCollectionData = data.find(
           (collection: any) => collection.collectionId === this.selectedCollection
@@ -149,9 +148,11 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.tenableRepoId = '';
       },
     });
+
     this.initColumnsAndFilters();
-    await this.loadPoamAssociations();
-    await this.getIAVPluginIDs();
+    this.loadPoamAssociations();
+    this.getIAVPluginIDs();
+
     if (this.table) {
       this.table.filters = { ...this.filters };
     }
@@ -240,18 +241,20 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.resetColumnSelections();
   }
 
-  async getIAVPluginIDs() {
-    try {
-      const data = await (await this.importService.getIAVPluginIds()).toPromise();
-      this.iavPluginIDs = data;
-      await this.getIAVFindings(this.iavPluginIDs);
-    } catch (error) {
-      console.error('Error fetching IAV mapped pluginIDs:', error);
-      this.showErrorMessage('Error fetching IAV mapped pluginIDs. Please try again.');
-    }
+  getIAVPluginIDs() {
+    this.importService.getIAVPluginIds().subscribe({
+      next: (data) => {
+        this.iavPluginIDs = data;
+        this.getIAVFindings(this.iavPluginIDs);
+      },
+      error: (error) => {
+        console.error('Error fetching IAV mapped pluginIDs:', error);
+        this.showErrorMessage('Error fetching IAV mapped pluginIDs. Please try again.');
+      }
+    });
   }
 
-  async getIAVFindings(pluginIDs: string) {
+  getIAVFindings(pluginIDs: string) {
     const analysisParams = {
       query: {
         description: '',
@@ -294,109 +297,116 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       type: 'vuln',
     };
 
-    try {
-      this.isLoading = true;
+    this.isLoading = true;
 
-      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
+    const pluginIDList = pluginIDs.split(',').map(Number);
 
-      const pluginIDList = pluginIDs.split(',').map(Number);
-      const iavData: any[] = await (
-        await this.importService.getIAVInfoForPlugins(pluginIDList)
-      ).toPromise();
+    this.importService.postTenableAnalysis(analysisParams).pipe(
+      switchMap(data => {
+        return this.importService.getIAVInfoForPlugins(pluginIDList).pipe(
+          map(iavData => ({ vulnData: data, iavData }))
+        );
+      }),
+      catchError(error => {
+        console.error('Error fetching IAV Vulnerabilities:', error);
+        this.showErrorMessage('Error fetching IAV Vulnerabilities. Please try again.');
+        return EMPTY;
+      }),
+      finalize(() => {
+        this.isLoading = false;
+      })
+    ).subscribe({
+      next: ({ vulnData, iavData }) => {
+        const iavInfoMap = iavData.reduce((acc: { [key: number]: IAVInfo }, item: any) => {
+          acc[item.pluginID] = {
+            iav: item.iav || null,
+            navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null,
+            supersededBy: item.supersededBy || 'N/A',
+          };
+          return acc;
+        }, {});
 
-      const iavInfoMap = iavData.reduce((acc: { [key: number]: IAVInfo }, item: any) => {
-        acc[item.pluginID] = {
-          iav: item.iav || null,
-          navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null,
-          supersededBy: item.supersededBy || 'N/A',
-        };
-        return acc;
-      }, {});
+        this.IAVVulnerabilities = vulnData.response.results.map((vuln: any) => {
+          const defaultVuln = {
+            pluginID: '',
+            pluginName: '',
+            family: { name: '' },
+            severity: { name: '' },
+            vprScore: '',
+            ips: [],
+            acrScore: '',
+            assetExposureScore: '',
+            netbiosName: '',
+            dnsName: '',
+            macAddress: '',
+            port: '',
+            protocol: '',
+            uuid: '',
+            hostUUID: '',
+            total: '',
+            hostTotal: '',
+          };
 
-      this.IAVVulnerabilities = data.response.results.map((vuln: any) => {
-        const defaultVuln = {
-          pluginID: '',
-          pluginName: '',
-          family: { name: '' },
-          severity: { name: '' },
-          vprScore: '',
-          ips: [],
-          acrScore: '',
-          assetExposureScore: '',
-          netbiosName: '',
-          dnsName: '',
-          macAddress: '',
-          port: '',
-          protocol: '',
-          uuid: '',
-          hostUUID: '',
-          total: '',
-          hostTotal: '',
-        };
+          const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
+          const iavInfo = iavInfoMap[Number(vuln.pluginID)];
 
-        const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
-        const iavInfo = iavInfoMap[Number(vuln.pluginID)];
+          return {
+            ...defaultVuln,
+            ...vuln,
+            poam: !!poamAssociation,
+            poamId: poamAssociation?.poamId || null,
+            poamStatus: poamAssociation?.status || null,
+            iav: iavInfo?.iav || '',
+            navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
+            supersededBy: iavInfo?.supersededBy || 'N/A',
+            pluginName: vuln.name || '',
+            family: vuln.family?.name || '',
+            severity: vuln.severity?.name || '',
+            pluginID: vuln.pluginID ? parseInt(vuln.pluginID) : '',
+            vprScore: vuln.vprScore ? parseFloat(vuln.vprScore) : '',
+            total: vuln.total ? parseInt(vuln.total) : '',
+            hostTotal: vuln.hostTotal ? parseInt(vuln.hostTotal) : '',
+            acrScore: vuln.acrScore ? parseFloat(vuln.acrScore) : '',
+            assetExposureScore: vuln.assetExposureScore ? parseInt(vuln.assetExposureScore) : '',
+            port: vuln.port ? parseInt(vuln.port) : '',
+          };
+        });
 
-        return {
-          ...defaultVuln,
-          ...vuln,
-          poam: !!poamAssociation,
-          poamId: poamAssociation?.poamId || null,
-          poamStatus: poamAssociation?.status || null,
-          iav: iavInfo?.iav || '',
-          navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
-          supersededBy: iavInfo?.supersededBy || 'N/A',
-          pluginName: vuln.name || '',
-          family: vuln.family?.name || '',
-          severity: vuln.severity?.name || '',
-          pluginID: vuln.pluginID ? parseInt(vuln.pluginID) : '',
-          vprScore: vuln.vprScore ? parseFloat(vuln.vprScore) : '',
-          total: vuln.total ? parseInt(vuln.total) : '',
-          hostTotal: vuln.hostTotal ? parseInt(vuln.hostTotal) : '',
-          acrScore: vuln.acrScore ? parseFloat(vuln.acrScore) : '',
-          assetExposureScore: vuln.assetExposureScore ? parseInt(vuln.assetExposureScore) : '',
-          port: vuln.port ? parseInt(vuln.port) : '',
-        };
-      });
+        this.totalRecords = this.IAVVulnerabilities.length;
 
-      this.totalRecords = this.IAVVulnerabilities.length;
-
-      if (this.table) {
-        this.table.filters = { ...this.filters };
+        if (this.table) {
+          this.table.filters = { ...this.filters };
+        }
       }
-    } catch (error) {
-      console.error('Error fetching IAV Vulnerabilities:', error);
-      this.showErrorMessage('Error fetching IAV Vulnerabilities. Please try again.');
-    } finally {
-      this.isLoading = false;
-    }
+    });
   }
 
-  async loadPoamAssociations() {
-    try {
-      const poamData = await (await this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)).toPromise();
-      if (poamData && Array.isArray(poamData)) {
-        this.existingPoamPluginIDs = poamData.reduce(
-          (
-            acc: { [key: string]: { poamId: string; status: string } },
-            item: { vulnerabilityId: string; status: string; poamId: string }
-          ) => {
-            acc[item.vulnerabilityId] = {
-              poamId: item.poamId,
-              status: item.status,
-            };
-            return acc;
-          },
-          {}
-        );
-      } else {
-        console.error('Unexpected POAM data format:', poamData);
-        this.showErrorMessage('Error loading POAM data. Unexpected data format.');
-      }
-    } catch (error) {
-      console.error('Error loading POAM associations:', error);
-      this.showErrorMessage('Error loading POAM data. Please try again.');
-    }
+  loadPoamAssociations() {
+    this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)
+      .subscribe({
+        next: (poamData) => {
+          if (poamData && Array.isArray(poamData)) {
+            this.existingPoamPluginIDs = poamData.reduce(
+              (acc: { [key: string]: { poamId: number; status: string } },
+                item: { vulnerabilityId: string; status: string; poamId: number }) => {
+                acc[item.vulnerabilityId] = {
+                  poamId: item.poamId,
+                  status: item.status,
+                };
+                return acc;
+              },
+              {}
+            );
+          } else {
+            console.error('Unexpected POAM data format:', poamData);
+            this.showErrorMessage('Error loading POAM data. Unexpected data format.');
+          }
+        },
+        error: (error) => {
+          console.error('Error loading POAM associations:', error);
+          this.showErrorMessage('Error loading POAM data. Please try again.');
+        }
+      });
   }
 
   getPoamStatusColor(status: string): string {
@@ -478,50 +488,55 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.showDetails(vulnerability);
   }
 
-  async showDetails(vulnerability: any, createPoam: boolean = false) {
-    try {
-      if (!vulnerability || !vulnerability.pluginID) {
-        throw new Error('Invalid vulnerability data');
-      }
-
-      const data = await (
-        await this.importService.getTenablePlugin(vulnerability.pluginID)
-      ).toPromise();
-
-      if (!data || !data.response) {
-        throw new Error('Invalid response from getTenablePlugin');
-      }
-
-      this.pluginData = data.response;
-      this.formattedDescription = this.pluginData.description
-        ? this.sanitizer.bypassSecurityTrustHtml(
-            this.pluginData.description.replace(/\n\n/g, '<br>')
-          )
-        : '';
-
-      if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
-        this.parseReferences(this.pluginData.xrefs);
-      } else {
-        this.cveReferences = [];
-        this.iavReferences = [];
-        this.otherReferences = [];
-      }
-
-      if (Array.isArray(this.pluginData.vprContext)) {
-        this.parseVprContext(this.pluginData.vprContext);
-      } else {
-        this.parsedVprContext = [];
-      }
-
-      this.selectedVulnerability = vulnerability;
-      if (!createPoam) {
-        this.displayDialog = true;
-      }
-    } catch (error) {
-      console.error('Error fetching plugin data:', error);
-      this.showErrorMessage('Error fetching plugin data. Please try again.');
+  showDetails(vulnerability: any, createPoam: boolean = false) {
+    if (!vulnerability || !vulnerability.pluginID) {
+      this.showErrorMessage('Invalid vulnerability data');
+      return;
     }
+
+    this.importService.getTenablePlugin(vulnerability.pluginID)
+      .subscribe({
+        next: (data) => {
+          if (!data || !data.response) {
+            throw new Error('Invalid response from getTenablePlugin');
+          }
+
+          this.pluginData = data.response;
+          this.processPluginData();
+          this.selectedVulnerability = vulnerability;
+
+          if (!createPoam) {
+            this.displayDialog = true;
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching plugin data:', error);
+          this.showErrorMessage('Error fetching plugin data. Please try again.');
+        }
+      });
   }
+
+  private processPluginData() {
+  this.formattedDescription = this.pluginData.description
+    ? this.sanitizer.bypassSecurityTrustHtml(
+        this.pluginData.description.replace(/\n\n/g, '<br>')
+      )
+    : '';
+
+  if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
+    this.parseReferences(this.pluginData.xrefs);
+  } else {
+    this.cveReferences = [];
+    this.iavReferences = [];
+    this.otherReferences = [];
+  }
+
+  if (Array.isArray(this.pluginData.vprContext)) {
+    this.parseVprContext(this.pluginData.vprContext);
+  } else {
+    this.parsedVprContext = [];
+  }
+}
 
   async onPoamIconClick(vulnerability: any, event: Event) {
     event.stopPropagation();

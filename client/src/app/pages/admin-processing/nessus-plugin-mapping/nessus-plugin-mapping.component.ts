@@ -21,7 +21,7 @@ import {
 import { MessageService } from 'primeng/api';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 import { UsersService } from '../user-processing/users.service';
-import { firstValueFrom, timer } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, concat, concatMap, map, of, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { Table, TableModule } from 'primeng/table';
 import { ImportService } from '../../import-processing/import.service';
 import { CommonModule } from '@angular/common';
@@ -69,7 +69,7 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
   private batchSize: number = 5000;
   private estimatedRequestTime: number = 15000;
   estimatedTimeRemaining: string = '';
-
+  private destroy$ = new Subject<void>();
   constructor(
     private messageService: MessageService,
     private nessusPluginMappingService: NessusPluginMappingService,
@@ -78,19 +78,23 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
     private renderer: Renderer2
   ) {}
 
-  async ngOnInit() {
-    try {
-      this.user = await firstValueFrom(await this.userService.getCurrentUser());
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to fetch user data',
-      });
-    }
-    this.getIAVTableData();
-    this.initColumns();
+  ngOnInit() {
+    this.userService.getCurrentUser().pipe(
+      tap(user => this.user = user),
+      catchError(error => {
+        console.error('Error fetching user data:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to fetch user data'
+        });
+        return EMPTY;
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.getIAVTableData();
+      this.initColumns();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -133,116 +137,128 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
     ];
   }
 
-  async getIAVTableData(): Promise<void> {
+  getIAVTableData(): void {
     this.loading = true;
-    try {
-      const response = await this.nessusPluginMappingService.getIAVTableData().toPromise();
-      if (Array.isArray(response)) {
-        this.tableData = response.map(item => ({
+    this.nessusPluginMappingService.getIAVTableData().pipe(
+      map(response => {
+        if (!Array.isArray(response)) {
+          throw new Error('Invalid response format');
+        }
+        return response.map(item => ({
           ...item,
           navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : '',
           releaseDate: item.releaseDate ? item.releaseDate.split('T')[0] : '',
           pluginID: item.pluginID ? item.pluginID.split(',').map((id: any) => id.trim()) : [],
         }));
-        this.totalRecords = this.tableData.length;
-      } else {
-        console.error('Invalid response format:', response);
+      }),
+      tap(data => {
+        this.tableData = data;
+        this.totalRecords = data.length;
+      }),
+      catchError(error => {
+        console.error('Error fetching IAV Table Data:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Invalid data format received',
+          detail: error.message || 'Failed to fetch IAV Table Data'
         });
-      }
-    } catch (error) {
-      console.error('Error fetching IAV Table Data:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to fetch IAV Table Data',
-      });
-    } finally {
-      this.loading = false;
-    }
+        return EMPTY;
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      complete: () => this.loading = false
+    });
   }
 
-  async updatePluginIds() {
+  updatePluginIds(): void {
     this.isUpdating = true;
     this.updateProgress = 0;
     this.estimatedTimeRemaining = '';
+    const startTime = Date.now();
 
-    try {
-      let startOffset = 0;
-      let totalRecords = this.expectedTotalRecords;
-      let allPluginData: any[] = [];
-
-      const updateEstimatedProgress = () => {
+    const progressUpdates$ = timer(0, 100).pipe(
+      map(() => {
         const elapsedTime = Date.now() - startTime;
-        const estimatedTotalTime = this.estimatedRequestTime * (totalRecords / this.batchSize);
+        const estimatedTotalTime = this.estimatedRequestTime * (this.expectedTotalRecords / this.batchSize);
         const estimatedProgress = Math.min((elapsedTime / estimatedTotalTime) * 100, 90);
-        this.updateProgress = Math.max(this.updateProgress, Math.round(estimatedProgress));
-
-        const remainingTime = Math.max(estimatedTotalTime - elapsedTime, 0);
+        return Math.max(this.updateProgress, Math.round(estimatedProgress));
+      }),
+      tap(progress => {
+        this.updateProgress = progress;
+        const remainingTime = Math.max(
+          (this.estimatedRequestTime * (this.expectedTotalRecords / this.batchSize)) - (Date.now() - startTime),
+          0
+        );
         this.estimatedTimeRemaining = this.formatTime(remainingTime);
-      };
+      })
+    );
 
-      const startTime = Date.now();
-      const progressInterval = setInterval(updateEstimatedProgress, 100);
+    const batchProcessing$ = this.processBatches();
 
-      while (startOffset < totalRecords) {
-        const batchStartTime = Date.now();
-        const batchData = await this.getPluginBatch(startOffset, this.batchSize);
-        allPluginData = allPluginData.concat(batchData.pluginData);
-        totalRecords = batchData.totalRecords;
-        startOffset += this.batchSize;
-
-        const actualProgress = (startOffset / totalRecords) * 100;
-        if (actualProgress > 90) {
-          clearInterval(progressInterval);
-          this.updateProgress = Math.min(Math.round(actualProgress), 95);
+    concat(progressUpdates$, batchProcessing$).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: progress => {
+        if (typeof progress === 'number') {
+          this.updateProgress = progress;
         }
+      },
+      error: error => {
+        console.error('Error updating plugin IDs:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update plugin IDs'
+        });
+        this.isUpdating = false;
+      },
+      complete: () => {
+        this.isUpdating = false;
+        this.updateProgress = 100;
+        this.estimatedTimeRemaining = '';
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Plugin IDs successfully mapped.'
+        });
+        this.getIAVTableData();
+      }
+    });
+  }
 
-        const batchDuration = Date.now() - batchStartTime;
-        if (batchDuration < this.estimatedRequestTime) {
-          await firstValueFrom(timer(this.estimatedRequestTime - batchDuration));
-        }
+  private processBatches(): Observable<any> {
+    let startOffset = 0;
+    let allPluginData: any[] = [];
+
+    const processBatch = () => {
+      if (startOffset >= this.expectedTotalRecords) {
+        return of(null);
       }
 
-      clearInterval(progressInterval);
-      this.updateProgress = 100;
-      this.estimatedTimeRemaining = '';
+      return this.getPluginBatch(startOffset, this.batchSize).pipe(
+        tap(({ pluginData, totalRecords }) => {
+          allPluginData = allPluginData.concat(pluginData);
+          this.expectedTotalRecords = totalRecords;
+          startOffset += this.batchSize;
+          const actualProgress = (startOffset / totalRecords) * 100;
+          if (actualProgress > 90) {
+            this.updateProgress = Math.min(Math.round(actualProgress), 95);
+          }
+        }),
+        switchMap(() => timer(this.estimatedRequestTime)),
+        concatMap(() => startOffset < this.expectedTotalRecords ? processBatch() : this.finalizeBatchProcessing(allPluginData))
+      );
+    };
 
-      const mappedData = this.mapPluginDataToVram(allPluginData);
-      await this.updateVramTable(mappedData);
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Plugin IDs successfully mapped.',
-      });
-      this.getIAVTableData();
-    } catch (error) {
-      console.error('Error updating plugin IDs:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to update plugin IDs',
-      });
-    } finally {
-      this.isUpdating = false;
-    }
+    return processBatch();
   }
 
-  private formatTime(milliseconds: number): string {
-    const seconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
+  private finalizeBatchProcessing(allPluginData: any[]): Observable<any> {
+    const mappedData = this.mapPluginDataToVram(allPluginData);
+    return this.nessusPluginMappingService.mapIAVPluginIds(mappedData);
   }
 
-  private async getPluginBatch(
-    startOffset: number,
-    batchSize: number
-  ): Promise<{ pluginData: any[]; totalRecords: number }> {
+  private getPluginBatch(startOffset: number, batchSize: number): Observable<{ pluginData: any[]; totalRecords: number }> {
     const analysisParams = {
       query: {
         description: '',
@@ -273,11 +289,12 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
       type: 'vuln',
     };
 
-    const data = await firstValueFrom(await this.importService.postTenableAnalysis(analysisParams));
-    return {
-      pluginData: data.response.results,
-      totalRecords: data.response.totalRecords,
-    };
+    return this.importService.postTenableAnalysis(analysisParams).pipe(
+      map(data => ({
+        pluginData: data.response.results,
+        totalRecords: data.response.totalRecords,
+      }))
+    );
   }
 
   private mapPluginDataToVram(pluginData: any[]): any[] {
@@ -297,14 +314,6 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
       iav,
       pluginID: Array.from(pluginIDs).join(', '),
     }));
-  }
-
-  private async updateVramTable(mappedData: any[]): Promise<void> {
-    const updateMapping = await firstValueFrom(
-      await this.nessusPluginMappingService.mapIAVPluginIds(mappedData)
-    );
-
-    return updateMapping;
   }
 
   getFilterType(col: any): string {
@@ -332,5 +341,17 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
   clear(table: Table) {
     table.clear();
     this.searchValue = '';
+  }
+
+  private formatTime(milliseconds: number): string {
+    const seconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

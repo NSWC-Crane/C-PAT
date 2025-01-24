@@ -58,17 +58,19 @@ export class AAPackageProcessingComponent implements OnInit {
     this.loadAAPackages();
   }
 
-  async loadAAPackages() {
-    try {
-      const response = await (await this.aaPackageService.getAAPackages()).toPromise();
-      this.aaPackages = response || [];
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to load A&A Packages',
-      });
-    }
+  loadAAPackages() {
+    this.aaPackageService.getAAPackages().subscribe({
+      next: (response) => {
+        this.aaPackages = response || [];
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load A&A Packages'
+        });
+      }
+    });
   }
 
   onAddNewClick() {
@@ -81,33 +83,32 @@ export class AAPackageProcessingComponent implements OnInit {
     this.editingAAPackage = { ...aaPackage };
   }
 
-  async onRowEditSave(aaPackage: AAPackage) {
-    try {
-      if (aaPackage.aaPackageId === 0) {
-        const response = await (await this.aaPackageService.postAAPackage(aaPackage)).toPromise();
-        const index = this.aaPackages.findIndex(p => p.aaPackageId === 0);
-        this.aaPackages[index] = response!;
+  onRowEditSave(aaPackage: AAPackage) {
+    const operation = aaPackage.aaPackageId === 0
+      ? this.aaPackageService.postAAPackage(aaPackage)
+      : this.aaPackageService.putAAPackage(aaPackage);
+
+    operation.subscribe({
+      next: (response) => {
+        if (aaPackage.aaPackageId === 0) {
+          const index = this.aaPackages.findIndex(p => p.aaPackageId === 0);
+          this.aaPackages[index] = response;
+        }
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
-          detail: 'A&A Package Added',
+          detail: `A&A Package ${aaPackage.aaPackageId === 0 ? 'Added' : 'Updated'}`
         });
-      } else {
-        await (await this.aaPackageService.putAAPackage(aaPackage)).toPromise();
+        this.editingAAPackage = null;
+      },
+      error: () => {
         this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'A&A Package Updated',
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to save A&A Package'
         });
       }
-      this.editingAAPackage = null;
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to save A&A Package',
-      });
-    }
+    });
   }
 
   onRowEditCancel(aaPackage: AAPackage, index: number) {
@@ -119,22 +120,24 @@ export class AAPackageProcessingComponent implements OnInit {
     this.editingAAPackage = null;
   }
 
-  async onRowDelete(aaPackage: AAPackage) {
-    try {
-      await (await this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId)).toPromise();
-      this.aaPackages = this.aaPackages.filter(p => p.aaPackageId !== aaPackage.aaPackageId);
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'A&A Package Deleted',
-      });
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to delete A&A Package',
-      });
-    }
+  onRowDelete(aaPackage: AAPackage) {
+    this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId).subscribe({
+      next: () => {
+        this.aaPackages = this.aaPackages.filter(p => p.aaPackageId !== aaPackage.aaPackageId);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'A&A Package Deleted'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to delete A&A Package'
+        });
+      }
+    });
   }
 
   filterGlobal(event: Event) {

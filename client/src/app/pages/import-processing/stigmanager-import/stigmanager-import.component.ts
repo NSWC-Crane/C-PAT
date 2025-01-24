@@ -144,14 +144,14 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private sharedService: SharedService,
     private userService: UsersService,
     private messageService: MessageService,
     private poamService: PoamService
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
@@ -161,19 +161,21 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.selectedFindings = 'All';
   }
 
-  private async initializeComponent() {
-    try {
-      const user = await (await this.userService.getCurrentUser()).toPromise();
-      if (user?.userId) {
-        this.user = user;
-        await this.validateStigManagerCollection();
-      } else {
-        this.showError('Failed to retrieve current user.');
+  private initializeComponent() {
+    this.userService.getCurrentUser().subscribe({
+      next: (user) => {
+        if (user?.userId) {
+          this.user = user;
+          this.validateStigManagerCollection();
+        } else {
+          this.showError('Failed to retrieve current user.');
+        }
+      },
+      error: (error) => {
+        console.error('An error occurred:', error);
+        this.showError('An error occurred while initializing the component.');
       }
-    } catch (error) {
-      console.error('An error occurred:', error);
-      this.showError('An error occurred while initializing the component.');
-    }
+    });
   }
 
   private updateFindingsChartData(findings: any[]): void {
@@ -212,175 +214,178 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }
   }
 
-  async validateStigManagerCollection() {
-    try {
-      const basicListData = await (
-        await this.collectionService.getCollectionBasicList()
-      ).toPromise();
-
-      const selectedCollection = basicListData?.find(
-        collection => +collection.collectionId === +this.user.lastCollectionAccessedId
-      );
-
-      if (!selectedCollection) {
-        this.showWarn('Unable to find the selected collection. Please try again.');
-        return;
-      }
-
-      if (selectedCollection.collectionOrigin !== 'STIG Manager') {
-        this.showWarn('The current collection is not associated with STIG Manager.');
-        return;
-      }
-
-      this.stigmanCollection = {
-        collectionId: selectedCollection.originCollectionId,
-        name: selectedCollection.collectionName,
-      };
-
-      if (!this.stigmanCollection.collectionId) {
-        this.showWarn(
-          'Unable to determine the matching STIG Manager collection ID. Please try again.'
+  validateStigManagerCollection() {
+    this.collectionsService.getCollectionBasicList().subscribe({
+      next: (basicListData) => {
+        const selectedCollection = basicListData?.find(
+          collection => +collection.collectionId === +this.user.lastCollectionAccessedId
         );
-        return;
-      }
 
-      await this.getFindingsGrid(this.stigmanCollection.collectionId);
-    } catch (error) {
-      console.error('Error in validateStigManagerCollection:', error);
-      this.showError('Failed to validate STIG Manager collection. Please try again.');
+        if (!selectedCollection) {
+          this.showWarn('Unable to find the selected collection. Please try again.');
+          return;
+        }
+
+        if (selectedCollection.collectionOrigin !== 'STIG Manager') {
+          this.showWarn('The current collection is not associated with STIG Manager.');
+          return;
+        }
+
+        this.stigmanCollection = {
+          collectionId: selectedCollection.originCollectionId,
+          name: selectedCollection.collectionName,
+        };
+
+        if (!this.stigmanCollection.collectionId) {
+          this.showWarn(
+            'Unable to determine the matching STIG Manager collection ID. Please try again.'
+          );
+          return;
+        }
+
+        this.getFindingsGrid(this.stigmanCollection.collectionId);
+      },
+      error: (error) => {
+        console.error('Error in validateStigManagerCollection:', error);
+        this.showError('Failed to validate STIG Manager collection. Please try again.');
+      }
+    });
+  }
+
+  getFindingsGrid(stigmanCollection: number) {
+    this.loadingTableInfo = true;
+    this.sharedService.getFindingsFromSTIGMAN(stigmanCollection).subscribe({
+      next: (data) => {
+        if (!data || data.length === 0) {
+          this.showWarn('No affected assets found.');
+          this.loadingTableInfo = false;
+          return;
+        }
+
+        this.dataSource = data.map(item => ({
+          groupId: item.groupId,
+          ruleTitle: item.rules[0].title,
+          ruleId: item.rules[0].ruleId,
+          benchmarkId: item.stigs[0].benchmarkId,
+          severity: this.mapSeverity(item.severity),
+          assetCount: item.assetCount,
+          hasExistingPoam: false,
+        }));
+
+        this.displayDataSource = [...this.dataSource];
+        this.findingsCount = this.displayDataSource.length;
+
+        const findings = this.processSeverityGroups(data);
+        this.selectedFindings = 'All';
+        this.filterFindings();
+        this.updateFindingsChartData(findings);
+      },
+      error: (error) => {
+        console.error('Failed to fetch affected assets from STIGMAN:', error);
+        this.showError('Failed to fetch affected assets. Please try again.');
+      },
+      complete: () => {
+        this.loadingTableInfo = false;
+      }
+    });
+  }
+
+  private mapSeverity(severity: string): string {
+    switch (severity) {
+      case 'high': return 'CAT I - High';
+      case 'medium': return 'CAT II - Medium';
+      case 'low': return 'CAT III - Low';
+      default: return severity;
     }
   }
 
-  async getFindingsGrid(stigmanCollection: number) {
-    try {
-      this.loadingTableInfo = true;
-      const data = await (
-        await this.sharedService.getFindingsFromSTIGMAN(stigmanCollection)
-      ).toPromise();
-      if (!data || data.length === 0) {
-        this.showWarn('No affected assets found.');
-        this.loadingTableInfo = false;
-        return;
+  private processSeverityGroups(data: any[]) {
+    const severityGroups = data.reduce((groups: any, item: any) => {
+      const severity = this.mapSeverity(item.severity);
+      if (!groups[severity]) {
+        groups[severity] = 0;
       }
+      groups[severity]++;
+      return groups;
+    }, {});
 
-      this.dataSource = data.map(item => ({
-        groupId: item.groupId,
-        ruleTitle: item.rules[0].title,
-        ruleId: item.rules[0].ruleId,
-        benchmarkId: item.stigs[0].benchmarkId,
-        severity:
-          item.severity === 'high'
-            ? 'CAT I - High'
-            : item.severity === 'medium'
-              ? 'CAT II - Medium'
-              : item.severity === 'low'
-                ? 'CAT III - Low'
-                : item.severity,
-        assetCount: item.assetCount,
-        hasExistingPoam: false,
-      }));
+    const findings = Object.entries(severityGroups).map(([severity, count]) => ({
+      severity,
+      severityCount: count,
+    }));
 
-      this.displayDataSource = [...this.dataSource];
-      this.findingsCount = this.displayDataSource.length;
+    const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
+    allSeverities.forEach(severity => {
+      if (!findings.find(finding => finding.severity === severity)) {
+        findings.push({ severity, severityCount: 0 });
+      }
+    });
 
-      const severityGroups = data.reduce((groups: any, item: any) => {
-        const severity =
-          item.severity === 'high'
-            ? 'CAT I - High'
-            : item.severity === 'medium'
-              ? 'CAT II - Medium'
-              : item.severity === 'low'
-                ? 'CAT III - Low'
-                : item.severity;
-        if (!groups[severity]) {
-          groups[severity] = 0;
-        }
-        groups[severity]++;
-        return groups;
-      }, {});
-
-      const findings = Object.entries(severityGroups).map(([severity, count]) => ({
-        severity,
-        severityCount: count,
-      }));
-
-      const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
-      allSeverities.forEach(severity => {
-        if (!findings.find(finding => finding.severity === severity)) {
-          findings.push({ severity, severityCount: 0 });
-        }
-      });
-
-      findings.sort(
-        (a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity)
-      );
-      this.selectedFindings = 'All';
-      this.filterFindings();
-      this.updateFindingsChartData(findings);
-      this.loadingTableInfo = false;
-    } catch (err) {
-      console.error('Failed to fetch affected assets from STIGMAN:', err);
-      this.showError('Failed to fetch affected assets. Please try again.');
-      this.loadingTableInfo = false;
-    }
+    return findings.sort(
+      (a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity)
+    );
   }
 
   updateSort(event: any) {
     this.multiSortMeta = event.multiSortMeta;
   }
 
-  async filterFindings() {
-    await (
-      await this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)
-    ).subscribe({
-      next: (response: any) => {
-        this.existingPoams = response;
-        this.dataSource.forEach(item => {
-          const existingPoam = this.existingPoams.find(
-            (poam: any) => poam.vulnerabilityId === item.groupId
-          );
-          item.hasExistingPoam = !!existingPoam;
-          item.poamStatus = existingPoam ? existingPoam.status : 'No Existing POAM';
-        });
+  filterFindings() {
+    this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)
+      .subscribe({
+        next: (response: any) => {
+          this.existingPoams = response;
+          this.updateExistingPoams();
+          const findings = this.processSeverityGroupsFromDisplayData();
+          this.updateFindingsChartData(findings);
+        },
+        error: (error) => {
+          console.error('Error retrieving existing POAMs:', error);
+          this.showError('Error retrieving existing POAMs. Please try again.');
+        }
+      });
+  }
 
-        this.displayDataSource = [...this.dataSource];
-        this.findingsCount = this.displayDataSource.length;
-
-        const severityGroups = this.displayDataSource.reduce(
-          (groups: Record<string, number>, item) => {
-            const severity = item.severity;
-            if (!groups[severity]) {
-              groups[severity] = 0;
-            }
-            groups[severity]++;
-            return groups;
-          },
-          {}
-        );
-
-        const findings = Object.entries(severityGroups).map(([severity, count]) => ({
-          severity,
-          severityCount: count,
-        }));
-
-        const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
-        allSeverities.forEach(severity => {
-          if (!findings.find(finding => finding.severity === severity)) {
-            findings.push({ severity, severityCount: 0 });
-          }
-        });
-
-        findings.sort(
-          (a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity)
-        );
-
-        this.updateFindingsChartData(findings);
-      },
-      error: error => {
-        console.error('Error retrieving existing POAMs:', error);
-        this.showError('Error retrieving existing POAMs. Please try again.');
-      },
+  private updateExistingPoams() {
+    this.dataSource.forEach(item => {
+      const existingPoam = this.existingPoams.find(
+        (poam: any) => poam.vulnerabilityId === item.groupId
+      );
+      item.hasExistingPoam = !!existingPoam;
+      item.poamStatus = existingPoam ? existingPoam.status : 'No Existing POAM';
     });
+
+    this.displayDataSource = [...this.dataSource];
+    this.findingsCount = this.displayDataSource.length;
+  }
+
+  private processSeverityGroupsFromDisplayData() {
+    const severityGroups = this.displayDataSource.reduce(
+      (groups: Record<string, number>, item) => {
+        if (!groups[item.severity]) {
+          groups[item.severity] = 0;
+        }
+        groups[item.severity]++;
+        return groups;
+      },
+      {}
+    );
+
+    const findings = Object.entries(severityGroups).map(([severity, count]) => ({
+      severity,
+      severityCount: count,
+    }));
+
+    const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
+    allSeverities.forEach(severity => {
+      if (!findings.find(finding => finding.severity === severity)) {
+        findings.push({ severity, severityCount: 0 });
+      }
+    });
+
+    return findings.sort(
+      (a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity)
+    );
   }
 
   getPoamStatusColor(status: string): string {
@@ -421,7 +426,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     return `POAM Status: ${status}. Click to view POAM.`;
   }
 
-  async updateChartAndGrid(existingPoams: any[]) {
+  updateChartAndGrid(existingPoams: any[]) {
     this.dataSource.forEach(item => {
       const existingPoam = existingPoams.find(poam => poam.vulnerabilityId === item.groupId);
       item.hasExistingPoam = !!existingPoam;
@@ -464,18 +469,28 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.updateFindingsChartData(findings);
   }
 
-  async addPoam(rowData: any): Promise<void> {
+  addPoam(rowData: any): void {
     if (!rowData?.ruleId || !rowData?.groupId) {
       this.showError('Invalid data for POAM creation. Please try again.');
       return;
     }
 
-    try {
-      const ruleData: any = await (
-        await this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId)
-      ).toPromise();
+    this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId)
+      .subscribe({
+        next: (ruleData: any) => {
+          const ruleDataString = this.formatRuleData(ruleData);
+          const descriptionString = this.formatDescription(ruleData);
+          this.navigateToPoam(rowData, ruleDataString, descriptionString);
+        },
+        error: (error) => {
+          console.error('Error retrieving rule data from STIGMAN:', error);
+          this.showError('Error retrieving rule data. Please try again.');
+        }
+      });
+  }
 
-      const ruleDataString = `# Rule data from STIGMAN
+  private formatRuleData(ruleData: any): string {
+    return `# Rule data from STIGMAN
 ## Discussion
 ${ruleData.detail.vulnDiscussion}
 ---
@@ -487,40 +502,35 @@ ${ruleData.check.content}
 ## Fix
 ${ruleData.fix.text}
 ---`;
+  }
 
-      const descriptionString = `Title:
+  private formatDescription(ruleData: any): string {
+    return `Title:
 ${ruleData.title}
 
 Description:
 ${ruleData.detail.vulnDiscussion}`;
+  }
 
-      let routePath = '/poam-processing/poam-details/';
-      const routeParams = {
-        state: {
-          vulnerabilitySource: 'STIG',
-          vulnerabilityId: rowData.groupId,
-          benchmarkId: rowData.benchmarkId,
-          severity: rowData.severity,
-          ruleData: ruleDataString,
-          description: descriptionString,
-        },
-      };
+  private navigateToPoam(rowData: any, ruleDataString: string, descriptionString: string) {
+    let routePath = '/poam-processing/poam-details/';
+    const routeParams = {
+      state: {
+        vulnerabilitySource: 'STIG',
+        vulnerabilityId: rowData.groupId,
+        benchmarkId: rowData.benchmarkId,
+        severity: rowData.severity,
+        ruleData: ruleDataString,
+        description: descriptionString,
+      },
+    };
 
-      const existingPoam = this.existingPoams.find(
-        (item: any) => item.vulnerabilityId === rowData.groupId
-      );
+    const existingPoam = this.existingPoams.find(
+      (item: any) => item.vulnerabilityId === rowData.groupId
+    );
 
-      if (existingPoam) {
-        routePath += existingPoam.poamId;
-      } else {
-        routePath += 'ADDPOAM';
-      }
-
-      this.router.navigate([routePath], routeParams);
-    } catch (error) {
-      console.error('Error retrieving rule data from STIGMAN:', error);
-      this.showError('Error retrieving rule data. Please try again.');
-    }
+    routePath += existingPoam ? existingPoam.poamId : 'ADDPOAM';
+    this.router.navigate([routePath], routeParams);
   }
 
   showWarn(message: string) {

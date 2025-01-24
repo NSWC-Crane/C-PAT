@@ -9,11 +9,10 @@
 */
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { firstValueFrom, throwError } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Label } from './label.model';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root',
@@ -21,63 +20,44 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 export class LabelService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(`Backend returned code ${error.status}, ` + `body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
-    return throwError('Something bad happened; please try again later.');
+    return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async getLabels(collectionId: number) {
-    const headers = await this.getAuthHeaders();
+  getLabels(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/labels/${collectionId}`, { headers })
+      .get(`${this.cpatApiBase}/labels/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getLabel(collectionId: number, labelId: string) {
-    const headers = await this.getAuthHeaders();
+  getLabel(collectionId: number, labelId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/label/${collectionId}/${labelId}`, { headers })
+      .get(`${this.cpatApiBase}/label/${collectionId}/${labelId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async addLabel(collectionId: number, label: any) {
-    const headers = await this.getAuthHeaders();
+  addLabel(collectionId: number, label: any): Observable<Label> {
     return this.http
-      .post<Label>(`${this.cpatApiBase}/label/${collectionId}`, label, {
-        headers,
-      })
+      .post<Label>(`${this.cpatApiBase}/label/${collectionId}`, label)
       .pipe(catchError(this.handleError));
   }
 
-  async updateLabel(collectionId: number, label: any) {
-    const headers = await this.getAuthHeaders();
+  updateLabel(collectionId: number, label: any): Observable<Label> {
     return this.http
-      .put<Label>(`${this.cpatApiBase}/label/${collectionId}`, label, {
-        headers,
-      })
+      .put<Label>(`${this.cpatApiBase}/label/${collectionId}`, label)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteLabel(collectionId: number, labelId: string) {
-    const headers = await this.getAuthHeaders();
+  deleteLabel(collectionId: number, labelId: number): Observable<Label> {
     return this.http
-      .delete<Label>(`${this.cpatApiBase}/label/${collectionId}/${labelId}`, {
-        headers,
-      })
+      .delete<Label>(`${this.cpatApiBase}/label/${collectionId}/${labelId}`)
       .pipe(catchError(this.handleError));
   }
 }

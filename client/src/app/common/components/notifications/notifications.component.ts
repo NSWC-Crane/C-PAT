@@ -11,10 +11,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NotificationService } from './notifications.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { Subscription, map } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { PoamService } from '../../../pages/poam-processing/poams.service';
-import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -52,9 +50,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   constructor(
     private notificationService: NotificationService,
     private setPayloadService: PayloadService,
-    private sanitizer: DomSanitizer,
-    private poamService: PoamService,
-    private userService: UsersService
+    private sanitizer: DomSanitizer
   ) {}
 
   async ngOnInit() {
@@ -80,20 +76,25 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     );
   }
 
-  async fetchNotifications() {
-    try {
-      const notifications = await firstValueFrom(
-        await this.notificationService.getAllNotifications()
-      );
-      this.notifications = notifications.map(notification => ({
-        ...notification,
-        formattedMessage: this.formatMessage(notification.message),
-      }));
-      this.filterNotifications();
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+    fetchNotifications() {
+        this.notificationService.getAllNotifications().pipe(
+            map(notifications =>
+                notifications.map(notification => ({
+                    ...notification,
+                    formattedMessage: this.formatMessage(notification.message),
+                }))
+            )
+        ).subscribe({
+            next: (formattedNotifications) => {
+                this.notifications = formattedNotifications;
+                this.filterNotifications();
+            },
+            error: (error) => {
+                console.error('Failed to fetch notifications:', error);
+            }
+        });
     }
-  }
+
 
   formatMessage(message: string): SafeHtml {
     const poamRegex = /POAM (\d+)/;
@@ -130,48 +131,56 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.filterNotifications();
   }
 
-  async deleteNotification(notification: any) {
-    try {
-      await firstValueFrom(
-        await this.notificationService.deleteNotification(notification.notificationId)
-      );
-      const index = this.notifications.indexOf(notification);
-      if (index !== -1) {
-        this.notifications.splice(index, 1);
-      }
-      this.fetchNotifications();
-    } catch (error) {
-      console.error('Failed to dismiss notification:', error);
+    deleteNotification(notification: any) {
+        this.notificationService.deleteNotification(notification.notificationId).subscribe({
+            next: () => {
+                const index = this.notifications.indexOf(notification);
+                if (index !== -1) {
+                    this.notifications.splice(index, 1);
+                }
+                this.fetchNotifications();
+            },
+            error: (error) => {
+                console.error('Failed to delete notification:', error);
+            }
+        });
     }
-  }
 
-  async dismissAllNotifications() {
-    if (!this.user?.userId) {
-      console.error('User ID is not available');
-      return;
-    }
-    try {
-      await firstValueFrom(await this.notificationService.dismissAllNotifications());
-      this.fetchNotifications();
-    } catch (error) {
-      console.error('Failed to dismiss all notifications:', error);
-    }
-  }
+    dismissAllNotifications() {
+        if (!this.user?.userId) {
+            console.error('User ID is not available');
+            return;
+        }
 
-  async deleteAllNotifications() {
-    if (!this.user?.userId) {
-      console.error('User ID is not available');
-      return;
+        this.notificationService.dismissAllNotifications().subscribe({
+            next: () => {
+                this.fetchNotifications();
+            },
+            error: (error) => {
+                console.error('Failed to dismiss all notifications:', error);
+            }
+        });
     }
-    try {
-      await firstValueFrom(await this.notificationService.deleteAllNotifications());
-      this.fetchNotifications();
-    } catch (error) {
-      console.error('Failed to delete all notifications:', error);
+
+
+    deleteAllNotifications() {
+        if (!this.user?.userId) {
+            console.error('User ID is not available');
+            return;
+        }
+
+        this.notificationService.deleteAllNotifications().subscribe({
+            next: () => {
+                this.fetchNotifications();
+                this.notifications = [{ title: 'You have no new notifications...', read: 1 }];
+                this.filteredNotifications = [{ title: 'You have no new notifications...', read: 1 }];
+            },
+            error: (error) => {
+                console.error('Failed to delete all notifications:', error);
+            }
+        });
     }
-    this.notifications = [{ title: 'You have no new notifications...', read: 1 }];
-    this.filteredNotifications = [{ title: 'You have no new notifications...', read: 1 }];
-  }
+
 
   onSortChange(event: any) {
     const value = event.value;
@@ -185,20 +194,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async navigateToPOAM(poamId: string) {
+  async navigateToPOAM(poamId: number) {
     try {
-      this.poam = await firstValueFrom(await this.poamService.getPoam(poamId));
-      if (this.user.lastCollectionAccessedId !== this.poam?.collectionId) {
-        const userUpdate = {
-          userId: this.user.userId,
-          lastCollectionAccessedId: this.poam?.collectionId,
-        };
-
-        const result = await firstValueFrom(
-          await this.userService.updateUserLastCollection(userUpdate)
-        );
-        this.user = result;
-      }
       window.location.pathname = `/poam-processing/poam-details/${poamId}`;
     } catch (error) {
       console.error('Error navigating to POAM:', error);
@@ -209,9 +206,9 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (target.classList.contains('poam-link')) {
       event.preventDefault();
-      const poamNumber = target.getAttribute('data-poam');
-      if (poamNumber) {
-        this.navigateToPOAM(poamNumber);
+      const poamId = target.getAttribute('data-poam');
+      if (poamId) {
+        this.navigateToPOAM(+poamId);
       }
     }
   }

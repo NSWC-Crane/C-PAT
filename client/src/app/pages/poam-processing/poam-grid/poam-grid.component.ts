@@ -96,7 +96,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
     private router: Router,
     private setPayloadService: PayloadService,
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private importService: ImportService,
     private sharedService: SharedService,
     private poamService: PoamService,
@@ -141,242 +141,274 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  async exportCollection() {
+  exportCollection() {
     this.messageService.add({
       severity: 'secondary',
       summary: 'Export Started',
-      detail: 'Download will automatically start momentarily.',
+      detail: 'Download will automatically start momentarily.'
     });
-    const basicListData = await (await this.collectionService.getCollectionBasicList()).toPromise();
 
-    this.selectedCollection = basicListData?.find(
-      (collection: any) => collection.collectionId === this.selectedCollectionId
-    );
+    this.collectionsService.getCollectionBasicList().subscribe((basicListData: any) => {
+      this.selectedCollection = basicListData?.find(
+        (collection: any) => collection.collectionId === this.selectedCollectionId
+      );
 
-    const collectionId = this.selectedCollectionId;
+      const collectionId = this.selectedCollectionId;
+      if (!collectionId) {
+        console.error('Export collection ID is undefined');
+        return;
+      }
 
-    if (!collectionId) {
-      console.error('Export collection ID is undefined');
-      return;
-    }
-
-    try {
       const poams = this.poamsData;
       if (!poams || !Array.isArray(poams) || !poams.length) {
         this.messageService.add({
           severity: 'error',
           summary: 'No Data',
-          detail: 'There are no POAMs to export for this collection.',
+          detail: 'There are no POAMs to export for this collection.'
         });
         return;
       }
 
-      let processedPoams;
-
       if (this.selectedCollection.collectionOrigin === 'STIG Manager') {
-        processedPoams = await this.processPoamsWithStigFindings(
-          poams,
-          this.selectedCollection.originCollectionId
-        );
+        this.processPoamsWithStigFindings(poams, this.selectedCollection.originCollectionId)
+          .then(processedPoams => this.generateExcelFile(processedPoams));
       } else if (this.selectedCollection.collectionOrigin === 'Tenable') {
-        processedPoams = await this.processPoamsWithTenableFindings(poams);
+        this.processPoamsWithTenableFindings(poams)
+          .then(processedPoams => this.generateExcelFile(processedPoams));
       } else {
-        this.cpatAffectedAssets = await (
-          await this.poamService.getPoamAssetsByCollectionId(collectionId)
-        ).toPromise();
-
-        processedPoams = poams.map(poam => {
-          const affectedDevices = this.cpatAffectedAssets
-            .filter((asset: any) => asset.poamId === poam.poamId)
-            .map((asset: any) => asset.assetName.toUpperCase())
-            .filter(Boolean);
-          return {
-            ...poam,
-            devicesAffected: affectedDevices.join(' '),
-          };
+        this.poamService.getPoamAssetsByCollectionId(collectionId).subscribe(assets => {
+          this.cpatAffectedAssets = assets;
+          const processedPoams = poams.map(poam => {
+            const affectedDevices = this.cpatAffectedAssets
+              .filter((asset: any) => asset.poamId === poam.poamId)
+              .map((asset: any) => asset.assetName.toUpperCase())
+              .filter(Boolean);
+            return {
+              ...poam,
+              devicesAffected: affectedDevices.join(' ')
+            };
+          });
+          this.generateExcelFile(processedPoams);
         });
       }
+    });
+  }
 
-      const excelData = await PoamExportService.convertToExcel(
+  private generateExcelFile(processedPoams: any[]) {
+    try {
+      PoamExportService.convertToExcel(
         processedPoams,
         this.user,
         this.selectedCollection
-      );
-      const excelURL = window.URL.createObjectURL(excelData);
-      const exportName = this.selectedCollection.collectionName.replace(' ', '_');
+      ).then(excelData => {
+        const excelURL = window.URL.createObjectURL(excelData);
+        const exportName = this.selectedCollection.collectionName.replace(' ', '_');
 
-      const link = document.createElement('a');
-      link.id = 'download-excel';
-      link.setAttribute('href', excelURL);
-      link.setAttribute('download', `${exportName}_CPAT_Export.xlsx`);
-      document.body.appendChild(link);
+        const link = document.createElement('a');
+        link.id = 'download-excel';
+        link.setAttribute('href', excelURL);
+        link.setAttribute('download', `${exportName}_CPAT_Export.xlsx`);
+        document.body.appendChild(link);
 
-      link.click();
-      document.body.removeChild(link);
+        link.click();
+        document.body.removeChild(link);
 
-      window.URL.revokeObjectURL(excelURL);
+        window.URL.revokeObjectURL(excelURL);
+      });
     } catch (error) {
       console.error('Error exporting POAMs:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Export Failed',
-        detail: 'Failed to export POAMs, please try again later.',
+        detail: 'Failed to export POAMs, please try again later.'
       });
     }
   }
 
-  async processPoamsWithTenableFindings(poams: any[]): Promise<any[]> {
-    const processedPoams = [];
-    const vulnerabilityIds = [
-      ...new Set(
-        poams
-          .filter(
-            poam =>
-              poam.vulnerabilitySource ===
-              'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'
-          )
-          .map(poam => poam.vulnerabilityId)
-      ),
-    ];
+  processPoamsWithTenableFindings(poams: any[]): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      const processedPoams: any[] = [];
+      const vulnerabilityIds = [
+        ...new Set(
+          poams
+            .filter(
+              poam =>
+                poam.vulnerabilitySource ===
+                'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'
+            )
+            .map(poam => poam.vulnerabilityId)
+        )
+      ];
 
-    const analysisParams = {
-      query: {
-        description: '',
-        context: '',
-        status: -1,
-        createdTime: 0,
-        modifiedTime: 0,
-        groups: [],
-        type: 'vuln',
-        tool: 'listvuln',
+      const analysisParams = {
+        query: {
+          description: '',
+          context: '',
+          status: -1,
+          createdTime: 0,
+          modifiedTime: 0,
+          groups: [],
+          type: 'vuln',
+          tool: 'listvuln',
+          sourceType: 'cumulative',
+          startOffset: 0,
+          endOffset: 10000,
+          filters: [
+            {
+              id: 'pluginID',
+              filterName: 'pluginID',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: vulnerabilityIds.join(',')
+            }
+          ],
+          vulnTool: 'listvuln'
+        },
         sourceType: 'cumulative',
-        startOffset: 0,
-        endOffset: 10000,
-        filters: [
-          {
-            id: 'pluginID',
-            filterName: 'pluginID',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: vulnerabilityIds.join(','),
-          },
-        ],
-        vulnTool: 'listvuln',
-      },
-      sourceType: 'cumulative',
-      columns: [],
-      type: 'vuln',
-    };
+        columns: [],
+        type: 'vuln'
+      };
 
-    const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
-    this.tenableAffectedAssets = data.response.results.map((asset: any) => ({
-      pluginId: asset.pluginID,
-      dnsName: asset.dnsName ?? '',
-      netbiosName: asset.netbiosName ?? '',
-    }));
+      this.importService.postTenableAnalysis(analysisParams).subscribe({
+        next: (data: any) => {
+          this.tenableAffectedAssets = data.response.results.map((asset: any) => ({
+            pluginId: asset.pluginID,
+            dnsName: asset.dnsName ?? '',
+            netbiosName: asset.netbiosName ?? ''
+          }));
 
-    for (const poam of poams) {
-      try {
-        const plugin = await (
-          await this.importService.getTenablePlugin(poam.vulnerabilityId)
-        ).toPromise();
+          let completedPoams = 0;
+          poams.forEach(poam => {
+            this.importService.getTenablePlugin(poam.vulnerabilityId).subscribe({
+              next: (plugin: any) => {
+                let controlAPs = poam.controlAPs ?? '';
+                let cci = poam.cci ?? '';
+                if (plugin.response?.patchPubDate && plugin.response?.patchPubDate != '') {
+                  controlAPs = 'SI-2.9';
+                  cci =
+                    '002605\n\nControl mapping is unavailable for this vulnerability so it is being mapped to SI-2.9 CCI-002605 by default.';
+                } else {
+                  controlAPs = 'CM-6.5';
+                  cci =
+                    '000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.';
+                }
 
-        let controlAPs = poam.controlAPs ?? '';
-        let cci = poam.cci ?? '';
-        if (plugin.response?.patchPubDate && plugin.response?.patchPubDate != '') {
-          controlAPs = 'SI-2.9';
-          cci =
-            '002605\n\nControl mapping is unavailable for this vulnerability so it is being mapped to SI-2.9 CCI-002605 by default.';
-        } else {
-          controlAPs = 'CM-6.5';
-          cci =
-            '000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.';
+                const affectedDevices = this.tenableAffectedAssets
+                  .filter((asset: any) => asset.pluginId === poam.vulnerabilityId)
+                  .map((asset: any) => {
+                    if (asset.netbiosName) {
+                      const parts = asset.netbiosName.split('\\');
+                      if (parts.length > 1) {
+                        return parts[parts.length - 1];
+                      }
+                    }
+                    if (asset.dnsName) {
+                      const parts = asset.dnsName.split('.');
+                      if (parts.length > 0) {
+                        return parts[0].toUpperCase();
+                      }
+                    }
+                    return null;
+                  })
+                  .filter(Boolean);
+
+                processedPoams.push({
+                  ...poam,
+                  controlAPs,
+                  cci,
+                  devicesAffected: affectedDevices.join(' ')
+                });
+
+                completedPoams++;
+                if (completedPoams === poams.length) {
+                  resolve(processedPoams);
+                }
+              },
+              error: (error) => {
+                console.error(`Error processing Tenable POAM ${poam.poamId}:`, error);
+                processedPoams.push(poam);
+                completedPoams++;
+                if (completedPoams === poams.length) {
+                  resolve(processedPoams);
+                }
+              }
+            });
+          });
+        },
+        error: (error) => {
+          console.error('Error fetching Tenable analysis:', error);
+          reject(error);
         }
-
-        const affectedDevices = this.tenableAffectedAssets
-          .filter((asset: any) => asset.pluginId === poam.vulnerabilityId)
-          .map((asset: any) => {
-            if (asset.netbiosName) {
-              const parts = asset.netbiosName.split('\\');
-              if (parts.length > 1) {
-                return parts[parts.length - 1];
-              }
-            }
-            if (asset.dnsName) {
-              const parts = asset.dnsName.split('.');
-              if (parts.length > 0) {
-                return parts[0].toUpperCase();
-              }
-            }
-            return null;
-          })
-          .filter(Boolean);
-
-        processedPoams.push({
-          ...poam,
-          controlAPs,
-          cci,
-          devicesAffected: affectedDevices.join(' '),
-        });
-      } catch (error) {
-        console.error(`Error processing Tenable POAM ${poam.poamId}:`, error);
-        processedPoams.push(poam);
-      }
-    }
-
-    return processedPoams;
+      });
+    });
   }
 
-  async processPoamsWithStigFindings(poams: any[], originCollectionId: number): Promise<any[]> {
-    const processedPoams = [];
+  processPoamsWithStigFindings(poams: any[], originCollectionId: number): Promise<any[]> {
+    return new Promise((resolve) => {
+      const processedPoams: any[] = [];
+      let completedPoams = 0;
 
-    for (const poam of poams) {
-      if (poam.vulnerabilityId && poam.stigBenchmarkId && poam.vulnerabilitySource === 'STIG') {
-        try {
-          let findings: any[];
+      const processPoam = (poam: any) => {
+        if (poam.vulnerabilityId && poam.stigBenchmarkId && poam.vulnerabilitySource === 'STIG') {
           if (this.findingsCache.has(poam.stigBenchmarkId)) {
-            findings = this.findingsCache.get(poam.stigBenchmarkId)!;
+            const findings = this.findingsCache.get(poam.stigBenchmarkId)!;
+            processPoamWithFindings(poam, findings);
           } else {
-            findings = await (
-              await this.sharedService.getSTIGMANAffectedAssetsByPoam(
-                originCollectionId,
-                poam.stigBenchmarkId
-              )
-            ).toPromise();
-            this.findingsCache.set(poam.stigBenchmarkId, findings);
-          }
-
-          const matchingFinding = findings.find(
-            finding => finding.groupId === poam.vulnerabilityId
-          );
-
-          if (matchingFinding) {
-            const affectedDevices = matchingFinding.assets.map(
-              (asset: { name: any; assetId: any }) => asset.name
-            );
-            const controlAPs = matchingFinding.ccis[0]?.apAcronym;
-            const cci = matchingFinding.ccis[0]?.cci;
-
-            processedPoams.push({
-              ...poam,
-              controlAPs,
-              cci,
-              devicesAffected: affectedDevices.join(' '),
+            this.sharedService.getSTIGMANAffectedAssetsByPoam(
+              originCollectionId,
+              poam.stigBenchmarkId
+            ).subscribe({
+              next: (findings: any) => {
+                this.findingsCache.set(poam.stigBenchmarkId, findings);
+                processPoamWithFindings(poam, findings);
+              },
+              error: (error) => {
+                console.error(`Error fetching affected assets for POAM ${poam.poamId}:`, error);
+                processedPoams.push(poam);
+                checkCompletion();
+              }
             });
-          } else {
-            processedPoams.push(poam);
           }
-        } catch (error) {
-          console.error(`Error fetching affected assets for POAM ${poam.poamId}:`, error);
+        } else {
+          processedPoams.push(poam);
+          checkCompletion();
+        }
+      };
+
+      const processPoamWithFindings = (poam: any, findings: any[]) => {
+        const matchingFinding = findings.find(
+          finding => finding.groupId === poam.vulnerabilityId
+        );
+
+        if (matchingFinding) {
+          const affectedDevices = matchingFinding.assets.map(
+            (asset: { name: any; assetId: any }) => asset.name
+          );
+          const controlAPs = matchingFinding.ccis[0]?.apAcronym;
+          const cci = matchingFinding.ccis[0]?.cci;
+
+          processedPoams.push({
+            ...poam,
+            controlAPs,
+            cci,
+            devicesAffected: affectedDevices.join(' ')
+          });
+        } else {
           processedPoams.push(poam);
         }
-      } else {
-        processedPoams.push(poam);
-      }
-    }
+        checkCompletion();
+      };
 
-    return processedPoams;
+      const checkCompletion = () => {
+        completedPoams++;
+        if (completedPoams === poams.length) {
+          resolve(processedPoams);
+        }
+      };
+
+      poams.forEach(processPoam);
+    });
   }
 
   clearCache() {
@@ -439,7 +471,7 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
   onFilterChange(event: Event) {
     const target = event.target as HTMLInputElement;
     this.globalFilter = target.value;
-    this.filterSubject.next(this.globalFilter);
+    this.applyFilter();
   }
 
   clear() {

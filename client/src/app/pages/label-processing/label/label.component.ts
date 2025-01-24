@@ -72,9 +72,10 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
         this.selectedCollection = collectionId;
       })
     );
-    this.setPayloadService.accessLevel$.subscribe(async level => {
+
+    this.setPayloadService.accessLevel$.subscribe(level => {
       this.accessLevel = level;
-    })
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -83,31 +84,35 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  async onSubmit() {
+  onSubmit() {
     if (!this.validData()) return;
+
     const label = {
       labelId: this.label.labelId == 'ADDLABEL' || !this.label.labelId ? 0 : this.label.labelId,
       collectionId: this.selectedCollection,
       labelName: this.label.labelName,
       description: this.label.description,
     };
+
     if (label.labelId === 0) {
-      this.subs.sink = (await this.labelService.addLabel(this.selectedCollection, label)).subscribe(
-        (data: any) => {
-          this.labelchange.emit(data.labelId);
-        },
-        (err: any) => {
-          this.invalidData('Unexpected error adding label');
-          console.error(err);
-        }
-      );
+      this.subs.sink = this.labelService.addLabel(this.selectedCollection, label)
+        .subscribe(
+          (data: any) => {
+            this.labelchange.emit(data.labelId);
+          },
+          (err: any) => {
+            this.invalidData('Unexpected error adding label');
+            console.error(err);
+          }
+        );
     } else {
-      this.subs.sink = (
-        await this.labelService.updateLabel(this.selectedCollection, label)
-      ).subscribe(data => {
-        this.label = data;
-        this.labelchange.emit();
-      });
+      this.subs.sink = this.labelService.updateLabel(this.selectedCollection, label)
+        .subscribe(
+          data => {
+            this.label = data;
+            this.labelchange.emit();
+          }
+        );
     }
   }
 
@@ -156,26 +161,25 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     );
   }
 
-  async deleteLabel(label: any) {
-    await (
-      await this.labelService.deleteLabel(label.collectionId, label.labelId)
-    ).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `Label has been successfully deleted.`,
-        });
-        this.labelchange.emit();
-      },
-      error: (error: Error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to delete label: ${error.message}`,
-        });
-      },
-    });
+  deleteLabel(label: any) {
+    this.labelService.deleteLabel(label.collectionId, label.labelId)
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `Label has been successfully deleted.`,
+          });
+          this.labelchange.emit();
+        },
+        error: (error: Error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to delete label: ${error.message}`,
+          });
+        },
+      });
   }
 
   ngOnDestroy() {

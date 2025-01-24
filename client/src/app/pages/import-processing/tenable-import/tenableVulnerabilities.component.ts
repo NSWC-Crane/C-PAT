@@ -8,7 +8,7 @@ import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
-import { Subscription } from 'rxjs';
+import { EMPTY, Observable, Subscription, catchError, finalize, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ButtonModule } from 'primeng/button';
@@ -70,7 +70,7 @@ interface ExportColumn {
   dataKey: string;
 }
 interface PoamAssociation {
-  poamId: string;
+  poamId: number;
   status: string;
 }
 
@@ -643,49 +643,52 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     private importService: ImportService,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private messageService: MessageService,
     private poamService: PoamService,
     private sharedService: SharedService,
     private router: Router
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.subscriptions.add(
-      await this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
+
+        this.collectionsService.getCollectionBasicList().pipe(
+          tap(data => {
+            const selectedCollectionData = data.find(
+              (collection: any) => collection.collectionId === this.selectedCollection
+            );
+            if (selectedCollectionData) {
+              this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
+            } else {
+              this.tenableRepoId = '';
+            }
+          }),
+          switchMap(() => forkJoin([
+            this.loadAssetOptions(),
+            this.loadAuditFileOptions(),
+            this.loadPluginFamilyOptions(),
+            this.loadScanPolicyPluginOptions(),
+            this.loadUserOptions(),
+            this.loadPoamAssociations()
+          ])),
+          catchError(error => {
+            console.error('Error loading filter list data:', error);
+            return EMPTY;
+          })
+        ).subscribe({
+          next: () => {
+            this.updateAccordionItems();
+            this.initializeColumnsAndFilters();
+          }
+        });
       })
     );
-    await (
-      await this.collectionService.getCollectionBasicList()
-    ).subscribe({
-      next: data => {
-        const selectedCollectionData = data.find(
-          (collection: any) => collection.collectionId === this.selectedCollection
-        );
-        if (selectedCollectionData) {
-          this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
-        } else {
-          this.tenableRepoId = '';
-        }
-      },
-      error: () => {
-        this.tenableRepoId = '';
-      },
-    });
-    try {
-      await Promise.all([
-        this.loadAssetOptions(),
-        this.loadAuditFileOptions(),
-        this.loadPluginFamilyOptions(),
-        this.loadScanPolicyPluginOptions(),
-        this.loadUserOptions(),
-        this.loadPoamAssociations(),
-      ]);
-      this.updateAccordionItems();
-    } catch (error) {
-      console.error('Error loading filter list data:', error);
-    }
+  }
+
+  private initializeColumnsAndFilters() {
     this.cols = [
       {
         field: 'poam',
@@ -763,6 +766,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.tempFilters['vulnerabilityLastObserved'] = '0:30';
     this.applyFilters();
   }
+
 
   private initializeTempFilters(): TempFilters {
     return {
@@ -857,103 +861,108 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  async loadAssetOptions() {
-    try {
-      const assetsData = await (await this.importService.getTenableAssetsFilter()).toPromise();
-      this.assetOptions = assetsData.response.usable.map((assets: any) => ({
-        value: assets.id,
-        label: assets.name,
-      }));
-    } catch (error) {
-      console.error('Error fetching tenable asset filter data:', error);
-      this.showErrorMessage('Error fetching tenable asset filter data. Please try again.');
-    }
+  loadAssetOptions(): Observable<any> {
+    return this.importService.getTenableAssetsFilter().pipe(
+      map(assetsData => {
+        this.assetOptions = assetsData.response.usable.map((assets: any) => ({
+          value: assets.id,
+          label: assets.name,
+        }));
+        return this.assetOptions;
+      }),
+      catchError(error => {
+        console.error('Error fetching tenable asset filter data:', error);
+        this.showErrorMessage('Error fetching tenable asset filter data. Please try again.');
+        return EMPTY;
+      })
+    );
   }
 
-  async loadAuditFileOptions() {
-    try {
-      const auditFileData = await (
-        await this.importService.getTenableAuditFileFilter()
-      ).toPromise();
-      this.auditFileOptions = auditFileData.response.usable.map((auditFile: any) => ({
-        value: auditFile.id,
-        label: auditFile.name,
-      }));
-    } catch (error) {
-      console.error('Error fetching audit file data:', error);
-      this.showErrorMessage('Error fetching audit file data. Please try again.');
-    }
+  loadAuditFileOptions(): Observable<any> {
+    return this.importService.getTenableAuditFileFilter().pipe(
+      map(auditFileData => {
+        this.auditFileOptions = auditFileData.response.usable.map((auditFile: any) => ({
+          value: auditFile.id,
+          label: auditFile.name,
+        }));
+        return this.auditFileOptions;
+      }),
+      catchError(error => {
+        console.error('Error fetching audit file data:', error);
+        this.showErrorMessage('Error fetching audit file data. Please try again.');
+        return EMPTY;
+      })
+    );
   }
 
-  async loadPluginFamilyOptions() {
-    try {
-      const pluginFamilyData = await (
-        await this.importService.getTenablePluginFamily()
-      ).toPromise();
-      this.pluginFamilyOptions = pluginFamilyData.response.map((family: any) => ({
-        value: family.id,
-        label: family.name,
-      }));
-    } catch (error) {
-      console.error('Error fetching plugin family data:', error);
-      this.showErrorMessage('Error fetching plugin family data. Please try again.');
-    }
+  loadPluginFamilyOptions(): Observable<any> {
+    return this.importService.getTenablePluginFamily().pipe(
+      map(pluginFamilyData => {
+        this.pluginFamilyOptions = pluginFamilyData.response.map((family: any) => ({
+          value: family.id,
+          label: family.name,
+        }));
+        return this.pluginFamilyOptions;
+      }),
+      catchError(error => {
+        console.error('Error fetching plugin family data:', error);
+        this.showErrorMessage('Error fetching plugin family data. Please try again.');
+        return EMPTY;
+      })
+    );
   }
 
-  async loadScanPolicyPluginOptions() {
-    try {
-      const scanPolicyPluginData = await (
-        await this.importService.getTenableScanPolicyPluginsFilter()
-      ).toPromise();
-      this.scanPolicyPluginOptions = scanPolicyPluginData.response.usable.map((plugins: any) => ({
-        value: plugins.id,
-        label: plugins.name,
-      }));
-    } catch (error) {
-      console.error('Error fetching scan policy plugin data:', error);
-      this.showErrorMessage('Error fetching scan policy plugin data. Please try again.');
-    }
+  loadScanPolicyPluginOptions(): Observable<any> {
+    return this.importService.getTenableScanPolicyPluginsFilter().pipe(
+      map(scanPolicyPluginData => {
+        this.scanPolicyPluginOptions = scanPolicyPluginData.response.usable.map((plugins: any) => ({
+          value: plugins.id,
+          label: plugins.name,
+        }));
+        return this.scanPolicyPluginOptions;
+      }),
+      catchError(error => {
+        console.error('Error fetching scan policy plugin data:', error);
+        this.showErrorMessage('Error fetching scan policy plugin data. Please try again.');
+        return EMPTY;
+      })
+    );
   }
 
-  async loadUserOptions() {
-    try {
-      const userData = await (await this.importService.getTenableUsersFilter()).toPromise();
-      this.userOptions = userData.response.map((user: any) => ({
-        value: user.id,
-        label: `${user.firstname} ${user.lastname} [${user.username}]`,
-      }));
-    } catch (error) {
-      console.error('Error fetching tenable user data:', error);
-      this.showErrorMessage('Error fetching tenable user data. Please try again.');
-    }
+  loadUserOptions(): Observable<any> {
+    return this.importService.getTenableUsersFilter().pipe(
+      map(userData => {
+        this.userOptions = userData.response.map((user: any) => ({
+          value: user.id,
+          label: `${user.firstname} ${user.lastname} [${user.username}]`,
+        }));
+        return this.userOptions;
+      }),
+      catchError(error => {
+        console.error('Error fetching tenable user data:', error);
+        this.showErrorMessage('Error fetching tenable user data. Please try again.');
+        return EMPTY;
+      })
+    );
   }
 
-  async loadVulnerabilitiesLazy(event: TableLazyLoadEvent) {
+  loadVulnerabilitiesLazy(event: TableLazyLoadEvent) {
     if (!this.tenableRepoId) return;
-    this.isLoading = true;
-    let startOffset: number;
-    let endOffset: number;
 
-    if (this.tenableTool === 'sumid') {
-      startOffset = 0;
-      endOffset = 5000;
-    } else {
-      startOffset = event.first ?? 0;
-      endOffset = startOffset + (event.rows ?? 20);
-    }
-    const filters: CustomFilter[] = this.activeFilters;
-    const repoFilter = {
+    this.isLoading = true;
+
+    const startOffset = this.tenableTool === 'sumid' ? 0 : event.first ?? 0;
+    const endOffset = this.tenableTool === 'sumid' ? 5000 : startOffset + (event.rows ?? 20);
+
+    const repoFilter: CustomFilter = {
       id: 'repository',
       filterName: 'repository',
       operator: '=',
       type: 'vuln',
       isPredefined: true,
-      value: [
-        {
-          id: this.tenableRepoId,
-        },
-      ],
+      value: [{ id: this.tenableRepoId }]
     };
+
     const analysisParams = {
       query: {
         description: '',
@@ -965,9 +974,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         type: 'vuln',
         tool: this.tenableTool,
         sourceType: 'cumulative',
-        startOffset: startOffset,
-        endOffset: endOffset,
-        filters: [repoFilter, ...filters],
+        startOffset,
+        endOffset,
+        filters: [repoFilter, ...this.activeFilters],
         vulnTool: this.tenableTool,
       },
       sourceType: 'cumulative',
@@ -975,82 +984,94 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       type: 'vuln',
     };
 
-    try {
-      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
-
-      if (data.error_msg) {
-        this.showErrorMessage(data.error_msg);
-        return;
-      }
-
-      const pluginIDs = data.response.results.map((vuln: any) => Number(vuln.pluginID));
-
-      let iavInfoMap: { [key: number]: IAVInfo } = {};
-      if (pluginIDs.length > 0) {
-        try {
-          const iavData = await (
-            await this.importService.getIAVInfoForPlugins(pluginIDs)
-          ).toPromise();
-          iavInfoMap = iavData.reduce(
-            (acc: any, item: any) => {
-              acc[item.pluginID] = {
-                iav: item.iav || null,
-                navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null,
-              };
-              return acc;
-            },
-            {} as { [key: number]: IAVInfo }
-          );
-        } catch (error) {
-          console.error('Error fetching IAV info:', error);
+    this.importService.postTenableAnalysis(analysisParams).pipe(
+      catchError(error => {
+        console.error('Error fetching vulnerabilities:', error);
+        this.showErrorMessage('Error fetching all Vulnerabilities. Please try again.');
+        return EMPTY;
+      }),
+      switchMap(data => {
+        if (data.error_msg) {
+          this.showErrorMessage(data.error_msg);
+          return EMPTY;
         }
+
+        const pluginIDs = data.response.results.map((vuln: any) => Number(vuln.pluginID));
+
+        if (pluginIDs.length > 0) {
+          return this.importService.getIAVInfoForPlugins(pluginIDs).pipe(
+            catchError(error => {
+              console.error('Error fetching IAV info:', error);
+              return of([]);
+            }),
+            map(iavData => ({
+              vulnData: data.response,
+              iavInfoMap: this.createIAVInfoMap(iavData)
+            }))
+          );
+        }
+
+        return of({
+          vulnData: data.response,
+          iavInfoMap: {}
+        });
+      }),
+      finalize(() => {
+        this.isLoading = false;
+      })
+    ).subscribe({
+      next: ({ vulnData, iavInfoMap }) => {
+        this.allVulnerabilities = vulnData.results.map((vuln: any) => {
+          const defaultVuln = {
+            pluginID: '',
+            pluginName: '',
+            family: { name: '' },
+            severity: { name: '' },
+            vprScore: '',
+            ips: [],
+            acrScore: '',
+            assetExposureScore: '',
+            netbiosName: '',
+            dnsName: '',
+            macAddress: '',
+            port: '',
+            protocol: '',
+            uuid: '',
+            hostUUID: '',
+            total: '',
+            hostTotal: '',
+          };
+
+          const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
+          const iavInfo = iavInfoMap[Number(vuln.pluginID)] || { iav: null, navyComplyDate: null };
+
+          return {
+            ...defaultVuln,
+            ...vuln,
+            poam: !!poamAssociation,
+            poamId: poamAssociation?.poamId || null,
+            poamStatus: poamAssociation?.status || null,
+            iav: iavInfo.iav,
+            navyComplyDate: iavInfo.navyComplyDate,
+            pluginName: vuln.name || '',
+            family: vuln.family?.name || '',
+            severity: { name: vuln.severity?.name || '' },
+          };
+        });
+
+        this.totalRecords = vulnData.totalRecords;
       }
+    });
+  }
 
-      this.allVulnerabilities = data.response.results.map((vuln: any) => {
-        const defaultVuln = {
-          pluginID: '',
-          pluginName: '',
-          family: { name: '' },
-          severity: { name: '' },
-          vprScore: '',
-          ips: [],
-          acrScore: '',
-          assetExposureScore: '',
-          netbiosName: '',
-          dnsName: '',
-          macAddress: '',
-          port: '',
-          protocol: '',
-          uuid: '',
-          hostUUID: '',
-          total: '',
-          hostTotal: '',
-        };
-
-        const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
-        const iavInfo = iavInfoMap[Number(vuln.pluginID)] || { iav: null, navyComplyDate: null };
-
-        return {
-          ...defaultVuln,
-          ...vuln,
-          poam: !!poamAssociation,
-          poamId: poamAssociation?.poamId || null,
-          poamStatus: poamAssociation?.status || null,
-          iav: iavInfo.iav,
-          navyComplyDate: iavInfo.navyComplyDate,
-          pluginName: vuln.name || '',
-          family: vuln.family?.name || '',
-          severity: { name: vuln.severity?.name || '' },
-        };
-      });
-
-      this.totalRecords = data.response.totalRecords;
-    } catch (error) {
-      console.error('Error fetching all Vulnerabilities:', error);
-      this.showErrorMessage('Error fetching all Vulnerabilities. Please try again.');
-    } finally {
-      this.isLoading = false;
-    }
+  private createIAVInfoMap(iavData: any[]): { [key: number]: IAVInfo } {
+    return iavData.reduce((acc: any, item: any) => {
+      acc[item.pluginID] = {
+        iav: item.iav || null,
+        navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null,
+      };
+      return acc;
+    }, {});
   }
 
   showFilterMenu(event: Event) {
@@ -2363,49 +2384,52 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  async showDetails(vulnerability: any, createPoam: boolean = false) {
-    try {
-      if (!vulnerability || !vulnerability.pluginID) {
-        throw new Error('Invalid vulnerability data');
-      }
+  showDetails(vulnerability: any, createPoam: boolean = false) {
+    if (!vulnerability || !vulnerability.pluginID) {
+      this.showErrorMessage('Invalid vulnerability data');
+      return;
+    }
 
-      const data = await (
-        await this.importService.getTenablePlugin(vulnerability.pluginID)
-      ).toPromise();
-
-      if (!data || !data.response) {
-        throw new Error('Invalid response from getTenablePlugin');
-      }
-
-      this.pluginData = data.response;
-      this.formattedDescription = this.pluginData.description
-        ? this.sanitizer.bypassSecurityTrustHtml(
+    this.importService.getTenablePlugin(vulnerability.pluginID).pipe(
+      tap(data => {
+        if (!data || !data.response) {
+          throw new Error('Invalid response from getTenablePlugin');
+        }
+      }),
+      map(data => data.response)
+    ).subscribe({
+      next: (pluginData) => {
+        this.pluginData = pluginData;
+        this.formattedDescription = this.pluginData.description
+          ? this.sanitizer.bypassSecurityTrustHtml(
             this.pluginData.description.replace(/\n\n/g, '<br>')
           )
-        : '';
+          : '';
 
-      if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
-        this.parseReferences(this.pluginData.xrefs);
-      } else {
-        this.cveReferences = [];
-        this.iavReferences = [];
-        this.otherReferences = [];
-      }
+        if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
+          this.parseReferences(this.pluginData.xrefs);
+        } else {
+          this.cveReferences = [];
+          this.iavReferences = [];
+          this.otherReferences = [];
+        }
 
-      if (Array.isArray(this.pluginData.vprContext)) {
-        this.parseVprContext(this.pluginData.vprContext);
-      } else {
-        this.parsedVprContext = [];
-      }
+        if (Array.isArray(this.pluginData.vprContext)) {
+          this.parseVprContext(this.pluginData.vprContext);
+        } else {
+          this.parsedVprContext = [];
+        }
 
-      this.selectedVulnerability = vulnerability;
-      if (!createPoam) {
-        this.displayDialog = true;
+        this.selectedVulnerability = vulnerability;
+        if (!createPoam) {
+          this.displayDialog = true;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching plugin data:', error);
+        this.showErrorMessage('Error fetching plugin data. Please try again.');
       }
-    } catch (error) {
-      console.error('Error fetching plugin data:', error);
-      this.showErrorMessage('Error fetching plugin data. Please try again.');
-    }
+    });
   }
 
   parseVprContext(vprContext: string) {
@@ -2498,31 +2522,34 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  async loadPoamAssociations() {
-    try {
-      const poamData = await (await this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)).toPromise();
-      if (poamData && Array.isArray(poamData)) {
-        this.existingPoamPluginIDs = poamData.reduce(
-          (
-            acc: { [key: string]: PoamAssociation },
-            item: { vulnerabilityId: string; poamId: string; status: string }
-          ) => {
-            acc[item.vulnerabilityId] = {
-              poamId: item.poamId,
-              status: item.status,
-            };
-            return acc;
-          },
-          {}
-        );
-      } else {
-        console.error('Unexpected POAM data format:', poamData);
-        this.showErrorMessage('Error loading POAM data. Unexpected data format.');
-      }
-    } catch (error) {
-      console.error('Error loading POAM associations:', error);
-      this.showErrorMessage('Error loading POAM data. Please try again.');
-    }
+  loadPoamAssociations(): Observable<any> {
+    return this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection).pipe(
+      map(poamData => {
+        if (poamData && Array.isArray(poamData)) {
+          this.existingPoamPluginIDs = poamData.reduce(
+            (
+              acc: { [key: string]: PoamAssociation },
+              item: { vulnerabilityId: string; poamId: number; status: string }
+            ) => {
+              acc[item.vulnerabilityId] = {
+                poamId: item.poamId,
+                status: item.status,
+              };
+              return acc;
+            },
+            {}
+          );
+          return this.existingPoamPluginIDs;
+        } else {
+          throw new Error('Unexpected POAM data format');
+        }
+      }),
+      catchError(error => {
+        console.error('Error loading POAM associations:', error);
+        this.showErrorMessage('Error loading POAM data. Please try again.');
+        return EMPTY;
+      })
+    );
   }
 
   showErrorMessage(message: string) {

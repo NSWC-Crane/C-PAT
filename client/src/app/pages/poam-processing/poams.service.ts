@@ -9,9 +9,9 @@
 */
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { catchError, firstValueFrom, throwError } from 'rxjs';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -19,10 +19,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 export class PoamService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -30,427 +27,338 @@ export class PoamService {
     } else {
       console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
-    return throwError('Something bad happened; please try again later.');
+    return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async getCollectionPoamStatus(id: string) {
-    const headers = await this.getAuthHeaders();
+  getCollectionPoamStatus(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/collection/${id}/poamstatus`, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/metrics/collection/${collectionId}/poamstatus`)
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionPoamLabel(id: string) {
-    const headers = await this.getAuthHeaders();
+  getCollectionPoamLabel(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/collection/${id}/poamlabel`, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/metrics/collection/${collectionId}/poamlabel`)
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionPoamSeverity(id: string) {
-    const headers = await this.getAuthHeaders();
+  getCollectionPoamSeverity(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/collection/${id}/poamseverity`, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/metrics/collection/${collectionId}/poamseverity`)
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionPoamScheduledCompletion(id: string) {
-    const headers = await this.getAuthHeaders();
+  getCollectionPoamScheduledCompletion(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/collection/${id}/poamScheduledCompletion`, { headers })
+      .get(`${this.cpatApiBase}/metrics/collection/${collectionId}/poamScheduledCompletion`)
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionMonthlyPoamStatus(collectionId: number) {
-    const headers = await this.getAuthHeaders();
+  getCollectionMonthlyPoamStatus(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/collection/${collectionId}/monthlypoamstatus`, { headers })
+      .get(`${this.cpatApiBase}/metrics/collection/${collectionId}/monthlypoamstatus`)
       .pipe(catchError(this.handleError));
   }
 
-  async getPoam(
-    poamId: string,
+  getPoam(
+    poamId: number,
     includeApprovers: boolean = false,
     includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
     includeAssets: boolean = false
-  ) {
+  ): Observable<any> {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignees', includeAssignees.toString())
       .set('assignedTeams', includeAssignedTeams.toString())
       .set('assets', includeAssets.toString());
 
-    const headers = await this.getAuthHeaders();
     return this.http
-      .get(`${this.cpatApiBase}/poam/${poamId}`, {
-        headers: headers,
-        params: params,
-      })
+      .get(`${this.cpatApiBase}/poam/${poamId}`, { params })
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamsByCollection(
+  getPoamsByCollection(
     collectionId: number,
     includeApprovers: boolean = false,
     includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
     includeAssets: boolean = false
-  ) {
+  ): Observable<any> {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignees', includeAssignees.toString())
       .set('assignedTeams', includeAssignedTeams.toString())
       .set('assets', includeAssets.toString());
 
-    const headers = await this.getAuthHeaders();
     return this.http
-      .get(`${this.cpatApiBase}/poams/collection/${collectionId}`, {
-        headers: headers,
-        params: params,
-      })
+      .get(`${this.cpatApiBase}/poams/collection/${collectionId}`, { params })
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamsBySubmitter(
-    submitterId: string,
+  getPoamsBySubmitter(
+    submitterId: number,
     includeApprovers: boolean = false,
     includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
     includeAssets: boolean = false
-  ) {
+  ): Observable<any> {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignees', includeAssignees.toString())
       .set('assignedTeams', includeAssignedTeams.toString())
       .set('assets', includeAssets.toString());
 
-    const headers = await this.getAuthHeaders();
     return this.http
-      .get(`${this.cpatApiBase}/poams/submitter/${submitterId}`, {
-        headers: headers,
-        params: params,
-      })
+      .get(`${this.cpatApiBase}/poams/submitter/${submitterId}`, { params })
       .pipe(catchError(this.handleError));
   }
 
-  async getPluginIDsWithPoam() {
-    const headers = await this.getAuthHeaders();
+  getPluginIDsWithPoam(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poam/pluginIDs/`, { headers })
+      .get(`${this.cpatApiBase}/poam/pluginIDs/`)
       .pipe(catchError(this.handleError));
   }
 
-  async getPluginIDsWithPoamByCollection(collectionId: number) {
-    const headers = await this.getAuthHeaders();
+  getPluginIDsWithPoamByCollection(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poam/pluginIDs/${collectionId}`, { headers })
+      .get(`${this.cpatApiBase}/poam/pluginIDs/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamAssets(poamId: string) {
-    const headers = await this.getAuthHeaders();
+  getPoamAssets(poamId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poamAssets/poam/${poamId}`, { headers })
+      .get(`${this.cpatApiBase}/poamAssets/poam/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamAssetsByCollectionId(collectionId: number) {
-    const headers = await this.getAuthHeaders();
+  getPoamAssetsByCollectionId(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poamAssets/${collectionId}`, { headers })
+      .get(`${this.cpatApiBase}/poamAssets/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamAssignees(poamId: string) {
-    const headers = await this.getAuthHeaders();
+  getPoamAssignees(poamId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poamAssignees/poam/${poamId}`, { headers })
+      .get(`${this.cpatApiBase}/poamAssignees/poam/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamAssignedTeams(poamId: string) {
-    const headers = await this.getAuthHeaders();
+  getPoamAssignedTeams(poamId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poamAssignedTeams/poam/${poamId}`, { headers })
+      .get(`${this.cpatApiBase}/poamAssignedTeams/poam/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async postPoam(poam: any) {
-    const headers = await this.getAuthHeaders();
+  postPoam(poam: any): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/poam`, poam, { headers })
+      .post<any>(`${this.cpatApiBase}/poam`, poam)
       .pipe(catchError(this.handleError));
   }
 
-  async updatePoam(poam: any) {
-    const headers = await this.getAuthHeaders();
+  updatePoam(poam: any): Observable<any> {
     return this.http
-      .put<any>(`${this.cpatApiBase}/poam`, poam, { headers })
+      .put<any>(`${this.cpatApiBase}/poam`, poam)
       .pipe(catchError(this.handleError));
   }
 
-  async updatePoamStatus(poamId: any, poamStatusUpdate: any) {
-    const headers = await this.getAuthHeaders();
+  updatePoamStatus(poamId: number, poamStatusUpdate: any): Observable<any> {
     return this.http
-      .put<any>(`${this.cpatApiBase}/poam/status/${poamId}`, poamStatusUpdate, {
-        headers,
-      })
+      .put<any>(`${this.cpatApiBase}/poam/status/${poamId}`, poamStatusUpdate)
       .pipe(catchError(this.handleError));
   }
 
-  async postPoamAssignee(poamAssignee: any) {
-    const headers = await this.getAuthHeaders();
+  postPoamAssignee(poamAssignee: any): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/poamAssignee`, poamAssignee, { headers })
+      .post<any>(`${this.cpatApiBase}/poamAssignee`, poamAssignee)
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamAssignee(poamId: any, userId: any) {
-    const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(`${this.cpatApiBase}/poamAssignee/poam/${poamId}/user/${userId}`, {
-      headers,
-    });
-  }
-
-  async postPoamAssignedTeam(poamAssignedTeam: any) {
-    const headers = await this.getAuthHeaders();
+  deletePoamAssignee(poamId: number, userId: number): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/poamAssignedTeam`, poamAssignedTeam, {
-        headers,
-      })
+      .delete<any>(`${this.cpatApiBase}/poamAssignee/poam/${poamId}/user/${userId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamAssignedTeam(poamId: any, assignedTeamId: any) {
-    const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(
-      `${this.cpatApiBase}/poamAssignedTeam/poam/${poamId}/${assignedTeamId}`,
-      { headers }
-    );
-  }
-
-  async postPoamAsset(poamAsset: any) {
-    const headers = await this.getAuthHeaders();
+  postPoamAssignedTeam(poamAssignedTeam: any): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/poamAsset`, poamAsset, { headers })
+      .post<any>(`${this.cpatApiBase}/poamAssignedTeam`, poamAssignedTeam)
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamAsset(poamId: any, assetId: any) {
-    const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(`${this.cpatApiBase}/poamAsset/poam/${poamId}/asset/${assetId}`, {
-      headers,
-    });
-  }
-
-  async deletePoamAssetByPoamId(poamId: any) {
-    const headers = await this.getAuthHeaders();
+  deletePoamAssignedTeam(poamId: number, assignedTeamId: number): Observable<any> {
     return this.http
-      .delete<any>(`${this.cpatApiBase}/poamAssets/poam/${poamId}`, { headers })
+      .delete<any>(`${this.cpatApiBase}/poamAssignedTeam/poam/${poamId}/${assignedTeamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamApprovers(poamId: string) {
-    const headers = await this.getAuthHeaders();
+  postPoamAsset(poamAsset: any): Observable<any> {
     return this.http
-      .get<any>(`${this.cpatApiBase}/poamApprovers/${poamId}`, { headers })
+      .post<any>(`${this.cpatApiBase}/poamAsset`, poamAsset)
       .pipe(catchError(this.handleError));
   }
 
-  async addPoamApprover(approver: any) {
-    const headers = await this.getAuthHeaders();
+  deletePoamAsset(poamId: number, assetId: number): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/poamApprover`, approver, { headers })
+      .delete<any>(`${this.cpatApiBase}/poamAsset/poam/${poamId}/asset/${assetId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async updatePoamApprover(approver: any) {
-    const headers = await this.getAuthHeaders();
+  deletePoamAssetByPoamId(poamId: number): Observable<any> {
     return this.http
-      .put<any>(`${this.cpatApiBase}/poamApprover`, approver, { headers })
+      .delete<any>(`${this.cpatApiBase}/poamAssets/poam/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamApprover(poamId: any, userId: any) {
-    const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(`${this.cpatApiBase}/poamApprover/poam/${poamId}/user/${userId}`, {
-      headers,
-    });
-  }
-
-  async getPoamMilestones(poamId: string) {
-    const headers = await this.getAuthHeaders();
+  getPoamApprovers(poamId: number): Observable<any> {
     return this.http
-      .get<any>(`${this.cpatApiBase}/poamMilestones/${poamId}`, { headers })
+      .get<any>(`${this.cpatApiBase}/poamApprovers/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async addPoamMilestone(poamId: string, milestone: any) {
-    const headers = await this.getAuthHeaders();
+  addPoamApprover(approver: any): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/poamMilestones/${poamId}`, milestone, {
-        headers,
-      })
+      .post<any>(`${this.cpatApiBase}/poamApprover`, approver)
       .pipe(catchError(this.handleError));
   }
 
-  async updatePoamMilestone(poamId: string, milestoneId: string, milestone: any) {
-    const headers = await this.getAuthHeaders();
+  updatePoamApprover(approver: any): Observable<any> {
     return this.http
-      .put<any>(`${this.cpatApiBase}/poamMilestones/${poamId}/${milestoneId}`, milestone, {
-        headers,
-      })
+      .put<any>(`${this.cpatApiBase}/poamApprover`, approver)
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamMilestone(poamId: string, milestoneId: string, extension: boolean) {
+  deletePoamApprover(poamId: number, userId: number): Observable<any> {
+    return this.http
+      .delete<any>(`${this.cpatApiBase}/poamApprover/poam/${poamId}/user/${userId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getPoamMilestones(poamId: number): Observable<any> {
+    return this.http
+      .get<any>(`${this.cpatApiBase}/poamMilestones/${poamId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  addPoamMilestone(poamId: number, milestone: any): Observable<any> {
+    return this.http
+      .post<any>(`${this.cpatApiBase}/poamMilestones/${poamId}`, milestone)
+      .pipe(catchError(this.handleError));
+  }
+
+  updatePoamMilestone(poamId: number, milestoneId: number, milestone: any): Observable<any> {
+    return this.http
+      .put<any>(`${this.cpatApiBase}/poamMilestones/${poamId}/${milestoneId}`, milestone)
+      .pipe(catchError(this.handleError));
+  }
+
+  deletePoamMilestone(poamId: number, milestoneId: number, extension: boolean): Observable<any> {
     const requestBody = { extension: extension };
-    const headers = await this.getAuthHeaders();
-    const options = {
-      ...{ headers: headers },
-      body: requestBody,
-    };
-    return this.http.delete<any>(
-      `${this.cpatApiBase}/poamMilestones/${poamId}/${milestoneId}`,
-      options
-    );
-  }
-
-  async getLabels(collectionId: number) {
-    const headers = await this.getAuthHeaders();
+    const options = { body: requestBody };
     return this.http
-      .get(`${this.cpatApiBase}/labels/${collectionId}`, { headers })
+      .delete<any>(`${this.cpatApiBase}/poamMilestones/${poamId}/${milestoneId}`, options)
       .pipe(catchError(this.handleError));
   }
 
-  async postLabel(collectionId: number, label: any) {
-    const headers = await this.getAuthHeaders();
+  getLabels(collectionId: number): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/label/${collectionId}`, label, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/labels/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamLabels(collectionId: any) {
-    const headers = await this.getAuthHeaders();
+  postLabel(collectionId: number, label: any): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poamLabels/${collectionId}`, { headers })
+      .post<any>(`${this.cpatApiBase}/label/${collectionId}`, label)
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamLabelsByPoam(poamId: any) {
-    const headers = await this.getAuthHeaders();
+  getPoamLabels(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poamLabels/poam/${poamId}`, { headers })
+      .get(`${this.cpatApiBase}/poamLabels/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async postPoamLabel(poamLabel: any) {
-    const headers = await this.getAuthHeaders();
+  getPoamLabelsByPoam(poamId: number): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/poamLabel`, poamLabel, { headers })
+      .get(`${this.cpatApiBase}/poamLabels/poam/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamLabel(poamId: any, labelId: any) {
-    const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(`${this.cpatApiBase}/poamLabel/poam/${poamId}/label/${labelId}`, {
-      headers,
-    });
-  }
-
-  async getPoamAssociatedVulnerabilitiesByPoam(poamId: any) {
-    const headers = await this.getAuthHeaders();
+  postPoamLabel(poamLabel: any): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poamAssociatedVulnerabilities/poam/${poamId}`, { headers })
+      .post<any>(`${this.cpatApiBase}/poamLabel`, poamLabel)
       .pipe(catchError(this.handleError));
   }
 
-  async postPoamAssociatedVulnerability(associatedVulnerability: any) {
-    const headers = await this.getAuthHeaders();
+  deletePoamLabel(poamId: number, labelId: number): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/poamAssociatedVulnerabilities`, associatedVulnerability, {
-        headers,
-      })
+      .delete<any>(`${this.cpatApiBase}/poamLabel/poam/${poamId}/label/${labelId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoamAssociatedVulnerability(poamId: any, associatedVulnerability: any) {
-    const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(
-      `${this.cpatApiBase}/poamAssociatedVulnerabilities/poam/${poamId}/associatedVulnerability/${associatedVulnerability}`,
-      { headers }
-    );
-  }
-
-  async getAvailablePoamStatus() {
-    const headers = await this.getAuthHeaders();
+  getPoamAssociatedVulnerabilitiesByPoam(poamId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/available/poamstatus`, { headers })
+      .get(`${this.cpatApiBase}/poamAssociatedVulnerabilities/poam/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getAvailablePoamLabel() {
-    const headers = await this.getAuthHeaders();
+  postPoamAssociatedVulnerability(associatedVulnerability: any): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/available/poamlabel`, { headers })
+      .post<any>(`${this.cpatApiBase}/poamAssociatedVulnerabilities`, associatedVulnerability)
       .pipe(catchError(this.handleError));
   }
 
-  async getAvailablePoamSeverity() {
-    const headers = await this.getAuthHeaders();
+  deletePoamAssociatedVulnerability(poamId: number, associatedVulnerability: string): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/available/poamseverity`, { headers })
+      .delete<any>(`${this.cpatApiBase}/poamAssociatedVulnerabilities/poam/${poamId}/associatedVulnerability/${associatedVulnerability}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getAvailableMonthlyPoamStatus() {
-    const headers = await this.getAuthHeaders();
+  getAvailablePoamStatus(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/available/monthlypoamstatus`, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/metrics/available/poamstatus`)
       .pipe(catchError(this.handleError));
   }
 
-  async getAvailablePoamScheduledCompletion() {
-    const headers = await this.getAuthHeaders();
+  getAvailablePoamLabel(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/available/poamScheduledCompletion`, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/metrics/available/poamlabel`)
       .pipe(catchError(this.handleError));
   }
 
-  async getAvailablePoams() {
-    const headers = await this.getAuthHeaders();
+  getAvailablePoamSeverity(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poams`, { headers })
+      .get(`${this.cpatApiBase}/metrics/available/poamseverity`)
       .pipe(catchError(this.handleError));
   }
 
-  async getAvailablePoamLabels() {
-    const headers = await this.getAuthHeaders();
+  getAvailableMonthlyPoamStatus(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poamLabels`, { headers })
+      .get(`${this.cpatApiBase}/metrics/available/monthlypoamstatus`)
       .pipe(catchError(this.handleError));
   }
 
-  async deletePoam(poamId: any) {
-    const headers = await this.getAuthHeaders();
-    return this.http.delete<any>(`${this.cpatApiBase}/poam/${poamId}`, { headers });
+  getAvailablePoamScheduledCompletion(): Observable<any> {
+    return this.http
+      .get(`${this.cpatApiBase}/metrics/available/poamScheduledCompletion`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getAvailablePoams(): Observable<any> {
+    return this.http
+      .get(`${this.cpatApiBase}/poams`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getAvailablePoamLabels(): Observable<any> {
+    return this.http
+      .get(`${this.cpatApiBase}/poamLabels`)
+      .pipe(catchError(this.handleError));
+  }
+
+  deletePoam(poamId: number): Observable<any> {
+    return this.http
+      .delete<any>(`${this.cpatApiBase}/poam/${poamId}`)
+      .pipe(catchError(this.handleError));
   }
 }

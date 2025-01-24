@@ -86,7 +86,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('approveTemplate') approveTemplate!: TemplateRef<any>;
 
-  public async ngOnInit() {
+  public ngOnInit() {
     this.route.params.subscribe(async params => {
       this.poamId = params['poamId'];
     });
@@ -115,10 +115,10 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       })
     );
   }
-  async getData() {
+  getData() {
     forkJoin([
-      await this.poamApproveService.getPoamApprovers(this.poamId),
-      await this.poamService.getPoam(this.poamId),
+      this.poamApproveService.getPoamApprovers(this.poamId),
+      this.poamService.getPoam(this.poamId)
     ]).subscribe({
       next: ([approversResponse, poamResponse]: [any, any]) => {
         const currentDate = new Date();
@@ -164,7 +164,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
   }
 
-  async submitApprovalData() {
+  submitApprovalData() {
     this.approvedDate = format(this.dates.approvedDate, 'yyyy-MM-dd');
     const approvalData = {
       poamId: parseInt(this.poamId, 10),
@@ -175,8 +175,8 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       hqs: this.hqsChecked,
     };
 
-    (await this.poamApproveService.updatePoamApprover(approvalData)).subscribe(
-      () => {
+    this.poamApproveService.updatePoamApprover(approvalData).subscribe({
+      next: () => {
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
@@ -187,7 +187,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
           this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
         }, 1000);
       },
-      error => {
+      error: (error) => {
         this.messageService.add({
           severity: 'warn',
           summary: 'Information',
@@ -195,7 +195,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         console.error('Failed to update POAM Approval:', error);
       }
-    );
+    });
   }
 
   hqs(checked: boolean) {

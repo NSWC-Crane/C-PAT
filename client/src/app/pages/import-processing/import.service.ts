@@ -9,9 +9,9 @@
 */
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, catchError, firstValueFrom, throwError } from 'rxjs';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -19,10 +19,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 export class ImportService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -30,116 +27,84 @@ export class ImportService {
     } else {
       console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
-    return throwError('Something bad happened; please try again later.');
+    return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async postTenableAnalysis(analysisParams: any): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  postTenableAnalysis(analysisParams: any): Observable<any> {
     return this.http
-      .post(`${this.cpatApiBase}/tenable/analysis`, analysisParams, { headers })
+      .post(`${this.cpatApiBase}/tenable/analysis`, analysisParams)
       .pipe(catchError(this.handleError));
   }
 
-  async getTenablePlugin(pluginId: any): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  getTenablePlugin(pluginId: any): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/tenable/plugin/${pluginId}`, { headers })
+      .get(`${this.cpatApiBase}/tenable/plugin/${pluginId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getTenableAssetsFilter(): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  getTenableAssetsFilter(): Observable<any> {
     return this.http
-      .get(
-        `${this.cpatApiBase}/tenable/asset?filter=excludeWatchlists,excludeAllDefined,usable&fields=name`,
-        { headers }
-      )
+      .get(`${this.cpatApiBase}/tenable/asset?filter=excludeWatchlists,excludeAllDefined,usable&fields=name`)
       .pipe(catchError(this.handleError));
   }
 
-  async getTenableAuditFileFilter(): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  getTenableAuditFileFilter(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/tenable/auditFile?filter=usable&fields=name`, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/tenable/auditFile?filter=usable&fields=name`)
       .pipe(catchError(this.handleError));
   }
 
-  async getTenableScanPolicyPluginsFilter(): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  getTenableScanPolicyPluginsFilter(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/tenable/policy?filter=usable&fields=name`, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/tenable/policy?filter=usable&fields=name`)
       .pipe(catchError(this.handleError));
   }
 
-  async getTenableUsersFilter(): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  getTenableUsersFilter(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/tenable/user?fields=name,username,firstname,lastname`, { headers })
+      .get(`${this.cpatApiBase}/tenable/user?fields=name,username,firstname,lastname`)
       .pipe(catchError(this.handleError));
   }
 
-  async getTenablePluginFamily(): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  getTenablePluginFamily(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/tenable/pluginFamily?fields=name`, { headers })
+      .get(`${this.cpatApiBase}/tenable/pluginFamily?fields=name`)
       .pipe(catchError(this.handleError));
   }
 
-  async getTenableRepositories(): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  getTenableRepositories(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/tenable/repository`, { headers })
+      .get(`${this.cpatApiBase}/tenable/repository`)
       .pipe(catchError(this.handleError));
   }
 
-  async postTenableSolutions(solutionParams: any): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  postTenableSolutions(solutionParams: any): Observable<any> {
     return this.http
-      .post(`${this.cpatApiBase}/tenable/solutions`, solutionParams, {
-        headers,
-      })
+      .post(`${this.cpatApiBase}/tenable/solutions`, solutionParams)
       .pipe(catchError(this.handleError));
   }
 
-  async postTenableSolutionAssets(
-    solutionParams: any,
-    solutionId: number
-  ): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  postTenableSolutionAssets(solutionParams: any, solutionId: number): Observable<any> {
     return this.http
-      .post(`${this.cpatApiBase}/tenable/solutions/${solutionId}/asset`, solutionParams, {
-        headers,
-      })
+      .post(`${this.cpatApiBase}/tenable/solutions/${solutionId}/asset`, solutionParams)
       .pipe(catchError(this.handleError));
   }
 
-  async postTenableSolutionVuln(solutionParams: any, solutionId: number): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  postTenableSolutionVuln(solutionParams: any, solutionId: number): Observable<any> {
     return this.http
-      .post(`${this.cpatApiBase}/tenable/solutions/${solutionId}/vuln`, solutionParams, { headers })
+      .post(`${this.cpatApiBase}/tenable/solutions/${solutionId}/vuln`, solutionParams)
       .pipe(catchError(this.handleError));
   }
 
-  async getIAVInfoForPlugins(pluginIDs: number[]): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  getIAVInfoForPlugins(pluginIDs: number[]): Observable<any> {
     return this.http
-      .post(`${this.cpatApiBase}/iav/pluginInfo`, { pluginIDs }, { headers })
+      .post(`${this.cpatApiBase}/iav/pluginInfo`, { pluginIDs })
       .pipe(catchError(this.handleError));
   }
 
-  async getIAVPluginIds(): Promise<Observable<any>> {
-    const headers = await this.getAuthHeaders();
+  getIAVPluginIds(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/iav/pluginIDs`, { headers })
+      .get(`${this.cpatApiBase}/iav/pluginIDs`)
       .pipe(catchError(this.handleError));
   }
 }

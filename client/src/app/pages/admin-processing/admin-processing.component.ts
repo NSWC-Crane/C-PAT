@@ -10,7 +10,6 @@
 
 import { Component, OnInit } from '@angular/core';
 import { UsersService } from './user-processing/users.service';
-import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
 import { TabsModule } from 'primeng/tabs';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
@@ -24,6 +23,7 @@ import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
 import { ButtonModule } from 'primeng/button';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'cpat-admin-processing',
@@ -48,25 +48,26 @@ import { ButtonModule } from 'primeng/button';
 export class AdminProcessingComponent implements OnInit {
   value: number = 0;
   user: any;
-  private subs = new SubSink();
-
+  private destroy$ = new Subject<void>();
   constructor(
     private userService: UsersService,
     private router: Router
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.user = null;
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
+    this.userService.getCurrentUser().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
       next: (response: any) => {
         this.user = response;
         if (!this.user.isAdmin) {
           this.router.navigate(['/403']);
         }
       },
-      error: async error => {
+      error: error => {
         console.error('An error occurred:', error.message);
-      },
+      }
     });
   }
 
@@ -76,5 +77,10 @@ export class AdminProcessingComponent implements OnInit {
 
   switchToPluginMapping() {
     this.value = 5;
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

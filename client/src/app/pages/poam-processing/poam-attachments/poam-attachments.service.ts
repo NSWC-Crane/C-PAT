@@ -8,10 +8,9 @@
 !##########################################################################
 */
 
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { firstValueFrom } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -19,50 +18,31 @@ import { firstValueFrom } from 'rxjs';
 export class PoamAttachmentService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
+  getAttachmentsByPoamId(poamId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.cpatApiBase}/poamAttachments/poam/${poamId}`);
   }
 
-  async getAttachmentsByPoamId(poamId: number) {
-    const headers = await this.getAuthHeaders();
-    return this.http.get<any[]>(`${this.cpatApiBase}/poamAttachments/poam/${poamId}`, { headers });
-  }
-
-  async uploadAttachment(file: File, poamId: number) {
+  uploadAttachment(file: File, poamId: number): Observable<any> {
     const formData = new FormData();
     formData.append('file', file, file.name);
     formData.append('poamId', poamId.toString());
 
-    const headers = await this.getAuthHeaders();
     return this.http.post(`${this.cpatApiBase}/poamAttachment`, formData, {
-      headers,
       reportProgress: true,
       observe: 'events',
     });
   }
 
-  async downloadAttachment(poamId: number, attachmentId: number) {
-    const headers = await this.getAuthHeaders();
+  downloadAttachment(poamId: number, attachmentId: number): Observable<Blob> {
     return this.http.get(
       `${this.cpatApiBase}/poamAttachment/poam/${poamId}/attachment/${attachmentId}`,
-      {
-        headers,
-        responseType: 'blob',
-      }
+      { responseType: 'blob' }
     );
   }
 
-  async deleteAttachment(poamId: number, attachmentId: number) {
-    const headers = await this.getAuthHeaders();
-
-    return this.http.delete(`${this.cpatApiBase}/poamAttachment/poam/${poamId}/${attachmentId}`, {
-      headers,
-    });
+  deleteAttachment(poamId: number, attachmentId: number): Observable<any> {
+    return this.http.delete(`${this.cpatApiBase}/poamAttachment/poam/${poamId}/${attachmentId}`);
   }
 }

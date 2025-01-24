@@ -7,11 +7,10 @@
 ! CONDITIONS OF THE LICENSE.  
 !##########################################################################
 */
-import { firstValueFrom, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -19,96 +18,74 @@ import { Injectable } from '@angular/core';
 export class AssetService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(`Backend returned code ${error.status}, ` + ` body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
-    return throwError('Something bad happened; please try again later.');
+    return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async getAssetsByCollection(collectionId: number) {
-    const headers = await this.getAuthHeaders();
+  getAssetsByCollection(collectionId: number): Observable<any> {
     return this.http
-      .get<any>(`${this.cpatApiBase}/assets/collection/${collectionId}`, {
-        headers,
-      })
+      .get<any>(`${this.cpatApiBase}/assets/collection/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getLabels(collectionId: any) {
-    const headers = await this.getAuthHeaders();
+  getLabels(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/labels/${collectionId}`, { headers })
+      .get(`${this.cpatApiBase}/labels/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getAssetLabels(id: any) {
-    const headers = await this.getAuthHeaders();
+  getAssetLabels(id: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/assetLabels/asset/${id}`, { headers })
+      .get(`${this.cpatApiBase}/assetLabels/asset/${id}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionAssetLabel(id: string) {
-    const headers = await this.getAuthHeaders();
+  getCollectionAssetLabel(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/metrics/collection/${id}/assetlabel`, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/metrics/collection/${collectionId}/assetlabel`)
       .pipe(catchError(this.handleError));
   }
 
-  async postAssetLabel(assetLabel: any) {
-    const headers = await this.getAuthHeaders();
+  postAssetLabel(assetLabel: any): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/assetLabel`, assetLabel, { headers })
+      .post<any>(`${this.cpatApiBase}/assetLabel`, assetLabel)
       .pipe(catchError(this.handleError));
   }
 
-  async postAsset(asset: any) {
-    const headers = await this.getAuthHeaders();
+  postAsset(asset: any): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/asset`, asset, { headers })
+      .post<any>(`${this.cpatApiBase}/asset`, asset)
       .pipe(catchError(this.handleError));
   }
 
-  async updateAsset(asset: any) {
-    const headers = await this.getAuthHeaders();
+  updateAsset(asset: any): Observable<any> {
     return this.http
-      .put<any>(`${this.cpatApiBase}/asset`, asset, { headers })
+      .put<any>(`${this.cpatApiBase}/asset`, asset)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteAssetLabel(assetId: any, labelId: any) {
-    const headers = await this.getAuthHeaders();
+  deleteAssetLabel(assetId: number, labelId: number): Observable<any> {
     return this.http
-      .delete<any>(`${this.cpatApiBase}/assetLabel/asset/${assetId}/label/${labelId}`, { headers })
+      .delete<any>(`${this.cpatApiBase}/assetLabel/asset/${assetId}/label/${labelId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteAssetsByPoamId(poamId: number) {
-    const headers = await this.getAuthHeaders();
+  deleteAssetsByPoamId(poamId: number): Observable<any> {
     return this.http
-      .delete<any>(`${this.cpatApiBase}/assets/${poamId}`, { headers })
+      .delete<any>(`${this.cpatApiBase}/assets/${poamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteAssetsByAssetId(assetId: number) {
-    const headers = await this.getAuthHeaders();
+  deleteAssetsByAssetId(assetId: number): Observable<any> {
     return this.http
-      .delete<any>(`${this.cpatApiBase}/asset/${assetId}`, { headers })
+      .delete<any>(`${this.cpatApiBase}/asset/${assetId}`)
       .pipe(catchError(this.handleError));
   }
 }

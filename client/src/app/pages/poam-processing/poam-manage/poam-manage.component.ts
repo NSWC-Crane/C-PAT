@@ -17,8 +17,6 @@ import {
   combineLatest,
   filter,
   forkJoin,
-  from,
-  map,
   switchMap,
   tap,
 } from 'rxjs';
@@ -92,7 +90,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   private subs = new SubSink();
 
   constructor(
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private sharedService: SharedService,
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -137,14 +135,8 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private getPoamData(collectionId: number): Observable<[any[], any[]]> {
     return forkJoin([
-      from(this.collectionService.getPoamsByCollection(collectionId)).pipe(
-        switchMap(observable => observable),
-        map(response => Array.isArray(response) ? response : [])
-      ),
-      from(this.collectionService.getCollectionBasicList()).pipe(
-        switchMap(observable => observable),
-        map(response => Array.isArray(response) ? response : [])
-      )
+      this.collectionsService.getPoamsByCollection(collectionId),
+      this.collectionsService.getCollectionBasicList()
     ]);
   }
 

@@ -19,7 +19,7 @@
           <input pInputText
                  type="text"
                  [(ngModel)]="globalFilter"
-                 (input)="onFilterChange($event)"
+                 (ngModelChange)="applyFilter()"
                  placeholder="Search..." />
         </p-iconField>
         <p-button class="ml-2"
