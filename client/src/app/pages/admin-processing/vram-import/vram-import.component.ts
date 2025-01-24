@@ -13,7 +13,7 @@ import { MessageService } from 'primeng/api';
 import { HttpResponse } from '@angular/common/http';
 import { VRAMImportService } from './vram-import.service';
 import { UsersService } from '../user-processing/users.service';
-import { firstValueFrom } from 'rxjs';
+import { EMPTY, Subject, catchError, takeUntil } from 'rxjs';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -50,40 +50,43 @@ export class VRAMImportComponent implements OnInit {
   totalSize: string = '0';
   totalSizePercent: number = 0;
   vramUpdatedDate: string = '';
-
+  private destroy$ = new Subject<void>();
   constructor(
     private messageService: MessageService,
     private vramImportService: VRAMImportService,
     private userService: UsersService
   ) {}
 
-  async ngOnInit() {
-    try {
-      this.user = await firstValueFrom(await this.userService.getCurrentUser());
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to fetch user data',
-      });
-    }
+  ngOnInit() {
+    this.userService.getCurrentUser().pipe(
+      takeUntil(this.destroy$),
+      catchError(error => {
+        console.error('Error fetching user data:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to fetch user data'
+        });
+        return EMPTY;
+      })
+    ).subscribe(user => {
+      this.user = user;
+    });
+
     this.getVramUpdatedDate();
   }
 
-  async getVramUpdatedDate(): Promise<void> {
-    (await this.vramImportService.getVramDataUpdatedDate()).subscribe({
+  getVramUpdatedDate() {
+    this.vramImportService.getVramDataUpdatedDate().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
       next: (response: any) => {
-        if (response && response.value) {
-          this.vramUpdatedDate = response.value;
-        } else {
-          this.vramUpdatedDate = 'N/A';
-        }
+        this.vramUpdatedDate = response?.value || 'N/A';
       },
       error: error => {
         console.error('Error fetching VRAM updated date:', error);
         this.vramUpdatedDate = 'Error';
-      },
+      }
     });
   }
 
@@ -91,7 +94,7 @@ export class VRAMImportComponent implements OnInit {
     this.messageService.add({
       severity: 'info',
       summary: 'File Uploaded',
-      detail: '',
+      detail: ''
     });
   }
 
@@ -100,63 +103,52 @@ export class VRAMImportComponent implements OnInit {
     this.updateTotalSize();
   }
 
-  async customUploadHandler(event: any) {
+  customUploadHandler(event: any) {
     const file = event.files[0];
     if (!file) {
       console.error('No file selected');
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'No file selected',
+        detail: 'No file selected'
       });
       return;
     }
 
-    try {
-      const upload$ = await this.vramImportService.upload(file);
-      upload$.subscribe({
-        next: (event: any) => {
-          if (event instanceof HttpResponse) {
-            if (
-              event.body &&
-              event.body.message === 'File is not newer than the last update. No changes made.'
-            ) {
-              this.messageService.add({
-                severity: 'info',
-                summary: 'Information',
-                detail: event.body.message,
-              });
-            } else {
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'File uploaded successfully',
-              });
-              setTimeout(() => this.navigateToPluginMapping.emit(), 1000);
-            }
-            this.fileUpload.clear();
+    this.vramImportService.upload(file).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (event: any) => {
+        if (event instanceof HttpResponse) {
+          if (event.body?.message === 'File is not newer than the last update. No changes made.') {
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Information',
+              detail: event.body.message
+            });
+          } else {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'File uploaded successfully'
+            });
+            setTimeout(() => this.navigateToPluginMapping.emit(), 1000);
           }
-        },
-        error: (error: any) => {
-          console.error('Error during file upload:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'File upload failed: ' + (error.error?.message || 'Unknown error'),
-          });
-        },
-        complete: () => {
-          this.updateTotalSize();
-        },
-      });
-    } catch (error) {
-      console.error('Error initiating file upload:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to initiate file upload',
-      });
-    }
+          this.fileUpload.clear();
+        }
+      },
+      error: error => {
+        console.error('Error during file upload:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'File upload failed: ' + (error.error?.message || 'Unknown error')
+        });
+      },
+      complete: () => {
+        this.updateTotalSize();
+      }
+    });
   }
 
   choose(event: Event, chooseCallback: Function) {
@@ -191,5 +183,10 @@ export class VRAMImportComponent implements OnInit {
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

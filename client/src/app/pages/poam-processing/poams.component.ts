@@ -35,7 +35,7 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   private payloadSubscription: Subscription[] = [];
 
   constructor(
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     private setPayloadService: PayloadService
@@ -68,11 +68,16 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  async getPoamData() {
-    const poamData = await (
-      await this.collectionService.getPoamsByCollection(this.selectedCollection)
-    ).toPromise();
-    this.poams = poamData;
+  getPoamData() {
+    this.collectionsService.getPoamsByCollection(this.selectedCollection)
+      .subscribe({
+        next: (poamData: any) => {
+          this.poams = poamData;
+        },
+        error: (error) => {
+          console.error('Error fetching POAM data:', error);
+        }
+      });
   }
 
   addPoam() {

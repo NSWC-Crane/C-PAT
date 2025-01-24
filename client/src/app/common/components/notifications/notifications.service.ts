@@ -8,11 +8,10 @@
 !##########################################################################
 */
 
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { firstValueFrom, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root',
@@ -20,73 +19,56 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 export class NotificationService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       console.error('An error occurred:', error.error.message);
     } else {
-      console.error(`Backend returned code ${error.status}, ` + `body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
-    return throwError('Something bad happened; please try again later.');
+    return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async getAllNotifications() {
-    const headers = await this.getAuthHeaders();
+  getAllNotifications(): Observable<any[]> {
     return this.http
-      .get<any[]>(`${this.cpatApiBase}/notifications/all`, { headers })
+      .get<any[]>(`${this.cpatApiBase}/notifications/all`)
       .pipe(catchError(this.handleError));
   }
 
-  async getUnreadNotifications() {
-    const headers = await this.getAuthHeaders();
+  getUnreadNotifications(): Observable<any[]> {
     return this.http
-      .get<any[]>(`${this.cpatApiBase}/notifications/unread`, { headers })
+      .get<any[]>(`${this.cpatApiBase}/notifications/unread`)
       .pipe(catchError(this.handleError));
   }
 
-  async getUnreadNotificationCount() {
-    const headers = await this.getAuthHeaders();
+  getUnreadNotificationCount(): Observable<any[]> {
     return this.http
-      .get<any[]>(`${this.cpatApiBase}/notifications/unread/count`, { headers })
+      .get<any[]>(`${this.cpatApiBase}/notifications/unread/count`)
       .pipe(catchError(this.handleError));
   }
 
-  async dismissNotification(notificationId: number) {
-    const headers = await this.getAuthHeaders();
+  dismissNotification(notificationId: number): Observable<any> {
     return this.http
-      .put<any>(`${this.cpatApiBase}/notifications/dismiss/${notificationId}`, null, { headers })
+      .put<any>(`${this.cpatApiBase}/notifications/dismiss/${notificationId}`, null)
       .pipe(catchError(this.handleError));
   }
 
-  async dismissAllNotifications() {
-    const headers = await this.getAuthHeaders();
+  dismissAllNotifications(): Observable<any> {
     return this.http
-      .put<any>(`${this.cpatApiBase}/notifications/all/dismiss`, null, {
-        headers,
-      })
+      .put<any>(`${this.cpatApiBase}/notifications/all/dismiss`, null)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteNotification(notificationId: number) {
-    const headers = await this.getAuthHeaders();
+  deleteNotification(notificationId: number): Observable<any> {
     return this.http
-      .delete<any>(`${this.cpatApiBase}/notifications/delete/${notificationId}`, { headers })
+      .delete<any>(`${this.cpatApiBase}/notifications/delete/${notificationId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteAllNotifications() {
-    const headers = await this.getAuthHeaders();
+  deleteAllNotifications(): Observable<any> {
     return this.http
-      .delete<any>(`${this.cpatApiBase}/notifications/all/delete`, { headers })
+      .delete<any>(`${this.cpatApiBase}/notifications/all/delete`)
       .pipe(catchError(this.handleError));
   }
 }

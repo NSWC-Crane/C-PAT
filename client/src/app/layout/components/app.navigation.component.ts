@@ -99,7 +99,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     private renderer: Renderer2,
     private configService: AppConfigService,
     private authService: AuthService,
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private sharedService: SharedService,
     private userService: UsersService,
     private router: Router,
@@ -191,20 +191,20 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     }
   }
 
-  async getCollections() {
-    this.subs.sink = (await this.collectionService.getCollections()).subscribe((result: any) => {
-      this.collections = result;
-      if (this.user.lastCollectionAccessedId) {
-        this.selectedCollection = +this.user.lastCollectionAccessedId;
-        this.resetWorkspace(this.selectedCollection);
-      } else if (
-        !this.payload.lastCollectionAccessedId ||
-        this.payload.lastCollectionAccessedId === undefined
-      ) {
-        this.selectedCollection = null;
-        this.selectCollectionMsg = true;
-      } else {
-      }
+  private getCollections() {
+    this.collectionsService.getCollections().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (collections: any) => {
+        this.collections = collections;
+        if (this.user?.lastCollectionAccessedId) {
+          this.selectedCollection = collections.find(
+            (c: any) => c.collectionId === this.user.lastCollectionAccessedId
+          );
+          this.resetWorkspace(this.user.lastCollectionAccessedId);
+        }
+      },
+      error: (error) => console.error('Error loading collections:', error)
     });
   }
 
@@ -221,13 +221,16 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     }
   }
 
-  async getNotificationCount() {
-    this.subs.sink = (await this.notificationService.getUnreadNotificationCount()).subscribe(
-      (result: any) => {
-        this.notificationCount = result > 0 ? result : null;
-      }
-    );
-  }
+getNotificationCount() {
+  this.notificationService.getUnreadNotificationCount().pipe(
+    takeUntil(this.destroy$)
+  ).subscribe({
+    next: (result: any) => {
+      this.notificationCount = result > 0 ? result : null;
+    },
+    error: (error) => console.error('Error getting notification count:', error)
+  });
+}
 
   setMenuItems() {
     const marketplaceDisabled = CPAT.Env.features.marketplaceDisabled ?? false;
@@ -269,11 +272,17 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     this.router.navigate(['/marketplace']);
   }
 
-  logout() {
-    this.authService.logout().then(() => {
-      this.router.navigate(['/login']);
-    });
-  }
+    logout() {
+        this.authService.logout().subscribe({
+            next: () => {
+                this.router.navigate(['/login']);
+            },
+            error: (error) => {
+                console.error('Logout failed:', error);
+            },
+        });
+    }
+
 
   onCollectionClick(event: any) {
     if (event && event.value) {
@@ -281,8 +290,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     }
   }
 
-  async resetWorkspace(selectedCollectionId: number) {
-    this.selectCollectionMsg = false;
+  resetWorkspace(selectedCollectionId: number) {
     this.sharedService.setSelectedCollection(selectedCollectionId);
 
     const collection = this.collections.find(
@@ -290,25 +298,25 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     );
 
     if (collection) {
-      this.collectionName = collection.collectionName;
       this.selectedCollection = collection;
     }
 
-    const userUpdate = {
-      userId: this.user.userId,
-      lastCollectionAccessedId: selectedCollectionId,
-    };
+    if (this.user?.lastCollectionAccessedId !== selectedCollectionId) {
+      const userUpdate = {
+        userId: this.user.userId,
+        lastCollectionAccessedId: selectedCollectionId,
+      };
 
-    if (this.user.lastCollectionAccessedId !== selectedCollectionId) {
-      try {
-        const result = await (
-          await this.userService.updateUserLastCollection(userUpdate)
-        ).toPromise();
-        this.user = result;
-        window.location.pathname = '/poam-processing';
-      } catch (error) {
-        console.error('Error updating user:', error);
-      }
+      this.userService.updateUserLastCollection(userUpdate).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: (result) => {
+          if (result) {
+            window.location.pathname = '/poam-processing';
+          }
+        },
+        error: (error) => console.error('Error updating user:', error)
+      });
     }
   }
 

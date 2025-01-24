@@ -8,10 +8,9 @@
 !##########################################################################
 */
 
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { firstValueFrom, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 interface AAPackage {
@@ -25,57 +24,40 @@ interface AAPackage {
 export class AAPackageService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error('An error occurred:', error.error.message);
-    } else {
-      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
-    }
+  private handleError(error: any) {
+    console.error('An error occurred:', error);
     return throwError(() => error);
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async getAAPackages() {
-    const headers = await this.getAuthHeaders();
+  getAAPackages(): Observable<AAPackage[]> {
     return this.http
-      .get<AAPackage[]>(`${this.cpatApiBase}/aaPackages`, { headers })
+      .get<AAPackage[]>(`${this.cpatApiBase}/aaPackages`)
       .pipe(catchError(this.handleError));
   }
 
-  async getAAPackage(id: number) {
-    const headers = await this.getAuthHeaders();
+  getAAPackage(id: number): Observable<AAPackage> {
     return this.http
-      .get<AAPackage>(`${this.cpatApiBase}/aaPackage/${id}`, { headers })
+      .get<AAPackage>(`${this.cpatApiBase}/aaPackage/${id}`)
       .pipe(catchError(this.handleError));
   }
 
-  async postAAPackage(aaPackage: AAPackage) {
-    const headers = await this.getAuthHeaders();
+  postAAPackage(aaPackage: AAPackage): Observable<AAPackage> {
     return this.http
-      .post<AAPackage>(`${this.cpatApiBase}/aaPackage`, aaPackage, { headers })
+      .post<AAPackage>(`${this.cpatApiBase}/aaPackage`, aaPackage)
       .pipe(catchError(this.handleError));
   }
 
-  async putAAPackage(aaPackage: AAPackage) {
-    const headers = await this.getAuthHeaders();
+  putAAPackage(aaPackage: AAPackage): Observable<AAPackage> {
     return this.http
-      .put<AAPackage>(`${this.cpatApiBase}/aaPackage`, aaPackage, { headers })
+      .put<AAPackage>(`${this.cpatApiBase}/aaPackage`, aaPackage)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteAAPackage(id: number) {
-    const headers = await this.getAuthHeaders();
+  deleteAAPackage(id: number): Observable<any> {
     return this.http
-      .delete(`${this.cpatApiBase}/aaPackage/${id}`, { headers })
+      .delete(`${this.cpatApiBase}/aaPackage/${id}`)
       .pipe(catchError(this.handleError));
   }
 }

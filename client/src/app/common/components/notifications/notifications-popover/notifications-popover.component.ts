@@ -13,10 +13,8 @@ import { NotificationService } from '../notifications.service';
 import { PayloadService } from '../../../../common/services/setPayload.service';
 import { Router } from '@angular/router';
 import { Popover } from 'primeng/popover';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { Subscription, map } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { PoamService } from '../../../../pages/poam-processing/poams.service';
-import { UsersService } from '../../../../pages/admin-processing/user-processing/users.service';
 import { ListboxModule } from 'primeng/listbox';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -42,8 +40,6 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   constructor(
     private notificationService: NotificationService,
     private setPayloadService: PayloadService,
-    private poamService: PoamService,
-    private userService: UsersService,
     private router: Router,
     private sanitizer: DomSanitizer
   ) {}
@@ -76,19 +72,23 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
     }
   }
 
-  async fetchNotifications() {
-    (await this.notificationService.getUnreadNotifications()).subscribe(
-      notifications => {
-        this.notifications = notifications.map(notification => ({
-          ...notification,
-          formattedMessage: this.formatMessage(notification.message),
-        }));
-      },
-      error => {
-        console.error('Failed to fetch notifications:', error);
-      }
-    );
-  }
+    fetchNotifications() {
+        this.notificationService.getUnreadNotifications().pipe(
+            map(notifications =>
+                notifications.map(notification => ({
+                    ...notification,
+                    formattedMessage: this.formatMessage(notification.message),
+                }))
+            )
+        ).subscribe({
+            next: (notifications) => {
+                this.notifications = notifications;
+            },
+            error: (error) => {
+                console.error('Failed to fetch notifications:', error);
+            }
+        });
+    }
 
   formatMessage(message: string): SafeHtml {
     const poamRegex = /POAM (\d+)/;
@@ -106,50 +106,38 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
     return message;
   }
 
-  async dismissNotification(notification: any) {
-    (await this.notificationService.dismissNotification(notification.notificationId)).subscribe(
-      () => {
-        const index = this.notifications.indexOf(notification);
-        if (index !== -1) {
-          this.notifications.splice(index, 1);
-        }
-      },
-      error => {
-        console.error('Failed to dismiss notification:', error);
-      }
-    );
-  }
+    dismissNotification(notification: any) {
+        this.notificationService.dismissNotification(notification.notificationId).subscribe({
+            next: () => {
+                const index = this.notifications.indexOf(notification);
+                if (index !== -1) {
+                    this.notifications.splice(index, 1);
+                }
+            },
+            error: (error) => {
+                console.error('Failed to dismiss notification:', error);
+            }
+        });
+    }
 
-  async dismissAllNotifications() {
-    (await this.notificationService.dismissAllNotifications()).subscribe(
-      () => {
-        this.notifications = [];
-      },
-      error => {
-        console.error('Failed to dismiss all notifications:', error);
-      }
-    );
-  }
+    dismissAllNotifications() {
+        this.notificationService.dismissAllNotifications().subscribe({
+            next: () => {
+                this.notifications = [];
+            },
+            error: (error) => {
+                console.error('Failed to dismiss all notifications:', error);
+            }
+        });
+    }
 
   viewAllNotifications() {
     this.router.navigateByUrl('/notifications');
     this.closeOverlay();
   }
 
-  async navigateToPOAM(poamId: string) {
+  async navigateToPOAM(poamId: number) {
     try {
-      this.poam = await firstValueFrom(await this.poamService.getPoam(poamId));
-      if (this.user.lastCollectionAccessedId !== this.poam?.collectionId) {
-        const userUpdate = {
-          userId: this.user.userId,
-          lastCollectionAccessedId: this.poam?.collectionId,
-        };
-
-        const result = await firstValueFrom(
-          await this.userService.updateUserLastCollection(userUpdate)
-        );
-        this.user = result;
-      }
       window.location.pathname = `/poam-processing/poam-details/${poamId}`;
     } catch (error) {
       console.error('Error navigating to POAM:', error);
@@ -161,9 +149,9 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (target.classList.contains('poam-link')) {
       event.preventDefault();
-      const poamNumber = target.getAttribute('data-poam');
-      if (poamNumber) {
-        this.navigateToPOAM(poamNumber);
+      const poamId = target.getAttribute('data-poam');
+      if (poamId) {
+        this.navigateToPOAM(+poamId);
       }
     }
   }

@@ -2,7 +2,7 @@ import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { HttpResponse } from '@angular/common/http';
 import { PoamAttachmentService } from './poam-attachments.service';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -103,60 +103,64 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     );
   }
 
-  async loadAttachedFiles() {
-    try {
-      const attachments$ = await this.poamAttachmentService.getAttachmentsByPoamId(this.poamId);
-      this.attachedFiles = await firstValueFrom(attachments$);
-    } catch (error) {
-      console.error('Error fetching attached files:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to fetch attached files',
-      });
-    }
+  loadAttachedFiles() {
+    this.poamAttachmentService.getAttachmentsByPoamId(this.poamId).subscribe({
+      next: (attachments: any) => {
+        this.attachedFiles = attachments;
+      },
+      error: (error) => {
+        console.error('Error fetching attached files:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to fetch attached files'
+        });
+      }
+    });
   }
 
-  async downloadFile(attachment: any) {
-    try {
-      const blob = await (
-        await this.poamAttachmentService.downloadAttachment(this.poamId, attachment.attachmentId)
-      ).toPromise();
-      const url = window.URL.createObjectURL(blob!);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = attachment.filename;
-      link.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to download file',
+  downloadFile(attachment: any) {
+    this.poamAttachmentService.downloadAttachment(this.poamId, attachment.attachmentId)
+      .subscribe({
+        next: (blob: any) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = attachment.filename;
+          link.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          console.error('Error downloading file:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to download file'
+          });
+        }
       });
-    }
   }
 
-  async deleteAttachment(attachment: any) {
-    try {
-      await (
-        await this.poamAttachmentService.deleteAttachment(this.poamId, attachment.attachmentId)
-      ).toPromise();
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'File deleted successfully',
+  deleteAttachment(attachment: any) {
+    this.poamAttachmentService.deleteAttachment(this.poamId, attachment.attachmentId)
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'File deleted successfully'
+          });
+          this.loadAttachedFiles();
+        },
+        error: (error) => {
+          console.error('Error deleting file:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to delete file'
+          });
+        }
       });
-      this.loadAttachedFiles();
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to delete file',
-      });
-    }
   }
 
   onUpload() {
@@ -167,8 +171,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSelect(event: any) {
-    event.stopPropagation();
+  onSelect(_event: any) {
     this.updateTotalSize();
   }
 
@@ -195,14 +198,14 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  async customUploadHandler(event: any) {
+  customUploadHandler(event: any) {
     const file = event.files[0];
     if (!file) {
       console.error('No file selected');
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'No file selected',
+        detail: 'No file selected'
       });
       return;
     }
@@ -212,48 +215,39 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'User ID is not available',
+        detail: 'User ID is not available'
       });
       return;
     }
 
-    try {
-      if (this.validateFile(file)) {
-        const upload$ = await this.poamAttachmentService.uploadAttachment(file, +this.poamId);
-        upload$.subscribe({
+    if (this.validateFile(file)) {
+      this.poamAttachmentService.uploadAttachment(file, +this.poamId)
+        .subscribe({
           next: (event: any) => {
             if (event instanceof HttpResponse) {
               this.messageService.add({
                 severity: 'success',
                 summary: 'Success',
-                detail: 'File uploaded successfully',
+                detail: 'File uploaded successfully'
               });
               this.fileUpload.clear();
               this.loadAttachedFiles();
             }
           },
-          error: error => {
+          error: (error) => {
             console.error('Error during file upload:', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'File upload failed: ' + (error.error?.message || 'Unknown error'),
+              detail: 'File upload failed: ' + (error.error?.message || 'Unknown error')
             });
           },
           complete: () => {
             this.updateTotalSize();
-          },
+          }
         });
-      } else {
-        this.fileUpload.clear();
-      }
-    } catch (error) {
-      console.error('Error initiating file upload:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to initiate file upload',
-      });
+    } else {
+      this.fileUpload.clear();
     }
   }
 

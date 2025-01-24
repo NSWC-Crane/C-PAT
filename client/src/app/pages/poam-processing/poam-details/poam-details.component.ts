@@ -13,7 +13,7 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import { add, addDays, format, isAfter } from 'date-fns';
 import { Subscription, forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
@@ -124,12 +124,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   poamLabels: any[] = [];
   poamAssociatedVulnerabilities: any[] = [];
   labelList: any[] = [];
-  editingMilestoneId: string | null = null;
+  editingMilestoneId: any = null;
   errorDialogVisible: boolean = false;
   errorMessage: string = '';
   errorHeader: string = 'Error';
   poam: any;
-  poamId: string = '';
+  poamId: any = '';
   dates: any = {};
   assignedTeamOptions: any;
   collectionUsers: any;
@@ -222,7 +222,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   constructor(
     private aaPackageService: AAPackageService,
-    private assignedTeamsService: AssignedTeamService,
+    private assignedTeamService: AssignedTeamService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
     private poamService: PoamService,
@@ -231,7 +231,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     private router: Router,
     private assetService: AssetService,
     private importService: ImportService,
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private cdr: ChangeDetectorRef,
     private setPayloadService: PayloadService,
     private location: Location
@@ -270,14 +270,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     );
   }
 
-  async getData() {
+  getData() {
     this.loadAAPackages();
     if (this.poamId === undefined || !this.poamId) {
       return;
     } else if (
       this.poamId === 'ADDPOAM' &&
       this.stateData.vulnerabilitySource ===
-        'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'
+      'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'
     ) {
       this.createNewACASPoam();
     } else if (this.poamId === 'ADDPOAM' && this.stateData.vulnerabilitySource === 'STIG') {
@@ -286,19 +286,19 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.createNewPoam();
     } else {
       forkJoin([
-        await this.poamService.getPoam(this.poamId),
-        await this.collectionService.getCollectionPermissions(
+        this.poamService.getPoam(this.poamId),
+        this.collectionsService.getCollectionPermissions(
           this.payload.lastCollectionAccessedId
         ),
-        await this.poamService.getPoamAssignees(this.poamId),
-        await this.poamService.getPoamAssignedTeams(this.poamId),
-        await this.assignedTeamsService.getAssignedTeams(),
-        await this.poamService.getPoamApprovers(this.poamId),
-        await this.poamService.getPoamMilestones(this.poamId),
-        await this.poamService.getPoamLabelsByPoam(this.poamId),
-        await this.poamService.getPoamAssociatedVulnerabilitiesByPoam(this.poamId),
-      ]).subscribe(
-        ([
+        this.poamService.getPoamAssignees(this.poamId),
+        this.poamService.getPoamAssignedTeams(this.poamId),
+        this.assignedTeamService.getAssignedTeams(),
+        this.poamService.getPoamApprovers(this.poamId),
+        this.poamService.getPoamMilestones(this.poamId),
+        this.poamService.getPoamLabelsByPoam(this.poamId),
+        this.poamService.getPoamAssociatedVulnerabilitiesByPoam(this.poamId),
+      ]).subscribe({
+        next: ([
           poam,
           users,
           assignees,
@@ -308,7 +308,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           poamMilestones,
           poamLabels,
           poamAssociatedVulnerabilities,
-        ]: any) => {
+        ]) => {
           this.poam = { ...poam, hqs: poam.hqs === 1 ? true : false };
           this.dates.scheduledCompletionDate = poam.scheduledCompletionDate
             ? poam.scheduledCompletionDate.split('T')[0]
@@ -348,11 +348,19 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             this.fetchAssets();
           }
           this.poamLabels = poamLabels;
-          this.poamAssociatedVulnerabilities = poamAssociatedVulnerabilities;
-        }
-      );
-      (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
-        next: data => {
+          this.poamAssociatedVulnerabilities = poamAssociatedVulnerabilities;       
+    },
+    error: (error) => {
+      console.error('Error loading POAM data:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load POAM data'
+      });
+    }
+  });
+      this.sharedService.getSTIGsFromSTIGMAN().subscribe({
+        next: (data) => {
           this.stigmanSTIGs = data.map((stig: any) => ({
             title: stig.title,
             benchmarkId: stig.benchmarkId,
@@ -363,6 +371,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             console.warn('Unable to retrieve list of current STIGs from STIGMAN.');
           }
         },
+        error: (error) => {
+          console.error('Error fetching STIGs:', error);
+        }
       });
     }
   }
@@ -433,9 +444,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.pluginData = this.stateData.pluginData;
     await this.loadVulnerabilitiy(this.pluginData.id);
     forkJoin([
-      await this.collectionService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
-      await this.assignedTeamsService.getAssignedTeams(),
-    ]).subscribe(async ([users, assignedTeamOptions]: any) => {
+      this.collectionsService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
+      this.assignedTeamService.getAssignedTeams()
+    ]).subscribe({
+      next: ([users, assignedTeamOptions]) => {
       const currentDate = new Date();
       this.poam = {
         poamId: 'ADDPOAM',
@@ -480,6 +492,15 @@ ${this.pluginData.description ?? ''}`,
       }));
       if (this.poam.tenablePluginData) {
         this.parsePluginData(this.poam.tenablePluginData);
+      }
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load required data'
+        });
       }
     });
   }
@@ -534,7 +555,7 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async loadVulnerabilitiy(pluginId: string) {
+  loadVulnerabilitiy(pluginId: string) {
     const analysisParams = {
       query: {
         description: '',
@@ -569,155 +590,201 @@ ${this.pluginData.description ?? ''}`,
       type: 'vuln',
     };
 
-    try {
-      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
-      if (!data.error_msg) {
-        this.tenableVulnResponse = data.response.results[0];
+    this.importService.postTenableAnalysis(analysisParams).subscribe({
+      next: (data) => {
+        if (!data.error_msg) {
+          this.tenableVulnResponse = data.response.results[0];
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching Vulnerabilities:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to fetch vulnerability data'
+        });
       }
-    } catch (error) {
-      console.error('Error fetching all Vulnerabilities:', error);
-    }
-  }
-
-  async createNewSTIGManagerPoam() {
-    await this.obtainCollectionData(false);
-    forkJoin([
-      await this.collectionService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
-      await this.assignedTeamsService.getAssignedTeams(),
-    ]).subscribe(async ([users, assignedTeamOptions]: any) => {
-      const currentDate = new Date();
-      this.poam = {
-        poamId: 'ADDPOAM',
-        collectionId: this.payload.lastCollectionAccessedId,
-        vulnerabilitySource: this.stateData.vulnerabilitySource ?? '',
-        aaPackage: this.collectionAAPackage ?? '',
-        vulnerabilityId: this.stateData.vulnerabilityId ?? '',
-        description: this.stateData.description ?? '',
-        rawSeverity: this.stateData.severity ?? '',
-        adjSeverity: this.stateData.severity ?? '',
-        residualRisk: this.mapToEmassValues(this.stateData.severity),
-        likelihood: this.mapToEmassValues(this.stateData.severity),
-        submitterId: this.payload.userId,
-        status: 'Draft',
-        submittedDate: format(currentDate, 'yyyy-MM-dd'),
-        hqs: false,
-      };
-
-      this.poam.scheduledCompletionDate = calculateScheduledCompletionDate(this.poam.rawSeverity);
-      this.dates.scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
-      this.dates.iavComplyByDate = null;
-      this.dates.submittedDate = new Date(this.poam.submittedDate);
-      this.assignedTeamOptions = assignedTeamOptions;
-      this.collectionUsers = users;
-      this.collectionApprovers = this.collectionUsers.filter(
-        (user: Permission) => user.accessLevel >= 3
-      );
-      this.poamApprovers = this.collectionApprovers.map((approver: any) => ({
-        userId: approver.userId,
-        approvalStatus: 'Not Reviewed',
-        comments: '',
-      }));
-      (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
-        next: data => {
-          this.stigmanSTIGs = data.map((stig: any) => ({
-            title: stig.title,
-            benchmarkId: stig.benchmarkId,
-            lastRevisionStr: stig.lastRevisionStr,
-            lastRevisionDate: stig.lastRevisionDate,
-          }));
-
-          if (!data || data.length === 0) {
-            console.warn('Unable to retrieve list of current STIGs from STIGMAN.');
-          }
-          this.poam.vulnerabilitySource = this.stateData.vulnerabilitySource;
-          this.poam.vulnerabilityId = this.stateData.vulnerabilityId;
-          this.poam.rawSeverity = this.stateData.severity;
-          this.poam.stigCheckData = this.stateData.ruleData;
-          this.poam.stigBenchmarkId = this.stateData.benchmarkId;
-          const selectedStig = this.stigmanSTIGs.find(
-            (stig: any) => stig.benchmarkId === this.poam.stigBenchmarkId
-          );
-          if (selectedStig) {
-            this.selectedStigObject = selectedStig;
-            this.selectedStigTitle = selectedStig.title;
-            this.poam.vulnerabilityName = selectedStig.title;
-            this.onStigSelected(selectedStig);
-          } else {
-            this.poam.vulnerabilityName = this.poam.stigBenchmarkId;
-          }
-        },
-      });
     });
   }
 
-  async createNewPoam() {
+  createNewSTIGManagerPoam() {
     forkJoin([
-      await this.collectionService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
-      await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
-      await this.assignedTeamsService.getAssignedTeams(),
-    ]).subscribe(async ([users, collectionAssets, assignedTeamOptions]: any) => {
-      const currentDate = new Date();
-      const dateIn30Days = add(currentDate, { days: 30 });
-      this.poam = {
-        poamId: 'ADDPOAM',
-        collectionId: this.payload.lastCollectionAccessedId,
-        vulnerabilitySource: '',
-        aaPackage: this.collectionAAPackage ?? '',
-        vulnerabilityId: '',
-        description: '',
-        rawSeverity: '',
-        submitterId: this.payload.userId,
-        status: 'Draft',
-        submittedDate: format(currentDate, 'yyyy-MM-dd'),
-        scheduledCompletionDate: format(dateIn30Days, 'yyyy-MM-dd'),
-        hqs: false,
-      };
+      this.collectionsService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
+      this.assignedTeamService.getAssignedTeams()
+    ]).subscribe({
+      next: ([users, assignedTeamOptions]) => {
+        const currentDate = new Date();
+        this.poam = {
+          poamId: 'ADDPOAM',
+          collectionId: this.payload.lastCollectionAccessedId,
+          vulnerabilitySource: this.stateData.vulnerabilitySource ?? '',
+          aaPackage: this.collectionAAPackage ?? '',
+          vulnerabilityId: this.stateData.vulnerabilityId ?? '',
+          description: this.stateData.description ?? '',
+          rawSeverity: this.stateData.severity ?? '',
+          adjSeverity: this.stateData.severity ?? '',
+          residualRisk: this.mapToEmassValues(this.stateData.severity),
+          likelihood: this.mapToEmassValues(this.stateData.severity),
+          submitterId: this.payload.userId,
+          status: 'Draft',
+          submittedDate: format(currentDate, 'yyyy-MM-dd'),
+          hqs: false
+        };
 
-      this.dates.scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
-      this.dates.iavComplyByDate = null;
-      this.dates.submittedDate = new Date(this.poam.submittedDate);
-      this.assignedTeamOptions = assignedTeamOptions;
-      this.collectionUsers = users;
-      this.assets = collectionAssets;
-      this.collectionApprovers = this.collectionUsers.filter(
-        (user: Permission) => user.accessLevel >= 3
-      );
-      this.poamApprovers = this.collectionApprovers.map((approver: any) => ({
-        userId: approver.userId,
-        approvalStatus: 'Not Reviewed',
-        comments: '',
-      }));
-      (await this.sharedService.getSTIGsFromSTIGMAN()).subscribe({
-        next: data => {
-          this.stigmanSTIGs = data.map((stig: any) => ({
-            title: stig.title,
-            benchmarkId: stig.benchmarkId,
-            lastRevisionStr: stig.lastRevisionStr,
-            lastRevisionDate: stig.lastRevisionDate,
-          }));
+        this.poam.scheduledCompletionDate = calculateScheduledCompletionDate(this.poam.rawSeverity);
+        this.dates.scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
+        this.dates.iavComplyByDate = null;
+        this.dates.submittedDate = new Date(this.poam.submittedDate);
+        this.assignedTeamOptions = assignedTeamOptions;
+        this.collectionUsers = users;
+        this.collectionApprovers = this.collectionUsers.filter(
+          (user: Permission) => user.accessLevel >= 3
+        );
+        this.poamApprovers = this.collectionApprovers.map((approver: any) => ({
+          userId: approver.userId,
+          approvalStatus: 'Not Reviewed',
+          comments: ''
+        }));
 
-          if (!data || data.length === 0) {
-            console.warn('Unable to retrieve list of current STIGs from STIGMAN.');
+        this.sharedService.getSTIGsFromSTIGMAN().subscribe({
+          next: data => {
+            this.stigmanSTIGs = data.map((stig: any) => ({
+              title: stig.title,
+              benchmarkId: stig.benchmarkId,
+              lastRevisionStr: stig.lastRevisionStr,
+              lastRevisionDate: stig.lastRevisionDate
+            }));
+
+            if (!data || data.length === 0) {
+              console.warn('Unable to retrieve list of current STIGs from STIGMAN.');
+            }
+
+            this.poam.vulnerabilitySource = this.stateData.vulnerabilitySource;
+            this.poam.vulnerabilityId = this.stateData.vulnerabilityId;
+            this.poam.rawSeverity = this.stateData.severity;
+            this.poam.stigCheckData = this.stateData.ruleData;
+            this.poam.stigBenchmarkId = this.stateData.benchmarkId;
+
+            const selectedStig = this.stigmanSTIGs.find(
+              (stig: any) => stig.benchmarkId === this.poam.stigBenchmarkId
+            );
+
+            if (selectedStig) {
+              this.selectedStigObject = selectedStig;
+              this.selectedStigTitle = selectedStig.title;
+              this.poam.vulnerabilityName = selectedStig.title;
+              this.onStigSelected(selectedStig);
+            } else {
+              this.poam.vulnerabilityName = this.poam.stigBenchmarkId;
+            }
+          },
+          error: (error) => {
+            console.error('Error loading STIGs:', error);
           }
-        },
-      });
+        });
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load required data'
+        });
+      }
     });
   }
 
-  async getLabelData() {
-    this.subs.sink = (await this.poamService.getLabels(this.selectedCollection)).subscribe(
-      (labels: any) => {
+  createNewPoam() {
+    forkJoin([
+      this.collectionsService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
+      this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId),
+      this.assignedTeamService.getAssignedTeams()
+    ]).subscribe({
+      next: ([users, collectionAssets, assignedTeamOptions]) => {
+        const currentDate = new Date();
+        const dateIn30Days = add(currentDate, { days: 30 });
+
+        this.poam = {
+          poamId: 'ADDPOAM',
+          collectionId: this.payload.lastCollectionAccessedId,
+          vulnerabilitySource: '',
+          aaPackage: this.collectionAAPackage ?? '',
+          vulnerabilityId: '',
+          description: '',
+          rawSeverity: '',
+          submitterId: this.payload.userId,
+          status: 'Draft',
+          submittedDate: format(currentDate, 'yyyy-MM-dd'),
+          scheduledCompletionDate: format(dateIn30Days, 'yyyy-MM-dd'),
+          hqs: false
+        };
+
+        this.dates.scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
+        this.dates.iavComplyByDate = null;
+        this.dates.submittedDate = new Date(this.poam.submittedDate);
+        this.assignedTeamOptions = assignedTeamOptions;
+        this.collectionUsers = users;
+        this.assets = collectionAssets;
+
+        this.collectionApprovers = this.collectionUsers.filter(
+          (user: Permission) => user.accessLevel >= 3
+        );
+
+        this.poamApprovers = this.collectionApprovers.map((approver: any) => ({
+          userId: approver.userId,
+          approvalStatus: 'Not Reviewed',
+          comments: ''
+        }));
+
+        this.sharedService.getSTIGsFromSTIGMAN().subscribe({
+          next: data => {
+            this.stigmanSTIGs = data.map((stig: any) => ({
+              title: stig.title,
+              benchmarkId: stig.benchmarkId,
+              lastRevisionStr: stig.lastRevisionStr,
+              lastRevisionDate: stig.lastRevisionDate
+            }));
+
+            if (!data || data.length === 0) {
+              console.warn('Unable to retrieve list of current STIGs from STIGMAN.');
+            }
+          },
+          error: (error) => {
+            console.error('Error loading STIGs:', error);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load required data'
+        });
+      }
+    });
+  }
+
+  getLabelData() {
+    this.poamService.getLabels(this.selectedCollection).subscribe({
+      next: (labels: any) => {
         this.labelList = labels;
+      },
+      error: (error) => {
+        console.error('Error fetching labels:', error);
       }
-    );
+    });
   }
 
-  async getPoamLabels() {
-    this.subs.sink = (await this.poamService.getPoamLabelsByPoam(this.poamId)).subscribe(
-      (poamLabels: any) => {
+  getPoamLabels() {
+    this.poamService.getPoamLabelsByPoam(this.poamId).subscribe({
+      next: (poamLabels: any) => {
         this.poamLabels = poamLabels;
+      },
+      error: (error) => {
+        console.error('Error fetching POAM labels:', error);
       }
-    );
+    });
   }
 
   async addLabel() {
@@ -749,62 +816,67 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async confirmCreateLabel(event: any) {
+  confirmCreateLabel(event: any) {
     if (event.labelId) {
       const poamLabel = {
         poamId: +this.poam.poamId,
         labelId: +event.labelId,
       };
-
-      (await this.poamService.postPoamLabel(poamLabel)).subscribe(
-        () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Label added successfully.',
-          });
-          this.getPoamLabels();
-        },
-        () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to add label.',
-          });
-        }
-      );
+      this.poamService.postPoamLabel(poamLabel).pipe(
+        tap({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Label added successfully.',
+            });
+            this.getPoamLabels();
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to add label.',
+            });
+          }
+        })
+      ).subscribe();
     }
   }
 
-  async confirmDeleteLabel(event: any) {
+  confirmDeleteLabel(event: any) {
     if (this.poam.poamId === 'ADDPOAM') {
       return;
     }
-
-    (await this.poamService.deletePoamLabel(+event.poamId, +event.labelId)).subscribe(
-      () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Label deleted successfully.',
-        });
-        this.poamLabels = this.poamLabels.filter(l => l.labelId !== event.labelId);
-      },
-      () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to delete label.',
-        });
-      }
-    );
+    this.poamService.deletePoamLabel(+event.poamId, +event.labelId).pipe(
+      tap({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Label deleted successfully.',
+          });
+          this.poamLabels = this.poamLabels.filter(l => l.labelId !== event.labelId);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to delete label.',
+          });
+        }
+      })
+    ).subscribe();
   }
 
-  async getPoamAssociatedVulnerabilities() {
-    this.subs.sink = (
-      await this.poamService.getPoamAssociatedVulnerabilitiesByPoam(this.poamId)
-    ).subscribe((poamAssociatedVulnerabilities: any) => {
-      this.poamAssociatedVulnerabilities = poamAssociatedVulnerabilities;
+  getPoamAssociatedVulnerabilities() {
+    this.poamService.getPoamAssociatedVulnerabilitiesByPoam(this.poamId).subscribe({
+      next: (poamAssociatedVulnerabilities: any) => {
+        this.poamAssociatedVulnerabilities = poamAssociatedVulnerabilities;
+      },
+      error: (error) => {
+        console.error('Error fetching associated vulnerabilities:', error);
+      }
     });
   }
 
@@ -832,17 +904,15 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async postAssociatedVulnerability(event: any) {
+  postAssociatedVulnerability(event: any) {
     if (event.associatedVulnerability) {
       const poamAssociatedVulnerability = {
         poamId: +this.poam.poamId,
         associatedVulnerability: event.associatedVulnerability,
       };
 
-      await (
-        await this.poamService.postPoamAssociatedVulnerability(poamAssociatedVulnerability)
-      ).subscribe(
-        () => {
+      this.poamService.postPoamAssociatedVulnerability(poamAssociatedVulnerability).subscribe({
+        next: () => {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
@@ -850,14 +920,14 @@ ${this.pluginData.description ?? ''}`,
           });
           this.getPoamAssociatedVulnerabilities();
         },
-        () => {
+        error: () => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: 'Failed to add associated vulnerability.',
           });
         }
-      );
+      });
     }
   }
 
@@ -869,56 +939,60 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async confirmDeleteAssociatedVulnerability(event: any) {
+  confirmDeleteAssociatedVulnerability(event: any) {
     if (this.poam.poamId === 'ADDPOAM') {
       return;
     }
-    console.log(event);
-    await (
-      await this.poamService.deletePoamAssociatedVulnerability(
-        +event.poamId,
-        event.associatedVulnerability
-      )
-    ).subscribe(
-      () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Associated Vulnerability deleted successfully.',
-        });
-        this.poamAssociatedVulnerabilities = this.poamAssociatedVulnerabilities.filter(
-          a => a.associatedVulnerability !== event.associatedVulnerability
-        );
-      },
-      () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to delete associated vulnerability.',
-        });
-      }
-    );
+
+    this.poamService.deletePoamAssociatedVulnerability(+event.poamId, event.associatedVulnerability)
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Associated Vulnerability deleted successfully.',
+          });
+          this.poamAssociatedVulnerabilities = this.poamAssociatedVulnerabilities
+            .filter(a => a.associatedVulnerability !== event.associatedVulnerability);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to delete associated vulnerability.',
+          });
+        }
+      });
   }
 
   async addDefaultApprovers() {
-    this.collectionApprovers.forEach(async (collectionApprover: any) => {
+    this.collectionApprovers.forEach((collectionApprover: any) => {
       const approver: any = {
         poamId: +this.poamId,
         collectionId: +collectionApprover.collectionId,
         userId: +collectionApprover.userId,
         approvalStatus: 'Not Reviewed',
       };
-      await (
-        await this.poamService.addPoamApprover(approver)
-      ).subscribe(() => {
-        approver.fullName = collectionApprover.fullName;
-        approver.firstName = collectionApprover.firstName;
-        approver.lastName = collectionApprover.lastName;
-        approver.email = collectionApprover.email;
 
-        if (approver) {
-          this.poamApprovers.push(approver);
-          this.poamApprovers = [...this.poamApprovers];
+      this.poamService.addPoamApprover(approver).subscribe({
+        next: () => {
+          approver.fullName = collectionApprover.fullName;
+          approver.firstName = collectionApprover.firstName;
+          approver.lastName = collectionApprover.lastName;
+          approver.email = collectionApprover.email;
+
+          if (approver) {
+            this.poamApprovers.push(approver);
+            this.poamApprovers = [...this.poamApprovers];
+          }
+        },
+        error: (error) => {
+          console.error('Error adding approver:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to add approver'
+          });
         }
       });
     });
@@ -963,7 +1037,7 @@ ${this.pluginData.description ?? ''}`,
     this.router.navigate(['/poam-processing/poam-log', this.poam.poamId]);
   }
 
-  async savePoam(quiet: boolean = false) {
+  savePoam(quiet: boolean = false) {
     if (!this.validateData()) return;
     this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate
       ? format(this.dates.scheduledCompletionDate, 'yyyy-MM-dd')
@@ -986,6 +1060,7 @@ ${this.pluginData.description ?? ''}`,
       const assignees: any[] = [];
       const assignedTeams: any[] = [];
       const assets: any[] = [];
+
       if (this.poamAssignees) {
         this.poamAssignees.forEach((user: any) => {
           assignees.push({ userId: +user.userId });
@@ -1015,13 +1090,13 @@ ${this.pluginData.description ?? ''}`,
         }));
       }
 
-      (await this.poamService.postPoam(this.poam)).subscribe({
-        next: res => {
+      this.poamService.postPoam(this.poam).subscribe({
+        next: (res) => {
           if (res.null || (res.null == 'null' && !quiet)) {
             this.messageService.add({
               severity: 'error',
               summary: 'Information',
-              detail: 'Unexpected error adding POAM',
+              detail: 'Unexpected error adding POAM'
             });
           } else {
             this.poam.poamId = res.poamId;
@@ -1029,18 +1104,19 @@ ${this.pluginData.description ?? ''}`,
               this.messageService.add({
                 severity: 'success',
                 summary: 'Success',
-                detail: `Added POAM: ${res.poamId}`,
+                detail: `Added POAM: ${res.poamId}`
               });
             }
           }
         },
-        error: () => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Information',
-            detail: 'Unexpected error, please try again.',
+            detail: 'Unexpected error, please try again.'
           });
-        },
+          console.error('Error saving POAM:', error);
+        }
       });
     } else {
       const assets: any[] = [];
@@ -1049,13 +1125,23 @@ ${this.pluginData.description ?? ''}`,
       });
       this.poam.assets = assets;
 
-      this.subs.sink = (await this.poamService.updatePoam(this.poam)).subscribe(data => {
-        this.poam = data;
-        if (!quiet) {
+      this.poamService.updatePoam(this.poam).subscribe({
+        next: (data) => {
+          this.poam = data;
+          if (!quiet) {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'POAM successfully updated'
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error updating POAM:', error);
           this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'POAM successfully updated',
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to update POAM'
           });
         }
       });
@@ -1085,19 +1171,18 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async obtainCollectionData(background: boolean = false) {
-    await (
-      await this.collectionService.getCollectionBasicList()
-    )
+  obtainCollectionData(background: boolean = false) {
+    this.collectionsService.getCollectionBasicList()
       .pipe(
         catchError(err => {
           console.error('Failed to fetch basic collection list:', err);
           return of([]);
         })
       )
-      .subscribe(basicListData => {
+      .subscribe({
+        next: (basicListData) => {
         const currentCollection = basicListData.find(
-          collection => +collection.collectionId === +this.selectedCollection
+          collection => +collection.collectionId === this.selectedCollection
         );
 
         if (!currentCollection) {
@@ -1132,6 +1217,17 @@ ${this.pluginData.description ?? ''}`,
             detail:
               'This collection is not associated with a STIG Manager collection. Asset association may not be available.',
           });
+        }
+        },
+        error: (error) => {
+          console.error('Error fetching collection data:', error);
+          if (!background) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to fetch collection data'
+            });
+          }
         }
       });
   }
@@ -1427,7 +1523,7 @@ ${this.pluginData.description ?? ''}`,
     return true;
   }
 
-  private async addNewMilestone(milestone: any) {
+  addNewMilestone(milestone: any) {
     const newMilestone = {
       milestoneDate: format(milestone.milestoneDate, 'yyyy-MM-dd'),
       milestoneComments: milestone.milestoneComments || null,
@@ -1435,15 +1531,13 @@ ${this.pluginData.description ?? ''}`,
       milestoneTeam: milestone.milestoneTeam || null,
     };
 
-    await (
-      await this.poamService.addPoamMilestone(this.poam.poamId, newMilestone)
-    ).subscribe({
+    this.poamService.addPoamMilestone(this.poam.poamId, newMilestone).subscribe({
       next: (res: any) => {
         if (res.null) {
           this.messageService.add({
             severity: 'error',
             summary: 'Information',
-            detail: 'Unable to insert row, please validate entry and try again.',
+            detail: 'Unable to insert row, please validate entry and try again.'
           });
           return;
         } else {
@@ -1453,18 +1547,18 @@ ${this.pluginData.description ?? ''}`,
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: 'Milestone added successfully.',
+            detail: 'Milestone added successfully.'
           });
         }
       },
-      error: error => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to add milestone.',
+          detail: 'Failed to add milestone.'
         });
         console.error('Error adding milestone:', error);
-      },
+      }
     });
   }
 
@@ -1559,7 +1653,7 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async confirmCreateApprover(newApprover: any) {
+  confirmCreateApprover(newApprover: any) {
     if (this.poam.poamId !== 'ADDPOAM' && this.poam.poamId && newApprover.userId) {
       const approver: any = {
         poamId: +this.poam.poamId,
@@ -1569,46 +1663,40 @@ ${this.pluginData.description ?? ''}`,
         comments: newApprover.comments,
       };
 
-      (await this.poamService.addPoamApprover(approver)).subscribe(async () => {
-        (await this.poamService.getPoamApprovers(this.poamId)).subscribe((poamApprovers: any) => {
-          this.poamApprovers = poamApprovers;
-        });
-      });
-    } else if (this.poam.poamId === 'ADDPOAM') {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Approver added',
-      });
-    } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Information',
-        detail: 'Failed to add POAM Approver. Please validate entry and try again.',
+      this.poamService.addPoamApprover(approver).subscribe({
+        next: () => {
+          this.poamService.getPoamApprovers(this.poamId).subscribe({
+            next: (poamApprovers: any) => {
+              this.poamApprovers = poamApprovers;
+            }
+          });
+        },
+        error: (error) => {
+          console.error('Error adding approver:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to add POAM Approver'
+          });
+        }
       });
     }
   }
 
-  async confirmDeleteApprover(approver: any) {
+  confirmDeleteApprover(approver: any) {
     if (this.poam.poamId !== 'ADDPOAM' && this.poam.status === 'Draft') {
-      (await this.poamService.deletePoamApprover(approver.poamId, approver.userId)).subscribe(
-        () => {
+      this.poamService.deletePoamApprover(approver.poamId, approver.userId).subscribe({
+        next: () => {
           this.poamApprovers = this.poamApprovers.filter((a: any) => a.userId !== approver.userId);
+        },
+        error: (error) => {
+          console.error('Error deleting approver:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to delete approver'
+          });
         }
-      );
-    } else if (this.poam.poamId === 'ADDPOAM') {
-      this.poamApprovers = this.poamApprovers.filter((a: any) => a.userId !== approver.userId);
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Approver removed',
-      });
-    } else {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Information',
-        detail:
-          "You may only remove an approver from the approver list if the POAM status is 'Draft'.",
       });
     }
   }
@@ -1647,7 +1735,7 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async confirmCreateAssignee(newAssignee: any) {
+  confirmCreateAssignee(newAssignee: any) {
     let assigneeName = '';
 
     if (newAssignee.userId) {
@@ -1659,41 +1747,32 @@ ${this.pluginData.description ?? ''}`,
         poamId: +this.poam.poamId,
         userId: +newAssignee.userId,
       };
-      (await this.poamService.postPoamAssignee(poamAssignee)).subscribe(
-        async () => {
-          (await this.poamService.getPoamAssignees(this.poamId)).subscribe((poamAssignees: any) => {
-            this.poamAssignees = poamAssignees;
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: `${assigneeName} was added as an assignee`,
-            });
+
+      this.poamService.postPoamAssignee(poamAssignee).subscribe({
+        next: () => {
+          this.poamService.getPoamAssignees(this.poamId).subscribe({
+            next: (poamAssignees: any) => {
+              this.poamAssignees = poamAssignees;
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `${assigneeName} was added as an assignee`
+              });
+            }
           });
         },
-        (error: Error) => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Failed to add assignee: ${error.message}`,
+            detail: `Failed to add assignee: ${error.message}`
           });
         }
-      );
-    } else if (this.poam.poamId === 'ADDPOAM' && newAssignee.userId) {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `${assigneeName} was added as an assignee`,
-      });
-    } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to create entry. Invalid input.',
       });
     }
   }
 
-  async confirmDeleteAssignee(assigneeData: any) {
+  confirmDeleteAssignee(assigneeData: any) {
     let assigneeName = '';
 
     if (assigneeData.userId) {
@@ -1701,39 +1780,24 @@ ${this.pluginData.description ?? ''}`,
     }
 
     if (this.poam.poamId !== 'ADDPOAM' && assigneeData.userId) {
-      (
-        await this.poamService.deletePoamAssignee(+this.poam.poamId, +assigneeData.userId)
-      ).subscribe(
-        () => {
+      this.poamService.deletePoamAssignee(+this.poam.poamId, +assigneeData.userId).subscribe({
+        next: () => {
           this.poamAssignees = this.poamAssignees.filter(
             (a: any) => a.userId !== assigneeData.userId
           );
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: `${assigneeName} was removed as an assignee`,
+            detail: `${assigneeName} was removed as an assignee`
           });
         },
-        (error: Error) => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Failed to remove assignee: ${error.message}`,
+            detail: `Failed to remove assignee: ${error.message}`
           });
         }
-      );
-    } else if (this.poam.poamId === 'ADDPOAM' && assigneeData.userId) {
-      this.poamAssignees = this.poamAssignees.filter((a: any) => a.userId !== assigneeData.userId);
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `${assigneeName} was removed as an assignee`,
-      });
-    } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to delete entry. Invalid input.',
       });
     }
   }
@@ -1773,42 +1837,39 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async confirmCreateAssignedTeam(newAssignedTeam: any) {
+  confirmCreateAssignedTeam(newAssignedTeam: any) {
     let assignedTeamName = newAssignedTeam.assignedTeamName;
-
     if (!assignedTeamName) {
       const matchingTeam = this.assignedTeamOptions.find(
         (team: any) => team.assignedTeamId === newAssignedTeam.assignedTeamId
       );
       assignedTeamName = matchingTeam ? matchingTeam.assignedTeamName : 'Team';
     }
-
     if (this.poam.poamId !== 'ADDPOAM' && newAssignedTeam.assignedTeamId) {
       const poamAssignedTeam = {
         poamId: +this.poam.poamId,
         assignedTeamId: +newAssignedTeam.assignedTeamId,
       };
-      (await this.poamService.postPoamAssignedTeam(poamAssignedTeam)).subscribe(
-        async () => {
-          (await this.poamService.getPoamAssignedTeams(this.poamId)).subscribe(
-            (poamAssignedTeams: any) => {
-              this.poamAssignedTeams = poamAssignedTeams;
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: `${assignedTeamName} was successfully added to the assigned teams list`,
-              });
-            }
-          );
-        },
-        (error: Error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to add team: ${error.message}`,
-          });
-        }
-      );
+      this.poamService.postPoamAssignedTeam(poamAssignedTeam).pipe(
+        switchMap(() => this.poamService.getPoamAssignedTeams(this.poamId)),
+        tap({
+          next: (poamAssignedTeams: any) => {
+            this.poamAssignedTeams = poamAssignedTeams;
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: `${assignedTeamName} was successfully added to the assigned teams list`,
+            });
+          },
+          error: (error: Error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to add team: ${error.message}`,
+            });
+          }
+        })
+      ).subscribe();
     } else if (this.poam.poamId === 'ADDPOAM' && newAssignedTeam.assignedTeamId) {
       newAssignedTeam.assignedTeamName = assignedTeamName;
       this.messageService.add({
@@ -1825,21 +1886,18 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async confirmDeleteAssignedTeam(assignedTeamData: any) {
+  confirmDeleteAssignedTeam(assignedTeamData: any) {
     let assignedTeamName = '';
-
     if (assignedTeamData.assignedTeamName) {
       assignedTeamName = assignedTeamData.assignedTeamName;
     }
 
     if (this.poam.poamId !== 'ADDPOAM' && assignedTeamData.assignedTeamId) {
-      (
-        await this.poamService.deletePoamAssignedTeam(
-          +this.poam.poamId,
-          +assignedTeamData.assignedTeamId
-        )
-      ).subscribe(
-        () => {
+      this.poamService.deletePoamAssignedTeam(
+        +this.poam.poamId,
+        +assignedTeamData.assignedTeamId
+      ).subscribe({
+        next: () => {
           this.poamAssignedTeams = this.poamAssignedTeams.filter(
             (a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId
           );
@@ -1849,14 +1907,14 @@ ${this.pluginData.description ?? ''}`,
             detail: `${assignedTeamName} was removed as an assigned team`,
           });
         },
-        (error: Error) => {
+        error: (error: Error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Failed to remove assigned team: ${error.message}`,
           });
         }
-      );
+      });
     } else if (this.poam.poamId === 'ADDPOAM' && assignedTeamData.assignedTeamId) {
       this.poamAssignedTeams = this.poamAssignedTeams.filter(
         (a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId
@@ -1875,21 +1933,28 @@ ${this.pluginData.description ?? ''}`,
     }
   }
 
-  async fetchAssets() {
-    this.subs.sink = await (
-      await this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId)
-    ).subscribe((response: any) => {
-      this.assetList = response.map((asset: any) => ({
-        assetId: asset.assetId,
-        assetName: asset.assetName,
-      }));
-    });
+  fetchAssets() {
+    this.assetService.getAssetsByCollection(this.payload.lastCollectionAccessedId)
+      .subscribe({
+        next: (response: any) => {
+          this.assetList = response.map((asset: any) => ({
+            assetId: asset.assetId,
+            assetName: asset.assetName,
+          }));
+        },
+        error: (error) => {
+          console.error('Error fetching assets:', error);
+        }
+      });
 
-    this.subs.sink = (await this.poamService.getPoamAssets(this.poamId)).subscribe(
-      (poamAssets: any) => {
+    this.poamService.getPoamAssets(this.poamId).subscribe({
+      next: (poamAssets: any) => {
         this.poamAssets = poamAssets;
+      },
+      error: (error) => {
+        console.error('Error fetching POAM assets:', error);
       }
-    );
+    });
   }
 
   async addAsset() {
@@ -1924,56 +1989,58 @@ ${this.pluginData.description ?? ''}`,
     return asset ? asset.assetName : `Asset ID: ${assetId}`;
   }
 
-  async confirmCreateAsset(event: any) {
+  confirmCreateAsset(event: any) {
     if (event.assetId) {
       const poamAsset = {
         poamId: +this.poam.poamId,
         assetId: +event.assetId,
       };
-
-      (await this.poamService.postPoamAsset(poamAsset)).subscribe(
-        () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Asset added successfully.',
-          });
-          this.fetchAssets();
-        },
-        () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to add asset.',
-          });
-        }
-      );
+      this.poamService.postPoamAsset(poamAsset).pipe(
+        tap({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Asset added successfully.',
+            });
+            this.fetchAssets();
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to add asset.',
+            });
+          }
+        })
+      ).subscribe();
     }
   }
 
-  async confirmDeleteAsset(event: any) {
+  confirmDeleteAsset(event: any) {
     if (this.poam.poamId === 'ADDPOAM') {
       this.poamAssets = this.poamAssets.filter(a => a.assetId !== event.assetId);
       return;
     }
-
-    (await this.poamService.deletePoamAsset(+event.poamId, +event.assetId)).subscribe(
-      () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Asset deleted successfully.',
-        });
-        this.poamAssets = this.poamAssets.filter(a => a.assetId !== event.assetId);
-      },
-      () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to delete asset.',
-        });
-      }
-    );
+    this.poamService.deletePoamAsset(event.poamId, event.assetId).pipe(
+      tap({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Asset deleted successfully.',
+          });
+          this.poamAssets = this.poamAssets.filter(a => a.assetId !== event.assetId);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to delete asset.',
+          });
+        }
+      })
+    ).subscribe();
   }
 
   openIavLink(iavmNumber: string) {
@@ -1997,17 +2064,19 @@ ${this.pluginData.description ?? ''}`,
     );
   }
 
-  async loadAAPackages() {
-    try {
-      const response = await (await this.aaPackageService.getAAPackages()).toPromise();
-      this.aaPackages = response || [];
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to load A&A Packages',
-      });
-    }
+  loadAAPackages() {
+    this.aaPackageService.getAAPackages().subscribe({
+      next: (response) => {
+        this.aaPackages = response || [];
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load A&A Packages'
+        });
+      }
+    });
   }
 
   filterAAPackages(event: { query: string }) {
@@ -2037,27 +2106,25 @@ ${this.pluginData.description ?? ''}`,
       rejectLabel: 'No',
       acceptButtonStyleClass: 'p-button-primary',
       rejectButtonStyleClass: 'p-button-secondary',
-      accept: async () => {
-        await (
-          await this.poamService.deletePoam(this.poam.poamId)
-        ).subscribe({
+      accept: () => {
+        this.poamService.deletePoam(this.poam.poamId).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
-              detail: `POAM ${this.poam.poamId} has been successfully deleted.`,
+              detail: `POAM ${this.poam.poamId} has been successfully deleted.`
             });
             this.router.navigate(['/poam-processing/poam-manage']);
           },
-          error: (error: Error) => {
+          error: (error) => {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: `Failed to delete POAM ${this.poam.poamId}: ${error.message}`,
+              detail: `Failed to delete POAM ${this.poam.poamId}: ${error.message}`
             });
-          },
+          }
         });
-      },
+      }
     });
   }
 

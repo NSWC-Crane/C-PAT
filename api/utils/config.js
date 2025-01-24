@@ -22,7 +22,7 @@ let config = {
         authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
         apiBase: process.env.CPAT_API_BASE || "api",
         disabled: process.env.CPAT_CLIENT_DISABLED === "true",
-        directory: process.env.CPAT_CLIENT_DIRECTORY || '../client/dist',
+        directory: process.env.CPAT_CLIENT_DIRECTORY || '../client/dist/browser',
         extraScopes: process.env.CPAT_EXTRA_SCOPES,
         scopePrefix: process.env.CPAT_SCOPE_PREFIX,
         refreshToken: {
@@ -95,6 +95,7 @@ let config = {
             firstname: process.env.CPAT_JWT_FIRST_NAME_CLAIM || "given_name",
             lastname: process.env.CPAT_JWT_LAST_NAME_CLAIM || "family_name",
             privileges: formatChain(process.env.CPAT_JWT_PRIVILEGES_CLAIM || "realm_access.roles"),
+            privilegesPath: process.env.CPAT_JWT_PRIVILEGES_CLAIM || "realm_access.roles",
             email: process.env.CPAT_JWT_EMAIL_CLAIM || "email"
         }
     },

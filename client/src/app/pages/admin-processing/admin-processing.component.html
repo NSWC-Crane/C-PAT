@@ -8,8 +8,15 @@
 !##########################################################################
 -->
 
-<div class="card">
-  <p-tabs [(value)]="value">
+<div class="card overflow-hidden">
+  <div class="flex justify-end mt-[-1.5rem] mr-[-1.5rem]">
+    <button pButton
+            icon="pi pi-cog"
+            class="p-button-rounded p-button-text"
+            (click)="navigateToAppInfo()">
+    </button>
+  </div>
+  <p-tabs [(value)]="value" scrollable>
     <p-tablist>
       <p-tab [value]="0">User Management</p-tab>
       <p-tab [value]="1">Collection Management</p-tab>

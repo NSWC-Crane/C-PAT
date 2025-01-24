@@ -8,10 +8,9 @@
 !##########################################################################
 */
 
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { firstValueFrom, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 interface AssignedTeam {
@@ -30,85 +29,52 @@ interface AssignedTeamPermission {
 export class AssignedTeamService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error('An error occurred:', error.error.message);
-    } else {
-      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
-    }
+  private handleError(error: any) {
+    console.error('An error occurred:', error);
     return throwError(() => error);
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async getAssignedTeams() {
-    const headers = await this.getAuthHeaders();
+  getAssignedTeams(): Observable<AssignedTeam[]> {
     return this.http
-      .get<AssignedTeam[]>(`${this.cpatApiBase}/assignedTeams`, { headers })
+      .get<AssignedTeam[]>(`${this.cpatApiBase}/assignedTeams`)
       .pipe(catchError(this.handleError));
   }
 
-  async getAssignedTeam(assignedTeamId: number) {
-    const headers = await this.getAuthHeaders();
+  getAssignedTeam(assignedTeamId: number): Observable<AssignedTeam> {
     return this.http
-      .get<AssignedTeam>(`${this.cpatApiBase}/assignedTeam/${assignedTeamId}`, {
-        headers,
-      })
+      .get<AssignedTeam>(`${this.cpatApiBase}/assignedTeam/${assignedTeamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async postAssignedTeam(assignedTeam: AssignedTeam) {
-    const headers = await this.getAuthHeaders();
+  postAssignedTeam(assignedTeam: AssignedTeam): Observable<AssignedTeam> {
     return this.http
-      .post<AssignedTeam>(`${this.cpatApiBase}/assignedTeam`, assignedTeam, {
-        headers,
-      })
+      .post<AssignedTeam>(`${this.cpatApiBase}/assignedTeam`, assignedTeam)
       .pipe(catchError(this.handleError));
   }
 
-  async putAssignedTeam(assignedTeam: AssignedTeam) {
-    const headers = await this.getAuthHeaders();
+  putAssignedTeam(assignedTeam: AssignedTeam): Observable<AssignedTeam> {
     return this.http
-      .put<AssignedTeam>(`${this.cpatApiBase}/assignedTeam`, assignedTeam, {
-        headers,
-      })
+      .put<AssignedTeam>(`${this.cpatApiBase}/assignedTeam`, assignedTeam)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteAssignedTeam(assignedTeamId: number) {
-    const headers = await this.getAuthHeaders();
+  deleteAssignedTeam(assignedTeamId: number): Observable<any> {
     return this.http
-      .delete(`${this.cpatApiBase}/assignedTeams/${assignedTeamId}`, { headers })
+      .delete(`${this.cpatApiBase}/assignedTeams/${assignedTeamId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async postAssignedTeamPermission(assignedTeamPermission: AssignedTeamPermission) {
-    const headers = await this.getAuthHeaders();
+  postAssignedTeamPermission(assignedTeamPermission: AssignedTeamPermission): Observable<AssignedTeamPermission> {
     return this.http
-      .post<AssignedTeamPermission>(
-        `${this.cpatApiBase}/assignedTeams/permissions`,
-        assignedTeamPermission,
-        {
-          headers,
-        }
-      )
+      .post<AssignedTeamPermission>(`${this.cpatApiBase}/assignedTeams/permissions`, assignedTeamPermission)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteAssignedTeamPermission(assignedTeamId: number, collectionId: number) {
-    const headers = await this.getAuthHeaders();
+  deleteAssignedTeamPermission(assignedTeamId: number, collectionId: number): Observable<any> {
     return this.http
-      .delete(`${this.cpatApiBase}/assignedTeams/permissions/${assignedTeamId}/${collectionId}`, {
-        headers,
-      })
+      .delete(`${this.cpatApiBase}/assignedTeams/permissions/${assignedTeamId}/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 }

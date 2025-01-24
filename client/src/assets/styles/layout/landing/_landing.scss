@@ -2,6 +2,6 @@ $landingBreakpointMD: 767px;
 $landingBreakpointLG: 991px;
 $landingBreakpointXL: 1199px;
 
-@import '../_mixins';
-@import './_main';
-@import './_layout';
+@use '../_mixins' as *;
+@use './_main' as *;
+@use './_layout' as *;

@@ -59,12 +59,12 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
 
   constructor(
     private importService: ImportService,
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private sharedService: SharedService,
     private messageService: MessageService
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.cols = [
       { field: 'solution', header: 'Solution' },
       { field: 'scorePctg', header: 'Risk Reduction' },
@@ -77,21 +77,21 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
       title: col.header,
       dataKey: col.field,
     }));
+
     this.subscriptions.add(
-      await this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
       })
     );
-    await (
-      await this.collectionService.getCollectionBasicList()
-    ).subscribe({
-      next: async data => {
+
+    this.collectionsService.getCollectionBasicList().subscribe({
+      next: data => {
         const selectedCollectionData = data.find(
           (collection: any) => collection.collectionId === this.selectedCollection
         );
         if (selectedCollectionData) {
           this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
-          await this.getSolutions();
+          this.getSolutions();
         } else {
           this.tenableRepoId = '';
         }
@@ -102,103 +102,100 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
     });
   }
 
-  async getSolutions() {
-    try {
-      const solutionParams = {
-        query: {
-          type: 'vuln',
-          tool: 'sumremediation',
-          sourceType: 'cumulative',
-          startOffset: 0,
-          endOffset: 1000,
-          filters: [
-            {
-              id: 'repository',
-              filterName: 'repository',
-              operator: '=',
-              type: 'vuln',
-              isPredefined: true,
-              value: [
-                {
-                  id: this.tenableRepoId,
-                },
-              ],
-            },
-          ],
-          sortColumn: 'scorePctg',
-          sortDirection: 'desc',
-        },
-        sourceType: 'cumulative',
-        sortField: 'scorePctg',
-        sortDir: 'desc',
+  getSolutions() {
+    const solutionParams = {
+      query: {
         type: 'vuln',
-        pagination: 'false',
-      };
-      const solutionsObservable = await this.importService.postTenableSolutions(solutionParams);
-      solutionsObservable.subscribe({
-        next: (data: any) => {
-          this.solutions = data.response.results.map((solution: any) => ({
-            solution: solution.solution,
-            scorePctg: solution.scorePctg,
-            hostTotal: solution.hostTotal,
-            total: solution.total,
-            vprScore: solution.vprScore,
-            cvssV3BaseScore: solution.cvssV3BaseScore,
-            ...solution,
-          }));
-          this.loadingSolutions = false;
-        },
-        error: (error: any) => {
-          console.error('Error fetching solutions:', error);
-          this.showPopup('Error fetching solutions. Please try again.');
-        },
-      });
-    } catch (error) {
-      console.error('Error calling Tenable solutions service:', error);
-      this.showPopup('Error calling Tenable solutions service. Please try again.');
-    }
+        tool: 'sumremediation',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 1000,
+        filters: [
+          {
+            id: 'repository',
+            filterName: 'repository',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: [
+              {
+                id: this.tenableRepoId,
+              },
+            ],
+          },
+        ],
+        sortColumn: 'scorePctg',
+        sortDirection: 'desc',
+      },
+      sourceType: 'cumulative',
+      sortField: 'scorePctg',
+      sortDir: 'desc',
+      type: 'vuln',
+      pagination: 'false',
+    };
+
+    this.loadingSolutions = true;
+    this.importService.postTenableSolutions(solutionParams).subscribe({
+      next: (data: any) => {
+        this.solutions = data.response.results.map((solution: any) => ({
+          solution: solution.solution,
+          scorePctg: solution.scorePctg,
+          hostTotal: solution.hostTotal,
+          total: solution.total,
+          vprScore: solution.vprScore,
+          cvssV3BaseScore: solution.cvssV3BaseScore,
+          ...solution,
+        }));
+        this.loadingSolutions = false;
+      },
+      error: (error: any) => {
+        console.error('Error fetching solutions:', error);
+        this.showPopup('Error fetching solutions. Please try again.');
+        this.loadingSolutions = false;
+      }
+    });
   }
 
-  async getAffectedHosts(solution: any) {
+  getAffectedHosts(solution: any) {
     this.displayDialog = true;
-    try {
-      const solutionId = parseInt(solution.solutionID.split('-')[1], 10);
-      this.getVulnDetails(solutionId);
-      const solutionParams = {
-        query: {
-          type: 'vuln',
-          tool: 'sumip',
-          sourceType: 'cumulative',
-          startOffset: 0,
-          endOffset: 3000,
-          filters: [
-            {
-              id: 'repository',
-              filterName: 'repository',
-              operator: '=',
-              type: 'vuln',
-              isPredefined: true,
-              value: [
-                {
-                  id: this.tenableRepoId,
-                },
-              ],
-            },
-          ],
-          sortColumn: 'scorePctg',
-          sortDirection: 'desc',
-        },
-        sourceType: 'cumulative',
-        sortField: 'scorePctg',
-        sortDir: 'desc',
+    const solutionId = parseInt(solution.solutionID.split('-')[1], 10);
+
+    this.getVulnDetails(solutionId);
+
+    const solutionParams = {
+      query: {
         type: 'vuln',
-        pagination: 'true',
-      };
-      const affectedHostsObservable = await this.importService.postTenableSolutionAssets(
-        solutionParams,
-        solutionId
-      );
-      affectedHostsObservable.subscribe({
+        tool: 'sumip',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 3000,
+        filters: [
+          {
+            id: 'repository',
+            filterName: 'repository',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: [
+              {
+                id: this.tenableRepoId,
+              },
+            ],
+          },
+        ],
+        sortColumn: 'scorePctg',
+        sortDirection: 'desc',
+      },
+      sourceType: 'cumulative',
+      sortField: 'scorePctg',
+      sortDir: 'desc',
+      type: 'vuln',
+      pagination: 'true',
+    };
+
+    this.loadingAffectedHosts = true;
+    this.importService.postTenableSolutionAssets(solutionParams, solutionId)
+      .subscribe({
         next: (data: any) => {
           this.affectedHosts = data.response.results.map((affectedHost: any) => ({
             ip: affectedHost.ip,
@@ -214,51 +211,46 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
         error: (error: any) => {
           console.error('Error fetching affected hosts:', error);
           this.showPopup('Error fetching affected hosts. Please try again.');
-        },
+          this.loadingAffectedHosts = false;
+        }
       });
-    } catch (error) {
-      console.error('Error calling Tenable affected host service:', error);
-      this.showPopup('Error calling Tenable affected host service. Please try again.');
-    }
   }
 
-  async getVulnDetails(solutionId: any) {
-    try {
-      const solutionVulnParams = {
-        query: {
-          type: 'vuln',
-          tool: 'sumid',
-          sourceType: 'cumulative',
-          startOffset: 0,
-          endOffset: 3000,
-          filters: [
-            {
-              id: 'repository',
-              filterName: 'repository',
-              operator: '=',
-              type: 'vuln',
-              isPredefined: true,
-              value: [
-                {
-                  id: this.tenableRepoId,
-                },
-              ],
-            },
-          ],
-          sortColumn: 'scorePctg',
-          sortDirection: 'desc',
-        },
-        sourceType: 'cumulative',
-        sortField: 'scorePctg',
-        sortDir: 'desc',
+  getVulnDetails(solutionId: any) {
+    const solutionVulnParams = {
+      query: {
         type: 'vuln',
-        pagination: 'false',
-      };
-      const solutionVulnObservable = await this.importService.postTenableSolutionVuln(
-        solutionVulnParams,
-        solutionId
-      );
-      solutionVulnObservable.subscribe({
+        tool: 'sumid',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 3000,
+        filters: [
+          {
+            id: 'repository',
+            filterName: 'repository',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: [
+              {
+                id: this.tenableRepoId,
+              },
+            ],
+          },
+        ],
+        sortColumn: 'scorePctg',
+        sortDirection: 'desc',
+      },
+      sourceType: 'cumulative',
+      sortField: 'scorePctg',
+      sortDir: 'desc',
+      type: 'vuln',
+      pagination: 'false',
+    };
+
+    this.loadingVulnDetails = true;
+    this.importService.postTenableSolutionVuln(solutionVulnParams, solutionId)
+      .subscribe({
         next: (data: any) => {
           this.solutionVulnDetails = data.response.map((vuln: any) => ({
             pluginID: vuln.pluginID,
@@ -272,14 +264,9 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
         error: (error: any) => {
           console.error('Error fetching solution vulnerability details:', error);
           this.showPopup('Error fetching solution vulnerability details. Please try again.');
-        },
+          this.loadingVulnDetails = false;
+        }
       });
-    } catch (error) {
-      console.error('Error calling Tenable solution vulnerability details service:', error);
-      this.showPopup(
-        'Error calling Tenable solution vulnerability details service. Please try again.'
-      );
-    }
   }
 
   showPopup(message: string) {

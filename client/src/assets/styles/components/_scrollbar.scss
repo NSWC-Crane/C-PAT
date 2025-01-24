@@ -9,9 +9,8 @@
 */
 
 @use 'sass:math';
-
-@import 'tailwind/main.css';
-@import 'primeicons/primeicons.css';
+@use 'tailwind/main.css';
+@use 'primeicons/primeicons.css';
 
 @mixin custom-scrollbar($track-color, $thumb-color) {
   ::-webkit-scrollbar {

@@ -15,7 +15,6 @@ import { RouterOutlet } from '@angular/router';
 import { PayloadService } from './common/services/setPayload.service';
 import { AuthService } from './core/auth/services/auth.service';
 import { Subscription } from 'rxjs';
-import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'cpat-app',
@@ -54,13 +53,21 @@ export class AppComponent implements OnInit, OnDestroy {
       }
 
       await this.payloadService.setPayload();
-      const apiConfig = await firstValueFrom(this.sharedService.getApiConfig());
-      if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {
-        const apiClassification = (apiConfig as { classification: string }).classification;
-        this.classification = new Classification(apiClassification);
-      } else {
-        console.error('Invalid API configuration response');
-      }
+
+      this.sharedService.getApiConfig().subscribe({
+          next: (apiConfig) => {
+              if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {
+                  const apiClassification = (apiConfig as { classification: string }).classification;
+                  this.classification = new Classification(apiClassification);
+              } else {
+                  console.error('Invalid API configuration response');
+              }
+          },
+          error: (error) => {
+              console.error('Failed to fetch API config:', error);
+          }
+      });
+
     } catch (error) {
       console.error('Auth state handling error:', error);
     }

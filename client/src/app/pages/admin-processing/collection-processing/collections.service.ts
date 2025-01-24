@@ -8,10 +8,9 @@
 !##########################################################################
 */
 
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { firstValueFrom, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Collections } from './collections.model';
 
@@ -31,102 +30,71 @@ export interface CollectionBasicList {
 })
 export class CollectionsService {
   private cpatApiBase = CPAT.Env.apiBase;
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error('An error occurred:', error.error.message);
-    } else {
-      console.error(`Backend returned code ${error.status}, ` + ` body was: ${error.error}`);
-    }
+  constructor(private http: HttpClient) { }
+
+  private handleError(error: any) {
+    console.error('An error occurred:', error);
     return throwError(() => error);
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async getAllCollections() {
-    const headers = await this.getAuthHeaders();
+  getAllCollections(): Observable<Collections[]> {
     return this.http
-      .get<Collections[]>(`${this.cpatApiBase}/collections?elevate=true`, { headers })
+      .get<Collections[]>(`${this.cpatApiBase}/collections?elevate=true`)
       .pipe(catchError(this.handleError));
   }
 
-  async getCollections() {
-    const headers = await this.getAuthHeaders();
+  getCollections(): Observable<Collections[]> {
     return this.http
-      .get<Collections[]>(`${this.cpatApiBase}/collections`, { headers })
+      .get<Collections[]>(`${this.cpatApiBase}/collections`)
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionBasicList() {
-    const headers = await this.getAuthHeaders();
+  getCollectionBasicList(): Observable<CollectionBasicList[]> {
     return this.http
-      .get<CollectionBasicList[]>(`${this.cpatApiBase}/collections/basiclist`, { headers })
+      .get<CollectionBasicList[]>(`${this.cpatApiBase}/collections/basiclist`)
       .pipe(catchError(this.handleError));
   }
 
-  async addCollection(collection: any) {
-    const headers = await this.getAuthHeaders();
+  addCollection(collection: any): Observable<Collections> {
     return this.http
-      .post<Collections>(`${this.cpatApiBase}/collection`, collection, {
-        headers,
-      })
+      .post<Collections>(`${this.cpatApiBase}/collection`, collection)
       .pipe(catchError(this.handleError));
   }
 
-  async updateCollection(collection: any) {
-    const headers = await this.getAuthHeaders();
+  updateCollection(collection: any): Observable<Collections> {
     return this.http
-      .put<Collections>(`${this.cpatApiBase}/collection`, collection, {
-        headers,
-      })
+      .put<Collections>(`${this.cpatApiBase}/collection`, collection)
       .pipe(catchError(this.handleError));
   }
 
-  async deleteCollection(id: string) {
-    const headers = await this.getAuthHeaders();
+  deleteCollection(collectionId: number): Observable<Collections> {
     return this.http
-      .delete<Collections>(`${this.cpatApiBase}/collections/${id}`, { headers })
-      .pipe(catchError(this.handleError))
-      .subscribe();
-  }
-
-  async getCollectionPermissions(id: string) {
-    const headers = await this.getAuthHeaders();
-    return this.http
-      .get(`${this.cpatApiBase}/permissions/${+id}`, { headers })
+      .delete<Collections>(`${this.cpatApiBase}/collections/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getPoamsByCollection(id: any) {
-    const headers = await this.getAuthHeaders();
+  getCollectionPermissions(collectionId: number): Observable<any> {
     return this.http
-      .get(
-        `${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true&associatedVulnerabilities=true`,
-        { headers }
-      )
+      .get(`${this.cpatApiBase}/permissions/${collectionId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async addCollectionAprover(approver: any) {
-    const headers = await this.getAuthHeaders();
+  getPoamsByCollection(id: any): Observable<any> {
     return this.http
-      .post<any>(`${this.cpatApiBase}/collectionApprover`, approver, {
-        headers,
-      })
+      .get(`${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true&associatedVulnerabilities=true`)
       .pipe(catchError(this.handleError));
   }
 
-  async putCollectionApprover(approver: any) {
-    const headers = await this.getAuthHeaders();
+  addCollectionAprover(approver: any): Observable<any> {
     return this.http
-      .put<any>(`${this.cpatApiBase}/collectionApprover`, approver, { headers })
+      .post<any>(`${this.cpatApiBase}/collectionApprover`, approver)
+      .pipe(catchError(this.handleError));
+  }
+
+  putCollectionApprover(approver: any): Observable<any> {
+    return this.http
+      .put<any>(`${this.cpatApiBase}/collectionApprover`, approver)
       .pipe(catchError(this.handleError));
   }
 }

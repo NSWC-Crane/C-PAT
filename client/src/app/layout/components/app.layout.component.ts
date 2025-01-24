@@ -20,7 +20,7 @@ import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
 import { DropdownModule } from 'primeng/dropdown';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subject, combineLatest, filter, firstValueFrom, takeUntil } from 'rxjs';
+import { Subject, combineLatest, filter, forkJoin, switchMap, take, takeUntil } from 'rxjs';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '../../core/auth/services/auth.service';
@@ -191,7 +191,7 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
                     (click)="menu.toggle($event)"
                   >
                     <p-avatar
-                      image="assets/user.png"
+                      image="assets/images/user.png"
                       size="large"
                       shape="circle"
                       [style]="{ width: '3rem', height: '3rem' }"
@@ -336,7 +336,7 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
 export class AppLayoutComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly configService = inject(AppConfigService);
-  private readonly collectionService = inject(CollectionsService);
+  private readonly collectionsService = inject(CollectionsService);
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly router = inject(Router);
   private readonly sharedService = inject(SharedService);
@@ -350,8 +350,9 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   isSlimMenu: boolean = true;
   confirmPopupVisible: boolean = false;
   userMenu: MenuItem[] = [];
-  currentUser: any = null;
-
+    currentUser: any = null;
+    user: any;
+    accessLevel: number;
   private readonly destroy$ = new Subject<void>();
 
   readonly user$ = this.authService.user$;
@@ -382,38 +383,40 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     ])
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async ([user, accessLevel]) => {
-          this.setUserMenuItems();
-          await this.loadCollections(user);
-          this.setMenuItems(user, accessLevel);
+        next: ([user, accessLevel]) => {
+              this.setUserMenuItems();
+              this.user = user;
+              this.accessLevel = accessLevel;
+              this.loadCollections(user);
         },
         error: error => console.error('Error in initialization:', error),
       });
   }
 
   private async loadCollections(user: any) {
-    try {
-      const [collections, collectionData] = await Promise.all([
-        firstValueFrom(await this.collectionService.getCollections()),
-        firstValueFrom(await this.collectionService.getCollectionBasicList()),
-      ]);
-
-      this.collections = collections;
-
-      if (user.lastCollectionAccessedId) {
-        this.selectedCollection = collections.find(
-          c => c.collectionId === user.lastCollectionAccessedId
-        );
-        const selectedCollectionData = collectionData.find(
-          c => c.collectionId === user.lastCollectionAccessedId
-        );
-        this.collectionType = selectedCollectionData?.collectionOrigin || 'C-PAT';
-        this.collectionName = selectedCollectionData?.collectionName || '';
+    forkJoin({
+      collections: this.collectionsService.getCollections(),
+      collectionData: this.collectionsService.getCollectionBasicList()
+    }).subscribe({
+      next: ({ collections, collectionData }) => {
+        this.collections = collections;
+        if (user.lastCollectionAccessedId) {
+          this.selectedCollection = collections.find(
+            c => c.collectionId === user.lastCollectionAccessedId
+          );
+          const selectedCollectionData = collectionData.find(
+            c => c.collectionId === user.lastCollectionAccessedId
+            );
+          this.collectionType = selectedCollectionData?.collectionOrigin || 'C-PAT';
+          this.collectionName = selectedCollectionData?.collectionName || '';
+            }
+        this.setMenuItems();
+      },
+      error: (error) => {
+        console.error('Error loading collections:', error);
+        this.collectionType = 'C-PAT';
       }
-    } catch (error) {
-      console.error('Error loading collections:', error);
-      this.collectionType = 'C-PAT';
-    }
+    });
   }
 
   getTagColor(origin: string): 'secondary' | 'success' | 'warn' | 'danger' | 'info' | undefined {
@@ -435,7 +438,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  async resetWorkspace(selectedCollectionId: number) {
+  resetWorkspace(selectedCollectionId: number) {
     this.sharedService.setSelectedCollection(selectedCollectionId);
 
     const collection = this.collections.find(
@@ -446,25 +449,23 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       this.selectedCollection = collection;
     }
 
-    const currentUser = await firstValueFrom(this.user$);
-
-    const userUpdate = {
-      userId: currentUser.userId,
-      lastCollectionAccessedId: selectedCollectionId,
-    };
-
-    if (currentUser.lastCollectionAccessedId !== selectedCollectionId) {
-      try {
-        const result = await (
-          await this.userService.updateUserLastCollection(userUpdate)
-        ).toPromise();
-        if (result) {
-          window.location.pathname = '/poam-processing';
-        }
-      } catch (error) {
+    this.user$.pipe(
+      take(1),
+      switchMap(currentUser => {
+        const userUpdate = {
+          userId: currentUser.userId,
+          lastCollectionAccessedId: selectedCollectionId,
+        };
+        return this.userService.updateUserLastCollection(userUpdate);
+      })
+    ).subscribe({
+      next: () => {
+        window.location.pathname = '/poam-processing';
+      },
+      error: (error) => {
         console.error('Error updating user:', error);
       }
-    }
+    });
   }
 
   setUserMenuItems() {
@@ -525,7 +526,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  private setMenuItems(user: any, accessLevel: number) {
+    private setMenuItems() {
     const menuItems: MenuItem[] = [
       {
         label: 'Home',
@@ -537,43 +538,43 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         label: 'Admin Portal',
         icon: 'pi pi-users',
         routerLink: ['/admin-processing'],
-        visible: user.isAdmin,
+          visible: this.user.isAdmin,
       },
       {
         label: 'Manage POAMs',
         icon: 'pi pi-list-check',
         routerLink: ['/poam-processing/poam-manage'],
-        visible: accessLevel >= 1,
+          visible: this.accessLevel >= 1,
       },
       {
         label: 'STIG Manager',
         icon: 'pi pi-shield',
         routerLink: ['/import-processing/stigmanager-import'],
-        visible: accessLevel >= 1 && this.collectionType === 'STIG Manager',
+          visible: this.accessLevel >= 1 && this.collectionType === 'STIG Manager',
       },
       {
         label: 'Tenable',
         icon: 'tenable-icon',
         routerLink: ['/import-processing/tenable-import'],
-        visible: accessLevel >= 1 && this.collectionType === 'Tenable',
+          visible: this.accessLevel >= 1 && this.collectionType === 'Tenable',
       },
       {
         label: 'Manual POAM Entry',
         icon: 'pi pi-file-plus',
         command: () => this.showConfirmPopup(),
-        visible: accessLevel >= 2,
+          visible: this.accessLevel >= 2,
       },
       {
         label: 'Asset Processing',
         icon: 'pi pi-server',
         routerLink: ['/asset-processing'],
-        visible: accessLevel >= 1,
+          visible: this.accessLevel >= 1,
       },
       {
         label: 'Label Processing',
         icon: 'pi pi-tags',
         routerLink: ['/label-processing'],
-        visible: accessLevel >= 1,
+          visible: this.accessLevel >= 1,
       },
       {
         label: 'Log Out',
@@ -600,11 +601,18 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     this.confirmPopupVisible = false;
   }
 
-  logout() {
-    this.authService.logout().then(() => {
-      this.router.navigate(['/login']);
-    });
-  }
+    logout() {
+        this.authService.logout().subscribe({
+            next: () => {
+                this.router.navigate(['/login']);
+            },
+            error: (error) => {
+                console.error('Logout failed:', error);
+            },
+        });
+    }
+
+
 
   ngOnDestroy() {
     this.destroy$.next();

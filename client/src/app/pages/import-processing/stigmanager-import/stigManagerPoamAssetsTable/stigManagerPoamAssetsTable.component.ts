@@ -3,7 +3,7 @@ import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { SharedService } from 'src/app/common/services/shared.service';
-import { firstValueFrom } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { ToastModule } from 'primeng/toast';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +22,7 @@ interface ExportColumn {
 interface Label {
   color: string;
   description: string;
-  labelId: string;
+  labelId: number;
   name: string;
   uses: number;
 }
@@ -58,7 +58,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
   selectedColumns: any[];
   affectedAssets: any[] = [];
   labels: Label[] = [];
-  isLoading: boolean = true;
   totalRecords: number = 0;
   filterValue: string = '';
 
@@ -67,15 +66,99 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
     private sharedService: SharedService
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.initColumnsAndFilters();
     if (this.stigmanCollectionId && this.groupId) {
-      await Promise.all([this.getAffectedAssets(), this.getLabels()]);
+      this.loadData();
     } else {
       this.showErrorMessage(
         'No vulnerability ID provided. Please enter a vulnerability ID and re-open the assets tab.'
       );
     }
+  }
+
+  loadData() {
+    forkJoin({
+      poamAssets: this.sharedService.getPOAMAssetsFromSTIGMAN(
+        this.stigmanCollectionId,
+        this.benchmarkId
+      ),
+      labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
+    }).subscribe({
+      next: ({ poamAssets, labels }) => {
+        this.labels = labels || [];
+
+        if (!poamAssets || poamAssets.length === 0) {
+          this.showErrorMessage('No affected assets found.');
+          return;
+        }
+
+        const matchingItem = poamAssets.find(item => item.groupId === this.groupId);
+        if (!matchingItem) {
+          this.showErrorMessage(`No assets found with vulnerabilityId: ${this.groupId}`);
+          return;
+        }
+
+        const mappedAssets = matchingItem.assets.map((asset: { name: string; assetId: number }) => ({
+          assetName: asset.name,
+          assetId: asset.assetId,
+        }));
+
+        this.loadAssetDetails(mappedAssets);
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.showErrorMessage('Failed to fetch data. Please try again later.');
+      }
+    });
+  }
+
+  loadAssetDetails(mappedAssets: any[]) {
+    this.sharedService.getAssetDetailsFromSTIGMAN(this.stigmanCollectionId)
+      .subscribe({
+        next: (assetDetails) => {
+          if (!assetDetails || assetDetails.length === 0) {
+            console.error('No asset details found.');
+            this.affectedAssets = mappedAssets;
+            return;
+          }
+
+          this.affectedAssets = mappedAssets.map(asset => {
+            const details = assetDetails.find(detail => detail.assetId === asset.assetId);
+            if (!details) return asset;
+
+            return {
+              ...asset,
+              ...(details.description && { description: details.description }),
+              ...(details.fqdn && { fqdn: details.fqdn }),
+              ...(details.ip && { ip: details.ip }),
+              ...(details.labelIds && { labelIds: details.labelIds }),
+              ...(details.mac && { mac: details.mac }),
+              ...(details.metadata && { metadata: details.metadata }),
+              ...(details.statusStats && { statusStats: details.statusStats }),
+              ...(details.stigGrants && { stigGrants: details.stigGrants }),
+              ...(details.stigs && { stigs: details.stigs }),
+              ...(details.collection && {
+                collectionId: details.collection.collectionId,
+              }),
+            };
+          });
+          this.totalRecords = this.affectedAssets.length;
+        },
+        error: (error) => {
+          console.error('Failed to fetch asset details from STIGMAN:', error);
+          this.showErrorMessage('Failed to fetch asset details. Please try again later.');
+          this.affectedAssets = mappedAssets;
+        }
+      });
+  }
+
+  getAssetLabels(asset: any): Label[] {
+    return (
+      asset.labelIds
+        ?.map((labelId: number) => this.labels.find(label => label.labelId === labelId))
+        .filter((label: Label | undefined): label is Label => label !== undefined) || []
+    );
   }
 
   initColumnsAndFilters() {
@@ -96,95 +179,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
       dataKey: col.field,
     }));
     this.resetColumnSelections();
-  }
-
-  async getAffectedAssets() {
-    this.isLoading = true;
-    try {
-      const data = await firstValueFrom(
-        await this.sharedService.getPOAMAssetsFromSTIGMAN(
-          this.stigmanCollectionId,
-          this.benchmarkId
-        )
-      );
-      if (!data || data.length === 0) {
-        this.showErrorMessage('No affected assets found.');
-        return;
-      }
-      const matchingItem = data.find(item => item.groupId === this.groupId);
-      if (!matchingItem) {
-        this.showErrorMessage(`No assets found with vulnerabilityId: ${this.groupId}`);
-        return;
-      }
-      const mappedAssets = matchingItem.assets.map((asset: { name: string; assetId: string }) => ({
-        assetName: asset.name,
-        assetId: asset.assetId,
-      }));
-      this.affectedAssets = await this.getAffectedAssetDetails(mappedAssets);
-      this.totalRecords = this.affectedAssets.length;
-    } catch (err) {
-      this.showErrorMessage('Failed to fetch affected assets. Please try again later.');
-    } finally {
-      this.isLoading = false;
-    }
-  }
-
-  async getAffectedAssetDetails(mappedAssets: any[]) {
-    try {
-      const assetDetails = await firstValueFrom(
-        await this.sharedService.getAssetDetailsFromSTIGMAN(this.stigmanCollectionId)
-      );
-      if (!assetDetails || assetDetails.length === 0) {
-        console.error('No asset details found.');
-        return mappedAssets;
-      }
-
-      return mappedAssets.map(asset => {
-        const details = assetDetails.find(detail => detail.assetId === asset.assetId);
-        if (!details) return asset;
-
-        return {
-          ...asset,
-          ...(details.description && { description: details.description }),
-          ...(details.fqdn && { fqdn: details.fqdn }),
-          ...(details.ip && { ip: details.ip }),
-          ...(details.labelIds && { labelIds: details.labelIds }),
-          ...(details.mac && { mac: details.mac }),
-          ...(details.metadata && { metadata: details.metadata }),
-          ...(details.statusStats && { statusStats: details.statusStats }),
-          ...(details.stigGrants && { stigGrants: details.stigGrants }),
-          ...(details.stigs && { stigs: details.stigs }),
-          ...(details.collection && {
-            collectionId: details.collection.collectionId,
-          }),
-        };
-      });
-    } catch (err) {
-      console.error('Failed to fetch asset details from STIGMAN:', err);
-      this.showErrorMessage('Failed to fetch asset details. Please try again later.');
-      return mappedAssets;
-    }
-  }
-
-  async getLabels() {
-    try {
-      const labels = await firstValueFrom(
-        await this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
-      );
-      this.labels = labels || [];
-    } catch (err) {
-      console.error('Failed to fetch labels:', err);
-      this.showErrorMessage('Failed to fetch labels. Please try again later.');
-      this.labels = [];
-    }
-  }
-
-  getAssetLabels(asset: any): Label[] {
-    return (
-      asset.labelIds
-        ?.map((labelId: string) => this.labels.find(label => label.labelId === labelId))
-        .filter((label: Label | undefined): label is Label => label !== undefined) || []
-    );
   }
 
   showErrorMessage(message: string) {

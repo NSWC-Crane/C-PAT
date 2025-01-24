@@ -8,10 +8,10 @@
 !##########################################################################
 */
 
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { firstValueFrom } from 'rxjs';
+import { Observable } from 'rxjs';
+import { HttpEvent } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -19,28 +19,16 @@ import { firstValueFrom } from 'rxjs';
 export class eMASSImportService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  async upload(file: File, userId: string) {
+  upload(file: File, userId: number): Observable<HttpEvent<any>> {
     const formData = new FormData();
     formData.append('file', file, file.name);
     formData.append('userId', userId);
 
-    const headers = await this.getAuthHeaders();
-    headers.set('Content-Type', 'multipart/form-data');
-
     return this.http.post(`${this.cpatApiBase}/import/poams`, formData, {
-      headers,
       reportProgress: true,
-      observe: 'events',
+      observe: 'events'
     });
   }
 }

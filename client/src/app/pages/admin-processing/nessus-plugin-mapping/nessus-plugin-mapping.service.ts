@@ -8,11 +8,10 @@
 !##########################################################################
 */
 
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { Observable, catchError, throwError, from } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -20,10 +19,7 @@ import { switchMap } from 'rxjs/operators';
 export class NessusPluginMappingService {
   private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+  constructor(private http: HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -34,30 +30,15 @@ export class NessusPluginMappingService {
     return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
-  private getAuthHeaders(): Observable<HttpHeaders> {
-    return this.oidcSecurityService.getAccessToken().pipe(
-      switchMap(token => {
-        const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-        return from(Promise.resolve(headers));
-      })
-    );
-  }
-
   getIAVTableData(): Observable<any> {
-    return this.getAuthHeaders().pipe(
-      switchMap(headers => this.http.get(`${this.cpatApiBase}/iav/iavSummary`, { headers })),
-      catchError(this.handleError)
-    );
+    return this.http
+      .get(`${this.cpatApiBase}/iav/iavSummary`)
+      .pipe(catchError(this.handleError));
   }
 
   mapIAVPluginIds(mappedData: any[]): Observable<any> {
-    return this.getAuthHeaders().pipe(
-      switchMap(headers =>
-        this.http.post(`${this.cpatApiBase}/mapPluginIds`, mappedData, {
-          headers,
-        })
-      ),
-      catchError(this.handleError)
-    );
+    return this.http
+      .post(`${this.cpatApiBase}/mapPluginIds`, mappedData)
+      .pipe(catchError(this.handleError));
   }
 }

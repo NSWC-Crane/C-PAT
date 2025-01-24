@@ -1,17 +1,18 @@
-@import './tailwind/main.css';
-@import 'primeicons/primeicons.css';
-@import './layout/layout.scss';
-@import './components/_pace-theme.scss';
-@import './components/_scrollbar.scss';
+@use './tailwind/main.css';
+@use 'primeicons/primeicons.css';
+@use './layout/layout.scss';
+@use './components/_pace-theme.scss' as *;
+@use './components/_scrollbar.scss' as *;
+@use './layout/_mixins.scss' as *;
 
 @include ngx-pace-theme();
-  * {
-    @include custom-scrollbar( var(--p-surface-900), var(--p-surface-700) );
-  }
 
+* {
+    @include custom-scrollbar(var(--p-surface-900), var(--p-surface-700));
+}
 
 html, body {
-  @include custom-scrollbar( var(--p-surface-900), var(--p-surface-700) );
+    @include custom-scrollbar(var(--p-surface-900), var(--p-surface-700));
 }
 
 .tenable-icon {
@@ -20,6 +21,19 @@ html, body {
    transform: scale(1.4);
    mask: url('/assets/icons/tenable.svg') no-repeat center;
    -webkit-mask: url('/assets/icons/tenable.svg') no-repeat center;
+   mask-size: contain;
+   -webkit-mask-size: contain;
+   background-color: currentColor;
+   display: inline-block;
+   font-weight: 900;
+}
+
+.api-icon {
+   width: 1rem;
+   height: 1rem;
+   transform: scale(1.4);
+   mask: url('/assets/icons/api.svg') no-repeat center;
+   -webkit-mask: url('/assets/icons/api.svg') no-repeat center;
    mask-size: contain;
    -webkit-mask-size: contain;
    background-color: currentColor;

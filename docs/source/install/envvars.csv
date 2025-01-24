@@ -13,8 +13,8 @@
 | Sets the classification banner, if any. Available values: ``NONE`` ``U`` ``FOUO`` ``CUI`` ``C`` ``S`` ``TS`` ``SCI`` ","API, Client"
 "CPAT_API_BASE","| **Default** ``api``
 | The base URL for Client requests to the API relative to the sever root at / ","Client"
-"CPAT_CLIENT_DIRECTORY","| **Default** ``../client/dist``
-| The location of the web client files, relative to the API source directory. Note that if running source from a clone of the GitHub repository, the client is located at `../client/dist` relative to the API directory. ","API, Client"
+"CPAT_CLIENT_DIRECTORY","| **Default** ``../client/dist/browser``
+| The location of the web client files, relative to the API source directory. Note that if running source from a clone of the GitHub repository, the client is located at `../client/dist/browser` relative to the API directory. ","API, Client"
 "CPAT_CLIENT_DISABLED","| **Default** ``false``
 | Whether to *not* serve the reference web client","Client"
 "CPAT_CLIENT_EXTRA_SCOPES","| **No default**

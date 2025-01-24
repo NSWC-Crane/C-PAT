@@ -25,6 +25,7 @@ import {
 } from '../collection-processing/collections.service';
 import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
+import { EMPTY, catchError, switchMap } from 'rxjs';
 interface AssignedTeam {
   assignedTeamId: number;
   assignedTeamName: string;
@@ -67,7 +68,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
 
   constructor(
     private assignedTeamService: AssignedTeamService,
-    private collectionService: CollectionsService,
+    private collectionsService: CollectionsService,
     private messageService: MessageService
   ) {}
 
@@ -76,30 +77,26 @@ export class AssignedTeamProcessingComponent implements OnInit {
     this.loadCollections();
   }
 
-  async loadAssignedTeams() {
-    try {
-      const response = await (await this.assignedTeamService.getAssignedTeams()).toPromise();
-      this.assignedTeams = response || [];
-    } catch (error) {
-      this.messageService.add({
+  loadAssignedTeams() {
+    this.assignedTeamService.getAssignedTeams().subscribe({
+      next: (response) => this.assignedTeams = response || [],
+      error: () => this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load Assigned Teams',
-      });
-    }
+        detail: 'Failed to load Assigned Teams'
+      })
+    });
   }
 
-  async loadCollections() {
-    try {
-      const response = await (await this.collectionService.getCollectionBasicList()).toPromise();
-      this.availableCollections = response || [];
-    } catch (error) {
-      this.messageService.add({
+  loadCollections() {
+    this.collectionsService.getCollectionBasicList().subscribe({
+      next: (response) => this.availableCollections = response || [],
+      error: () => this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load available collections',
-      });
-    }
+        detail: 'Failed to load available collections'
+      })
+    });
   }
 
   openNew() {
@@ -130,182 +127,167 @@ export class AssignedTeamProcessingComponent implements OnInit {
     this.teamDialog = true;
   }
 
-  async onMoveToTarget(event: any) {
+  onMoveToTarget(event: any) {
     const collection = event.items[0];
     if (!this.editingAssignedTeam || !collection) return;
-    if (this.dialogMode === 'new' && this.editingAssignedTeam.assignedTeamId === 0) {
-      const response = await (
-        await this.assignedTeamService.postAssignedTeam(this.editingAssignedTeam)
-      ).toPromise();
-      this.editingAssignedTeam.assignedTeamId = response!.assignedTeamId;
-    }
-    try {
-      const response = await (
-        await this.assignedTeamService.postAssignedTeamPermission({
-          assignedTeamId: this.editingAssignedTeam.assignedTeamId,
-          collectionId: collection.collectionId,
+
+    const createTeamAndPermission = () => {
+      return this.assignedTeamService.postAssignedTeam(this.editingAssignedTeam!).pipe(
+        switchMap(response => {
+          this.editingAssignedTeam!.assignedTeamId = response.assignedTeamId;
+          return this.assignedTeamService.postAssignedTeamPermission({
+            assignedTeamId: response.assignedTeamId,
+            collectionId: collection.collectionId
+          });
         })
-      ).subscribe(
-        () => {
-          if (!this.editingAssignedTeam!.permissions) {
-            this.editingAssignedTeam!.permissions = [];
-          }
-          this.editingAssignedTeam!.permissions.push({
-            collectionId: collection.collectionId,
-            collectionName: collection.collectionName,
-          });
-          if (response) {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: 'Permission Added',
-            });
-          }
-        },
-        (error: Error) => {
-          const index = this.assignedCollections.findIndex(
-            c => c.collectionId === collection.collectionId
-          );
-          if (index !== -1) {
-            this.assignedCollections.splice(index, 1);
-            this.availableCollections.push(collection);
-          }
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to add permission: ${error.message}`,
-          });
-        }
       );
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to add permission',
+    };
+
+    const addPermission = () => {
+      return this.assignedTeamService.postAssignedTeamPermission({
+        assignedTeamId: this.editingAssignedTeam!.assignedTeamId,
+        collectionId: collection.collectionId
       });
-    }
+    };
+
+    (this.dialogMode === 'new' && this.editingAssignedTeam.assignedTeamId === 0
+      ? createTeamAndPermission()
+      : addPermission()
+    ).pipe(
+      catchError(error => {
+        this.handlePermissionError(collection, error);
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      if (!this.editingAssignedTeam!.permissions) {
+        this.editingAssignedTeam!.permissions = [];
+      }
+      this.editingAssignedTeam!.permissions.push({
+        collectionId: collection.collectionId,
+        collectionName: collection.collectionName
+      });
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Permission Added'
+      });
+    });
   }
 
-  async onMoveToSource(event: any) {
+  onMoveToSource(event: any) {
     const collection = event.items[0];
     if (!this.editingAssignedTeam || !collection) return;
 
-    try {
-      await (
-        await this.assignedTeamService.deleteAssignedTeamPermission(
-          this.editingAssignedTeam.assignedTeamId,
-          collection.collectionId
-        )
-      ).subscribe(
-        () => {
-          if (this.editingAssignedTeam!.permissions) {
-            this.editingAssignedTeam!.permissions = this.editingAssignedTeam!.permissions.filter(
-              p => p.collectionId !== collection.collectionId
-            );
-          }
-
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Permission Removed',
-          });
-        },
-        (error: Error) => {
-          const index = this.availableCollections.findIndex(
-            c => c.collectionId === collection.collectionId
-          );
-          if (index !== -1) {
-            this.availableCollections.splice(index, 1);
-            this.assignedCollections.push(collection);
-          }
-
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to remove permission: ${error.message}`,
-          });
-        }
-      );
-    } catch (error) {
+    this.assignedTeamService.deleteAssignedTeamPermission(
+      this.editingAssignedTeam.assignedTeamId,
+      collection.collectionId
+    ).pipe(
+      catchError(error => {
+        this.handlePermissionError(collection, error, true);
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      if (this.editingAssignedTeam!.permissions) {
+        this.editingAssignedTeam!.permissions = this.editingAssignedTeam!.permissions
+          .filter(p => p.collectionId !== collection.collectionId);
+      }
       this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to remove permission',
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Permission Removed'
       });
-    }
+    });
   }
 
-  async saveTeam() {
-    try {
-      if (!this.editingAssignedTeam) return;
-      if (this.editingAssignedTeam.permissions) {
-        this.editingAssignedTeam.permissions = this.editingAssignedTeam.permissions.filter(
-          p => p.collectionId !== 0
-        );
-      }
+  saveTeam() {
+    if (!this.editingAssignedTeam) return;
 
-      if (this.dialogMode === 'new') {
-        const response = await (
-          await this.assignedTeamService.postAssignedTeam(this.editingAssignedTeam)
-        ).toPromise();
+    if (this.editingAssignedTeam.permissions) {
+      this.editingAssignedTeam.permissions = this.editingAssignedTeam.permissions
+        .filter(p => p.collectionId !== 0);
+    }
 
-        this.assignedTeams = [...this.assignedTeams, response!];
+    (this.dialogMode === 'new'
+      ? this.assignedTeamService.postAssignedTeam(this.editingAssignedTeam)
+      : this.assignedTeamService.putAssignedTeam(this.editingAssignedTeam)
+    ).pipe(
+      catchError(error => {
         this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Assigned Team Added',
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to save Assigned Team: ${error.message}`
         });
+        return EMPTY;
+      })
+    ).subscribe(response => {
+      if (this.dialogMode === 'new') {
+        this.assignedTeams = [...this.assignedTeams, response];
       } else {
-        await (
-          await this.assignedTeamService.putAssignedTeam(this.editingAssignedTeam)
-        ).toPromise();
-
         const index = this.assignedTeams.findIndex(
           team => team.assignedTeamId === this.editingAssignedTeam?.assignedTeamId
         );
-        this.assignedTeams[index] = this.editingAssignedTeam;
+        this.assignedTeams[index] = this.editingAssignedTeam!;
         this.assignedTeams = [...this.assignedTeams];
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Assigned Team Updated',
-        });
       }
-      this.hideDialog();
-    } catch (error) {
       this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to save Assigned Team',
+        severity: 'success',
+        summary: 'Success',
+        detail: `Assigned Team ${this.dialogMode === 'new' ? 'Added' : 'Updated'}`
       });
+      this.hideDialog();
+    });
+  }
+
+  onRowDelete(assignedTeam: AssignedTeam) {
+    this.assignedTeamService.deleteAssignedTeam(assignedTeam.assignedTeamId).pipe(
+      catchError(error => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to delete Assigned Team: ${error.message}`
+        });
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.assignedTeams = this.assignedTeams
+        .filter(p => p.assignedTeamId !== assignedTeam.assignedTeamId);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Assigned Team Deleted'
+      });
+    });
+  }
+
+  private handlePermissionError(collection: any, error: Error, isRemoval = false) {
+    if (isRemoval) {
+      const index = this.availableCollections.findIndex(
+        c => c.collectionId === collection.collectionId
+      );
+      if (index !== -1) {
+        this.availableCollections.splice(index, 1);
+        this.assignedCollections.push(collection);
+      }
+    } else {
+      const index = this.assignedCollections.findIndex(
+        c => c.collectionId === collection.collectionId
+      );
+      if (index !== -1) {
+        this.assignedCollections.splice(index, 1);
+        this.availableCollections.push(collection);
+      }
     }
+
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: `Failed to ${isRemoval ? 'remove' : 'add'} permission: ${error.message}`
+    });
   }
 
   hideDialog() {
     this.teamDialog = false;
     this.editingAssignedTeam = null;
-  }
-
-  async onRowDelete(assignedTeam: AssignedTeam) {
-    try {
-      await (
-        await this.assignedTeamService.deleteAssignedTeam(assignedTeam.assignedTeamId)
-      ).toPromise();
-      this.assignedTeams = this.assignedTeams.filter(
-        p => p.assignedTeamId !== assignedTeam.assignedTeamId
-      );
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Assigned Team Deleted',
-      });
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to delete Assigned Team',
-      });
-    }
   }
 
   filterGlobal(event: Event) {

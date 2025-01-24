@@ -129,7 +129,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   private payloadSubscription: Subscription[] = [];
 
   constructor(
-    private assignedTeamsService: AssignedTeamService,
+    private assignedTeamService: AssignedTeamService,
     private router: Router,
     private route: ActivatedRoute,
     private poamService: PoamService,
@@ -172,72 +172,74 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     );
   }
 
-  async getData() {
+  getData() {
     this.subscriptions.add(
       forkJoin([
-        await this.poamService.getPoam(this.poamId),
-        await this.poamExtensionService.getPoamExtension(this.poamId),
-        await this.poamService.getPoamMilestones(this.poamId),
-        await this.assignedTeamsService.getAssignedTeams(),
-      ]).subscribe(([poamData, extension, poamMilestones, assignedTeamOptions]: any) => {
-        const extensionDataset = extension;
-        this.poamMilestones = poamMilestones.poamMilestones.map((milestone: any) => ({
-          ...milestone,
-          milestoneDate: milestone.milestoneDate ? milestone.milestoneDate.split('T')[0] : null,
-          milestoneChangeDate: milestone.milestoneChangeDate
-            ? milestone.milestoneChangeDate.split('T')[0]
-            : null,
-        }));
+        this.poamService.getPoam(this.poamId),
+        this.poamExtensionService.getPoamExtension(this.poamId),
+        this.poamService.getPoamMilestones(this.poamId),
+        this.assignedTeamService.getAssignedTeams()
+      ]).subscribe({
+        next: ([poamData, extension, poamMilestones, assignedTeamOptions]: any) => {
+          const extensionDataset = extension;
+          this.poamMilestones = poamMilestones.poamMilestones.map((milestone: any) => ({
+            ...milestone,
+            milestoneDate: milestone.milestoneDate ? milestone.milestoneDate.split('T')[0] : null,
+            milestoneChangeDate: milestone.milestoneChangeDate
+              ? milestone.milestoneChangeDate.split('T')[0]
+              : null,
+          }));
 
-        this.assignedTeamOptions = assignedTeamOptions;
+          this.assignedTeamOptions = assignedTeamOptions;
 
-        if (extensionDataset.length > 0) {
-          const extensionData = extensionDataset[0];
-          this.poam = {
-            poamId: +poamData.poamId,
-            status: poamData.status,
-            mitigations: poamData.mitigations,
-            requiredResources: poamData.requiredResources,
-            residualRisk: poamData.residualRisk,
-            likelihood: poamData.likelihood,
-            localImpact: poamData.localImpact,
-            impactDescription: poamData.impactDescription,
-            extensionTimeAllowed: extensionData.extensionTimeAllowed,
-            extensionJustification: extensionData.extensionJustification,
-            scheduledCompletionDate: extensionData.scheduledCompletionDate
-              ? extensionData.scheduledCompletionDate.split('T')[0]
-              : '',
-          };
+          if (extensionDataset.length > 0) {
+            const extensionData = extensionDataset[0];
+            this.poam = {
+              poamId: +poamData.poamId,
+              status: poamData.status,
+              mitigations: poamData.mitigations,
+              requiredResources: poamData.requiredResources,
+              residualRisk: poamData.residualRisk,
+              likelihood: poamData.likelihood,
+              localImpact: poamData.localImpact,
+              impactDescription: poamData.impactDescription,
+              extensionTimeAllowed: extensionData.extensionTimeAllowed,
+              extensionJustification: extensionData.extensionJustification,
+              scheduledCompletionDate: extensionData.scheduledCompletionDate
+                ? extensionData.scheduledCompletionDate.split('T')[0]
+                : '',
+            };
 
-          this.extensionJustification = this.poam.extensionJustification;
+            this.extensionJustification = this.poam.extensionJustification;
 
-          if (this.poam.scheduledCompletionDate) {
-            const extendedDate = addDays(
-              parseISO(this.poam.scheduledCompletionDate),
-              this.poam.extensionTimeAllowed
-            );
-            this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
+            if (this.poam.scheduledCompletionDate) {
+              const extendedDate = addDays(
+                parseISO(this.poam.scheduledCompletionDate),
+                this.poam.extensionTimeAllowed
+              );
+              this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
+            } else {
+              this.completionDateWithExtension = '';
+            }
           } else {
+            this.poam = {
+              extensionTimeAllowed: 0,
+              extensionJustification: '',
+              scheduledCompletionDate: '',
+              mitigations: '',
+              requiredResources: '',
+              residualRisk: '',
+              likelihood: '',
+              localImpact: '',
+              impactDescription: '',
+            };
+
+            this.extensionJustification = '';
             this.completionDateWithExtension = '';
           }
-        } else {
-          this.poam = {
-            extensionTimeAllowed: 0,
-            extensionJustification: '',
-            scheduledCompletionDate: '',
-            mitigations: '',
-            requiredResources: '',
-            residualRisk: '',
-            likelihood: '',
-            localImpact: '',
-            impactDescription: '',
-          };
 
-          this.extensionJustification = '';
-          this.completionDateWithExtension = '';
+          this.getPoamLabels();
         }
-
-        this.getPoamLabels();
       })
     );
   }
@@ -512,23 +514,23 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     }
 
     try {
-      (await this.poamExtensionService.putPoamExtension(extensionData)).subscribe({
-        next: async res => {
+      this.poamExtensionService.putPoamExtension(extensionData).subscribe({
+        next: (res: any) => {
           if (res.null || res.null == 'null') {
             this.messageService.add({
               severity: 'error',
               summary: 'Information',
-              detail: 'Unexpected error adding POAM Extension',
+              detail: 'Unexpected error adding POAM Extension'
             });
           } else {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
-              detail: `Extension requested for POAM: ${res.poamId}`,
+              detail: `Extension requested for POAM: ${res.poamId}`
             });
 
             if (this.poam.extensionTimeAllowed > 0) {
-              await this.poamService.updatePoamStatus(this.poamId, extensionData);
+              this.poamService.updatePoamStatus(this.poamId, extensionData).subscribe();
             }
             setTimeout(() => {
               this.displayExtensionDialog = false;
@@ -540,9 +542,9 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           this.messageService.add({
             severity: 'error',
             summary: 'Information',
-            detail: 'Unexpected error adding POAM Extension',
+            detail: 'Unexpected error adding POAM Extension'
           });
-        },
+        }
       });
     } catch (error) {
       console.error('Failed to update POAM extension:', error);
@@ -554,35 +556,33 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     }
   }
 
-  async findOrCreateExtendedLabel() {
+  findOrCreateExtendedLabel() {
     const extendedLabel = this.poamLabels?.find((label: any) => label.labelName === 'Extended');
     if (extendedLabel) {
       return;
     }
     this.subscriptions.add(
-      (await this.poamService.getLabels(this.selectedCollection)).subscribe(async (labels: any) => {
+      this.poamService.getLabels(this.selectedCollection).subscribe((labels: any) => {
         this.labelList = labels;
         if (this.labelList) {
           const extendedLabel = this.labelList.find((label: any) => label.labelName === 'Extended');
           if (extendedLabel) {
             const extendedPoamLabel = {
               poamId: +this.poamId,
-              labelId: +extendedLabel.labelId,
+              labelId: +extendedLabel.labelId
             };
-            (await this.poamService.postPoamLabel(extendedPoamLabel)).subscribe(function () {});
+            this.poamService.postPoamLabel(extendedPoamLabel).subscribe();
           }
         } else {
           const extendLabel = {
             collectionId: this.selectedCollection,
             labelName: 'Extended',
-            description: 'POAM has been extended',
+            description: 'POAM has been extended'
           };
           this.subscriptions.add(
-            (await this.poamService.postLabel(this.selectedCollection, extendLabel)).subscribe(
-              () => {
-                this.findOrCreateExtendedLabel();
-              }
-            )
+            this.poamService.postLabel(this.selectedCollection, extendLabel).subscribe(() => {
+              this.findOrCreateExtendedLabel();
+            })
           );
         }
       })

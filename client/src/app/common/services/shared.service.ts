@@ -8,11 +8,10 @@
 !##########################################################################
 */
 
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({ providedIn: 'root' })
 export class SharedService {
@@ -20,10 +19,8 @@ export class SharedService {
   private STIGMANAGER_URL = CPAT.Env.stigman.apiUrl;
   private _selectedCollection = new BehaviorSubject<any>(null);
   public readonly selectedCollection = this._selectedCollection.asObservable();
-  constructor(
-    private http: HttpClient,
-    private oidcSecurityService: OidcSecurityService
-  ) {}
+
+  constructor(private http: HttpClient) { }
 
   private handleError(error: any) {
     let errorMessage = 'An unknown error occurred!';
@@ -36,135 +33,113 @@ export class SharedService {
     return throwError(() => new Error(errorMessage));
   }
 
-  private async getAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken());
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  private async getSTIGManagerAuthHeaders() {
-    const token = await firstValueFrom(this.oidcSecurityService.getAccessToken('stigman'));
-    return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  }
-
-  public setSelectedCollection(collection: any) {
+  public setSelectedCollection(collection: number): void {
     this._selectedCollection.next(collection);
   }
 
-  getApiConfig() {
-    return this.http.get(`${this.cpatApiBase}/op/configuration`).pipe(catchError(this.handleError));
-  }
-
-  async getPoamsByVulnerabilityId(vulnerabilityId: string) {
-    const headers = await this.getAuthHeaders();
-    return this.http
-      .get(`${this.cpatApiBase}/vulnerability/poam/${vulnerabilityId}`, {
-        headers,
-      })
+  getApiConfig(): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/op/configuration`)
       .pipe(catchError(this.handleError));
   }
 
-  async getExistingVulnerabilityPoams() {
-    const headers = await this.getAuthHeaders();
-    return this.http
-      .get(`${this.cpatApiBase}/vulnerability/existingPoams`, { headers })
+  getPoamsByVulnerabilityId(vulnerabilityId: string): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/vulnerability/poam/${vulnerabilityId}`)
       .pipe(catchError(this.handleError));
   }
 
-  async getSTIGsFromSTIGMAN() {
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http
-      .get<any[]>(`${this.STIGMANAGER_URL}/stigs/`, { headers })
+  getExistingVulnerabilityPoams(): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/vulnerability/existingPoams`)
       .pipe(catchError(this.handleError));
   }
 
-  async getCollectionsFromSTIGMAN() {
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http
-      .get<any[]>(`${this.STIGMANAGER_URL}/collections/`, { headers })
+  getSTIGsFromSTIGMAN(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/stigs/`)
       .pipe(catchError(this.handleError));
   }
 
-  async selectedCollectionFromSTIGMAN(collectionId: number) {
-    const endpoint = `${this.STIGMANAGER_URL}/collections/${collectionId}?projection=labels`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(endpoint, { headers }).pipe(catchError(this.handleError));
+  getCollectionsFromSTIGMAN(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/`)
+      .pipe(catchError(this.handleError));
   }
 
-  async getAssetsFromSTIGMAN(collectionId: number) {
-    const endpoint = `${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(endpoint, { headers }).pipe(catchError(this.handleError));
+  selectedCollectionFromSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}?projection=labels`)
+      .pipe(catchError(this.handleError));
   }
 
-  async getSTIGAssociatedAssets(collectionId: number, benchmarkId: string) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`)
+      .pipe(catchError(this.handleError));
   }
 
-  async getPOAMAssetsFromSTIGMAN(collectionId: number, benchmarkId: string) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=assets`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getSTIGAssociatedAssets(collectionId: number, benchmarkId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`)
+      .pipe(catchError(this.handleError));
   }
 
-  async getFindingsFromSTIGMAN(collectionId: number) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=stigs&projection=rules`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getPOAMAssetsFromSTIGMAN(collectionId: number, benchmarkId: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=assets`
+    ).pipe(catchError(this.handleError));
   }
 
-  async getAffectedAssetsFromSTIGMAN(collectionId: number) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=stigs&projection=rules&projection=ccis`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getFindingsFromSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=stigs&projection=rules`
+    ).pipe(catchError(this.handleError));
   }
 
-  async getSTIGMANAffectedAssetsForExport(collectionId: number) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=ccis`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getAffectedAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=stigs&projection=rules&projection=ccis`
+    ).pipe(catchError(this.handleError));
   }
 
-  async getSTIGMANAffectedAssetsByPoam(collectionId: number, benchmarkId: string) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=assets&projection=ccis`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any>(url, { headers }).pipe(catchError(this.handleError));
+  getSTIGMANAffectedAssetsForExport(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=ccis`
+    ).pipe(catchError(this.handleError));
   }
 
-  async getAffectedAssetsFromSTIGMANByBenchmarkId(collectionId: number, benchmarkId: string) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getSTIGMANAffectedAssetsByPoam(collectionId: number, benchmarkId: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=assets&projection=ccis`
+    ).pipe(catchError(this.handleError));
   }
 
-  async getCollectionWithAssetsFromSTIGMAN(collectionId: number) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}?elevate=false&projection=assets`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getAffectedAssetsFromSTIGMANByBenchmarkId(collectionId: number, benchmarkId: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`
+    ).pipe(catchError(this.handleError));
   }
 
-  async getAssetDetailsFromSTIGMAN(collectionId: number) {
-    const url = `${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getCollectionWithAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}?elevate=false&projection=assets`
+    ).pipe(catchError(this.handleError));
   }
 
-  async getLabelsByCollectionSTIGMAN(collectionId: number) {
-    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/labels`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getAssetDetailsFromSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`
+    ).pipe(catchError(this.handleError));
   }
 
-  async getRuleDataFromSTIGMAN(ruleId: string) {
-    const url = `${this.STIGMANAGER_URL}/stigs/rules/${ruleId}?projection=detail&projection=check&projection=fix`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any[]>(url, { headers }).pipe(catchError(this.handleError));
+  getLabelsByCollectionSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/labels`
+    ).pipe(catchError(this.handleError));
   }
 
-  async selectedAssetsFromSTIGMAN(assetId: number) {
-    const endpoint = `${this.STIGMANAGER_URL}/assets/${assetId}`;
-    const headers = await this.getSTIGManagerAuthHeaders();
-    return this.http.get<any>(endpoint, { headers }).pipe(catchError(this.handleError));
+  getRuleDataFromSTIGMAN(ruleId: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/stigs/rules/${ruleId}?projection=detail&projection=check&projection=fix`
+    ).pipe(catchError(this.handleError));
+  }
+
+  selectedAssetsFromSTIGMAN(assetId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.STIGMANAGER_URL}/assets/${assetId}`
+    ).pipe(catchError(this.handleError));
   }
 }

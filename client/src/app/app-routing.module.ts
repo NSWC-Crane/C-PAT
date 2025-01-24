@@ -43,6 +43,12 @@ export const routes: Routes = [
         children: adminProcessingRoutes,
       },
       {
+        path: 'app-info',
+        canActivate: [AuthGuard],
+        data: { guardType: 'admin' },
+        children: adminProcessingRoutes,
+      },
+      {
         path: 'asset-processing',
         canActivate: [AuthGuard],
         children: assetProcessingRoutes,

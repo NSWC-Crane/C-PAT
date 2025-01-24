@@ -164,6 +164,7 @@
                               dateFormat="yy-mm-dd"
                               [showIcon]="true"
                               appendTo="body"
+                              [baseZIndex]="9999"
                               [disabled]="accessLevel < 2"
                             ></p-datepicker>
                           </ng-template>
@@ -180,6 +181,7 @@
                               [(ngModel)]="milestone.milestoneStatus"
                               [style]="{'width':'100%'}"
                               appendTo="body"
+                              [baseZIndex]="9999"
                               [disabled]="accessLevel < 2"
                             ></p-select>
                           </ng-template>
@@ -198,6 +200,7 @@
                               optionValue="assignedTeamName"
                               [style]="{'width':'100%'}"
                               appendTo="body"
+                              [baseZIndex]="9999"
                               [disabled]="accessLevel < 2"
                             ></p-select>
                           </ng-template>
@@ -342,6 +345,7 @@
                     optionLabel="label"
                     optionValue="value"
                     appendTo="body"
+                    [baseZIndex]="9999"
                     [style]="{'width':'100%'}"
                     [disabled]="accessLevel < 2"
                   ></p-select>
@@ -371,7 +375,7 @@
                     optionValue="value"
                     appendTo="body"
                     [style]="{'width':'100%'}"
-                    [disabled]="accessLevel < 2"
+                    [disabled]="true"
                   ></p-select>
                 </div>
 
@@ -387,7 +391,7 @@
                     optionValue="value"
                     appendTo="body"
                     [style]="{'width':'100%'}"
-                    [disabled]="accessLevel < 2"
+                    [disabled]="true"
                   ></p-select>
                 </div>
               </div>

@@ -10,7 +10,6 @@
 
 import { Component, OnInit } from '@angular/core';
 import { UsersService } from './user-processing/users.service';
-import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
 import { TabsModule } from 'primeng/tabs';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
@@ -23,6 +22,8 @@ import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
 import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
+import { ButtonModule } from 'primeng/button';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'cpat-admin-processing',
@@ -32,6 +33,7 @@ import { UserProcessingComponent } from './user-processing/user-processing.compo
   imports: [
     AAPackageProcessingComponent,
     AssignedTeamProcessingComponent,
+    ButtonModule,
     CollectionProcessingComponent,
     CommonModule,
     FormsModule,
@@ -46,29 +48,39 @@ import { UserProcessingComponent } from './user-processing/user-processing.compo
 export class AdminProcessingComponent implements OnInit {
   value: number = 0;
   user: any;
-  private subs = new SubSink();
-
+  private destroy$ = new Subject<void>();
   constructor(
     private userService: UsersService,
     private router: Router
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.user = null;
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe({
+    this.userService.getCurrentUser().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
       next: (response: any) => {
         this.user = response;
         if (!this.user.isAdmin) {
           this.router.navigate(['/403']);
         }
       },
-      error: async error => {
+      error: error => {
         console.error('An error occurred:', error.message);
-      },
+      }
     });
+  }
+
+  navigateToAppInfo() {
+    this.router.navigate(['/admin-processing/app-info']);
   }
 
   switchToPluginMapping() {
     this.value = 5;
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

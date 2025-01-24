@@ -238,54 +238,64 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     this.loadUserData();
   }
 
-  async loadUserData() {
-    this.subs.sink = (await this.userService.getCurrentUser()).subscribe(
-      async (response: any) => {
+  loadUserData() {
+    this.subs.sink = this.userService.getCurrentUser().subscribe({
+      next: (response: any) => {
         if (response?.userId) {
           this.user = response;
-          await this.loadUserPointsAndThemes();
+          this.loadUserPointsAndThemes();
         }
       },
-      (error: Error) => {
+      error: (error: Error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Failed to load user data: ${error.message}`,
         });
       }
-    );
+    });
   }
 
-  async loadUserPointsAndThemes() {
-    await this.loadUserPoints();
-    await this.loadThemes();
+  loadUserPointsAndThemes() {
+    this.loadUserPoints();
+    this.loadThemes();
   }
 
-  async loadUserPoints() {
-    this.subs.sink = (await this.marketplaceService.getUserPoints()).subscribe(
-      (response: any) => {
+
+  loadUserPoints() {
+    this.subs.sink = this.marketplaceService.getUserPoints().subscribe({
+      next: (response: any) => {
         this.userPoints = response.points;
       },
-      (error: Error) => {
+      error: (error: Error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Failed to load user points: ${error.message}`,
         });
       }
-    );
+    });
   }
 
-  async loadThemes() {
+  loadThemes() {
     this.subs.sink = forkJoin([
-      await this.marketplaceService.getThemes(),
-      await this.marketplaceService.getUserThemes(),
-    ]).subscribe(([allThemes, purchasedThemes]: [Theme[], Theme[]]) => {
-      this.themes = allThemes.filter(
-        theme => !purchasedThemes.find(p => p.themeId === theme.themeId)
-      );
-      this.purchasedThemes = purchasedThemes;
-      this.updateThemeImageUrls();
+      this.marketplaceService.getThemes(),
+      this.marketplaceService.getUserThemes()
+    ]).subscribe({
+      next: ([allThemes, purchasedThemes]: [Theme[], Theme[]]) => {
+        this.themes = allThemes.filter(
+          theme => !purchasedThemes.find(p => p.themeId === theme.themeId)
+        );
+        this.purchasedThemes = purchasedThemes;
+        this.updateThemeImageUrls();
+      },
+      error: (error: Error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load themes: ${error.message}`,
+        });
+      }
     });
   }
 
@@ -298,34 +308,33 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     });
   }
 
-  async purchaseTheme(theme: Theme) {
+  purchaseTheme(theme: Theme) {
     if (this.userPoints >= theme.cost) {
       this.confirmationService.confirm({
         message: `Are you sure you want to purchase ${theme.themeName} for ${theme.cost} points?`,
         header: 'Confirm Purchase',
         icon: 'pi pi-exclamation-triangle',
-        accept: async () => {
-          this.subs.sink = (
-            await this.marketplaceService.purchaseTheme(this.user.userId, theme.themeId)
-          ).subscribe(
-            () => {
-              this.userPoints -= theme.cost;
-              this.loadThemes();
-              this.setTheme(theme.themeIdentifier);
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'Theme purchased successfully',
-              });
-            },
-            (error: Error) => {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Failed to purchase theme: ${error.message}`,
-              });
-            }
-          );
+        accept: () => {
+          this.subs.sink = this.marketplaceService.purchaseTheme(this.user.userId, theme.themeId)
+            .subscribe({
+              next: () => {
+                this.userPoints -= theme.cost;
+                this.loadThemes();
+                this.setTheme(theme.themeIdentifier);
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Success',
+                  detail: 'Theme purchased successfully',
+                });
+              },
+              error: (error: Error) => {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Failed to purchase theme: ${error.message}`,
+                });
+              }
+            });
         },
       });
     } else {
@@ -341,45 +350,52 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     });
   }
 
-  async setTheme(surfaceName: string) {
-    try {
-      const surface = this.surfaces.find(s => s.name === surfaceName);
-      if (!surface) {
-        throw new Error(`Surface palette ${surfaceName} not found`);
-      }
-
-      this.configService.appState.update(state => ({
-        ...state,
-        surface: surfaceName,
-      }));
-
-      updateSurfacePalette(surface.palette);
-      const currentState = this.configService.appState();
-      const preferences = {
-        userId: this.user.userId,
-        defaultTheme: JSON.stringify({
-          preset: currentState.preset,
-          primary: currentState.primary,
-          surface: surfaceName,
-          darkTheme: currentState.darkTheme,
-          rtl: currentState.RTL,
-        }),
-      };
-
-      await (await this.userService.updateUserTheme(preferences)).toPromise();
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Theme applied successfully',
-      });
-    } catch (error) {
+  setTheme(surfaceName: string) {
+    const surface = this.surfaces.find(s => s.name === surfaceName);
+    if (!surface) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to apply theme',
+        detail: `Surface palette ${surfaceName} not found`,
       });
+      return;
     }
+
+    this.configService.appState.update(state => ({
+      ...state,
+      surface: surfaceName,
+    }));
+
+    updateSurfacePalette(surface.palette);
+    const currentState = this.configService.appState();
+    const preferences = {
+      userId: this.user.userId,
+      defaultTheme: JSON.stringify({
+        preset: currentState.preset,
+        primary: currentState.primary,
+        surface: surfaceName,
+        darkTheme: currentState.darkTheme,
+        rtl: currentState.RTL,
+      }),
+    };
+
+    this.subs.sink = this.userService.updateUserTheme(preferences)
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Theme applied successfully',
+          });
+        },
+        error: (error: Error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to apply theme: ${error.message}`,
+          });
+        }
+      });
   }
 
   getThemeImage(themeId: number | undefined): string {

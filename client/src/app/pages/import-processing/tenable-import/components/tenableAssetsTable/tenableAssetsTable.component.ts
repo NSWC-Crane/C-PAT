@@ -152,74 +152,73 @@ export class TenableAssetsTableComponent implements OnInit {
     );
   }
 
-  async getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number) {
-    const analysisParams = {
-      query: {
-        description: '',
-        context: '',
-        status: -1,
-        createdTime: 0,
-        modifiedTime: 0,
-        groups: [],
-        type: 'vuln',
-        tool: 'listvuln',
-        sourceType: 'cumulative',
-        startOffset: 0,
-        endOffset: 5000,
-        filters: [
-          {
-            id: 'pluginID',
-            filterName: 'pluginID',
-            operator: '=',
+    getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number) {
+        const analysisParams = {
+            query: {
+                description: '',
+                context: '',
+                status: -1,
+                createdTime: 0,
+                modifiedTime: 0,
+                groups: [],
+                type: 'vuln',
+                tool: 'listvuln',
+                sourceType: 'cumulative',
+                startOffset: 0,
+                endOffset: 5000,
+                filters: [
+                    {
+                        id: 'pluginID',
+                        filterName: 'pluginID',
+                        operator: '=',
+                        type: 'vuln',
+                        isPredefined: true,
+                        value: pluginID,
+                    },
+                    {
+                        id: 'repository',
+                        filterName: 'repository',
+                        operator: '=',
+                        type: 'vuln',
+                        isPredefined: true,
+                        value: [{ id: tenableRepoId.toString() }],
+                    },
+                ],
+                vulnTool: 'listvuln',
+            },
+            sourceType: 'cumulative',
+            columns: [],
             type: 'vuln',
-            isPredefined: true,
-            value: pluginID,
-          },
-          {
-            id: 'repository',
-            filterName: 'repository',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: [
-              {
-                id: tenableRepoId.toString(),
-              },
-            ],
-          },
-        ],
-        vulnTool: 'listvuln',
-      },
-      sourceType: 'cumulative',
-      columns: [],
-      type: 'vuln',
-    };
+        };
 
-    try {
-      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
-      this.affectedAssets = data.response.results.map((asset: any) => {
-        const defaultAsset = {
-          pluginID: '',
-          pluginName: '',
-          family: { name: '' },
-          severity: { name: '' },
-          vprScore: '',
-        };
-        return {
-          ...defaultAsset,
-          ...asset,
-          pluginName: asset.name || '',
-          family: asset.family?.name || '',
-          severity: asset.severity?.name || '',
-        };
-      });
-      this.totalRecords = this.affectedAssets.length;
-      this.isLoading = false;
-    } catch (error) {
-      console.error('Error fetching affected assets:', error);
-      this.showErrorMessage('Error fetching affected assets. Please try again.');
+        this.importService.postTenableAnalysis(analysisParams).subscribe({
+            next: (data) => {
+                this.affectedAssets = data.response.results.map((asset: any) => {
+                    const defaultAsset = {
+                        pluginID: '',
+                        pluginName: '',
+                        family: { name: '' },
+                        severity: { name: '' },
+                        vprScore: '',
+                    };
+                    return {
+                        ...defaultAsset,
+                        ...asset,
+                        pluginName: asset.name || '',
+                        family: asset.family?.name || '',
+                        severity: asset.severity?.name || '',
+                    };
+                });
+                this.totalRecords = this.affectedAssets.length;
+                this.isLoading = false;
+            },
+            error: (error) => {
+                console.error('Error fetching affected assets:', error);
+                this.showErrorMessage('Error fetching affected assets. Please try again.');
+            }
+        });
     }
-  }
+
 
   async lazyOrNot(event: TableLazyLoadEvent) {
     if (this.pluginID && !this.assetProcessing) {
@@ -229,111 +228,110 @@ export class TenableAssetsTableComponent implements OnInit {
     }
   }
 
-  async getAffectedAssets(event: TableLazyLoadEvent) {
-    if (!this.tenableRepoId) return;
-    const startOffset = event.first ?? 0;
-    const endOffset = startOffset + (event.rows ?? 20);
-    const repoFilter = {
-      id: 'repository',
-      filterName: 'repository',
-      operator: '=',
-      type: 'vuln',
-      isPredefined: true,
-      value: [
-        {
-          id: this.tenableRepoId.toString(),
-        },
-      ],
-    };
-    const analysisParams = {
-      query: {
-        description: '',
-        context: '',
-        status: -1,
-        createdTime: 0,
-        modifiedTime: 0,
-        groups: [],
-        type: 'vuln',
-        tool: 'listvuln',
-        sourceType: 'cumulative',
-        startOffset: startOffset,
-        endOffset: endOffset,
-        filters: [repoFilter],
-        vulnTool: 'listvuln',
-      },
-      sourceType: 'cumulative',
-      columns: [],
-      type: 'vuln',
-    };
+    getAffectedAssets(event: TableLazyLoadEvent) {
+        if (!this.tenableRepoId) return;
 
-    try {
-      const data = await (await this.importService.postTenableAnalysis(analysisParams)).toPromise();
-      this.affectedAssets = data.response.results.map((asset: any) => {
-        const defaultAsset = {
-          pluginID: '',
-          pluginName: '',
-          family: { name: '' },
-          severity: { name: '' },
-          vprScore: '',
+        const startOffset = event.first ?? 0;
+        const endOffset = startOffset + (event.rows ?? 20);
+        const repoFilter = {
+            id: 'repository',
+            filterName: 'repository',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: [{ id: this.tenableRepoId.toString() }],
         };
-        return {
-          ...defaultAsset,
-          ...asset,
-          pluginName: asset.name || '',
-          family: asset.family?.name || '',
-          severity: asset.severity?.name || '',
+
+        const analysisParams = {
+            query: {
+                description: '',
+                context: '',
+                status: -1,
+                createdTime: 0,
+                modifiedTime: 0,
+                groups: [],
+                type: 'vuln',
+                tool: 'listvuln',
+                sourceType: 'cumulative',
+                startOffset: startOffset,
+                endOffset: endOffset,
+                filters: [repoFilter],
+                vulnTool: 'listvuln',
+            },
+            sourceType: 'cumulative',
+            columns: [],
+            type: 'vuln',
         };
-      });
-      this.totalRecords = data.response.totalRecords;
-      this.isLoading = false;
-    } catch (error) {
-      console.error('Error fetching affected assets:', error);
-      this.showErrorMessage('Error fetching affected assets. Please try again.');
+
+        this.importService.postTenableAnalysis(analysisParams).subscribe({
+            next: (data) => {
+                this.affectedAssets = data.response.results.map((asset: any) => {
+                    const defaultAsset = {
+                        pluginID: '',
+                        pluginName: '',
+                        family: { name: '' },
+                        severity: { name: '' },
+                        vprScore: '',
+                    };
+                    return {
+                        ...defaultAsset,
+                        ...asset,
+                        pluginName: asset.name || '',
+                        family: asset.family?.name || '',
+                        severity: asset.severity?.name || '',
+                    };
+                });
+                this.totalRecords = data.response.totalRecords;
+                this.isLoading = false;
+            },
+            error: (error) => {
+                console.error('Error fetching affected assets:', error);
+                this.showErrorMessage('Error fetching affected assets. Please try again.');
+            }
+        });
     }
-  }
 
-  async showDetails(vulnerability: any) {
-    try {
-      if (!vulnerability || !vulnerability.pluginID) {
-        throw new Error('Invalid vulnerability data');
-      }
+    showDetails(vulnerability: any) {
+        if (!vulnerability || !vulnerability.pluginID) {
+            throw new Error('Invalid vulnerability data');
+        }
 
-      const data = await (
-        await this.importService.getTenablePlugin(vulnerability.pluginID)
-      ).toPromise();
+        this.importService.getTenablePlugin(vulnerability.pluginID).subscribe({
+            next: (data) => {
+                if (!data || !data.response) {
+                    throw new Error('Invalid response from getTenablePlugin');
+                }
 
-      if (!data || !data.response) {
-        throw new Error('Invalid response from getTenablePlugin');
-      }
+                this.pluginData = data.response;
+                this.formattedDescription = this.pluginData.description
+                    ? this.sanitizer.bypassSecurityTrustHtml(
+                        this.pluginData.description.replace(/\n\n/g, '<br>')
+                    )
+                    : '';
 
-      this.pluginData = data.response;
-      this.formattedDescription = this.pluginData.description
-        ? this.sanitizer.bypassSecurityTrustHtml(
-            this.pluginData.description.replace(/\n\n/g, '<br>')
-          )
-        : '';
+                if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
+                    this.parseReferences(this.pluginData.xrefs);
+                } else {
+                    this.cveReferences = [];
+                    this.iavReferences = [];
+                    this.otherReferences = [];
+                }
 
-      if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
-        this.parseReferences(this.pluginData.xrefs);
-      } else {
-        this.cveReferences = [];
-        this.iavReferences = [];
-        this.otherReferences = [];
-      }
+                if (Array.isArray(this.pluginData.vprContext)) {
+                    this.parseVprContext(this.pluginData.vprContext);
+                } else {
+                    this.parsedVprContext = [];
+                }
 
-      if (Array.isArray(this.pluginData.vprContext)) {
-        this.parseVprContext(this.pluginData.vprContext);
-      } else {
-        this.parsedVprContext = [];
-      }
-
-      this.selectedVulnerability = vulnerability;
-      this.displayDialog = true;
-    } catch (error) {
-      console.error('Error fetching plugin data:', error);
-      this.showErrorMessage('Error fetching plugin data. Please try again.');
+                this.selectedVulnerability = vulnerability;
+                this.displayDialog = true;
+            },
+            error: (error) => {
+                console.error('Error fetching plugin data:', error);
+                this.showErrorMessage('Error fetching plugin data. Please try again.');
+            }
+        });
     }
-  }
 
   parseVprContext(vprContext: string) {
     try {

@@ -44,7 +44,7 @@ interface Column {
   customExportHeader?: string;
 }
 interface AssetEntry {
-  assetId: string;
+  assetId: any;
   assetName: string;
   description: string;
   ipAddress: string;
@@ -109,20 +109,19 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
     private assetService: AssetService,
     private setPayloadService: PayloadService,
     private sharedService: SharedService,
-    private collectionService: CollectionsService
+    private collectionsService: CollectionsService
   ) {
     this.initializeChartOptions();
   }
 
   async ngOnInit() {
     this.subscriptions.add(
-      await this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
       })
     );
-    await (
-      await this.collectionService.getCollectionBasicList()
-    ).subscribe({
+
+    this.collectionsService.getCollectionBasicList().subscribe({
       next: data => {
         const selectedCollectionData = data.find(
           (collection: any) => collection.collectionId === this.selectedCollection
@@ -136,6 +135,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
         this.collectionOrigin = '';
       },
     });
+
     this.setPayload();
     this.initializeColumns();
   }
@@ -188,20 +188,20 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
     );
   }
 
-  async getAssetData() {
-    if (this.payload == undefined) return;
-    this.subs.sink = forkJoin(
-      await this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
-      await this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
-    ).subscribe(
+  getAssetData() {
+    if (!this.payload) return;
+
+    this.subs.sink = forkJoin([
+      this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
+      this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
+    ]).subscribe(
       ([assetData, assetLabelResponse]: any) => {
         if (!Array.isArray(assetData)) {
           console.error('Unexpected response format:', assetData);
-        } else if (!Array.isArray(assetLabelResponse.assetLabel)) {
-          console.error(
-            'assetLabelResponse.assetLabel is not an array',
-            assetLabelResponse.assetLabel
-          );
+          return;
+        }
+        if (!Array.isArray(assetLabelResponse.assetLabel)) {
+          console.error('assetLabelResponse.assetLabel is not an array', assetLabelResponse.assetLabel);
           return;
         }
 
@@ -211,9 +211,9 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
         this.data = (assetData as AssetEntry[])
           .map(asset => ({
             ...asset,
-            assetId: String(asset.assetId),
+            assetId: Number(asset.assetId),
           }))
-          .sort((a, b) => a.assetId.localeCompare(b.assetId));
+          .sort((a, b) => a.assetId - b.assetId);
         this.assets = this.data;
       },
       error => {
@@ -271,7 +271,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
     }
   }
 
-  setAsset(assetId: string) {
+  setAsset(assetId: number) {
     const selectedData = this.data.find(asset => asset.assetId === assetId);
     if (selectedData) {
       this.asset = { ...selectedData };

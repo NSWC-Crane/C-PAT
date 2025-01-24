@@ -14,12 +14,19 @@ import { UserProcessingComponent } from './user-processing/user-processing.compo
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { AdminProcessingComponent } from './admin-processing.component';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
+import { AppInfoComponent } from './app-info/app-info.component';
 
 export const adminProcessingRoutes: Routes = [
   {
     path: '',
     canActivate: [AuthGuard],
     component: AdminProcessingComponent,
+    data: { guardType: 'admin' },
+  },
+  {
+    path: 'app-info',
+    canActivate: [AuthGuard],
+    component: AppInfoComponent,
     data: { guardType: 'admin' },
   },
   {

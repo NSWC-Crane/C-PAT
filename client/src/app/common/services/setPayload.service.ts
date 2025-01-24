@@ -10,7 +10,7 @@
 
 import { Injectable } from '@angular/core';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, map } from 'rxjs';
 import { Users } from '../../pages/admin-processing/user-processing/users.model';
 
 interface Permission {
@@ -39,38 +39,45 @@ export class PayloadService {
     private userService: UsersService
   ) { }
 
-  async setPayload() {
-    try {
-      const response = (await firstValueFrom(await this.userService.getCurrentUser())) as Users;
+    setPayload() {
+        this.userService.getCurrentUser().pipe(
+            map((response: Users) => {
+                if (response?.userId) {
+                    const user = response;
+                    const mappedPermissions: Permission[] = user.permissions?.map(permission => ({
+                        collectionId: permission.collectionId,
+                        accessLevel: permission.accessLevel,
+                    }));
 
-      if (response?.userId) {
-        const user = response;
-        const mappedPermissions: Permission[] = user.permissions?.map(permission => ({
-          collectionId: permission.collectionId,
-          accessLevel: permission.accessLevel,
-        }));
+                    const payload: Payload = {
+                        ...user,
+                        collections: mappedPermissions,
+                    };
 
-        const payload: Payload = {
-          ...user,
-          collections: mappedPermissions,
-        };
+                    let accessLevel = 0;
+                    if (mappedPermissions?.length > 0) {
+                        const selectedPermissions = payload.collections.find(
+                            x => x.collectionId === payload.lastCollectionAccessedId
+                        );
+                        if (selectedPermissions) {
+                            accessLevel = selectedPermissions.accessLevel;
+                        }
+                    }
 
-        let accessLevel = 0;
-        if (mappedPermissions?.length > 0) {
-          const selectedPermissions = payload.collections.find(
-            x => x.collectionId === payload.lastCollectionAccessedId
-          );
-          if (selectedPermissions) {
-            accessLevel = selectedPermissions.accessLevel;
-          }
-          this.userSubject.next(user);
-          this.payloadSubject.next(payload);
-          this.accessLevelSubject.next(accessLevel);
-        }
-      }
-    } catch (error) {
-      console.error('An error occurred:', error);
-      throw error;
+                    return { user, payload, accessLevel };
+                }
+
+                throw new Error('User ID is not available');
+            })
+        ).subscribe({
+            next: ({ user, payload, accessLevel }) => {
+                this.userSubject.next(user);
+                this.payloadSubject.next(payload);
+                this.accessLevelSubject.next(accessLevel);
+            },
+            error: (error) => {
+                console.error('An error occurred:', error);
+            }
+        });
     }
-  }
 }

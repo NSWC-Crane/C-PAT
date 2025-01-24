@@ -33,7 +33,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 
 interface LabelEntry {
-  labelId: string;
+  labelId: any;
   labelName: string;
   description: string;
 }
@@ -95,7 +95,7 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     this.resetData();
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
@@ -104,8 +104,8 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     this.setPayload();
   }
 
-  async setPayload() {
-    await this.setPayloadService.setPayload();
+  setPayload() {
+    this.setPayloadService.setPayload();
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe(user => {
         this.user = user;
@@ -122,25 +122,26 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     );
   }
 
-  async getLabelData() {
+  getLabelData() {
     this.labels = [];
-    this.subs.sink = (await this.labelService.getLabels(this.selectedCollection)).subscribe(
-      (result: any) => {
-        this.data = (result as LabelEntry[])
-          .map(label => ({
-            ...label,
-            labelId: String(label.labelId),
-          }))
-          .sort((a, b) => a.labelId.localeCompare(b.labelId));
-        this.labels = this.data;
-      },
-      error => {
-        console.error('Error fetching labels:', error);
-      }
-    );
+    this.subs.sink = this.labelService.getLabels(this.selectedCollection)
+      .subscribe(
+        (result: any) => {
+          this.data = (result as LabelEntry[])
+            .map(label => ({
+              ...label,
+              labelId: Number(label.labelId),
+            }))
+            .sort((a, b) => a.labelId - b.labelId);
+          this.labels = this.data;
+        },
+        error => {
+          console.error('Error fetching labels:', error);
+        }
+      );
   }
 
-  setLabel(labelId: string) {
+  setLabel(labelId: number) {
     const selectedData = this.data.find(label => label.labelId === labelId);
     if (selectedData) {
       this.label = { ...selectedData };
