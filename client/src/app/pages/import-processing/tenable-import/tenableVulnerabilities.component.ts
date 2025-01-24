@@ -2315,28 +2315,38 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   async onPoamIconClick(vulnerability: any, event: Event) {
     event.stopPropagation();
-    const poamAssociation = this.existingPoamPluginIDs[vulnerability.pluginID];
-    if (poamAssociation?.poamId) {
-      this.router.navigateByUrl(`/poam-processing/poam-details/${poamAssociation.poamId}`);
-      return;
-    }
+    try {
+      const poamAssociation = this.existingPoamPluginIDs[vulnerability.pluginID];
+      if (poamAssociation?.poamId) {
+        this.router.navigateByUrl(`/poam-processing/poam-details/${poamAssociation.poamId}`);
+        return;
+      }
 
-    await this.showDetails(vulnerability, true);
-    const pluginIAVData = this.iavInfo[this.pluginData.id];
-    let formattedIavComplyByDate = null;
-    if (pluginIAVData?.navyComplyDate) {
-      const complyDate = new Date(pluginIAVData.navyComplyDate);
-      formattedIavComplyByDate = format(complyDate, 'yyyy-MM-dd');
-    }
+      await this.showDetails(vulnerability, true);
 
-    this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
-      state: {
-        vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
-        pluginData: this.pluginData,
-        iavNumber: pluginIAVData?.iav,
-        iavComplyByDate: formattedIavComplyByDate,
-      },
-    });
+      if (!this.pluginData) {
+        throw new Error('Plugin data not available');
+      }
+
+      const pluginIAVData = this.iavInfo[this.pluginData.id];
+      let formattedIavComplyByDate = null;
+      if (pluginIAVData?.navyComplyDate) {
+        const complyDate = new Date(pluginIAVData.navyComplyDate);
+        formattedIavComplyByDate = format(complyDate, 'yyyy-MM-dd');
+      }
+
+      this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
+        state: {
+          vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
+          pluginData: this.pluginData,
+          iavNumber: pluginIAVData?.iav,
+          iavComplyByDate: formattedIavComplyByDate,
+        },
+      });
+    } catch (error) {
+      console.error('Error in onPoamIconClick:', error);
+      this.showErrorMessage('Error processing vulnerability data. Please try again.');
+    }
   }
 
   getPoamStatusColor(status: string): string {
@@ -2384,51 +2394,55 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  showDetails(vulnerability: any, createPoam: boolean = false) {
+  showDetails(vulnerability: any, createPoam: boolean = false): Promise<void> {
     if (!vulnerability || !vulnerability.pluginID) {
       this.showErrorMessage('Invalid vulnerability data');
-      return;
+      return Promise.reject('Invalid vulnerability data');
     }
 
-    this.importService.getTenablePlugin(vulnerability.pluginID).pipe(
-      tap(data => {
-        if (!data || !data.response) {
-          throw new Error('Invalid response from getTenablePlugin');
-        }
-      }),
-      map(data => data.response)
-    ).subscribe({
-      next: (pluginData) => {
-        this.pluginData = pluginData;
-        this.formattedDescription = this.pluginData.description
-          ? this.sanitizer.bypassSecurityTrustHtml(
-            this.pluginData.description.replace(/\n\n/g, '<br>')
-          )
-          : '';
+    return new Promise((resolve, reject) => {
+      this.importService.getTenablePlugin(vulnerability.pluginID).pipe(
+        tap(data => {
+          if (!data || !data.response) {
+            throw new Error('Invalid response from getTenablePlugin');
+          }
+        }),
+        map(data => data.response)
+      ).subscribe({
+        next: (pluginData) => {
+          this.pluginData = pluginData;
+          this.formattedDescription = this.pluginData.description
+            ? this.sanitizer.bypassSecurityTrustHtml(
+              this.pluginData.description.replace(/\n\n/g, '<br>')
+            )
+            : '';
 
-        if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
-          this.parseReferences(this.pluginData.xrefs);
-        } else {
-          this.cveReferences = [];
-          this.iavReferences = [];
-          this.otherReferences = [];
-        }
+          if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
+            this.parseReferences(this.pluginData.xrefs);
+          } else {
+            this.cveReferences = [];
+            this.iavReferences = [];
+            this.otherReferences = [];
+          }
 
-        if (Array.isArray(this.pluginData.vprContext)) {
-          this.parseVprContext(this.pluginData.vprContext);
-        } else {
-          this.parsedVprContext = [];
-        }
+          if (Array.isArray(this.pluginData.vprContext)) {
+            this.parseVprContext(this.pluginData.vprContext);
+          } else {
+            this.parsedVprContext = [];
+          }
 
-        this.selectedVulnerability = vulnerability;
-        if (!createPoam) {
-          this.displayDialog = true;
+          this.selectedVulnerability = vulnerability;
+          if (!createPoam) {
+            this.displayDialog = true;
+          }
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error fetching plugin data:', error);
+          this.showErrorMessage('Error fetching plugin data. Please try again.');
+          reject(error);
         }
-      },
-      error: (error) => {
-        console.error('Error fetching plugin data:', error);
-        this.showErrorMessage('Error fetching plugin data. Please try again.');
-      }
+      });
     });
   }
 

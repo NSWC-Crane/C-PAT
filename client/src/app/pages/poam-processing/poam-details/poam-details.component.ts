@@ -12,7 +12,7 @@ import { CommonModule, DatePipe, Location } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { add, addDays, format, isAfter } from 'date-fns';
-import { Subscription, forkJoin, of } from 'rxjs';
+import { Subscription, firstValueFrom, forkJoin, of } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
@@ -440,14 +440,74 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     ];
   }
 
+  private loadVulnerability(pluginId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const analysisParams = {
+        query: {
+          description: '',
+          context: '',
+          status: -1,
+          createdTime: 0,
+          modifiedTime: 0,
+          groups: [],
+          type: 'vuln',
+          tool: 'sumid',
+          sourceType: 'cumulative',
+          startOffset: 0,
+          endOffset: 50,
+          filters: [
+            {
+              id: 'pluginID',
+              filterName: 'pluginID',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: pluginId,
+            },
+          ],
+          sortColumn: 'severity',
+          sortDirection: 'desc',
+          vulnTool: 'sumid',
+        },
+        sourceType: 'cumulative',
+        sortField: 'severity',
+        sortOrder: 'desc',
+        columns: [],
+        type: 'vuln',
+      };
+
+      this.importService.postTenableAnalysis(analysisParams).subscribe({
+        next: (data) => {
+          if (!data.error_msg) {
+            this.tenableVulnResponse = data.response.results[0];
+            resolve();
+          } else {
+            reject(new Error('Error in vulnerability data'));
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching Vulnerabilities:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to fetch vulnerability data'
+          });
+          reject(error);
+        }
+      });
+    });
+  }
+
   async createNewACASPoam() {
-    this.pluginData = this.stateData.pluginData;
-    await this.loadVulnerabilitiy(this.pluginData.id);
-    forkJoin([
-      this.collectionsService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
-      this.assignedTeamService.getAssignedTeams()
-    ]).subscribe({
-      next: ([users, assignedTeamOptions]) => {
+    try {
+      this.pluginData = this.stateData.pluginData;
+      await this.loadVulnerability(this.pluginData.id);
+      const mappedSeverity = this.mapTenableSeverity(this.tenableVulnResponse?.severity?.id);
+      const [users, assignedTeamOptions] = await firstValueFrom(forkJoin([
+        this.collectionsService.getCollectionPermissions(this.payload.lastCollectionAccessedId),
+        this.assignedTeamService.getAssignedTeams()
+      ]));
+
       const currentDate = new Date();
       this.poam = {
         poamId: 'ADDPOAM',
@@ -465,13 +525,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 ${this.pluginData.name ?? ''}
 Description:
 ${this.pluginData.description ?? ''}`,
-        rawSeverity: this.mapTenableSeverity(this.tenableVulnResponse.severity.id),
-        adjSeverity: this.mapTenableSeverity(this.tenableVulnResponse.severity.id),
+        rawSeverity: mappedSeverity,
+        adjSeverity: mappedSeverity,
         submitterId: this.payload.userId,
         status: 'Draft',
         tenablePluginData: this.pluginData ? JSON.stringify(this.pluginData) : '',
         hqs: false,
       };
+
       this.assignedTeamOptions = assignedTeamOptions;
       this.poam.scheduledCompletionDate = calculateScheduledCompletionDate(this.poam.rawSeverity);
       this.dates.scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
@@ -490,19 +551,18 @@ ${this.pluginData.description ?? ''}`,
         approvalStatus: 'Not Reviewed',
         comments: '',
       }));
+
       if (this.poam.tenablePluginData) {
         this.parsePluginData(this.poam.tenablePluginData);
       }
-      },
-      error: (error) => {
-        console.error('Error loading data:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to load required data'
-        });
-      }
-    });
+    } catch (error) {
+      console.error('Error in createNewACASPoam:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to create new POAM'
+      });
+    }
   }
 
   private parsePluginData(pluginData: string) {
@@ -553,58 +613,6 @@ ${this.pluginData.description ?? ''}`,
       default:
         return '';
     }
-  }
-
-  loadVulnerabilitiy(pluginId: string) {
-    const analysisParams = {
-      query: {
-        description: '',
-        context: '',
-        status: -1,
-        createdTime: 0,
-        modifiedTime: 0,
-        groups: [],
-        type: 'vuln',
-        tool: 'sumid',
-        sourceType: 'cumulative',
-        startOffset: 0,
-        endOffset: 50,
-        filters: [
-          {
-            id: 'pluginID',
-            filterName: 'pluginID',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: pluginId,
-          },
-        ],
-        sortColumn: 'severity',
-        sortDirection: 'desc',
-        vulnTool: 'sumid',
-      },
-      sourceType: 'cumulative',
-      sortField: 'severity',
-      sortOrder: 'desc',
-      columns: [],
-      type: 'vuln',
-    };
-
-    this.importService.postTenableAnalysis(analysisParams).subscribe({
-      next: (data) => {
-        if (!data.error_msg) {
-          this.tenableVulnResponse = data.response.results[0];
-        }
-      },
-      error: (error) => {
-        console.error('Error fetching Vulnerabilities:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to fetch vulnerability data'
-        });
-      }
-    });
   }
 
   createNewSTIGManagerPoam() {
