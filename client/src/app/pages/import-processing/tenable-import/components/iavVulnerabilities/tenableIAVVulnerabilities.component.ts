@@ -488,32 +488,37 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.showDetails(vulnerability);
   }
 
-  showDetails(vulnerability: any, createPoam: boolean = false) {
+  showDetails(vulnerability: any, createPoam: boolean = false): Promise<void> {
     if (!vulnerability || !vulnerability.pluginID) {
       this.showErrorMessage('Invalid vulnerability data');
-      return;
+      return Promise.reject('Invalid vulnerability data');
     }
 
-    this.importService.getTenablePlugin(vulnerability.pluginID)
-      .subscribe({
-        next: (data) => {
-          if (!data || !data.response) {
-            throw new Error('Invalid response from getTenablePlugin');
-          }
+    return new Promise((resolve, reject) => {
+      this.importService.getTenablePlugin(vulnerability.pluginID)
+        .subscribe({
+          next: (data) => {
+            if (!data || !data.response) {
+              reject(new Error('Invalid response from getTenablePlugin'));
+              return;
+            }
 
-          this.pluginData = data.response;
-          this.processPluginData();
-          this.selectedVulnerability = vulnerability;
+            this.pluginData = data.response;
+            this.processPluginData();
+            this.selectedVulnerability = vulnerability;
 
-          if (!createPoam) {
-            this.displayDialog = true;
+            if (!createPoam) {
+              this.displayDialog = true;
+            }
+            resolve();
+          },
+          error: (error) => {
+            console.error('Error fetching plugin data:', error);
+            this.showErrorMessage('Error fetching plugin data. Please try again.');
+            reject(error);
           }
-        },
-        error: (error) => {
-          console.error('Error fetching plugin data:', error);
-          this.showErrorMessage('Error fetching plugin data. Please try again.');
-        }
-      });
+        });
+    });
   }
 
   private processPluginData() {
@@ -540,18 +545,31 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   async onPoamIconClick(vulnerability: any, event: Event) {
     event.stopPropagation();
-    if (vulnerability.poam && vulnerability.poamId) {
-      this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
-    } else {
+    try {
+      if (vulnerability.poam && vulnerability.poamId) {
+        this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
+        return;
+      }
+
       await this.showDetails(vulnerability, true);
+
+      if (!this.pluginData) {
+        throw new Error('Plugin data not available');
+      }
+
+      const formattedDate = vulnerability.navyComplyDate ? format(vulnerability.navyComplyDate, 'yyyy-MM-dd') : null;
+
       this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
         state: {
           vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData,
           iavNumber: vulnerability.iav,
-          iavComplyByDate: vulnerability.navyComplyDate,
+          iavComplyByDate: formattedDate,
         },
       });
+    } catch (error) {
+      console.error('Error in onPoamIconClick:', error);
+      this.showErrorMessage('Error processing vulnerability data. Please try again.');
     }
   }
 
