@@ -58,7 +58,7 @@ interface Permission {
 })
 export class AssignedTeamProcessingComponent implements OnInit {
   @ViewChild('dt') table!: Table;
-
+  private allCollections: CollectionBasicList[] = [];
   assignedTeams: AssignedTeam[] = [];
   availableCollections: CollectionBasicList[] = [];
   assignedCollections: any[] = [];
@@ -90,7 +90,10 @@ export class AssignedTeamProcessingComponent implements OnInit {
 
   loadCollections() {
     this.collectionsService.getCollectionBasicList().subscribe({
-      next: (response) => this.availableCollections = response || [],
+      next: (response) => {
+        this.allCollections = response || [];
+        this.availableCollections = [...this.allCollections];
+      },
       error: () => this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -99,31 +102,29 @@ export class AssignedTeamProcessingComponent implements OnInit {
     });
   }
 
-  openNew() {
-    this.editingAssignedTeam = { assignedTeamId: 0, assignedTeamName: '', permissions: [] };
-    this.availableCollections = [...this.availableCollections];
-    this.assignedCollections = [];
-    this.dialogMode = 'new';
-    this.teamDialog = true;
-  }
-
   editTeam(assignedTeam: AssignedTeam) {
     this.editingAssignedTeam = { ...assignedTeam };
 
-    this.assignedCollections =
-      assignedTeam.permissions?.map(p => ({
-        collectionId: p.collectionId,
-        collectionName: p.collectionName,
-      })) || [];
+    this.assignedCollections = assignedTeam.permissions?.map(p => ({
+      collectionId: p.collectionId,
+      collectionName: p.collectionName,
+    })) || [];
 
-    this.availableCollections = this.availableCollections.filter(
-      collection =>
-        !this.assignedCollections.some(
-          assigned => assigned.collectionId === collection.collectionId
-        )
+    this.availableCollections = this.allCollections.filter(
+      collection => !this.assignedCollections.some(
+        assigned => assigned.collectionId === collection.collectionId
+      )
     );
 
     this.dialogMode = 'edit';
+    this.teamDialog = true;
+  }
+
+  openNew() {
+    this.editingAssignedTeam = { assignedTeamId: 0, assignedTeamName: '', permissions: [] };
+    this.availableCollections = [...this.allCollections];
+    this.assignedCollections = [];
+    this.dialogMode = 'new';
     this.teamDialog = true;
   }
 

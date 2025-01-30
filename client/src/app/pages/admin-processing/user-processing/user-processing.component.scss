@@ -3,25 +3,22 @@
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
-! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
-! CONDITIONS OF THE LICENSE.  
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
-
-.scrollable-users {
-  max-height: 60vh;
-  overflow-y: auto;
-}
 
 .form-container {
   display: flex;
   flex-direction: column;
 }
+
 .form-group label {
   display: block;
   margin-bottom: 10px;
   font-weight: bold;
 }
+
 .form-group input,
 .form-group p-select {
   width: 100%;

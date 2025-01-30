@@ -480,7 +480,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   }
 
   filterGlobal(event: Event) {
-    const inputValue = (event.target as HTMLInputElement)?.value || '';
+    const inputValue = (event.target as HTMLInputElement).value;
     this.table.filterGlobal(inputValue, 'contains');
   }
 

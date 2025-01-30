@@ -1,3 +1,13 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
 import { AppConfigService } from '../services/appconfigservice';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import {
@@ -18,11 +28,12 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { StyleClass } from 'primeng/styleclass';
 import { AppSearchComponent } from '../../common/components/search/app.search.component';
 import { AppConfiguratorComponent } from '../components/app.configurator.component';
-import { Observable, Subject, catchError, filter, map, merge, of, switchMap, takeUntil } from 'rxjs';
+import { Observable, Subject, catchError, filter, map, merge, of, switchMap, take, takeUntil } from 'rxjs';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { Popover } from 'primeng/popover';
 import { NotificationsPanelComponent } from '../../common/components/notifications/notifications-popover/notifications-popover.component';
 import { AuthService } from '../../core/auth/services/auth.service';
+import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 
 
 @Component({
@@ -163,6 +174,7 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
+    private userService: UsersService,
     private el: ElementRef,
     private renderer: Renderer2,
     private configService: AppConfigService,
@@ -225,6 +237,32 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
 
   toggleDarkMode() {
     this.configService.appState.update(state => ({ ...state, darkTheme: !state.darkTheme }));
+    this.saveUserPreferences();
+  }
+
+  saveUserPreferences() {
+    this.userService.getCurrentUser().pipe(
+      take(1),
+      switchMap(user => {
+        if (!user) throw new Error('No user found');
+
+        const currentState = this.configService.appState();
+        const preferences = {
+          userId: user.userId,
+          defaultTheme: JSON.stringify({
+            preset: currentState.preset,
+            primary: currentState.primary,
+            surface: currentState.surface,
+            darkTheme: currentState.darkTheme,
+            rtl: currentState.RTL,
+          })
+        };
+
+        return this.userService.updateUserTheme(preferences);
+      })
+    ).subscribe({
+      error: (error) => console.error('Error saving user preferences:', error)
+    });
   }
 
   private bindScrollListener(): void {

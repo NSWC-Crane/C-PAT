@@ -4,13 +4,24 @@
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
 ! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND 
-! CONDITIONS OF THE LICENSE.  
+! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
 
 :host ::ng-deep .focus-attention .p-button {
   border-radius: 50% !important;
   animation: hover-pulse 2s ease-in-out infinite;
+}
+
+:host ::ng-deep {
+  cpat-vram-popup {
+    .card {
+      height: auto !important;
+      display: block !important;
+      flex-direction: unset !important;
+      min-height: unset !important;
+    }
+  }
 }
 
 @keyframes hover-pulse {

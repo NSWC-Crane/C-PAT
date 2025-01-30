@@ -4,9 +4,20 @@
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
 ! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND 
-! CONDITIONS OF THE LICENSE.  
+! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
+
+  .scrollable-plugins {
+    height: calc(100vh - 20rem);
+  }
+
+::ng-deep {
+  .card {
+    padding-bottom: 1rem;
+    margin-bottom: 0rem;
+  }
+}
 
 .focus-attention {
   animation: glow-pulse 2s ease-in-out;
@@ -45,10 +56,4 @@
   100% {
     opacity: 0;
   }
-}
-
-.scrollable-plugins {
-  padding-top: 0rem;
-  max-height: 60vh;
-  overflow-y: auto;
 }

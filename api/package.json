@@ -1,6 +1,6 @@
 {
   "name": "cpat-api",
-  "version": "1.0.0-rc.6",
+  "version": "1.0.0-rc.7",
   "description": "C-PAT API",
   "main": "index.js",
   "scripts": {
@@ -32,7 +32,7 @@
     "on-finished": "^2.4.1",
     "on-headers": "^1.0.2",
     "path": "^0.12.7",
-    "semver": "^7.6.3",
+    "semver": "^7.7.0",
     "sequelize": "^6.37.5",
     "swagger-ui-express": "^5.0.1",
     "umzug": "^2.3.0",

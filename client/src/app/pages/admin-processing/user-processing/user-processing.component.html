@@ -7,14 +7,19 @@
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 -->
-<div class="grid grid-cols-12 gap-4">
-  <div *ngIf="showUserSelect" class="col-span-12">
-    <div class="scrollable-users">
+
+  <div *ngIf="showUserSelect">
+    <div class="scrollable-users overflow-hidden">
       <p-treeTable
         #usersTable
         [value]="treeData"
         [columns]="allColumns"
         [filterDelay]="0"
+        [paginator]="true"
+        [rows]="20"
+        [scrollable]="true"
+        scrollHeight="calc(100vh - 35rem)"
+        selectionMode="single"
         [globalFilterFields]="['User', 'Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level']"
       >
         <ng-template pTemplate="caption">
@@ -37,7 +42,7 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
-          <tr>
+          <tr (click)="setUserFromTable(rowData)">
             <td *ngFor="let col of columns; let i = index">
               <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
               {{rowData[col]}}
@@ -72,6 +77,7 @@
     </div>
     <div *ngIf="data && data.length > 0 && showUserSelect">
       <p-select
+        class="w-full mt-[2rem]"
         [options]="data"
         name="selectedUser"
         [(ngModel)]="selectedUser"
@@ -79,7 +85,6 @@
         placeholder="Select User to Modify..."
         optionLabel="fullName"
         autoWidth="false"
-        [style]="{'width':'100%', 'margin-top':'20px'}"
         appendTo="body"
       >
         <ng-template let-user pTemplate="item">
@@ -93,7 +98,6 @@
     <cpat-user [user]="user" [users]="users" [payload]="payload" (userChange)="resetData()">
     </cpat-user>
   </div>
-</div>
 <ng-template #dialog let-data let-ref="dialogRef">
   <p-header>Delete Row</p-header>
   <div class="p-card-body">Are you sure you want to delete this item?</div>

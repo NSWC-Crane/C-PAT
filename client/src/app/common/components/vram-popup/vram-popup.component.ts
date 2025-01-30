@@ -1,3 +1,13 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
 import { CommonModule } from '@angular/common';
 import { Component, NgZone, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -18,94 +28,112 @@ import { StepperModule } from 'primeng/stepper';
     </p-button>
 
     <div *ngIf="isPopupOpen" class="card mt-6">
-      <p-stepper orientation="vertical">
-        <p-step-panel header="VRAM IAV Export">
-          <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index">
-            <p>The VRAM IAV Table is currently open in a separate window.</p>
-            <p class="text-sm">You can close the window at any point to hide this message.</p>
-            <div class="flex py-6">
-              <p-button
-                styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                icon="pi pi-arrow-right"
-                iconPos="right"
-                (onClick)="nextCallback.emit()"
-              ></p-button>
-            </div>
-          </ng-template>
-        </p-step-panel>
+<p-stepper [value]="1" orientation="vertical">
+  <p-step-item [value]="1">
+    <p-step>VRAM IAV Export</p-step>
+    <p-step-panel>
+      <ng-template #content let-activateCallback="activateCallback">
+        <p>The VRAM IAV Table is currently open in a separate window.</p>
+        <p class="text-sm">You can close the window at any point to hide this message.</p>
+        <div class="flex py-6">
+          <p-button
+            [outlined]="true"
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            (onClick)="activateCallback(2)"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-step-panel>
+  </p-step-item>
 
-        <p-step-panel header="Set Default Column Options">
-          <ng-template
-            pTemplate="content"
-            let-prevCallback="prevCallback"
-            let-nextCallback="nextCallback"
-            let-index="index"
-          >
-            <p>Ensure column options are set to default values</p>
-            <p-image
-              src="../../../assets/vram/step1.png"
-              alt="Image"
-              width="600"
-              [preview]="true"
-            ></p-image>
-            <br />
-            <p-image
-              styleClass="mt-6"
-              src="../../../assets/vram/columnOptions.png"
-              alt="Image"
-              width="600"
-              [preview]="true"
-            ></p-image>
-            <div class="flex py-6 gap-2">
-              <p-button
-                styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                icon="pi pi-arrow-left"
-                (onClick)="prevCallback.emit()"
-              ></p-button>
-              <p-button
-                styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                icon="pi pi-arrow-right"
-                iconPos="right"
-                (onClick)="nextCallback.emit()"
-              ></p-button>
-            </div>
-          </ng-template>
-        </p-step-panel>
+  <p-step-item [value]="2">
+    <p-step>Set Default Column Options</p-step>
+    <p-step-panel>
+      <ng-template #content let-activateCallback="activateCallback">
+        <p>Ensure column options are set to default values</p>
+        <p-image
+          src="../../../assets/vram/step1.png"
+          alt="Image"
+          width="600"
+          [preview]="true"
+        ></p-image>
+        <br />
+        <p-image
+          class="mt-6"
+          src="../../../assets/vram/columnOptions.png"
+          alt="Image"
+          width="600"
+          [preview]="true"
+        ></p-image>
+        <div class="flex py-6 gap-2">
+          <p-button
+            [outlined]="true"
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            severity="secondary"
+            icon="pi pi-arrow-left"
+            (onClick)="activateCallback(1)"
+          ></p-button>
+          <p-button
+            [outlined]="true"
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            (onClick)="activateCallback(3)"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-step-panel>
+  </p-step-item>
 
-        <p-step-panel header="Export">
-          <ng-template
-            pTemplate="content"
-            let-prevCallback="prevCallback"
-            let-nextCallback="nextCallback"
-            let-index="index"
-          >
-            <p>Click to export. The exported file can be imported to C-PAT directly below.</p>
-            <p-image
-              src="../../../assets/vram/step2.png"
-              alt="Image"
-              width="600"
-              [preview]="true"
-            ></p-image>
-            <div class="flex py-6 gap-2">
-              <p-button
-                styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                icon="pi pi-arrow-left"
-                (onClick)="prevCallback.emit()"
-              ></p-button>
-            </div>
-          </ng-template>
-        </p-step-panel>
-      </p-stepper>
+  <p-step-item [value]="3">
+    <p-step>Export</p-step>
+    <p-step-panel>
+      <ng-template #content let-activateCallback="activateCallback">
+        <p>Click to export. The exported file can be imported to C-PAT directly below.</p>
+        <p-image
+          src="../../../assets/vram/step2.png"
+          alt="Image"
+          width="600"
+          [preview]="true"
+        ></p-image>
+        <div class="flex py-6 gap-2">
+          <p-button
+            [outlined]="true"
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            severity="secondary"
+            icon="pi pi-arrow-left"
+            (onClick)="activateCallback(2)"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-step-panel>
+  </p-step-item>
+</p-stepper>
     </div>
   `,
-  styles: [
-    `
-      .status-display {
-        margin-top: 1rem;
-        transition: opacity 0.3s ease-in-out;
-      }
-    `,
-  ],
+  styles: [`
+  :host ::ng-deep .card {
+    height: auto !important;
+    display: block !important;
+    flex-direction: unset !important;
+    min-height: unset !important;
+  }
+
+  .status-display {
+    margin-top: 1rem;
+    transition: opacity 0.3s ease-in-out;
+  }
+`],
   standalone: true,
   imports: [ButtonModule, CommonModule, ImageModule, FormsModule, StepperModule],
 })

@@ -3,8 +3,8 @@
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
-! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
-! CONDITIONS OF THE LICENSE.  
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
 
@@ -247,15 +247,19 @@ export class AppInfoComponent implements OnInit {
   });
 
   async ngOnInit() {
-    await this.getAppInfo();
-    this.processOperations();
-    this.processVariables();
-    this.processStatus();
-    this.processMySQLTables();
-    this.processCPUInfo();
-    this.processEnvironmentVariables();
-    this.processUsers();
-    this.initChart();
+    try {
+      await this.getAppInfo();
+      this.processOperations();
+      this.processVariables();
+      this.processStatus();
+      this.processMySQLTables();
+      this.processCPUInfo();
+      this.processEnvironmentVariables();
+      this.processUsers();
+      this.initChart();
+    } catch (error) {
+      console.error('Failed to initialize app info:', error);
+    }
   }
 
   initChart() {
@@ -267,17 +271,26 @@ export class AppInfoComponent implements OnInit {
     }
   }
 
-  getAppInfo(): void {
-    this.adminProcessingService.getAppInfo()
-      .pipe(
-        catchError(error => {
-          console.error('Error fetching app info:', error);
-          return EMPTY;
-        })
-      )
-      .subscribe((response: AppInfoData) => {
-        this.appInfo = response;
-      });
+  getAppInfo(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.adminProcessingService.getAppInfo()
+        .pipe(
+          catchError(error => {
+            console.error('Error fetching app info:', error);
+            reject(error);
+            return EMPTY;
+          })
+        )
+        .subscribe({
+          next: (response: AppInfoData) => {
+            this.appInfo = response;
+            resolve();
+          },
+          error: (error) => {
+            reject(error);
+          }
+        });
+    });
   }
 
   private processOperations() {

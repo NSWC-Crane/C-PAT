@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -8,20 +8,22 @@
 !##########################################################################
 -->
 
-<div class="grid grid-cols-12 gap-4">
+<div class="grid-cols-12 grid gap-4">
   <div class="col-span-12">
-    <div class="scrollable-teams">
+    <div class="scrollable-teams overflow-hidden">
       <p-table
         #dt
         [value]="assignedTeams"
         [globalFilterFields]="['assignedTeamId', 'assignedTeamName']"
-        [rows]="10"
+        [rows]="15"
         [paginator]="true"
+        [scrollable]="true"
+        scrollHeight="flex"
         [rowHover]="true"
         dataKey="assignedTeamId"
       >
         <ng-template pTemplate="caption">
-          <div class="flex justify-between items-center">
+          <div class="flex items-center justify-between">
             <p-iconField iconPosition="left">
               <p-inputIcon>
                 <i class="pi pi-search"></i>
@@ -55,30 +57,26 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-assignedTeam>
-          <tr>
-            <td>{{assignedTeam.assignedTeamId}}</td>
-            <td>{{assignedTeam.assignedTeamName}}</td>
-            <td>
-              <div class="flex items-center justify-center gap-2">
-                <button
-                  pButton
-                  pRipple
-                  type="button"
-                  icon="pi pi-pencil"
-                  class="p-button-rounded p-button-text"
-                  (click)="editTeam(assignedTeam)"
-                ></button>
-                <button
-                  pButton
-                  pRipple
-                  type="button"
-                  icon="pi pi-trash"
-                  class="p-button-rounded p-button-text p-button-danger"
-                  (click)="onRowDelete(assignedTeam)"
-                ></button>
-              </div>
-            </td>
-          </tr>
+            <tr (click)="editTeam(assignedTeam)" class="cursor-pointer hover:surface-200">
+                <td>{{assignedTeam.assignedTeamId}}</td>
+                <td>{{assignedTeam.assignedTeamName}}</td>
+                <td>
+                    <div class="flex items-center justify-center gap-2">
+                        <button pButton
+                                pRipple
+                                type="button"
+                                icon="pi pi-pencil"
+                                class="p-button-rounded p-button-text"
+                                (click)="$event.stopPropagation(); editTeam(assignedTeam)"></button>
+                        <button pButton
+                                pRipple
+                                type="button"
+                                icon="pi pi-trash"
+                                class="p-button-rounded p-button-text p-button-danger"
+                                (click)="$event.stopPropagation(); onRowDelete(assignedTeam)"></button>
+                    </div>
+                </td>
+            </tr>
         </ng-template>
       </p-table>
     </div>
@@ -88,7 +86,7 @@
 <p-dialog [(visible)]="teamDialog" [style]="{'width': '850px'}" [modal]="true" styleClass="p-fluid">
   <ng-template pTemplate="content">
     <div class="mb-6">
-      <label for="name" class="block text-base font-medium mb-2">Team Name:</label>
+      <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
       <input
         type="text"
         pInputText
@@ -97,11 +95,11 @@
         required
         [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.assignedTeamName}"
         maxlength="99"
-        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
     </div>
     <div class="space-y-2">
-      <label class="block text-base font-medium mb-2">Team Permissions:</label>
+      <label class="mb-2 block text-base font-medium">Team Permissions:</label>
       <p-pickList
         [source]="availableCollections"
         [target]="assignedCollections"
