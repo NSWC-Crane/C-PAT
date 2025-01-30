@@ -10,7 +10,7 @@
 
 <p-progressBar *ngIf="isUpdating" [value]="updateProgress"></p-progressBar>
 
-<p-messages *ngIf="isUpdating" severity="warn" styleClass="w-full mb-6">
+<p-message *ngIf="isUpdating" severity="warn" styleClass="w-full mb-6">
   <ng-template pTemplate="content">
     <div class="flex justify-between items-center">
       <span>
@@ -21,16 +21,17 @@
       </span>
     </div>
   </ng-template>
-</p-messages>
-<div class="card scrollable-plugins">
+</p-message>
+<div class="scrollable-plugins overflow-hidden">
   <p-table
     #dt
     [value]="tableData"
     dataKey="iav"
-    [rows]="10"
-    [rowsPerPageOptions]="[10, 20, 50]"
+    [rows]="20"
     [loading]="loading"
     [paginator]="true"
+    [scrollable]="true"
+    scrollHeight="flex"
     [globalFilterFields]="['iav', 'pluginID', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate', 'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins']"
   >
     <ng-template pTemplate="caption">

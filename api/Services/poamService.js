@@ -3,8 +3,8 @@
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
-! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
-! CONDITIONS OF THE LICENSE.  
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
 
@@ -75,6 +75,7 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
                 submitterName: row.submitterName || null,
+                hqs: row.hqs != null ? Boolean(row.hqs) : null
             }));
 
             if (req.query.approvers) {
@@ -137,6 +138,7 @@ exports.getPoam = async function getPoam(req, res, next) {
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                hqs: row.hqs != null ? Boolean(row.hqs) : null
             }))[0];
 
             if (req.query.approvers) {
@@ -193,6 +195,7 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                hqs: row.hqs != null ? Boolean(row.hqs) : null
             }));
 
             if (req.query.approvers) {
@@ -259,6 +262,7 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                hqs: row.hqs != null ? Boolean(row.hqs) : null
             }));
 
             if (req.query.approvers) {
@@ -297,14 +301,14 @@ exports.getPluginIDsWithPoam = async function getPluginIDsWithPoam(req, res, nex
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT poamId, status, vulnerabilityId 
+                SELECT poamId, status, vulnerabilityId
                 FROM cpat.poam
                 UNION ALL
                 SELECT p.poamId, 'Associated' as status, p.associatedVulnerability as vulnerabilityId
                 FROM cpat.poamassociatedvulnerabilities p
                 WHERE NOT EXISTS (
-                    SELECT 1 
-                    FROM cpat.poam 
+                    SELECT 1
+                    FROM cpat.poam
                     WHERE vulnerabilityId = p.associatedVulnerability
                 )
                 ORDER BY poamId;
@@ -387,7 +391,8 @@ exports.postPoam = async function postPoam(req) {
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
-                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null
+                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                hqs: row.hqs != null ? Boolean(row.hqs) : null
             }))[0];
 
             if (req.body.assignees) {
@@ -541,6 +546,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                hqs: row.hqs != null ? Boolean(row.hqs) : null
             }))[0];
 
             let poamId = req.body.poamId;
@@ -654,6 +660,7 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
                     submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                     closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                     iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                    hqs: row.hqs != null ? Boolean(row.hqs) : null
                 }))[0];
 
                     let poamId = req.params.poamId;

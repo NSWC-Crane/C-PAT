@@ -3,8 +3,8 @@
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
-! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
-! CONDITIONS OF THE LICENSE.  
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
 
@@ -168,20 +168,33 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         ];
     }
 
-    private async loadUserData(userId: number) {
-        (await this.userService.getUser(userId)).subscribe(
-            async userData => {
-                this.user = userData;
-                await this.loadCollections();
-                await this.loadAssignedTeams();
-                this.getData();
-                this.checked = this.user.isAdmin === true;
-            },
-            error => {
-                console.error('Error fetching user data', error);
-            }
-        );
-    }
+  private async loadUserData(userId: number, preserveFormData: boolean = false) {
+    (await this.userService.getUser(userId)).subscribe(
+      async userData => {
+        if (preserveFormData) {
+          const formFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'officeOrg', 'points'];
+          const preservedData = formFields.reduce((acc: any, field) => {
+            acc[field] = this.user[field];
+            return acc;
+          }, {});
+
+          userData.permissions = userData.permissions || [];
+          userData.assignedTeams = userData.assignedTeams || [];
+          this.user = { ...this.user, ...preservedData, permissions: userData.permissions, assignedTeams: userData.assignedTeams };
+        } else {
+          this.user = userData;
+        }
+
+        await this.loadCollections();
+        await this.loadAssignedTeams();
+        this.getData();
+        this.checked = this.user.isAdmin === true;
+      },
+      error => {
+        console.error('Error fetching user data', error);
+      }
+    );
+  }
 
     async loadAssignedTeams() {
         try {
@@ -303,7 +316,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         permission.editing = true;
     }
 
-    async onSavePermission(permission: Permission) {
+  async onSavePermission(permission: Permission) {
+    this.onSubmit(false);
         if (!permission.accessLevelLabel || !permission.collectionName) {
             const newPermission: Permission = {
                 userId: permission.userId,
@@ -373,7 +387,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         this.updateAvailableCollections();
     }
 
-    async onDeletePermission(permission: Permission) {
+  async onDeletePermission(permission: Permission) {
+    this.onSubmit(false);
         if (permission.collectionId === null) {
             this.collectionPermissions = this.collectionPermissions.filter(p => p !== permission);
         } else {
@@ -588,7 +603,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         }
     }
 
-    async confirmAssignedTeam(assignedTeam: AssignedTeam) {
+  async confirmAssignedTeam(assignedTeam: AssignedTeam) {
+    this.onSubmit(false);
         if (!assignedTeam.accessLevelLabel || !assignedTeam.assignedTeamName) {
             const newAssignedTeam: AssignedTeam = {
                 userId: assignedTeam.userId ?? this.user.userId,
@@ -659,7 +675,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         this.updateAvailableTeams();
     }
 
-    async onDeleteAssignedTeam(assignedTeam: AssignedTeam) {
+  async onDeleteAssignedTeam(assignedTeam: AssignedTeam) {
+    this.onSubmit(false);
         if (assignedTeam.assignedTeamId === null) {
             this.userAssignedTeams = this.userAssignedTeams.filter(a => a !== assignedTeam);
         } else {
@@ -719,13 +736,15 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         this.filteredOfficeOrgs = filtered;
     }
 
-    async onSubmit() {
+    async onSubmit(final: boolean = true) {
         const formattedLastAccess = format(new Date(this.user.lastAccess), 'yyyy-MM-dd HH:mm:ss');
         this.user.lastAccess = formattedLastAccess;
         this.user.fullName = this.user.firstName + ' ' + this.user.lastName;
 
-        (await this.userService.updateUser(this.user)).subscribe(() => {
-            this.userChange.emit();
+      (await this.userService.updateUser(this.user)).subscribe(() => {
+        if (final) {
+          this.userChange.emit();
+        }
         });
     }
 

@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -7,6 +7,7 @@
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 -->
+
 <div class="card" *ngIf="collectionOrigin === 'STIG Manager' && originCollectionId">
   <cpat-stigmanager-assets-table
     [stigmanCollectionId]="originCollectionId"
@@ -32,7 +33,7 @@
             <p-tabpanel value="0">
               <div class="p-fluid">
                 <div class="toolbar mb-4">
-                  <div class="flex justify-between items-center">
+                  <div class="flex items-center justify-between">
                     <p-iconField iconPosition="left">
                       <p-inputIcon>
                         <i class="pi pi-search"></i>
@@ -174,7 +175,7 @@
                 <p-chart type="bar"
                          [data]="chartData"
                          [options]="chartOptions"
-                         styleClass="w-full h-50"></p-chart>
+                         styleClass="h-50 w-full"></p-chart>
               </div>
             </p-tabpanel>
           </p-tabpanels>

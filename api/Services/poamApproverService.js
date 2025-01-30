@@ -3,8 +3,8 @@
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
-! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
-! CONDITIONS OF THE LICENSE.  
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
 
@@ -22,6 +22,11 @@ async function withConnection(callback) {
     } finally {
         await connection.release();
     }
+}
+
+function normalizeBoolean(value) {
+    if (value === null || value === undefined) return null;
+    return value === 1 || value === true;
 }
 
 exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
@@ -226,8 +231,8 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
 
                 if (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'False-Positive') {
                     const userPoints = await marketplaceService.getUserPoints(submitterId);
-                    if ((hqs === 0 || hqs === false || hqs === null) && req.body.hqs === true) {
-                        if (!config.client.features.marketplaceDisabled) {                            
+                    if (!normalizeBoolean(hqs) && normalizeBoolean(req.body.hqs)) {
+                        if (!config.client.features.marketplaceDisabled) {
                             const newHqsPoints = userPoints.points + 30;
                             await usersService.updateUserPoints({
                                 body: {
@@ -245,10 +250,10 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                         }
                         const hqsPoamSql = `UPDATE cpat.poam SET hqs = 1 WHERE poamId = ?`;
                         await connection.query(hqsPoamSql, [req.body.poamId]);
-                    } else if ((hqs === 1 || hqs === true) && req.body.hqs === false) {
+                    } else if (normalizeBoolean(hqs) && !normalizeBoolean(req.body.hqs)) {
                         const hqsPoamSql = `UPDATE cpat.poam SET hqs = 0 WHERE poamId = ?`;
                         await connection.query(hqsPoamSql, [req.body.poamId]);
-                    } else if (!config.client.features.marketplaceDisabled) {                       
+                    } else if (!config.client.features.marketplaceDisabled) {
                             const newPoints = userPoints.points + 15;
                             await usersService.updateUserPoints({
                                 body: {
@@ -263,11 +268,11 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                                 userId: submitterId
                             };
                             const pointsNotificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
-                            await connection.query(pointsNotificationSql, [submitterId, pointsNotification.title, pointsNotification.message]);                        
+                            await connection.query(pointsNotificationSql, [submitterId, pointsNotification.title, pointsNotification.message]);
                     }
-                    
+
                     let notificationMessage = `POAM ${req.body.poamId} has been reviewed by ${fullName}.`;
-                    if (req.body.hqs === true) {
+                    if (normalizeBoolean(req.body.hqs)) {
                         notificationMessage = `POAM ${req.body.poamId} has been reviewed and marked as High Quality by ${fullName}.`;
                     }
 

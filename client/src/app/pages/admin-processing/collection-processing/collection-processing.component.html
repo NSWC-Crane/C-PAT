@@ -8,18 +8,29 @@
 !##########################################################################
 -->
 
-<div class="grid grid-cols-12 gap-4">
-  <div class="col-span-12">
     <div class="scrollable-collections">
       <p-treeTable
         #dt
         [value]="collectionTreeData"
         [columns]="allColumns"
         [filterDelay]="0"
-        [globalFilterFields]="['data']"
-      >
+        [rows]="20"
+        [paginator]="true"
+        [scrollable]="true"
+        scrollHeight="calc(100vh - 32rem)"
+        selectionMode="single"
+        [globalFilterFields]="[
+        'Collection ID',
+        'Name',
+        'Description',
+        'System Type',
+        'System Name',
+        'CC/S/A/FA',
+        'A&A Package',
+        'Collection Origin',
+        'Origin Collection ID']">
         <ng-template pTemplate="caption">
-          <div class="flex justify-between items-center">
+          <div class="flex items-center justify-between">
             <p-iconField iconPosition="left">
               <p-inputIcon>
                 <i class="pi pi-search"></i>
@@ -52,35 +63,27 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
-          <tr>
-            <td
-              *ngFor="let col of columns; let i = index"
-              [style]="col === 'Name' ? {'max-width': '200px'} : {}"
-            >
-              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-              <span
-                [style]="col === 'Name' ? {'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', 'display': 'inline-block', 'width': '100%'} : {}"
-              >
-                {{rowData[col]}}
-              </span>
-            </td>
-            <td>
-              <button
-                pButton
-                type="button"
-                icon="pi pi-pencil"
-                class="p-button-rounded p-button-text mr-2"
-                (click)="showModifyCollectionDialog(rowData)"
-              ></button>
-              <button
-                pButton
-                type="button"
-                icon="pi pi-download"
-                class="p-button-rounded p-button-text"
-                (click)="exportCollection(rowData)"
-              ></button>
-            </td>
-          </tr>
+            <tr (click)="showModifyCollectionDialog(rowData)" class="cursor-pointer hover:surface-200">
+                <td *ngFor="let col of columns; let i = index"
+                    [style]="col === 'Name' ? {'max-width': '200px'} : {}">
+                    <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
+                    <span [style]="col === 'Name' ? {'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', 'display': 'inline-block', 'width': '100%'} : {}">
+                        {{rowData[col]}}
+                    </span>
+                </td>
+                <td>
+                    <button pButton
+                            type="button"
+                            icon="pi pi-pencil"
+                            class="p-button-rounded p-button-text mr-2"
+                            (click)="$event.stopPropagation(); showModifyCollectionDialog(rowData)"></button>
+                    <button pButton
+                            type="button"
+                            icon="pi pi-download"
+                            class="p-button-rounded p-button-text"
+                            (click)="$event.stopPropagation(); exportCollection(rowData)"></button>
+                </td>
+            </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
@@ -89,8 +92,6 @@
         </ng-template>
       </p-treeTable>
     </div>
-  </div>
-</div>
 
 <p-dialog [(visible)]="displayCollectionDialog" [style]="{width: '450px'}" [modal]="true">
   <ng-template pTemplate="content">

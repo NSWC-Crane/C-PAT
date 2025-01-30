@@ -4,7 +4,7 @@
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
 ! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND 
-! CONDITIONS OF THE LICENSE.  
+! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
 
@@ -21,14 +21,14 @@ import {
 import { MessageService } from 'primeng/api';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 import { UsersService } from '../user-processing/users.service';
-import { EMPTY, Observable, Subject, catchError, concat, concatMap, map, of, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, map, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { Table, TableModule } from 'primeng/table';
 import { ImportService } from '../../import-processing/import.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePicker } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -47,7 +47,7 @@ import { InputIconModule } from 'primeng/inputicon';
     InputIconModule,
     InputTextModule,
     FormsModule,
-    MessagesModule,
+    MessageModule,
     ProgressBarModule,
     TableModule,
   ],
@@ -176,34 +176,31 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
     this.estimatedTimeRemaining = '';
     const startTime = Date.now();
 
-    const progressUpdates$ = timer(0, 100).pipe(
-      map(() => {
-        const elapsedTime = Date.now() - startTime;
-        const estimatedTotalTime = this.estimatedRequestTime * (this.expectedTotalRecords / this.batchSize);
-        const estimatedProgress = Math.min((elapsedTime / estimatedTotalTime) * 100, 90);
-        return Math.max(this.updateProgress, Math.round(estimatedProgress));
+    const batchProcess$ = this.processBatches().pipe(
+      tap(() => {
+        const actualProgress = Math.min(90, Math.round((Date.now() - startTime) / 1000));
+        this.updateProgress = actualProgress;
+        const estimatedTotal = this.estimatedRequestTime * (this.expectedTotalRecords / this.batchSize);
+        this.estimatedTimeRemaining = this.formatTime(estimatedTotal - (Date.now() - startTime));
       }),
-      tap(progress => {
-        this.updateProgress = progress;
-        const remainingTime = Math.max(
-          (this.estimatedRequestTime * (this.expectedTotalRecords / this.batchSize)) - (Date.now() - startTime),
-          0
-        );
-        this.estimatedTimeRemaining = this.formatTime(remainingTime);
+      takeUntil(this.destroy$)
+    );
+
+    const progressUpdates$ = timer(0, 100).pipe(
+      takeUntil(batchProcess$),
+      tap(() => {
+        if (this.updateProgress < 90) {
+          this.updateProgress += 1;
+          const estimatedTotal = this.estimatedRequestTime * (this.expectedTotalRecords / this.batchSize);
+          this.estimatedTimeRemaining = this.formatTime(estimatedTotal * (90 - this.updateProgress) / 90);
+        }
       })
     );
 
-    const batchProcessing$ = this.processBatches();
+    progressUpdates$.subscribe();
 
-    concat(progressUpdates$, batchProcessing$).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: progress => {
-        if (typeof progress === 'number') {
-          this.updateProgress = progress;
-        }
-      },
-      error: error => {
+    batchProcess$.subscribe({
+      error: (error) => {
         console.error('Error updating plugin IDs:', error);
         this.messageService.add({
           severity: 'error',
@@ -230,23 +227,20 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
     let startOffset = 0;
     let allPluginData: any[] = [];
 
-    const processBatch = () => {
-      if (startOffset >= this.expectedTotalRecords) {
-        return of(null);
-      }
-
+    const processBatch = (): Observable<any> => {
       return this.getPluginBatch(startOffset, this.batchSize).pipe(
         tap(({ pluginData, totalRecords }) => {
           allPluginData = allPluginData.concat(pluginData);
           this.expectedTotalRecords = totalRecords;
           startOffset += this.batchSize;
-          const actualProgress = (startOffset / totalRecords) * 100;
-          if (actualProgress > 90) {
-            this.updateProgress = Math.min(Math.round(actualProgress), 95);
-          }
         }),
-        switchMap(() => timer(this.estimatedRequestTime)),
-        concatMap(() => startOffset < this.expectedTotalRecords ? processBatch() : this.finalizeBatchProcessing(allPluginData))
+        switchMap(({ totalRecords }) => {
+          if (startOffset >= totalRecords) {
+            return this.finalizeBatchProcessing(allPluginData);
+          } else {
+            return processBatch();
+          }
+        })
       );
     };
 

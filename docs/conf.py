@@ -4,8 +4,8 @@ project = 'C-PAT'
 copyright = '2024 U.S. Federal Government (in countries where recognized)'
 author = 'Christian Rodriguez'
 
-release = '1.0.0-rc.6'
-version = '1.0.0-rc.6'
+release = '1.0.0-rc.7'
+version = '1.0.0-rc.7'
 
 html_css_files = [
     'css/custom.css',

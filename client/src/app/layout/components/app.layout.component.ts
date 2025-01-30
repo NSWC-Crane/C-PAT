@@ -3,8 +3,8 @@
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
-! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
-! CONDITIONS OF THE LICENSE.  
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
 
@@ -59,8 +59,8 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
   template: `
   <div class="current-collection mt-5 ml-[10.5rem] mb-[-2.5rem] flex items-center" *ngIf="collectionType && collectionName">
     <p-tag [value]="collectionType" [severity]="getTagColor(collectionType)" class="text-xs px-1 py-0.5 cursor-pointer" (click)="collectionMenu.toggle($event)" />
-    <span 
-  class="ml-2 mr-2 text-[color:var(--p-breadcrumb-item-color)] hover:text-[color:var(--p-text-hover-color)] cursor-pointer mr-1" 
+    <span
+  class="ml-2 mr-2 text-[color:var(--p-breadcrumb-item-color)] hover:text-[color:var(--p-text-hover-color)] cursor-pointer mr-1"
   [style]="{
     'transition': 'background var(--p-breadcrumb-transition-duration), color var(--p-breadcrumb-transition-duration), outline-color var(--p-breadcrumb-transition-duration), box-shadow var(--p-breadcrumb-transition-duration)'
   }"
@@ -171,9 +171,9 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
                     <p-tag
                       [value]="collection.collectionOrigin"
                       [severity]="getTagColor(collection.collectionOrigin)"
-                      class="text-xs px-1 py-0.5"
+                      class="text-xs px-1 py-0.5 shrink-0"
                     />
-                    <span>{{ collection.collectionName }}</span>
+                    <span class="break-words overflow-hidden">{{ collection.collectionName }}</span>
                   </div>
                 </ng-template>
               </p-menu>
