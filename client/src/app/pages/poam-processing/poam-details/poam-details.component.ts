@@ -262,7 +262,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.setPayloadService.accessLevel$.subscribe(async level => {
         this.accessLevel = level;
         if (this.accessLevel > 0) {
-          await this.obtainCollectionData(true);
+          this.obtainCollectionData(true);
           this.getData();
           this.updateMenuItems();
         }
@@ -378,7 +378,19 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private updateMenuItems() {
+  private async updateMenuItems() {
+    if (!this.poam || !this.user) {
+      await firstValueFrom(
+        forkJoin({
+          poam: this.poam ? of(this.poam) : this.poamService.getPoam(this.poamId),
+          user: this.user ? of(this.user) : this.setPayloadService.user$,
+        })
+      ).then(({ poam, user }) => {
+        this.poam = poam;
+        this.user = user;
+      });
+    }
+
     this.menuItems = [
       {
         label: 'POAM History',
@@ -400,45 +412,46 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       },
       ...(this.accessLevel >= 2
         ? [
-            {
-              label: 'Submit for Review',
-              icon: 'pi pi-file-plus',
-              styleClass: 'menu-item-success',
-              command: () => {
-                this.verifySubmitPoam();
-                this.menu.hide();
-              },
+          {
+            label: 'Submit for Review',
+            icon: 'pi pi-file-plus',
+            styleClass: 'menu-item-success',
+            command: () => {
+              this.verifySubmitPoam();
+              this.menu.hide();
             },
-          ]
+          },
+        ]
         : []),
       ...(this.accessLevel >= 3
         ? [
-            {
-              label: 'POAM Approval',
-              icon: 'pi pi-verified',
-              styleClass: 'menu-item-primary',
-              command: () => {
-                this.poamApproval();
-                this.menu.hide();
-              },
+          {
+            label: 'POAM Approval',
+            icon: 'pi pi-verified',
+            styleClass: 'menu-item-primary',
+            command: () => {
+              this.poamApproval();
+              this.menu.hide();
             },
-          ]
+          },
+        ]
         : []),
-      ...(this.accessLevel >= 4
+      ...(this.accessLevel >= 4 || (this.poam?.submitterId === this.user?.userId && this.poam?.status === 'Draft')
         ? [
-            {
-              label: 'Delete POAM',
-              icon: 'pi pi-trash',
-              styleClass: 'menu-item-danger',
-              command: () => {
-                this.deletePoam();
-                this.menu.hide();
-              },
+          {
+            label: 'Delete POAM',
+            icon: 'pi pi-trash',
+            styleClass: 'menu-item-danger',
+            command: () => {
+              this.deletePoam();
+              this.menu.hide();
             },
-          ]
+          },
+        ]
         : []),
     ];
   }
+
 
   private loadVulnerability(pluginId: string): Promise<void> {
     return new Promise((resolve, reject) => {
