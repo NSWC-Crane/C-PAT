@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -55,7 +55,7 @@
             <p-toggleswitch id="stigCheckData" [(ngModel)]="showCheckData"></p-toggleswitch>
             <label for="stigCheckData">View STIG Manager Check Data</label>
           </div>
-          <div class="card mt-6 showCheckData" *ngIf="showCheckData">
+          <div class="card showCheckData mt-6" *ngIf="showCheckData">
             <pre>{{poam.stigCheckData}}</pre>
           </div>
         </div>
@@ -65,7 +65,7 @@
             <p-toggleswitch id="tenablePluginData" [(ngModel)]="showCheckData"></p-toggleswitch>
             <label for="tenablePluginData">View Tenable Plugin Data</label>
           </div>
-          <div class="card mt-6 showCheckData" *ngIf="showCheckData">
+          <div class="card showCheckData mt-6" *ngIf="showCheckData">
             <pre>{{tenablePluginData}}</pre>
           </div>
         </div>
