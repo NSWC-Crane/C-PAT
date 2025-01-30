@@ -40,6 +40,30 @@ interface AssetEntry {
   poamStatus?: string;
 }
 
+interface STIGData {
+  benchmarkId: string;
+  collectionIds: string[];
+  lastRevisionDate: string;
+  lastRevisionStr: string;
+  revisionStrs: string[];
+  revisions: STIGRevision[];
+  ruleCount: number;
+  status: string;
+  title: string;
+}
+
+interface STIGRevision {
+  benchmarkDate: string;
+  benchmarkId: string;
+  collectionIds: string[];
+  release: string;
+  revisionStr: string;
+  ruleCount: number;
+  status: string;
+  statusDate: string;
+  version: string;
+}
+
 @Component({
   selector: 'cpat-stigmanager-import',
   templateUrl: './stigmanager-import.component.html',
@@ -87,13 +111,21 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     },
     { field: 'groupId', header: 'Group ID', width: '15%', filterType: 'text' },
     { field: 'ruleTitle', header: 'Rule Title', width: '35%', filterType: 'text' },
-    { field: 'benchmarkId', header: 'Benchmark ID', width: '15%', filterType: 'text' },
+    {
+      field: 'benchmarkId',
+      header: 'Benchmark ID',
+      width: '15%',
+      filterType: 'text',
+      filterOptions: [{ label: 'Any', value: null }]
+    },
     { field: 'severity', header: 'Severity', width: '15%', filterType: 'text' },
     { field: 'assetCount', header: 'Asset Count', width: '15%', filterType: 'numeric' },
   ];
   private dataSource: AssetEntry[] = [];
   public displayDataSource: AssetEntry[] = [];
   public existingPoams: any[] = [];
+  benchmarkIds: string[] = [];
+  selectedBenchmarkId: string | null = null;
   loadingTableInfo: boolean = true;
   loadingSkeletonData: any[] = Array(15).fill({});
   multiSortMeta: any[] = [];
@@ -159,6 +191,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     );
     this.initializeComponent();
     this.selectedFindings = 'All';
+    this.loadBenchmarkIds();
   }
 
   private initializeComponent() {
@@ -288,6 +321,31 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         this.loadingTableInfo = false;
       }
     });
+  }
+
+  private loadBenchmarkIds() {
+    this.subscriptions.add(
+      this.sharedService.getSTIGsFromSTIGMAN().subscribe({
+        next: (data: STIGData[]) => {
+          this.benchmarkIds = [...new Set(data.map(stig => stig.benchmarkId))].sort();
+          this.updateBenchmarkFilter();
+        },
+        error: (error) => {
+          console.error('Error loading STIG data:', error);
+          this.showError('Failed to load benchmark IDs. Please try again.');
+        }
+      })
+    );
+  }
+
+  private updateBenchmarkFilter() {
+    const benchmarkColumn = this.allColumns.find(col => col.field === 'benchmarkId');
+    if (benchmarkColumn) {
+      benchmarkColumn.filterOptions = [
+        { label: 'Any', value: null },
+        ...this.benchmarkIds.map(id => ({ label: id, value: id }))
+      ];
+    }
   }
 
   private mapSeverity(severity: string): string {
