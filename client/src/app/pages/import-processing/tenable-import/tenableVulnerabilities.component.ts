@@ -130,6 +130,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   formattedDescription: SafeHtml = '';
   totalRecords: number = 0;
+  iavVulnerabilitiesCount: number = 0;
   rows: number = 20;
   cols: any[];
   selectedColumns: any[];

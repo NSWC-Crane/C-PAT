@@ -327,7 +327,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.sharedService.getSTIGsFromSTIGMAN().subscribe({
         next: (data: STIGData[]) => {
-          this.benchmarkIds = [...new Set(data.map(stig => stig.benchmarkId))].sort();
+          this.benchmarkIds = [...new Set(data.map(stig => stig.benchmarkId))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
           this.updateBenchmarkFilter();
         },
         error: (error) => {
