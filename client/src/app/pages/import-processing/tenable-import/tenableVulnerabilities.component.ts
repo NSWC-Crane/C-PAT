@@ -317,6 +317,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Database Findings 30+ Days', value: 'database30' },
     { label: 'F5 Findings 30+ Days', value: 'f530' },
     { label: 'Linux/Ubuntu Findings 30+ Days', value: 'linuxUbuntu30' },
+    { label: 'Linux/Ubuntu Critical/High 30+ Days', value: 'linuxUbuntuCritical30' },
+    { label: 'Windows Critical/High 30+ Days', value: 'windowsCritical30' },
     {
       label: 'Windows - Monthly Security Patches 30+ Days',
       value: 'windowsPatches30',
@@ -2289,6 +2291,16 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.tempFilters['pluginFamily'] = ['1', '14'];
         this.tempFilters['vulnerabilityLastObserved'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
+        break;
+      case 'linuxUbuntuCritical30':
+        this.tempFilters['pluginFamily'] = ['1', '14'];
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['severity'] = ['3', '4'];
+        break;
+      case 'windowsCritical30':
+        this.tempFilters['pluginFamily'] = ['20'];
+        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['severity'] = ['3', '4'];
         break;
       case 'windowsPatches30':
         this.tempFilters['pluginFamily'] = ['10'];
