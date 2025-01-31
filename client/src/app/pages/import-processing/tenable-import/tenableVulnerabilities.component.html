@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -163,7 +163,7 @@
             <p-tabs value="0">
                 <p-tablist>
                     <p-tab value="0">Vulnerabilities ({{totalRecords}})</p-tab>
-                    <p-tab value="1">IAV Vulnerabilities</p-tab>
+                    <p-tab value="1">IAV Vulnerabilities ({{iavVulnerabilitiesCount}})</p-tab>
                     <p-tab value="2">Solutions</p-tab>
                 </p-tablist>
                 <p-tabpanels>
@@ -484,7 +484,7 @@
                         </div>
                     </p-tabpanel>
                     <p-tabpanel value="1">
-                        <cpat-tenable-iav-vulnerabilities></cpat-tenable-iav-vulnerabilities>
+                        <cpat-tenable-iav-vulnerabilities (totalRecordsChange)="iavVulnerabilitiesCount = $event"></cpat-tenable-iav-vulnerabilities>
                     </p-tabpanel>
                     <p-tabpanel value="2">
                         <cpat-tenable-solutions></cpat-tenable-solutions>
