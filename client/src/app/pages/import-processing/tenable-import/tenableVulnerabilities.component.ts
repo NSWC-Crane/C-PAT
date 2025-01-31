@@ -133,6 +133,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   iavVulnerabilitiesCount: number = 0;
   rows: number = 20;
   cols: any[];
+  filterSearch: string = '';
+  filteredAccordionItems: AccordionItem[] = [];
   selectedColumns: any[];
   exportColumns!: ExportColumn[];
   sidebarVisible: boolean = false;
@@ -662,6 +664,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.filteredAccordionItems = [...this.accordionItems];
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
@@ -693,6 +696,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           next: () => {
             this.updateAccordionItems();
             this.initializeColumnsAndFilters();
+            this.filteredAccordionItems = [...this.accordionItems];
           }
         });
       })
@@ -869,7 +873,31 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           return item;
       }
     });
+    this.filteredAccordionItems = [...this.accordionItems];
     this.cdr.detectChanges();
+  }
+
+  filterAccordionItems() {
+    let items = [...this.accordionItems];
+
+    if (this.filterSearch?.trim()) {
+      const searchTerm = this.filterSearch.toLowerCase().trim();
+      items = items.filter(item =>
+        item.header.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    items.sort((a, b) => {
+      const aActive = this.isFilterActive(a.identifier);
+      const bActive = this.isFilterActive(b.identifier);
+
+      if (aActive && !bActive) return -1;
+      if (!aActive && bActive) return 1;
+
+      return a.value - b.value;
+    });
+
+    this.filteredAccordionItems = items;
   }
 
   loadAssetOptions(): Observable<any> {
@@ -1238,6 +1266,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         }
       })
       .filter((filter): filter is CustomFilter => filter !== null);
+    this.filterAccordionItems();
+
     if (loadVuln) {
       this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     }
@@ -2148,6 +2178,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.tempFilters['severity'] = ['1', '2', '3', '4'];
     this.tempFilters['vulnerabilityLastObserved'] = '0:30';
     this.activeFilters = [];
+    this.filterSearch = '';
     this.applyFilters(false);
     this.resetColumnSelections();
     if (loadVuln) {

@@ -20,10 +20,18 @@
                           placeholder="Select premade filter options..."
                           [style]="{'width':'100%'}">
                 </p-select>
+                <div class="mt-3">
+                    <input type="text"
+                           pInputText
+                           [(ngModel)]="filterSearch"
+                           (input)="filterAccordionItems()"
+                           placeholder="Search filters..."
+                           class="w-full" />
+                </div>
             </div>
             <div class="filter-content">
                 <p-accordion [value]="['0']" [multiple]="true">
-                    <p-accordion-panel *ngFor="let item of accordionItems"
+                    <p-accordion-panel *ngFor="let item of filteredAccordionItems"
                                        [value]="item.value"
                                        [disabled]="item.disabled ?? false">
                         <p-accordion-header>
@@ -34,7 +42,7 @@
                                           class="clearFilterButton"
                                           (click)="clearIndividualFilter(item.identifier, $event)"
                                           (onKeyUp)="clearIndividualFilter(item.identifier, $event)"
-                                          styleClass="p-button-text p-button-rounded p-button-plain"
+                                          [styleClass]="isFilterActive(item.identifier) ? 'p-button-text p-button-rounded p-button-danger' : 'p-button-text p-button-rounded p-button-plain'"
                                           [disabled]="!isFilterActive(item.identifier)">
                                 </p-button>
                             </div>
