@@ -12,7 +12,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Users } from './users.model';
+import { Users } from '../../../common/models/users.model';
 
 @Injectable({
   providedIn: 'root',

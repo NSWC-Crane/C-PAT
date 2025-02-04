@@ -7,10 +7,13 @@
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
-export interface Label {
-  data: any;
-  collectionId(collectionId: any): unknown;
-  labelId?: number;
-  labelName?: string;
-  description?: string;
+
+:host ::ng-deep {
+  .p-dialog-content {
+    padding: 2rem;
+  }
+
+  .font-mono {
+    font-family: monospace;
+  }
 }

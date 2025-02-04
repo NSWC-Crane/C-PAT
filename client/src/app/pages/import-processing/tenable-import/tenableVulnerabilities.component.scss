@@ -9,253 +9,272 @@
 */
 
 .main-content {
-  flex: 1;
-  transition: margin-left 0.3s ease-in-out;
-  width: 100%;
+ flex: 1;
+ transition: margin-left 0.3s ease-in-out;
+ min-width: 0;
+ overflow: hidden;
 
-  ::ng-deep {
-    .p-card {
-      height: calc(100vh - 11rem);
-      max-height: calc(100vh - 11rem);
-      overflow: hidden;
-    }
-  }
+ ::ng-deep {
+   .p-card {
+     height: 100%;
+     overflow: hidden;
+   }
+ }
 }
 
 :host {
+ ::ng-deep {
+   .p-dialog {
+     max-height: 90vh;
+     overflow-y: auto;
+   }
+
+   .p-accordion {
+     width: 100%;
+
+     .p-accordion-panel {
+       margin: 0 0 0.5rem;
+       border: none;
+       border-radius: 0;
+
+       &:last-child {
+         margin: 0;
+       }
+     }
+
+     .p-accordion-header {
+       margin: 0;
+       border: none;
+       border-radius: 0;
+
+       a {
+         border: none;
+         border-radius: 0;
+         border-bottom: 1px solid var(--p-surface-700);
+       }
+     }
+
+     .p-accordion-content {
+       border: none;
+       border-bottom: 1px solid var(--p-surface-700);
+       padding: 1rem;
+     }
+
+     .p-accordion-panel:last-child {
+       .p-accordion-header a,
+       .p-accordion-content {
+         border-bottom: none;
+       }
+     }
+   }
+
+.range-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+
+  span {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
   ::ng-deep {
-    .p-dialog {
-      max-height: 90vh;
-      overflow-y: auto;
-    }
+    .p-inputnumber {
+      flex: 1;
+      min-width: 0;
 
-    .p-accordion {
-      width: 100%;
-
-      .p-accordion-panel {
-        margin: 0 0 0.5rem;
-        border: none;
-        border-radius: 0;
-
-        &:last-child {
-          margin: 0;
-        }
-      }
-
-      .p-accordion-header {
-        margin: 0;
-        border: none;
-        border-radius: 0;
-
-        a {
-          border: none;
-          border-radius: 0;
-          border-bottom: 1px solid var(--p-surface-700);
-        }
-      }
-
-      .p-accordion-content {
-        border: none;
-        border-bottom: 1px solid var(--p-surface-700);
-        padding: 1rem;
-      }
-
-      .p-accordion-panel:last-child {
-        .p-accordion-header a,
-        .p-accordion-content {
-          border-bottom: none;
-        }
-      }
-    }
-
-    .range-input {
-      width: 4rem !important;
-
-      .p-inputnumber-input {
-        width: 100% !important;
+      input {
+        width: 100%;
+        padding: 0.25rem;
       }
     }
   }
+}
+ }
+}
+
+.p-columnfilter-menu {
+ .p-column-filter-row {
+   max-width: 100%;
+ }
 }
 
 .severity-badge {
-  border-radius: 2px;
-  padding: 0.25em 0.5em;
-  text-transform: uppercase;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.3px;
-  text-align: center;
-  width: 6rem;
+ border-radius: 2px;
+ padding: 0.25em 0.5em;
+ text-transform: uppercase;
+ font-weight: 700;
+ font-size: 12px;
+ letter-spacing: 0.3px;
+ text-align: center;
+ width: 6rem;
 
-  &.severity-Critical {
-    background-color: #c63737;
-    color: #ffffff;
-    opacity: 0.9;
-  }
+ &.severity-Critical {
+   background-color: #c63737;
+   color: #ffffff;
+   opacity: 0.9;
+ }
 
-  &.severity-High {
-    background-color: #ff8800;
-    color: #ffffff;
-    opacity: 0.9;
-  }
+ &.severity-High {
+   background-color: #ff8800;
+   color: #ffffff;
+   opacity: 0.9;
+ }
 
-  &.severity-Medium {
-    background-color: #ffcc00;
-    color: #ffffff;
-    opacity: 0.9;
-  }
+ &.severity-Medium {
+   background-color: #ffcc00;
+   color: #ffffff;
+   opacity: 0.9;
+ }
 
-  &.severity-Low {
-    background-color: #47d147;
-    color: #ffffff;
-    opacity: 0.9;
-  }
+ &.severity-Low {
+   background-color: #47d147;
+   color: #ffffff;
+   opacity: 0.9;
+ }
 
-  &.severity-Info {
-    background-color: #007bff;
-    color: #ffffff;
-    opacity: 0.9;
-  }
+ &.severity-Info {
+   background-color: #007bff;
+   color: #ffffff;
+   opacity: 0.9;
+ }
 }
 
 .table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
 }
 
 .description {
-  margin: 1rem 0;
+ margin: 1rem 0;
 
-  h6 {
-    margin-bottom: 0.5rem !important;
-  }
+ h6 {
+   margin-bottom: 0.5rem !important;
+ }
 }
 
 .toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ margin-bottom: 1rem;
 
-  .left-buttons,
-  .right-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
+ .left-buttons,
+ .right-buttons {
+   display: flex;
+   gap: 0.5rem;
+ }
 
-  .right-buttons {
-    position: relative;
-  }
+ .right-buttons {
+   position: relative;
+ }
 }
 
 :host ::ng-deep {
-  .custom-multiselect {
-    position: absolute !important;
-    visibility: hidden;
-    pointer-events: none;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    top: 3.5rem;
-    right: -2rem;
+ .custom-multiselect {
+   position: absolute !important;
+   visibility: hidden;
+   pointer-events: none;
+   width: 0 !important;
+   height: 0 !important;
+   overflow: hidden !important;
+   top: 3.5rem;
+   right: -2rem;
 
-    .p-multiselect-label-container,
-    .p-multiselect-trigger {
-      display: none;
-    }
+   .p-multiselect-label-container,
+   .p-multiselect-trigger {
+     display: none;
+   }
 
-    .p-multiselect-panel {
-      visibility: visible;
-      pointer-events: auto;
-      position: fixed;
-      top: 4rem;
-      right: 1rem;
-      min-width: 200px;
-      z-index: 1000;
-    }
-  }
+   .p-multiselect-panel {
+     visibility: visible;
+     pointer-events: auto;
+     position: fixed;
+     top: 4rem;
+     right: 1rem;
+     min-width: 200px;
+     z-index: 1000;
+   }
+ }
 }
 
 .flex-container {
-    display: flex;
-    height: calc(100vh - 11rem);
-    overflow: hidden;
+   display: flex;
+   height: calc(100vh - 11rem);
+   overflow: hidden;
+   position: relative;
+   min-width: 1024px;
 }
 
 .filter-panel {
-  border-radius: 10px;
-  background-color: var(--p-surface-900);
-  width: 300px;
-  height: 100%;
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 1000;
+   border-radius: 10px;
+   background-color: var(--p-surface-900);
+   width: 300px;
+   height: 100%;
+   display: flex;
+   flex-direction: column;
+   z-index: 1000;
+   flex-shrink: 0;
+   position: relative;
 
-  &.filter-visible {
-    transition: transform 0.3s ease-in-out;
-    margin-bottom: 2rem;
-    border-radius: 10px;
-    height: calc(100vh - 11rem);
-    position: relative;
-  }
+   &.filter-visible {
+       transition: transform 0.3s ease-in-out;
+       margin-right: 1rem;
+       border-radius: 10px;
+       height: 100%;
+   }
 
-  &.filter-hidden {
-    transform: translateX(-100%);
-    height: 50vh;
-    top: 7rem;
-  }
+   &.filter-hidden {
+       display: none;
+   }
 
-.filter-header {
-    padding: 1rem;
-    border-bottom: 1px solid var(--p-surface-700);
-}
+   .filter-header {
+       padding: 1rem;
+       border-bottom: 1px solid var(--p-surface-700);
+   }
 
-  .filter-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0 0.1rem 0 0;
-  }
+   .filter-content {
+       flex: 1;
+       overflow-y: auto;
+       padding: 0 0.1rem 0 0;
+   }
 
-  .filter-footer {
-    border-radius: 0 0 10px 10px;
-    background-color: var(--p-surface-900);
-    border-top: 1px solid var(--p-surface-700);
-  }
+   .filter-footer {
+       border-radius: 0 0 10px 10px;
+       background-color: var(--p-surface-900);
+       border-top: 1px solid var(--p-surface-700);
+   }
 
-  ::ng-deep {
-    .p-accordion {
-      .p-accordion-header {
-        .p-accordion-header-link {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding-right: 2.5rem;
+   ::ng-deep {
+       .p-accordion {
+           .p-accordion-header {
+               .p-accordion-header-link {
+                   display: flex;
+                   align-items: center;
+                   justify-content: space-between;
+                   padding-right: 2.5rem;
 
-          &::after {
-            position: absolute;
-            right: 1rem;
-          }
-        }
-      }
-    }
+                   &::after {
+                       position: absolute;
+                       right: 1rem;
+                   }
+               }
+           }
+       }
 
-    .clearFilterButton {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 1;
+       .clearFilterButton {
+           position: absolute;
+           right: 0;
+           top: 50%;
+           transform: translateY(-50%);
+           z-index: 1;
 
-      .p-button {
-        padding: 0.5rem;
-        height: auto;
-      }
-    }
-  }
+           .p-button {
+               padding: 0.5rem;
+               height: auto;
+           }
+       }
+   }
 }

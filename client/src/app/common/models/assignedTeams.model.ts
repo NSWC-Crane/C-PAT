@@ -8,34 +8,8 @@
 !##########################################################################
 */
 
-export interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
-
 export interface AssignedTeams {
   assignedTeamId: number;
+  assignedTeamName?: string;
   accessLevel: number;
-}
-
-
-export interface Users {
-  userId: number;
-  userName: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  created: string;
-  lastAccess: string;
-  lastCollectionAccessedId: number;
-  accountStatus: string;
-  fullName: string | null;
-  officeOrg: string;
-  defaultTheme: string;
-  isAdmin: boolean;
-  lastClaims: any;
-  points: number;
-  permissions: Permission[];
-  assignedTeams?: AssignedTeams[];
 }

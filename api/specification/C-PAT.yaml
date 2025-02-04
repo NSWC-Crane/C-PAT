@@ -8,7 +8,7 @@
 #!##########################################################################
 #*/
 
-openapi: 3.0.1
+openapi: 3.1.1
 info:
   title: C-PAT API
   description: An API for managing POAMs.
@@ -49,7 +49,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/aaPackage/{aaPackageId}':
     parameters:
       - in: path
@@ -107,7 +107,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:op'
-  
+
   '/aaPackage':
     post:
       summary: Add an A&A Package
@@ -212,7 +212,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   /asset/name/{assetName}:
     parameters:
       - in: path
@@ -252,7 +252,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   /asset/{assetId}:
     parameters:
       - in: path
@@ -346,7 +346,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-  
+
   /asset:
     post:
       summary: Add an asset
@@ -451,7 +451,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
+
   /assetLabels/asset/{assetId}:
     parameters:
       - in: path
@@ -525,7 +525,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
+
   /assetLabel/asset/{assetId}/label/{labelId}:
     parameters:
       - in: path
@@ -594,7 +594,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-            
+
   /assetLabel:
     post:
       summary: Add an asset label
@@ -660,7 +660,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/assignedTeams/{assignedTeamId}':
     parameters:
       - in: path
@@ -718,7 +718,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:op'
-  
+
   '/assignedTeam':
     post:
       summary: Add an Assigned Team
@@ -896,7 +896,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/collections':
     get:
       tags:
@@ -927,7 +927,7 @@ paths:
   /collection:
     post:
       tags:
-        - Collection  
+        - Collection
       summary: Create a Collection
       operationId: postCollection
       requestBody:
@@ -986,7 +986,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-      tags: 
+      tags:
         - Collection
       security:
         - oauth:
@@ -1331,70 +1331,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
-  '/label/{collectionId}/{labelId}':
-    parameters:
-      - in: path
-        name: collectionId
-        required: true
-        schema:
-          type: integer
-      - in: path
-        name: labelId
-        required: true
-        schema:
-          type: integer
-    get:
-      summary: Return a label by labelId
-      operationId: getLabel
-      responses:
-        '200':
-          description: Label object response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/label_Object'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Label
-      security:
-        - oauth:
-            - 'c-pat:read'
-    delete:
-      summary: Delete a label by labelId
-      operationId: deleteLabel
-      responses:
-        '204':
-          description: Label deleted successfully
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Label
-      security:
-        - oauth:
-            - 'c-pat:write'
-  
+
   '/label/{collectionId}':
     parameters:
       - in: path
@@ -1435,6 +1372,46 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
+
+  '/label/{collectionId}/{labelId}':
+    parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: labelId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return a label by labelId
+      operationId: getLabel
+      responses:
+        '200':
+          description: Label object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/label_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Label
+      security:
+        - oauth:
+            - 'c-pat:read'
     put:
       summary: Update a Label
       operationId: putLabel
@@ -1451,6 +1428,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/label_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Label
+      security:
+        - oauth:
+            - 'c-pat:write'
+    delete:
+      summary: Delete a label by labelId
+      operationId: deleteLabel
+      responses:
+        '204':
+          description: Label deleted successfully
         '400':
           description: Bad Request
           content:
@@ -1491,7 +1491,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   /marketplace/purchase:
     post:
       summary: Purchase a theme
@@ -1527,7 +1527,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   /marketplace/user-themes:
     get:
       summary: Get all purchased themes
@@ -1600,7 +1600,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/metrics/collection/{collectionId}/poamlabel':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
@@ -1627,7 +1627,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/metrics/collection/{collectionId}/poamstatus':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
@@ -1654,7 +1654,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/metrics/collection/{collectionId}/poamseverity':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
@@ -1681,7 +1681,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/metrics/collection/{collectionId}/poamScheduledCompletion':
     parameters:
       - $ref: '#/components/parameters/collectionIdPath'
@@ -1760,7 +1760,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/metrics/available/poamlabel':
     get:
       summary: Get all POAM labels and label counts available to the user
@@ -1785,7 +1785,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/metrics/available/poamstatus':
     get:
       summary: Get all POAM status and status counts available to the user
@@ -1810,7 +1810,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/metrics/available/poamseverity':
     get:
       summary: Get all POAM severity and severity counts available to the user
@@ -1885,7 +1885,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/metrics/available/poamScheduledCompletion':
     get:
       summary: Get all POAM scheduled completion and scheduled completion counts available to the user
@@ -2161,7 +2161,7 @@ paths:
         - Operation
       security:
         - oauth:
-            - 'c-pat:read'    
+            - 'c-pat:read'
     delete:
       summary: Delete a configuration item
       operationId: deleteConfigurationItem
@@ -2296,7 +2296,7 @@ paths:
         - Permissions
       security:
         - oauth:
-            - 'c-pat:op'  
+            - 'c-pat:op'
     put:
       summary: Update user collection permissions
       operationId: putPermission
@@ -2376,7 +2376,7 @@ paths:
         name: collectionId
         required: true
         schema:
-          type: integer 
+          type: integer
     get:
       summary: Return poamApprovers by collectionId
       operationId: getPoamApproversByCollection
@@ -2406,7 +2406,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/poamApprover/poam/{poamId}/user/{userId}':
     parameters:
       - in: path
@@ -2418,7 +2418,7 @@ paths:
         name: userId
         required: true
         schema:
-          type: integer   
+          type: integer
     delete:
       summary: Delete a poamApprover by userId and poamId
       operationId: deletePoamApprover
@@ -2442,7 +2442,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-  
+
   '/poamApprover':
     post:
       summary: Add a poamApprover
@@ -2603,7 +2603,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/poamAssets/poam/{poamId}':
     get:
       summary: Return poamassets by poamId
@@ -2669,7 +2669,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-  
+
   '/poamAsset/poam/{poamId}/asset/{assetId}':
     delete:
       summary: Delete a PoamAsset by poamId and assetId
@@ -2705,7 +2705,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-  
+
   '/poamAsset':
     post:
       summary: Add a poam asset
@@ -2768,7 +2768,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   /poamAssignedTeams/poam/{poamId}:
     get:
       summary: Get a POAMs assigned teams by POAM ID
@@ -2799,7 +2799,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   /poamAssignedTeam/poam/{poamId}/{assignedTeamId}:
     delete:
       summary: Delete a POAMs assigned team
@@ -2835,7 +2835,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-          
+
   /poamAssignedTeam:
     post:
       summary: Create a new POAM assigned team
@@ -2978,7 +2978,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-            
+
   /poamAssignee:
     post:
       summary: Create a new POAM assignee
@@ -3133,7 +3133,7 @@ paths:
         - PoamAssociatedVulnerability
       security:
         - oauth:
-            - 'c-pat:write'   
+            - 'c-pat:write'
 
   '/poamAttachments/poam/{poamId}':
     get:
@@ -3356,7 +3356,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: 
+                properties:
                   message:
                     type: string
                     example: "POAM extension deleted successfully"
@@ -3377,7 +3377,7 @@ paths:
         - PoamExtension
       security:
         - oauth:
-          - 'c-pat:write' 
+          - 'c-pat:write'
       requestBody:
         content:
           application/json:
@@ -3466,7 +3466,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
+
   /poamLabels/poam/{poamId}:
     parameters:
       - in: path
@@ -3503,7 +3503,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-    
+
   /poamLabels/label/{labelId}:
     parameters:
       - in: path
@@ -3540,7 +3540,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-            
+
   /poamLabel/poam/{poamId}/label/{labelId}:
     parameters:
       - in: path
@@ -3603,7 +3603,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-            
+
   /poamLabel:
     post:
       summary: Add a poam label
@@ -3752,7 +3752,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-  
+
   /poamMilestones/{poamId}/{milestoneId}:
     delete:
       summary: Delete a specific milestone
@@ -3892,7 +3892,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   /poam/{poamId}:
     parameters:
       - in: path
@@ -3975,7 +3975,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
-  
+
   /poams/collection/{collectionId}:
     parameters:
       - in: path
@@ -4041,7 +4041,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   /poams/submitter/{submitterId}:
     parameters:
       - in: path
@@ -4185,7 +4185,7 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/poam':
     post:
       summary: Add a POAM
@@ -4291,6 +4291,180 @@ paths:
                 $ref: '#/components/schemas/error'
       tags:
         - Poam
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  '/tenableFilters/{collectionId}':
+    get:
+      summary: Return all Tenable Filters for a collection
+      operationId: getTenableFilters
+      parameters:
+        - in: path
+          name: collectionId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tenable Filters array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/tenableFilter_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - TenableFilters
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenableFilter/{collectionId}/{tenableFilterId}':
+    parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: tenableFilterId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return a tenableFilter by tenableFilterId
+      operationId: getTenableFilter
+      responses:
+        '200':
+          description: Tenable Filter object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableFilter_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - TenableFilters
+      security:
+        - oauth:
+            - 'c-pat:read'
+    put:
+      summary: Update a Tenable Filter
+      operationId: putTenableFilter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/tenableFilter_Object'
+      responses:
+        '200':
+          description: TenableFilter updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableFilter_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - TenableFilters
+      security:
+        - oauth:
+            - 'c-pat:write'
+    delete:
+      summary: Delete a Tenable Filter by tenableFilterId
+      operationId: deleteTenableFilter
+      responses:
+        '204':
+          description: Tenable Filter deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - TenableFilters
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  '/tenableFilter/{collectionId}':
+    parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+    post:
+      summary: Add a Tenable Filter
+      operationId: postTenableFilter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/tenableFilter_Object'
+      responses:
+        '201':
+          description: TenableFilter created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableFilter_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - TenableFilters
       security:
         - oauth:
             - 'c-pat:write'
@@ -4465,14 +4639,14 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
-  
+
   '/users':
     get:
       tags:
         - User
       security:
         - oauth:
-            - 'c-pat:op'        
+            - 'c-pat:op'
       summary: Return all users for admin processing
       operationId: getUsers
       parameters:
@@ -4492,7 +4666,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-  
+
   '/user/{userId}':
     parameters:
       - $ref: '#/components/parameters/ElevateQuery'
@@ -4506,7 +4680,7 @@ paths:
         - User
       security:
         - oauth:
-            - 'c-pat:read'        
+            - 'c-pat:read'
       summary: Return a User
       operationId: getUserByUserID
       responses:
@@ -4527,7 +4701,7 @@ paths:
         - User
       security:
         - oauth:
-            - 'c-pat:op'        
+            - 'c-pat:op'
       summary: Delete a User
       operationId: deleteUser
       responses:
@@ -4650,7 +4824,7 @@ paths:
         - UserTeamAssignments
       security:
         - oauth:
-            - 'c-pat:op'  
+            - 'c-pat:op'
     put:
       summary: Update a users team assignment
       operationId: putTeamAssignment
@@ -5145,14 +5319,14 @@ components:
           type: string
         user:
           $ref: '#/components/schemas/user_Token'
-          
+
     change_Workspace_Response:
       type: object
       additionalProperties: false
       properties:
         token:
-          type: string          
-          
+          type: string
+
     collection:
       type: object
       required:
@@ -5178,9 +5352,12 @@ components:
         aaPackage:
           type: string
           nullable: true
+        predisposingConditions:
+          type: string
+          nullable: true
         created:
           type: string
-          format: date   
+          format: date
         collectionOrigin:
           type: string
           nullable: true
@@ -5214,6 +5391,9 @@ components:
         aaPackage:
           type: string
           nullable: true
+        predisposingConditions:
+          type: string
+          nullable: true
 
     collectionField:
       type: object
@@ -5241,7 +5421,7 @@ components:
         error:
           type: string
         detail:
-          type: string 
+          type: string
 
     SuccessResponse:
       type: object
@@ -5264,6 +5444,25 @@ components:
           type: string
         description:
           type: string
+
+    tenableFilter_Object:
+      type: object
+      required:
+        - filterName
+        - collectionId
+      additionalProperties: false
+      properties:
+        filterId:
+          type: integer
+        collectionId:
+          type: integer
+        filterName:
+          type: string
+        filter:
+          type: string
+        createdBy:
+          type: string
+          nullable: true
 
     aaPackage_Object:
       type: object
@@ -5594,7 +5793,7 @@ components:
           type: integer
         status:
           type: string
-            
+
     poam_Object:
       type: object
       required:
@@ -5817,7 +6016,7 @@ components:
         - Timestamp
         - User
         - Action
-        
+
     PoamMilestonesResponse:
       type: object
       properties:
@@ -6011,7 +6210,7 @@ components:
         scheduledCompletion:
           type: string
         scheduledCompletionCount:
-          type: integer 
+          type: integer
 
     UpdateThemeRequest:
       type: object
@@ -6175,8 +6374,8 @@ components:
           nullable: true
         points:
           type: integer
-          nullable: true         
-          
+          nullable: true
+
     user_Token:
       required:
         - userId
@@ -6220,7 +6419,7 @@ components:
         defaultTheme:
           type: string
           maxLength: 255
-          
+
     user_Permissions:
       type: object
       required:
@@ -6372,7 +6571,7 @@ components:
       description: A query parameter that identifies an Asset
       schema:
         type: string
-                
+
   securitySchemes:
       oauth:
         type: openIdConnect

@@ -19,11 +19,7 @@ import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-
-interface AAPackage {
-  aaPackageId: number;
-  aaPackage: string;
-}
+import { AAPackage } from '../../../common/models/aaPackage.model';
 
 @Component({
   selector: 'cpat-aa-package-processing',

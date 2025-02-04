@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -19,6 +19,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { MessageService } from 'primeng/api';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'cpat-poam-assigned-grid',
@@ -34,6 +35,7 @@ import { TagModule } from 'primeng/tag';
     InputIconModule,
     InputTextModule,
     TagModule,
+    TooltipModule,
   ],
   providers: [MessageService],
 })
@@ -48,13 +50,13 @@ export class PoamAssignedGridComponent implements OnChanges {
     'Status',
     'Submitter',
     'Assigned Team',
-    'POAM',
+    'Labels'
   ];
   assignedDataSource: any[] = [];
   filteredData: any[] = [];
   globalFilter: string = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['assignedData']) {
@@ -73,6 +75,9 @@ export class PoamAssignedGridComponent implements OnChanges {
       assignedTeams: item.assignedTeams
         ? item.assignedTeams.map((team: any) => team.assignedTeamName)
         : [],
+      labels: item.labels
+        ? item.labels.map((label: any) => label.labelName)
+        : []
     }));
     this.filteredData = [...this.assignedDataSource];
     this.applyFilter();
@@ -103,9 +108,6 @@ export class PoamAssignedGridComponent implements OnChanges {
   }
 
   getColumnKey(col: string): string {
-    if (col === 'POAM') {
-      return '';
-    }
     switch (col) {
       case 'POAM ID':
         return 'poamId';
@@ -117,6 +119,8 @@ export class PoamAssignedGridComponent implements OnChanges {
         return 'submitter';
       case 'Assigned Team':
         return 'assignedTeams';
+      case 'Labels':
+        return 'labels';
       default:
         return col.toLowerCase().replace(/\s+/g, '');
     }

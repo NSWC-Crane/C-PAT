@@ -443,6 +443,9 @@ export class PoamGridComponent implements OnInit, OnChanges, OnDestroy {
       assignedTeams: poam.assignedTeams
         ? poam.assignedTeams.map((team: any) => team.assignedTeamName).join(', ')
         : '',
+      labels: poam.labels
+        ? poam.labels.map((label: any) => label.labelName)
+        : [],
       associatedVulnerabilities: poam.associatedVulnerabilities,
     }));
     this.applyFilter();

@@ -30,24 +30,13 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
+import { Collections } from '../../../common/models/collections.model';
+import { AAPackage } from '../../../common/models/aaPackage.model';
 
 interface TreeNode<T> {
   data: T;
   children?: TreeNode<T>[];
   expanded?: boolean;
-}
-interface AAPackage {
-  aaPackageId: number;
-  aaPackage: string;
-}
-interface CollectionData {
-  collectionId?: number;
-  collectionName?: string;
-  description?: string;
-  systemType?: string;
-  systemName?: string;
-  ccsafa?: string;
-  aaPackage?: string;
 }
 
 @Component({
@@ -86,7 +75,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   allColumns = [this.customColumn, ...this.defaultColumns];
   aaPackages: AAPackage[] = [];
   filteredAAPackages: string[] = [];
-  collectionTreeData: TreeNode<CollectionData>[] = [];
+  collectionTreeData: TreeNode<Collections>[] = [];
   public isLoggedIn = false;
   exportCollectionId: any;
   poams: any[] = [];
@@ -180,7 +169,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
   getCollectionsTreeData() {
     const collectionData = this.data;
-    const treeViewData: TreeNode<CollectionData>[] = collectionData.map(
+    const treeViewData: TreeNode<Collections>[] = collectionData.map(
       (collection: {
         collectionId: number | any[];
         collectionName: any;
@@ -189,6 +178,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         systemName: any;
         ccsafa: any;
         aaPackage: any;
+        predisposingConditions: any;
         collectionOrigin: any;
         originCollectionId: number;
       }) => {
@@ -203,6 +193,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             'System Name': collection.systemName || '',
             'CC/S/A/FA': collection.ccsafa || '',
             'A&A Package': collection.aaPackage || '',
+            'Predisposing Conditions': collection.predisposingConditions || '',
             'Collection Origin': collection.collectionOrigin || '',
             'Origin Collection ID': collection.originCollectionId ?? 0,
           },
@@ -223,6 +214,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       systemName: rowData['System Name'],
       ccsafa: rowData['CC/S/A/FA'],
       aaPackage: rowData['A&A Package'],
+      predisposingConditions: rowData['Predisposing Conditions']
     };
 
     if (!exportCollection.collectionId) {
@@ -457,6 +449,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       systemName: '',
       ccsafa: '',
       aaPackage: '',
+      predisposingConditions: ''
     };
     this.displayCollectionDialog = true;
   }
@@ -471,6 +464,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       systemName: rowData['System Name'],
       ccsafa: rowData['CC/S/A/FA'],
       aaPackage: rowData['A&A Package'],
+      predisposingConditions: rowData['Predisposing Conditions']
     };
     this.displayCollectionDialog = true;
   }

@@ -11,7 +11,8 @@
 import { Component, OnInit } from '@angular/core';
 import { EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { CollectionsService, CollectionBasicList } from '../collection-processing/collections.service';
+import { CollectionsService } from '../collection-processing/collections.service';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { SharedService } from '../../../common/services/shared.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CommonModule } from '@angular/common';
@@ -39,7 +40,7 @@ export class STIGManagerAdminComponent implements OnInit {
   stigmanCollections: STIGManagerCollection[] = [];
   filteredCollections: STIGManagerCollection[] = [];
   selectedSTIGManagerCollection: STIGManagerCollection | null = null;
-  existingCollections: CollectionBasicList[] = [];
+  existingCollections: CollectionsBasicList[] = [];
   private destroy$ = new Subject<void>();
   constructor(
     private collectionsService: CollectionsService,

@@ -12,7 +12,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Label } from './label.model';
+import { Label } from '../../common/models/label.model';
 
 @Injectable({
   providedIn: 'root',
@@ -49,9 +49,9 @@ export class LabelService {
       .pipe(catchError(this.handleError));
   }
 
-  updateLabel(collectionId: number, label: any): Observable<Label> {
+  updateLabel(collectionId: number, labelId: number, label: any): Observable<Label> {
     return this.http
-      .put<Label>(`${this.cpatApiBase}/label/${collectionId}`, label)
+      .put<Label>(`${this.cpatApiBase}/label/${collectionId}/${labelId}`, label)
       .pipe(catchError(this.handleError));
   }
 

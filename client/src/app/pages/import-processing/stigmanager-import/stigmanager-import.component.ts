@@ -21,13 +21,13 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { TabsModule } from 'primeng/tabs';
 import { SkeletonModule } from 'primeng/skeleton';
-import { Select } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
 import { ChartModule } from 'primeng/chart';
+import { MultiSelectModule } from 'primeng/multiselect';
 
 interface AssetEntry {
   groupId: string;
@@ -74,9 +74,9 @@ interface STIGRevision {
     CardModule,
     ChartModule,
     CommonModule,
-    Select,
     FormsModule,
     InputTextModule,
+    MultiSelectModule,
     SkeletonModule,
     TableModule,
     TabsModule,
@@ -115,7 +115,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       field: 'benchmarkId',
       header: 'Benchmark ID',
       width: '15%',
-      filterType: 'text',
+      filterType: 'multi',
       filterOptions: [{ label: 'Any', value: null }]
     },
     { field: 'severity', header: 'Severity', width: '15%', filterType: 'text' },
@@ -134,6 +134,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   stigmanCollection: any;
   user: any;
   private subscriptions = new Subscription();
+  selectedBenchmarkIds: string[] = [];
   findingsCount: number = 0;
   chartData: any;
   chartOptions: any = {
@@ -181,7 +182,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private messageService: MessageService,
     private poamService: PoamService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.subscriptions.add(
@@ -338,15 +339,44 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     );
   }
 
-  private updateBenchmarkFilter() {
+  private updateBenchmarkFilter(): void {
     const benchmarkColumn = this.allColumns.find(col => col.field === 'benchmarkId');
     if (benchmarkColumn) {
-      benchmarkColumn.filterOptions = [
-        { label: 'Any', value: null },
-        ...this.benchmarkIds.map(id => ({ label: id, value: id }))
-      ];
+      benchmarkColumn.filterOptions = this.benchmarkIds.map(id => ({
+        label: id,
+        value: id
+      }));
     }
   }
+
+  onBenchmarkFilterChange(event: any, filterCallback: Function) {
+    if (!event || !event.value) {
+      filterCallback(null);
+      this.displayDataSource = [...this.dataSource];
+    } else {
+      const selectedValues = event.value;
+      this.selectedBenchmarkIds = selectedValues;
+
+      filterCallback(selectedValues);
+
+      this.displayDataSource = this.dataSource.filter(item =>
+        selectedValues.length === 0 || selectedValues.includes(item.benchmarkId)
+      );
+    }
+
+    this.findingsCount = this.displayDataSource.length;
+    const findings = this.processSeverityGroupsFromDisplayData();
+    this.updateFindingsChartData(findings);
+  }
+
+  onBenchmarkFilterClear(_event: any, filterCallback: Function) {
+  this.selectedBenchmarkIds = [];
+  filterCallback(null);
+  this.displayDataSource = [...this.dataSource];
+  this.findingsCount = this.displayDataSource.length;
+  const findings = this.processSeverityGroupsFromDisplayData();
+  this.updateFindingsChartData(findings);
+}
 
   private mapSeverity(severity: string): string {
     switch (severity) {
