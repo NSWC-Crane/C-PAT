@@ -60,13 +60,6 @@ interface AssignedTeam {
     editing?: boolean;
 }
 
-export interface CollectionsResponse {
-    collections: Array<{
-        collectionId: number;
-        collectionName: string;
-    }>;
-}
-
 interface PermissionChange {
     collectionId: number;
     collectionName: string;

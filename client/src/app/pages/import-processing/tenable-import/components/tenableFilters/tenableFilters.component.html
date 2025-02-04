@@ -1,0 +1,60 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<p-button icon="pi pi-plus"
+          [rounded]="true"
+          [text]="true"
+          [raised]="true"
+          class="ml-2"
+          (onClick)="showSaveFilterDialog()"
+          pTooltip="Save the currently applied filters as a custom filter">
+</p-button>
+
+<p-dialog [(visible)]="saveFilterDialog"
+          [modal]="true"
+          [style]="{'width': '600px'}"
+          header="Save Custom Filter">
+    <div class="flex flex-col space-y-4">
+        <div class="flex flex-col space-y-2">
+            <label for="filterName">Filter Name</label>
+            <input id="filterName"
+                   type="text"
+                   pInputText
+                   [(ngModel)]="newFilterName"
+                   placeholder="Enter filter name..."
+                   class="w-full" />
+        </div>
+        <div class="flex flex-col space-y-2">
+            <label>Filter Configuration</label>
+            <textarea pTextarea
+                      [(ngModel)]="currentFilter"
+                      [disabled]="true"
+                      rows="10"
+                      class="w-full">
+            </textarea>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <div class="flex w-full justify-between">
+            <p-button label="Save"
+                      icon="pi pi-save"
+                      (onClick)="saveCustomFilter()"
+                      [disabled]="!newFilterName?.trim()">
+            </p-button>
+            <p-button label="Cancel"
+                      icon="pi pi-times"
+                      (onClick)="cancelSaveFilter()"
+                      styleClass="p-button-secondary">
+            </p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-toast position="center"></p-toast>

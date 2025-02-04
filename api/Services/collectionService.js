@@ -57,6 +57,7 @@ exports.getCollections = async function getCollections(elevate, req) {
                     systemName: collection.systemName,
                     ccsafa: collection.ccsafa,
                     aaPackage: collection.aaPackage,
+                    predisposingConditions: collection.predisposingConditions,
                     created: collection.created,
                 }));
             }
@@ -70,7 +71,7 @@ exports.getCollections = async function getCollections(elevate, req) {
 exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            const sql = "SELECT collectionId, collectionName, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage FROM collection";
+            const sql = "SELECT collectionId, collectionName, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions FROM collection";
             const [rows] = await connection.query(sql);
             return rows;
         });
@@ -88,32 +89,20 @@ exports.postCollection = async function postCollection(req, res, next) {
             }
         });
     }
-    if (!req.body.description) {
-        req.body.description = ""
-    }
-    if (!req.body.collectionOrigin) {
-        req.body.collectionOrigin = "C-PAT"
-    }
-    if (!req.body.originCollectionId) {
-        req.body.originCollectionId = null;
-    }
-    if (!req.body.systemType) {
-        req.body.systemType = ""
-    }
-    if (!req.body.systemName) {
-        req.body.systemName = ""
-    }
-    if (!req.body.ccsafa) {
-        req.body.ccsafa = ""
-    }
-    if (!req.body.aaPackage) {
-        req.body.aaPackage = ""
-    }
+
+    if (!req.body.collectionOrigin) req.body.collectionOrigin = "C-PAT";
+    if (!req.body.originCollectionId) req.body.originCollectionId = null;
+    if (!req.body.description) req.body.description = "";
+    if (!req.body.systemType) req.body.systemType = "";
+    if (!req.body.systemName) req.body.systemName = "";
+    if (!req.body.ccsafa) req.body.ccsafa = "";
+    if (!req.body.aaPackage) req.body.aaPackage = "";
+    if (!req.body.predisposingConditions) req.body.predisposingConditions = "";
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.collection (collectionName, description, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage) VALUES (?, ?, ?, ?, ?, ?, ?, ?) `
-            await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.collectionOrigin, req.body.originCollectionId, req.body.systemType, req.body.systemName, req.body.ccsafa, req.body.aaPackage])
+            let sql_query = `INSERT INTO cpat.collection (collectionName, description, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) `
+            await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.collectionOrigin, req.body.originCollectionId, req.body.systemType, req.body.systemName, req.body.ccsafa, req.body.aaPackage, req.body.predisposingConditions])
             let sql = "SELECT * FROM cpat.collection WHERE collectionId = LAST_INSERT_ID();"
             let [rowCollection] = await connection.query(sql)
 
@@ -140,10 +129,11 @@ exports.putCollection = async function putCollection(req, res, next) {
     if (!req.body.systemName) req.body.systemName = "";
     if (!req.body.ccsafa) req.body.ccsafa = "";
     if (!req.body.aaPackage) req.body.aaPackage = "";
+    if (!req.body.predisposingConditions) req.body.predisposingConditions = "";
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE cpat.collection SET collectionName = ?, description = ?, systemType = ?, systemName = ?, ccsafa = ?, aaPackage = ? WHERE collectionId = ?";
+            let sql_query = "UPDATE cpat.collection SET collectionName = ?, description = ?, systemType = ?, systemName = ?, ccsafa = ?, aaPackage = ?, predisposingConditions = ? WHERE collectionId = ?";
             await connection.query(sql_query, [
                 req.body.collectionName,
                 req.body.description,
@@ -151,6 +141,7 @@ exports.putCollection = async function putCollection(req, res, next) {
                 req.body.systemName,
                 req.body.ccsafa,
                 req.body.aaPackage,
+                req.body.predisposingConditions,
                 req.body.collectionId
             ]);
 
@@ -162,6 +153,7 @@ exports.putCollection = async function putCollection(req, res, next) {
             message.systemName = req.body.systemName;
             message.ccsafa = req.body.ccsafa;
             message.aaPackage = req.body.aaPackage;
+            message.predisposingConditions = req.body.predisposingConditions;
             return message;
         });
     }

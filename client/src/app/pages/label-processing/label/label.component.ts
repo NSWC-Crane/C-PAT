@@ -106,7 +106,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
           }
         );
     } else {
-      this.subs.sink = this.labelService.updateLabel(this.selectedCollection, label)
+      this.subs.sink = this.labelService.updateLabel(this.selectedCollection, label.labelId, label)
         .subscribe(
           data => {
             this.label = data;

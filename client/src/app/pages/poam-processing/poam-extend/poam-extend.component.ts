@@ -32,6 +32,7 @@ import { StepperModule } from 'primeng/stepper';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
+import { LabelService } from '../../label-processing/label.service';
 
 @Component({
   selector: 'cpat-poam-extend',
@@ -136,6 +137,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     private sharedService: SharedService,
     private poamExtensionService: PoamExtensionService,
     private confirmationService: ConfirmationService,
+    private labelService: LabelService,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef,
     private setPayloadService: PayloadService
@@ -580,7 +582,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             description: 'POAM has been extended'
           };
           this.subscriptions.add(
-            this.poamService.postLabel(this.selectedCollection, extendLabel).subscribe(() => {
+            this.labelService.addLabel(this.selectedCollection, extendLabel).subscribe(() => {
               this.findOrCreateExtendedLabel();
             })
           );

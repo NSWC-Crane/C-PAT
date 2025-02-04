@@ -11,7 +11,8 @@
 import { Component, OnInit } from '@angular/core';
 import { EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
-import { CollectionsService, CollectionBasicList } from '../collection-processing/collections.service';
+import { CollectionsService } from '../collection-processing/collections.service';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CommonModule } from '@angular/common';
@@ -41,7 +42,7 @@ export class TenableAdminComponent implements OnInit {
   tenableRepositories: TenableRepository[] = [];
   filteredRepositories: TenableRepository[] = [];
   selectedTenableRepository: TenableRepository | null = null;
-  existingCollections: CollectionBasicList[] = [];
+  existingCollections: CollectionsBasicList[] = [];
   private destroy$ = new Subject<void>();
 
   constructor(

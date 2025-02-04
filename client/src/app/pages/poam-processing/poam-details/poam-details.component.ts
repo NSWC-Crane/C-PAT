@@ -47,20 +47,11 @@ import { SplitterModule } from 'primeng/splitter';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputGroupModule } from 'primeng/inputgroup';
-
-interface AAPackage {
-  aaPackageId: number;
-  aaPackage: string;
-}
-
-interface Permission {
-  userId: number;
-  collectionId: number;
-  accessLevel: number;
-}
+import { AAPackage } from '../../../common/models/aaPackage.model';
+import { Permission } from '../../../common/models/permission.model';
 
 function calculateScheduledCompletionDate(rawSeverity: string) {
-  let daysToAdd;
+  let daysToAdd: number;
   switch (rawSeverity) {
     case 'CAT I - Critical':
     case 'CAT I - High':
@@ -121,6 +112,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = [];
   clonedMilestones: { [s: string]: any } = {};
   collectionAAPackage: any;
+  collectionPredisposingConditions: string;
   poamLabels: any[] = [];
   poamAssociatedVulnerabilities: any[] = [];
   labelList: any[] = [];
@@ -527,6 +519,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         collectionId: this.payload.lastCollectionAccessedId,
         vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
         aaPackage: this.collectionAAPackage ?? '',
+        predisposingConditions: this.collectionPredisposingConditions ?? '',
         iavmNumber: this.stateData.iavNumber ?? '',
         iavComplyByDate: this.stateData.iavComplyByDate
           ? format(new Date(this.stateData.iavComplyByDate), 'yyyy-MM-dd')
@@ -640,6 +633,7 @@ ${this.pluginData.description ?? ''}`,
           collectionId: this.payload.lastCollectionAccessedId,
           vulnerabilitySource: this.stateData.vulnerabilitySource ?? '',
           aaPackage: this.collectionAAPackage ?? '',
+          predisposingConditions: this.collectionPredisposingConditions ?? '',
           vulnerabilityId: this.stateData.vulnerabilityId ?? '',
           description: this.stateData.description ?? '',
           rawSeverity: this.stateData.severity ?? '',
@@ -730,6 +724,7 @@ ${this.pluginData.description ?? ''}`,
           collectionId: this.payload.lastCollectionAccessedId,
           vulnerabilitySource: '',
           aaPackage: this.collectionAAPackage ?? '',
+          predisposingConditions: this.collectionPredisposingConditions ?? '',
           vulnerabilityId: '',
           description: '',
           rawSeverity: '',
@@ -1219,6 +1214,7 @@ ${this.pluginData.description ?? ''}`,
         }
 
         this.collectionAAPackage = currentCollection.aaPackage;
+        this.collectionPredisposingConditions = currentCollection.predisposingConditions;
         this.collectionType = currentCollection.collectionOrigin
           ? currentCollection.collectionOrigin
           : 'C-PAT';

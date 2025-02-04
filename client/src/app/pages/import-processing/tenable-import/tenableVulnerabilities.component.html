@@ -14,13 +14,37 @@
              #filterPanel
              [ngClass]="{'filter-visible': sidebarVisible, 'filter-hidden': !sidebarVisible}">
             <div class="filter-header">
-                <p-select [options]="premadeFilterOptions"
-                          [(ngModel)]="selectedPremadeFilter"
-                          (onChange)="applyPremadeFilter($event)"
-                          placeholder="Select premade filter options..."
-                          appendTo="body"
-                          [style]="{'width':'100%'}">
-                </p-select>
+                <div class="flex items-center">
+                    <p-select [options]="premadeFilterOptions"
+                              [(ngModel)]="selectedPremadeFilter"
+                              (onChange)="applyPremadeFilter($event)"
+                              placeholder="Select premade filter options..."
+                              [group]="true"
+                              [filter]="true"
+                              filterBy="label"
+                              [optionGroupLabel]="'label'"
+                              [optionGroupChildren]="'items'"
+                              appendTo="body"
+                              [style]="{'width':'calc(100% - 3rem)'}">
+                        <ng-template let-group pTemplate="group">
+                            <div class="flex items-center">
+                                <i [class]="group.value === 'premade' ? 'pi pi-bookmark mr-2' : 'pi pi-save mr-2'"></i>
+                                <span>{{ group.label }}</span>
+                            </div>
+                        </ng-template>
+                        <ng-template let-item pTemplate="item">
+                            <div class="flex flex-col">
+                                <span>{{item.label}}</span>
+                                <small class="text-gray-500" *ngIf="item.subLabel">{{item.subLabel}}</small>
+                            </div>
+                        </ng-template>
+                    </p-select>
+                    <cpat-tenable-filters [collectionId]="selectedCollection"
+                                          [activeFilters]="activeFilters"
+                                          [tenableTool]="tenableTool"
+                                          (filterSaved)="onFilterSaved()">
+                    </cpat-tenable-filters>
+                </div>
                 <div class="mt-3">
                     <input type="text"
                            pInputText
@@ -120,24 +144,21 @@
                                           [style]="{'width':'100%'}"
                                           appendTo="body">
                                 </p-select>
-                                <div *ngIf="tempFilters[item.identifier].value === 'customRange'"
-                                     class="mt-2 flex items-center">
-                                    <span class="mr-2">Between</span>
+                                <div *ngIf="tempFilters[item.identifier].value === 'customRange'" class="range-input">
+                                    <span>Between</span>
                                     <p-inputNumber [(ngModel)]="tempFilters[item.identifier].min"
                                                    [min]="getMinValue(item.identifier)"
                                                    [max]="getMaxValue(item.identifier)"
                                                    [showButtons]="false"
                                                    (onInput)="onRangeValueChange(item.identifier)"
-                                                   styleClass="range-input"
                                                    [useGrouping]="false">
                                     </p-inputNumber>
-                                    <span class="mx-2">and</span>
+                                    <span>and</span>
                                     <p-inputNumber [(ngModel)]="tempFilters[item.identifier].max"
                                                    [min]="getMinValue(item.identifier)"
                                                    [max]="getMaxValue(item.identifier)"
                                                    [showButtons]="false"
                                                    (onInput)="onRangeValueChange(item.identifier)"
-                                                   styleClass="range-input"
                                                    [useGrouping]="false">
                                     </p-inputNumber>
                                 </div>

@@ -8,9 +8,15 @@
 !##########################################################################
 */
 export interface Collections {
-  data: any;
   collectionId?: number;
   collectionName?: string;
   description?: string;
+  systemType?: string;
+  systemName?: string;
+  ccsafa?: string;
+  aaPackage?: string;
+  predisposingConditions?: string;
   created?: string;
+  collectionOrigin?: string;
+  originCollectionId?: number;
 }

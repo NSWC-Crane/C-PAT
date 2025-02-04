@@ -405,7 +405,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
             c => c.collectionId === user.lastCollectionAccessedId
           );
           const selectedCollectionData = collectionData.find(
-            c => c.collectionId === user.lastCollectionAccessedId
+            c => c.collectionId === +user.lastCollectionAccessedId
             );
           this.collectionType = selectedCollectionData?.collectionOrigin || 'C-PAT';
           this.collectionName = selectedCollectionData?.collectionName || '';

@@ -31,12 +31,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { LabelComponent } from './label/label.component';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
-
-interface LabelEntry {
-  labelId: any;
-  labelName: string;
-  description: string;
-}
+import { Label } from '../../common/models/label.model';
 
 @Component({
   selector: 'cpat-label-processing',
@@ -66,17 +61,17 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   customColumn = 'label';
   defaultColumns = ['Name', 'Description'];
   allColumns = [this.customColumn, ...this.defaultColumns];
-  data: LabelEntry[] = [];
+  data: Label[] = [];
   filterValue: string = '';
   users: any;
   public isLoggedIn = false;
-  labels: LabelEntry[] = [];
-  label: LabelEntry = { labelId: '', labelName: '', description: '' };
+  labels: Label[] = [];
+  label: Label = { labelId: '', labelName: '', description: '' };
   allowSelectLabels = true;
   selected: any;
   selectedRole: string = 'admin';
   selectedCollection: any;
-  selectedLabels: LabelEntry[] = [];
+  selectedLabels: Label[] = [];
   protected accessLevel: any;
   user: any;
   payload: any;
@@ -127,7 +122,7 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     this.subs.sink = this.labelService.getLabels(this.selectedCollection)
       .subscribe(
         (result: any) => {
-          this.data = (result as LabelEntry[])
+          this.data = (result as Label[])
             .map(label => ({
               ...label,
               labelId: Number(label.labelId),

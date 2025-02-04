@@ -12,18 +12,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Collections } from './collections.model';
-
-export interface CollectionBasicList {
-  collectionId: number;
-  collectionName: string;
-  collectionOrigin?: string;
-  originCollectionId?: number;
-  systemType?: string;
-  systemName?: string;
-  ccsafa?: string;
-  aaPackage?: string;
-}
+import { Collections } from '../../../common/models/collections.model';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 
 @Injectable({
   providedIn: 'root',
@@ -50,9 +40,9 @@ export class CollectionsService {
       .pipe(catchError(this.handleError));
   }
 
-  getCollectionBasicList(): Observable<CollectionBasicList[]> {
+  getCollectionBasicList(): Observable<CollectionsBasicList[]> {
     return this.http
-      .get<CollectionBasicList[]>(`${this.cpatApiBase}/collections/basiclist`)
+      .get<CollectionsBasicList[]>(`${this.cpatApiBase}/collections/basiclist`)
       .pipe(catchError(this.handleError));
   }
 

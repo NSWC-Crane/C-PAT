@@ -12,11 +12,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-
-interface AAPackage {
-  aaPackageId: number;
-  aaPackage: string;
-}
+import { AAPackage } from '../../../common/models/aaPackage.model';
 
 @Injectable({
   providedIn: 'root',

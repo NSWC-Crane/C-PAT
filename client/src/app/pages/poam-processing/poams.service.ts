@@ -266,12 +266,6 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  postLabel(collectionId: number, label: any): Observable<any> {
-    return this.http
-      .post<any>(`${this.cpatApiBase}/label/${collectionId}`, label)
-      .pipe(catchError(this.handleError));
-  }
-
   getPoamLabels(collectionId: number): Observable<any> {
     return this.http
       .get(`${this.cpatApiBase}/poamLabels/${collectionId}`)

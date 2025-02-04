@@ -39,6 +39,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(100),
             allowNull: true,
         },
+        predisposingConditions: {
+            type: DataTypes.STRING(2000),
+            allowNull: true,
+        },
         created: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,

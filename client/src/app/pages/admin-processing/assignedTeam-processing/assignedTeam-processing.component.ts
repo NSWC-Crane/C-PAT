@@ -19,22 +19,17 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
-import {
-  CollectionsService,
-  CollectionBasicList,
-} from '../collection-processing/collections.service';
+import { CollectionsService } from '../collection-processing/collections.service';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
 import { EMPTY, catchError, switchMap } from 'rxjs';
+import { Permission } from '../../../common/models/permission.model';
+
 interface AssignedTeam {
   assignedTeamId: number;
   assignedTeamName: string;
   permissions?: Permission[];
-}
-
-interface Permission {
-  collectionId: number;
-  collectionName: string;
 }
 
 @Component({
@@ -58,9 +53,9 @@ interface Permission {
 })
 export class AssignedTeamProcessingComponent implements OnInit {
   @ViewChild('dt') table!: Table;
-  private allCollections: CollectionBasicList[] = [];
+  private allCollections: CollectionsBasicList[] = [];
   assignedTeams: AssignedTeam[] = [];
-  availableCollections: CollectionBasicList[] = [];
+  availableCollections: CollectionsBasicList[] = [];
   assignedCollections: any[] = [];
   editingAssignedTeam: AssignedTeam | null = null;
   teamDialog: boolean = false;

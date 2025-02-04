@@ -12,6 +12,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { TenableFilter } from '../../common/models/tenableFilters.model';
 
 @Injectable({
   providedIn: 'root',
@@ -105,6 +106,36 @@ export class ImportService {
   getIAVPluginIds(): Observable<any> {
     return this.http
       .get(`${this.cpatApiBase}/iav/pluginIDs`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getTenableFilters(collectionId: number): Observable<TenableFilter[]> {
+    return this.http
+      .get<TenableFilter[]>(`${this.cpatApiBase}/tenableFilters/${collectionId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getTenableFilter(collectionId: number, filterId: number): Observable<TenableFilter> {
+    return this.http
+      .get<TenableFilter>(`${this.cpatApiBase}/tenableFilter/${collectionId}/${filterId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  addTenableFilter(collectionId: number, tenableFilter: any): Observable<TenableFilter> {
+    return this.http
+      .post<TenableFilter>(`${this.cpatApiBase}/tenableFilter/${collectionId}`, tenableFilter)
+      .pipe(catchError(this.handleError));
+  }
+
+  updateTenableFilter(collectionId: number, filterId: number, tenableFilter: any): Observable<TenableFilter> {
+    return this.http
+      .put<TenableFilter>(`${this.cpatApiBase}/tenableFilter/${collectionId}/${filterId}`, tenableFilter)
+      .pipe(catchError(this.handleError));
+  }
+
+  deleteTenableFilter(collectionId: number, filterId: number): Observable<TenableFilter> {
+    return this.http
+      .delete<TenableFilter>(`${this.cpatApiBase}/tenableFilter/${collectionId}/${filterId}`)
       .pipe(catchError(this.handleError));
   }
 }

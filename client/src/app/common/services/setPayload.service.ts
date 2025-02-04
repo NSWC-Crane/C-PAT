@@ -11,12 +11,8 @@
 import { Injectable } from '@angular/core';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { BehaviorSubject, map } from 'rxjs';
-import { Users } from '../../pages/admin-processing/user-processing/users.model';
-
-interface Permission {
-  collectionId: any;
-  accessLevel: number;
-}
+import { Users } from '../../common/models/users.model';
+import { Permission } from '../../common/models/permission.model';
 
 interface Payload extends Users {
   collections: Permission[];
