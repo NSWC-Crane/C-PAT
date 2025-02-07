@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -100,22 +100,22 @@
     </div>
     <div class="space-y-2">
       <label class="mb-2 block text-base font-medium">Team Permissions:</label>
-      <p-pickList
-        [source]="availableCollections"
-        [target]="assignedCollections"
-        sourceHeader="Available Collections"
-        targetHeader="Assigned Collections"
-        [dragdrop]="true"
-        [responsive]="true"
-        [showSourceControls]="false"
-        [showTargetControls]="false"
-        [sourceStyle]="{'height':'300px'}"
-        [targetStyle]="{'height':'300px'}"
-        (onMoveToTarget)="onMoveToTarget($event)"
-        (onMoveToSource)="onMoveToSource($event)"
-        class="w-full"
-      >
-        <ng-template let-collection pTemplate="item"> {{collection.collectionName}} </ng-template>
+      <p-pickList [source]="availableCollections"
+                  [target]="assignedCollections"
+                  sourceHeader="Available Collections"
+                  targetHeader="Assigned Collections"
+                  [dragdrop]="true"
+                  [responsive]="true"
+                  [showSourceControls]="false"
+                  [showTargetControls]="false"
+                  [sourceStyle]="{'height':'300px'}"
+                  [targetStyle]="{'height':'300px'}"
+                  (onMoveToTarget)="onMoveToTarget($event)"
+                  (onMoveToSource)="onMoveToSource($event)"
+                  (onMoveAllToTarget)="onMoveToTarget($event)"
+                  (onMoveAllToSource)="onMoveToSource($event)"
+                  class="w-full">
+          <ng-template let-collection pTemplate="item"> {{collection.collectionName}} </ng-template>
       </p-pickList>
     </div>
   </ng-template>

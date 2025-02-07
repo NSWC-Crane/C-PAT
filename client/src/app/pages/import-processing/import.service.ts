@@ -12,7 +12,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { TenableFilter } from '../../common/models/tenableFilters.model';
+import { TenableFilter } from '../../common/models/tenable.model';
 
 @Injectable({
   providedIn: 'root',

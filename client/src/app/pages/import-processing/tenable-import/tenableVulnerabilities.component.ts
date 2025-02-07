@@ -38,61 +38,22 @@ import { AccordionModule } from 'primeng/accordion';
 import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
 import { TenableFiltersComponent } from './components/tenableFilters/tenableFilters.component';
-import { TenableFilter } from '../../../common/models/tenableFilters.model';
-interface Reference {
-  type: string;
-  value: string;
-}
-interface IdAndName {
-  id: string;
-  name: string;
-}
-interface CustomFilter {
-  id: string;
-  filterName: string;
-  operator: string;
-  type: string;
-  isPredefined: boolean;
-  value: string | string[] | { id: string }[];
-}
-interface AssetsFilter {
-  filterName: string;
-  operator: string;
-  value: any;
-}
-interface AccordionItem {
-  header: string;
-  content: string;
-  identifier: string;
-  options?: any[];
-  disabled?: boolean;
-  placeholder?: string;
-  validator?: (value: string) => boolean;
-  value: number;
-}
-interface IAVInfo {
-  iav: string;
-  navyComplyDate: string;
-}
-interface TempFilters {
-  [key: string]: any;
-}
-interface ExportColumn {
-  title: string;
-  dataKey: string;
-}
-interface PoamAssociation {
-  poamId: number;
-  status: string;
-}
-
-interface PremadeFilterOption {
-  label: string;
-  value: string;
-  filter?: any;
-  createdBy?: string;
-  items?: any;
-}
+import {
+  AssetsFilter,
+  FilterConfig,
+  TenableFilter,
+  Reference,
+  IdAndName,
+  CustomFilter,
+  AccordionItem,
+  IAVInfo,
+  TempFilters,
+  ExportColumn,
+  PoamAssociation,
+  PremadeFilterOption,
+  FilterValue,
+  FilterHandler
+} from '../../../common/models/tenable.model';
 
 @Component({
   selector: 'cpat-tenable-vulnerabilities',
@@ -131,7 +92,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   loadingIavInfo: boolean = false;
   pluginData: any;
   assetOptions: IdAndName[] = [];
-  pluginFamilyOptions: IdAndName[] = [];
+  familyOptions: IdAndName[] = [];
   auditFileOptions: IdAndName[] = [];
   scanPolicyPluginOptions: IdAndName[] = [];
   userOptions: IdAndName[] = [];
@@ -179,7 +140,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Submitted', value: 'submitted' },
   ];
 
-  acceptRiskOptions = [
+  acceptRiskStatusOptions = [
     { label: 'All', value: 'all' },
     { label: 'Accepted Risk', value: 'accepted' },
     { label: 'Non-Accepted Risk', value: 'nonAcceptedRisk' },
@@ -216,9 +177,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Last Year', value: 'lastYear' },
     { label: 'More than One Year', value: '365:all' },
   ];
-  vulnerabilityLastObservedOptions = this.tenableDateOptions;
-  vulnerabilityDiscoveredOptions = this.tenableDateOptions;
-  vulnerabilityPublishedOptions = this.tenableDateOptions;
+  seolDateOptions = this.tenableDateOptions;
+  lastSeenOptions = this.tenableDateOptions;
+  firstSeenOptions = this.tenableDateOptions;
+  vulnPublishedOptions = this.tenableDateOptions;
   patchPublishedOptions = this.tenableDateOptions;
   pluginPublishedOptions = this.tenableDateOptions;
   pluginModifiedOptions = this.tenableDateOptions;
@@ -250,12 +212,18 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Non IAV Vulnerabilities', value: 'non-iav' },
   ];
 
+  webAppScanningOptions = [
+    { label: 'Exclude Web App Results', value: 'excludeWas' },
+    { label: 'Include Web App Results', value: 'includeWas' },
+    { label: 'Only Web App Results', value: 'onlyWas' }
+  ];
+
   exploitAvailableOptions = [
     { label: 'Yes', value: 'true' },
     { label: 'No', value: 'false' },
   ];
 
-  mitigatedOptions = [
+  mitigatedStatusOptions = [
     { label: 'Never Mitigated', value: 'never' },
     { label: 'Previously Mitigated', value: 'previously' },
   ];
@@ -275,7 +243,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Regex', value: 'pcre' },
   ];
   pluginNameOptions = this.containsAndRegexOptions;
-  vulnerabilityTextOptions = this.containsAndRegexOptions;
+  pluginTextOptions = this.containsAndRegexOptions;
 
   pluginTypeOptions = [
     { label: 'Active', value: 'active' },
@@ -302,7 +270,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   portOptions = this.numericOptions;
   stigSeverityOptions = this.numericOptions;
 
-  crossReferenceOptions = [
+  xrefOptions = [
     { label: '=', value: '=' },
     { label: '≠', value: '!=' },
   ];
@@ -367,22 +335,22 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     {
       header: 'Accept Risk',
       content: 'dropdown',
-      identifier: 'acceptRisk',
-      options: this.acceptRiskOptions,
+      identifier: 'acceptRiskStatus',
+      options: this.acceptRiskStatusOptions,
       value: 3,
     },
     {
       header: 'Address',
       content: 'input',
-      identifier: 'address',
+      identifier: 'ip',
       placeholder: 'IP Address...',
-      validator: this.validateAddress.bind(this),
+      validator: this.validateIP.bind(this),
       value: 4,
     },
     {
       header: 'Agent ID',
       content: 'input',
-      identifier: 'agentId',
+      identifier: 'uuid',
       placeholder: 'UUID...',
       validator: this.validateUUID.bind(this),
       value: 5,
@@ -397,7 +365,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     {
       header: 'Assets',
       content: 'multiSelect',
-      identifier: 'assets',
+      identifier: 'asset',
       options: this.assetOptions,
       value: 7,
     },
@@ -418,8 +386,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     {
       header: 'Cross References',
       content: 'dropdownAndTextarea',
-      identifier: 'crossReference',
-      options: this.crossReferenceOptions,
+      identifier: 'xref',
+      options: this.xrefOptions,
       value: 10,
     },
     {
@@ -504,95 +472,109 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       value: 21,
     },
     {
+      header: 'Input Name',
+      content: 'input',
+      identifier: 'wasInputName',
+      placeholder: 'Enter input name...',
+      value: 22,
+    },
+    {
+      header: 'Input Type',
+      content: 'input',
+      identifier: 'wasInputType',
+      placeholder: 'Enter input type...',
+      value: 23,
+    },
+    {
       header: 'MS Bulletin ID',
       content: 'input',
       identifier: 'msbulletinID',
       placeholder: 'Enter MS Bulletin ID...',
-      value: 22,
+      value: 24,
     },
     {
-      header: 'Mitigated',
+      header: 'Mitigated Status',
       content: 'dropdown',
-      identifier: 'mitigated',
-      options: this.mitigatedOptions,
-      value: 23,
+      identifier: 'mitigatedStatus',
+      options: this.mitigatedStatusOptions,
+      value: 25,
     },
     {
       header: 'NetBIOS Name',
       content: 'dropdownAndTextarea',
       identifier: 'netbiosName',
       options: this.netbiosNameOptions,
-      value: 24,
+      value: 26,
     },
     {
       header: 'Patch Published',
       content: 'dropdown',
       identifier: 'patchPublished',
       options: this.patchPublishedOptions,
-      value: 25,
+      value: 27,
     },
     {
       header: 'Plugin Family',
       content: 'multiSelect',
-      identifier: 'pluginFamily',
-      options: this.pluginFamilyOptions,
-      value: 26,
+      identifier: 'family',
+      options: this.familyOptions,
+      value: 28,
     },
     {
       header: 'Plugin ID',
       content: 'dropdownAndTextarea',
       identifier: 'pluginID',
       options: this.pluginIDOptions,
-      value: 27,
+      value: 29,
     },
     {
       header: 'Plugin Modified',
       content: 'dropdown',
       identifier: 'pluginModified',
       options: this.pluginModifiedOptions,
-      value: 28,
+      value: 30,
     },
     {
       header: 'Plugin Name',
       content: 'dropdownAndTextarea',
       identifier: 'pluginName',
       options: this.pluginNameOptions,
-      value: 29,
+      value: 31,
     },
     {
       header: 'Plugin Published',
       content: 'dropdown',
       identifier: 'pluginPublished',
       options: this.pluginPublishedOptions,
-      value: 30,
+      value: 32,
     },
     {
       header: 'Plugin Type',
-      content: 'dropdownAndTextarea',
+      content: 'dropdown',
       identifier: 'pluginType',
       options: this.pluginTypeOptions,
-      value: 31,
+      value: 33,
     },
     {
       header: 'Port',
       content: 'dropdownAndTextarea',
       identifier: 'port',
       options: this.portOptions,
-      value: 32,
+      value: 34,
     },
     {
       header: 'Protocol',
       content: 'multiSelect',
       identifier: 'protocol',
       options: this.protocolOptions,
-      value: 33,
+      value: 35,
     },
     {
       header: 'Recast Risk',
       content: 'dropdown',
       identifier: 'recastRiskStatus',
       options: this.recastRiskStatusOptions,
-      value: 34,
+      value: 36,
     },
     {
       header: 'STIG Severity',
@@ -600,72 +582,236 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'stigSeverity',
       options: this.stigSeverityOptions,
       validator: this.validateStigSeverity.bind(this),
-      value: 35,
+      value: 37,
     },
     {
       header: 'Scan Policy Plugins',
       content: 'dropdown',
-      identifier: 'scanPolicyPlugins',
+      identifier: 'policy',
       options: this.scanPolicyPluginOptions,
-      value: 36,
+      value: 38,
     },
     {
       header: 'Severity',
       content: 'multiSelect',
       identifier: 'severity',
       options: this.severityOptions,
-      value: 37,
+      value: 39,
+    },
+    {
+      header: 'Security End of Life Date',
+      content: 'dropdown',
+      identifier: 'seolDate',
+      options: this.seolDateOptions,
+      value: 40,
     },
     {
       header: 'Users',
       content: 'multiSelect',
-      identifier: 'users',
+      identifier: 'responsibleUser',
       options: this.userOptions,
-      value: 38,
+      value: 41,
     },
     {
       header: 'Vulnerability Discovered',
       content: 'dropdown',
-      identifier: 'vulnerabilityDiscovered',
-      options: this.vulnerabilityDiscoveredOptions,
-      value: 39,
+      identifier: 'firstSeen',
+      options: this.firstSeenOptions,
+      value: 42,
+    },
+    {
+      header: 'Vulnerability UUID',
+      content: 'input',
+      identifier: 'vulnUUID',
+      placeholder: 'Enter Vuln UUID...',
+      value: 43,
     },
     {
       header: 'Vulnerability Last Observed',
       content: 'dropdown',
-      identifier: 'vulnerabilityLastObserved',
-      options: this.vulnerabilityLastObservedOptions,
-      value: 40,
+      identifier: 'lastSeen',
+      options: this.lastSeenOptions,
+      value: 44,
     },
     {
       header: 'Vulnerability Priority Rating',
       content: 'rangeFilter',
       identifier: 'vprScore',
       options: this.vprScoreOptions,
-      value: 41,
+      value: 45,
     },
     {
       header: 'Vulnerability Published',
       content: 'dropdown',
-      identifier: 'vulnerabilityPublished',
-      options: this.vulnerabilityPublishedOptions,
-      value: 42,
+      identifier: 'vulnPublished',
+      options: this.vulnPublishedOptions,
+      value: 46,
     },
     {
       header: 'Vulnerability Text',
       content: 'dropdownAndTextarea',
-      identifier: 'vulnerabilityText',
-      options: this.vulnerabilityTextOptions,
-      value: 43,
+      identifier: 'pluginText',
+      options: this.pluginTextOptions,
+      value: 47,
     },
     {
       header: 'Vulnerability Type',
       content: 'dropdown',
       identifier: 'vulnerabilityType',
       options: this.vulnerabilityTypeOptions,
-      value: 44,
+      value: 48,
+    },
+    {
+      header: 'Web App HTTP Method',
+      content: 'input',
+      identifier: 'wasHttpMethod',
+      placeholder: 'Web app HTTP method...',
+      value: 49,
+    },
+    {
+      header: 'Web App Scanning',
+      content: 'dropdown',
+      identifier: 'wasVuln',
+      options: this.webAppScanningOptions,
+      value: 50,
+    },
+    {
+      header: 'Web App URL',
+      content: 'input',
+      identifier: 'wasURL',
+      placeholder: 'Web app URL...',
+      value: 51,
     },
   ];
+
+  private filterNameMappings: { [key: string]: FilterConfig } = {
+    family: { uiName: 'family', handler: 'family' },
+    severity: { uiName: 'severity', handler: 'severity' },
+
+    auditFile: { uiName: 'auditFile', handler: 'idArray' },
+    responsibleUser: { uiName: 'responsibleUser', handler: 'idArray' },
+    asset: { uiName: 'asset', handler: 'idArray' },
+    policy: { uiName: 'policy', handler: 'idArray' },
+
+    aesSeverity: { uiName: 'aesSeverity', handler: 'array' },
+    dataFormat: { uiName: 'dataFormat', handler: 'array' },
+    protocol: { uiName: 'protocol', handler: 'array' },
+
+    ip: { uiName: 'ip', handler: 'operatorValue' },
+    uuid: { uiName: 'uuid', handler: 'operatorValue' },
+    pluginText: { uiName: 'pluginText', handler: 'operatorValue' },
+    pluginID: { uiName: 'pluginID', handler: 'operatorValue' },
+    pluginName: { uiName: 'pluginName', handler: 'operatorValue' },
+    port: { uiName: 'port', handler: 'operatorValue' },
+    netbiosName: { uiName: 'netbiosName', handler: 'operatorValue' },
+    cpe: { uiName: 'cpe', handler: 'operatorValue' },
+    exploitFrameworks: { uiName: 'exploitFrameworks', handler: 'operatorValue' },
+    cceID: { uiName: 'cceId', handler: 'operatorValue' },
+    cveID: { uiName: 'cveId', handler: 'operatorValue' },
+    cvssVector: { uiName: 'cvssVector', handler: 'operatorValue' },
+    cvssV3Vector: { uiName: 'cvssV3Vector', handler: 'operatorValue' },
+    dnsName: { uiName: 'dnsName', handler: 'operatorValue' },
+    hostUUID: { uiName: 'hostUUID', handler: 'operatorValue' },
+    iavmID: { uiName: 'iavmID', handler: 'operatorValue' },
+    wasInputName: { uiName: 'wasInputName', handler: 'operatorValue' },
+    wasInputType: { uiName: 'wasInputType', handler: 'operatorValue' },
+    msbulletinID: { uiName: 'msbulletinID', handler: 'operatorValue' },
+    stigSeverity: { uiName: 'stigSeverity', handler: 'operatorValue' },
+    xref: { uiName: 'xref', handler: 'operatorValue' },
+    vulnUUID: { uiName: 'vulnUUID', handler: 'operatorValue' },
+    wasHttpMethod: { uiName: 'wasHttpMethod', handler: 'operatorValue' },
+    wasURL: { uiName: 'wasURL', handler: 'operatorValue' },
+
+    patchPublished: { uiName: 'patchPublished', handler: 'simpleValue' },
+    pluginPublished: { uiName: 'pluginPublished', handler: 'simpleValue' },
+    pluginType: { uiName: 'pluginType', handler: 'simpleValue' },
+    pluginModified: { uiName: 'pluginModified', handler: 'simpleValue' },
+    exploitAvailable: { uiName: 'exploitAvailable', handler: 'simpleValue' },
+    mitigatedStatus: { uiName: 'mitigatedStatus', handler: 'simpleValue' },
+    recastRiskStatus: { uiName: 'recastRiskStatus', handler: 'simpleValue' },
+    acceptRiskStatus: { uiName: 'acceptRiskStatus', handler: 'simpleValue' },
+    lastSeen: { uiName: 'lastSeen', handler: 'simpleValue' },
+    firstSeen: { uiName: 'firstSeen', handler: 'simpleValue' },
+    seolDate: { uiName: 'seolDate', handler: 'simpleValue' },
+    vulnPublished: { uiName: 'vulnPublished', handler: 'simpleValue' },
+    wasVuln: { uiName: 'wasVuln', handler: 'simpleValue' },
+
+    vprScore: { uiName: 'vprScore', handler: 'range' },
+    assetCriticalityRating: { uiName: 'assetCriticalityRating', handler: 'range' },
+    assetExposureScore: { uiName: 'assetExposureScore', handler: 'range' },
+    baseCVSSScore: { uiName: 'baseCVSSScore', handler: 'range' },
+    cvssV3BaseScore: { uiName: 'cvssV3BaseScore', handler: 'range' }
+  };
+
+  private filterHandlers: { [key: string]: FilterHandler } = {
+    array: (filter: any): FilterValue => {
+      if (Array.isArray(filter.value)) {
+        return filter.value;
+      }
+      if (typeof filter.value === 'string') {
+        return filter.value.split(',');
+      }
+      return { value: [] };
+    },
+
+    simpleValue: (filter: any): FilterValue => ({
+      value: filter.value
+    }),
+
+    operatorValue: (filter: any): FilterValue => ({
+      value: filter.value,
+      operator: filter.operator,
+      isDirty: true,
+      isValid: true
+    }),
+
+    idArray: (filter: any): FilterValue => {
+      if (Array.isArray(filter.value)) {
+        return {
+          value: filter.value.map((v: any) => typeof v === 'string' ? { id: v } : v)
+        };
+      }
+      return {
+        value: [{ id: filter.value }]
+      };
+    },
+
+    family: (filter: any): FilterValue => {
+      if (!filter.value) {
+        return { value: [] };
+      }
+      if (Array.isArray(filter.value) && filter.value[0]?.id) {
+        return { value: filter.value };
+      }
+      if (Array.isArray(filter.value)) {
+        return { value: filter.value.map(v => ({ id: v })) };
+      }
+      return {
+        value: [{ id: filter.value }]
+      };
+    },
+
+    severity: (filter: any): FilterValue => {
+      return {
+        value: Array.isArray(filter.value) ? filter.value.join(',') : filter.value
+      }
+    },
+
+    range: (filter: any): FilterValue => {
+      if (filter.value === 'none' || filter.value === 'all') {
+        return { value: filter.value };
+      }
+      if (filter.value.includes('-')) {
+        const [min, max] = filter.value.split('-').map(Number);
+        return {
+          value: 'customRange',
+          min,
+          max
+        };
+      }
+      return { value: filter.value };
+    }
+  };
 
   constructor(
     private importService: ImportService,
@@ -676,7 +822,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     private poamService: PoamService,
     private sharedService: SharedService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.filteredAccordionItems = [...this.accordionItems];
@@ -698,7 +844,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           switchMap(() => forkJoin([
             this.loadAssetOptions(),
             this.loadAuditFileOptions(),
-            this.loadPluginFamilyOptions(),
+            this.loadFamilyOptions(),
             this.loadScanPolicyPluginOptions(),
             this.loadUserOptions(),
             this.loadPoamAssociations()
@@ -712,7 +858,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             this.updateAccordionItems();
             this.initializeColumnsAndFilters();
             this.filteredAccordionItems = [...this.accordionItems];
-            //this.loadSavedFilters();
           }
         });
       })
@@ -794,20 +939,21 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       dataKey: col.field,
     }));
     this.tempFilters['severity'] = ['1', '2', '3', '4'];
-    this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+    this.tempFilters['lastSeen'] = '0:30';
     this.applyFilters();
+    this.filterAccordionItems();
   }
 
 
   private initializeTempFilters(): TempFilters {
     return {
       assetCriticalityRating: { value: 'all', min: 0, max: 10 },
-      acceptRisk: null,
-      address: { value: null, operator: null, isValid: true, isDirty: false },
+      acceptRiskStatus: null,
+      ip: { value: null, operator: null, isValid: true, isDirty: false },
       assetExposureScore: { value: 'all', min: 0, max: 1000 },
       aesSeverity: [],
-      agentId: { value: null, operator: null, isValid: true, isDirty: false },
-      assets: [],
+      uuid: { value: null, operator: null, isValid: true, isDirty: false },
+      asset: [],
       cpe: { operator: null, value: null },
       auditFile: [],
       cceId: { value: null, operator: null, isValid: true, isDirty: false },
@@ -826,12 +972,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         isValid: true,
         isDirty: false,
       },
-      crossReference: { operator: null, value: null },
+      xref: { operator: null, value: null },
       dataFormat: [],
       dnsName: { value: null, operator: null, isValid: true, isDirty: false },
       exploitFrameworks: { operator: null, value: null },
       hostUUID: { value: null, operator: null, isValid: true, isDirty: false },
       iavmID: { value: null, operator: null, isValid: true, isDirty: false },
+      wasInputName: { value: null, operator: null, isValid: true, isDirty: false },
+      wasInputType: { value: null, operator: null, isValid: true, isDirty: false },
       msbulletinID: {
         value: null,
         operator: null,
@@ -846,12 +994,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       port: { operator: null, value: null },
       protocol: [],
       exploitAvailable: null,
-      mitigated: null,
-      pluginFamily: [],
+      mitigatedStatus: null,
       pluginName: { operator: null, value: null },
       pluginType: { operator: null, value: null },
       recastRiskStatus: null,
-      scanPolicyPlugins: [],
+      policy: [],
       severity: [],
       stigSeverity: {
         value: null,
@@ -859,31 +1006,33 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         isValid: true,
         isDirty: false,
       },
-      users: [],
+      responsibleUser: [],
       vprScore: { value: 'all', min: 0, max: 10 },
       vulnerabilityType: null,
-      vulnerabilityLastObserved: null,
-      vulnerabilityDiscovered: null,
-      vulnerabilityPublished: null,
-      vulnerabilityText: { operator: null, value: null },
-      policy: [],
-      scanPolicyPlugin: [],
-      user: [],
+      lastSeen: null,
+      firstSeen: null,
+      vulnPublished: null,
+      seolDate: null,
+      pluginText: { operator: null, value: null },
+      vulnUUID: { value: null, operator: null, isValid: true, isDirty: false },
+      wasHttpMethod: { value: null, operator: null, isValid: true, isDirty: false },
+      wasVuln: null,
+      wasURL: { value: null, operator: null, isValid: true, isDirty: false }
     };
   }
 
   updateAccordionItems() {
     this.accordionItems = this.accordionItems.map(item => {
       switch (item.identifier) {
-        case 'assets':
+        case 'asset':
           return { ...item, options: this.assetOptions };
         case 'auditFile':
           return { ...item, options: this.auditFileOptions };
-        case 'pluginFamily':
-          return { ...item, options: this.pluginFamilyOptions };
-        case 'scanPolicyPlugins':
+        case 'family':
+          return { ...item, options: this.familyOptions };
+        case 'policy':
           return { ...item, options: this.scanPolicyPluginOptions };
-        case 'users':
+        case 'responsibleUser':
           return { ...item, options: this.userOptions };
         default:
           return item;
@@ -904,6 +1053,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
 
     items.sort((a, b) => {
+      const aIsDefault = a.identifier === 'severity' || a.identifier === 'lastSeen';
+      const bIsDefault = b.identifier === 'severity' || b.identifier === 'lastSeen';
+
+      if (aIsDefault && !bIsDefault) return -1;
+      if (!aIsDefault && bIsDefault) return 1;
+
       const aActive = this.isFilterActive(a.identifier);
       const bActive = this.isFilterActive(b.identifier);
 
@@ -950,14 +1105,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     );
   }
 
-  loadPluginFamilyOptions(): Observable<any> {
+  loadFamilyOptions(): Observable<any> {
     return this.importService.getTenablePluginFamily().pipe(
-      map(pluginFamilyData => {
-        this.pluginFamilyOptions = pluginFamilyData.response.map((family: any) => ({
+      map(familyData => {
+        this.familyOptions = familyData.response.map((family: any) => ({
           value: family.id,
           label: family.name,
         }));
-        return this.pluginFamilyOptions;
+        return this.familyOptions;
       }),
       catchError(error => {
         console.error('Error fetching plugin family data:', error);
@@ -1008,7 +1163,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     const startOffset = this.tenableTool === 'sumid' ? 0 : event.first ?? 0;
     const endOffset = this.tenableTool === 'sumid' ? 5000 : startOffset + (event.rows ?? 20);
-
     const analysisParams = {
       query: {
         description: '',
@@ -1064,6 +1218,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       }),
       finalize(() => {
         this.isLoading = false;
+        this.filterAccordionItems();
       })
     ).subscribe({
       next: ({ vulnData, iavInfoMap }) => {
@@ -1152,9 +1307,24 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   ) {
     if (identifier === 'severity') {
       this.tempFilters['severity'] = event.value;
-    } else if (identifier === 'vulnerabilityLastObserved') {
-      this.tempFilters['vulnerabilityLastObserved'] = event.value;
+      return;
     }
+    if (identifier === 'lastSeen') {
+      this.tempFilters['lastSeen'] = event.value;
+      return;
+    }
+
+    if (identifier === 'family') {
+      this.tempFilters['family'] = Array.isArray(event.value) ?
+        event.value :
+        event.value ? [event.value] : [];
+      return;
+    }
+    if (identifier === 'policy' || identifier === 'auditFile') {
+      this.tempFilters[identifier] = event.value ? [event.value] : [];
+      return;
+    }
+
     if (identifier) {
       const accordionItem = this.accordionItems.find(item => item.identifier === identifier);
       const value = isInput ? event.target.value : event.value;
@@ -1174,105 +1344,249 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  applyFilters(loadVuln: boolean = true) {
-    this.activeFilters = Object.entries(this.tempFilters)
-      .map(([key, value]) => {
-        switch (key) {
-          case 'assetCriticalityRating':
-            return this.createAssetCriticalityRatingFilter(value);
-          case 'acceptRisk':
-            return this.createAcceptRiskFilter(value);
-          case 'address':
-            return this.createAddressFilter(value);
-          case 'aesSeverity':
-            return this.createAESSeverityFilter(value);
-          case 'assets':
-            return this.createAssetsFilter(value);
-          case 'assetExposureScore':
-            return this.createAssetExposureScoreFilter(value);
-          case 'auditFile':
-            return this.createAuditFileFilter(value);
-          case 'agentId':
-            return this.createAgentIdFilter(value);
-          case 'cceId':
-            return this.createCCEIDFilter(value);
-          case 'cpe':
-            return this.createCPEFilter(value.value, value.operator);
-          case 'crossReference':
-            return this.createCrossReferenceFilter(value.value, value.operator);
-          case 'cveId':
-            return this.createCVEIDFilter(value);
-          case 'baseCVSSScore':
-            return this.createBaseCVSSScoreFilter(value);
-          case 'cvssVector':
-            return this.createCVSSVectorFilter(value);
-          case 'cvssV3BaseScore':
-            return this.createCVSSV3BaseScoreFilter(value);
-          case 'cvssV3Vector':
-            return this.createCVSSV3VectorFilter(value);
-          case 'dataFormat':
-            return this.createDataFormatFilter(value);
-          case 'dnsName':
-            return this.createDNSNameFilter(value);
-          case 'exploitFrameworks':
-            return this.createExploitFrameworksFilter(value.value, value.operator);
-          case 'hostUUID':
-            return this.createHostUUIDFilter(value);
-          case 'iavmID':
-            return this.createIAVMIDFilter(value);
-          case 'msbulletinID':
-            return this.createMSBulletinIDFilter(value);
-          case 'netbiosName':
-            return this.createNetbiosNameFilter(value.value, value.operator);
-          case 'vulnerabilityType':
-            return this.createVulnerabilityTypeFilter(value);
-          case 'vulnerabilityLastObserved':
-            return this.createVulnerabilityLastObservedFilter(value);
-          case 'vulnerabilityDiscovered':
-            return this.createVulnerabilityDiscoveredFilter(value);
-          case 'vulnerabilityPublished':
-            return this.createVulnerabilityPublishedFilter(value);
-          case 'patchPublished':
-            return this.createPatchPublishedFilter(value);
-          case 'pluginPublished':
-            return this.createPluginPublishedFilter(value);
-          case 'pluginModified':
-            return this.createPluginModifiedFilter(value);
-          case 'exploitAvailable':
-            return this.createExploitAvailableFilter(value);
-          case 'mitigated':
-            return this.createMitigatedFilter(value);
-          case 'pluginID':
-            return this.createPluginIDFilter(value.value, value.operator);
-          case 'pluginFamily':
-            return this.createPluginFamilyFilter(value);
-          case 'pluginName':
-            return this.createPluginNameFilter(value.value, value.operator);
-          case 'pluginType':
-            return this.createPluginTypeFilter(value.value, value.operator);
-          case 'port':
-            return this.createPortFilter(value.value, value.operator);
-          case 'protocol':
-            return this.createProtocolFilter(value);
-          case 'recastRiskStatus':
-            return this.createRecastRiskStatusFilter(value);
-          case 'scanPolicyPlugins':
-            return this.createScanPolicyPluginsFilter(value);
+  private mapSingleFilter(filter: any): void {
+    if (filter.filterName === 'xref' && filter.value.includes('IAVA|20*,IAVB|20*')) {
+      const value = filter.operator === '=' ? 'iav' : 'non-iav';
+      this.tempFilters['vulnerabilityType'] = value;
+      this.onFilterChange({ value }, 'vulnerabilityType');
+      return;
+    }
+
+    if (filter.filterName === 'family' && Array.isArray(filter.value)) {
+      this.tempFilters['family'] = filter.value.map((v: any) => v.id || v);
+      return;
+    }
+
+    if (filter.filterName === 'severity') {
+      this.tempFilters['severity'] = filter.value.split(',');
+      return;
+    }
+
+    const config = this.filterNameMappings[filter.filterName];
+    if (!config) return;
+
+    const handler = this.filterHandlers[config.handler];
+    if (!handler) return;
+
+    const filterValue = handler(filter);
+    this.tempFilters[config.uiName] = filterValue;
+
+    if (filterValue.operator) {
+      this.onFilterChange({ value: filterValue.value }, config.uiName, true);
+      this.onFilterChange({ value: filterValue.operator }, config.uiName, false, true);
+    } else if (config.handler === 'range' && filterValue.value === 'customRange') {
+      this.onFilterChange({ value: 'customRange' }, config.uiName);
+      this.tempFilters[config.uiName] = {
+        value: 'customRange',
+        min: filterValue.min,
+        max: filterValue.max
+      };
+      this.onRangeValueChange(config.uiName);
+    } else {
+      this.onFilterChange({ value: filterValue.value }, config.uiName);
+    }
+  }
+
+  createAssetsFilter(value: any): AssetsFilter | null {
+    if (!value || value.length === 0) {
+      return null;
+    }
+    if (value.length === 1) {
+      return {
+        filterName: 'asset',
+        operator: '=',
+        value: { id: value[0] },
+      };
+    }
+    let formattedValue: any = { id: value[0] };
+    for (let i = 1; i < value.length; i++) {
+      formattedValue = {
+        operator: 'union',
+        operand1: formattedValue,
+        operand2: {
+          id: value[i],
+        },
+      };
+    }
+    return {
+      filterName: 'asset',
+      operator: '~',
+      value: formattedValue,
+    };
+  }
+
+  private convertTempFiltersToAPI(): CustomFilter[] {
+    const tempActiveFilters = Object.entries(this.tempFilters)
+      .filter(([_, value]) => {
+        if (value === null || value === undefined) return false;
+        if (Array.isArray(value) && value.length === 0) return false;
+        if (typeof value === 'object') {
+          if ('value' in value && (value.value === null || value.value === undefined)) return false;
+          if ('value' in value && value.value === 'all') return false;
+          if (Object.keys(value).length === 0) return false;
+        }
+        return true;
+      })
+      .map(([uiName, value]) => {
+        const apiConfig = Object.entries(this.filterNameMappings)
+          .find(([_, config]) => config.uiName === uiName);
+
+        if (!apiConfig) return null;
+
+        const [apiName, config] = apiConfig;
+
+        switch (config.handler) {
+          case 'idArray':
+            if (apiName === 'asset') {
+              if (Array.isArray(value)) {
+                const assetFilter = this.createAssetsFilter(value);
+                if (assetFilter) {
+                  return {
+                    id: apiName,
+                    ...assetFilter,
+                    type: 'vuln',
+                    isPredefined: true
+                  };
+                }
+              }
+              return null;
+            }
+            if (typeof value === 'string') {
+              return {
+                id: apiName,
+                filterName: apiName,
+                operator: '=',
+                type: 'vuln',
+                isPredefined: true,
+                value: [{ id: value }]
+              };
+            }
+            if (Array.isArray(value) && value.length > 0) {
+              return {
+                id: apiName,
+                filterName: apiName,
+                operator: '=',
+                type: 'vuln',
+                isPredefined: true,
+                value: value.map(v => ({ id: v }))
+              };
+            }
+            return null;
+
+          case 'family':
+            if (!Array.isArray(value) || value.length === 0) return null;
+            return {
+              id: 'family',
+              filterName: 'family',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: value.map(v => ({ id: v }))
+            };
+
           case 'severity':
-            return this.createSeverityFilter(value);
-          case 'stigSeverity':
-            return this.createStigSeverityFilter(value.value, value.operator);
-          case 'users':
-            return this.createUsersFilter(value);
-          case 'vprScore':
-            return this.createVPRScoreFilter(value);
-          case 'vulnerabilityText':
-            return this.createVulnerabilityTextFilter(value.value, value.operator);
+            const severityValue = Array.isArray(value) ? value.join(',') : value;
+            return severityValue ? {
+              id: 'severity',
+              filterName: 'severity',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: severityValue
+            } : null;
+
+          case 'array':
+            const hasValue = Array.isArray(value)
+              ? value.length > 0
+              : value !== null && value !== undefined;
+            return hasValue ? {
+              id: apiName,
+              filterName: apiName,
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: Array.isArray(value) ? value.join(',') : value
+            } : null;
+
+          case 'operatorValue':
+            return value.value ? {
+              id: apiName,
+              filterName: apiName,
+              operator: value.operator || '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: value.value
+            } : null;
+
+          case 'range':
+            if (value.value === 'none') {
+              return {
+                id: apiName,
+                filterName: apiName,
+                operator: '=',
+                type: 'vuln',
+                isPredefined: true,
+                value: 'none'
+              };
+            }
+            if (value.value === 'all' || !value.value) return null;
+            if (value.value === 'customRange') {
+              return {
+                id: apiName,
+                filterName: apiName,
+                operator: '=',
+                type: 'vuln',
+                isPredefined: true,
+                value: `${value.min}-${value.max}`
+              };
+            }
+            return null;
+
+          case 'simpleValue':
+            return value ? {
+              id: apiName,
+              filterName: apiName,
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: value
+            } : null;
+
           default:
             return null;
         }
       })
       .filter((filter): filter is CustomFilter => filter !== null);
+
+    let activeFilters: CustomFilter[] = [];
+
+    if (!tempActiveFilters.some(f => f.filterName === 'severity')) {
+      activeFilters.push({
+        id: 'severity',
+        filterName: 'severity',
+        operator: '=',
+        type: 'vuln',
+        isPredefined: true,
+        value: '1,2,3,4'
+      });
+    }
+
+    if (!tempActiveFilters.some(f => f.filterName === 'lastSeen')) {
+      activeFilters.push({
+        id: 'lastSeen',
+        filterName: 'lastSeen',
+        operator: '=',
+        type: 'vuln',
+        isPredefined: true,
+        value: '0:30'
+      });
+    }
+
+    return [...activeFilters, ...tempActiveFilters];
+  }
+
+  applyFilters(loadVuln: boolean = true) {
+    this.activeFilters = this.convertTempFiltersToAPI();
     this.filterAccordionItems();
 
     if (loadVuln) {
@@ -1296,18 +1610,18 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         };
         break;
       case 'aesSeverity':
-      case 'assets':
+      case 'asset':
       case 'auditFile':
       case 'dataFormat':
-      case 'pluginFamily':
+      case 'family':
       case 'protocol':
-      case 'scanPolicyPlugins':
+      case 'policy':
       case 'severity':
-      case 'users':
+      case 'responsibleUser':
         this.tempFilters[identifier] = [];
         break;
-      case 'address':
-      case 'agentId':
+      case 'ip':
+      case 'uuid':
       case 'cceId':
       case 'cveId':
       case 'cvssVector':
@@ -1315,8 +1629,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'dnsName':
       case 'hostUUID':
       case 'iavmID':
+      case 'wasInputName':
+      case 'wasInputType':
       case 'msbulletinID':
       case 'stigSeverity':
+      case 'vulnUUID':
+      case 'wasHttpMethod':
+      case 'wasURL':
         this.tempFilters[identifier] = {
           value: null,
           operator: null,
@@ -1325,14 +1644,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         };
         break;
       case 'cpe':
-      case 'crossReference':
+      case 'xref':
       case 'exploitFrameworks':
       case 'netbiosName':
       case 'pluginID':
       case 'pluginName':
       case 'pluginType':
       case 'port':
-      case 'vulnerabilityText':
+      case 'pluginText':
         this.tempFilters[identifier] = { operator: null, value: null };
         break;
       default:
@@ -1353,17 +1672,17 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'vprScore':
         return filter.value !== 'all';
       case 'aesSeverity':
-      case 'assets':
+      case 'asset':
       case 'auditFile':
       case 'dataFormat':
-      case 'pluginFamily':
+      case 'family':
       case 'protocol':
-      case 'scanPolicyPlugins':
+      case 'policy':
       case 'severity':
-      case 'users':
+      case 'responsibleUser':
         return filter.length > 0;
-      case 'address':
-      case 'agentId':
+      case 'ip':
+      case 'uuid':
       case 'cceId':
       case 'cveId':
       case 'cvssVector':
@@ -1371,10 +1690,15 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'dnsName':
       case 'hostUUID':
       case 'iavmID':
+      case 'wasInputName':
+      case 'wasInputType':
       case 'msbulletinID':
+      case 'vulnUUID':
+      case 'wasHttpMethod':
+      case 'wasURL':
         return !!filter.value;
       case 'cpe':
-      case 'crossReference':
+      case 'xref':
       case 'exploitFrameworks':
       case 'netbiosName':
       case 'pluginID':
@@ -1382,154 +1706,17 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'pluginType':
       case 'port':
       case 'stigSeverity':
-      case 'vulnerabilityText':
+      case 'pluginText':
         return !!filter.value || !!filter.operator;
       default:
         return !!filter;
     }
   }
 
-  createAssetCriticalityRatingFilter(value: any): CustomFilter | null {
-    if (value.value === 'none') {
-      return {
-        id: 'assetCriticalityRating',
-        filterName: 'assetCriticalityRating',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: 'none',
-      };
-    } else if (value.value === 'all') {
-      return null;
-    } else if (value.value === 'customRange') {
-      return {
-        id: 'assetCriticalityRating',
-        filterName: 'assetCriticalityRating',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: `${value.min}-${value.max}`,
-      };
-    }
-    return null;
-  }
-
-  createAcceptRiskFilter(value: string): CustomFilter | null {
-    if (value && value != 'nonAcceptedRisk') {
-      return {
-        id: 'acceptRiskStatus',
-        filterName: 'acceptRiskStatus',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createAddressFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'ip',
-        filterName: 'ip',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
-  }
-
-  validateAddress(ip: string): boolean {
-    const addressRegex =
+  validateIP(ip: string): boolean {
+    const ipRegex =
       /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    return addressRegex.test(ip);
-  }
-
-  createAssetsFilter(value: any): AssetsFilter | null {
-    if (!value || value.length === 0) {
-      return null;
-    }
-
-    if (value.length === 1) {
-      return {
-        filterName: 'asset',
-        operator: '=',
-        value: { id: value[0] },
-      };
-    }
-
-    let formattedValue: any = { id: value[0] };
-    for (let i = 1; i < value.length; i++) {
-      formattedValue = {
-        operator: 'union',
-        operand1: formattedValue,
-        operand2: {
-          id: value[i],
-        },
-      };
-    }
-
-    return {
-      filterName: 'asset',
-      operator: '~',
-      value: formattedValue,
-    };
-  }
-
-  createAssetExposureScoreFilter(value: any): CustomFilter | null {
-    if (value.value === 'none') {
-      return {
-        id: 'assetExposureScore',
-        filterName: 'assetExposureScore',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: 'none',
-      };
-    } else if (value.value === 'all') {
-      return null;
-    } else if (value.value === 'customRange') {
-      return {
-        id: 'assetExposureScore',
-        filterName: 'assetExposureScore',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: `${value.min}-${value.max}`,
-      };
-    }
-    return null;
-  }
-
-  createAESSeverityFilter(value: string[]): CustomFilter | null {
-    if (value && value.length > 0) {
-      return {
-        id: 'aesSeverity',
-        filterName: 'aesSeverity',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.join(','),
-      };
-    }
-    return null;
-  }
-
-  createAgentIdFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'uuid',
-        filterName: 'uuid',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
+    return ipRegex.test(ip);
   }
 
   validateUUID(uuid: string): boolean {
@@ -1538,158 +1725,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     return uuidRegex.test(uuid);
   }
 
-  createAuditFileFilter(value: string[]): CustomFilter | null {
-    if (value && value.length > 0) {
-      return {
-        id: 'auditFile',
-        filterName: 'auditFile',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: Array.isArray(value) ? value.map((id: string) => ({ id })) : [{ id: value }],
-      };
-    }
-    return null;
-  }
-
-  createCCEIDFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'cceID',
-        filterName: 'cceID',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
-  }
-
-  createCPEFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'cpe',
-        filterName: 'cpe',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createCrossReferenceFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'xref',
-        filterName: 'xref',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createCVEIDFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'cveID',
-        filterName: 'cveID',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
-  }
-
-  createBaseCVSSScoreFilter(value: any): CustomFilter | null {
-    if (value.value === 'none') {
-      return {
-        id: 'baseCVSSScore',
-        filterName: 'baseCVSSScore',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: 'none',
-      };
-    } else if (value.value === 'all') {
-      return null;
-    } else if (value.value === 'customRange') {
-      return {
-        id: 'baseCVSSScore',
-        filterName: 'baseCVSSScore',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: `${value.min}-${value.max}`,
-      };
-    }
-    return null;
-  }
-
-  createCVSSVectorFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'cvssVector',
-        filterName: 'cvssVector',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
-  }
-
   validateCVSSv2Vector(vector: string): boolean {
     const cvssV2Regex =
       /^(AV:[LAN]|AC:[LMH]|Au:[MSN]|C:[NPC]|I:[NPC]|A:[NPC])(\/(?!.*\1)(AV:[LAN]|AC:[LMH]|Au:[MSN]|C:[NPC]|I:[NPC]|A:[NPC])){5}$/;
     return cvssV2Regex.test(vector);
-  }
-
-  createCVSSV3BaseScoreFilter(value: any): CustomFilter | null {
-    if (value.value === 'none') {
-      return {
-        id: 'cvssV3BaseScore',
-        filterName: 'cvssV3BaseScore',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: 'none',
-      };
-    } else if (value.value === 'all') {
-      return null;
-    } else if (value.value === 'customRange') {
-      return {
-        id: 'cvssV3BaseScore',
-        filterName: 'cvssV3BaseScore',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: `${value.min}-${value.max}`,
-      };
-    }
-    return null;
-  }
-
-  createCVSSV3VectorFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'cvssV3Vector',
-        filterName: 'cvssV3Vector',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
   }
 
   validateCVSSv3Vector(vector: string): boolean {
@@ -1698,428 +1737,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     return cvssV3Regex.test(vector);
   }
 
-  createDNSNameFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'dnsName',
-        filterName: 'dnsName',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
-  }
-
-  createDataFormatFilter(value: string[]): CustomFilter | null {
-    if (value && value.length > 0) {
-      return {
-        id: 'dataFormat',
-        filterName: 'dataFormat',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.join(','),
-      };
-    }
-    return null;
-  }
-
-  createExploitFrameworksFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'exploitFrameworks',
-        filterName: 'exploitFrameworks',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createHostUUIDFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'hostUUID',
-        filterName: 'hostUUID',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
-  }
-
-  createIAVMIDFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'iavmID',
-        filterName: 'iavmID',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
-  }
-
   validateIAVM(iavmNumber: string): boolean {
     const iavmRegex = /^\d{4}-[A-Za-z]-\d{4}$/;
     return iavmRegex.test(iavmNumber);
   }
 
-  createMSBulletinIDFilter(value: any): CustomFilter | null {
-    if (value.value) {
-      return {
-        id: 'msbulletinID',
-        filterName: 'msbulletinID',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.value,
-      };
-    }
-    return null;
-  }
-
-  createNetbiosNameFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'netbiosName',
-        filterName: 'netbiosName',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createScanPolicyPluginsFilter(value: string[]): CustomFilter | null {
-    if (value && value.length > 0) {
-      return {
-        id: 'policy',
-        filterName: 'policy',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: Array.isArray(value) ? value.map((id: string) => ({ id })) : [{ id: value }],
-      };
-    }
-    return null;
-  }
-
-  createUsersFilter(value: string[]): CustomFilter | null {
-    if (value && value.length > 0) {
-      return {
-        id: 'responsibleUser',
-        filterName: 'responsibleUser',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: Array.isArray(value) ? value.map((id: string) => ({ id })) : [{ id: value }],
-      };
-    }
-    return null;
-  }
-
-  createVulnerabilityTypeFilter(value: string): CustomFilter | null {
-    if (value === 'iav') {
-      return {
-        id: 'xref',
-        filterName: 'xref',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: 'IAVA|20*,IAVB|20*',
-      };
-    } else if (value === 'non-iav') {
-      return {
-        id: 'xref',
-        filterName: 'xref',
-        operator: '!=',
-        type: 'vuln',
-        isPredefined: true,
-        value: 'IAVA|20*,IAVB|20*',
-      };
-    } else if (value === 'All') {
-      return null;
-    }
-    return null;
-  }
-
-  createVulnerabilityLastObservedFilter(value: string): CustomFilter | null {
-    if (value && value != 'All') {
-      return {
-        id: 'lastSeen',
-        filterName: 'lastSeen',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createVulnerabilityDiscoveredFilter(value: string): CustomFilter | null {
-    if (value && value != 'All') {
-      return {
-        id: 'firstSeen',
-        filterName: 'firstSeen',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createVulnerabilityPublishedFilter(value: string): CustomFilter | null {
-    if (value && value != 'All') {
-      return {
-        id: 'vulnPublished',
-        filterName: 'vulnPublished',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createPatchPublishedFilter(value: string): CustomFilter | null {
-    if (value && value != 'All') {
-      return {
-        id: 'patchPublished',
-        filterName: 'patchPublished',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createPluginFamilyFilter(value: string[]): CustomFilter | null {
-    if (value && value.length > 0) {
-      return {
-        id: 'family',
-        filterName: 'family',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: Array.isArray(value) ? value.map((id: string) => ({ id })) : [{ id: value }],
-      };
-    }
-    return null;
-  }
-
-  createPluginPublishedFilter(value: string): CustomFilter | null {
-    if (value && value != 'All') {
-      return {
-        id: 'pluginPublished',
-        filterName: 'pluginPublished',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createPluginModifiedFilter(value: string): CustomFilter | null {
-    if (value && value != 'All') {
-      return {
-        id: 'pluginModified',
-        filterName: 'pluginModified',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createProtocolFilter(value: string[]): CustomFilter | null {
-    if (value && value.length > 0) {
-      return {
-        id: 'protocol',
-        filterName: 'protocol',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.join(','),
-      };
-    }
-    return null;
-  }
-
-  createExploitAvailableFilter(value: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'exploitAvailable',
-        filterName: 'exploitAvailable',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createMitigatedFilter(value: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'mitigatedStatus',
-        filterName: 'mitigatedStatus',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createPluginIDFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'pluginID',
-        filterName: 'pluginID',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createPluginNameFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'pluginName',
-        filterName: 'pluginName',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createPluginTypeFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'pluginType',
-        filterName: 'pluginType',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createPortFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'port',
-        filterName: 'port',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createRecastRiskStatusFilter(value: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'recastRiskStatus',
-        filterName: 'recastRiskStatus',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
-  createSeverityFilter(value: string[]): CustomFilter | null {
-    if (value && value.length > 0) {
-      return {
-        id: 'severity',
-        filterName: 'severity',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: value.join(','),
-      };
-    }
-    return null;
-  }
-
-  createStigSeverityFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'stigSeverity',
-        filterName: 'stigSeverity',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
   validateStigSeverity(severity: string): boolean {
     const stigSeverityRegex = /^(I{1,3})$/;
     return stigSeverityRegex.test(severity);
-  }
-
-  createVPRScoreFilter(value: any): CustomFilter | null {
-    if (value.value === 'none') {
-      return {
-        id: 'vprScore',
-        filterName: 'vprScore',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: 'none',
-      };
-    } else if (value.value === 'all') {
-      return null;
-    } else if (value.value === 'customRange') {
-      return {
-        id: 'vprScore',
-        filterName: 'vprScore',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: `${value.min}-${value.max}`,
-      };
-    }
-    return null;
   }
 
   onRangeChange(event: any, identifier: string) {
@@ -2164,29 +1789,16 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  createVulnerabilityTextFilter(value: string, operator: string): CustomFilter | null {
-    if (value) {
-      return {
-        id: 'pluginText',
-        filterName: 'pluginText',
-        operator: operator,
-        type: 'vuln',
-        isPredefined: true,
-        value: value,
-      };
-    }
-    return null;
-  }
-
   clearFilters(loadVuln: boolean = true) {
     this.table.clear();
     this.tenableTool = 'sumid';
     this.tempFilters = this.initializeTempFilters();
     this.tempFilters['severity'] = ['1', '2', '3', '4'];
-    this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+    this.tempFilters['lastSeen'] = '0:30';
     this.activeFilters = [];
     this.filterSearch = '';
     this.applyFilters(false);
+    this.filterAccordionItems();
     this.resetColumnSelections();
     if (loadVuln) {
       this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
@@ -2251,127 +1863,22 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
       if (savedFilter) {
         this.clearFilters(false);
-
         this.tenableTool = savedFilter.tenableTool;
-
-        const analysisParams = {
-          query: {
-            description: '',
-            context: '',
-            status: -1,
-            createdTime: 0,
-            modifiedTime: 0,
-            groups: [],
-            type: savedFilter.type || 'vuln',
-            tool: savedFilter.tool || 'sumid',
-            sourceType: savedFilter.sourceType || 'cumulative',
-            startOffset: 0,
-            endOffset: this.rows,
-            filters: [this.createRepositoryFilter(), ...(savedFilter.filters || [])],
-            vulnTool: savedFilter.tenableTool,
-          },
-          sourceType: savedFilter.sourceType || 'cumulative',
-          columns: [],
-          type: savedFilter.type || 'vuln',
-        };
-
-        this.activeFilters = savedFilter.filters || [];
-
         this.tempFilters = this.initializeTempFilters();
+
         if (Array.isArray(savedFilter.filters)) {
-          savedFilter.filters.forEach((filter: any) => {
+          savedFilter.filters.forEach(filter => {
             if (filter.filterName && filter.value !== undefined) {
-              if (filter.operator) {
-                this.tempFilters[filter.filterName] = {
-                  operator: filter.operator,
-                  value: filter.value
-                };
-              } else {
-                this.tempFilters[filter.filterName] = filter.value;
-              }
+              this.mapSingleFilter(filter);
             }
           });
         }
 
+        this.activeFilters = this.convertTempFiltersToAPI();
+        this.filteredAccordionItems = [...this.accordionItems];
+        this.filterAccordionItems();
         this.isLoading = true;
-        this.importService.postTenableAnalysis(analysisParams).pipe(
-          catchError(error => {
-            console.error('Error fetching vulnerabilities:', error);
-            this.showErrorMessage('Error fetching all Vulnerabilities. Please try again.');
-            return EMPTY;
-          }),
-          switchMap(data => {
-            if (data.error_msg) {
-              this.showErrorMessage(data.error_msg);
-              return EMPTY;
-            }
-
-            const pluginIDs = data.response.results.map((vuln: any) => Number(vuln.pluginID));
-
-            if (pluginIDs.length > 0) {
-              return this.importService.getIAVInfoForPlugins(pluginIDs).pipe(
-                catchError(error => {
-                  console.error('Error fetching IAV info:', error);
-                  return of([]);
-                }),
-                map(iavData => ({
-                  vulnData: data.response,
-                  iavInfoMap: this.createIAVInfoMap(iavData)
-                }))
-              );
-            }
-
-            return of({
-              vulnData: data.response,
-              iavInfoMap: {}
-            });
-          }),
-          finalize(() => {
-            this.isLoading = false;
-          })
-        ).subscribe({
-          next: ({ vulnData, iavInfoMap }) => {
-            this.allVulnerabilities = vulnData.results.map((vuln: any) => {
-              const defaultVuln = {
-                pluginID: '',
-                pluginName: '',
-                family: { name: '' },
-                severity: { name: '' },
-                vprScore: '',
-                ips: [],
-                acrScore: '',
-                assetExposureScore: '',
-                netbiosName: '',
-                dnsName: '',
-                macAddress: '',
-                port: '',
-                protocol: '',
-                uuid: '',
-                hostUUID: '',
-                total: '',
-                hostTotal: '',
-              };
-
-              const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
-              const iavInfo = iavInfoMap[Number(vuln.pluginID)] || { iav: null, navyComplyDate: null };
-
-              return {
-                ...defaultVuln,
-                ...vuln,
-                poam: !!poamAssociation,
-                poamId: poamAssociation?.poamId || null,
-                poamStatus: poamAssociation?.status || null,
-                iav: iavInfo.iav,
-                navyComplyDate: iavInfo.navyComplyDate,
-                pluginName: vuln.name || '',
-                family: vuln.family?.name || '',
-                severity: { name: vuln.severity?.name || '' },
-              };
-            });
-
-            this.totalRecords = vulnData.totalRecords;
-          }
-        });
+        this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
         return;
       }
     }
@@ -2379,108 +1886,103 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.clearFilters(false);
     switch (event.value) {
       case 'vulnpublished30':
-        this.tempFilters['vulnerabilityPublished'] = '30:all';
+        this.tempFilters['vulnPublished'] = '30:all';
         break;
       case 'exploitable7':
         this.tempFilters['exploitAvailable'] = 'true';
-        this.tempFilters['vulnerabilityPublished'] = '7:all';
+        this.tempFilters['vulnPublished'] = '7:all';
         break;
       case 'exploitable30':
         this.tempFilters['exploitAvailable'] = 'true';
-        this.tempFilters['vulnerabilityPublished'] = '30:all';
+        this.tempFilters['vulnPublished'] = '30:all';
         break;
       case 'criticalHigh7':
         this.tempFilters['severity'] = ['3', '4'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
-        this.tempFilters['vulnerabilityPublished'] = '7:all';
+        this.tempFilters['lastSeen'] = '0:30';
+        this.tempFilters['vulnPublished'] = '7:all';
         break;
       case 'criticalHigh14':
         this.tempFilters['severity'] = ['3', '4'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
-        this.tempFilters['vulnerabilityPublished'] = '14:all';
+        this.tempFilters['lastSeen'] = '0:30';
+        this.tempFilters['vulnPublished'] = '14:all';
         break;
       case 'criticalHigh30':
         this.tempFilters['severity'] = ['3', '4'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
-        this.tempFilters['vulnerabilityPublished'] = '30:all';
+        this.tempFilters['lastSeen'] = '0:30';
+        this.tempFilters['vulnPublished'] = '30:all';
         break;
       case 'medium180':
         this.tempFilters['severity'] = ['2'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
-        this.tempFilters['vulnerabilityPublished'] = '180:all';
+        this.tempFilters['lastSeen'] = '0:30';
+        this.tempFilters['vulnPublished'] = '180:all';
         break;
       case 'low365':
         this.tempFilters['severity'] = ['1'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
-        this.tempFilters['vulnerabilityPublished'] = '365:all';
+        this.tempFilters['lastSeen'] = '0:30';
+        this.tempFilters['vulnPublished'] = '365:all';
         break;
       case 'cisco30':
-        this.tempFilters['pluginFamily'] = ['33'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['family'] = ['33'];
+        this.tempFilters['lastSeen'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'database30':
-        this.tempFilters['pluginFamily'] = ['31'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['family'] = ['31'];
+        this.tempFilters['lastSeen'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'f530':
-        this.tempFilters['pluginFamily'] = ['57'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['family'] = ['57'];
+        this.tempFilters['lastSeen'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'linuxUbuntu30':
-        this.tempFilters['pluginFamily'] = ['1', '14'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['family'] = ['1', '14'];
+        this.tempFilters['lastSeen'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'linuxUbuntuCritical30':
-        this.tempFilters['pluginFamily'] = ['1', '14'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['family'] = ['1', '14'];
+        this.tempFilters['lastSeen'] = '0:30';
         this.tempFilters['severity'] = ['3', '4'];
         break;
       case 'windowsCritical30':
-        this.tempFilters['pluginFamily'] = ['20'];
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['family'] = ['20'];
+        this.tempFilters['lastSeen'] = '0:30';
         this.tempFilters['severity'] = ['3', '4'];
         break;
       case 'windowsPatches30':
-        this.tempFilters['pluginFamily'] = ['10'];
-        this.tempFilters['pluginName'] = {
-          operator: '=',
-          value: 'Security Update',
-        };
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['family'] = ['10'];
+        this.tempFilters['pluginName'] = { operator: '=', value: 'Security Update' };
+        this.tempFilters['lastSeen'] = '0:30';
         this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'seol':
         this.tempFilters['pluginName'] = { operator: '=', value: 'SEoL' };
-        this.tempFilters['vulnerabilityLastObserved'] = '0:30';
+        this.tempFilters['lastSeen'] = '0:30';
         break;
       case 'nonCredentialedBad':
         this.tempFilters['pluginID'] = { operator: '=', value: '19506' };
-        this.tempFilters['vulnerabilityText'] = {
-          operator: '=',
-          value: 'Credentialed checks : no',
-        };
-        this.tempFilters['vulnerabilityLastObserved'] = '3:all';
+        this.tempFilters['pluginText'] = { operator: '=', value: 'Credentialed checks : no' };
+        this.tempFilters['lastSeen'] = '3:all';
         break;
       case 'nonCredentialedGood':
         this.tempFilters['pluginID'] = { operator: '=', value: '19506' };
-        this.tempFilters['vulnerabilityText'] = {
-          operator: '=',
-          value: 'Credentialed checks : yes',
-        };
-        this.tempFilters['vulnerabilityLastObserved'] = '3:all';
+        this.tempFilters['pluginText'] = { operator: '=', value: 'Credentialed checks : yes' };
+        this.tempFilters['lastSeen'] = '3:all';
         break;
       case 'exploitable':
         this.tempFilters['exploitAvailable'] = 'true';
         break;
     }
-    this.applyFilters();
-      }
 
-private createRepositoryFilter(): CustomFilter {
+    this.activeFilters = this.convertTempFiltersToAPI();
+    this.filteredAccordionItems = [...this.accordionItems];
+    this.filterAccordionItems();
+    this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
+  }
+
+  private createRepositoryFilter(): CustomFilter {
     return {
       id: 'repository',
       filterName: 'repository',

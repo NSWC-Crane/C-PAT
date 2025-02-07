@@ -46,6 +46,7 @@ export class PoamAssignedGridComponent implements OnChanges {
 
   assignedColumns: string[] = [
     'POAM ID',
+    'Vulnerability ID',
     'Adjusted Severity',
     'Status',
     'Submitter',
@@ -69,6 +70,7 @@ export class PoamAssignedGridComponent implements OnChanges {
 
     this.assignedDataSource = data.map(item => ({
       poamId: item.poamId,
+      vulnerabilityId: item.vulnerabilityId,
       adjSeverity: item.adjSeverity,
       status: item.status,
       submitter: item.submitterName,
@@ -111,6 +113,8 @@ export class PoamAssignedGridComponent implements OnChanges {
     switch (col) {
       case 'POAM ID':
         return 'poamId';
+      case 'Vulnerability ID':
+        return 'vulnerabilityId';
       case 'Adjusted Severity':
         return 'adjSeverity';
       case 'Status':
