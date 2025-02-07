@@ -133,7 +133,6 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.selectedCollection = collectionId;
       })
     );
-
     this.collectionsService.getCollectionBasicList().subscribe({
       next: data => {
         const selectedCollectionData = data.find(
@@ -141,22 +140,29 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         );
         if (selectedCollectionData) {
           this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
+          this.initColumnsAndFilters();
+          this.loadPoamAssociations();
+          this.getIAVPluginIDs();
+          if (this.table) {
+            this.table.filters = { ...this.filters };
+          }
         } else {
-          this.tenableRepoId = '';
+          this.handleMissingTenable();
         }
       },
       error: () => {
-        this.tenableRepoId = '';
+        this.handleMissingTenable();
       },
     });
+  }
 
-    this.initColumnsAndFilters();
-    this.loadPoamAssociations();
-    this.getIAVPluginIDs();
-
-    if (this.table) {
-      this.table.filters = { ...this.filters };
-    }
+  private handleMissingTenable(): void {
+    this.tenableRepoId = '';
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Unable to load Tenable repository information. Some features may be unavailable.'
+    });
   }
 
   initColumnsAndFilters() {
@@ -234,6 +240,9 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       { label: '0-30 Days Overdue', value: 'overdue0To30' },
       { label: '0-14 Days Overdue', value: 'overdue0To14' },
       { label: '0-7 Days Overdue', value: 'overdue0To7' },
+      { label: 'Due Between 7-14 Days', value: 'dueBetween714' },
+      { label: 'Due Between 14-30 Days', value: 'dueBetween1430' },
+      { label: 'Due Between 30-90 Days', value: 'dueBetween3090' },
       { label: 'Due Within 7 Days', value: 'dueWithin7' },
       { label: 'Due Within 14 Days', value: 'dueWithin14' },
       { label: 'Due Within 30 Days', value: 'dueWithin30' },
@@ -631,7 +640,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.table.filters['navyComplyDate'] = [];
       }
     } else {
-      const today = startOfDay(new Date());
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
       let startDate: Date | null = null;
       let endDate: Date | null = null;
 
@@ -639,53 +649,89 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         case 'alloverdue':
           endDate = today;
           break;
+
         case 'overdue90Plus':
-          endDate = startOfDay(new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000));
+          endDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+          endDate.setHours(23, 59, 59, 999);
           break;
+
         case 'overdue30To90':
           startDate = startOfDay(new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000));
-          endDate = startOfDay(new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000));
+          endDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+          endDate.setHours(23, 59, 59, 999);
           break;
+
         case 'overdue0To30':
           startDate = startOfDay(new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000));
           endDate = today;
           break;
+
         case 'overdue0To14':
           startDate = startOfDay(new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000));
           endDate = today;
           break;
+
         case 'overdue0To7':
           startDate = startOfDay(new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000));
           endDate = today;
           break;
+
+        case 'dueBetween714':
+          startDate = startOfDay(new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000));
+          endDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+          endDate.setHours(23, 59, 59, 999);
+          break;
+
+        case 'dueBetween1430':
+          startDate = startOfDay(new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000));
+          endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+          endDate.setHours(23, 59, 59, 999);
+          break;
+
+        case 'dueBetween3090':
+          startDate = startOfDay(new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000));
+          endDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+          endDate.setHours(23, 59, 59, 999);
+          break;
+
         case 'dueWithin7':
-          startDate = today;
-          endDate = startOfDay(new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000));
+          startDate = new Date(today.getTime());
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+          endDate.setHours(23, 59, 59, 999);
           break;
+
         case 'dueWithin14':
-          startDate = today;
-          endDate = startOfDay(new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000));
+          startDate = new Date(today.getTime());
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+          endDate.setHours(23, 59, 59, 999);
           break;
+
         case 'dueWithin30':
-          startDate = today;
-          endDate = startOfDay(new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000));
+          startDate = new Date(today.getTime());
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+          endDate.setHours(23, 59, 59, 999);
           break;
+
         case 'dueWithin90':
-          startDate = today;
-          endDate = startOfDay(new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000));
+          startDate = new Date(today.getTime());
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+          endDate.setHours(23, 59, 59, 999);
           break;
       }
-
       const filterConstraints: FilterMetadata[] = [];
-
       if (startDate) {
+        const adjustedStartDate = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
+        adjustedStartDate.setHours(23, 59, 59, 999);
         filterConstraints.push({
-          value: startDate,
+          value: adjustedStartDate,
           matchMode: 'dateAfter',
           operator: 'and',
         });
       }
-
       if (endDate) {
         filterConstraints.push({
           value: endDate,
@@ -693,7 +739,6 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           operator: 'and',
         });
       }
-
       if (this.table && filterConstraints.length > 0) {
         const col = this.cols.find(c => c.field === 'navyComplyDate');
         if (col) {
@@ -704,7 +749,6 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
                 ? `After ${format(startDate, 'MM/dd/yyyy')}`
                 : `Before ${format(endDate!, 'MM/dd/yyyy')}`;
         }
-
         this.table.filters['navyComplyDate'] = filterConstraints;
         this.table._filter();
       }
@@ -720,6 +764,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.table.filters['navyComplyDate'] = [];
       this.table.filters = { ...this.filters };
       this.table.filterGlobal(null, 'contains');
+      this.totalRecords = this.IAVVulnerabilities.length;
+      this.totalRecordsChange.emit(this.totalRecords);
     }
     this.filterValue = '';
     this.selectedNavyComplyDateFilter = null;
@@ -775,6 +821,14 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         'hostUUID',
       ].includes(col.field)
     );
+  }
+
+  onFilter(_event: any) {
+    if (this.table) {
+      const filteredValue = this.table.filteredValue || [];
+      this.totalRecords = filteredValue.length;
+      this.totalRecordsChange.emit(this.totalRecords);
+    }
   }
 
   toggleNavyComplyFilter() {
