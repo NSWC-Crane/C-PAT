@@ -173,3 +173,6 @@ cython_debug/
 /.vs
 */.vs
 /tailwind.extension.json
+/C-PAT.esproj
+/C-PAT.sln
+/C-PAT.esproj.user
