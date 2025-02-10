@@ -28,6 +28,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
 import { ChartModule } from 'primeng/chart';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 
 interface AssetEntry {
   groupId: string;
@@ -77,6 +78,7 @@ interface STIGRevision {
     FormsModule,
     InputTextModule,
     MultiSelectModule,
+    SelectModule,
     SkeletonModule,
     TableModule,
     TabsModule,
@@ -91,7 +93,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     {
       field: 'poam',
       header: 'POAM',
-      width: '5%',
+      width: '8%',
       filterField: 'poamStatus',
       filterType: 'text',
       filterOptions: [
@@ -109,7 +111,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         { label: 'Submitted', value: 'Submitted' },
       ],
     },
-    { field: 'groupId', header: 'Group ID', width: '15%', filterType: 'text' },
+    { field: 'groupId', header: 'Group ID', width: '12%', filterType: 'text' },
     { field: 'ruleTitle', header: 'Rule Title', width: '35%', filterType: 'text' },
     {
       field: 'benchmarkId',
@@ -619,6 +621,16 @@ ${ruleData.detail.vulnDiscussion}`;
 
     routePath += existingPoam ? existingPoam.poamId : 'ADDPOAM';
     this.router.navigate([routePath], routeParams);
+  }
+
+  onFilter(_event: any) {
+    if (this.table) {
+      if (this.table.filteredValue) {
+        this.findingsCount = this.table.filteredValue.length;
+      } else {
+        this.findingsCount = this.displayDataSource.length;
+      }
+    }
   }
 
   showWarn(message: string) {
