@@ -27,6 +27,7 @@
                              [columns]="allColumns"
                              [globalFilterFields]="['groupId', 'ruleTitle', 'benchmarkId', 'severity']"
                              (onSort)="updateSort($event)"
+                             (onFilter)="onFilter($event)"
                              [paginator]="true"
                              [rows]="25"
                              [scrollable]="true"
@@ -64,6 +65,25 @@
                                                                optionValue="value"
                                                                selectedItemsLabel="{0} benchmarks selected">
                                                 </p-multiSelect>
+                                            </ng-template>
+                                        </p-columnFilter>
+                                    </ng-container>
+                                    <ng-container *ngIf="col.field === 'poam'">
+                                        <p-columnFilter [type]="col.filterType"
+                                                        [field]="col.filterField"
+                                                        [showOperator]="false"
+                                                        [showMatchModes]="false"
+                                                        [showAddButton]="false"
+                                                        [showButtons]="true"
+                                                        display="menu">
+                                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                <p-select [ngModel]="value"
+                                                          [options]="col.filterOptions"
+                                                          (onChange)="filter($event.value)"
+                                                          placeholder="Select Status"
+                                                          [showClear]="true"
+                                                          styleClass="w-full">
+                                                </p-select>
                                             </ng-template>
                                         </p-columnFilter>
                                     </ng-container>
