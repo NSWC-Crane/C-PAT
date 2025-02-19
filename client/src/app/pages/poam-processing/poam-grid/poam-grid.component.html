@@ -18,8 +18,8 @@
           </p-inputIcon>
           <input pInputText
                  type="text"
-                 [(ngModel)]="globalFilter"
-                 (ngModelChange)="applyFilter()"
+                 [ngModel]="globalFilter"
+                 (ngModelChange)="globalFilterSignal.set($event)"
                  placeholder="Search..." />
         </p-iconField>
         <p-button class="ml-2"
@@ -33,19 +33,33 @@
                   pTooltip="Reset default filters"></p-button>
       </div>
       <div class="right-buttons">
-        <p-button class="ml-2"
-                  icon="pi pi-external-link"
-                  severity="secondary"
-                  [rounded]="true"
-                  [text]="true"
-                  (onClick)="exportCollection()"
-                  (onKeyUp)="exportCollection()">
-        </p-button>
+          <p-fileUpload #fileUpload
+                        fileLimit="1"
+                        chooseStyleClass="p-button-secondary p-button-text p-button-rounded mt-1"
+                        mode="basic"
+                        chooseIcon="pi pi-sync"
+                        chooseLabel="Choose"
+                        pTooltip="Upload an eMASSter excel to overwrite with select C-PAT data"
+                        tooltipPosition="top"
+                        [auto]="true"
+                        accept=".xls, .xlsx, .xlsm"
+                        [maxFileSize]="10485760"
+                        (onSelect)="importEMASSter($event)">
+          </p-fileUpload>
+          <p-button icon="pi pi-external-link"
+                    severity="secondary"
+                    [rounded]="true"
+                    [text]="true"
+                    pTooltip="Export POAMs to eMASS excel template"
+                    tooltipPosition="top"
+                    (onClick)="exportCollection()"
+                    (onKeyUp)="exportCollection()">
+          </p-button>
       </div>
     </div>
     <div class="table-container">
         <p-table #dt
-                 [value]="displayedData"
+                 [value]="displayedData()"
                  [resizableColumns]="true"
                  [scrollable]="true"
                  scrollHeight="50rem"
@@ -77,7 +91,7 @@
                                             display="menu">
                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                     <p-select [ngModel]="value"
-                                              [options]="poamStatusOptions"
+                                              [options]="poamStatusOptions()"
                                               (onChange)="filter($event.value)"
                                               placeholder="Select Status"
                                               [showClear]="true"
@@ -211,7 +225,7 @@
                     <td>
                         <a href="javascript:void(0)"
                            (click)="managePoam(row)"
-                           class="text-primary cursor-pointer font-semibold hover:font-bold"
+                           class="cursor-pointer font-semibold text-primary hover:font-bold"
                            pTooltip="Navigate to this POAM"
                            tooltipPosition="top">
                             {{row.poamId}}

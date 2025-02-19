@@ -8,17 +8,18 @@
 !##########################################################################
 */
 
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { Color, ScaleType } from '@swimlane/ngx-charts';
 
 @Component({
   selector: 'cpat-poam-advanced-pie',
   template: `
     <ngx-charts-advanced-pie-chart
       [scheme]="colorScheme"
-      [results]="pieChartData"
+      [results]="pieChartData()"
       [percentageFormatting]="formatPercentages"
-      [label]="collectionName + ' POAMs'"
+      [label]="collectionName() + ' POAMs'"
     >
     </ngx-charts-advanced-pie-chart>
   `,
@@ -26,23 +27,23 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
   imports: [NgxChartsModule],
 })
 export class PoamAdvancedPieComponent {
-  @Input() pieChartData!: any[];
-  @Input() collectionName!: string;
-  colorScheme: any;
+  pieChartData = input.required<any[]>();
+  collectionName = input.required<string>();
 
-  constructor() {
-    this.colorScheme = {
-      domain: [
-        'rgba(54, 162, 235, .7)',
-        'rgba(75, 192, 192, .7)',
-        'rgba(201, 203, 207, .7)',
-        'rgba(255, 99, 132, .7)',
-        'rgba(255, 205, 86, .7)',
-        'rgba(255, 159, 64, .7)',
-        'rgba(152, 102, 255, .7)',
-      ],
-    };
-  }
+  colorScheme: Color = {
+    name: 'custom',
+    selectable: true,
+    group: ScaleType.Ordinal,
+    domain: [
+      'rgba(54, 162, 235, .7)',
+      'rgba(75, 192, 192, .7)',
+      'rgba(201, 203, 207, .7)',
+      'rgba(255, 99, 132, .7)',
+      'rgba(255, 205, 86, .7)',
+      'rgba(255, 159, 64, .7)',
+      'rgba(152, 102, 255, .7)',
+    ]
+  };
 
   formatPercentages(value: number): string {
     const str = value.toFixed(0);

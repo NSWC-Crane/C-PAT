@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -44,7 +44,11 @@ export class PoamAssignedGridComponent implements OnChanges {
   @Input() assignedData!: any[];
   @Input() gridHeight!: string;
 
-  assignedColumns: string[] = [
+  private assignedDataSource = signal<any[]>([]);
+  filteredData = signal<any[]>([]);
+  globalFilter = signal<string>('');
+
+  protected readonly assignedColumns = signal<string[]>([
     'POAM ID',
     'Vulnerability ID',
     'Adjusted Severity',
@@ -52,10 +56,7 @@ export class PoamAssignedGridComponent implements OnChanges {
     'Submitter',
     'Assigned Team',
     'Labels'
-  ];
-  assignedDataSource: any[] = [];
-  filteredData: any[] = [];
-  globalFilter: string = '';
+  ]);
 
   constructor(private router: Router) { }
 
@@ -68,7 +69,7 @@ export class PoamAssignedGridComponent implements OnChanges {
   updateDataSource() {
     const data = this.assignedData;
 
-    this.assignedDataSource = data.map(item => ({
+    const transformedData = data.map(item => ({
       poamId: item.poamId,
       vulnerabilityId: item.vulnerabilityId,
       adjSeverity: item.adjSeverity,
@@ -81,7 +82,9 @@ export class PoamAssignedGridComponent implements OnChanges {
         ? item.labels.map((label: any) => label.labelName)
         : []
     }));
-    this.filteredData = [...this.assignedDataSource];
+
+    this.assignedDataSource.set(transformedData);
+    this.filteredData.set(transformedData);
     this.applyFilter();
   }
 
@@ -91,21 +94,22 @@ export class PoamAssignedGridComponent implements OnChanges {
   }
 
   applyFilter() {
-    const filterValue = this.globalFilter ? this.globalFilter.toLowerCase() : '';
+    const filterValue = this.globalFilter() ? this.globalFilter().toLowerCase() : '';
     if (!filterValue) {
-      this.filteredData = [...this.assignedDataSource];
+      this.filteredData.set([...this.assignedDataSource()]);
     } else {
-      this.filteredData = this.assignedDataSource.filter(poam =>
+      const filtered = this.assignedDataSource().filter(poam =>
         Object.values(poam).some(
           value => value && value.toString().toLowerCase().includes(filterValue)
         )
       );
+      this.filteredData.set(filtered);
     }
   }
 
   onFilterChange(event: Event) {
     const target = event.target as HTMLInputElement;
-    this.globalFilter = target.value;
+    this.globalFilter.set(target.value);
     this.applyFilter();
   }
 
