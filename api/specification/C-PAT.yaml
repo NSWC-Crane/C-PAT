@@ -176,6 +176,45 @@ paths:
         - oauth:
             - 'c-pat:op'
 
+  /ai/mitigation:
+    post:
+      summary: Generate mitigation statement using AI
+      operationId: generateMitigation
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: The prompt for generating mitigation
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mitigation:
+                    type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AI
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   /assets/collection/{collectionId}:
     parameters:
       - in: path
@@ -1233,6 +1272,52 @@ paths:
                     type: string
         '400':
           description: Bad request - invalid file format, missing file, or missing lastCollectionAccessedId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Import
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  '/import/assetlist':
+    post:
+      summary: Parse and import an asset list
+      operationId: importAssetListExcel
+      x-eov-file-handler: true
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: .xls, .xlsx, or .xlsm files
+              required:
+                - file
+      responses:
+        '201':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad request - invalid file format, missing file, or missing userId
           content:
             application/json:
               schema:
@@ -4640,6 +4725,42 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /user/{userId}/disable:
+    patch:
+      summary: Disables a user account
+      operationId: disableUser
+      parameters:
+        - $ref: '#/components/parameters/ElevateQuery'
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - User
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   '/users':
     get:
       tags:
@@ -4683,27 +4804,6 @@ paths:
             - 'c-pat:read'
       summary: Return a User
       operationId: getUserByUserID
-      responses:
-        '200':
-          description: User response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/user'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-    delete:
-      tags:
-        - User
-      security:
-        - oauth:
-            - 'c-pat:op'
-      summary: Delete a User
-      operationId: deleteUser
       responses:
         '200':
           description: User response

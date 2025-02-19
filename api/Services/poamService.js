@@ -698,55 +698,57 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
         }
     };
 
-exports.deletePoam = async function deletePoam(req, res, next) {
+exports.deletePoam = async function deletePoam(req) {
     if (!req.params.poamId) {
-        return next({
+        return {
             status: 400,
             errors: {
-                poamId: 'is required',
+                poamId: 'is required'
             }
-        });
+        };
     }
 
-    let validatePermissionsSql = `
-        SELECT cp.accessLevel
-        FROM cpat.collectionpermissions cp
-        JOIN cpat.poam p ON cp.collectionId = p.collectionId
-        WHERE cp.userId = ? AND p.poamId = ?
-    `;
-
     try {
-        const [rows] = await connection.query(validatePermissionsSql, [req.userObject.userId, req.params.poamId]);
+        return await withConnection(async (connection) => {
+            let validatePermissionsSql = `
+                SELECT cp.accessLevel
+                FROM cpat.collectionpermissions cp
+                JOIN cpat.poam p ON cp.collectionId = p.collectionId
+                WHERE cp.userId = ? AND p.poamId = ?
+            `;
 
-        if (rows.length === 0 || rows[0].accessLevel < 2) {
-            return next({
-                status: 403,
-                errors: {
-                    permission: 'User does not have permission to delete this POAM',
-                }
-            });
-        }
+            const [rows] = await connection.query(validatePermissionsSql, [req.userObject.userId, req.params.poamId]);
 
-        await withConnection(async (connection) => {
+            if (rows.length === 0 || rows[0].accessLevel < 2) {
+                return {
+                    status: 403,
+                    errors: {
+                        permission: 'User does not have permission to delete this POAM'
+                    }
+                };
+            }
+
             await connection.beginTransaction();
+            try {
+                let sqlDeleteAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?";
+                await connection.query(sqlDeleteAssets, [req.params.poamId]);
 
-            let sqlDeleteAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?;";
-            await connection.query(sqlDeleteAssets, [req.params.poamId]);
+                let sqlDeletePoam = "DELETE FROM cpat.poam WHERE poamId = ?";
+                await connection.query(sqlDeletePoam, [req.params.poamId]);
 
-            let sqlDeletePoam = "DELETE FROM cpat.poam WHERE poamId = ?;";
-            await connection.query(sqlDeletePoam, [req.params.poamId]);
-
-            await connection.commit();
-        });
-
-        res.status(200).json({ message: "POAM deleted successfully" });
-
-    } catch (error) {
-        return next({
-            status: 500,
-            errors: {
-                database: error.message,
+                await connection.commit();
+                return { success: true };
+            } catch (error) {
+                await connection.rollback();
+                throw error;
             }
         });
+    } catch (error) {
+        return {
+            status: 500,
+            errors: {
+                database: error.message
+            }
+        };
     }
 };

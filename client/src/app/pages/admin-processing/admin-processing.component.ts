@@ -18,6 +18,7 @@ import { FormsModule } from '@angular/forms';
 import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
 import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plugin-mapping.component';
 import { VRAMImportComponent } from './vram-import/vram-import.component';
+//import { AssetDeltaComponent } from './asset-delta/asset-delta.component';
 import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
 import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
@@ -42,6 +43,7 @@ import { Subject, takeUntil } from 'rxjs';
     TabsModule,
     TenableAdminComponent,
     UserProcessingComponent,
+    //AssetDeltaComponent,
     VRAMImportComponent,
   ],
 })
@@ -49,6 +51,7 @@ export class AdminProcessingComponent implements OnInit {
   value: number = 0;
   user: any;
   private destroy$ = new Subject<void>();
+  tenableEnabled = CPAT.Env.features.tenableEnabled;
   constructor(
     private userService: UsersService,
     private router: Router
@@ -76,7 +79,7 @@ export class AdminProcessingComponent implements OnInit {
   }
 
   switchToPluginMapping() {
-    this.value = 5;
+    this.value = 6;
   }
 
   ngOnDestroy() {

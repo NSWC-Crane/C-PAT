@@ -355,4 +355,10 @@ export class PoamService {
       .delete<any>(`${this.cpatApiBase}/poam/${poamId}`)
       .pipe(catchError(this.handleError));
   }
+
+  automateMitigation(prompt: string): Observable<any> {
+    return this.http
+      .post<any>(`${this.cpatApiBase}/ai/mitigation`, prompt)
+      .pipe(catchError(this.handleError));
+  }
 }

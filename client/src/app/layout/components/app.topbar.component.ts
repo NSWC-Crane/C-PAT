@@ -28,7 +28,7 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { StyleClass } from 'primeng/styleclass';
 import { AppSearchComponent } from '../../common/components/search/app.search.component';
 import { AppConfiguratorComponent } from '../components/app.configurator.component';
-import { Observable, Subject, catchError, filter, map, merge, of, switchMap, take, takeUntil } from 'rxjs';
+import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, filter, map, merge, of, switchMap, take, takeUntil } from 'rxjs';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { Popover } from 'primeng/popover';
 import { NotificationsPanelComponent } from '../../common/components/notifications/notifications-popover/notifications-popover.component';
@@ -201,7 +201,12 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
 
     this.user$.pipe(
       filter((user): user is NonNullable<typeof user> => !!user && user.accountStatus === 'ACTIVE'),
-      switchMap(() => merge(of(null), navigationEvents$).pipe(
+      switchMap(() => merge(
+        of(null),
+        navigationEvents$
+      ).pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
         switchMap(() => this.fetchNotificationCount())
       )),
       takeUntil(this.destroy$)

@@ -39,7 +39,7 @@ let config = {
         extraScopes: process.env.STIGMAN_EXTRA_SCOPES,
     },
     tenable: {
-        enabled: process.env.TENABLE_ENABLED !== 'false',
+        enabled: process.env.TENABLE_ENABLED === 'true',
         url: process.env.TENABLE_URL || "",
         accessKey: process.env.TENABLE_ACCESS_KEY,
         secretKey: process.env.TENABLE_SECRET_KEY,
@@ -98,6 +98,13 @@ let config = {
             privilegesPath: process.env.CPAT_JWT_PRIVILEGES_CLAIM || "realm_access.roles",
             email: process.env.CPAT_JWT_EMAIL_CLAIM || "email"
         }
+    },
+    ai: {
+        enabled: process.env.CPAT_AI_ENABLED === 'true',
+        provider: process.env.CPAT_AI_PROVIDER,
+        modelName: process.env.CPAT_AI_MODEL_NAME,
+        apiKey: process.env.CPAT_AI_API_KEY,
+        aiBaseURL: process.env.CPAT_AI_BASE_URL || 'http://localhost:11434'
     },
     log: {
         level: parseInt(process.env.CPAT_LOG_LEVEL) || 3,

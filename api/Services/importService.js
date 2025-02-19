@@ -573,8 +573,65 @@ async function updateVRAMConfigEntry(configEntry, fileDate, transaction) {
     }
 }
 
+exports.importAssetListExcel = async function importAssetListExcel(file) {
+    if (!file) {
+        throw new Error("Please upload an Excel file!");
+    }
+
+    const workbook = await loadWorkbook(file);
+    const worksheet = getFirstWorksheet(workbook);
+    validateAssetListHeaders(worksheet);
+
+    try {
+        return await db.sequelize.transaction(async (t) => {
+            const assetData = extractAssetListData(worksheet);
+            await updateAssetListData(assetData, t);
+            return { message: "Asset list data updated successfully", rowsProcessed: assetData.length };
+        });
+    } catch (error) {
+        throw new Error(`Failed to update asset list data in the database: ${error.message}`);
+    }
+};
+
+function validateAssetListHeaders(worksheet) {
+    const firstRow = worksheet.getRow(1).values.slice(1);
+    if (firstRow.length !== 2) {
+        throw new Error('Invalid file format: Excel file must contain exactly two columns');
+    }
+}
+
+function extractAssetListData(worksheet) {
+    const assetData = [];
+
+    worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+            const values = row.values.slice(1);
+            if (values.length === 2 && values[0]) {
+                assetData.push({
+                    key: values[0].toString().trim(),
+                    value: values[1] ? values[1].toString().trim() : ''
+                });
+            }
+        }
+    });
+
+    return assetData;
+}
+
+async function updateAssetListData(assetData, transaction) {
+    if (assetData.length > 0) {
+        await db.sequelize.query('TRUNCATE TABLE assetdeltalist', { transaction });
+        await db.sequelize.queryInterface.bulkInsert(
+            'assetdeltalist',
+            assetData,
+            { transaction }
+        );
+    }
+}
+
 module.exports = {
     excelFilter: exports.excelFilter,
     processPoamFile: exports.processPoamFile,
-    importVRAMExcel: exports.importVRAMExcel
+    importVRAMExcel: exports.importVRAMExcel,
+    importAssetListExcel: exports.importAssetListExcel
 };
