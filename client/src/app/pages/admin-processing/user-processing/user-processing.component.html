@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -42,7 +42,7 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
-          <tr (click)="setUserFromTable(rowData)">
+          <tr [ngClass]="{'pending-status': rowData['Status'] === 'PENDING'}" (click)="setUserFromTable(rowData)">
             <td *ngFor="let col of columns; let i = index">
               <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
               {{rowData[col]}}
@@ -77,7 +77,7 @@
     </div>
     <div *ngIf="data && data.length > 0 && showUserSelect">
       <p-select
-        class="w-full mt-[2rem]"
+        class="mt-[2rem] w-full"
         [options]="data"
         name="selectedUser"
         [(ngModel)]="selectedUser"

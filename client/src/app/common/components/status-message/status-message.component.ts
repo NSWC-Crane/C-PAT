@@ -146,7 +146,7 @@ export class StatusMessageComponent implements OnInit {
         break;
       case 999:
         this.message =
-          'Hmm, looks like your account has not been activated. Please contact your C-PAT Administrator.';
+          'Hmm, looks like your account is not activated. Please contact your C-PAT Administrator.';
         this.statusCode = 403;
         break;
       default:

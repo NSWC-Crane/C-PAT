@@ -117,10 +117,14 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   getUsersTree() {
-    const userData = this.data;
+    const sortOrder = { 'PENDING': 0, 'ACTIVE': 1, 'DISABLED': 2 };
+    const sortedUserData = [...this.data].sort((a, b) => {
+      return sortOrder[a.accountStatus as keyof typeof sortOrder] - sortOrder[b.accountStatus as keyof typeof sortOrder];
+    });
+
     const treeData: any[] = [];
 
-    for (const user of userData) {
+    for (const user of sortedUserData) {
       const userPermissions = user.permissions;
       const children: any[] = [];
 
@@ -158,6 +162,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
           Email: user.email,
         },
         children: children,
+        styleClass: user.accountStatus === 'PENDING' ? 'pending-row' : ''
       });
     }
 
