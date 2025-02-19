@@ -11,7 +11,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { HttpResponse } from '@angular/common/http';
-import { VRAMImportService } from './vram-import.service';
+import { AssetDeltaService } from './asset-delta.service';
 import { UsersService } from '../user-processing/users.service';
 import { EMPTY, Subject, catchError, takeUntil } from 'rxjs';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
@@ -20,14 +20,13 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { BadgeModule } from 'primeng/badge';
-import { VramPopupComponent } from '../../../common/components/vram-popup/vram-popup.component';
 import { ToastModule } from 'primeng/toast';
 import { ProgressBarModule } from 'primeng/progressbar';
 
 @Component({
-  selector: 'cpat-vram-import',
-  templateUrl: './vram-import.component.html',
-  styleUrls: ['./vram-import.component.scss'],
+  selector: 'cpat-asset-delta',
+  templateUrl: './asset-delta.component.html',
+  styleUrls: ['./asset-delta.component.scss'],
   standalone: true,
   imports: [
     BadgeModule,
@@ -37,23 +36,21 @@ import { ProgressBarModule } from 'primeng/progressbar';
     FileUploadModule,
     FormsModule,
     ProgressBarModule,
-    ToastModule,
-    VramPopupComponent,
+    ToastModule
   ],
   providers: [MessageService],
 })
-export class VRAMImportComponent implements OnInit {
+export class AssetDeltaComponent implements OnInit {
   @ViewChild('fileUpload') fileUpload!: FileUpload;
   @Output() navigateToPluginMapping = new EventEmitter<void>();
-  uploadUrl: string = '/api/import/vram';
+  uploadUrl: string = '/api/import/assetlist';
   user: any;
   totalSize: string = '0';
   totalSizePercent: number = 0;
-  vramUpdatedDate: string = '';
   private destroy$ = new Subject<void>();
   constructor(
     private messageService: MessageService,
-    private vramImportService: VRAMImportService,
+    private assetDeltaService: AssetDeltaService,
     private userService: UsersService
   ) {}
 
@@ -71,22 +68,6 @@ export class VRAMImportComponent implements OnInit {
       })
     ).subscribe(user => {
       this.user = user;
-    });
-
-    this.getVramUpdatedDate();
-  }
-
-  getVramUpdatedDate() {
-    this.vramImportService.getVramDataUpdatedDate().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response: any) => {
-        this.vramUpdatedDate = response?.value || 'N/A';
-      },
-      error: error => {
-        console.error('Error fetching VRAM updated date:', error);
-        this.vramUpdatedDate = 'Error';
-      }
     });
   }
 
@@ -114,25 +95,17 @@ export class VRAMImportComponent implements OnInit {
       return;
     }
 
-    this.vramImportService.upload(file).pipe(
+    this.assetDeltaService.upload(file).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (event: any) => {
         if (event instanceof HttpResponse) {
-          if (event.body?.message === 'File is not newer than the last update. No changes made.') {
-            this.messageService.add({
-              severity: 'info',
-              summary: 'Information',
-              detail: event.body.message
-            });
-          } else {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
               detail: 'File uploaded successfully'
             });
             setTimeout(() => this.navigateToPluginMapping.emit(), 1000);
-          }
           this.fileUpload.clear();
         }
       },

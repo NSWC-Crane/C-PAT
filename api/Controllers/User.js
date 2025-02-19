@@ -9,6 +9,7 @@
 */
 
 const userService = require('../Services/usersService');
+const SmError = require('../utils/error');
 
 module.exports.getUsers = async function getUsers(req, res, next) {
     try {
@@ -104,12 +105,29 @@ module.exports.updateUserLastCollectionAccessed = async function updateUserLastC
     }
 };
 
-module.exports.deleteUser = async function deleteUser(req, res, next) {
+module.exports.disableUser = async function disableUser(req, res, next) {
     try {
         const elevate = req.query.elevate;
-        await userService.deleteUser(requestorId, elevate, req);
-        res.status(200).json({ message: 'User deleted' });
+        const userId = parseInt(req.params.userId);
+
+        const result = await userService.disableUser(elevate, userId);
+
+        res.status(200).json({
+            success: true,
+            message: result.message
+        });
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        if (error instanceof SmError.PrivilegeError) {
+            res.status(400).json({
+                success: false,
+                error: error.message
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                error: 'Internal Server Error',
+                detail: error.message
+            });
+        }
     }
 };

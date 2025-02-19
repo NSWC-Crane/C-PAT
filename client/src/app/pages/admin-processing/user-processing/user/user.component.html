@@ -75,7 +75,7 @@
         <label for="accountStatus" class="mb-2 block text-base font-medium">Account Status:</label>
         <div>
             <p-select class="w-1/6"
-                      [options]="[{label: 'Pending', value: 'PENDING'}, {label: 'Active', value: 'ACTIVE'}, {label: 'Expired', value: 'EXPIRED'}]"
+                      [options]="[{label: 'Active', value: 'ACTIVE'}, {label: 'Pending', value: 'PENDING'}, {label: 'Disabled', value: 'DISABLED'}]"
                       [(ngModel)]="user.accountStatus"
                       name="accountStatus"
                       placeholder="Select Status"
@@ -105,7 +105,7 @@
     <div class="flex items-center pt-4">
         <p-toggleswitch [(ngModel)]="checked" name="isAdmin" disabled></p-toggleswitch>
         <label for="isAdmin" class="ml-4 text-base font-medium">C-PAT Admin</label>
-        <i class="pi pi-info-circle ml-2 cursor-pointer text-primary"
+        <i class="pi pi-info-circle text-primary ml-2 cursor-pointer"
            pTooltip="The C-PAT administrative privilege is assigned by granting a user the admin role within the OIDC provider."
            tooltipPosition="top">
         </i>

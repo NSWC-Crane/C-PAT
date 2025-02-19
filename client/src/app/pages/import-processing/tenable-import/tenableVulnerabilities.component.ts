@@ -295,13 +295,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Critical/ High 30+ Days', value: 'criticalHigh30' },
     { label: 'Medium 180+ Days', value: 'medium180' },
     { label: 'Low 365+ Days', value: 'low365' },
-    { label: 'Cisco Findings 30+ Days', value: 'cisco30' },
-    { label: 'Database Findings 30+ Days', value: 'database30' },
-    { label: 'F5 Findings 30+ Days', value: 'f530' },
-    { label: 'Linux/Ubuntu Findings 30+ Days', value: 'linuxUbuntu30' },
-    { label: 'Linux/Ubuntu Critical/High 30+ Days', value: 'linuxUbuntuCritical30' },
-    { label: 'Windows Critical/High 30+ Days', value: 'windowsCritical30' },
-    { label: 'Windows - Monthly Security Patches 30+ Days', value: 'windowsPatches30' },
     { label: 'Security End of Life', value: 'seol' },
     { label: 'Non-Credentialed (Bad Scan)', value: 'nonCredentialedBad' },
     { label: 'Non-Credentialed (Good Scan)', value: 'nonCredentialedGood' },
@@ -1920,42 +1913,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.tempFilters['severity'] = ['1'];
         this.tempFilters['lastSeen'] = '0:30';
         this.tempFilters['vulnPublished'] = '365:all';
-        break;
-      case 'cisco30':
-        this.tempFilters['family'] = ['33'];
-        this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['severity'] = ['1', '2', '3', '4'];
-        break;
-      case 'database30':
-        this.tempFilters['family'] = ['31'];
-        this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['severity'] = ['1', '2', '3', '4'];
-        break;
-      case 'f530':
-        this.tempFilters['family'] = ['57'];
-        this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['severity'] = ['1', '2', '3', '4'];
-        break;
-      case 'linuxUbuntu30':
-        this.tempFilters['family'] = ['1', '14'];
-        this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['severity'] = ['1', '2', '3', '4'];
-        break;
-      case 'linuxUbuntuCritical30':
-        this.tempFilters['family'] = ['1', '14'];
-        this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['severity'] = ['3', '4'];
-        break;
-      case 'windowsCritical30':
-        this.tempFilters['family'] = ['20'];
-        this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['severity'] = ['3', '4'];
-        break;
-      case 'windowsPatches30':
-        this.tempFilters['family'] = ['10'];
-        this.tempFilters['pluginName'] = { operator: '=', value: 'Security Update' };
-        this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['severity'] = ['1', '2', '3', '4'];
         break;
       case 'seol':
         this.tempFilters['pluginName'] = { operator: '=', value: 'SEoL' };

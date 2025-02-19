@@ -23,3 +23,15 @@
 .form-group p-select {
   width: 100%;
 }
+
+:host ::ng-deep {
+  .p-treetable {
+    .pending-status {
+      background: color-mix(in srgb, var(--p-primary-color) 30%, transparent) !important;
+
+      &:hover {
+        background: color-mix(in srgb, var(--p-primary-color) 50%, transparent) !important;
+      }
+    }
+  }
+}

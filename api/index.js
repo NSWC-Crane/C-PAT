@@ -73,7 +73,8 @@ const upload = multer({
         fileSize: parseInt(config.http.maxUpload)
     }
 });
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }));
+app.use(express.text());
 app.use(express.json({
     strict: false,
     limit: parseInt(config.http.maxJsonBody)
@@ -256,7 +257,9 @@ const CPAT = {
     features: {
         marketplaceDisabled: ${config.client.features.marketplaceDisabled},
         docsDisabled: ${config.docs.disabled},
-        swaggerUiEnabled: ${config.swaggerUi.enabled}
+        swaggerUiEnabled: ${config.swaggerUi.enabled},
+        aiEnabled: ${config.ai.enabled},
+        tenableEnabled: ${config.tenable.enabled}
     }
   }
 }

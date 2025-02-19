@@ -109,6 +109,7 @@ function calculateScheduledCompletionDate(rawSeverity: string) {
 export class PoamDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table: Table;
   @ViewChild('menu') menu!: Menu;
+  aiEnabled: boolean = CPAT.Env.features.aiEnabled;
   menuItems: MenuItem[] = [];
   clonedMilestones: { [s: string]: any } = {};
   collectionAAPackage: any;
@@ -120,6 +121,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   errorDialogVisible: boolean = false;
   errorMessage: string = '';
   errorHeader: string = 'Error';
+  mitigationLoading: boolean = false;
   poam: any;
   poamId: any = '';
   dates: any = {};
@@ -1185,6 +1187,70 @@ ${this.pluginData.description ?? ''}`,
         return `${selectedStig.title} :: ${formattedRevision} Benchmark Date: ${selectedStig.lastRevisionDate}`;
       })();
     }
+  }
+
+  automateMitigation() {
+    this.mitigationLoading = true;
+    const prompt = `
+Instructions:
+You are an expert cyber security architect tasked with creating a comprehensive mitigation strategy for a vulnerability that has been detected within your organization. Your organization CANNOT implement the recommended security control, so you must develop alternative compensating controls. Focus only on specific technical measures that WILL be implemented to achieve the same security objectives as the original control.
+
+Context for Mitigation:
+Vulnerability Title: ${this.poam.vulnerabilityTitle}
+Vulnerability ID: ${this.poam.vulnerabilityId}
+
+Technical Details:
+${this.poam.vulnerabilitySource === 'STIG' ?
+        `STIG Control Details:
+   ${this.poam.stigCheckData}`
+        :
+        `Nessus Plugin Details:
+   ${this.poam.tenablePluginData}`
+      }
+
+Required Output:
+1. Multiple layers of compensating controls that WILL be implemented
+2. For each control:
+   - Detailed description of the control
+   - Technical implementation approach
+   - How it mitigates the specific vulnerability
+3. Monitoring and validation measures including:
+   - Tools that will be deployed
+   - Metrics for effectiveness
+   - Validation procedures
+4. Overall risk mitigation effectiveness
+
+Remember: Focus only on concrete measures that WILL be implemented, not theoretical possibilities or recommendations.`;
+
+    this.poamService.automateMitigation(prompt)
+      .subscribe({
+        next: (response) => {
+          if (response?.mitigation) {
+            this.poam.mitigations = response.mitigation.replace(/\*/g, '');
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Mitigation content retrieved successfully'
+            });
+          } else {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Warning',
+              detail: 'No mitigation content available'
+            });
+          }
+          this.mitigationLoading = false;
+        },
+        error: (error) => {
+          console.error('Error fetching mitigation:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to retrieve automated mitigation content'
+          });
+          this.mitigationLoading = false;
+        }
+      });
   }
 
   obtainCollectionData(background: boolean = false) {

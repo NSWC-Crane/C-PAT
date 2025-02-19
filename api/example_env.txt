@@ -3,7 +3,7 @@
 #! C-PATTM SOFTWARE
 #! CRANE C-PATTM plan of action and milestones software. Use is governed by the Open Source Academic Research License Agreement contained in the file
 #! crane_C_PAT.1_license.txt, which is part of this software package. BY
-#! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND    
+#! USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
 #! CONDITIONS OF THE LICENSE.
 #!########################################################################
 #*/
@@ -30,16 +30,16 @@ CPAT_API_MAX_JSON_BODY="52428800"
 CPAT_API_MAX_UPLOAD="52428800"
 
 #database config
-CPAT_DB_ACQUIRE="30000"   
-CPAT_DB_DIALECT="mysql" 
+CPAT_DB_ACQUIRE="30000"
+CPAT_DB_DIALECT="mysql"
 CPAT_DB_HOST="localhost"
-CPAT_DB_IDLE="10000"    
-CPAT_DB_PORT="3306"            
-CPAT_DB_SCHEMA="cpat" 
-CPAT_DB_PASSWORD="root"    
+CPAT_DB_IDLE="10000"
+CPAT_DB_PORT="3306"
+CPAT_DB_SCHEMA="cpat"
+CPAT_DB_PASSWORD="root"
 CPAT_DB_USER="root"
-CPAT_DB_MAX_CONNECTIONS="25"   
-CPAT_DB_MIN_CONNECTIONS="0"    
+CPAT_DB_MAX_CONNECTIONS="25"
+CPAT_DB_MIN_CONNECTIONS="0"
 CPAT_DB_TLS_CA_FILE=""
 CPAT_DB_TLS_CERT_FILE=""
 CPAT_DB_TLS_KEY_FILE=""
@@ -50,6 +50,16 @@ TENABLE_ENABLED="false"
 TENABLE_ACCESS_KEY=""
 TENABLE_SECRET_KEY=""
 TENABLE_URL=""
+
+#AI Config
+CPAT_AI_ENABLED="false"
+CPAT_AI_PROVIDER=""
+CPAT_AI_MODEL_NAME=""
+CPAT_AI_API_KEY=""
+CPAT_AI_BASE_URL=""
+
+#C-PAT Marketplace
+CPAT_MARKETPLACE_DISABLED="false"
 
 #swagger config
 CPAT_SWAGGER_ENABLED="true"

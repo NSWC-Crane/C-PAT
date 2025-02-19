@@ -136,17 +136,18 @@ module.exports.updatePoamStatus = async function updatePoamStatus(req, res, next
 
 module.exports.deletePoam = async function deletePoam(req, res, next) {
     try {
-        const result = await poamService.deletePoam(req, res, next);
-        if (result.error) {
-            res.status(500).json({ error: 'Internal Server Error', detail: result.error });
-        } else {
-            res.status(204).send();
+        const result = await poamService.deletePoam(req);
+
+        if (result.status) {
+            return res.status(result.status).json({ error: result.errors });
         }
+
+        if (result.success) {
+            return res.status(204).send();
+        }
+
+        return res.status(500).json({ error: 'Unknown error occurred' });
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };

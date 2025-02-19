@@ -115,7 +115,7 @@ exports.getCurrentUser = async function getCurrentUser(req) {
             let isAdmin;
             try {
                 isAdmin = privilegeGetter(user.lastClaims).includes('admin');
-            } catch (e) {                
+            } catch (e) {
                 isAdmin = false;
             }
 
@@ -342,7 +342,7 @@ exports.hourlyPoints = async function hourlyPoints(userId) {
 
                 let sql = "UPDATE user SET points = ? WHERE userId = ?";
                 await connection.query(sql, [points, userId]);
-                return { success: true, message: 'User points updated successfully' };            
+                return { success: true, message: 'User points updated successfully' };
         });
     } catch (error) {
         return { error: error.message };
@@ -417,7 +417,7 @@ exports.setUserData = async function setUserData(userObject, fields, newUser) {
             }
             let sqlUpsert = `INSERT INTO cpat.user (
     ${insertColumns.join(',\n')}
-  ) VALUES ? ON DUPLICATE KEY UPDATE 
+  ) VALUES ? ON DUPLICATE KEY UPDATE
     ${updateColumns.join(',\n')}`
             let [result] = await connection.query(sqlUpsert, [[binds]])
             return result;
@@ -440,22 +440,33 @@ exports.setLastAccess = async function (userId, timestamp) {
     }
 };
 
-exports.deleteUser = async function deleteUser(elevate, req) {
+exports.disableUser = async function disableUser(elevate, userId) {
     try {
+        if (!userId || isNaN(userId)) {
+            throw new Error('Invalid userId');
+        }
+
         return await withConnection(async (connection) => {
-            if (elevate && req.userObject.isAdmin === true) {
-            let sql = 'DELETE FROM `user` WHERE `userId`= ?';
-                await connection.query(sql, [req.params.userId]);
-
-                logger.writeInfo("usersService", 'log', { event: 'User account deleted', userId: req.params.userId });
-                logger.writeInfo("usersService", 'notification', { event: 'User account deleted', userId: req.params.userId });
-
-            return { message: "User deleted" };
-            } else {
+            if (!elevate) {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
             }
+
+            let deleteSql = `DELETE uat, cp
+                      FROM userassignedteams uat, collectionpermissions cp
+                      WHERE uat.userId = ? AND cp.userId = ?`;
+            let updateSql = `UPDATE user SET accountStatus = 'DISABLED' WHERE userId = ?`;
+
+            await connection.query(deleteSql, [userId, userId]);
+            await connection.query(updateSql, [userId]);
+
+            await this.updateUserLastCollectionAccessed(userId, 0);
+
+            return { success: true, message: 'User disabled successfully' };
         });
     } catch (error) {
-        return { error: error.message };
+        if (error instanceof SmError.PrivilegeError) {
+            throw error;
+        }
+        throw new Error(`Failed to disable user: ${error.message}`);
     }
 };

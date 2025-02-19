@@ -729,17 +729,25 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         this.filteredOfficeOrgs = filtered;
     }
 
-    async onSubmit(final: boolean = true) {
-        const formattedLastAccess = format(new Date(this.user.lastAccess), 'yyyy-MM-dd HH:mm:ss');
-        this.user.lastAccess = formattedLastAccess;
-        this.user.fullName = this.user.firstName + ' ' + this.user.lastName;
-
-      (await this.userService.updateUser(this.user)).subscribe(() => {
+  onSubmit(final: boolean = true) {
+    if (this.user.accountStatus === 'DISABLED') {
+      this.userService.disableUser(this.user.userId).subscribe(() => {
         if (final) {
           this.userChange.emit();
         }
-        });
+      });
+    } else {
+      const formattedLastAccess = format(new Date(this.user.lastAccess), 'yyyy-MM-dd HH:mm:ss');
+      this.user.lastAccess = formattedLastAccess;
+      this.user.fullName = this.user.firstName + ' ' + this.user.lastName;
+
+      this.userService.updateUser(this.user).subscribe(() => {
+        if (final) {
+          this.userChange.emit();
+        }
+      });
     }
+  }
 
     resetData() {
         this.userChange.emit();

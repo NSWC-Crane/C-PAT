@@ -129,15 +129,14 @@
             </p-tabpanel>
             <p-tabpanel value="1">
                 <div class="canvas" id="canvas" style="margin-bottom: 2rem">
-                    <button pButton
-                            type="button"
-                            icon="pi pi-download"
-                            class="p-button-rounded p-button-text export-button"
-                            (click)="exportChart()"></button>
-                    <p-chart type="bar"
-                             [data]="chartData"
-                             [options]="chartOptions"
-                             styleClass="w-full"></p-chart>
+                  <button pButton
+                          type="button"
+                          icon="pi pi-download"
+                          class="p-button-rounded p-button-text export-button"
+                          (click)="exportChart()"></button>
+                  <p-chart type="bar"
+                           [data]="chartData"
+                           [options]="chartOptions"></p-chart>
                 </div>
             </p-tabpanel>
         </p-tabpanels>

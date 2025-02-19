@@ -15,7 +15,7 @@ STIG Manager
   C-PAT has been tested and configured to work when C-PAT and STIG Manager are housed within the same OIDC realm, therefor, the value set for ``CPAT_OIDC_PROVIDER`` will also be used for obtaining a token for STIG Manager.
   If you are using the provided `RMFTools Keycloak container <https://github.com/NSWC-Crane/C-PAT/tree/C-PAT-AUTH>`_, the default value for ``STIGMAN_OIDC_CLIENT_ID`` can be used.
 
-.. list-table:: STIG Manager Environmenment Variables: 
+.. list-table:: STIG Manager Environmenment Variables:
  :widths: 20 25 55
  :header-rows: 1
  :class: tight-table
@@ -40,7 +40,7 @@ STIG Manager
 Tenable
 --------
 
-  .. list-table:: Tenable Environmenment Variables: 
+  .. list-table:: Tenable Environmenment Variables:
    :widths: 20 25 55
    :header-rows: 1
    :class: tight-table
@@ -57,3 +57,34 @@ Tenable
    * - ``TENABLE_SECRET_KEY``
      - **No default**
      - See the `tenable documentation <https://docs.tenable.com/security-center/Content/GenerateAPIKey.htm>`_ for instructions on how to generate API keys.
+
+AI
+--------
+
+.. warning::
+   AI integration for mitigation statement generation is an experimental feature.
+
+
+.. list-table:: AI Environmenment Variables:
+ :widths: 20 25 55
+ :header-rows: 1
+ :class: tight-table
+
+ * - Variable
+   - Default
+   - Description
+ * - ``CPAT_AI_ENABLED``
+   - ``false``
+   - By default, AI integration will be disabled. Set to ``true`` to enable.
+ * - ``CPAT_AI_PROVIDER``
+   - **No default**
+   - Valid options include: ``anthropic`` ``openai`` ``gemini`` ``mistral`` ``groq`` ``xai`` ``togetherai`` ``cohere`` ``fireworks`` ``cerebras`` ``perplexity`` ``deepinfra``.
+ * - ``CPAT_AI_MODEL_NAME``
+   - **No default**
+   - Underlying AI integration is enabled by Vercel AI SDK. For precise model naming instructions, please visit the `Vercel docs <https://sdk.vercel.ai/providers/ai-sdk-providers/openai>`_.
+ * - ``CPAT_AI_API_KEY``
+   - **No default**
+   - The API key for your chosen AI provider. This is not applicable when using ollama.
+ * - ``CPAT_AI_BASE_URL``
+   - ``http://localhost:11434``
+   - URL prefix for API calls to ollama.

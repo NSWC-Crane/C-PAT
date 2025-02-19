@@ -108,4 +108,10 @@ export class UsersService {
       .put<any>(`${this.cpatApiBase}/user/teams?elevate=true`, assignedTeam)
       .pipe(catchError(this.handleError));
   }
+
+  disableUser(userId: number): Observable<any> {
+    return this.http
+      .patch<any>(`${this.cpatApiBase}/user/${userId}/disable?elevate=true`, {})
+      .pipe(catchError(this.handleError));
+  }
 }

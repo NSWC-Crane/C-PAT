@@ -9,48 +9,11 @@
 */
 
 import { format } from 'date-fns';
-
-interface Poam {
-  [key: string]: any;
-  poamId: number;
-  collectionId: number;
-  vulnerabilitySource: string;
-  vulnerabilityTitle: string;
-  iavmNumber: string;
-  taskOrderNumber: string;
-  aaPackage: string;
-  vulnerabilityId: string;
-  description: string;
-  rawSeverity: string;
-  adjSeverity: string;
-  scheduledCompletionDate: Date | string;
-  submitterId: number;
-  mitigations: string;
-  requiredResources: string;
-  residualRisk: string;
-  status: string;
-  submittedDate: Date | string;
-  officeOrg: string;
-  predisposingConditions: string;
-  severity: string;
-  environmentOfThreat: string;
-  likelihood: string;
-  devicesAffected: string;
-  impactDescription: string;
-  extensionTimeAllowed: number;
-  extensionJustification: string;
-  milestones?: {
-    poamMilestones: {
-      milestoneId: number;
-      milestoneDate: string | null;
-      milestoneComments: string | null;
-      milestoneStatus: string;
-      milestoneChangeComments: string | null;
-      milestoneChangeDate: string | null;
-      milestoneTeam: string;
-    }[];
-  };
-}
+import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
+import { ImportService } from '../../pages/import-processing/import.service';
+import { SharedService } from '../services/shared.service';
+import { PoamService } from '../../pages/poam-processing/poams.service';
+import { Poam } from '../models/poam.model';
 
 type CellValueMapper = (value: any, poam: Poam, columnKey: string) => any;
 
@@ -307,6 +270,217 @@ export class PoamExportService {
       row.commit();
       rowIndex++;
     });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+  }
+
+  private static async processPoamsWithAssets(
+    poams: Poam[],
+    collectionId: number,
+    collectionsService: CollectionsService,
+    importService: ImportService,
+    poamService: PoamService,
+    sharedService: SharedService
+  ): Promise<Poam[]> {
+    const processedPoams: Poam[] = [];
+    const collection = await collectionsService.getCollectionBasicList()
+      .toPromise()
+      .then(collections => collections.find(c => c.collectionId === collectionId));
+
+    if (!collection) {
+      throw new Error('Collection not found');
+    }
+
+    for (const poam of poams) {
+      let processedPoam = { ...poam };
+
+      if (collection.collectionOrigin === 'STIG Manager' &&
+        poam.vulnerabilityId &&
+        poam.stigBenchmarkId) {
+        const findings = await sharedService.getSTIGMANAffectedAssetsByPoam(
+          collection.originCollectionId,
+          poam.stigBenchmarkId
+        ).toPromise();
+
+        const matchingFinding = findings.find(
+          finding => finding.groupId === poam.vulnerabilityId
+        );
+
+        if (matchingFinding) {
+          processedPoam.devicesAffected = matchingFinding.assets
+            .map((asset: { name: string }) => asset.name)
+            .join(' ');
+        }
+      }
+      else if (collection.collectionOrigin === 'Tenable' && poam.vulnerabilityId) {
+        const analysisParams = {
+          query: {
+            description: '',
+            context: '',
+            status: -1,
+            createdTime: 0,
+            modifiedTime: 0,
+            groups: [],
+            type: 'vuln',
+            tool: 'listvuln',
+            sourceType: 'cumulative',
+            startOffset: 0,
+            endOffset: 10000,
+            filters: [
+              {
+                id: 'pluginID',
+                filterName: 'pluginID',
+                operator: '=',
+                type: 'vuln',
+                isPredefined: true,
+                value: poam.vulnerabilityId
+              }
+            ],
+            vulnTool: 'listvuln'
+          },
+          sourceType: 'cumulative',
+          columns: [],
+          type: 'vuln'
+        };
+
+        const tenableAssets = await importService.postTenableAnalysis(analysisParams)
+          .toPromise()
+          .then(data => data.response.results.map((asset: any) => ({
+            pluginId: asset.pluginID,
+            dnsName: asset.dnsName ?? '',
+            netbiosName: asset.netbiosName ?? ''
+          })));
+
+        const affectedDevices = tenableAssets
+          .map(asset => {
+            if (asset.netbiosName) {
+              const parts = asset.netbiosName.split('\\');
+              return parts.length > 1 ? parts[parts.length - 1] : null;
+            }
+            if (asset.dnsName) {
+              const parts = asset.dnsName.split('.');
+              return parts.length > 0 ? parts[0].toUpperCase() : null;
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        processedPoam.devicesAffected = affectedDevices.join(' ');
+      }
+      else {
+        const assets = await poamService.getPoamAssetsByCollectionId(collection.collectionId)
+          .toPromise();
+
+        const poamAssets = assets
+          .filter((asset: any) => asset.poamId === poam.poamId)
+          .map((asset: any) => asset.assetName.toUpperCase())
+          .filter(Boolean);
+
+        processedPoam.devicesAffected = poamAssets.join(' ');
+      }
+
+      processedPoams.push(processedPoam);
+    }
+
+    return processedPoams;
+  }
+
+  static async updateEMASSterPoams(
+    emassterFile: File,
+    poams: Poam[],
+    collectionId: any,
+    selectedColumns: string[],
+    collectionsService: CollectionsService,
+    importService: ImportService,
+    poamService: PoamService,
+    sharedService: SharedService
+  ): Promise<Blob> {
+    const processedPoams = await this.processPoamsWithAssets(
+      poams,
+      collectionId,
+      collectionsService,
+      importService,
+      poamService,
+      sharedService
+    );
+
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const arrayBuffer = await emassterFile.arrayBuffer();
+    await workbook.xlsx.load(arrayBuffer);
+
+    const worksheet = workbook.getWorksheet('POA&M');
+    if (!worksheet) {
+      throw new Error('Required worksheet "POA&M" not found');
+    }
+
+    let rowIndex = 8;
+    while (worksheet.getCell(`F${rowIndex}`).value) {
+      const vulnerabilityId = worksheet.getCell(`F${rowIndex}`).value?.toString();
+      const matchingPoam = processedPoams.find(p => p.vulnerabilityId === vulnerabilityId);
+
+      if (matchingPoam) {
+        if (selectedColumns.includes('C') && matchingPoam.description) {
+          worksheet.getCell(`C${rowIndex}`).value = matchingPoam.description;
+        }
+        if (selectedColumns.includes('E') && matchingPoam.officeOrg) {
+          worksheet.getCell(`E${rowIndex}`).value = matchingPoam.officeOrg;
+        }
+        if (selectedColumns.includes('F') && matchingPoam.vulnerabilityId) {
+          worksheet.getCell(`F${rowIndex}`).value = matchingPoam.vulnerabilityId;
+        }
+        if (selectedColumns.includes('G') && matchingPoam.requiredResources) {
+          worksheet.getCell(`G${rowIndex}`).value = matchingPoam.requiredResources;
+        }
+        if (selectedColumns.includes('H') && matchingPoam.scheduledCompletionDate) {
+          worksheet.getCell(`H${rowIndex}`).value = format(new Date(matchingPoam.scheduledCompletionDate), 'MM/dd/yyyy');
+        }
+
+        const formattedMilestones = PoamExportService.formatMilestones(matchingPoam);
+        if (selectedColumns.includes('J') && formattedMilestones.comments) {
+          worksheet.getCell(`J${rowIndex}`).value = formattedMilestones.comments;
+        }
+        if (selectedColumns.includes('K') && formattedMilestones.changes) {
+          worksheet.getCell(`K${rowIndex}`).value = formattedMilestones.changes;
+        }
+
+        if (selectedColumns.includes('L') && matchingPoam.vulnerabilitySource) {
+          worksheet.getCell(`L${rowIndex}`).value = matchingPoam.vulnerabilitySource;
+        }
+        if (selectedColumns.includes('M') && matchingPoam.status) {
+          worksheet.getCell(`M${rowIndex}`).value = matchingPoam.status === 'Closed' ? 'Completed' : 'Ongoing';
+        }
+        if (selectedColumns.includes('O') && matchingPoam.rawSeverity) {
+          worksheet.getCell(`O${rowIndex}`).value = PoamExportService.mapRawSeverity(matchingPoam.rawSeverity);
+        }
+        if (selectedColumns.includes('P') && matchingPoam.devicesAffected) {
+          worksheet.getCell(`P${rowIndex}`).value = matchingPoam.devicesAffected;
+        }
+        if (selectedColumns.includes('Q') && matchingPoam.mitigations) {
+          worksheet.getCell(`Q${rowIndex}`).value = matchingPoam.mitigations;
+        }
+        if (selectedColumns.includes('R') && matchingPoam.predisposingConditions) {
+          worksheet.getCell(`R${rowIndex}`).value = matchingPoam.predisposingConditions;
+        }
+        if (selectedColumns.includes('V') && matchingPoam.likelihood) {
+          worksheet.getCell(`V${rowIndex}`).value = matchingPoam.likelihood;
+        }
+        if (selectedColumns.includes('X') && matchingPoam.impactDescription) {
+          worksheet.getCell(`X${rowIndex}`).value = matchingPoam.impactDescription;
+        }
+        if (selectedColumns.includes('Y') && matchingPoam.residualRisk) {
+          worksheet.getCell(`Y${rowIndex}`).value = matchingPoam.residualRisk;
+        }
+        if (selectedColumns.includes('AA') && matchingPoam.adjSeverity) {
+          worksheet.getCell(`AA${rowIndex}`).value = PoamExportService.mapRawSeverity(matchingPoam.adjSeverity);
+        }
+      }
+
+      rowIndex++;
+    }
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new Blob([buffer], {

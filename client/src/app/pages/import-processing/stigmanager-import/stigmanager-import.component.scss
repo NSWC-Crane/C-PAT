@@ -13,23 +13,15 @@
     max-height: calc(100vh - 11rem);
     height: calc(100vh - 11rem);
     overflow: hidden;
-
+    }
     .p-tabpanel {
       height: calc(100vh - 19rem);
       overflow: hidden;
     }
 
-    .canvas {
-      height: 100%;
-      width: 100%;
+    #canvas {
       position: relative;
-
-      .p-chart {
-        max-height: 100%;
-        height: 100%;
-      }
     }
-  }
 }
 
 .severity-badge {
@@ -66,10 +58,6 @@
     color: #ffffff;
     opacity: 0.9;
   }
-}
-
-.canvas {
-  position: relative;
 }
 
 .export-button {

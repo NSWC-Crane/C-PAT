@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<p-table [value]="filteredData"
+<p-table [value]="filteredData()"
          [scrollable]="true"
          scrollHeight="61.5rem"
          sortMode="multiple"
@@ -21,26 +21,26 @@
             </p-inputIcon>
             <input pInputText
                    type="text"
-                   [(ngModel)]="globalFilter"
+                   [ngModel]="globalFilter()"
                    (input)="onFilterChange($event)"
                    placeholder="Search..." />
         </p-iconField>
     </ng-template>
     <ng-template pTemplate="header">
         <tr>
-            <th *ngFor="let col of assignedColumns" [pSortableColumn]="getColumnKey(col)" scope="col">
+            <th *ngFor="let col of assignedColumns()" [pSortableColumn]="getColumnKey(col)" scope="col">
                 {{ col }}
             </th>
         </tr>
     </ng-template>
     <ng-template pTemplate="body" let-row>
         <tr>
-            <td *ngFor="let col of assignedColumns">
+            <td *ngFor="let col of assignedColumns()">
                 <ng-container [ngSwitch]="col">
                     <ng-container *ngSwitchCase="'POAM ID'">
                         <a href="javascript:void(0)"
                            (click)="managePoam(row)"
-                           class="text-primary cursor-pointer font-semibold hover:font-bold"
+                           class="cursor-pointer font-semibold text-primary hover:font-bold"
                            pTooltip="Navigate to this POAM"
                            tooltipPosition="top">
                             {{row[getColumnKey(col)]}}
@@ -71,7 +71,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
         <tr>
-            <td [attr.colspan]="assignedColumns.length" style="text-align: center">No POAMs found.</td>
+            <td [attr.colspan]="assignedColumns().length" style="text-align: center">No POAMs found.</td>
         </tr>
     </ng-template>
 </p-table>

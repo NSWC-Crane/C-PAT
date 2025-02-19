@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectionStrategy, ChangeDetectorRef, effect } from '@angular/core';
+import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectionStrategy, effect, signal } from '@angular/core';
 import { AdminProcessingService } from '../admin-processing.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -209,40 +209,41 @@ interface OperationError {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppInfoComponent implements OnInit {
-  appInfo: AppInfoData;
-  operationRows: OperationRow[] = [];
-  tableRows: TableRow[] = [];
-  variableRows: VariableRow[] = [];
-  statusRows: StatusRow[] = [];
-  operationsChartData: any;
-  operationsChartOptions: any;
-  memoryChartData: any;
-  memoryChartOptions: any;
-  requestsChartData: any;
-  requestsChartOptions: any;
+  appInfo = signal<AppInfoData | null>(null);
+  operationRows = signal<OperationRow[]>([]);
+  tableRows = signal<TableRow[]>([]);
+  variableRows = signal<VariableRow[]>([]);
+  statusRows = signal<StatusRow[]>([]);
+  operationsChartData = signal<any>(null);
+  operationsChartOptions = signal<any>(null);
+  memoryChartData = signal<any>(null);
+  memoryChartOptions = signal<any>(null);
+  requestsChartData = signal<any>(null);
+  requestsChartOptions = signal<any>(null);
+  mysqlTableRows = signal<MySQLTableRow[]>([]);
+  cpuRows = signal<CPUInfo[]>([]);
+  environmentRows = signal<EnvironmentRow[]>([]);
+  selectedOperationClients = signal<OperationClient[]>([]);
+  selectedOperationUsers = signal<OperationUser[]>([]);
+  selectedOperationErrors = signal<OperationError[]>([]);
+  selectedOperation = signal<OperationRow | null>(null);
+  selectedUser = signal<UserInfo | null>(null);
+  userRows = signal<UserInfo[]>([]);
+  userPrivilegeOverall = signal<{ name: string; count: number; }[]>([]);
+  userPrivilege30Days = signal<{ name: string; count: number; }[]>([]);
+  userPrivilege90Days = signal<{ name: string; count: number; }[]>([]);
+  isPanelsCollapsed = signal<boolean>(true);
+
   platformId = inject(PLATFORM_ID);
-  mysqlTableRows: MySQLTableRow[] = [];
-  cpuRows: CPUInfo[] = [];
-  environmentRows: EnvironmentRow[] = [];
-  selectedOperation: OperationRow | null = null;
-  selectedOperationClients: OperationClient[] = [];
-  selectedOperationUsers: OperationUser[] = [];
-  selectedOperationErrors: OperationError[] = [];
-  userRows: UserInfo[] = [];
-  userPrivilegeOverall: { name: string; count: number; }[] = [];
-  userPrivilege30Days: { name: string; count: number; }[] = [];
-  userPrivilege90Days: { name: string; count: number; }[] = [];
-  selectedUser: UserInfo | null = null;
-  isPanelsCollapsed = true;
+
   constructor(
     private adminProcessingService: AdminProcessingService,
-    private configService: AppConfigService,
-    private cdr: ChangeDetectorRef
+    private configService: AppConfigService
   ) { }
 
   themeEffect = effect(() => {
     if (this.configService.transitionComplete()) {
-        this.initChart();
+      this.initChart();
     }
   });
 
@@ -265,9 +266,8 @@ export class AppInfoComponent implements OnInit {
   initChart() {
     if (isPlatformBrowser(this.platformId)) {
       this.processChartData();
-      this.requestsChartOptions = this.setChartOptions();
-      this.operationsChartOptions = this.setChartOptions();
-      this.cdr.markForCheck();
+      this.operationsChartOptions.set(this.setChartOptions());
+      this.requestsChartOptions.set(this.setChartOptions());
     }
   }
 
@@ -283,7 +283,7 @@ export class AppInfoComponent implements OnInit {
         )
         .subscribe({
           next: (response: AppInfoData) => {
-            this.appInfo = response;
+            this.appInfo.set(response);
             resolve();
           },
           error: (error) => {
@@ -294,7 +294,9 @@ export class AppInfoComponent implements OnInit {
   }
 
   private processOperations() {
-    this.operationRows = Object.entries(this.appInfo.requests.operationIds).map(
+    if (!this.appInfo()) return;
+
+    const rows = Object.entries(this.appInfo()!.requests.operationIds).map(
       ([name, data]) => ({
         name,
         totalRequests: data.totalRequests,
@@ -311,64 +313,71 @@ export class AppInfoComponent implements OnInit {
         totalResLength: data.totalResLength,
         clients: data.clients,
         users: data.users,
-        errors: data.errors        
+        errors: data.errors
       })
     );
+    this.operationRows.set(rows);
   }
 
   private processVariables() {
-    this.variableRows = Object.entries(this.appInfo.mysql.variables).map(([name, value]) => ({
+    if (!this.appInfo()) return;
+
+    const rows = Object.entries(this.appInfo()!.mysql.variables).map(([name, value]) => ({
       name,
       value
     }));
+    this.variableRows.set(rows);
   }
 
   private processStatus() {
-    this.statusRows = Object.entries(this.appInfo.mysql.status).map(([name, value]) => ({
+    if (!this.appInfo()) return;
+
+    const rows = Object.entries(this.appInfo()!.mysql.status).map(([name, value]) => ({
       name,
       value
     }));
+    this.statusRows.set(rows);
   }
 
-  onOperationSelect(event: any) {    
+  onOperationSelect(event: any) {
     if (event.data) {
-      this.isPanelsCollapsed = false;
-      const operation = this.appInfo.requests.operationIds[event.data.name];
+      this.isPanelsCollapsed.set(false);
+      const operation = this.appInfo()!.requests.operationIds[event.data.name];
 
-      this.selectedOperationClients = Object.entries(operation.clients || {}).map(([name, count]) => ({
+      this.selectedOperationClients.set(Object.entries(operation.clients || {}).map(([name, count]) => ({
         name,
         count: count as number
-      }));
+      })));
 
-      this.selectedOperationUsers = Object.entries(operation.users || {}).map(([userId, count]) => ({
+      this.selectedOperationUsers.set(Object.entries(operation.users || {}).map(([userId, count]) => ({
         name: this.getUsernameById(userId),
         count: count as number
-      }));
+      })));
 
-      this.selectedOperationErrors = Object.entries(operation.errors || {}).map(([name, count]) => ({
+      this.selectedOperationErrors.set(Object.entries(operation.errors || {}).map(([name, count]) => ({
         name,
         count: count as number
-      }));
-
-      this.cdr.markForCheck();
+      })));
     }
   }
 
   private getUsernameById(userId: number | string): string {
     if (userId === 'unknown') return 'unknown';
-    const user = this.appInfo.users.userInfo[userId];
+    if (!this.appInfo()) return `User ID: ${userId}`;
+    const user = this.appInfo()!.users.userInfo[userId];
     return user ? user.username : `User ID: ${userId}`;
   }
 
-  formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
+  formatBytes(bytes: number | undefined): string {
+    if (!bytes) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  formatUptime(seconds: number): string {
+  formatUptime(seconds: number | undefined): string {
+    if (!seconds) return '0s';
     const days = Math.floor(seconds / (24 * 60 * 60));
     const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
     const minutes = Math.floor((seconds % (60 * 60)) / 60);
@@ -384,32 +393,43 @@ export class AppInfoComponent implements OnInit {
   }
 
   private processUsers() {
-    this.userRows = Object.entries(this.appInfo.users.userInfo).map(([_id, data]) => ({
+    if (!this.appInfo()) return;
+
+    const rows = Object.entries(this.appInfo()!.users.userInfo).map(([_id, data]) => ({
       username: data.username,
       created: data.created,
       lastAccess: data.lastAccess,
       privileges: data.privileges,
       roles: data.roles
     }));
+    this.userRows.set(rows);
 
-    this.userPrivilegeOverall = Object.entries(this.appInfo.users.userPrivilegeCounts.overall).map(([name, count]) => ({
-      name,
-      count: count as number
-    }));
+    this.userPrivilegeOverall.set(
+      Object.entries(this.appInfo()!.users.userPrivilegeCounts.overall).map(([name, count]) => ({
+        name,
+        count: count as number
+      }))
+    );
 
-    this.userPrivilege30Days = Object.entries(this.appInfo.users.userPrivilegeCounts.activeInLast30Days).map(([name, count]) => ({
-      name,
-      count: count as number
-    }));
+    this.userPrivilege30Days.set(
+      Object.entries(this.appInfo()!.users.userPrivilegeCounts.activeInLast30Days).map(([name, count]) => ({
+        name,
+        count: count as number
+      }))
+    );
 
-    this.userPrivilege90Days = Object.entries(this.appInfo.users.userPrivilegeCounts.activeInLast90Days).map(([name, count]) => ({
-      name,
-      count: count as number
-    }));
+    this.userPrivilege90Days.set(
+      Object.entries(this.appInfo()!.users.userPrivilegeCounts.activeInLast90Days).map(([name, count]) => ({
+        name,
+        count: count as number
+      }))
+    );
   }
 
   private processMySQLTables() {
-    this.mysqlTableRows = Object.entries(this.appInfo.mysql.tables).map(
+    if (!this.appInfo()) return;
+
+    const rows = Object.entries(this.appInfo()!.mysql.tables).map(
       ([name, data]) => ({
         name,
         rowCount: data.rowCount,
@@ -419,22 +439,29 @@ export class AppInfoComponent implements OnInit {
         updateTime: data.updateTime
       })
     );
+    this.mysqlTableRows.set(rows);
   }
 
   private processCPUInfo() {
-    this.cpuRows = this.appInfo.nodejs.cpus;
+    if (!this.appInfo()) return;
+    this.cpuRows.set(this.appInfo()!.nodejs.cpus);
   }
 
   private processEnvironmentVariables() {
-    this.environmentRows = Object.entries(this.appInfo.nodejs.environment)
+    if (!this.appInfo()) return;
+
+    const rows = Object.entries(this.appInfo()!.nodejs.environment)
       .map(([name, value]) => ({
         name,
         value: name.includes('PASSWORD') ? '***' : value
       }));
+    this.environmentRows.set(rows);
   }
 
   private processChartData() {
-    const top10Operations = this.operationRows
+    if (!this.appInfo() || !this.operationRows()) return;
+
+    const top10Operations = this.operationRows()
       .sort((a, b) => b.totalRequests - a.totalRequests)
       .slice(0, 10);
 
@@ -445,7 +472,8 @@ export class AppInfoComponent implements OnInit {
     const primary400 = documentStyle.getPropertyValue('--p-primary-400');
     const primary500 = documentStyle.getPropertyValue('--p-primary-500');
     const primary600 = documentStyle.getPropertyValue('--p-primary-600');
-    this.operationsChartData = {
+
+    this.operationsChartData.set({
       labels: top10Operations.map(op => op.name),
       datasets: [
         {
@@ -475,12 +503,10 @@ export class AppInfoComponent implements OnInit {
           borderSkipped: false
         }
       ]
-    };
+    });
 
-    this.operationsChartOptions = this.setChartOptions();
-
-    const memoryData = this.appInfo?.nodejs?.memory;
-    this.memoryChartData = {
+    const memoryData = this.appInfo()?.nodejs?.memory;
+    this.memoryChartData.set({
       labels: ['RSS', 'Heap Total', 'Heap Used', 'External', 'Array Buffers'],
       datasets: [{
         data: [
@@ -498,9 +524,9 @@ export class AppInfoComponent implements OnInit {
           `${primary100}cc`,
         ]
       }]
-    };
+    });
 
-    this.memoryChartOptions = {
+    this.memoryChartOptions.set({
       plugins: {
         legend: {
           display: false
@@ -518,9 +544,9 @@ export class AppInfoComponent implements OnInit {
           borderWidth: 0
         }
       }
-    };
+    });
 
-    this.requestsChartData = {
+    this.requestsChartData.set({
       labels: top10Operations.map(op => op.name),
       datasets: [
         {
@@ -536,13 +562,11 @@ export class AppInfoComponent implements OnInit {
           borderSkipped: false
         }
       ]
-    };
-
-    this.requestsChartOptions = this.setChartOptions();
+    });
   }
 
   toggleAllPanels(_event: any) {
-    this.isPanelsCollapsed = !this.isPanelsCollapsed;
+    this.isPanelsCollapsed.update(value => !value);
   }
 
   setChartOptions() {
