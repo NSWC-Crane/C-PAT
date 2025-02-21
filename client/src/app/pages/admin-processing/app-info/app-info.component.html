@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -9,32 +9,40 @@
 -->
 
 <div class="grid" *ngIf="appInfo()">
-    <div class="col-12">
-        <p-card>
-            <div class="mb-3 flex gap-3">
-                <div><strong>App Version:</strong> {{ appInfo()?.version }}</div>
-                <div><strong>MySQL Version:</strong> {{ appInfo()?.mysql.version }}</div>
-                <div><strong>Node.js Version:</strong> {{ appInfo()?.nodejs.version }}</div>
-                <div><strong>Last Updated:</strong> {{ appInfo()?.date | date:'medium' }}</div>
-                <div><strong>Uptime:</strong> {{ formatUptime(appInfo()?.nodejs.uptime) }}</div>
-            </div>
-            <div class="mb-2 flex gap-3">
-                <div><strong>Platform:</strong> {{ appInfo()?.nodejs.os.platform }}</div>
-                <div><strong>Architecture:</strong> {{ appInfo()?.nodejs.os.arch }}</div>
-                <div><strong>OS:</strong> {{ appInfo()?.nodejs.os.osName }} {{ appInfo()?.nodejs.os.osRelease }}</div>
-            </div>
-            <div class="mb-2 flex gap-3">
-                <div><strong>API Requests:</strong> {{ appInfo()?.requests.totalApiRequests }}</div>
-                <div><strong>Total Duration:</strong> {{ appInfo()?.requests.totalRequestDuration }}ms</div>
-            </div>
-        </p-card>
-    </div>
+  <div class="col-12">
+    <p-card>
+      <div class="m-[-1rem] flex" style="position: relative;">
+        <button pButton
+                icon="pi pi-times"
+                class="p-button-rounded p-button-text"
+                (click)="goBack()"
+                style="position: absolute; top: 0; right: 0;">
+        </button>
+      </div>
+      <div class="mt-8 mb-3 flex gap-3">
+        <div><strong>App Version:</strong> {{ appInfo()?.version }}</div>
+        <div><strong>MySQL Version:</strong> {{ appInfo()?.mysql.version }}</div>
+        <div><strong>Node.js Version:</strong> {{ appInfo()?.nodejs.version }}</div>
+        <div><strong>Last Updated:</strong> {{ appInfo()?.date | date:'medium' }}</div>
+        <div><strong>Uptime:</strong> {{ formatUptime(appInfo()?.nodejs.uptime) }}</div>
+      </div>
+      <div class="mb-2 flex gap-3">
+        <div><strong>Platform:</strong> {{ appInfo()?.nodejs.os.platform }}</div>
+        <div><strong>Architecture:</strong> {{ appInfo()?.nodejs.os.arch }}</div>
+        <div><strong>OS:</strong> {{ appInfo()?.nodejs.os.osName }} {{ appInfo()?.nodejs.os.osRelease }}</div>
+      </div>
+      <div class="mb-2 flex gap-3">
+        <div><strong>API Requests:</strong> {{ appInfo()?.requests.totalApiRequests }}</div>
+        <div><strong>Total Duration:</strong> {{ appInfo()?.requests.totalRequestDuration }}ms</div>
+      </div>
+    </p-card>
+  </div>
 
     <div class="mt-4 flex w-full flex-row gap-4">
         <div class="w-1/3">
             <p-card>
                 <div class="mb-6 flex items-center gap-6">
-                    <div class="flex-1 text-color leading-6 font-semibold">Top 10 Operations by Request Count</div>
+                    <div class="text-color flex-1 leading-6 font-semibold">Top 10 Operations by Request Count</div>
                     <div class="flex items-center gap-5">
                         <div *ngFor="let item of requestsChartData()?.datasets" class="flex items-center gap-2">
                             <div class="h-3 w-3 rounded-full" [style.backgroundColor]="item.backgroundColor"></div>
