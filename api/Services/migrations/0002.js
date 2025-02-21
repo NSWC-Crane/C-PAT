@@ -15,7 +15,8 @@ const upMigration = [
         \`key\` VARCHAR(255) NOT NULL,
         \`value\` VARCHAR(255) NOT NULL,
         PRIMARY KEY (\`key\`)
-    )`
+    )`,
+    `ALTER TABLE assignedteams ADD COLUMN adTeam VARCHAR(255) NULL DEFAULT NULL AFTER assignedTeamName;`
 ]
 
 const downMigration = [
