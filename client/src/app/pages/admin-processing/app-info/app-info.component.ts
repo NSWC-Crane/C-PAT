@@ -19,6 +19,7 @@ import { ChartModule } from 'primeng/chart';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
 import { PanelModule } from 'primeng/panel';
 import { catchError, EMPTY } from 'rxjs';
+import { ButtonModule } from 'primeng/button';
 interface OperationInfo {
   totalRequests: number;
   totalDuration: number;
@@ -205,7 +206,7 @@ interface OperationError {
   templateUrl: './app-info.component.html',
   styleUrls: ['./app-info.component.scss'],
   standalone: true,
-  imports: [ChartModule, CommonModule, TabsModule, CardModule, TableModule, FormsModule, PanelModule],
+  imports: [ButtonModule, ChartModule, CommonModule, TabsModule, CardModule, TableModule, FormsModule, PanelModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppInfoComponent implements OnInit {
@@ -708,5 +709,9 @@ export class AppInfoComponent implements OnInit {
         }
       }
     };
+  }
+
+  goBack() {
+    window.history.back();
   }
 }
