@@ -142,7 +142,8 @@ async function validateFile(file) {
         'application/xml',
         'text/xml',
         'application/json',
-        'application/vnd.ms-outlook'
+        'application/vnd.ms-outlook',
+        'application/octet-stream'
     ];
     if (file.mimetype && !allowedMimeTypes.includes(file.mimetype)) {
         throw new SmError.UnprocessableError('Invalid file type');
@@ -211,8 +212,8 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
         return await withConnection(async (connection) => {
             const fileHash = validationResult.hash;
 
-            let sql = `INSERT INTO cpat.poamattachments 
-                (poamId, filename, fileSize, mimeType, uploadedBy, fileContent, fileHash) 
+            let sql = `INSERT INTO cpat.poamattachments
+                (poamId, filename, fileSize, mimeType, uploadedBy, fileContent, fileHash)
                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
             let [result] = await connection.query(sql, [
@@ -227,7 +228,7 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
 
             if (result.insertId) {
                 let fetchSql = `SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy
-                                FROM cpat.poamattachments 
+                                FROM cpat.poamattachments
                                 WHERE attachmentId = ?`;
                 let [[newAttachment]] = await connection.query(fetchSql, [result.insertId]);
 
