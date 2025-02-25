@@ -254,7 +254,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       milestoneChangeComments: null,
       milestoneChangeDate: new Date(),
       milestoneStatus: 'Pending',
-      milestoneTeam: null,
+      assignedTeamId: null,
       isNew: true,
       editing: true,
     };
@@ -299,7 +299,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         message: 'Milestone Status is a required field.',
       },
       {
-        field: 'milestoneTeam',
+        field: 'assignedTeamId',
         message: 'Milestone Team is a required field.',
       },
     ];
@@ -355,7 +355,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       milestoneChangeComments: milestone.milestoneChangeComments || null,
       milestoneChangeDate: format(milestone.milestoneChangeDate, 'yyyy-MM-dd'),
       milestoneStatus: milestone.milestoneStatus || 'Pending',
-      milestoneTeam: milestone.milestoneTeam || null,
+      assignedTeamId: milestone.assignedTeamId || null,
     };
 
     await (
@@ -393,8 +393,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       ...(milestone.milestoneStatus && {
         milestoneStatus: milestone.milestoneStatus,
       }),
-      ...(milestone.milestoneTeam && {
-        milestoneTeam: milestone.milestoneTeam,
+      ...(milestone.assignedTeamId && {
+        assignedTeamId: milestone.assignedTeamId,
       }),
     };
 
@@ -412,6 +412,12 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         console.error(error);
       },
     });
+  }
+
+  getTeamName(teamId: number): string {
+    if (!teamId || !this.assignedTeamOptions) return '';
+    const team = this.assignedTeamOptions.find(t => t.assignedTeamId === teamId);
+    return team ? team.assignedTeamName : '';
   }
 
   onRowEditCancel(milestone: any, index: number) {

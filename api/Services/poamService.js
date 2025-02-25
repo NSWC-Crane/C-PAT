@@ -14,7 +14,6 @@ const dbUtils = require('./utils');
 const mysql = require('mysql2');
 const poamApproverService = require('./poamApproverService');
 const poamAssetService = require('./poamAssetService');
-const poamAssigneeService = require('./poamAssigneeService');
 const poamAssignedTeamService = require('./poamAssignedTeamService');
 const poamAssociatedVulnerabilityService = require('./poamAssociatedVulnerabilityService');
 const poamMilestoneService = require('./poamMilestoneService');
@@ -83,11 +82,6 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
                 poams.forEach((poam, index) => poam.approvers = approversData[index] || []);
             }
 
-            if (req.query.assignees) {
-                const assigneesData = await Promise.all(poams.map(poam => poamAssigneeService.getPoamAssigneesByPoamId(poam.poamId)));
-                poams.forEach((poam, index) => poam.assignees = assigneesData[index] || []);
-            }
-
             if (req.query.assignedTeams) {
                 const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => poam.assignedTeams = assignedTeamsData[index] || []);
@@ -144,9 +138,6 @@ exports.getPoam = async function getPoam(req, res, next) {
             if (req.query.approvers) {
                 poam.approvers = await poamApproverService.getPoamApprovers(req, res, next);
             }
-            if (req.query.assignees) {
-                poam.assignees = await poamAssigneeService.getPoamAssigneesByPoamId(req.params.poamId);
-            }
             if (req.query.assignedTeams) {
                 poam.assignedTeams = await poamAssignedTeamService.getPoamAssignedTeamsByPoamId(req.params.poamId);
             }
@@ -201,10 +192,6 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
             if (req.query.approvers) {
                 const approversData = await poamApproverService.getPoamApproversByCollection(req, res, next);
                 poams.forEach(poam => poam.approvers = approversData.filter(approver => approver.poamId === poam.poamId));
-            }
-            if (req.query.assignees) {
-                const assigneesData = await Promise.all(poams.map(poam => poamAssigneeService.getPoamAssigneesByPoamId(poam.poamId)));
-                poams.forEach((poam, index) => poam.assignees = assigneesData[index] || []);
             }
             if (req.query.assignedTeams) {
                 const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
@@ -268,10 +255,6 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
             if (req.query.approvers) {
                 const approversData = await Promise.all(poams.map(poam => poamApproverService.getPoamApprovers({ params: { poamId: poam.poamId } }, res, next)));
                 poams.forEach((poam, index) => poam.approvers = approversData[index] || []);
-            }
-            if (req.query.assignees) {
-                const assigneesData = await Promise.all(poams.map(poam => poamAssigneeService.getPoamAssigneesByPoamId(poam.poamId)));
-                poams.forEach((poam, index) => poam.assignees = assigneesData[index] || []);
             }
             if (req.query.assignedTeams) {
                 const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
@@ -348,7 +331,7 @@ exports.getPluginIDsWithPoamByCollection = async function getPluginIDsWithPoamBy
 };
 
 exports.postPoam = async function postPoam(req) {
-    const requiredFields = ['collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'submitterId'];
+    const requiredFields = ['collectionId', 'vulnerabilitySource', 'rawSeverity', 'submitterId'];
     for (let field of requiredFields) {
         if (!req.body[field]) {
             return { status: 400, errors: { [field]: 'is required' } };
@@ -394,17 +377,6 @@ exports.postPoam = async function postPoam(req) {
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
                 hqs: row.hqs != null ? Boolean(row.hqs) : null
             }))[0];
-
-            if (req.body.assignees) {
-                let assignees = req.body.assignees;
-                for (let user of assignees) {
-                    if (!user.userId) {
-                        return { status: 400, errors: { "assignees.userId": "is required" } };
-                    }
-                    let sql_query = `INSERT INTO cpat.poamassignees (poamId, userId) values (?, ?)`;
-                    await connection.query(sql_query, [poam.poamId, user.userId]);
-                }
-            }
 
             if (req.body.assignedTeams) {
                 let assignedTeams = req.body.assignedTeams;
@@ -465,7 +437,7 @@ exports.postPoam = async function postPoam(req) {
 };
 
 exports.putPoam = async function putPoam(req, res, next) {
-    const requiredFields = ['poamId', 'collectionId', 'vulnerabilitySource', 'aaPackage', 'rawSeverity', 'submitterId'];
+    const requiredFields = ['poamId', 'collectionId', 'vulnerabilitySource', 'rawSeverity', 'submitterId'];
     let missingField = requiredFields.find(field => !req.body[field]);
     if (missingField) {
         return { status: 400, errors: { [missingField]: 'is required' } };

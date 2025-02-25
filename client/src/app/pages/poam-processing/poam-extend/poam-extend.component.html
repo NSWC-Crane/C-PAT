@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -89,7 +89,7 @@
                         Milestone Change Date
                       </th>
                       <th scope="col" pSortableColumn="milestoneStatus">Milestone Status</th>
-                      <th scope="col" pSortableColumn="milestoneTeam">Milestone Team</th>
+                      <th scope="col" pSortableColumn="assignedTeamId">Milestone Team</th>
                       <th scope="col"></th>
                       <th scope="col">
                         <button
@@ -194,19 +194,17 @@
                       <td>
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <p-select
-                              [options]="assignedTeamOptions"
-                              [(ngModel)]="milestone.milestoneTeam"
-                              optionLabel="assignedTeamName"
-                              optionValue="assignedTeamName"
-                              [style]="{'width':'100%'}"
-                              appendTo="body"
-                              [baseZIndex]="9999"
-                              [disabled]="accessLevel < 2"
-                            ></p-select>
+                            <p-select [options]="assignedTeamOptions"
+                                      [(ngModel)]="milestone.assignedTeamId"
+                                      optionLabel="assignedTeamName"
+                                      optionValue="assignedTeamId"
+                                      [style]="{'width':'100%'}"
+                                      appendTo="body"
+                                      [baseZIndex]="9999"
+                                      [disabled]="accessLevel < 2"></p-select>
                           </ng-template>
                           <ng-template pTemplate="output">
-                            {{milestone.milestoneTeam}}
+                            {{getTeamName(milestone.assignedTeamId)}}
                           </ng-template>
                         </p-cellEditor>
                       </td>

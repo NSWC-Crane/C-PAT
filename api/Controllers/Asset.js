@@ -101,3 +101,19 @@ module.exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, r
         }
     }
 }
+
+module.exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
+    try {
+        const response = await assetService.getAssetDeltaList(req, res, next);
+        res.status(200).json({
+            assets: response.assets,
+            assetDeltaUpdated: response.assetDeltaUpdated || null
+        });
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+}

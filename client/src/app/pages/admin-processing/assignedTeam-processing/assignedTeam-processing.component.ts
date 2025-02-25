@@ -25,10 +25,13 @@ import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
 import { EMPTY, catchError } from 'rxjs';
 import { Permission } from '../../../common/models/permission.model';
+import { AssetDeltaService } from '../asset-delta/asset-delta.service';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 
 interface AssignedTeam {
   assignedTeamId: number;
   assignedTeamName: string;
+  adTeam?: string | null;
   permissions?: Permission[];
 }
 
@@ -38,6 +41,7 @@ interface AssignedTeam {
   styleUrls: ['./assignedTeam-processing.component.scss'],
   standalone: true,
   imports: [
+    AutoCompleteModule,
     ButtonModule,
     CommonModule,
     DialogModule,
@@ -55,6 +59,9 @@ export class AssignedTeamProcessingComponent implements OnInit {
   @ViewChild('dt') table!: Table;
   private allCollections: CollectionsBasicList[] = [];
   assignedTeams: AssignedTeam[] = [];
+  assetDeltaList: any;
+  uniqueTeams: any;
+  filteredTeams: string[] = [];
   availableCollections: CollectionsBasicList[] = [];
   assignedCollections: any[] = [];
   editingAssignedTeam: AssignedTeam | null = null;
@@ -62,6 +69,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
   dialogMode: 'new' | 'edit' = 'new';
 
   constructor(
+    private assetDeltaService: AssetDeltaService,
     private assignedTeamService: AssignedTeamService,
     private collectionsService: CollectionsService,
     private messageService: MessageService
@@ -69,6 +77,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
 
   ngOnInit() {
     this.loadAssignedTeams();
+    this.loadAssetDeltaList();
     this.loadCollections();
   }
 
@@ -81,6 +90,27 @@ export class AssignedTeamProcessingComponent implements OnInit {
         detail: 'Failed to load Assigned Teams'
       })
     });
+  }
+
+  loadAssetDeltaList() {
+    this.assetDeltaService.getAssetDeltaList().subscribe({
+      next: (response) => {
+        this.assetDeltaList = response || [];
+        this.uniqueTeams = [...new Set(this.assetDeltaList.assets.map(asset => asset.value))];
+      },
+      error: () => this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load Asset Delta List'
+      })
+    });
+  }
+
+  filterTeams(event: any) {
+    const query = event.query.toLowerCase();
+    this.filteredTeams = this.uniqueTeams.filter(team =>
+      team.toLowerCase().includes(query)
+    );
   }
 
   loadCollections() {
@@ -116,7 +146,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
   }
 
   openNew() {
-    this.editingAssignedTeam = { assignedTeamId: 0, assignedTeamName: '', permissions: [] };
+    this.editingAssignedTeam = { assignedTeamId: 0, assignedTeamName: '', adTeam: null, permissions: [] };
     this.availableCollections = [...this.allCollections];
     this.assignedCollections = [];
     this.dialogMode = 'new';

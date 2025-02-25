@@ -230,15 +230,15 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
           >
             <ng-container *ngIf="user$ | async as user">
               <cpat-status-message
-                *ngIf="user.accountStatus === 'PENDING' || user.accountStatus === 'DISABLED'"
+                *ngIf="(user.accountStatus === 'PENDING' && user.isAdmin !== true) || user.accountStatus === 'DISABLED'"
                 [statusCode]="999"
               ></cpat-status-message>
               <cpat-status-message
-                *ngIf="user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0"
+                *ngIf="(user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0) && user.isAdmin !== true"
                 [statusCode]="998"
               ></cpat-status-message>
               <router-outlet
-                *ngIf="user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId !== 0"
+                *ngIf="(user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId !== 0) || user.isAdmin === true"
               ></router-outlet>
             </ng-container>
           </div>

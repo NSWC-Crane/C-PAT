@@ -57,6 +57,7 @@ interface AssignedTeam {
     accessLevel: number;
     accessLevelLabel?: string;
     assignedTeamName?: string;
+    adTeam?: string | null;
     editing?: boolean;
 }
 

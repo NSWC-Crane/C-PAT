@@ -22,11 +22,11 @@
           <p-tab [value]="1">Collection Management</p-tab>
           <p-tab [value]="2">STIG Manager</p-tab>
           <p-tab *ngIf="tenableEnabled" [value]="3">Tenable Import</p-tab>
-          <!--<p-tab [value]="4">Asset Deltas</p-tab>-->
+          <p-tab [value]="4">Asset Deltas</p-tab>
           <p-tab [value]="5">VRAM IAV Import</p-tab>
           <p-tab *ngIf="tenableEnabled" [value]="6">Nessus Plugin Mapping</p-tab>
-          <p-tab [value]="7">Set A&A Packages</p-tab>
-          <p-tab [value]="8">Set Assigned Teams</p-tab>
+          <p-tab [value]="7">A&A Packages</p-tab>
+          <p-tab [value]="8">Assigned Teams</p-tab>
       </p-tablist>
       <p-tabpanels>
           <p-tabpanel [value]="0">
@@ -45,9 +45,9 @@
               <cpat-tenable-admin></cpat-tenable-admin>
           </p-tabpanel>
 
-          <!--<p-tabpanel [value]="4">
-              <cpat-asset-delta></cpat-asset-delta>
-          </p-tabpanel>-->
+          <p-tabpanel [value]="4">
+            <cpat-asset-delta [activated]="value === 4"></cpat-asset-delta>
+          </p-tabpanel>
 
           <p-tabpanel [value]="5">
               <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()"></cpat-vram-import>

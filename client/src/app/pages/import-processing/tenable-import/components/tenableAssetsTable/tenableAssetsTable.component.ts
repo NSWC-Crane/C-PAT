@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AssetDeltaService } from '../../../../admin-processing/asset-delta/asset-delta.service';
 import { MessageService } from 'primeng/api';
 import { ImportService } from '../../../import.service';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
@@ -19,9 +20,12 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
+import { TabsModule } from 'primeng/tabs';
 
 interface Reference {
   type: string;
@@ -41,8 +45,11 @@ interface ExportColumn {
     CommonModule,
     FormsModule,
     TableModule,
+    TabsModule,
     ButtonModule,
     InputTextModule,
+    InputIconModule,
+    IconFieldModule,
     TextareaModule,
     MultiSelectModule,
     DialogModule,
@@ -50,11 +57,11 @@ interface ExportColumn {
     TooltipModule,
   ],
 })
-export class TenableAssetsTableComponent implements OnInit {
+export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   @Input() pluginID!: string;
   @Input() assetProcessing: boolean = false;
   @Input() tenableRepoId: number;
-  @ViewChild('dt') table!: Table;
+  @ViewChildren(Table) tables: QueryList<Table>;
   @ViewChild('ms') multiSelect!: MultiSelect;
 
   cols: any[];
@@ -73,8 +80,13 @@ export class TenableAssetsTableComponent implements OnInit {
   totalRecords: number = 0;
   filterValue: string = '';
   selectedCollection: any;
-
+  assetDeltaList: any;
+  assetsByTeam: { [teamId: string]: any[] } = {};
+  teamTabs: { teamId: string, teamName: string, assets: any[] }[] = [];
+  activeTab: string = 'all';
+  private tableMap = new Map<string, Table>();
   constructor(
+    private assetDeltaService: AssetDeltaService,
     private importService: ImportService,
     private sanitizer: DomSanitizer,
     private messageService: MessageService
@@ -82,6 +94,23 @@ export class TenableAssetsTableComponent implements OnInit {
 
   async ngOnInit() {
     this.initColumnsAndFilters();
+    this.loadAssetDeltaList();
+
+    this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
+
+    if (this.pluginID && this.tenableRepoId) {
+      await this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
+    } else if (this.assetProcessing && this.tenableRepoId) {
+      await this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
+    }
+  }
+
+  ngAfterViewInit() {
+    this.updateTableReferences();
+
+    this.tables.changes.subscribe(() => {
+      this.updateTableReferences();
+    });
   }
 
   initColumnsAndFilters() {
@@ -162,7 +191,20 @@ export class TenableAssetsTableComponent implements OnInit {
     );
   }
 
-    getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number) {
+  loadAssetDeltaList() {
+    this.assetDeltaService.getAssetDeltaList().subscribe({
+      next: (response) => {
+        this.assetDeltaList = response || [];
+      },
+      error: () => this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load Asset Delta List'
+      })
+    });
+  }
+
+  getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number) {
         const analysisParams = {
             query: {
                 description: '',
@@ -201,33 +243,89 @@ export class TenableAssetsTableComponent implements OnInit {
             type: 'vuln',
         };
 
-        this.importService.postTenableAnalysis(analysisParams).subscribe({
-            next: (data) => {
-                this.affectedAssets = data.response.results.map((asset: any) => {
-                    const defaultAsset = {
-                        pluginID: '',
-                        pluginName: '',
-                        family: { name: '' },
-                        severity: { name: '' },
-                        vprScore: '',
-                    };
-                    return {
-                        ...defaultAsset,
-                        ...asset,
-                        pluginName: asset.name || '',
-                        family: asset.family?.name || '',
-                        severity: asset.severity?.name || '',
-                    };
-                });
-                this.totalRecords = this.affectedAssets.length;
-                this.isLoading = false;
-            },
-            error: (error) => {
-                console.error('Error fetching affected assets:', error);
-                this.showErrorMessage('Error fetching affected assets. Please try again.');
-            }
+    this.importService.postTenableAnalysis(analysisParams).subscribe({
+      next: (data) => {
+        this.affectedAssets = data.response.results.map((asset: any) => {
+          const defaultAsset = {
+            pluginID: '',
+            pluginName: '',
+            family: { name: '' },
+            severity: { name: '' },
+            vprScore: '',
+          };
+          return {
+            ...defaultAsset,
+            ...asset,
+            pluginName: asset.name || '',
+            family: asset.family?.name || '',
+            severity: asset.severity?.name || '',
+          };
         });
-    }
+        this.totalRecords = this.affectedAssets.length;
+        this.isLoading = false;
+
+        this.matchAssetsWithTeams();
+      },
+      error: (error) => {
+        console.error('Error fetching affected assets:', error);
+        this.showErrorMessage('Error fetching affected assets. Please try again.');
+      }
+    });
+  }
+
+  matchAssetsWithTeams() {
+    if (!this.assetDeltaList?.assets || !this.affectedAssets) return;
+
+    this.assetsByTeam = {};
+
+    this.affectedAssets.forEach(asset => {
+      const netbiosName = asset.netbiosName?.toLowerCase() || '';
+      const dnsName = asset.dnsName?.toLowerCase() || '';
+
+      this.assetDeltaList.assets.forEach(deltaAsset => {
+        if (deltaAsset.assignedTeam) {
+          const deltaKey = deltaAsset.key.toLowerCase();
+
+          if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
+            const teamId = deltaAsset.assignedTeam.assignedTeamId;
+            const teamName = deltaAsset.assignedTeam.assignedTeamName;
+
+            if (!this.assetsByTeam[teamId]) {
+              this.assetsByTeam[teamId] = [];
+            }
+
+            const assetKey = asset.netbiosName + asset.dnsName;
+            if (!this.assetsByTeam[teamId].some(a => (a.netbiosName + a.dnsName) === assetKey)) {
+              this.assetsByTeam[teamId].push({
+                ...asset,
+                assignedTeamId: teamId,
+                assignedTeamName: teamName
+              });
+            }
+          }
+        }
+      });
+    });
+
+    this.createTeamTabs();
+  }
+
+  createTeamTabs() {
+    this.teamTabs = [
+      { teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }
+    ];
+
+    Object.keys(this.assetsByTeam).forEach(teamId => {
+      if (this.assetsByTeam[teamId].length > 0) {
+        const teamName = this.assetsByTeam[teamId][0].assignedTeamName || `Team ${teamId}`;
+        this.teamTabs.push({
+          teamId: teamId,
+          teamName: teamName,
+          assets: this.assetsByTeam[teamId]
+        });
+      }
+    });
+  }
 
 
   async lazyOrNot(event: TableLazyLoadEvent) {
@@ -292,7 +390,8 @@ export class TenableAssetsTableComponent implements OnInit {
                     };
                 });
                 this.totalRecords = data.response.totalRecords;
-                this.isLoading = false;
+            this.isLoading = false;
+            this.matchAssetsWithTeams();
             },
             error: (error) => {
                 console.error('Error fetching affected assets:', error);
@@ -392,13 +491,50 @@ export class TenableAssetsTableComponent implements OnInit {
     });
   }
 
+  updateTableReferences() {
+    this.tableMap.clear();
+    const tablesArray = this.tables.toArray();
+
+    this.teamTabs.forEach((tab, index) => {
+      if (index < tablesArray.length) {
+        this.tableMap.set(tab.teamId, tablesArray[index]);
+      }
+    });
+  }
+
   clear() {
-    this.table.clear();
+    const activeTable = this.getActiveTable();
+    if (activeTable) {
+      activeTable.clear();
+    }
     this.filterValue = '';
   }
 
   onGlobalFilter(event: Event) {
-    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    const value = (event.target as HTMLInputElement).value;
+    const activeTable = this.getActiveTable();
+    if (activeTable) {
+      activeTable.filterGlobal(value, 'contains');
+    }
+  }
+
+  exportCSV() {
+    const activeTable = this.getActiveTable();
+    if (activeTable) {
+      activeTable.exportCSV();
+    }
+  }
+
+  private getActiveTable(): Table | null {
+    const table = this.tableMap.get(this.activeTab);
+    if (!table) {
+      console.warn(`No table found for tab ${this.activeTab}`);
+
+      if (this.tables && this.tables.length > 0) {
+        return this.tables.first;
+      }
+    }
+    return table || null;
   }
 
   resetColumnSelections() {

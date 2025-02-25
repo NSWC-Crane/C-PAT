@@ -76,8 +76,7 @@ const upMigration = [
    cost = VALUES(cost);`
 ]
 
-const downMigration = [
-]
+const downMigration = []
 
 const migrationHandler = new MigrationHandler(upMigration, downMigration)
 

@@ -154,15 +154,30 @@ The 'MAP PLUGINS TO IAV' button will initiate the process of mapping IAV data to
    This process will take approximately 60 seconds to complete. Clicking away from the page will terminate the mapping and the process must be started over again.
 
 
+Asset Deltas
+------------
 
-Set A&A Packages
-----------------
+The Asset Deltas component is designed to handle two types of imports.
+
+1. An excel (.xls, .xlsx, .xlsm) or CSV (.csv) document containing a key:value pair of Assets and Team Names. This import routine was designed with the intent of importing an Active Directory .csv export where Asset Names are exported to Column A and OU is exported to Column B, however, exporting from Active Directory is not a requirement. Row 1 is reserved for the column headers and should not contain any data.
+
+2. An eMASS Hardware List excel export.
+
+
+The import process will automatically parse the document and populate the Asset Deltas table with the provided data. The table can be sorted by any column by clicking on the respective column header. The table can also be filtered by entering text into the search bar located above the table or through clicking the filter icon located next to any column name. This component contains functionality to query Tenable and STIG Manager using the provided asset names and determine if the asset exists within the respective service. After a successful query runs, the Tenable and STIG Manager column will be populated with icons (Green Checkmark or Red X) and the charts will update to depict asset existence and Team breakdown. Any subsequent column filtering will also update the "Total Assets" count located above the chart. Exporting of this table is also available for further analysis or record keeping. Asset existence will be exported as True or False.
+
+.. note::
+   The importing of Assets also enables functionality to automatically assign a Team to a POAM if an asset name matches with an AD row entry. This feature is enabled by populating the AD Team field in the Assigned Teams component.
+
+
+A&A Packages
+------------
 
 C-PAT provides the ability for administrators to set A&A package options for their organization. In addition to populating the list of options when setting an A&A package for a particular collection, the A&A packages entered in the Set A&A Packages component will populate a drop down list of options in POAMs for instances when a POAM entry may require deviation from the pre-populated A&A Package.
 
 
 
-Set Assigned Teams
-------------------
+Assigned Teams
+--------------
 
-Similar to the Set A&A Packages component, the Set Assigned Teams component allows administrators to set a list of teams that can be assigned within POAMs. The teams entered in the Set Assigned Teams component will populate a drop down list of options in POAMs (Step 1 -  *Assignees*, Step 8 - *Milestones*, and within the *POAM Extension milestones* section).
+The Set Assigned Teams component allows administrators to create a team structure that fits their organization. Teams can be assigned collections of responsiblity. Subsequently, when assigning user permissions, a team can be selected with an appropriate access level for a user. In essence, a user will be given acess to each collection the team is assigned at the access level selected without having to manually assign each individual collection. This structure allows for a more granular approach to permissions and access control within C-PAT. In addition to Team Name and Team Permissions, assigned Teams also contains an AD Team field. The Asset Delta[Active Directory?] field is used to establish a link between a C-PAT team and a team name as provided in the AD Team list. This corelation allows for automatic team assignments to POAMs if an affected asset name matches with an AD row entry.

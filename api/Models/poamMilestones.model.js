@@ -43,8 +43,8 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATEONLY,
             allowNull: true
         },
-        milestoneTeam: {
-            type: DataTypes.STRING(45),
+        assignedTeamId: {
+            type: DataTypes.INTEGER,
             allowNull: true,
             defaultValue: null
         }

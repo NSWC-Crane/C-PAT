@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -8,12 +8,12 @@
 !##########################################################################
 -->
 
-<div class="col-span-12 row">
+<div class="row col-span-12">
   <div class="col">
     <p-card>
       <div class="p-fluid">
         <div class="toolbar mb-4">
-          <div class="flex justify-between items-center">
+          <div class="flex items-center justify-between">
             <p-iconField iconPosition="left">
               <p-inputIcon>
                 <i class="pi pi-search"></i>
@@ -53,7 +53,7 @@
           >
             <ng-template pTemplate="header">
               <tr>
-                <th scope="col" pResizableColumn>
+                <th scope="col" pSortableColumn="labelId" pResizableColumn>
                   <div class="flex items-center">
                     Label ID
                     <p-columnFilter
@@ -64,7 +64,7 @@
                     />
                   </div>
                 </th>
-                <th scope="col" pResizableColumn>
+                <th scope="col" pSortableColumn="labelName" pResizableColumn>
                   <div class="flex items-center">
                     Name
                     <p-columnFilter
@@ -75,7 +75,7 @@
                     />
                   </div>
                 </th>
-                <th scope="col" pResizableColumn>
+                <th scope="col" pSortableColumn="description" pResizableColumn>
                   <div class="flex items-center">
                     Description
                     <p-columnFilter

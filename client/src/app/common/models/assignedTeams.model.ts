@@ -11,5 +11,6 @@
 export interface AssignedTeams {
   assignedTeamId: number;
   assignedTeamName?: string;
+  adTeam?: string | null;
   accessLevel: number;
 }

@@ -63,13 +63,11 @@ export class PoamService {
   getPoam(
     poamId: number,
     includeApprovers: boolean = false,
-    includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
     includeAssets: boolean = false
   ): Observable<any> {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
-      .set('assignees', includeAssignees.toString())
       .set('assignedTeams', includeAssignedTeams.toString())
       .set('assets', includeAssets.toString());
 
@@ -81,13 +79,11 @@ export class PoamService {
   getPoamsByCollection(
     collectionId: number,
     includeApprovers: boolean = false,
-    includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
     includeAssets: boolean = false
   ): Observable<any> {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
-      .set('assignees', includeAssignees.toString())
       .set('assignedTeams', includeAssignedTeams.toString())
       .set('assets', includeAssets.toString());
 
@@ -99,13 +95,11 @@ export class PoamService {
   getPoamsBySubmitter(
     submitterId: number,
     includeApprovers: boolean = false,
-    includeAssignees: boolean = false,
     includeAssignedTeams: boolean = false,
     includeAssets: boolean = false
   ): Observable<any> {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
-      .set('assignees', includeAssignees.toString())
       .set('assignedTeams', includeAssignedTeams.toString())
       .set('assets', includeAssets.toString());
 
@@ -138,12 +132,6 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  getPoamAssignees(poamId: number): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/poamAssignees/poam/${poamId}`)
-      .pipe(catchError(this.handleError));
-  }
-
   getPoamAssignedTeams(poamId: number): Observable<any> {
     return this.http
       .get(`${this.cpatApiBase}/poamAssignedTeams/poam/${poamId}`)
@@ -165,18 +153,6 @@ export class PoamService {
   updatePoamStatus(poamId: number, poamStatusUpdate: any): Observable<any> {
     return this.http
       .put<any>(`${this.cpatApiBase}/poam/status/${poamId}`, poamStatusUpdate)
-      .pipe(catchError(this.handleError));
-  }
-
-  postPoamAssignee(poamAssignee: any): Observable<any> {
-    return this.http
-      .post<any>(`${this.cpatApiBase}/poamAssignee`, poamAssignee)
-      .pipe(catchError(this.handleError));
-  }
-
-  deletePoamAssignee(poamId: number, userId: number): Observable<any> {
-    return this.http
-      .delete<any>(`${this.cpatApiBase}/poamAssignee/poam/${poamId}/user/${userId}`)
       .pipe(catchError(this.handleError));
   }
 
