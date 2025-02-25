@@ -25,7 +25,7 @@ async function withConnection(callback) {
 exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
     return await withConnection(async (connection) => {
         let sql = `
-            SELECT t1.assignedTeamId, t2.assignedTeamName, t1.poamId, t3.status
+            SELECT t1.assignedTeamId, t2.assignedTeamName, t1.automated, t1.poamId, t3.status
             FROM cpat.poamassignedteams t1
             INNER JOIN cpat.assignedteams t2 ON t1.assignedTeamId = t2.assignedTeamId
             INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
@@ -35,6 +35,7 @@ exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
         const poamAssignedTeams = rowPoamAssignedTeams.map(row => ({
             assignedTeamId: row.assignedTeamId,
             assignedTeamName: row.assignedTeamName,
+            automated: row.automated,
             poamId: row.poamId,
             status: row.status,
         }));
@@ -49,7 +50,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
 
     return await withConnection(async (connection) => {
         let sql = `
-            SELECT t1.assignedTeamId, t2.assignedTeamName, t1.poamId, t3.status
+            SELECT t1.assignedTeamId, t1.automated, t1.poamId, t2.assignedTeamName, t3.status
             FROM cpat.poamassignedteams t1
             INNER JOIN cpat.assignedteams t2 ON t1.assignedTeamId = t2.assignedTeamId
             INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
@@ -60,6 +61,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
         const poamAssignedTeams = rowPoamAssignedTeams.map(row => ({
             assignedTeamId: row.assignedTeamId,
             assignedTeamName: row.assignedTeamName,
+            automated: row.automated,
             poamId: row.poamId,
             status: row.status,
         }));
@@ -79,15 +81,15 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
 
     return await withConnection(async (connection) => {
         try {
-            let fetchSql = "SELECT poamId, assignedTeamId FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
+            let fetchSql = "SELECT poamId, assignedTeamId, automated FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
             const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
 
             if (existingAssignedTeam.length > 0) {
                 return existingAssignedTeam[0];
             }
 
-            let addSql = "INSERT INTO cpat.poamassignedteams (poamId, assignedTeamId) VALUES (?, ?)";
-            await connection.query(addSql, [req.body.poamId, req.body.assignedTeamId]);
+            let addSql = "INSERT INTO cpat.poamassignedteams (poamId, assignedTeamId, automated) VALUES (?, ?, ?)";
+            await connection.query(addSql, [req.body.poamId, req.body.assignedTeamId, req.body.automated ? req.body.automated : false ]);
 
             let assignedTeamSql = "SELECT assignedTeamName FROM cpat.assignedteams WHERE assignedTeamId = ?";
             const [team] = await connection.query(assignedTeamSql, [req.body.assignedTeamId]);
@@ -97,7 +99,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
                 let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
             await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
-            let fetchNewSql = "SELECT poamId, assignedTeamId FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
+            let fetchNewSql = "SELECT poamId, assignedTeamId, automated FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
             const [newAssignedTeam] = await connection.query(fetchNewSql, [req.body.assignedTeamId, req.body.poamId]);
 
             if (newAssignedTeam.length > 0) {
@@ -108,7 +110,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY') {
                 return await withConnection(async (connection) => {
-                    let fetchSql = "SELECT poamId, assignedTeamId FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
+                    let fetchSql = "SELECT poamId, assignedTeamId, automated FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
                     const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
                     return existingAssignedTeam[0];
                 });

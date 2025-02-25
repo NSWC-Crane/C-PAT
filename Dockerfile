@@ -21,7 +21,7 @@ COPY --chown=node:node api/. .
 COPY --chown=node:node --from=build /app/client/dist/browser ../client/dist/browser
 
 RUN mkdir docs
-COPY --chown=node:node ./docs/_build/html ../docs
+COPY --chown=node:node ./docs/_build/html ../docs/_build/html
 
 USER root
 RUN \

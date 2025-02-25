@@ -358,24 +358,9 @@ CREATE TABLE `poamassignedteams` (
   `poamId` int NOT NULL,
   `assignedTeamId` int NOT NULL,
   PRIMARY KEY (`poamId`,`assignedTeamId`),
-  KEY `idx_poamassignees_assignedTeamId` (`assignedTeamId`),
+  KEY `idx_poamassignedteams_assignedTeamId` (`assignedTeamId`),
   CONSTRAINT `fk_poamassignedteams_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
   CONSTRAINT `fk_poamassignedteams_team` FOREIGN KEY (`assignedTeamId`) REFERENCES `assignedteams` (`assignedTeamId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-
---
--- Table structure for table `poamassignees`
---
-
-DROP TABLE IF EXISTS `poamassignees`;
-CREATE TABLE `poamassignees` (
-  `poamId` int NOT NULL,
-  `userId` int NOT NULL,
-  PRIMARY KEY (`poamId`,`userId`),
-  KEY `idx_poamassignees_userId` (`userId`),
-  CONSTRAINT `fk_poamassignees_poam` FOREIGN KEY (`poamId`) REFERENCES `poam` (`poamId`) ON DELETE CASCADE,
-  CONSTRAINT `fk_poamassignees_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
@@ -468,103 +453,88 @@ SET FOREIGN_KEY_CHECKS=1;
 
 SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
-CREATE TRIGGER prevent_created_update 
-BEFORE UPDATE ON poam 
-FOR EACH ROW 
+CREATE TRIGGER prevent_created_update
+BEFORE UPDATE ON poam
+FOR EACH ROW
 SET NEW.created = OLD.created;
 
-CREATE TRIGGER after_poamapprovers_insert 
-AFTER INSERT ON poamapprovers 
-FOR EACH ROW 
+CREATE TRIGGER after_poamapprovers_insert
+AFTER INSERT ON poamapprovers
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poamapprovers_update 
-AFTER UPDATE ON poamapprovers 
-FOR EACH ROW 
+CREATE TRIGGER after_poamapprovers_update
+AFTER UPDATE ON poamapprovers
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poamapprovers_delete 
-AFTER DELETE ON poamapprovers 
-FOR EACH ROW 
+CREATE TRIGGER after_poamapprovers_delete
+AFTER DELETE ON poamapprovers
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
 
-CREATE TRIGGER after_poamassets_insert 
-AFTER INSERT ON poamassets 
-FOR EACH ROW 
+CREATE TRIGGER after_poamassets_insert
+AFTER INSERT ON poamassets
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poamassets_delete 
-AFTER DELETE ON poamassets 
-FOR EACH ROW 
+CREATE TRIGGER after_poamassets_delete
+AFTER DELETE ON poamassets
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
 
-CREATE TRIGGER after_poamassignedteams_insert 
-AFTER INSERT ON poamassignedteams 
-FOR EACH ROW 
+CREATE TRIGGER after_poamassignedteams_insert
+AFTER INSERT ON poamassignedteams
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poamassignedteams_update 
-AFTER UPDATE ON poamassignedteams 
-FOR EACH ROW 
+CREATE TRIGGER after_poamassignedteams_update
+AFTER UPDATE ON poamassignedteams
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poamassignedteams_delete 
-AFTER DELETE ON poamassignedteams 
-FOR EACH ROW 
+CREATE TRIGGER after_poamassignedteams_delete
+AFTER DELETE ON poamassignedteams
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
 
-CREATE TRIGGER after_poamassignees_insert 
-AFTER INSERT ON poamassignees 
-FOR EACH ROW 
+CREATE TRIGGER after_poamlabels_insert
+AFTER INSERT ON poamlabels
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poamassignees_update 
-AFTER UPDATE ON poamassignees 
-FOR EACH ROW 
+CREATE TRIGGER after_poamlabels_update
+AFTER UPDATE ON poamlabels
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poamassignees_delete 
-AFTER DELETE ON poamassignees 
-FOR EACH ROW 
+CREATE TRIGGER after_poamlabels_delete
+AFTER DELETE ON poamlabels
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
 
-CREATE TRIGGER after_poamlabels_insert 
-AFTER INSERT ON poamlabels 
-FOR EACH ROW 
+CREATE TRIGGER after_poamlogs_insert
+AFTER INSERT ON poamlogs
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poamlabels_update 
-AFTER UPDATE ON poamlabels 
-FOR EACH ROW 
+CREATE TRIGGER after_poammilestones_insert
+AFTER INSERT ON poammilestones
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poamlabels_delete 
-AFTER DELETE ON poamlabels 
-FOR EACH ROW 
-UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
-
-CREATE TRIGGER after_poamlogs_insert 
-AFTER INSERT ON poamlogs 
-FOR EACH ROW 
+CREATE TRIGGER after_poammilestones_update
+AFTER UPDATE ON poammilestones
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
 
-CREATE TRIGGER after_poammilestones_insert 
-AFTER INSERT ON poammilestones 
-FOR EACH ROW 
-UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
-
-CREATE TRIGGER after_poammilestones_update 
-AFTER UPDATE ON poammilestones 
-FOR EACH ROW 
-UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = NEW.poamId;
-
-CREATE TRIGGER after_poammilestones_delete 
-AFTER DELETE ON poammilestones 
-FOR EACH ROW 
+CREATE TRIGGER after_poammilestones_delete
+AFTER DELETE ON poammilestones
+FOR EACH ROW
 UPDATE poam SET lastUpdated = CURRENT_DATE WHERE poamId = OLD.poamId;
 
 CREATE PROCEDURE daily_poam_status_update()
-UPDATE poam 
+UPDATE poam
 SET status = 'Expired'
 WHERE
     status IN ('Submitted', 'Rejected') AND

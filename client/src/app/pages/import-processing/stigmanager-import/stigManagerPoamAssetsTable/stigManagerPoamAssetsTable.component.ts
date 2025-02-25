@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
@@ -23,7 +24,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { TagModule } from 'primeng/tag';
-
+import { TabsModule } from 'primeng/tabs';
 interface ExportColumn {
   title: string;
   dataKey: string;
@@ -51,16 +52,18 @@ interface Label {
     IconFieldModule,
     InputTextModule,
     MultiSelectModule,
+    TabsModule,
     TableModule,
     ToastModule,
     TagModule,
   ],
 })
-export class STIGManagerPoamAssetsTableComponent implements OnInit {
+export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit {
   @Input() stigmanCollectionId!: number;
   @Input() groupId!: string;
   @Input() benchmarkId: string;
-  @ViewChild('dt') table!: Table;
+
+  @ViewChildren(Table) tables: QueryList<Table>;
   @ViewChild('ms') multiSelect!: MultiSelect;
 
   cols: any[];
@@ -70,14 +73,24 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
   labels: Label[] = [];
   totalRecords: number = 0;
   filterValue: string = '';
+  assetDeltaList: any;
+  assetsByTeam: { [teamId: string]: any[] } = {};
+  teamTabs: { teamId: string, teamName: string, assets: any[] }[] = [];
+  activeTab: string = 'all';
+  private tableMap = new Map<string, Table>();
 
   constructor(
+    private assetDeltaService: AssetDeltaService,
     private messageService: MessageService,
     private sharedService: SharedService
   ) {}
 
   ngOnInit() {
     this.initColumnsAndFilters();
+    this.loadAssetDeltaList();
+
+    this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
+
     if (this.stigmanCollectionId && this.groupId) {
       this.loadData();
     } else {
@@ -86,6 +99,39 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
       );
     }
   }
+
+  ngAfterViewInit() {
+    this.updateTableReferences();
+
+    this.tables.changes.subscribe(() => {
+      this.updateTableReferences();
+    });
+  }
+
+  updateTableReferences() {
+    this.tableMap.clear();
+    const tablesArray = this.tables.toArray();
+
+    this.teamTabs.forEach((tab, index) => {
+      if (index < tablesArray.length) {
+        this.tableMap.set(tab.teamId, tablesArray[index]);
+      }
+    });
+  }
+
+  loadAssetDeltaList() {
+    this.assetDeltaService.getAssetDeltaList().subscribe({
+      next: (response) => {
+        this.assetDeltaList = response || [];
+      },
+      error: () => this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load Asset Delta List'
+      })
+    });
+  }
+
 
   loadData() {
     forkJoin({
@@ -154,6 +200,8 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
             };
           });
           this.totalRecords = this.affectedAssets.length;
+
+          this.matchAssetsWithTeams();
         },
         error: (error) => {
           console.error('Failed to fetch asset details from STIGMAN:', error);
@@ -161,6 +209,59 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
           this.affectedAssets = mappedAssets;
         }
       });
+  }
+
+  matchAssetsWithTeams() {
+    if (!this.assetDeltaList?.assets || !this.affectedAssets) return;
+
+    this.assetsByTeam = {};
+
+    this.affectedAssets.forEach(asset => {
+      const assetName = asset.assetName?.toLowerCase() || '';
+      const fqdn = asset.fqdn?.toLowerCase() || '';
+
+      this.assetDeltaList.assets.forEach(deltaAsset => {
+        if (deltaAsset.assignedTeam) {
+          const deltaKey = deltaAsset.key.toLowerCase();
+
+          if (assetName === deltaKey || fqdn === deltaKey) {
+            const teamId = deltaAsset.assignedTeam.assignedTeamId;
+            const teamName = deltaAsset.assignedTeam.assignedTeamName;
+
+            if (!this.assetsByTeam[teamId]) {
+              this.assetsByTeam[teamId] = [];
+            }
+
+            if (!this.assetsByTeam[teamId].some(a => a.assetId === asset.assetId)) {
+              this.assetsByTeam[teamId].push({
+                ...asset,
+                assignedTeamId: teamId,
+                assignedTeamName: teamName
+              });
+            }
+          }
+        }
+      });
+    });
+
+    this.createTeamTabs();
+  }
+
+  createTeamTabs() {
+    this.teamTabs = [
+      { teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }
+    ];
+
+    Object.keys(this.assetsByTeam).forEach(teamId => {
+      if (this.assetsByTeam[teamId].length > 0) {
+        const teamName = this.assetsByTeam[teamId][0].assignedTeamName || `Team ${teamId}`;
+        this.teamTabs.push({
+          teamId: teamId,
+          teamName: teamName,
+          assets: this.assetsByTeam[teamId]
+        });
+      }
+    });
   }
 
   getAssetLabels(asset: any): Label[] {
@@ -201,12 +302,38 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
   }
 
   clear() {
-    this.table.clear();
+    const activeTable = this.getActiveTable();
+    if (activeTable) {
+      activeTable.clear();
+    }
     this.filterValue = '';
   }
 
   onGlobalFilter(event: Event) {
-    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    const value = (event.target as HTMLInputElement).value;
+    const activeTable = this.getActiveTable();
+    if (activeTable) {
+      activeTable.filterGlobal(value, 'contains');
+    }
+  }
+
+  private getActiveTable(): Table | null {
+    const table = this.tableMap.get(this.activeTab);
+    if (!table) {
+      console.warn(`No table found for tab ${this.activeTab}`);
+
+      if (this.tables && this.tables.length > 0) {
+        return this.tables.first;
+      }
+    }
+    return table || null;
+  }
+
+  exportCSV() {
+    const activeTable = this.getActiveTable();
+    if (activeTable) {
+      activeTable.exportCSV();
+    }
   }
 
   resetColumnSelections() {
@@ -219,9 +346,5 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit {
     } else {
       this.multiSelect.show();
     }
-  }
-
-  exportCSV() {
-    this.table.exportCSV();
   }
 }

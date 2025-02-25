@@ -19,9 +19,7 @@ const upMigration = [
     `ALTER TABLE assignedteams ADD COLUMN adTeam VARCHAR(255) NULL DEFAULT NULL AFTER assignedTeamName;`
 ]
 
-const downMigration = [
-    `DROP TABLE IF EXISTS assetdeltalist`
-]
+const downMigration = []
 
 const migrationHandler = new MigrationHandler(upMigration, downMigration)
 

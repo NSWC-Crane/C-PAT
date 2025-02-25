@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -12,12 +12,10 @@
   <p-card>
     <div class="status-container">
       <div class="row" style="display: flex; align-items: center; font-weight: 600">
-        <i
-          *ngIf="poam.lastUpdated && poam.created"
-          class="pi pi-clock mr-4"
-          style="color: var(--p-primary-color); font-size: 1.5rem"
-          pTooltip="Created: {{poam.created ? (poam.created | date:'yyyy-MM-dd') : ''}}, Last Updated: {{poam.lastUpdated ? (poam.lastUpdated | date:'yyyy-MM-dd') : ''}}"
-        ></i>
+        <i *ngIf="poam.lastUpdated && poam.created"
+           class="pi pi-clock mr-4"
+           style="color: var(--p-primary-color); font-size: 1.5rem"
+           pTooltip="Created: {{poam.created ? (poam.created | date:'yyyy-MM-dd') : ''}}, Last Updated: {{poam.lastUpdated ? (poam.lastUpdated | date:'yyyy-MM-dd') : ''}}"></i>
         POAM ID: {{poam.poamId}}
         <div class="label-tags ml-2" *ngFor="let label of poamLabels">
           <p-tag value="{{label.labelName}}" severity="info" styleClass="p-mr-2"></p-tag>
@@ -25,25 +23,21 @@
       </div>
 
       <div class="button-group">
-        <p-menu
-          #menu
-          [popup]="true"
-          [model]="menuItems"
-          [styleClass]="'poam-control-menu'"
-          (onHide)="menu.hide()"
-          (mouseleave)="menu.hide()"
-          appendTo="body"
-        >
+        <p-menu #menu
+                [popup]="true"
+                [model]="menuItems()"
+                [styleClass]="'poam-control-menu'"
+                (onHide)="menu.hide()"
+                (mouseleave)="menu.hide()"
+                appendTo="body">
         </p-menu>
-        <p-button
-          #menuButton
-          size="large"
-          [rounded]="true"
-          [text]="true"
-          severity="secondary"
-          icon="pi pi-ellipsis-v"
-          (mouseenter)="menu.toggle($event)"
-        >
+        <p-button #menuButton
+                  size="large"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="secondary"
+                  icon="pi pi-ellipsis-v"
+                  (mouseenter)="menu.toggle($event)">
         </p-button>
       </div>
     </div>
@@ -73,17 +67,15 @@
         <!-- Status -->
         <div class="form-group">
           <label for="status">POAM Status: </label>
-          <p-select
-            [options]="statusOptions"
-            [(ngModel)]="poam.status"
-            id="status"
-            name="status"
-            placeholder="POAM Status..."
-            optionLabel="label"
-            optionValue="value"
-            [style]="{'width':'100%'}"
-            [disabled]="accessLevel < 2"
-          >
+          <p-select [options]="statusOptions"
+                    [(ngModel)]="poam.status"
+                    id="status"
+                    name="status"
+                    placeholder="POAM Status..."
+                    optionLabel="label"
+                    optionValue="value"
+                    [style]="{'width':'100%'}"
+                    [disabled]="accessLevel() < 2">
             <ng-template let-option pTemplate="item">
               <span [ngClass]="{'ui-state-disabled': option.disabled}">{{option.label}}</span>
             </ng-template>
@@ -92,289 +84,232 @@
 
         <!-- Description -->
         <div class="form-group">
-          <label for="description"
-            ><i
-              class="pi pi-info-circle mr-2"
-              style="color: var(--p-text-color)"
-              pTooltip="Control Vulnerability Description: Describes the vulnerability identified during assessment. This is pulled directly from the assessment procedure entry or technical assessment method (e.g., STIG test case) where applicable. Otherwise it must be manually entered in the NC status for the vulnerability."
-            ></i
-            >Description:
+          <label for="description">
+            <i class="pi pi-info-circle mr-2"
+               style="color: var(--p-text-color)"
+               pTooltip="Control Vulnerability Description: Describes the vulnerability identified during assessment. This is pulled directly from the assessment procedure entry or technical assessment method (e.g., STIG test case) where applicable. Otherwise it must be manually entered in the NC status for the vulnerability."></i>Description:
           </label>
-          <textarea
-            pTextarea
-            class="w-full"
-            [rows]="8"
-            [(ngModel)]="poam.description"
-            id="description"
-            name="description"
-            [maxlength]="10000"
-            placeholder="Description..."
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-          ></textarea>
+          <textarea pTextarea
+                    class="w-full"
+                    [rows]="8"
+                    [(ngModel)]="poam.description"
+                    id="description"
+                    name="description"
+                    [maxlength]="10000"
+                    placeholder="Description..."
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></textarea>
         </div>
 
         <!-- AA Package -->
         <div class="form-group">
           <label for="aaPackage">A&A Package: </label>
-          <p-select
-            [(ngModel)]="poam.aaPackage"
-            [options]="aaPackages"
-            optionLabel="aaPackage"
-            optionValue="aaPackage"
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-            placeholder="Select A&A Package"
-            name="aaPackage"
-            id="aaPackage"
-            styleClass="w-full"
-          >
+          <p-select [(ngModel)]="poam.aaPackage"
+                    [options]="aaPackages"
+                    optionLabel="aaPackage"
+                    optionValue="aaPackage"
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"
+                    placeholder="Select A&A Package"
+                    name="aaPackage"
+                    id="aaPackage"
+                    styleClass="w-full">
           </p-select>
         </div>
 
         <!-- Source -->
         <div class="form-group">
           <label for="vulnerabilitySource">
-            <i
-              class="pi pi-info-circle mr-2"
-              style="color: var(--p-text-color)"
-              pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."
-            ></i>
+            <i class="pi pi-info-circle mr-2"
+               style="color: var(--p-text-color)"
+               pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."></i>
             Source Identifying Control Vulnerability:
           </label>
-          <p-select
-            [(ngModel)]="poam.vulnerabilitySource"
-            [options]="vulnerabilitySources"
-            placeholder="Select Vulnerability Source"
-            name="vulnerabilitySource"
-            id="vulnerabilitySource"
-            [style]="{'width':'100%'}"
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-          >
+          <p-select [(ngModel)]="poam.vulnerabilitySource"
+                    [options]="vulnerabilitySources"
+                    placeholder="Select Vulnerability Source"
+                    name="vulnerabilitySource"
+                    id="vulnerabilitySource"
+                    [style]="{'width':'100%'}"
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2">
           </p-select>
         </div>
 
         <!-- Task Order # -->
         <div class="form-group">
           <label for="taskOrderNumber">Task Order #: </label>
-          <input
-            type="text"
-            pInputText
-            class="w-full"
-            [(ngModel)]="poam.taskOrderNumber"
-            [maxlength]="25"
-            name="taskOrderNumber"
-            placeholder="Task Order #..."
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-          />
+          <input type="text"
+                 pInputText
+                 class="w-full"
+                 [(ngModel)]="poam.taskOrderNumber"
+                 [maxlength]="25"
+                 name="taskOrderNumber"
+                 placeholder="Task Order #..."
+                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2" />
         </div>
 
         <!-- STIG Title -->
         <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
-          <label for="stigInput"
-            ><i
-              class="pi pi-info-circle mr-2"
-              style="color: var(--p-text-color)"
-              pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."
-            ></i
-            >STIG Title:</label
-          >
-          <p-autoComplete
-            [(ngModel)]="selectedStigTitle"
-            [suggestions]="filteredStigmanSTIGs"
-            (completeMethod)="searchStigTitles($event)"
-            (onSelect)="onStigSelected($event)"
-            name="stigInput"
-            placeholder="Select STIG..."
-            [dropdown]="true"
-            field="title"
-            [style]="{'width':'100%'}"
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-            readonly
-          ></p-autoComplete>
+          <label for="stigInput">
+            <i class="pi pi-info-circle mr-2"
+               style="color: var(--p-text-color)"
+               pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."></i>STIG Title:
+          </label>
+          <p-autoComplete [(ngModel)]="selectedStigTitle"
+                          [suggestions]="filteredStigmanSTIGs"
+                          (completeMethod)="searchStigTitles($event)"
+                          (onSelect)="onStigSelected($event)"
+                          name="stigInput"
+                          placeholder="Select STIG..."
+                          [dropdown]="true"
+                          field="title"
+                          [style]="{'width':'100%'}"
+                          [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"
+                          readonly></p-autoComplete>
         </div>
 
         <!-- Source Identifying Control Vulnerability - ID # for Non STIGs-->
         <div class="form-group" *ngIf="poam.vulnerabilitySource !== 'STIG'">
-          <label
-            *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'"
-            for="vulnerabilityId"
-            ><i
-              class="pi pi-info-circle mr-2"
-              style="color: var(--p-text-color)"
-              pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."
-            ></i
-            >Plugin ID #:
+          <label *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'"
+                 for="vulnerabilityId">
+            <i class="pi pi-info-circle mr-2"
+               style="color: var(--p-text-color)"
+               pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Plugin ID #:
           </label>
-          <label
-            *ngIf="poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'"
-            for="vulnerabilityId"
-            ><i
-              class="pi pi-info-circle mr-2"
-              style="color: var(--p-text-color)"
-              pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."
-            ></i
-            >Source Identifying Control Vulnerability - ID #:
+          <label *ngIf="poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'"
+                 for="vulnerabilityId">
+            <i class="pi pi-info-circle mr-2"
+               style="color: var(--p-text-color)"
+               pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source Identifying Control Vulnerability - ID #:
           </label>
-          <input
-            type="text"
-            pInputText
-            class="w-full"
-            [(ngModel)]="poam.vulnerabilityId"
-            [maxlength]="255"
-            name="vulnerabilityId"
-            id="vulnerabilityId"
-            placeholder="Vulnerability ID..."
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-          />
+          <input type="text"
+                 pInputText
+                 class="w-full"
+                 [(ngModel)]="poam.vulnerabilityId"
+                 [maxlength]="255"
+                 name="vulnerabilityId"
+                 id="vulnerabilityId"
+                 placeholder="Vulnerability ID..."
+                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2" />
         </div>
 
         <!-- Source Identifying Control Vulnerability - ID # for STIG-->
         <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
-          <label for="vulnerabilityId"
-            ><i
-              class="pi pi-info-circle mr-2"
-              style="color: var(--p-text-color)"
-              pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."
-            ></i
-            >Source Identifying Control Vulnerability - ID #:
+          <label for="vulnerabilityId">
+            <i class="pi pi-info-circle mr-2"
+               style="color: var(--p-text-color)"
+               pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source Identifying Control Vulnerability - ID #:
           </label>
-          <input
-            type="text"
-            pInputText
-            class="w-full"
-            [(ngModel)]="poam.vulnerabilityId"
-            [maxlength]="255"
-            name="vulnerabilityId"
-            id="vulnerabilityId"
-            placeholder="Vulnerability ID..."
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-          />
+          <input type="text"
+                 pInputText
+                 class="w-full"
+                 [(ngModel)]="poam.vulnerabilityId"
+                 [maxlength]="255"
+                 name="vulnerabilityId"
+                 id="vulnerabilityId"
+                 placeholder="Vulnerability ID..."
+                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2" />
         </div>
 
         <!-- IAVM # -->
-        <div
-          class="form-group"
-          *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'"
-        >
+        <div class="form-group"
+             *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'">
           <label for="iavmNumber">IAVM #: </label>
           <p-inputgroup>
-            <input
-              type="text"
-              pInputText
-              class="w-full"
-              [(ngModel)]="poam.iavmNumber"
-              [maxlength]="25"
-              name="iavmNumber"
-              placeholder="IAVM #..."
-              [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-            />
-            <button
-              type="button"
-              pButton
-              icon="pi pi-external-link"
-              (click)="openIavLink(poam.iavmNumber)"
-              pTooltip="View IAV Release Details"
-              tooltipPosition="top"
-              [disabled]="!poam.iavmNumber"
-            ></button>
+            <input type="text"
+                   pInputText
+                   class="w-full"
+                   [(ngModel)]="poam.iavmNumber"
+                   [maxlength]="25"
+                   name="iavmNumber"
+                   placeholder="IAVM #..."
+                   [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2" />
+            <button type="button"
+                    pButton
+                    icon="pi pi-external-link"
+                    (click)="openIavLink(poam.iavmNumber)"
+                    pTooltip="View IAV Release Details"
+                    tooltipPosition="top"
+                    [disabled]="!poam.iavmNumber"></button>
           </p-inputgroup>
-</div>
+        </div>
 
         <!-- IAV Comply By Date -->
         <div class="form-group" *ngIf="poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)">
           <label for="iavComplyByDate">IAV Comply By Date: </label>
-          <p-datepicker
-            [(ngModel)]="dates.iavComplyByDate"
-            dateFormat="yy-mm-dd"
-            name="iavComplyByDate"
-            placeholder="IAV Comply By Date..."
-            [showIcon]="true"
-            [style]="{'width':'25rem'}"
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-          ></p-datepicker>
+          <p-datepicker [(ngModel)]="dates.iavComplyByDate"
+                        dateFormat="yy-mm-dd"
+                        name="iavComplyByDate"
+                        placeholder="IAV Comply By Date..."
+                        [showIcon]="true"
+                        [style]="{'width':'25rem'}"
+                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></p-datepicker>
         </div>
 
         <!-- Raw Severity -->
         <div class="form-group">
-          <label for="rawSeverity"
-            ><i
-              class="pi pi-info-circle mr-2"
-              style="color: var(--p-text-color)"
-              pTooltip="Raw Severity: The initial or starting severity of the vulnerability prior to implementing mitigations and/or compensating Controls."
-            ></i
-            >Raw Severity Value:
+          <label for="rawSeverity">
+            <i class="pi pi-info-circle mr-2"
+               style="color: var(--p-text-color)"
+               pTooltip="Raw Severity: The initial or starting severity of the vulnerability prior to implementing mitigations and/or compensating Controls."></i>Raw Severity Value:
           </label>
-          <p-select
-            [options]="severityOptions"
-            [(ngModel)]="poam.rawSeverity"
-            name="rawSeverity"
-            id="rawSeverity"
-            placeholder="Raw Severity..."
-            optionLabel="label"
-            optionValue="value"
-            [style]="{'width':'25rem'}"
-            (onChange)="onAdjSeverityChange()"
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-          ></p-select>
+          <p-select [options]="severityOptions"
+                    [(ngModel)]="poam.rawSeverity"
+                    name="rawSeverity"
+                    id="rawSeverity"
+                    placeholder="Raw Severity..."
+                    optionLabel="label"
+                    optionValue="value"
+                    [style]="{'width':'25rem'}"
+                    (onChange)="onAdjSeverityChange()"
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></p-select>
         </div>
 
         <!-- Adj Severity -->
         <div class="form-group">
           <label for="adjSeverity">
-            <i
-              class="pi pi-info-circle mr-2"
-              style="color: var(--p-text-color)"
-              pTooltip="Resulting Residual Risk after Proposed Mitigations: The risk level expected after any proposed mitigations are implemented. Proposed mitigations should be appropriately documented as POA&M milestones"
-            ></i>
+            <i class="pi pi-info-circle mr-2"
+               style="color: var(--p-text-color)"
+               pTooltip="Resulting Residual Risk after Proposed Mitigations: The risk level expected after any proposed mitigations are implemented. Proposed mitigations should be appropriately documented as POA&M milestones"></i>
             Adjusted Severity Value:
           </label>
-          <p-select
-            [options]="severityOptions"
-            [(ngModel)]="poam.adjSeverity"
-            name="adjSeverity"
-            id="adjSeverity"
-            placeholder="Adjusted Severity..."
-            optionLabel="label"
-            optionValue="value"
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 3"
-            [style]="{'width':'25rem'}"
-            (onChange)="onAdjSeverityChange()"
-          >
+          <p-select [options]="severityOptions"
+                    [(ngModel)]="poam.adjSeverity"
+                    name="adjSeverity"
+                    id="adjSeverity"
+                    placeholder="Adjusted Severity..."
+                    optionLabel="label"
+                    optionValue="value"
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 3"
+                    [style]="{'width':'25rem'}"
+                    (onChange)="onAdjSeverityChange()">
           </p-select>
         </div>
 
         <!-- Scheduled Completion Date -->
         <div class="form-group">
-          <label for="scheduledCompletionDate"
-            ><i
-              class="pi pi-info-circle mr-2"
-              style="color: var(--p-text-color)"
-              pTooltip="Scheduled Completion Date: Target completion date for resolving the vulnerability. This target completion date can stretch beyond the potential 3-year authorization window and must accurately reflect the resolution timetable. Please note that the initial date entered may not be changed. When a vulnerability severity value is resolved, the agency should note the actual completion date."
-            ></i
-            >Scheduled Completion Date:
+          <label for="scheduledCompletionDate">
+            <i class="pi pi-info-circle mr-2"
+               style="color: var(--p-text-color)"
+               pTooltip="Scheduled Completion Date: Target completion date for resolving the vulnerability. This target completion date can stretch beyond the potential 3-year authorization window and must accurately reflect the resolution timetable. Please note that the initial date entered may not be changed. When a vulnerability severity value is resolved, the agency should note the actual completion date."></i>Scheduled Completion Date:
           </label>
-          <p-datepicker
-            [(ngModel)]="dates.scheduledCompletionDate"
-            dateFormat="yy-mm-dd"
-            name="scheduledCompletionDate"
-            placeholder="Scheduled Completion Date..."
-            [showIcon]="true"
-            [style]="{'width':'25rem'}"
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-          ></p-datepicker>
+          <p-datepicker [(ngModel)]="dates.scheduledCompletionDate"
+                        dateFormat="yy-mm-dd"
+                        name="scheduledCompletionDate"
+                        placeholder="Scheduled Completion Date..."
+                        [showIcon]="true"
+                        [style]="{'width':'25rem'}"
+                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></p-datepicker>
         </div>
 
         <!-- Submitted Date -->
         <div class="form-group">
           <label for="submittedDate">Submitted Date: </label>
-          <p-datepicker
-            [(ngModel)]="dates.submittedDate"
-            dateFormat="yy-mm-dd"
-            name="submittedDate"
-            placeholder="Submitted Date..."
-            [showIcon]="true"
-            [style]="{'width':'25rem'}"
-            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-          ></p-datepicker>
+          <p-datepicker [(ngModel)]="dates.submittedDate"
+                        dateFormat="yy-mm-dd"
+                        name="submittedDate"
+                        placeholder="Submitted Date..."
+                        [showIcon]="true"
+                        [style]="{'width':'25rem'}"
+                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></p-datepicker>
         </div>
       </div>
     </div>
@@ -382,76 +317,70 @@
     <p-footer>
       <p-stepper [value]="1" styleClass="'responsive-stepper'">
         <p-step-list>
-          <p-step [value]="1">Assignees</p-step>
-          <p-step [value]="2">Approvers</p-step>
-          <p-step [value]="3">Assets</p-step>
-          <p-step [value]="4">Predisposing Conditions</p-step>
-          <p-step [value]="5">Mitigations</p-step>
-          <p-step [value]="6">Required Resources</p-step>
-          <p-step [value]="7">Risk & Impact</p-step>
-          <p-step [value]="8">Milestones</p-step>
-          <p-step [value]="9">Labels</p-step>
-          <p-step [value]="10">Attachments</p-step>
-          <p-step [value]="11">Associated Vulnerabilities</p-step>
+          <p-step [value]="1">Personnel</p-step>
+          <p-step [value]="2">Assets</p-step>
+          <p-step [value]="3">Predisposing Conditions</p-step>
+          <p-step [value]="4">Mitigations</p-step>
+          <p-step [value]="5">Required Resources</p-step>
+          <p-step [value]="6">Risk & Impact</p-step>
+          <p-step [value]="7">Milestones</p-step>
+          <p-step [value]="8">Labels</p-step>
+          <p-step [value]="9">Attachments</p-step>
+          <p-step [value]="10">Associated Vulnerabilities</p-step>
         </p-step-list>
         <p-step-panels>
-          <!-- Assignees -->
+          <!-- Personnel -->
           <p-step-panel [value]="1">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <p-splitter [style]="{'height': '100%'}" [panelSizes]="[50,50]">
-                    <ng-template pTemplate="panel">
-                      <div class="splitter-panel">
-                        <div class="table-container">
-                          <p-table
-                            [value]="poamAssignedTeams"
-                            [paginator]="false"
-                            styleClass="p-datatable-striped full-width-table"
-                            [scrollable]="true"
-                            scrollHeight="flex"
-                          >
+                  <p-accordion [value]="['0']" [multiple]="true">
+                    <p-accordion-panel value="0">
+                      <p-accordion-header>Teams Assigned</p-accordion-header>
+                      <p-accordion-content>
+                        <div *ngIf="loadingTeams()" class="justify-content-center align-items-center p-4">
+                          <p-progressbar mode="indeterminate" [style]="{ 'height': '6px', 'margin-bottom': '1rem' }" />
+                          <span>Analyzing assets and assigning teams...</span>
+                        </div>
+                        <div *ngIf="!loadingTeams()" class="table-container">
+                          <p-table [value]="poamAssignedTeams"
+                                   [paginator]="false"
+                                   styleClass="p-datatable-striped full-width-table"
+                                   [scrollable]="true"
+                                   scrollHeight="flex">
                             <ng-template pTemplate="header">
                               <tr>
-                                <th scope="col">Teams Assigned</th>
-                                <th scope="col">
-                                  <button
-                                    pButton
-                                    icon="pi pi-plus"
-                                    (click)="addAssignedTeam()"
-                                    class="p-button-rounded p-button-text"
-                                    [disabled]="accessLevel < 2"
-                                  ></button>
+                                <th pSortableColumn="assignedTeamName" scope="col" style="width: 90%">Teams Assigned</th>
+                                <th scope="col" style="width: 10%; text-align: center">
+                                  <button pButton
+                                          icon="pi pi-plus"
+                                          (click)="addAssignedTeam()"
+                                          class="p-button-rounded p-button-text"
+                                          [disabled]="accessLevel() < 2"></button>
                                 </th>
                               </tr>
                             </ng-template>
                             <ng-template pTemplate="body" let-assignedTeam let-rowIndex="rowIndex">
                               <tr>
-                                <td>
-                                  <span *ngIf="!assignedTeam.isNew"
-                                    >{{assignedTeam.assignedTeamName}}</span
-                                  >
-                                  <p-select
-                                    *ngIf="assignedTeam.isNew"
-                                    [options]="assignedTeamOptions"
-                                    [(ngModel)]="assignedTeam.assignedTeamId"
-                                    optionLabel="assignedTeamName"
-                                    optionValue="assignedTeamId"
-                                    [style]="{'width':'100%'}"
-                                    (onChange)="onAssignedTeamChange(assignedTeam, rowIndex)"
-                                    appendTo="body"
-                                    [disabled]="accessLevel < 2"
-                                  >
+                                <td style="width: 90%">
+                                  <span *ngIf="!assignedTeam.isNew">{{assignedTeam.assignedTeamName}}</span>
+                                  <p-select *ngIf="assignedTeam.isNew"
+                                            [options]="assignedTeamOptions"
+                                            [(ngModel)]="assignedTeam.assignedTeamId"
+                                            optionLabel="assignedTeamName"
+                                            optionValue="assignedTeamId"
+                                            [style]="{'width':'100%'}"
+                                            (onChange)="onAssignedTeamChange(assignedTeam, rowIndex)"
+                                            appendTo="body"
+                                            [disabled]="accessLevel() < 2">
                                   </p-select>
                                 </td>
-                                <td>
-                                  <button
-                                    pButton
-                                    icon="pi pi-trash"
-                                    (click)="deleteAssignedTeam(assignedTeam, rowIndex)"
-                                    class="p-button-rounded p-button-text p-button-danger"
-                                    [disabled]="accessLevel < 2"
-                                  ></button>
+                                <td style="width: 10%; text-align: center">
+                                  <button pButton
+                                          icon="pi pi-trash"
+                                          (click)="deleteAssignedTeam(assignedTeam, rowIndex)"
+                                          class="p-button-rounded p-button-text p-button-danger"
+                                          [disabled]="accessLevel() < 2"></button>
                                 </td>
                               </tr>
                             </ng-template>
@@ -462,192 +391,101 @@
                             </ng-template>
                           </p-table>
                         </div>
-                      </div>
-                    </ng-template>
-                    <ng-template pTemplate="panel">
-                      <div class="splitter-panel">
+                      </p-accordion-content>
+                    </p-accordion-panel>
+                    <p-accordion-panel value="1">
+                      <p-accordion-header>Approvers</p-accordion-header>
+                      <p-accordion-content>
                         <div class="table-container">
-                          <p-table
-                            [value]="poamAssignees"
-                            [paginator]="false"
-                            styleClass="p-datatable-striped full-width-table"
-                            [scrollable]="true"
-                            scrollHeight="flex"
-                          >
+                          <p-table [value]="poamApprovers" selectionMode="multiple">
                             <ng-template pTemplate="header">
                               <tr>
-                                <th scope="col">Members Assigned</th>
-                                <th scope="col">
-                                  <button
-                                    pButton
-                                    icon="pi pi-plus"
-                                    (click)="addAssignee()"
-                                    class="p-button-rounded p-button-text"
-                                    [disabled]="accessLevel < 2"
-                                  ></button>
+                                <th pSortableColumn="userId" scope="col">Approver</th>
+                                <th pSortableColumn="approvalStatus" scope="col">Approval Status</th>
+                                <th pSortableColumn="approvedDate" scope="col">Approved Date</th>
+                                <th pSortableColumn="comments" scope="col">Comments For Approver</th>
+                                <th style="width: 8rem">
+                                  <button pButton
+                                          icon="pi pi-plus"
+                                          (click)="addApprover()"
+                                          class="p-button-rounded p-button-text"
+                                          [disabled]="accessLevel() < 2"></button>
                                 </th>
                               </tr>
                             </ng-template>
-                            <ng-template pTemplate="body" let-assignee let-rowIndex="rowIndex">
+                            <ng-template pTemplate="body" let-approver let-rowIndex="rowIndex">
                               <tr>
                                 <td>
-                                  <span *ngIf="!assignee.isNew"
-                                    >{{getAssigneeName(assignee.userId)}}</span
-                                  >
-                                  <p-select
-                                    *ngIf="assignee.isNew"
-                                    [options]="collectionUsers"
-                                    [(ngModel)]="assignee.userId"
-                                    optionLabel="fullName"
-                                    optionValue="userId"
-                                    [style]="{'width':'100%'}"
-                                    (onChange)="onAssigneeChange(assignee, rowIndex)"
-                                    appendTo="body"
-                                    [disabled]="accessLevel < 2"
-                                  ></p-select>
+                                  <span *ngIf="!approver.isNew">{{getApproverName(approver.userId)}}</span>
+                                  <p-select *ngIf="approver.isNew"
+                                            [options]="collectionApprovers"
+                                            [(ngModel)]="approver.userId"
+                                            optionLabel="fullName"
+                                            optionValue="userId"
+                                            [style]="{'width':'100%'}"
+                                            (onChange)="onApproverChange(approver, rowIndex)"
+                                            appendTo="body"
+                                            [disabled]="accessLevel() < 2"></p-select>
+                                </td>
+                                <td>{{approver.approvalStatus}}</td>
+                                <td>
+                                  {{approver.approvedDate ? (approver.approvedDate | date:'yyyy-MM-dd') : 'Not Reviewed'}}
                                 </td>
                                 <td>
-                                  <button
-                                    pButton
-                                    icon="pi pi-trash"
-                                    (click)="deleteAssignee(assignee, rowIndex)"
-                                    class="p-button-rounded p-button-text p-button-danger"
-                                    [disabled]="accessLevel < 2"
-                                  ></button>
+                                  <span *ngIf="!approver.isNew">{{approver.comments}}</span>
+                                  <textarea pTextarea
+                                            *ngIf="approver.isNew"
+                                            class="w-full"
+                                            [(ngModel)]="approver.comments"
+                                            [rows]="3"
+                                            [maxlength]="2000"
+                                            [disabled]="accessLevel() < 2"></textarea>
+                                </td>
+                                <td>
+                                  <button pButton
+                                          icon="pi pi-trash"
+                                          (click)="deleteApprover(approver, rowIndex)"
+                                          class="p-button-rounded p-button-text p-button-danger"
+                                          [disabled]="accessLevel() < 4"></button>
                                 </td>
                               </tr>
                             </ng-template>
                             <ng-template pTemplate="emptymessage">
                               <tr>
-                                <td colspan="2" style="text-align: center">No Data to Display</td>
+                                <td colspan="5" style="text-align: center">No Data to Display</td>
                               </tr>
                             </ng-template>
                           </p-table>
                         </div>
-                      </div>
-                    </ng-template>
-                  </p-splitter>
-                </div>
-                <div class="stepper-buttons first-panel">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(2)"
-                  ></p-button>
-                </div>
-              </div>
-            </ng-template>
-          </p-step-panel>
-
-          <!-- Approvers -->
-          <p-step-panel [value]="2">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content">
-                  <p-table [value]="poamApprovers">
-                    <ng-template pTemplate="header">
-                      <tr>
-                        <th scope="col">Approver</th>
-                        <th scope="col">Approval Status</th>
-                        <th scope="col">Approved Date</th>
-                        <th scope="col">Comments For Approver</th>
-                        <th scope="col" style="width: 8rem">
-                          <button
-                            pButton
-                            icon="pi pi-plus"
-                            (click)="addApprover()"
-                            class="p-button-rounded p-button-text"
-                            [disabled]="accessLevel < 2"
-                          ></button>
-                        </th>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="body" let-approver let-rowIndex="rowIndex">
-                      <tr>
-                        <td>
-                          <span *ngIf="!approver.isNew">{{getApproverName(approver.userId)}}</span>
-                          <p-select
-                            *ngIf="approver.isNew"
-                            [options]="collectionApprovers"
-                            [(ngModel)]="approver.userId"
-                            optionLabel="fullName"
-                            optionValue="userId"
-                            [style]="{'width':'100%'}"
-                            (onChange)="onApproverChange(approver, rowIndex)"
-                            appendTo="body"
-                            [disabled]="accessLevel < 2"
-                          ></p-select>
-                        </td>
-                        <td>{{approver.approvalStatus}}</td>
-                        <td>
-                          {{approver.approvedDate ? (approver.approvedDate | date:'yyyy-MM-dd') :
-                          'Not Reviewed'}}
-                        </td>
-                        <td>
-                          <span *ngIf="!approver.isNew">{{approver.comments}}</span>
-                          <textarea
-                            pTextarea
-                            *ngIf="approver.isNew"
-                            class="w-full"
-                            [(ngModel)]="approver.comments"
-                            [rows]="3"
-                            [maxlength]="2000"
-                            [disabled]="accessLevel < 2"
-                          ></textarea>
-                        </td>
-                        <td>
-                          <button
-                            pButton
-                            icon="pi pi-trash"
-                            (click)="deleteApprover(approver, rowIndex)"
-                            class="p-button-rounded p-button-text p-button-danger"
-                            [disabled]="accessLevel < 4"
-                          ></button>
-                        </td>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="emptymessage">
-                      <tr>
-                        <td colspan="5" style="text-align: center">No Data to Display</td>
-                      </tr>
-                    </ng-template>
-                  </p-table>
+                      </p-accordion-content>
+                    </p-accordion-panel>
+                  </p-accordion>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(1)"
-                  ></p-button>
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(3)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            (onClick)="activateCallback(2)"></p-button>
                 </div>
               </div>
             </ng-template>
           </p-step-panel>
 
           <!-- Assets -->
-          <p-step-panel [value]="3">
+          <p-step-panel [value]="2">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div *ngIf="collectionType === 'C-PAT'" class="stepper-content">
                   <p-table [value]="poamAssets" [paginator]="false">
                     <ng-template pTemplate="header">
                       <tr>
-                        <th scope="col">Asset</th>
+                        <th pSortableColumn="assetName" scope="col">Asset</th>
                         <th scope="col" style="width: 8rem">
-                          <button
-                            pButton
-                            icon="pi pi-plus"
-                            (click)="addAsset()"
-                            class="p-button-rounded p-button-text"
-                            [disabled]="accessLevel < 2"
-                          ></button>
+                          <button pButton
+                                  icon="pi pi-plus"
+                                  (click)="addAsset()"
+                                  class="p-button-rounded p-button-text"
+                                  [disabled]="accessLevel() < 2"></button>
                         </th>
                       </tr>
                     </ng-template>
@@ -655,26 +493,22 @@
                       <tr>
                         <td>
                           <span *ngIf="!asset.isNew">{{getAssetName(asset.assetId)}}</span>
-                          <p-select
-                            *ngIf="asset.isNew"
-                            [options]="assetList"
-                            [(ngModel)]="asset.assetId"
-                            optionLabel="assetName"
-                            optionValue="assetId"
-                            [style]="{'width':'100%'}"
-                            (onChange)="onAssetChange(asset, rowIndex)"
-                            appendTo="body"
-                            [disabled]="accessLevel < 2"
-                          ></p-select>
+                          <p-select *ngIf="asset.isNew"
+                                    [options]="assetList"
+                                    [(ngModel)]="asset.assetId"
+                                    optionLabel="assetName"
+                                    optionValue="assetId"
+                                    [style]="{'width':'100%'}"
+                                    (onChange)="onAssetChange(asset, rowIndex)"
+                                    appendTo="body"
+                                    [disabled]="accessLevel() < 2"></p-select>
                         </td>
                         <td>
-                          <button
-                            pButton
-                            icon="pi pi-trash"
-                            (click)="deleteAsset(asset, rowIndex)"
-                            class="p-button-rounded p-button-text p-button-danger"
-                            [disabled]="accessLevel < 2"
-                          ></button>
+                          <button pButton
+                                  icon="pi pi-trash"
+                                  (click)="deleteAsset(asset, rowIndex)"
+                                  class="p-button-rounded p-button-text p-button-danger"
+                                  [disabled]="accessLevel() < 2"></button>
                         </td>
                       </tr>
                     </ng-template>
@@ -686,325 +520,260 @@
                   </p-table>
                 </div>
                 <div *ngIf="collectionType === 'STIG Manager'" class="stepper-content">
-                  <cpat-stigmanager-poam-assets-table
-                    [stigmanCollectionId]="originCollectionId"
-                    [groupId]="poam.vulnerabilityId"
-                    [benchmarkId]="poam.stigBenchmarkId"
-                  ></cpat-stigmanager-poam-assets-table>
+                  <cpat-stigmanager-poam-assets-table [stigmanCollectionId]="originCollectionId"
+                                                      [groupId]="poam.vulnerabilityId"
+                                                      [benchmarkId]="poam.stigBenchmarkId">
+                  </cpat-stigmanager-poam-assets-table>
                 </div>
                 <div *ngIf="collectionType === 'Tenable'" class="stepper-content">
-                  <cpat-tenable-assets-table
-                    [pluginID]="poam.vulnerabilityId"
-                    [tenableRepoId]="originCollectionId"
-                  ></cpat-tenable-assets-table>
+                  <cpat-tenable-assets-table [pluginID]="poam.vulnerabilityId"
+                                             [tenableRepoId]="originCollectionId">
+                  </cpat-tenable-assets-table>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(2)"
-                  ></p-button>
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(4)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(2)"></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            (onClick)="activateCallback(4)"></p-button>
                 </div>
               </div>
             </ng-template>
           </p-step-panel>
 
           <!-- Predisposing Conditions -->
-          <p-step-panel [value]="4">
+          <p-step-panel [value]="3">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <i
-                    class="pi pi-info-circle mb-4"
-                    style="color: var(--p-text-color)"
-                    pTooltip="Predisposing Conditions: A condition existing within an organization, a mission or business process, enterprise architecture, information system, or environment of operation, which affects (i.e., increases or decreases) the likelihood that threat events, once initiated, result in adverse impacts."
-                  ></i>
-                  <textarea
-                    pTextarea
-                    class="w-full"
-                    [(ngModel)]="poam.predisposingConditions"
-                    name="predisposingConditions"
-                    [rows]="16"
-                    [maxlength]="2000"
-                    placeholder="Predisposing conditions..."
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-                  ></textarea>
+                  <i class="pi pi-info-circle mb-4"
+                     style="color: var(--p-text-color)"
+                     pTooltip="Predisposing Conditions: A condition existing within an organization, a mission or business process, enterprise architecture, information system, or environment of operation, which affects (i.e., increases or decreases) the likelihood that threat events, once initiated, result in adverse impacts."></i>
+                  <textarea pTextarea
+                            class="w-full"
+                            [(ngModel)]="poam.predisposingConditions"
+                            name="predisposingConditions"
+                            [rows]="16"
+                            [maxlength]="2000"
+                            placeholder="Predisposing conditions..."
+                            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></textarea>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(3)"
-                  ></p-button>
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(5)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(3)"></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            (onClick)="activateCallback(5)"></p-button>
                 </div>
               </div>
             </ng-template>
           </p-step-panel>
 
           <!-- Mitigations -->
-          <p-step-panel [value]="5">
+          <p-step-panel [value]="4">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
-                  <div class="stepper-content">
-                      <i class="pi pi-info-circle mb-4"
-                         style="color: var(--p-text-color)"
-                         pTooltip="Mitigations: Any currently implemented mitigations and/or compensating Controls that will reduce the risk. A planned mitigation or compensating Control cannot lower risk until implemented."></i>
-                      <button pButton
-                              *ngIf="aiEnabled && ((poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) || (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData))"
-                              type="button"
-                              class="p-button-outlined p-button-primary p-button-text ml-2"
-                              icon="pi pi-sync"
-                              [loading]="mitigationLoading"
-                              pTooltip="**EXPERIMENTAL** Automate mitigation statement"
-                              (click)="automateMitigation()"></button>
-                      <div class="relative">
-                          <textarea pTextarea
-                                    class="w-full"
-                                    [(ngModel)]="poam.mitigations"
-                                    name="mitigations"
-                                    [rows]="16"
-                                    [maxlength]="10000"
-                                    placeholder="Mitigations..."
-                                    [disabled]="accessLevel < 2 || mitigationLoading"></textarea>
-                          <div *ngIf="mitigationLoading"
-                               class="p-textarea-background/50 absolute left-0 top-0 flex h-full w-full items-center justify-center">
-                          </div>
-                      </div>
+                <div class="stepper-content">
+                  <i class="pi pi-info-circle mb-4"
+                     style="color: var(--p-text-color)"
+                     pTooltip="Mitigations: Any currently implemented mitigations and/or compensating Controls that will reduce the risk. A planned mitigation or compensating Control cannot lower risk until implemented."></i>
+                  <button pButton
+                          *ngIf="aiEnabled && ((poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) || (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData))"
+                          type="button"
+                          class="p-button-outlined p-button-primary p-button-text ml-2"
+                          icon="pi pi-sync"
+                          [loading]="mitigationLoading()"
+                          pTooltip="**EXPERIMENTAL** Automate mitigation statement"
+                          (click)="automateMitigation()"></button>
+                  <div class="relative">
+                    <textarea pTextarea
+                              class="w-full"
+                              [(ngModel)]="poam.mitigations"
+                              name="mitigations"
+                              [rows]="16"
+                              [maxlength]="10000"
+                              placeholder="Mitigations..."
+                              [disabled]="accessLevel() < 2 || mitigationLoading()"></textarea>
+                    <div *ngIf="mitigationLoading()"
+                         class="p-textarea-background/50 absolute left-0 top-0 flex h-full w-full items-center justify-center">
+                    </div>
                   </div>
+                </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(4)"
-                  ></p-button>
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(6)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(4)"></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            (onClick)="activateCallback(6)"></p-button>
                 </div>
               </div>
             </ng-template>
           </p-step-panel>
 
           <!-- Required Resources -->
-          <p-step-panel [value]="6">
+          <p-step-panel [value]="5">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <i
-                    class="pi pi-info-circle mb-4"
-                    style="color: var(--p-text-color)"
-                    pTooltip="Resources Required: Estimated funding or manpower resources required to resolve the security vulnerability (i.e., full-time equivalent)."
-                  ></i>
-                  <textarea
-                    pTextarea
-                    class="w-full"
-                    [(ngModel)]="poam.requiredResources"
-                    name="requiredResources"
-                    [rows]="16"
-                    [maxlength]="10000"
-                    placeholder="Required Resources..."
-                    [disabled]="accessLevel < 2"
-                  ></textarea>
+                  <i class="pi pi-info-circle mb-4"
+                     style="color: var(--p-text-color)"
+                     pTooltip="Resources Required: Estimated funding or manpower resources required to resolve the security vulnerability (i.e., full-time equivalent)."></i>
+                  <textarea pTextarea
+                            class="w-full"
+                            [(ngModel)]="poam.requiredResources"
+                            name="requiredResources"
+                            [rows]="16"
+                            [maxlength]="10000"
+                            placeholder="Required Resources..."
+                            [disabled]="accessLevel() < 2"></textarea>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(5)"
-                  ></p-button>
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(7)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(5)"></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            (onClick)="activateCallback(7)"></p-button>
                 </div>
               </div>
             </ng-template>
           </p-step-panel>
 
           <!-- Risk & Impact -->
-          <p-step-panel [value]="7">
+          <p-step-panel [value]="6">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
                   <div class="form-group">
                     <label for="localImpact">Local Impact:</label>
-                    <p-select
-                      [options]="ratingOptions"
-                      [(ngModel)]="poam.localImpact"
-                      id="localImpact"
-                      name="localImpact"
-                      placeholder="Local Impact..."
-                      optionLabel="label"
-                      optionValue="value"
-                      [style]="{'width':'100%'}"
-                    >
+                    <p-select [options]="ratingOptions"
+                              [(ngModel)]="poam.localImpact"
+                              id="localImpact"
+                              name="localImpact"
+                              placeholder="Local Impact..."
+                              optionLabel="label"
+                              optionValue="value"
+                              [style]="{'width':'100%'}">
                     </p-select>
                   </div>
 
                   <div class="form-group">
-                    <label for="impactDescription"
-                      ><i
-                        class="pi pi-info-circle mr-4"
-                        style="color: var(--p-text-color)"
-                        pTooltip="Impact Description: Describe the identified impact."
-                      ></i
-                      >Impact Description:
+                    <label for="impactDescription">
+                      <i class="pi pi-info-circle mr-4"
+                         style="color: var(--p-text-color)"
+                         pTooltip="Impact Description: Describe the identified impact."></i>Impact Description:
                     </label>
-                    <textarea
-                      pTextarea
-                      class="w-full"
-                      [(ngModel)]="poam.impactDescription"
-                      name="impactDescription"
-                      [rows]="16"
-                      [maxlength]="2000"
-                      placeholder="Impact Description..."
-                      [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel < 2"
-                    ></textarea>
+                    <textarea pTextarea
+                              class="w-full"
+                              [(ngModel)]="poam.impactDescription"
+                              name="impactDescription"
+                              [rows]="16"
+                              [maxlength]="2000"
+                              placeholder="Impact Description..."
+                              [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></textarea>
                   </div>
 
                   <div class="form-group">
-                    <label for="residualRisk"
-                      ><i
-                        class="pi pi-info-circle mr-2"
-                        style="color: var(--p-text-color)"
-                        pTooltip="Residual Risk is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Residual Risk is determined by the Raw Severity."
-                      ></i
-                      >Residual Risk:</label
-                    >
-                    <p-select
-                      [options]="ratingOptions"
-                      [(ngModel)]="poam.residualRisk"
-                      name="residualRisk"
-                      placeholder="Residual Risk..."
-                      optionLabel="label"
-                      optionValue="value"
-                      [style]="{'width':'100%'}"
-                      [disabled]="true"
-                    >
+                    <label for="residualRisk">
+                      <i class="pi pi-info-circle mr-2"
+                         style="color: var(--p-text-color)"
+                         pTooltip="Residual Risk is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Residual Risk is determined by the Raw Severity."></i>Residual Risk:
+                    </label>
+                    <p-select [options]="ratingOptions"
+                              [ngModel]="residualRisk()"
+                              name="residualRisk"
+                              placeholder="Residual Risk..."
+                              optionLabel="label"
+                              optionValue="value"
+                              [style]="{'width':'100%'}"
+                              [disabled]="true">
                     </p-select>
                   </div>
 
                   <div class="form-group">
-                    <label for="likelihood"
-                      ><i
-                        class="pi pi-info-circle mr-2"
-                        style="color: var(--p-text-color)"
-                        pTooltip="Likelihood is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Likelihood is determined by the Raw Severity."
-                      ></i
-                      >Likelihood:</label
-                    >
-                    <p-select
-                      [options]="ratingOptions"
-                      [(ngModel)]="poam.likelihood"
-                      id="likelihood"
-                      name="likelihood"
-                      placeholder="Likelihood..."
-                      optionLabel="label"
-                      optionValue="value"
-                      [style]="{'width':'100%'}"
-                      [disabled]="true"
-                    >
+                    <label for="likelihood">
+                      <i class="pi pi-info-circle mr-2"
+                         style="color: var(--p-text-color)"
+                         pTooltip="Likelihood is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Likelihood is determined by the Raw Severity."></i>Likelihood:
+                    </label>
+                    <p-select [options]="ratingOptions"
+                              [ngModel]="likelihood()"
+                              id="likelihood"
+                              name="likelihood"
+                              placeholder="Likelihood..."
+                              optionLabel="label"
+                              optionValue="value"
+                              [style]="{'width':'100%'}"
+                              [disabled]="true">
                     </p-select>
                   </div>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(6)"
-                  ></p-button>
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(8)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(6)"></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            (onClick)="activateCallback(8)"></p-button>
                 </div>
               </div>
             </ng-template>
           </p-step-panel>
 
           <!-- Milestones -->
-          <p-step-panel [value]="8">
+          <p-step-panel [value]="7">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <i
-                    class="pi pi-info-circle mb-4"
-                    style="color: var(--p-text-color)"
-                    pTooltip="Milestone with Completion Dates: A milestone identifies specific requirements for correcting an identified vulnerability. The initial milestones and completion dates may not be altered. Any changes to the milestones should be noted in the Milestone Changes within the POAM extension panel."
-                  ></i>
+                  <i class="pi pi-info-circle mb-4"
+                     style="color: var(--p-text-color)"
+                     pTooltip="Milestone with Completion Dates: A milestone identifies specific requirements for correcting an identified vulnerability. The initial milestones and completion dates may not be altered. Any changes to the milestones should be noted in the Milestone Changes within the POAM extension panel."></i>
                   <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
                     <ng-template pTemplate="header">
                       <tr>
                         <th scope="col">Milestone Comments</th>
-                        <th scope="col" pSortableColumn="milestoneDate">
-                          Milestone Due Date <p-sortIcon field="milestoneDate"></p-sortIcon>
-                        </th>
-                        <th scope="col" pSortableColumn="milestoneStatus">
-                          Milestone Status <p-sortIcon field="milestoneStatus"></p-sortIcon>
-                        </th>
-                        <th scope="col" pSortableColumn="milestoneTeam">
-                          Milestone Team <p-sortIcon field="milestoneTeam"></p-sortIcon>
-                        </th>
+                        <th pSortableColumn="milestoneDate" scope="col">Milestone Due Date</th>
+                        <th pSortableColumn="milestoneStatus" scope="col"></th>
+                        <th pSortableColumn="assignedTeamId" scope="col"></th>
                         <th *ngIf="poam.status === 'Draft'" scope="col">
-                          <button
-                            pButton
-                            icon="pi pi-plus"
-                            class="p-button-text"
-                            (click)="onAddNewMilestone()"
-                            [disabled]="accessLevel < 2"
-                          ></button>
+                          <button pButton
+                                  icon="pi pi-plus"
+                                  class="p-button-text"
+                                  (click)="onAddNewMilestone()"
+                                  [disabled]="accessLevel() < 2"></button>
                         </th>
                         <th *ngIf="poam.status !== 'Draft'" scope="col">
-                          <button
-                            pButton
-                            icon="pi pi-plus"
-                            class="p-button-text"
-                            severity="secondary"
-                            pTooltip="Milestones can only be added when the POAM status is Draft"
-                            [disabled]="accessLevel < 2"
-                          ></button>
+                          <button pButton
+                                  icon="pi pi-plus"
+                                  class="p-button-text"
+                                  severity="secondary"
+                                  pTooltip="Milestones can only be added when the POAM status is Draft"
+                                  [disabled]="accessLevel() < 2"></button>
                         </th>
                       </tr>
                     </ng-template>
-                    <ng-template
-                      pTemplate="body"
-                      let-milestone
-                      let-editing="editing"
-                      let-ri="rowIndex"
-                    >
-                      <tr
-                        [pEditableRow]="milestone"
-                        [class.p-highlight]="milestone.editing || editingMilestoneId === milestone.milestoneId"
-                      >
+                    <ng-template pTemplate="body"
+                                 let-milestone
+                                 let-editing="editing"
+                                 let-ri="rowIndex">
+                      <tr [pEditableRow]="milestone"
+                          [class.p-highlight]="milestone.editing || editingMilestoneId === milestone.milestoneId">
                         <td>
                           <p-cellEditor>
                             <ng-template pTemplate="input">
-                              <textarea
-                                pTextarea
-                                class="w-full"
-                                [rows]="2"
-                                [(ngModel)]="milestone.milestoneComments"
-                                [disabled]="accessLevel < 2"
-                              ></textarea>
+                              <textarea pTextarea
+                                        class="w-full"
+                                        [rows]="2"
+                                        [(ngModel)]="milestone.milestoneComments"
+                                        [disabled]="accessLevel() < 2"></textarea>
                             </ng-template>
                             <ng-template pTemplate="output">
                               {{milestone.milestoneComments}}
@@ -1014,13 +783,11 @@
                         <td>
                           <p-cellEditor>
                             <ng-template pTemplate="input">
-                              <p-datepicker
-                                [(ngModel)]="milestone.milestoneDate"
-                                dateFormat="yy-mm-dd"
-                                [showIcon]="true"
-                                appendTo="body"
-                                [disabled]="accessLevel < 2"
-                              ></p-datepicker>
+                              <p-datepicker [(ngModel)]="milestone.milestoneDate"
+                                            dateFormat="yy-mm-dd"
+                                            [showIcon]="true"
+                                            appendTo="body"
+                                            [disabled]="accessLevel() < 2"></p-datepicker>
                             </ng-template>
                             <ng-template pTemplate="output">
                               {{milestone.milestoneDate | date:'yyyy-MM-dd'}}
@@ -1030,13 +797,11 @@
                         <td>
                           <p-cellEditor>
                             <ng-template pTemplate="input">
-                              <p-select
-                                [options]="milestoneStatusOptions"
-                                [(ngModel)]="milestone.milestoneStatus"
-                                [style]="{'width':'100%'}"
-                                appendTo="body"
-                                [disabled]="accessLevel < 2"
-                              ></p-select>
+                              <p-select [options]="milestoneStatusOptions"
+                                        [(ngModel)]="milestone.milestoneStatus"
+                                        [style]="{'width':'100%'}"
+                                        appendTo="body"
+                                        [disabled]="accessLevel() < 2"></p-select>
                             </ng-template>
                             <ng-template pTemplate="output">
                               {{milestone.milestoneStatus}}
@@ -1046,78 +811,64 @@
                         <td>
                           <p-cellEditor>
                             <ng-template pTemplate="input">
-                              <p-select
-                                [options]="assignedTeamOptions"
-                                [(ngModel)]="milestone.milestoneTeam"
-                                optionLabel="assignedTeamName"
-                                optionValue="assignedTeamName"
-                                [style]="{'width':'100%'}"
-                                appendTo="body"
-                                [disabled]="accessLevel < 2"
-                              ></p-select>
+                              <p-select [options]="assignedTeamOptions"
+                                        [(ngModel)]="milestone.assignedTeamId"
+                                        optionLabel="assignedTeamName"
+                                        optionValue="assignedTeamId"
+                                        [style]="{'width':'100%'}"
+                                        appendTo="body"
+                                        [disabled]="accessLevel() < 2"></p-select>
                             </ng-template>
                             <ng-template pTemplate="output">
-                              {{milestone.milestoneTeam}}
+                              <span>{{getTeamName(milestone.assignedTeamId)}}</span>
                             </ng-template>
                           </p-cellEditor>
                         </td>
                         <td>
-                          <button
-                            *ngIf="!milestone.editing && !editingMilestoneId && poam.status === 'Draft'"
-                            pButton
-                            type="button"
-                            pInitEditableRow
-                            icon="pi pi-pencil"
-                            (click)="onRowEditInit(milestone)"
-                            class="p-button-rounded p-button-text"
-                            [disabled]="accessLevel < 2"
-                          ></button>
-                          <button
-                            *ngIf="(milestone.editing || editingMilestoneId === milestone.milestoneId) && poam.status === 'Draft'"
-                            pButton
-                            type="button"
-                            icon="pi pi-check"
-                            (click)="onRowEditSave(milestone)"
-                            class="p-button-rounded p-button-text p-button-success mr-2"
-                            [disabled]="accessLevel < 2"
-                          ></button>
-                          <button
-                            *ngIf="(milestone.editing || editingMilestoneId === milestone.milestoneId) && poam.status === 'Draft'"
-                            pButton
-                            type="button"
-                            pCancelEditableRow
-                            icon="pi pi-times"
-                            (click)="onRowEditCancel(milestone, ri)"
-                            class="p-button-rounded p-button-text p-button-danger"
-                            [disabled]="accessLevel < 2"
-                          ></button>
-                          <button
-                            *ngIf="!milestone.editing && !editingMilestoneId && !milestone.isNew && poam.status === 'Draft'"
-                            pButton
-                            type="button"
-                            icon="pi pi-trash"
-                            (click)="deleteMilestone(milestone, ri)"
-                            class="p-button-rounded p-button-text p-button-danger"
-                            [disabled]="accessLevel < 2"
-                          ></button>
-                          <button
-                            *ngIf="!milestone.editing && !editingMilestoneId && poam.status !== 'Draft'"
-                            pButton
-                            type="button"
-                            icon="pi pi-pencil"
-                            class="p-button-rounded p-button-text p-button-secondary"
-                            pTooltip="Milestones can only be modified when the POAM status is Draft"
-                            [disabled]="accessLevel < 2"
-                          ></button>
-                          <button
-                            *ngIf="!milestone.editing && !editingMilestoneId && !milestone.isNew && poam.status !== 'Draft'"
-                            pButton
-                            type="button"
-                            icon="pi pi-trash"
-                            class="p-button-rounded p-button-text p-button-secondary"
-                            pTooltip="Milestones can only be deleted when the POAM status is Draft"
-                            [disabled]="accessLevel < 2"
-                          ></button>
+                          <button *ngIf="!milestone.editing && !editingMilestoneId && poam.status === 'Draft'"
+                                  pButton
+                                  type="button"
+                                  pInitEditableRow
+                                  icon="pi pi-pencil"
+                                  (click)="onRowEditInit(milestone)"
+                                  class="p-button-rounded p-button-text"
+                                  [disabled]="accessLevel() < 2"></button>
+                          <button *ngIf="(milestone.editing || editingMilestoneId === milestone.milestoneId) && poam.status === 'Draft'"
+                                  pButton
+                                  type="button"
+                                  icon="pi pi-check"
+                                  (click)="onRowEditSave(milestone)"
+                                  class="p-button-rounded p-button-text p-button-success mr-2"
+                                  [disabled]="accessLevel() < 2"></button>
+                          <button *ngIf="(milestone.editing || editingMilestoneId === milestone.milestoneId) && poam.status === 'Draft'"
+                                  pButton
+                                  type="button"
+                                  pCancelEditableRow
+                                  icon="pi pi-times"
+                                  (click)="onRowEditCancel(milestone, ri)"
+                                  class="p-button-rounded p-button-text p-button-danger"
+                                  [disabled]="accessLevel() < 2"></button>
+                          <button *ngIf="!milestone.editing && !editingMilestoneId && !milestone.isNew && poam.status === 'Draft'"
+                                  pButton
+                                  type="button"
+                                  icon="pi pi-trash"
+                                  (click)="deleteMilestone(milestone, ri)"
+                                  class="p-button-rounded p-button-text p-button-danger"
+                                  [disabled]="accessLevel() < 2"></button>
+                          <button *ngIf="!milestone.editing && !editingMilestoneId && poam.status !== 'Draft'"
+                                  pButton
+                                  type="button"
+                                  icon="pi pi-pencil"
+                                  class="p-button-rounded p-button-text p-button-secondary"
+                                  pTooltip="Milestones can only be modified when the POAM status is Draft"
+                                  [disabled]="accessLevel() < 2"></button>
+                          <button *ngIf="!milestone.editing && !editingMilestoneId && !milestone.isNew && poam.status !== 'Draft'"
+                                  pButton
+                                  type="button"
+                                  icon="pi pi-trash"
+                                  class="p-button-rounded p-button-text p-button-secondary"
+                                  pTooltip="Milestones can only be deleted when the POAM status is Draft"
+                                  [disabled]="accessLevel() < 2"></button>
                         </td>
                       </tr>
                     </ng-template>
@@ -1129,39 +880,33 @@
                   </p-table>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(7)"
-                  ></p-button>
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(9)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(7)"></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            (onClick)="activateCallback(9)"></p-button>
                 </div>
               </div>
             </ng-template>
           </p-step-panel>
 
           <!-- Labels -->
-          <p-step-panel [value]="9">
+          <p-step-panel [value]="8">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
                   <p-table [value]="poamLabels" [paginator]="false">
                     <ng-template pTemplate="header">
                       <tr>
-                        <th scope="col">Label</th>
+                        <th pSortableColumn="labelName" scope="col">Label</th>
                         <th scope="col" style="width: 8rem">
-                          <button
-                            pButton
-                            icon="pi pi-plus"
-                            (click)="addLabel()"
-                            class="p-button-rounded p-button-text"
-                            [disabled]="accessLevel < 2"
-                          ></button>
+                          <button pButton
+                                  icon="pi pi-plus"
+                                  (click)="addLabel()"
+                                  class="p-button-rounded p-button-text"
+                                  [disabled]="accessLevel() < 2"></button>
                         </th>
                       </tr>
                     </ng-template>
@@ -1169,26 +914,22 @@
                       <tr>
                         <td>
                           <span *ngIf="!label.isNew">{{label.labelName}}</span>
-                          <p-select
-                            *ngIf="label.isNew"
-                            [options]="labelList"
-                            [(ngModel)]="label.labelId"
-                            optionLabel="labelName"
-                            optionValue="labelId"
-                            [style]="{'width':'100%'}"
-                            (onChange)="onLabelChange(label, rowIndex)"
-                            appendTo="body"
-                            [disabled]="accessLevel < 2"
-                          ></p-select>
+                          <p-select *ngIf="label.isNew"
+                                    [options]="labelList"
+                                    [(ngModel)]="label.labelId"
+                                    optionLabel="labelName"
+                                    optionValue="labelId"
+                                    [style]="{'width':'100%'}"
+                                    (onChange)="onLabelChange(label, rowIndex)"
+                                    appendTo="body"
+                                    [disabled]="accessLevel() < 2"></p-select>
                         </td>
                         <td>
-                          <button
-                            pButton
-                            icon="pi pi-trash"
-                            (click)="deleteLabel(label, rowIndex)"
-                            class="p-button-rounded p-button-text p-button-danger"
-                            [disabled]="accessLevel < 2"
-                          ></button>
+                          <button pButton
+                                  icon="pi pi-trash"
+                                  (click)="deleteLabel(label, rowIndex)"
+                                  class="p-button-rounded p-button-text p-button-danger"
+                                  [disabled]="accessLevel() < 2"></button>
                         </td>
                       </tr>
                     </ng-template>
@@ -1200,121 +941,95 @@
                   </p-table>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(8)"
-                  ></p-button>
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(10)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(8)"></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            (onClick)="activateCallback(10)"></p-button>
                 </div>
               </div>
             </ng-template>
           </p-step-panel>
 
           <!-- Attachments -->
-          <p-step-panel [value]="10">
+          <p-step-panel [value]="9">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <cpat-poam-attachments
-                    *ngIf="poamSaved()"
-                    [poamId]="poam.poamId"
-                  ></cpat-poam-attachments>
+                  <cpat-poam-attachments *ngIf="poamSaved()"
+                                         [poamId]="poam.poamId"></cpat-poam-attachments>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(9)"
-                  ></p-button>
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    (onClick)="activateCallback(11)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(9)"></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            (onClick)="activateCallback(11)"></p-button>
                 </div>
               </div>
             </ng-template>
           </p-step-panel>
 
           <!-- Associated Vulnerabilities -->
-          <p-step-panel [value]="11">
+          <p-step-panel [value]="10">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
                   <p-table [value]="poamAssociatedVulnerabilities" [paginator]="false">
                     <ng-template pTemplate="header">
                       <tr>
-                        <th scope="col">Associated Vulnerability</th>
-                        <th
-                          scope="col"
-                          style="width: 8rem"
-                          pTooltip="Associating additional vulnerabilities is restricted to CAT-I Approvers."
-                          tooltipPosition="top"
-                          *ngIf="accessLevel < 4"
-                        >
-                          <button
-                            pButton
-                            icon="pi pi-plus"
-                            class="p-button-rounded p-button-text"
-                            [disabled]="accessLevel < 4"
-                          ></button>
+                        <th pSortableColumn="associatedVulnerability" scope="col">Associated Vulnerability</th>
+                        <th scope="col"
+                            style="width: 8rem"
+                            pTooltip="Associating additional vulnerabilities is restricted to CAT-I Approvers."
+                            tooltipPosition="top"
+                            *ngIf="accessLevel() < 4">
+                          <button pButton
+                                  icon="pi pi-plus"
+                                  class="p-button-rounded p-button-text"
+                                  [disabled]="accessLevel() < 4"></button>
                         </th>
-                        <th scope="col" style="width: 8rem" *ngIf="accessLevel >= 4">
-                          <button
-                            pButton
-                            icon="pi pi-plus"
-                            (click)="addAssociatedVulnerability()"
-                            class="p-button-rounded p-button-text"
-                            [disabled]="accessLevel < 4"
-                          ></button>
+                        <th scope="col" style="width: 8rem" *ngIf="accessLevel() >= 4">
+                          <button pButton
+                                  icon="pi pi-plus"
+                                  (click)="addAssociatedVulnerability()"
+                                  class="p-button-rounded p-button-text"
+                                  [disabled]="accessLevel() < 4"></button>
                         </th>
                       </tr>
                     </ng-template>
-                    <ng-template
-                      pTemplate="body"
-                      let-associatedVulnerability
-                      let-rowIndex="rowIndex"
-                    >
+                    <ng-template pTemplate="body"
+                                 let-associatedVulnerability
+                                 let-rowIndex="rowIndex">
                       <tr>
                         <td>
-                          <span *ngIf="!associatedVulnerability.isNew"
-                            >{{associatedVulnerability.associatedVulnerability}}</span
-                          >
-                          <input
-                            *ngIf="associatedVulnerability.isNew"
-                            type="text"
-                            pInputText
-                            class="w-full"
-                            [(ngModel)]="associatedVulnerability.associatedVulnerability"
-                            [maxlength]="15"
-                            name="associatedVulnerability"
-                            placeholder="Plugin ID / Vulnerability ID..."
-                            [disabled]="accessLevel < 4"
-                          />
+                          <span *ngIf="!associatedVulnerability.isNew">{{associatedVulnerability.associatedVulnerability}}</span>
+                          <input *ngIf="associatedVulnerability.isNew"
+                                 type="text"
+                                 pInputText
+                                 class="w-full"
+                                 [(ngModel)]="associatedVulnerability.associatedVulnerability"
+                                 [maxlength]="15"
+                                 name="associatedVulnerability"
+                                 placeholder="Plugin ID / Vulnerability ID..."
+                                 [disabled]="accessLevel() < 4" />
                         </td>
                         <td>
-                          <button
-                            pButton
-                            icon="pi pi-check"
-                            *ngIf="associatedVulnerability.isNew"
-                            (click)="onAssociatedVulnerabilityChange(associatedVulnerability, rowIndex)"
-                            class="p-button-rounded p-button-text p-button-success"
-                            [disabled]="accessLevel < 4"
-                          ></button>
-                          <button
-                            pButton
-                            icon="pi pi-trash"
-                            (click)="deleteAssociatedVulnerability(associatedVulnerability, rowIndex)"
-                            class="p-button-rounded p-button-text p-button-danger"
-                            [disabled]="accessLevel < 4"
-                          ></button>
+                          <button pButton
+                                  icon="pi pi-check"
+                                  *ngIf="associatedVulnerability.isNew"
+                                  (click)="onAssociatedVulnerabilityChange(associatedVulnerability, rowIndex)"
+                                  class="p-button-rounded p-button-text p-button-success"
+                                  [disabled]="accessLevel() < 4"></button>
+                          <button pButton
+                                  icon="pi pi-trash"
+                                  (click)="deleteAssociatedVulnerability(associatedVulnerability, rowIndex)"
+                                  class="p-button-rounded p-button-text p-button-danger"
+                                  [disabled]="accessLevel() < 4"></button>
                         </td>
                       </tr>
                     </ng-template>
@@ -1326,11 +1041,9 @@
                   </p-table>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button
-                    styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                    icon="pi pi-arrow-left"
-                    (onClick)="activateCallback(10)"
-                  ></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(10)"></p-button>
                 </div>
               </div>
             </ng-template>
@@ -1340,41 +1053,33 @@
     </p-footer>
     <!-- Buttons -->
     <p-footer>
-      <button
-        pButton
-        type="button"
-        label="Save"
-        class="p-button-outlined p-button-primary"
-        [disabled]="accessLevel < 2"
-        (click)="savePoam()"
-        style="margin-left: 20px; margin-top: 20px"
-      ></button>
-      <button
-        pButton
-        type="button"
-        label="Submit"
-        class="p-button-outlined p-button-success"
-        (click)="verifySubmitPoam()"
-        style="margin-left: 20px"
-      ></button>
-      <button
-        pButton
-        type="button"
-        label="Cancel"
-        class="p-button-outlined p-button-secondary"
-        (click)="cancelPoam()"
-        style="margin-left: 20px"
-      ></button>
+      <button pButton
+              type="button"
+              label="Save"
+              class="p-button-outlined p-button-primary"
+              [disabled]="accessLevel() < 2"
+              (click)="savePoam()"
+              style="margin-left: 20px; margin-top: 20px"></button>
+      <button pButton
+              type="button"
+              label="Submit"
+              class="p-button-outlined p-button-success"
+              (click)="verifySubmitPoam()"
+              style="margin-left: 20px"></button>
+      <button pButton
+              type="button"
+              label="Cancel"
+              class="p-button-outlined p-button-secondary"
+              (click)="cancelPoam()"
+              style="margin-left: 20px"></button>
     </p-footer>
   </p-card>
 </div>
 
-<p-dialog
-  [(visible)]="submitDialogVisible"
-  [modal]="true"
-  [style]="{width: '500px'}"
-  [baseZIndex]="10000"
->
+<p-dialog [(visible)]="submitDialogVisible"
+          [modal]="true"
+          [style]="{width: '500px'}"
+          [baseZIndex]="10000">
   <div class="confirm-popup">
     <div class="icon-container">
       <i class="pi pi-exclamation-triangle"></i>
@@ -1387,41 +1092,33 @@
   </div>
   <ng-template pTemplate="footer" let-dialog>
     <div style="display: flex; justify-content: space-between; width: 100%">
-      <p-button
-        [text]="true"
-        [raised]="true"
-        (click)="cancelSubmit()"
-        (onKeyUp)="cancelSubmit()"
-        label="Cancel"
-        severity="danger"
-      ></p-button>
-      <p-button
-        [text]="true"
-        [raised]="true"
-        (click)="confirmSubmit()"
-        (onKeyUp)="confirmSubmit()"
-        label="Submit"
-      ></p-button>
+      <p-button [text]="true"
+                [raised]="true"
+                (click)="cancelSubmit()"
+                (onKeyUp)="cancelSubmit()"
+                label="Cancel"
+                severity="danger"></p-button>
+      <p-button [text]="true"
+                [raised]="true"
+                (click)="confirmSubmit()"
+                (onKeyUp)="confirmSubmit()"
+                label="Submit"></p-button>
     </div>
   </ng-template>
 </p-dialog>
 
-<p-dialog
-  header="{{errorHeader}}"
-  [(visible)]="errorDialogVisible"
-  [modal]="true"
-  [style]="{width: '300px'}"
-  [baseZIndex]="10000"
->
+<p-dialog header="{{errorHeader}}"
+          [(visible)]="errorDialogVisible"
+          [modal]="true"
+          [style]="{width: '300px'}"
+          [baseZIndex]="10000">
   <p>{{errorMessage}}</p>
   <ng-template pTemplate="footer">
-    <p-button
-      icon="pi pi-check"
-      (click)="hideErrorDialog()"
-      (onKeyUp)="hideErrorDialog()"
-      label="OK"
-      styleClass="p-button-text"
-    ></p-button>
+    <p-button icon="pi pi-check"
+              (click)="hideErrorDialog()"
+              (onKeyUp)="hideErrorDialog()"
+              label="OK"
+              styleClass="p-button-text"></p-button>
   </ng-template>
 </p-dialog>
 

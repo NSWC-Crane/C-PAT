@@ -61,28 +61,27 @@ module.exports.importVRAMExcel = async (req, res, next) => {
     });
 };
 
-module.exports.importAssetListExcel = async (req, res, next) => {
+module.exports.importAssetListFile = async (req, res, next) => {
     const file = req.files[0];
 
     if (!file) {
         return res.status(400).json({ message: "No file uploaded" });
     }
 
-    importService.excelFilter(req, file, async (err) => {
+    importService.excelAndCsvFilter(req, file, async (err) => {
         if (err) {
             return res.status(400).json({
                 message: err.message,
             });
         } else {
             try {
-                const result = await importService.importAssetListExcel(file);
+                const result = await importService.importAssetListFile(file);
                 res.status(201).json(result);
             } catch (error) {
                 res.status(500).json({
                     message: "Could not process the file",
                     error: error.message,
                 });
-                throw new SmError.UnprocessableError('Error processing Asset List file.');
             }
         }
     });

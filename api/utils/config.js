@@ -46,7 +46,7 @@ let config = {
     },
     docs: {
         disabled: process.env.CPAT_DOCS_DISABLED ? process.env.CPAT_DOCS_DISABLED === "true" : false,
-        docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../../docs/_build/html',
+        docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../docs/_build/html',
     },
     http: {
         address: process.env.CPAT_API_ADDRESS || "127.0.0.1",
@@ -86,7 +86,7 @@ let config = {
     },
     oauth: {
         clientId: process.env.CPAT_OIDC_CLIENT_ID || "c-pat",
-        authority: process.env.CPAT_OIDC_PROVIDER || "http://192.168.1.101:8080/auth/realms/RMFTools",
+        authority: process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/realms/RMFTools",
         claims: {
             scope: process.env.CPAT_JWT_SCOPE_CLAIM || "scope",
             username: process.env.CPAT_JWT_USERNAME_CLAIM || "preferred_username",

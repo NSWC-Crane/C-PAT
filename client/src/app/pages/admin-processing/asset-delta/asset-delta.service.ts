@@ -8,9 +8,9 @@
 !##########################################################################
 */
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 import { HttpEvent } from '@angular/common/http';
 
 @Injectable({
@@ -21,13 +21,34 @@ export class AssetDeltaService {
 
   constructor(private http: HttpClient) { }
 
+  private handleError(error: HttpErrorResponse) {
+    if (error.error instanceof ErrorEvent) {
+      console.error('An error occurred:', error.error.message);
+    } else {
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
+    }
+    return throwError(() => new Error('Something bad happened; please try again later.'));
+  }
+
   upload(file: File): Observable<HttpEvent<any>> {
     const formData = new FormData();
-    formData.append('file', file, file.name);
 
-    return this.http.post(`${this.cpatApiBase}/import/assetlist`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    });
+    const contentType = file.name.endsWith('.csv') ? 'text/csv' : file.type;
+
+    const fileBlob = new Blob([file], { type: contentType });
+
+    formData.append('file', fileBlob, file.name);
+
+    return this.http
+      .post(`${this.cpatApiBase}/import/assetlist`, formData, {
+        reportProgress: true,
+        observe: 'events'
+      }).pipe(catchError(this.handleError));
+  }
+
+  getAssetDeltaList(): Observable<any> {
+    return this.http
+      .get(`${this.cpatApiBase}/assets/delta/list`)
+      .pipe(catchError(this.handleError));
   }
 }

@@ -4,8 +4,8 @@ project = 'C-PAT'
 copyright = '2024 U.S. Federal Government (in countries where recognized)'
 author = 'Christian Rodriguez'
 
-release = '1.0.0-rc.7'
-version = '1.0.0-rc.7'
+release = '1.0.0-rc.8'
+version = '1.0.0-rc.8'
 
 html_css_files = [
     'css/custom.css',
@@ -14,7 +14,7 @@ html_css_files = [
 extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.todo',
-    'myst_parser',    
+    'myst_parser',
     'sphinx_tabs.tabs',
     'sphinxcontrib.images',
 ]

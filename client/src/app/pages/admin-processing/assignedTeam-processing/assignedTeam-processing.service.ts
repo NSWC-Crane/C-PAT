@@ -16,6 +16,7 @@ import { catchError } from 'rxjs/operators';
 interface AssignedTeam {
   assignedTeamId: number;
   assignedTeamName: string;
+  adTeam?: string | null;
 }
 
 interface AssignedTeamPermission {

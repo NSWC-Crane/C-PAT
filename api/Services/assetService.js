@@ -142,7 +142,7 @@ exports.postAsset = async function postAsset(req, res, next) {
         return await withConnection(async (connection) => {
             let sql_query = `
                 INSERT INTO cpat.asset (assetName, fullyQualifiedDomainName,
-                collectionId, description, ipAddress, macAddress) 
+                collectionId, description, ipAddress, macAddress)
                 VALUES (?, ?, ?, ?, ?, ?)
             `;
             await connection.query(sql_query, [
@@ -156,7 +156,7 @@ exports.postAsset = async function postAsset(req, res, next) {
                 let labels = req.body.labels;
                 for (let label of labels) {
                     let sql_query = `
-                        INSERT INTO cpat.assetLabels (assetId, labelId) 
+                        INSERT INTO cpat.assetLabels (assetId, labelId)
                         VALUES (?, ?)
                     `;
                     await connection.query(sql_query, [rowAsset[0].assetId, label.labelId]);
@@ -208,8 +208,8 @@ exports.putAsset = async function putAsset(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                UPDATE cpat.asset 
-                SET assetName = ?, fullyQualifiedDomainName = ?, 
+                UPDATE cpat.asset
+                SET assetName = ?, fullyQualifiedDomainName = ?,
                 collectionId = ?, description = ?, ipAddress = ?, macAddress = ?
                 WHERE assetId = ?
             `;
@@ -276,6 +276,54 @@ exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, nex
                 let deleteSql = "DELETE FROM cpat.asset WHERE assetId IN (?)";
                 await connection.query(deleteSql, [assetIds]);
             }
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
+    try {
+        return await withConnection(async (connection) => {
+            const assetsSql = `
+                SELECT
+                    a.key,
+                    a.value,
+                    a.eMASS,
+                    t.assignedTeamId,
+                    t.assignedTeamName
+                FROM cpat.assetdeltalist a
+                LEFT JOIN cpat.assignedteams t ON a.value = t.adTeam
+            `;
+            let [rowAssets] = await connection.query(assetsSql);
+            const assets = rowAssets.map(row => ({
+                "key": row.key,
+                "value": row.value,
+                "eMASS": row.eMASS || false,
+                ...(row.assignedTeamId && {
+                    "assignedTeam": {
+                        "assignedTeamId": row.assignedTeamId,
+                        "assignedTeamName": row.assignedTeamName
+                    }
+                })
+            }));
+
+            let assetDeltaUpdated = null;
+            let emassHardwareListUpdated = null;
+
+            if (rowAssets.length > 0) {
+                const [assetDeltaConfig] = await connection.query('SELECT `value` FROM config WHERE `key` = ?', ['assetDeltaUpdated']);
+                const [emassConfig] = await connection.query('SELECT `value` FROM config WHERE `key` = ?', ['emassHardwareListUpdated']);
+
+                assetDeltaUpdated = assetDeltaConfig.length > 0 ? assetDeltaConfig[0].value : null;
+                emassHardwareListUpdated = emassConfig.length > 0 ? emassConfig[0].value : null;
+            }
+
+            return {
+                assets,
+                assetDeltaUpdated,
+                emassHardwareListUpdated
+            };
         });
     } catch (error) {
         return { error: error.message };

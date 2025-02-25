@@ -3,39 +3,42 @@
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
-! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND 
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
 
-:host ::ng-deep .focus-attention .p-button {
-  border-radius: 50% !important;
-  animation: hover-pulse 2s ease-in-out infinite;
-}
+::ng-deep {
+  .assetDeltas {
+    padding: 0rem;
 
-:host ::ng-deep {
-  cpat-vram-popup {
-    .card {
-      height: auto !important;
-      display: block !important;
-      flex-direction: unset !important;
-      min-height: unset !important;
+    .charts-container {
+      min-height: 250px;
+      height: 250px;
+
+      .chart-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
     }
-  }
-}
 
-@keyframes hover-pulse {
-  0% {
-    background-color: transparent;
-  }
-  50% {
-    background-color: rgba(74, 222, 128, 0.16);
-    box-shadow:
-      0 0 0 2px #1c2127,
-      0 0 0 4px rgba(74, 222, 128, 0.7),
-      0 1px 2px 0 rgba(0, 0, 0, 0);
-  }
-  100% {
-    background-color: transparent;
+    .p-card {
+      height: 100%;
+
+      .p-card-body {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .p-card-content {
+        padding: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+    }
   }
 }

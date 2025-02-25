@@ -8,13 +8,13 @@
 !##########################################################################
 -->
 
-<div class="grid-cols-12 grid gap-4">
+<div class="grid grid-cols-12 gap-4">
   <div class="col-span-12">
     <div class="scrollable-teams overflow-hidden">
       <p-table
         #dt
         [value]="assignedTeams"
-        [globalFilterFields]="['assignedTeamId', 'assignedTeamName']"
+        [globalFilterFields]="['assignedTeamId', 'assignedTeamName', 'adTeam']"
         [rows]="15"
         [paginator]="true"
         [scrollable]="true"
@@ -53,30 +53,32 @@
           <tr>
             <th scope="col">Assigned Team ID</th>
             <th scope="col">Assigned Team Name</th>
+            <th scope="col">AD Team</th>
             <th scope="col">Actions</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-assignedTeam>
-            <tr (click)="editTeam(assignedTeam)" class="cursor-pointer hover:surface-200">
-                <td>{{assignedTeam.assignedTeamId}}</td>
-                <td>{{assignedTeam.assignedTeamName}}</td>
-                <td>
-                    <div class="flex items-center justify-center gap-2">
-                        <button pButton
-                                pRipple
-                                type="button"
-                                icon="pi pi-pencil"
-                                class="p-button-rounded p-button-text"
-                                (click)="$event.stopPropagation(); editTeam(assignedTeam)"></button>
-                        <button pButton
-                                pRipple
-                                type="button"
-                                icon="pi pi-trash"
-                                class="p-button-rounded p-button-text p-button-danger"
-                                (click)="$event.stopPropagation(); onRowDelete(assignedTeam)"></button>
-                    </div>
-                </td>
-            </tr>
+          <tr (click)="editTeam(assignedTeam)" class="cursor-pointer hover:surface-200">
+            <td>{{assignedTeam.assignedTeamId}}</td>
+            <td>{{assignedTeam.assignedTeamName}}</td>
+            <td>{{assignedTeam.adTeam}}</td>
+            <td>
+              <div class="flex items-center justify-center gap-2">
+                <button pButton
+                        pRipple
+                        type="button"
+                        icon="pi pi-pencil"
+                        class="p-button-rounded p-button-text"
+                        (click)="$event.stopPropagation(); editTeam(assignedTeam)"></button>
+                <button pButton
+                        pRipple
+                        type="button"
+                        icon="pi pi-trash"
+                        class="p-button-rounded p-button-text p-button-danger"
+                        (click)="$event.stopPropagation(); onRowDelete(assignedTeam)"></button>
+              </div>
+            </td>
+          </tr>
         </ng-template>
       </p-table>
     </div>
@@ -87,16 +89,24 @@
   <ng-template pTemplate="content">
     <div class="mb-6">
       <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
-      <input
-        type="text"
-        pInputText
-        id="name"
-        [(ngModel)]="editingAssignedTeam!.assignedTeamName"
-        required
-        [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.assignedTeamName}"
-        maxlength="99"
-        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+      <input type="text"
+             pInputText
+             id="name"
+             [(ngModel)]="editingAssignedTeam!.assignedTeamName"
+             required
+             [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.assignedTeamName}"
+             maxlength="99"
+             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+      <label for="adTeam" class="mt-4 mb-2 block text-base font-medium">AD Team:</label>
+      <p-autoComplete id="adTeam"
+                      [(ngModel)]="editingAssignedTeam!.adTeam"
+                      [suggestions]="filteredTeams"
+                      (completeMethod)="filterTeams($event)"
+                      [dropdown]="true"
+                      [forceSelection]="true"
+                      [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.adTeam}"
+                      class="w-full"></p-autoComplete>
     </div>
     <div class="space-y-2">
       <label class="mb-2 block text-base font-medium">Team Permissions:</label>

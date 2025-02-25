@@ -10,6 +10,7 @@
 
 const multer = require("multer");
 const ExcelJS = require('exceljs');
+const fastcsv = require('fast-csv');
 const config = require('../utils/config');
 const db = require('../utils/sequelize');
 const dbUtils = require('./utils');
@@ -86,6 +87,22 @@ exports.excelFilter = (req, file, cb) => {
         cb(null, true);
     } else {
         cb(new Error('Invalid file type. Please upload only XLS, XLSX, or XLSM files.'), false);
+    }
+};
+
+exports.excelAndCsvFilter = (req, file, cb) => {
+    const validMimeTypes = [
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel.sheet.macroenabled.12',
+        'text/csv',
+        'application/csv'
+    ];
+
+    if (validMimeTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Please upload only XLS, XLSX, XLSM, or CSV files.'), false);
     }
 };
 
@@ -573,25 +590,259 @@ async function updateVRAMConfigEntry(configEntry, fileDate, transaction) {
     }
 }
 
-exports.importAssetListExcel = async function importAssetListExcel(file) {
+exports.importAssetListFile = async function importAssetListFile(file) {
     if (!file) {
-        throw new Error("Please upload an Excel file!");
+        throw new Error("Please upload an Excel or CSV file!");
     }
 
-    const workbook = await loadWorkbook(file);
-    const worksheet = getFirstWorksheet(workbook);
-    validateAssetListHeaders(worksheet);
+    const isCSV = file.mimetype === 'text/csv' || file.mimetype === 'application/csv';
 
-    try {
-        return await db.sequelize.transaction(async (t) => {
-            const assetData = extractAssetListData(worksheet);
-            await updateAssetListData(assetData, t);
-            return { message: "Asset list data updated successfully", rowsProcessed: assetData.length };
-        });
-    } catch (error) {
-        throw new Error(`Failed to update asset list data in the database: ${error.message}`);
+    if (isCSV) {
+        return await processCSVAssetList(file);
+    } else {
+        const workbook = await loadWorkbook(file);
+
+        const isEMassFile = workbook.worksheets.some(sheet => sheet.name === 'Hardware');
+
+        if (isEMassFile) {
+            return await processEMassHardwareList(workbook);
+        } else {
+            const worksheet = getFirstWorksheet(workbook);
+            return await processRegularAssetList(worksheet);
+        }
     }
 };
+
+async function processEMassHardwareList(workbook) {
+    const worksheet = workbook.worksheets.find(sheet => sheet.name === 'Hardware');
+
+    if (!worksheet) {
+        throw new Error("Hardware sheet not found in the eMASS file");
+    }
+
+    let emassDate = null;
+    const dateCell = worksheet.getCell('C2');
+    if (dateCell && dateCell.value) {
+        const dateValue = dateCell.value.toString().trim();
+        try {
+            const parsedDate = parse(dateValue, 'dd-MMM-yyyy', new Date());
+            if (!isNaN(parsedDate.getTime())) {
+                emassDate = format(parsedDate, 'yyyy-MM-dd');
+            }
+        } catch (e) {
+            logger.warn(`Could not parse eMASS date "${dateValue}" from cell C2: ${e.message}`);
+        }
+    }
+
+    if (!emassDate) {
+        logger.warn('eMASS date not found in cell C2, using current date instead');
+        emassDate = format(new Date(), 'yyyy-MM-dd');
+    }
+
+    let headerRow = 7;
+    let assetNameColIndex = null;
+    const row7 = worksheet.getRow(headerRow);
+
+    row7.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        if (cell.value === 'Asset Name') {
+            assetNameColIndex = colNumber;
+        }
+    });
+
+    if (!assetNameColIndex) {
+        throw new Error("Asset Name column not found in the Hardware sheet");
+    }
+
+    const assetNamesSet = new Set();
+    worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > headerRow) {
+            const assetNameCell = row.getCell(assetNameColIndex);
+            if (assetNameCell.value) {
+                const assetName = assetNameCell.value.toString().trim().toLowerCase();
+                if (assetName) {
+                    assetNamesSet.add(assetName);
+                }
+            }
+        }
+    });
+
+    const assetNames = Array.from(assetNamesSet);
+
+    if (assetNames.length === 0) {
+        throw new Error("No asset names found in the Hardware sheet");
+    }
+
+    try {
+        return await withConnection(async (connection) => {
+            await connection.beginTransaction();
+
+            try {
+                await connection.query('UPDATE assetdeltalist SET eMASS = FALSE');
+
+                if (assetNames.length > 0) {
+                    const [allAssets] = await connection.query('SELECT `key` FROM assetdeltalist');
+                    const existingLowercaseKeys = allAssets.map(row => row.key.toLowerCase());
+
+                    const matchingAssets = assetNames.filter(name =>
+                        existingLowercaseKeys.includes(name)
+                    );
+
+                    if (matchingAssets.length > 0) {
+                        for (const lowercaseName of matchingAssets) {
+                            await connection.query(
+                                'UPDATE assetdeltalist SET eMASS = TRUE WHERE LOWER(`key`) = ?',
+                                [lowercaseName]
+                            );
+                        }
+                    }
+                }
+
+                await connection.query(
+                    'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
+                    ['emassHardwareListUpdated', emassDate, emassDate]
+                );
+
+                await connection.commit();
+                return {
+                    message: "eMASS hardware list processed successfully",
+                    matchingAssetsFound: assetNames.length,
+                    emassDate: emassDate
+                };
+            } catch (error) {
+                await connection.rollback();
+                throw error;
+            }
+        });
+    } catch (error) {
+        throw new Error(`Failed to process eMASS hardware list: ${error.message}`);
+    }
+}
+
+async function processCSVAssetList(file) {
+    try {
+        return new Promise((resolve, reject) => {
+            const assetMap = new Map();
+            const csvString = file.buffer.toString('utf8');
+            let rowNumber = 0;
+
+            fastcsv.parseString(csvString, { headers: false })
+                .on('data', (row) => {
+                    rowNumber++;
+                    if (rowNumber > 1 && row.length === 2 && row[0]) {
+                        const key = row[0].toString().trim();
+                        const value = row[1] ? row[1].toString().trim() : '';
+                        assetMap.set(key, value);
+                    }
+                })
+                .on('error', (error) => {
+                    reject(new Error(`Error parsing CSV file: ${error.message}`));
+                })
+                .on('end', async (totalRowCount) => {
+                    try {
+                        const assetData = Array.from(assetMap).map(([key, value]) => ({ key, value }));
+                        if (assetData.length === 0) {
+                            reject(new Error('No valid data found in the CSV file'));
+                            return;
+                        }
+                        const result = await withConnection(async (connection) => {
+                            await connection.beginTransaction();
+                            try {
+                                await connection.query('TRUNCATE TABLE assetdeltalist');
+                                if (assetData.length > 0) {
+                                    const placeholders = assetData.map(() => '(?, ?, FALSE)').join(',');
+                                    const values = assetData.flatMap(asset => [asset.key, asset.value]);
+                                    await connection.query(
+                                        `INSERT INTO assetdeltalist (\`key\`, \`value\`, \`eMASS\`) VALUES ${placeholders}`,
+                                        values
+                                    );
+                                }
+                                const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+                                await connection.query(
+                                    'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
+                                    ['assetDeltaUpdatedd', formattedDate, formattedDate]
+                                );
+                                await connection.commit();
+                                return {
+                                    message: "Asset list updated successfully from CSV",
+                                    rowsProcessed: assetData.length,
+                                    duplicatesRemoved: (totalRowCount - 1) - assetMap.size
+                                };
+                            } catch (error) {
+                                await connection.rollback();
+                                throw error;
+                            }
+                        });
+                        resolve(result);
+                    } catch (error) {
+                        reject(new Error(`Failed to process CSV asset list: ${error.message}`));
+                    }
+                });
+        });
+    } catch (error) {
+        throw new Error(`Failed to process CSV file: ${error.message}`);
+    }
+}
+
+async function processRegularAssetList(worksheet) {
+    validateAssetListHeaders(worksheet);
+
+    const assetMap = new Map();
+
+    worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+            const values = row.values.slice(1);
+            if (values.length === 2 && values[0]) {
+                const key = values[0].toString().trim();
+                const value = values[1] ? values[1].toString().trim() : '';
+                assetMap.set(key, value);
+            }
+        }
+    });
+
+    const assetData = Array.from(assetMap).map(([key, value]) => ({ key, value }));
+
+    if (assetData.length === 0) {
+        throw new Error('No valid data found in the Excel file');
+    }
+
+    try {
+        return await withConnection(async (connection) => {
+            await connection.beginTransaction();
+
+            try {
+                await connection.query('TRUNCATE TABLE assetdeltalist');
+
+                if (assetData.length > 0) {
+                    const placeholders = assetData.map(() => '(?, ?, FALSE)').join(',');
+                    const values = assetData.flatMap(asset => [asset.key, asset.value]);
+
+                    await connection.query(
+                        `INSERT INTO assetdeltalist (\`key\`, \`value\`, \`eMASS\`) VALUES ${placeholders}`,
+                        values
+                    );
+                }
+
+                const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+                await connection.query(
+                    'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
+                    ['assetDeltaUpdatedd', formattedDate, formattedDate]
+                );
+
+                await connection.commit();
+                return {
+                    message: "Asset list updated successfully",
+                    rowsProcessed: assetData.length,
+                    duplicatesRemoved: (worksheet.rowCount - 1) - assetMap.size
+                };
+            } catch (error) {
+                await connection.rollback();
+                throw error;
+            }
+        });
+    } catch (error) {
+        throw new Error(`Failed to process asset list: ${error.message}`);
+    }
+}
 
 function validateAssetListHeaders(worksheet) {
     const firstRow = worksheet.getRow(1).values.slice(1);
@@ -626,12 +877,19 @@ async function updateAssetListData(assetData, transaction) {
             assetData,
             { transaction }
         );
+
+        const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+        await db.Config.upsert({
+            key: 'assetDeltaUpdatedd',
+            value: formattedDate
+        }, { transaction });
     }
 }
 
 module.exports = {
     excelFilter: exports.excelFilter,
+    excelAndCsvFilter: exports.excelAndCsvFilter,
     processPoamFile: exports.processPoamFile,
     importVRAMExcel: exports.importVRAMExcel,
-    importAssetListExcel: exports.importAssetListExcel
+    importAssetListFile: exports.importAssetListFile
 };
