@@ -8,12 +8,12 @@
 !##########################################################################
 */
 
-/** @type {import('tailwindcss').Config} */
-const primeui = require('tailwindcss-primeui');
-module.exports = {
+import PrimeUI from 'tailwindcss-primeui';
+
+export default {
   darkMode: ['selector', '[class="p-dark"]'],
   content: ['./src/app/**/*.{html,ts,scss,css}', './app/index.html'],
-  plugins: [primeui],
+  plugins: [PrimeUI],
   theme: {
     screens: {
       sm: '576px',
