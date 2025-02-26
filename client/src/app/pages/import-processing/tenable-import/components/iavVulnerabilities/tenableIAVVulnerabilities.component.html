@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<div class="col-span-12 row">
+<div class="row col-span-12">
   <div class="col">
     <div class="p-fluid">
       <div class="toolbar mb-4">
@@ -155,11 +155,13 @@
                           <ng-container *ngIf="col.field === 'poam'">
                               <p-columnFilter [type]="col.filterType"
                                               [field]="'poamStatus'"
-                                              [showOperator]="false"
                                               [showMatchModes]="false"
+                                              [showOperator]="false"
                                               [showAddButton]="false"
-                                              [showButtons]="true"
-                                              display="menu">
+                                              [showApplyButton]="true"
+                                              [showClearButton]="true"
+                                              [display]="'menu'"
+                                              [showMenu]="true">
                                   <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                       <p-select [ngModel]="value"
                                                 [options]="poamStatusOptions"
@@ -172,13 +174,16 @@
                               </p-columnFilter>
                           </ng-container>
                           <ng-container *ngIf="col.field !== 'poam'">
-                              <p-columnFilter [type]="col.filterType"
-                                              [field]="col.field"
-                                              [showMatchModes]="true"
-                                              [showOperator]="false"
-                                              [showAddButton]="false"
-                                              display="menu">
-                              </p-columnFilter>
+                            <p-columnFilter [type]="col.filterType"
+                                            [field]="col.field"
+                                            [showMatchModes]="true"
+                                            [showOperator]="false"
+                                            [showAddButton]="false"
+                                            [showApplyButton]="true"
+                                            [showClearButton]="true"
+                                            [display]="'menu'"
+                                            [showMenu]="true">
+                            </p-columnFilter>
                           </ng-container>
                       </th>
                   </tr>

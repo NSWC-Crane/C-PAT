@@ -47,7 +47,16 @@ exports.getIAVTableData = async function getIAVTableData(req, res, next) {
     GROUP BY i.iav
 `;
             let [tableData] = await connection.query(sql);
-            return tableData;
+
+            if (tableData.length > 0) {
+                const [nessusPluginsUpdated] = await connection.query('SELECT `value` FROM config WHERE `key` = ?', ['nessusPluginsMapped']);
+                nessusPluginsMapped = nessusPluginsUpdated.length > 0 ? nessusPluginsUpdated[0].value : null;
+            }
+
+            return {
+                tableData,
+                nessusPluginsMapped
+            };
         });
     } catch (error) {
         return { error: error.message };
@@ -93,8 +102,16 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
                 }
 
                 await connection.commit();
+
+                const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+                await connection.query(
+                    'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
+                    ['nessusPluginsMapped', formattedDate, formattedDate]
+                );
+
                 return {
                     message: 'PluginIDs mapped and updated successfully',
+                    nessusPluginsMapped: formattedDate,
                     updatedCount,
                     ignoredCount
                 };
