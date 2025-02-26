@@ -759,7 +759,7 @@ async function processCSVAssetList(file) {
                                 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
                                 await connection.query(
                                     'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
-                                    ['assetDeltaUpdatedd', formattedDate, formattedDate]
+                                    ['assetDeltaUpdated', formattedDate, formattedDate]
                                 );
                                 await connection.commit();
                                 return {
@@ -825,7 +825,7 @@ async function processRegularAssetList(worksheet) {
                 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
                 await connection.query(
                     'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
-                    ['assetDeltaUpdatedd', formattedDate, formattedDate]
+                    ['assetDeltaUpdated', formattedDate, formattedDate]
                 );
 
                 await connection.commit();
@@ -880,7 +880,7 @@ async function updateAssetListData(assetData, transaction) {
 
         const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
         await db.Config.upsert({
-            key: 'assetDeltaUpdatedd',
+            key: 'assetDeltaUpdated',
             value: formattedDate
         }, { transaction });
     }
