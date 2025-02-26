@@ -1139,9 +1139,16 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/IAVTableData'
+                type: object
+                properties:
+                  tableData:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IAVTableData'
+                  nessusPluginsMapped:
+                    type: string
+                    nullable: true
+                    description: Last update timestamp for Nessus plugins mapping
         '400':
           description: Bad Request
           content:

@@ -3,7 +3,7 @@
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
 ! contained in the LICENSE.MD file, which is part of this software package.
-! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND 
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
@@ -65,10 +65,11 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
   searchValue: string = '';
   isUpdating: boolean = false;
   updateProgress: number = 0;
+  nessusPluginsMapped: string | null = null;
+  estimatedTimeRemaining: string = '';
   private expectedTotalRecords: number = 20000;
   private batchSize: number = 5000;
   private estimatedRequestTime: number = 15000;
-  estimatedTimeRemaining: string = '';
   private destroy$ = new Subject<void>();
   constructor(
     private messageService: MessageService,
@@ -141,10 +142,15 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
     this.loading = true;
     this.nessusPluginMappingService.getIAVTableData().pipe(
       map(response => {
-        if (!Array.isArray(response)) {
+        if (!response || !response.tableData || !Array.isArray(response.tableData)) {
           throw new Error('Invalid response format');
         }
-        return response.map(item => ({
+
+        if (response.nessusPluginsMapped !== undefined) {
+          this.nessusPluginsMapped = response.nessusPluginsMapped;
+        }
+
+        return response.tableData.map(item => ({
           ...item,
           navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : '',
           releaseDate: item.releaseDate ? item.releaseDate.split('T')[0] : '',

@@ -10,9 +10,8 @@
 
 <p-progressBar *ngIf="isUpdating" [value]="updateProgress"></p-progressBar>
 
-<p-message *ngIf="isUpdating" severity="warn" styleClass="w-full mb-6">
-  <ng-template pTemplate="content">
-    <div class="flex justify-between items-center">
+<p-message *ngIf="isUpdating" severity="warn" styleClass="mb-6 w-full">
+    <div class="flex items-center justify-between">
       <span>
         Warning: Please do not close or reload the page while the update is in progress.
         <span *ngIf="estimatedTimeRemaining">
@@ -20,56 +19,53 @@
         </span>
       </span>
     </div>
-  </ng-template>
 </p-message>
+
+<div *ngIf="nessusPluginsMapped" class="text-color-secondary mb-4 flex items-center gap-2 text-sm">
+  <i class="pi pi-clock"></i>
+  <span>Nessus Plugins Mapped: {{ nessusPluginsMapped | date:'medium' }}</span>
+</div>
+
 <div class="scrollable-plugins overflow-hidden">
-  <p-table
-    #dt
-    [value]="tableData"
-    dataKey="iav"
-    [rows]="20"
-    [loading]="loading"
-    [paginator]="true"
-    [scrollable]="true"
-    scrollHeight="flex"
-    [globalFilterFields]="['iav', 'pluginID', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate', 'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins']"
-  >
+  <p-table #dt
+           [value]="tableData"
+           dataKey="iav"
+           [rows]="20"
+           [loading]="loading"
+           [paginator]="true"
+           [scrollable]="true"
+           scrollHeight="flex"
+           [globalFilterFields]="['iav', 'pluginID', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate', 'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins']">
     <ng-template pTemplate="caption">
-      <div class="flex justify-between items-center">
+      <div class="flex items-center justify-between">
         <p-iconField iconPosition="left">
           <p-inputIcon>
             <i class="pi pi-search"></i>
           </p-inputIcon>
-          <input
-            pInputText
-            type="text"
-            [(ngModel)]="searchValue"
-            (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-            placeholder="Global Search"
-          />
+          <input pInputText
+                 type="text"
+                 [(ngModel)]="searchValue"
+                 (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+                 placeholder="Global Search" />
         </p-iconField>
-        <button
-          #mapButton
-          pButton
-          class="ml-4"
-          severity="primary"
-          type="button"
-          label="Map Plugins to IAV"
-          (click)="updatePluginIds()"
-          [disabled]="isUpdating"
-        ></button>
-        <button
-          pButton
-          type="button"
-          class="ml-auto"
-          icon="pi pi-filter-slash"
-          [rounded]="true"
-          [text]="true"
-          [raised]="true"
-          severity="primary"
-          pTooltip="Clear"
-          (click)="clear(dt)"
-        ></button>
+        <button #mapButton
+                pButton
+                class="ml-4"
+                severity="primary"
+                type="button"
+                label="Map Plugins to IAV"
+                (click)="updatePluginIds()"
+                [disabled]="isUpdating"></button>
+        <button pButton
+                type="button"
+                class="ml-auto"
+                icon="pi pi-filter-slash"
+                [rounded]="true"
+                [text]="true"
+                [raised]="true"
+                severity="primary"
+                pTooltip="Clear"
+                (click)="clear(dt)"></button>
       </div>
     </ng-template>
     <ng-template pTemplate="header">
@@ -77,36 +73,28 @@
         <th *ngFor="let col of cols" [style.min-width]="col.minWidth" [scope]="'col'">
           <div class="flex items-center">
             {{col.header}}
-            <p-columnFilter
-              [type]="getFilterType(col)"
-              [field]="col.field"
-              [showOperator]="false"
-              display="menu"
-            >
+            <p-columnFilter [type]="getFilterType(col)"
+                            [field]="col.field"
+                            [showOperator]="false"
+                            display="menu">
               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                 <ng-container [ngSwitch]="getFilterType(col)">
                   <ng-container *ngSwitchCase="'text'">
-                    <input
-                      type="text"
-                      pInputText
-                      [ngModel]="value"
-                      (ngModelChange)="filter($event)"
-                    />
+                    <input type="text"
+                           pInputText
+                           [ngModel]="value"
+                           (ngModelChange)="filter($event)" />
                   </ng-container>
                   <ng-container *ngSwitchCase="'numeric'">
-                    <input
-                      type="number"
-                      pInputText
-                      [ngModel]="value"
-                      (ngModelChange)="filter($event)"
-                    />
+                    <input type="number"
+                           pInputText
+                           [ngModel]="value"
+                           (ngModelChange)="filter($event)" />
                   </ng-container>
                   <ng-container *ngSwitchCase="'date'">
-                    <p-datepicker
-                      [ngModel]="value"
-                      (ngModelChange)="filter($event)"
-                      dateFormat="yy-mm-dd"
-                    ></p-datepicker>
+                    <p-datepicker [ngModel]="value"
+                                  (ngModelChange)="filter($event)"
+                                  dateFormat="yy-mm-dd"></p-datepicker>
                   </ng-container>
                 </ng-container>
               </ng-template>
