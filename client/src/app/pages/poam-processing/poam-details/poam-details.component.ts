@@ -609,25 +609,31 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
     assetsToCheck.forEach(asset => {
       this.assetDeltaList.assets.forEach(deltaAsset => {
-        if (deltaAsset.assignedTeam) {
-          const assetName = asset.assetName?.toLowerCase() || '';
-          const deltaKey = deltaAsset.key.toLowerCase();
+        const assetName = asset.assetName?.toLowerCase() || '';
+        const deltaKey = deltaAsset.key.toLowerCase();
 
-          let assetMatchesRule = false;
+        let assetMatchesRule = false;
 
-          if (asset.source === 'STIG Manager' && assetName === deltaKey) {
-            assetMatchesRule = true;
-          }
-          else if (asset.source === 'Tenable' &&
-            (asset.dnsName?.toLowerCase().includes(deltaKey) ||
-              assetName.includes(deltaKey))) {
-            assetMatchesRule = true;
-          }
-          else if (asset.source === 'CPAT' && assetName === deltaKey) {
-            assetMatchesRule = true;
-          }
+        if (asset.source === 'STIG Manager' && assetName === deltaKey) {
+          assetMatchesRule = true;
+        }
+        else if (asset.source === 'Tenable' &&
+          (asset.dnsName?.toLowerCase().includes(deltaKey) ||
+            assetName.includes(deltaKey))) {
+          assetMatchesRule = true;
+        }
+        else if (asset.source === 'CPAT' && assetName === deltaKey) {
+          assetMatchesRule = true;
+        }
 
-          if (assetMatchesRule) {
+        if (assetMatchesRule) {
+          if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
+            deltaAsset.assignedTeams.forEach(team => {
+              newTeamsToAdd.add(team);
+              teamsWithAssets.add(team.assignedTeamId);
+            });
+          }
+          else if (deltaAsset.assignedTeam) {
             newTeamsToAdd.add(deltaAsset.assignedTeam);
             teamsWithAssets.add(deltaAsset.assignedTeam.assignedTeamId);
           }

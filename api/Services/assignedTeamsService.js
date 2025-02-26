@@ -86,10 +86,8 @@ exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
                 GROUP BY t.assignedTeamId, t.assignedTeamName, t.adTeam
             `;
             let [rowAssignedTeam] = await connection.query(sql, [req.params.assignedTeamId]);
-            if (rowAssignedTeam.length === 0) {
-                return { assignedTeam: [] };
-            }
-            const assignedTeam = [{
+
+            const assignedTeam = rowAssignedTeam.length === 0 ? [] : [{
                 assignedTeamId: rowAssignedTeam[0].assignedTeamId,
                 assignedTeamName: rowAssignedTeam[0].assignedTeamName,
                 adTeam: rowAssignedTeam[0].adTeam,
@@ -160,7 +158,7 @@ exports.putAssignedTeam = async function putAssignedTeam(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql_query = "UPDATE cpat.assignedteams SET assignedTeamName = ?, adTeam = ? WHERE assignedTeamId = ?";
-            await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam ]);
+            await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam, req.body.assignedTeamId ]);
 
             const assignedTeam = {
                 assignedTeamId: req.body.assignedTeamId,

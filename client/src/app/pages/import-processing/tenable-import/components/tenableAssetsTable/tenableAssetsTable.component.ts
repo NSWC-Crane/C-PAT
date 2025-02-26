@@ -283,10 +283,29 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
       const dnsName = asset.dnsName?.toLowerCase() || '';
 
       this.assetDeltaList.assets.forEach(deltaAsset => {
-        if (deltaAsset.assignedTeam) {
-          const deltaKey = deltaAsset.key.toLowerCase();
+        const deltaKey = deltaAsset.key.toLowerCase();
 
-          if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
+        if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
+          if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
+            deltaAsset.assignedTeams.forEach(team => {
+              const teamId = team.assignedTeamId;
+              const teamName = team.assignedTeamName;
+
+              if (!this.assetsByTeam[teamId]) {
+                this.assetsByTeam[teamId] = [];
+              }
+
+              const assetKey = asset.netbiosName + asset.dnsName;
+              if (!this.assetsByTeam[teamId].some(a => (a.netbiosName + a.dnsName) === assetKey)) {
+                this.assetsByTeam[teamId].push({
+                  ...asset,
+                  assignedTeamId: teamId,
+                  assignedTeamName: teamName
+                });
+              }
+            });
+          }
+          else if (deltaAsset.assignedTeam) {
             const teamId = deltaAsset.assignedTeam.assignedTeamId;
             const teamName = deltaAsset.assignedTeam.assignedTeamName;
 

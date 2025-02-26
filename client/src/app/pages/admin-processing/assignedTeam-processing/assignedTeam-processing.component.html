@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -61,7 +61,15 @@
           <tr (click)="editTeam(assignedTeam)" class="cursor-pointer hover:surface-200">
             <td>{{assignedTeam.assignedTeamId}}</td>
             <td>{{assignedTeam.assignedTeamName}}</td>
-            <td>{{assignedTeam.adTeam}}</td>
+            <td>
+              <div class="flex flex-wrap gap-2">
+                <p-tag *ngFor="let team of getAdTeamsArray(assignedTeam.adTeam)"
+                       [value]="team"
+                       [rounded]="true"
+                       [class.hidden]="!team">
+                </p-tag>
+              </div>
+            </td>
             <td>
               <div class="flex items-center justify-center gap-2">
                 <button pButton
@@ -98,15 +106,18 @@
              maxlength="99"
              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
-      <label for="adTeam" class="mt-4 mb-2 block text-base font-medium">AD Team:</label>
-      <p-autoComplete id="adTeam"
-                      [(ngModel)]="editingAssignedTeam!.adTeam"
-                      [suggestions]="filteredTeams"
-                      (completeMethod)="filterTeams($event)"
-                      [dropdown]="true"
-                      [forceSelection]="true"
-                      [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.adTeam}"
-                      class="w-full"></p-autoComplete>
+      <label for="adTeam" class="mb-2 mt-4 block text-base font-medium">AD Team(s):</label>
+      <p-multiSelect id="adTeam"
+                     [(ngModel)]="selectedAdTeams"
+                     [options]="filteredTeams"
+                     [filter]="true"
+                     (onFilter)="filterTeams($event)"
+                     placeholder="Select AD Team(s)"
+                     [showToggleAll]="false"
+                     [showHeader]="true"
+                     [panelStyle]="{width:'100%'}"
+                     class="w-full">
+      </p-multiSelect>
     </div>
     <div class="space-y-2">
       <label class="mb-2 block text-base font-medium">Team Permissions:</label>
