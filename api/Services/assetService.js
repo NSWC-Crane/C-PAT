@@ -291,22 +291,51 @@ exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
                     a.value,
                     a.eMASS,
                     t.assignedTeamId,
-                    t.assignedTeamName
+                    t.assignedTeamName,
+                    t.adTeam
                 FROM cpat.assetdeltalist a
-                LEFT JOIN cpat.assignedteams t ON a.value = t.adTeam
+                LEFT JOIN cpat.assignedteams t ON
+                    FIND_IN_SET(TRIM(a.value), REPLACE(t.adTeam, ', ', ',')) > 0
+                    OR a.value = t.adTeam
             `;
+
             let [rowAssets] = await connection.query(assetsSql);
-            const assets = rowAssets.map(row => ({
-                "key": row.key,
-                "value": row.value,
-                "eMASS": row.eMASS || false,
-                ...(row.assignedTeamId && {
-                    "assignedTeam": {
-                        "assignedTeamId": row.assignedTeamId,
-                        "assignedTeamName": row.assignedTeamName
+
+            const assetMap = new Map();
+
+            rowAssets.forEach(row => {
+                const key = row.key;
+
+                if (!assetMap.has(key)) {
+                    assetMap.set(key, {
+                        "key": row.key,
+                        "value": row.value,
+                        "eMASS": row.eMASS || false,
+                        "assignedTeams": []
+                    });
+                }
+
+                if (row.assignedTeamId) {
+                    const asset = assetMap.get(key);
+
+                    const teamExists = asset.assignedTeams.some(
+                        team => team.assignedTeamId === row.assignedTeamId
+                    );
+
+                    if (!teamExists) {
+                        asset.assignedTeams.push({
+                            "assignedTeamId": row.assignedTeamId,
+                            "assignedTeamName": row.assignedTeamName
+                        });
                     }
-                })
-            }));
+
+                    if (asset.assignedTeams.length === 1) {
+                        asset.assignedTeam = asset.assignedTeams[0];
+                    }
+                }
+            });
+
+            const assets = Array.from(assetMap.values());
 
             let assetDeltaUpdated = null;
             let emassHardwareListUpdated = null;
@@ -314,7 +343,6 @@ exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
             if (rowAssets.length > 0) {
                 const [assetDeltaConfig] = await connection.query('SELECT `value` FROM config WHERE `key` = ?', ['assetDeltaUpdated']);
                 const [emassConfig] = await connection.query('SELECT `value` FROM config WHERE `key` = ?', ['emassHardwareListUpdated']);
-
                 assetDeltaUpdated = assetDeltaConfig.length > 0 ? assetDeltaConfig[0].value : null;
                 emassHardwareListUpdated = emassConfig.length > 0 ? emassConfig[0].value : null;
             }

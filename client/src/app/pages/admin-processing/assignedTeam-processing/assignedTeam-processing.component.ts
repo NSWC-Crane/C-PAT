@@ -27,6 +27,8 @@ import { EMPTY, catchError } from 'rxjs';
 import { Permission } from '../../../common/models/permission.model';
 import { AssetDeltaService } from '../asset-delta/asset-delta.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { TagModule } from 'primeng/tag';
 
 interface AssignedTeam {
   assignedTeamId: number;
@@ -49,8 +51,10 @@ interface AssignedTeam {
     IconFieldModule,
     InputIconModule,
     InputTextModule,
+    MultiSelectModule,
     PickListModule,
     TableModule,
+    TagModule,
     ToastModule,
   ],
   providers: [MessageService],
@@ -67,6 +71,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
   editingAssignedTeam: AssignedTeam | null = null;
   teamDialog: boolean = false;
   dialogMode: 'new' | 'edit' = 'new';
+  selectedAdTeams: string[] = [];
 
   constructor(
     private assetDeltaService: AssetDeltaService,
@@ -79,6 +84,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
     this.loadAssignedTeams();
     this.loadAssetDeltaList();
     this.loadCollections();
+    this.filteredTeams = this.uniqueTeams || [];
   }
 
   loadAssignedTeams() {
@@ -96,7 +102,12 @@ export class AssignedTeamProcessingComponent implements OnInit {
     this.assetDeltaService.getAssetDeltaList().subscribe({
       next: (response) => {
         this.assetDeltaList = response || [];
-        this.uniqueTeams = [...new Set(this.assetDeltaList.assets.map(asset => asset.value))];
+        if (this.assetDeltaList && this.assetDeltaList.assets) {
+          this.uniqueTeams = [...new Set(this.assetDeltaList.assets
+            .filter(asset => asset.value)
+            .map(asset => asset.value))];
+          this.filteredTeams = [...this.uniqueTeams];
+        }
       },
       error: () => this.messageService.add({
         severity: 'error',
@@ -107,7 +118,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
   }
 
   filterTeams(event: any) {
-    const query = event.query.toLowerCase();
+    const query = event.filter ? event.filter.toLowerCase() : '';
     this.filteredTeams = this.uniqueTeams.filter(team =>
       team.toLowerCase().includes(query)
     );
@@ -130,6 +141,15 @@ export class AssignedTeamProcessingComponent implements OnInit {
   editTeam(assignedTeam: AssignedTeam) {
     this.editingAssignedTeam = { ...assignedTeam };
 
+    if (this.editingAssignedTeam.adTeam) {
+      this.selectedAdTeams = this.editingAssignedTeam.adTeam
+        .split(',')
+        .map(team => team.trim())
+        .filter(team => team.length > 0);
+    } else {
+      this.selectedAdTeams = [];
+    }
+
     this.assignedCollections = assignedTeam.permissions?.map(p => ({
       collectionId: p.collectionId,
       collectionName: p.collectionName,
@@ -147,6 +167,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
 
   openNew() {
     this.editingAssignedTeam = { assignedTeamId: 0, assignedTeamName: '', adTeam: null, permissions: [] };
+    this.selectedAdTeams = [];
     this.availableCollections = [...this.allCollections];
     this.assignedCollections = [];
     this.dialogMode = 'new';
@@ -268,6 +289,12 @@ export class AssignedTeamProcessingComponent implements OnInit {
   saveTeam() {
     if (!this.editingAssignedTeam) return;
 
+    if (this.selectedAdTeams && this.selectedAdTeams.length > 0) {
+      this.editingAssignedTeam.adTeam = this.selectedAdTeams.join(', ');
+    } else {
+      this.editingAssignedTeam.adTeam = null;
+    }
+
     if (this.editingAssignedTeam.permissions) {
       this.editingAssignedTeam.permissions = this.editingAssignedTeam.permissions
         .filter(p => p.collectionId !== 0);
@@ -302,6 +329,11 @@ export class AssignedTeamProcessingComponent implements OnInit {
       });
       this.hideDialog();
     });
+  }
+
+  getAdTeamsArray(adTeamString: string | null | undefined): string[] {
+    if (!adTeamString) return [];
+    return adTeamString.split(',').map(team => team.trim()).filter(team => team.length > 0);
   }
 
   onRowDelete(assignedTeam: AssignedTeam) {
