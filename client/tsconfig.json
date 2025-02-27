@@ -2,8 +2,10 @@
   "compileOnSave": false,
   "compilerOptions": {
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
+    "incremental": true,
     "forceConsistentCasingInFileNames": true,
     "strict": false,
     "strictBindCallApply": true,
@@ -21,17 +23,22 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
-    "target": "es2022",
-    "module": "es2022",
+    "target": "ES2023",
+    "module": "ES2022",
     "lib": [
-      "es2022",
-      "dom"
+      "dom",
+      "dom.iterable",
+      "ES2023",
+      "esnext.asynciterable"
     ],
     "typeRoots": [
       "node_modules/@types"
-    ]
+    ],
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "types": [ "node" ]
   },
   "exclude": [ "node_modules", "**/node_modules/*" ],
   "angularCompilerOptions": {
@@ -41,8 +48,6 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true,
     "preserveWhitespaces": false,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "types": [ "node" ]
+    "esModuleInterop": true
   }
 }
