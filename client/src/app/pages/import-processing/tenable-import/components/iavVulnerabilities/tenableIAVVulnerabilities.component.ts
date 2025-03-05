@@ -143,9 +143,12 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           this.initColumnsAndFilters();
           this.loadPoamAssociations();
           this.getIAVPluginIDs();
-          if (this.table) {
-            this.table.filters = { ...this.filters };
-          }
+          setTimeout(() => {
+            if (this.table) {
+              this.table.filters = { ...this.filters };
+              this.table._filter();
+            }
+          });
         } else {
           this.handleMissingTenable();
         }
@@ -387,6 +390,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
         if (this.table) {
           this.table.filters = { ...this.filters };
+          this.table._filter();
         }
       }
     });
@@ -477,6 +481,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     ];
     if (this.table) {
       this.table.filters = { ...this.filters };
+      this.table._filter();
     }
     this.loadVulnList();
     this.expandColumnSelections();
@@ -638,6 +643,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       delete this.filters['navyComplyDate'];
       if (this.table) {
         this.table.filters['navyComplyDate'] = [];
+        this.table._filter();
       }
     } else {
       const today = new Date();
@@ -763,6 +769,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (this.table) {
       this.table.filters['navyComplyDate'] = [];
       this.table.filters = { ...this.filters };
+      this.table._filter();
       this.table.filterGlobal(null, 'contains');
       this.totalRecords = this.IAVVulnerabilities.length;
       this.totalRecordsChange.emit(this.totalRecords);
