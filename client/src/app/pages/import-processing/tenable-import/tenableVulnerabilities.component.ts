@@ -1246,7 +1246,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             poamId: poamAssociation?.poamId || null,
             poamStatus: poamAssociation?.status || null,
             iav: iavInfo.iav,
-            navyComplyDate: iavInfo.navyComplyDate,
+            navyComplyDate: iavInfo.navyComplyDate ? new Date(iavInfo.navyComplyDate) : null,
             pluginName: vuln.name || '',
             family: vuln.family?.name || '',
             severity: { name: vuln.severity?.name || '' },
