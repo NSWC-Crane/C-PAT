@@ -21,7 +21,7 @@ When creating a POAM from STIG Manager findings:
    * Description from STIG check
    * Vulnerability Source (set to "STIG")
    * STIG Title and Benchmark ID
-   * Vulnerability ID 
+   * Vulnerability ID
    * Raw Severity / Adjusted Severity mapped from STIG finding
    * Scheduled completion date (calculated based on severity)
 

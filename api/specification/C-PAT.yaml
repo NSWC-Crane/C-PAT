@@ -15,7 +15,7 @@ info:
   contact:
     name: Christian Rodriguez
     email: christian.a.rodriguez8.ctr@us.navy.mil
-  version: '1.0.0-rc.8'
+  version: '1.0.0-rc.9'
 servers:
   - url: ''
 paths:
@@ -3864,11 +3864,15 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: assets
+          schema:
+            type: boolean
+        - in: query
           name: assignedTeams
           schema:
             type: boolean
         - in: query
-          name: assets
+          name: associatedVulnerabilities
           schema:
             type: boolean
         - in: query
@@ -3877,6 +3881,10 @@ paths:
             type: boolean
         - in: query
           name: milestones
+          schema:
+            type: boolean
+        - in: query
+          name: teamMitigations
           schema:
             type: boolean
       responses:
@@ -3922,11 +3930,15 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: assets
+          schema:
+            type: boolean
+        - in: query
           name: assignedTeams
           schema:
             type: boolean
         - in: query
-          name: assets
+          name: associatedVulnerabilities
           schema:
             type: boolean
         - in: query
@@ -3935,6 +3947,10 @@ paths:
             type: boolean
         - in: query
           name: milestones
+          schema:
+            type: boolean
+        - in: query
+          name: teamMitigations
           schema:
             type: boolean
       responses:
@@ -4001,11 +4017,11 @@ paths:
           schema:
             type: boolean
         - in: query
-          name: assignedTeams
+          name: assets
           schema:
             type: boolean
         - in: query
-          name: assets
+          name: assignedTeams
           schema:
             type: boolean
         - in: query
@@ -4018,6 +4034,10 @@ paths:
             type: boolean
         - in: query
           name: milestones
+          schema:
+            type: boolean
+        - in: query
+          name: teamMitigations
           schema:
             type: boolean
       responses:
@@ -4063,11 +4083,15 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: assets
+          schema:
+            type: boolean
+        - in: query
           name: assignedTeams
           schema:
             type: boolean
         - in: query
-          name: assets
+          name: associatedVulnerabilities
           schema:
             type: boolean
         - in: query
@@ -4076,6 +4100,10 @@ paths:
             type: boolean
         - in: query
           name: milestones
+          schema:
+            type: boolean
+        - in: query
+          name: teamMitigations
           schema:
             type: boolean
       responses:
@@ -4292,6 +4320,216 @@ paths:
                 $ref: '#/components/schemas/error'
       tags:
         - Poam
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  /poamTeamMitigations/poam/{poamId}:
+    get:
+      summary: Get all team mitigations for a specific POAM
+      operationId: getPoamTeamMitigationsByPoamId
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the POAM
+      responses:
+        '200':
+          description: Successfully retrieved team mitigations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamTeamMitigation_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamMitigation
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /poamTeamMitigation:
+    post:
+      summary: Create a new team mitigation
+      operationId: postPoamTeamMitigation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                poamId:
+                  type: integer
+                assignedTeamId:
+                  type: integer
+                mitigationText:
+                  type: string
+                isActive:
+                  type: boolean
+              required:
+                - poamId
+                - assignedTeamId
+      responses:
+        '201':
+          description: Team mitigation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamTeamMitigation_Object'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamMitigation
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  /poamTeamMitigation/{poamId}/{assignedTeamId}:
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+    put:
+      summary: Update a team mitigation
+      operationId: updatePoamTeamMitigation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mitigationText:
+                  type: string
+              required:
+                - mitigationText
+      responses:
+        '200':
+          description: Team mitigation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamTeamMitigation_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamMitigation
+      security:
+        - oauth:
+            - 'c-pat:write'
+    delete:
+      summary: Delete a team mitigation
+      operationId: deletePoamTeamMitigation
+      responses:
+        '204':
+          description: Team mitigation deleted successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamMitigation
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  /poamTeamMitigation/{poamId}/{assignedTeamId}/status:
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+    patch:
+      summary: Update a team mitigation status
+      operationId: updatePoamTeamMitigationStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isActive:
+                  type: boolean
+              required:
+                - isActive
+      responses:
+        '200':
+          description: Team mitigation status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamTeamMitigation_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamMitigation
       security:
         - oauth:
             - 'c-pat:write'
@@ -5893,6 +6131,9 @@ components:
         hqs:
           type: boolean
           nullable: true
+        isGlobalFinding:
+          type: boolean
+          nullable: true
         approvers:
           type: array
           items:
@@ -5900,7 +6141,21 @@ components:
             properties:
               userId:
                 type: integer
-            additionalProperties: true
+              approvalStatus:
+                type: string
+                default: "Not Reviewed"
+              approvedDate:
+                type: string
+                format: date
+                nullable: true
+              comments:
+                type: string
+                nullable: true
+              hqs:
+                type: boolean
+                nullable: true
+            required:
+              - userId
         assignedTeams:
           type: array
           items:
@@ -5908,7 +6163,11 @@ components:
             properties:
               assignedTeamId:
                 type: integer
-            additionalProperties: true
+              automated:
+                type: boolean
+                default: false
+            required:
+              - assignedTeamId
         assets:
           type: array
           items:
@@ -5923,20 +6182,21 @@ components:
               - required: ['assetName']
             additionalProperties: false
         associatedVulnerabilities:
-          type: string
-          nullable: true
+          oneOf:
+            - type: string
+              description: Comma-separated list of vulnerability IDs
+            - type: array
+              items:
+                type: string
         labels:
           type: array
           items:
             type: object
             properties:
-              poamId:
-                type: integer
-              collectionId:
-                type: integer
               labelId:
                 type: integer
-            additionalProperties: true
+            required:
+              - labelId
         milestones:
           type: array
           items:
@@ -5944,21 +6204,61 @@ components:
             properties:
               milestoneId:
                 type: integer
-              poamId:
-                type: integer
+                nullable: true
               milestoneDate:
                 type: string
+                format: date
+                nullable: true
               milestoneComments:
                 type: string
-              milestoneStatus:
-                type: string
-              milestoneChangeComments:
-                type: string
+                nullable: true
               milestoneChangeDate:
                 type: string
+                format: date
+                nullable: true
+              milestoneChangeComments:
+                type: string
+                nullable: true
+              milestoneStatus:
+                type: string
+                nullable: true
               assignedTeamId:
                 type: number
-            additionalProperties: false
+                nullable: true
+        teamMitigations:
+          type: array
+          items:
+            type: object
+            properties:
+              assignedTeamId:
+                type: integer
+              mitigationText:
+                type: string
+                default: ""
+              isActive:
+                type: boolean
+                default: true
+            required:
+              - assignedTeamId
+
+    poamTeamMitigation_Object:
+      type: object
+      properties:
+        mitigationId:
+          type: integer
+        poamId:
+          type: integer
+        assignedTeamId:
+          type: integer
+        assignedTeamName:
+          type: string
+        mitigationText:
+          type: string
+        isActive:
+          type: boolean
+      required:
+        - poamId
+        - assignedTeamId
 
     associatedVulnerability_Object:
       type: object
@@ -6019,12 +6319,9 @@ components:
         - Action
 
     PoamMilestonesResponse:
-      type: object
-      properties:
-        poamMilestones:
-          type: array
-          items:
-            $ref: '#/components/schemas/PoamMilestone'
+      type: array
+      items:
+        $ref: '#/components/schemas/PoamMilestone'
 
     PoamMilestone:
       type: object

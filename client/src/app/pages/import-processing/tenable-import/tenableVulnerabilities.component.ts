@@ -126,20 +126,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   @ViewChild('op') overlayPanel!: Popover;
   @ViewChild('dt') table!: Table;
 
-  poamStatusOptions = [
-    { label: 'Any', value: null },
-    { label: 'Approved', value: 'approved' },
-    { label: 'Associated', value: 'associated' },
-    { label: 'Closed', value: 'closed' },
-    { label: 'Draft', value: 'draft' },
-    { label: 'Expired', value: 'expired' },
-    { label: 'Extension Requested', value: 'extension requested' },
-    { label: 'False-Positive', value: 'false-positive' },
-    { label: 'Pending CAT-I Approval', value: 'pending cat-i approval' },
-    { label: 'Rejected', value: 'rejected' },
-    { label: 'Submitted', value: 'submitted' },
-  ];
-
   acceptRiskStatusOptions = [
     { label: 'All', value: 'all' },
     { label: 'Accepted Risk', value: 'accepted' },
@@ -863,8 +849,20 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         field: 'poam',
         header: 'POAM',
         filterField: 'poamStatus',
-        filterType: 'text',
-        filterOptions: this.poamStatusOptions,
+        filterType: 'multi',
+        filterOptions: [
+          { label: 'No Existing POAM', value: 'No Existing POAM' },
+          { label: 'Approved', value: 'Approved' },
+          { label: 'Associated', value: 'Associated' },
+          { label: 'Closed', value: 'Closed' },
+          { label: 'Draft', value: 'Draft' },
+          { label: 'Expired', value: 'Expired' },
+          { label: 'Extension Requested', value: 'Extension Requested' },
+          { label: 'False-Positive', value: 'False-Positive' },
+          { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
+          { label: 'Rejected', value: 'Rejected' },
+          { label: 'Submitted', value: 'Submitted' },
+        ],
       },
       {
         field: 'pluginID',
@@ -1246,7 +1244,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             poamId: poamAssociation?.poamId || null,
             poamStatus: poamAssociation?.status || null,
             iav: iavInfo.iav,
-            navyComplyDate: iavInfo.navyComplyDate,
+            navyComplyDate: iavInfo.navyComplyDate ? new Date(iavInfo.navyComplyDate) : null,
             pluginName: vuln.name || '',
             family: vuln.family?.name || '',
             severity: { name: vuln.severity?.name || '' },

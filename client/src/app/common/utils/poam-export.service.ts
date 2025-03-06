@@ -100,8 +100,8 @@ export class PoamExportService {
     let comments = '';
     let changes = '';
 
-    if (poam.milestones && poam.milestones.poamMilestones.length > 0) {
-      poam.milestones.poamMilestones.forEach((milestone, index) => {
+    if (poam.milestones && poam.milestones.length > 0) {
+      poam.milestones.forEach((milestone, index) => {
         const milestoneNumber = index + 1;
 
         if (milestone.milestoneComments) {
@@ -118,6 +118,37 @@ export class PoamExportService {
       comments: comments.trim() || '',
       changes: changes.trim() || '',
     };
+  }
+
+  private static formatMitigations(poam: Poam): string {
+    let formattedMitigations = '';
+
+    const hasActiveTeamMitigations = poam.teamMitigations &&
+      poam.teamMitigations.some(tm => tm.isActive);
+
+    if (poam.mitigations) {
+      if (hasActiveTeamMitigations) {
+        formattedMitigations = `Global Mitigation:\n${poam.mitigations}`;
+      } else {
+        formattedMitigations = poam.mitigations;
+      }
+    }
+
+    if (hasActiveTeamMitigations) {
+      const activeMitigations = poam.teamMitigations.filter(tm => tm.isActive);
+
+      if (formattedMitigations) {
+        formattedMitigations += '\n\n';
+      }
+
+      activeMitigations.forEach(tm => {
+        formattedMitigations += `${tm.assignedTeamName} Team Mitigation:\n${tm.mitigationText}\n\n`;
+      });
+
+      formattedMitigations = formattedMitigations.trim();
+    }
+
+    return formattedMitigations;
   }
 
   static async convertToExcel(
@@ -221,6 +252,8 @@ export class PoamExportService {
         if (columnKey === 'K') return formattedMilestones.changes;
         return '';
       },
+      mitigations: (_value: any, poam: Poam, _columnKey: string): string =>
+        PoamExportService.formatMitigations(poam),
     };
 
     const optionalDefaultValues: { [key: string]: string } = {
@@ -459,9 +492,9 @@ export class PoamExportService {
         if (selectedColumns.includes('P') && matchingPoam.devicesAffected) {
           worksheet.getCell(`P${rowIndex}`).value = matchingPoam.devicesAffected;
         }
-        if (selectedColumns.includes('Q') && matchingPoam.mitigations) {
-          worksheet.getCell(`Q${rowIndex}`).value = matchingPoam.mitigations;
-        }
+        if (selectedColumns.includes('Q') && (matchingPoam.mitigations || (matchingPoam.teamMitigations && matchingPoam.teamMitigations.length > 0))) {
+  worksheet.getCell(`Q${rowIndex}`).value = PoamExportService.formatMitigations(matchingPoam);
+}
         if (selectedColumns.includes('R') && matchingPoam.predisposingConditions) {
           worksheet.getCell(`R${rowIndex}`).value = matchingPoam.predisposingConditions;
         }

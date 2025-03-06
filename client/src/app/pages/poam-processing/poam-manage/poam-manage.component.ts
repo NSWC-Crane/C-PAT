@@ -109,7 +109,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async setPayload() {
-    await this.setPayloadService.setPayload();
+    this.setPayloadService.setPayload();
 
     this.subs.sink = combineLatest([
       this.setPayloadService.user$,

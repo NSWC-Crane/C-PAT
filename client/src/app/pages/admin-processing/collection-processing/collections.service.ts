@@ -72,7 +72,7 @@ export class CollectionsService {
 
   getPoamsByCollection(id: any): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true&associatedVulnerabilities=true`)
+      .get(`${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true&associatedVulnerabilities=true&teamMitigations=true`)
       .pipe(catchError(this.handleError));
   }
 

@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -225,7 +225,7 @@
                     <td>
                         <a href="javascript:void(0)"
                            (click)="managePoam(row)"
-                           class="cursor-pointer font-semibold text-primary hover:font-bold"
+                           class="text-primary cursor-pointer font-semibold hover:font-bold"
                            pTooltip="Navigate to this POAM"
                            tooltipPosition="top">
                             {{row.poamId}}
@@ -244,7 +244,7 @@
                     <td style="text-align: center">{{ row.lastUpdated }}</td>
                     <td>
                         <div class="flex flex-wrap gap-2">
-                            <ng-container *ngFor="let vuln of row.associatedVulnerabilities.split(',')">
+                            <ng-container *ngFor="let vuln of row.associatedVulnerabilities">
                                 <p-tag *ngIf="vuln?.trim()"
                                        [rounded]="true"
                                        [value]="vuln.trim()">

@@ -95,9 +95,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       header: 'POAM',
       width: '8%',
       filterField: 'poamStatus',
-      filterType: 'text',
+      filterType: 'multi',
       filterOptions: [
-        { label: 'Any', value: null },
         { label: 'No Existing POAM', value: 'No Existing POAM' },
         { label: 'Approved', value: 'Approved' },
         { label: 'Associated', value: 'Associated' },

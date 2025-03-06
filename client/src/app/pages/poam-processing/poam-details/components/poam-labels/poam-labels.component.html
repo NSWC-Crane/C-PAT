@@ -1,0 +1,55 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<div class="labels-table-container">
+  <p-toast></p-toast>
+  <p-table [value]="poamLabels" dataKey="labelId">
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="labelName" scope="col">Label</th>
+        <th scope="col" style="width: 8rem">
+          <button pButton
+                  icon="pi pi-plus"
+                  class="p-button-rounded p-button-text"
+                  (click)="addLabel()"
+                  [disabled]="accessLevel < 2"></button>
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-label let-rowIndex="rowIndex">
+      <tr>
+        <td>
+          <span *ngIf="!label.isNew">{{label.labelName}}</span>
+          <p-select *ngIf="label.isNew"
+                    [options]="labelList"
+                    [(ngModel)]="label.labelId"
+                    optionLabel="labelName"
+                    optionValue="labelId"
+                    [style]="{'width':'100%'}"
+                    (onChange)="onLabelChange(label)"
+                    appendTo="body"
+                    [disabled]="accessLevel < 2"></p-select>
+        </td>
+        <td>
+          <button pButton
+                  icon="pi pi-trash"
+                  (click)="deleteLabel(rowIndex)"
+                  class="p-button-rounded p-button-text p-button-danger"
+                  [disabled]="accessLevel < 2"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="2" style="text-align: center">No Labels to Display</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

@@ -104,19 +104,6 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
   private subscriptions = new Subscription();
-  poamStatusOptions = [
-    { label: 'Any', value: null },
-    { label: 'Approved', value: 'approved' },
-    { label: 'Associated', value: 'associated' },
-    { label: 'Closed', value: 'closed' },
-    { label: 'Draft', value: 'draft' },
-    { label: 'Expired', value: 'expired' },
-    { label: 'Extension Requested', value: 'extension requested' },
-    { label: 'False-Positive', value: 'false-positive' },
-    { label: 'Pending CAT-I Approval', value: 'pending cat-i approval' },
-    { label: 'Rejected', value: 'rejected' },
-    { label: 'Submitted', value: 'submitted' },
-  ];
   constructor(
     private importService: ImportService,
     private sanitizer: DomSanitizer,
@@ -143,9 +130,12 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           this.initColumnsAndFilters();
           this.loadPoamAssociations();
           this.getIAVPluginIDs();
-          if (this.table) {
-            this.table.filters = { ...this.filters };
-          }
+          setTimeout(() => {
+            if (this.table) {
+              this.table.filters = { ...this.filters };
+              this.table._filter();
+            }
+          });
         } else {
           this.handleMissingTenable();
         }
@@ -171,8 +161,20 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         field: 'poam',
         header: 'POAM',
         filterField: 'poamStatus',
-        filterType: 'text',
-        filterOptions: this.poamStatusOptions,
+        filterType: 'multi',
+        filterOptions: [
+          { label: 'No Existing POAM', value: 'No Existing POAM' },
+          { label: 'Approved', value: 'Approved' },
+          { label: 'Associated', value: 'Associated' },
+          { label: 'Closed', value: 'Closed' },
+          { label: 'Draft', value: 'Draft' },
+          { label: 'Expired', value: 'Expired' },
+          { label: 'Extension Requested', value: 'Extension Requested' },
+          { label: 'False-Positive', value: 'False-Positive' },
+          { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
+          { label: 'Rejected', value: 'Rejected' },
+          { label: 'Submitted', value: 'Submitted' },
+        ],
       },
       {
         field: 'pluginID',
@@ -365,7 +367,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
             ...vuln,
             poam: !!poamAssociation,
             poamId: poamAssociation?.poamId || null,
-            poamStatus: poamAssociation?.status || null,
+            poamStatus: poamAssociation ? poamAssociation.status : 'No Existing POAM',
             iav: iavInfo?.iav || '',
             navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
             supersededBy: iavInfo?.supersededBy || 'N/A',
@@ -387,6 +389,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
         if (this.table) {
           this.table.filters = { ...this.filters };
+          this.table._filter();
         }
       }
     });
@@ -477,6 +480,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     ];
     if (this.table) {
       this.table.filters = { ...this.filters };
+      this.table._filter();
     }
     this.loadVulnList();
     this.expandColumnSelections();
@@ -638,6 +642,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       delete this.filters['navyComplyDate'];
       if (this.table) {
         this.table.filters['navyComplyDate'] = [];
+        this.table._filter();
       }
     } else {
       const today = new Date();
@@ -763,6 +768,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (this.table) {
       this.table.filters['navyComplyDate'] = [];
       this.table.filters = { ...this.filters };
+      this.table._filter();
       this.table.filterGlobal(null, 'contains');
       this.totalRecords = this.IAVVulnerabilities.length;
       this.totalRecordsChange.emit(this.totalRecords);

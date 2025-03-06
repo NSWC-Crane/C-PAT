@@ -155,26 +155,13 @@
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "main": "src/test.ts",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": [ "zone.js", "zone.js/testing" ],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
-            "inlineStyleLanguage": "scss",
-            "include": [
-              "src/**/*.spec.ts",
-              "src/**/*.d.ts"
-            ],
             "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
+              "src/favicon.ico",
+              "src/assets"
             ],
-            "stylePreprocessorOptions": {
-              "includePaths": [ "node_modules/", "src/assets/styles" ]
-            },
             "styles": [
               {
                 "input": "src/assets/styles/global.scss",

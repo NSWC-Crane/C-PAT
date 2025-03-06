@@ -18,6 +18,7 @@ const poamAssignedTeamService = require('./poamAssignedTeamService');
 const poamAssociatedVulnerabilityService = require('./poamAssociatedVulnerabilityService');
 const poamMilestoneService = require('./poamMilestoneService');
 const poamLabelService = require('./poamLabelService');
+const poamTeamMitigationService = require('./poamTeamMitigationService');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -74,22 +75,27 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
                 submitterName: row.submitterName || null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null
+                hqs: row.hqs != null ? Boolean(row.hqs) : null,
+                isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null
             }));
 
             if (req.query.approvers) {
                 const approversData = await Promise.all(poams.map(poam => poamApproverService.getPoamApprovers({ params: { poamId: poam.poamId } }, res, next)));
                 poams.forEach((poam, index) => poam.approvers = approversData[index] || []);
             }
-
+            if (req.query.assets) {
+                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
+                poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
+            }
             if (req.query.assignedTeams) {
                 const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => poam.assignedTeams = assignedTeamsData[index] || []);
             }
-
-            if (req.query.assets) {
-                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
-                poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
+            if (req.query.associatedVulnerabilities) {
+                const associatedVulnerabilitiesData = await Promise.all(
+                    poams.map(poam => poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(poam.poamId))
+                );
+                poams.forEach((poam, index) => poam.associatedVulnerabilities = associatedVulnerabilitiesData[index] || []);
             }
             if (req.query.labels) {
                 const labelsData = await Promise.all(poams.map(poam => poamLabelService.getPoamLabelsByPoam(poam.poamId)));
@@ -98,6 +104,12 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
             if (req.query.milestones) {
                 const milestoneData = await Promise.all(poams.map(poam => poamMilestoneService.getPoamMilestones(poam.poamId)));
                 poams.forEach((poam, index) => poam.milestones = milestoneData[index] || []);
+            }
+            if (req.query.teamMitigations) {
+                const teamMitigationsData = await Promise.all(
+                    poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId))
+                );
+                poams.forEach((poam, index) => poam.teamMitigations = teamMitigationsData[index] || []);
             }
 
             return poams;
@@ -132,25 +144,30 @@ exports.getPoam = async function getPoam(req, res, next) {
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null
+                hqs: row.hqs != null ? Boolean(row.hqs) : null,
+                isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null
             }))[0];
 
             if (req.query.approvers) {
                 poam.approvers = await poamApproverService.getPoamApprovers(req, res, next);
             }
-            if (req.query.assignedTeams) {
-                poam.assignedTeams = await poamAssignedTeamService.getPoamAssignedTeamsByPoamId(req.params.poamId);
-            }
             if (req.query.assets) {
                 poam.assets = await poamAssetService.getPoamAssetsByPoamId(req, res, next);
             }
+            if (req.query.assignedTeams) {
+                poam.assignedTeams = await poamAssignedTeamService.getPoamAssignedTeamsByPoamId(req.params.poamId);
+            }
+            if (req.query.associatedVulnerabilities) {
+                poam.associatedVulnerabilities = await poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(req.params.poamId);
+            }
             if (req.query.labels) {
-                const labelsData = await Promise.all(poams.map(poam => poamLabelService.getPoamLabelsByPoam(poam.poamId)));
-                poams.forEach((poam, index) => poam.labels = labelsData[index] || []);
+                poam.labels = await poamLabelService.getPoamLabelsByPoam(req.params.poamId);
             }
             if (req.query.milestones) {
-                const milestoneData = await Promise.all(poams.map(poam => poamMilestoneService.getPoamMilestones(poam.poamId)));
-                poams.forEach((poam, index) => poam.milestones = milestoneData[index] || []);
+                poam.milestones = await poamMilestoneService.getPoamMilestones(req.params.poamId);
+            }
+            if (req.query.teamMitigations) {
+                poam.teamMitigations = await poamTeamMitigationService.getPoamTeamMitigationsByPoamId(req.params.poamId);
             }
 
             return poam || null;
@@ -186,26 +203,27 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null
+                hqs: row.hqs != null ? Boolean(row.hqs) : null,
+                isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null
             }));
 
             if (req.query.approvers) {
                 const approversData = await poamApproverService.getPoamApproversByCollection(req, res, next);
                 poams.forEach(poam => poam.approvers = approversData.filter(approver => approver.poamId === poam.poamId));
             }
-            if (req.query.assignedTeams) {
-                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
-                poams.forEach((poam, index) => poam.assignedTeams = assignedTeamsData[index] || []);
-            }
             if (req.query.assets) {
                 const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
                 poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
+            }
+            if (req.query.assignedTeams) {
+                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
+                poams.forEach((poam, index) => poam.assignedTeams = assignedTeamsData[index] || []);
             }
             if (req.query.associatedVulnerabilities) {
                 const associatedVulnerabilitiesData = await Promise.all(
                     poams.map(poam => poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(poam.poamId))
                 );
-                poams.forEach((poam, index) => poam.associatedVulnerabilities = associatedVulnerabilitiesData[index] || '');
+                poams.forEach((poam, index) => poam.associatedVulnerabilities = associatedVulnerabilitiesData[index] || []);
             }
             if (req.query.labels) {
                 const labelsData = await Promise.all(poams.map(poam => poamLabelService.getPoamLabelsByPoam(poam.poamId)));
@@ -214,6 +232,12 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
             if (req.query.milestones) {
                 const milestoneData = await Promise.all(poams.map(poam => poamMilestoneService.getPoamMilestones(poam.poamId)));
                 poams.forEach((poam, index) => poam.milestones = milestoneData[index] || []);
+            }
+            if (req.query.teamMitigations) {
+                const teamMitigationsData = await Promise.all(
+                    poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId))
+                );
+                poams.forEach((poam, index) => poam.teamMitigations = teamMitigationsData[index] || []);
             }
 
             return poams || null;
@@ -249,20 +273,27 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null
+                hqs: row.hqs != null ? Boolean(row.hqs) : null,
+                isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null
             }));
 
             if (req.query.approvers) {
                 const approversData = await Promise.all(poams.map(poam => poamApproverService.getPoamApprovers({ params: { poamId: poam.poamId } }, res, next)));
                 poams.forEach((poam, index) => poam.approvers = approversData[index] || []);
             }
+            if (req.query.assets) {
+                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
+                poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
+            }
             if (req.query.assignedTeams) {
                 const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => poam.assignedTeams = assignedTeamsData[index] || []);
             }
-            if (req.query.assets) {
-                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
-                poams.forEach((poam, index) => poam.assets = assetsData[index] || []);
+            if (req.query.associatedVulnerabilities) {
+                const associatedVulnerabilitiesData = await Promise.all(
+                    poams.map(poam => poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(poam.poamId))
+                );
+                poams.forEach((poam, index) => poam.associatedVulnerabilities = associatedVulnerabilitiesData[index] || []);
             }
             if (req.query.labels) {
                 const labelsData = await Promise.all(poams.map(poam => poamLabelService.getPoamLabelsByPoam(poam.poamId)));
@@ -271,6 +302,12 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
             if (req.query.milestones) {
                 const milestoneData = await Promise.all(poams.map(poam => poamMilestoneService.getPoamMilestones(poam.poamId)));
                 poams.forEach((poam, index) => poam.milestones = milestoneData[index] || []);
+            }
+            if (req.query.teamMitigations) {
+                const teamMitigationsData = await Promise.all(
+                    poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId))
+                );
+                poams.forEach((poam, index) => poam.teamMitigations = teamMitigationsData[index] || []);
             }
 
             return poams || null;
@@ -311,15 +348,14 @@ exports.getPluginIDsWithPoamByCollection = async function getPluginIDsWithPoamBy
                 SELECT poamId, status, vulnerabilityId
                 FROM cpat.poam
                 WHERE collectionId = ?
+
                 UNION ALL
-                SELECT p.poamId, 'Associated' as status, p.associatedVulnerability as vulnerabilityId
-                FROM cpat.poamassociatedvulnerabilities p
-                WHERE EXISTS (
-                    SELECT 1
-                    FROM cpat.poam po
-                    WHERE po.vulnerabilityId = p.associatedVulnerability
-                      AND po.collectionId = ?
-                )
+
+                SELECT pav.poamId, 'Associated' AS status, pav.associatedVulnerability AS vulnerabilityId
+                FROM cpat.poamassociatedvulnerabilities pav
+                JOIN cpat.poam po ON pav.poamId = po.poamId
+                WHERE po.collectionId = ?
+
                 ORDER BY poamId;
             `;
             let [PluginIDs] = await connection.query(sql, [req.params.collectionId, req.params.collectionId]);
@@ -329,6 +365,7 @@ exports.getPluginIDsWithPoamByCollection = async function getPluginIDsWithPoamBy
         return { error: error.message };
     }
 };
+
 
 exports.postPoam = async function postPoam(req) {
     const requiredFields = ['collectionId', 'vulnerabilitySource', 'rawSeverity', 'submitterId'];
@@ -346,90 +383,171 @@ exports.postPoam = async function postPoam(req) {
     let sql_query = `INSERT INTO cpat.poam (collectionId, vulnerabilitySource, vulnerabilityTitle, stigBenchmarkId, stigCheckData, tenablePluginData,
                     iavmNumber, taskOrderNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate,
                     scheduledCompletionDate, submitterId, officeOrg, predisposingConditions, mitigations, requiredResources, residualRisk,
-                    likelihood, localImpact, impactDescription, status, submittedDate, closedDate)
-                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    likelihood, localImpact, impactDescription, status, submittedDate, closedDate, isGlobalFinding)
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     try {
         return await withConnection(async (connection) => {
-            if (!req.body.officeOrg) {
-                let userSql = "SELECT officeOrg, fullName, email FROM cpat.user WHERE userId = ?";
-                let [userRows] = await connection.query(userSql, [req.body.submitterId]);
+            await connection.beginTransaction();
 
-                if (userRows.length > 0) {
-                    const { officeOrg, fullName, email } = userRows[0];
-                    req.body.officeOrg = `${officeOrg}, ${fullName}, ${email}`;
+            try {
+                if (!req.body.officeOrg) {
+                    let userSql = "SELECT officeOrg, fullName, email FROM cpat.user WHERE userId = ?";
+                    let [userRows] = await connection.query(userSql, [req.body.submitterId]);
+
+                    if (userRows.length > 0) {
+                        const { officeOrg, fullName, email } = userRows[0];
+                        req.body.officeOrg = `${officeOrg}, ${fullName}, ${email}`;
+                    }
                 }
-            }
 
-            await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.vulnerabilityTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
+                await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.vulnerabilityTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
                 req.body.tenablePluginData, req.body.iavmNumber, req.body.taskOrderNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
                 req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.officeOrg, req.body.predisposingConditions, req.body.mitigations,
                 req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.localImpact, req.body.impactDescription,
-                req.body.status, req.body.submittedDate, req.body.closedDate]);
+                req.body.status, req.body.submittedDate, req.body.closedDate, req.body.isGlobalFinding]);
 
-            let sql = "SELECT * FROM cpat.poam WHERE poamId = LAST_INSERT_ID();";
-            let [rowPoam] = await connection.query(sql);
-            let poam = rowPoam.map(row => ({
-                ...row,
-                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
-                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
-                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null
-            }))[0];
+                let sql = "SELECT * FROM cpat.poam WHERE poamId = LAST_INSERT_ID();";
+                let [rowPoam] = await connection.query(sql);
+                let poam = rowPoam.map(row => ({
+                    ...row,
+                    scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                    submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                    closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                    iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                    hqs: row.hqs != null ? Boolean(row.hqs) : null,
+                    isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null
+                }))[0];
 
-            if (req.body.assignedTeams) {
-                let assignedTeams = req.body.assignedTeams;
-                for (let team of assignedTeams) {
-                    if (!team.assignedTeamId) {
-                        return { status: 400, errors: { "assignedTeams.assignedTeamId": "is required" } };
+                if (req.body.assignedTeams) {
+                    let assignedTeams = req.body.assignedTeams;
+                    for (let team of assignedTeams) {
+                        if (!team.assignedTeamId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { "assignedTeams.assignedTeamId": "is required" } };
+                        }
+                        let sql_query = `INSERT INTO cpat.poamassignedTeams (poamId, assignedTeamId, automated) values (?, ?, ?)`;
+                        await connection.query(sql_query, [poam.poamId, team.assignedTeamId, team.automated || false]);
                     }
-                    let sql_query = `INSERT INTO cpat.poamassignedTeams (poamId, assignedTeamId) values (?, ?)`;
-                    await connection.query(sql_query, [poam.poamId, team.assignedTeamId]);
                 }
-            }
 
-            if (req.body.approvers) {
-                let approvers = req.body.approvers;
-                for (let user of approvers) {
-                    if (!user.userId) {
-                        return { status: 400, errors: { "approvers.userId": "is required" } };
+                if (req.body.approvers) {
+                    let approvers = req.body.approvers;
+                    for (let user of approvers) {
+                        if (!user.userId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { "approvers.userId": "is required" } };
+                        }
+                        let sql_query = `INSERT INTO cpat.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments) values (?, ?, ?, ?, ?)`;
+                        await connection.query(sql_query, [
+                            poam.poamId,
+                            user.userId,
+                            user.approvalStatus || 'Not Reviewed',
+                            user.approvedDate || null,
+                            user.comments || null
+                        ]);
                     }
-                    let sql_query = `INSERT INTO cpat.poamapprovers (poamId, userId) values (?, ?)`;
-                    await connection.query(sql_query, [poam.poamId, user.userId]);
                 }
-            }
 
-            if (req.body.assets) {
-                let assets = req.body.assets;
-                for (let asset of assets) {
-                    if (asset.assetId) {
-                        let sql_query = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
-                        await connection.query(sql_query, [poam.poamId, asset.assetId]);
-                    } else if (asset.assetName) {
-                        let sql_query_check = `SELECT assetId FROM cpat.asset WHERE assetName = ? AND collectionId = ?`;
-                        let [existingAsset] = await connection.query(sql_query_check, [asset.assetName, poam.collectionId]);
+                if (req.body.assets) {
+                    let assets = req.body.assets;
+                    for (let asset of assets) {
+                        if (asset.assetId) {
+                            let sql_query = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                            await connection.query(sql_query, [poam.poamId, asset.assetId]);
+                        } else if (asset.assetName) {
+                            let sql_query_check = `SELECT assetId FROM cpat.asset WHERE assetName = ? AND collectionId = ?`;
+                            let [existingAsset] = await connection.query(sql_query_check, [asset.assetName, poam.collectionId]);
 
-                        if (existingAsset.length > 0) {
-                            let assetId = existingAsset[0].assetId;
-                            let sql_query2 = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
-                            await connection.query(sql_query2, [poam.poamId, assetId]);
-                        } else {
-                            let sql_query_insert = `INSERT INTO cpat.asset (assetName, collectionId) VALUES (?, ?)`;
-                            let [rowAsset] = await connection.query(sql_query_insert, [asset.assetName, poam.collectionId]);
-                            let assetId = rowAsset.insertId;
-                            let sql_query_insert_poamasset = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
-                            await connection.query(sql_query_insert_poamasset, [poam.poamId, assetId]);
+                            if (existingAsset.length > 0) {
+                                let assetId = existingAsset[0].assetId;
+                                let sql_query2 = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                                await connection.query(sql_query2, [poam.poamId, assetId]);
+                            } else {
+                                let sql_query_insert = `INSERT INTO cpat.asset (assetName, collectionId) VALUES (?, ?)`;
+                                let [rowAsset] = await connection.query(sql_query_insert, [asset.assetName, poam.collectionId]);
+                                let assetId = rowAsset.insertId;
+                                let sql_query_insert_poamasset = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                                await connection.query(sql_query_insert_poamasset, [poam.poamId, assetId]);
+                            }
                         }
                     }
                 }
-            }
+
+                if (req.body.associatedVulnerabilities) {
+                    let vulnArray = [];
+                    if (typeof req.body.associatedVulnerabilities === 'string') {
+                        vulnArray = req.body.associatedVulnerabilities.split(',').map(v => v.trim()).filter(v => v);
+                    } else if (Array.isArray(req.body.associatedVulnerabilities)) {
+                        vulnArray = req.body.associatedVulnerabilities;
+                    }
+
+                    for (let vuln of vulnArray) {
+                        let sql_query = `INSERT INTO cpat.poamassociatedvulnerabilities (poamId, associatedVulnerability) VALUES (?, ?)`;
+                        await connection.query(sql_query, [poam.poamId, vuln]);
+                    }
+                }
+
+                if (req.body.labels && Array.isArray(req.body.labels)) {
+                    for (let label of req.body.labels) {
+                        if (!label.labelId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { "labels.labelId": "is required" } };
+                        }
+                        let sql_query = `INSERT INTO cpat.poamlabels (poamId, labelId) VALUES (?, ?)`;
+                        await connection.query(sql_query, [poam.poamId, label.labelId]);
+                    }
+                }
+
+                if (req.body.milestones && Array.isArray(req.body.milestones)) {
+                    for (let milestone of req.body.milestones) {
+                        let sql_query = `INSERT INTO cpat.poammilestones (
+                            poamId, milestoneDate, milestoneComments, milestoneChangeDate,
+                            milestoneChangeComments, milestoneStatus, assignedTeamId
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+                        await connection.query(sql_query, [
+                            poam.poamId,
+                            milestone.milestoneDate || null,
+                            milestone.milestoneComments || null,
+                            milestone.milestoneChangeDate || null,
+                            milestone.milestoneChangeComments || null,
+                            milestone.milestoneStatus || null,
+                            milestone.assignedTeamId || null
+                        ]);
+                    }
+                }
+
+                if (req.body.teamMitigations && Array.isArray(req.body.teamMitigations)) {
+                    for (let mitigation of req.body.teamMitigations) {
+                        if (!mitigation.assignedTeamId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { "teamMitigations.assignedTeamId": "is required" } };
+                        }
+
+                        let sql_query = `INSERT INTO cpat.poamteammitigations
+                            (poamId, assignedTeamId, mitigationText, isActive)
+                            VALUES (?, ?, ?, ?)`;
+
+                        await connection.query(sql_query, [
+                            poam.poamId,
+                            mitigation.assignedTeamId,
+                            mitigation.mitigationText || '',
+                            mitigation.isActive !== undefined ? mitigation.isActive : true
+                        ]);
+                    }
+                }
 
                 let action = `POAM Created. POAM Status: ${req.body.status}.`;
                 let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poam.poamId, action, req.userObject.userId]);
 
-            return poam;
+                await connection.commit();
+                return poam;
+            } catch (error) {
+                await connection.rollback();
+                throw error;
+            }
         });
     } catch (error) {
         return { error: error.message };
@@ -473,55 +591,71 @@ exports.putPoam = async function putPoam(req, res, next) {
         "likelihood": "Likelihood",
         "localImpact": "Local Impact",
         "impactDescription": "Impact Description",
+        "isGlobalFinding": "Is Global Finding",
+        "approvers": "Approvers",
+        "assignedTeams": "Assigned Teams",
+        "associatedVulnerabilities": "Associated Vulnerabilities",
+        "labels": "Labels",
+        "milestones": "Milestones",
+        "teamMitigations": "Team Mitigations"
     };
 
     try {
         return await withConnection(async (connection) => {
-            const [existingPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.body.poamId]);
-            const existingPoam = existingPoamRow[0];
+            await connection.beginTransaction();
 
-            const existingPoamNormalized = {
-                ...existingPoam,
-                submittedDate: normalizeDate(existingPoam.submittedDate) || null,
-                scheduledCompletionDate: normalizeDate(existingPoam.scheduledCompletionDate) || null,
-                closedDate: normalizeDate(existingPoam.closedDate) || null,
-                iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate) || null,
-            };
+            try {
+                const [existingPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.body.poamId]);
+                const existingPoam = existingPoamRow[0];
 
-            if (!req.body.officeOrg) {
-                let userSql = "SELECT officeOrg, fullName, email FROM cpat.user WHERE userId = ?";
-                let [userRows] = await connection.query(userSql, [req.body.submitterId]);
-
-                if (userRows.length > 0) {
-                    const { officeOrg, fullName, email } = userRows[0];
-                    req.body.officeOrg = `${officeOrg}, ${fullName}, ${email}`;
+                if (!existingPoam) {
+                    await connection.rollback();
+                    return { status: 404, errors: { "poamId": "POAM not found" } };
                 }
-            }
 
-            const sqlInsertPoam = `UPDATE cpat.poam SET collectionId = ?, vulnerabilitySource = ?, vulnerabilityTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
-                      tenablePluginData = ?, iavmNumber = ?, taskOrderNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
-                      iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
-                      residualRisk = ?, likelihood = ?, localImpact = ?, impactDescription = ?, status = ?, submittedDate = ?, closedDate = ?, officeOrg = ? WHERE poamId = ?`;
+                const existingPoamNormalized = {
+                    ...existingPoam,
+                    submittedDate: normalizeDate(existingPoam.submittedDate) || null,
+                    scheduledCompletionDate: normalizeDate(existingPoam.scheduledCompletionDate) || null,
+                    closedDate: normalizeDate(existingPoam.closedDate) || null,
+                    iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate) || null,
+                };
 
-            await connection.query(sqlInsertPoam, [
-                req.body.collectionId, req.body.vulnerabilitySource, req.body.vulnerabilityTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
-                req.body.tenablePluginData, req.body.iavmNumber, req.body.taskOrderNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description,
-                req.body.rawSeverity, req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions,
-                req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.localImpact, req.body.impactDescription,
-                req.body.status, req.body.submittedDate, req.body.closedDate, req.body.officeOrg, req.body.poamId
-            ]);
+                if (!req.body.officeOrg) {
+                    let userSql = "SELECT officeOrg, fullName, email FROM cpat.user WHERE userId = ?";
+                    let [userRows] = await connection.query(userSql, [req.body.submitterId]);
 
-            const [updatedPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.body.poamId]);
-            const updatedPoam = updatedPoamRow.map(row => ({
-                ...row,
-                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
-                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
-                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null
-            }))[0];
+                    if (userRows.length > 0) {
+                        const { officeOrg, fullName, email } = userRows[0];
+                        req.body.officeOrg = `${officeOrg}, ${fullName}, ${email}`;
+                    }
+                }
 
-            let poamId = req.body.poamId;
+                const sqlInsertPoam = `UPDATE cpat.poam SET collectionId = ?, vulnerabilitySource = ?, vulnerabilityTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
+                          tenablePluginData = ?, iavmNumber = ?, taskOrderNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
+                          iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
+                          residualRisk = ?, likelihood = ?, localImpact = ?, impactDescription = ?, status = ?, submittedDate = ?, closedDate = ?, officeOrg = ?, isGlobalFinding = ? WHERE poamId = ?`;
+
+                await connection.query(sqlInsertPoam, [
+                    req.body.collectionId, req.body.vulnerabilitySource, req.body.vulnerabilityTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
+                    req.body.tenablePluginData, req.body.iavmNumber, req.body.taskOrderNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description,
+                    req.body.rawSeverity, req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions,
+                    req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.localImpact, req.body.impactDescription,
+                    req.body.status, req.body.submittedDate, req.body.closedDate, req.body.officeOrg, req.body.isGlobalFinding, req.body.poamId
+                ]);
+
+                const [updatedPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.body.poamId]);
+                const updatedPoam = updatedPoamRow.map(row => ({
+                    ...row,
+                    scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+                    submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+                    closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+                    iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+                    hqs: row.hqs != null ? Boolean(row.hqs) : null,
+                    isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null
+                }))[0];
+
+                let poamId = req.body.poamId;
 
                 const modifiedFields = Object.keys(req.body).filter(field => {
                     return !['poamId', 'collectionId', 'officeOrg', 'poamLog', 'severity', 'extensionTimeAllowed', 'extensionJustification'].includes(field) &&
@@ -531,65 +665,188 @@ exports.putPoam = async function putPoam(req, res, next) {
                 const modifiedFieldFullNames = modifiedFields.map(field => fieldNameMap[field] || field);
                 let action = `POAM Updated. POAM Status: ${req.body.status}, Severity: ${req.body.adjSeverity ? req.body.adjSeverity : req.body.rawSeverity}.<br> ${(modifiedFields.length > 0) ? "Fields modified: " + modifiedFieldFullNames.join(', ') + "." : "No POAM fields modified."}`;
                 let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [poamId, action, req.userObject.userId]).catch(error => {
-                    next(error);
-                });
+                await connection.query(logSql, [poamId, action, req.userObject.userId]);
 
-            if (req.body.assets) {
-                let sqlDeletePoamAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?";
-                await connection.query(sqlDeletePoamAssets, [req.body.poamId]);
+                if (req.body.assets) {
+                    let sqlDeletePoamAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?";
+                    await connection.query(sqlDeletePoamAssets, [req.body.poamId]);
 
-                let assets = req.body.assets;
-                for (let asset of assets) {
-                    if (asset.assetId) {
-                        let sql_query = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
-                        await connection.query(sql_query, [updatedPoam.poamId, asset.assetId]);
-                    } else if (asset.assetName) {
-                        let sql_query_check = `SELECT assetId FROM cpat.asset WHERE assetName = ? AND collectionId = ?`;
-                        let [existingAsset] = await connection.query(sql_query_check, [asset.assetName, updatedPoam.collectionId]);
+                    let assets = req.body.assets;
+                    for (let asset of assets) {
+                        if (asset.assetId) {
+                            let sql_query = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                            await connection.query(sql_query, [updatedPoam.poamId, asset.assetId]);
+                        } else if (asset.assetName) {
+                            let sql_query_check = `SELECT assetId FROM cpat.asset WHERE assetName = ? AND collectionId = ?`;
+                            let [existingAsset] = await connection.query(sql_query_check, [asset.assetName, updatedPoam.collectionId]);
 
-                        if (existingAsset.length > 0) {
-                            let assetId = existingAsset[0].assetId;
-                            let sql_query2 = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
-                            await connection.query(sql_query2, [updatedPoam.poamId, assetId]);
-                        } else {
-                            let sql_query_insert = `INSERT INTO cpat.asset (assetName, collectionId) VALUES (?, ?)`;
-                            let [rowAsset] = await connection.query(sql_query_insert, [asset.assetName, updatedPoam.collectionId]);
-                            let assetId = rowAsset.insertId;
-                            let sql_query_insert_poamasset = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
-                            await connection.query(sql_query_insert_poamasset, [updatedPoam.poamId, assetId]);
+                            if (existingAsset.length > 0) {
+                                let assetId = existingAsset[0].assetId;
+                                let sql_query2 = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                                await connection.query(sql_query2, [updatedPoam.poamId, assetId]);
+                            } else {
+                                let sql_query_insert = `INSERT INTO cpat.asset (assetName, collectionId) VALUES (?, ?)`;
+                                let [rowAsset] = await connection.query(sql_query_insert, [asset.assetName, updatedPoam.collectionId]);
+                                let assetId = rowAsset.insertId;
+                                let sql_query_insert_poamasset = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                                await connection.query(sql_query_insert_poamasset, [updatedPoam.poamId, assetId]);
+                            }
                         }
                     }
                 }
+
+                if (req.body.approvers) {
+                    let sqlDeletePoamApprovers = "DELETE FROM cpat.poamapprovers WHERE poamId = ?";
+                    await connection.query(sqlDeletePoamApprovers, [req.body.poamId]);
+
+                    let approvers = req.body.approvers;
+                    for (let approver of approvers) {
+                        if (!approver.userId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { "approvers.userId": "is required" } };
+                        }
+
+                        let sql_query = `INSERT INTO cpat.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments)
+                                         VALUES (?, ?, ?, ?, ?)`;
+                        await connection.query(sql_query, [
+                            updatedPoam.poamId,
+                            approver.userId,
+                            approver.approvalStatus || 'Not Reviewed',
+                            approver.approvedDate || null,
+                            approver.comments || null
+                        ]);
+                    }
+                }
+
+                if (req.body.assignedTeams) {
+                    let sqlDeletePoamAssignedTeams = "DELETE FROM cpat.poamassignedteams WHERE poamId = ?";
+                    await connection.query(sqlDeletePoamAssignedTeams, [req.body.poamId]);
+
+                    let assignedTeams = req.body.assignedTeams;
+                    for (let team of assignedTeams) {
+                        if (!team.assignedTeamId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { "assignedTeams.assignedTeamId": "is required" } };
+                        }
+
+                        let sql_query = `INSERT INTO cpat.poamassignedteams (poamId, assignedTeamId, automated)
+                                         VALUES (?, ?, ?)`;
+                        await connection.query(sql_query, [
+                            updatedPoam.poamId,
+                            team.assignedTeamId,
+                            team.automated || false
+                        ]);
+                    }
+                }
+
+                if (req.body.associatedVulnerabilities !== undefined) {
+                    let sqlDeleteAssociatedVulns = "DELETE FROM cpat.poamassociatedvulnerabilities WHERE poamId = ?";
+                    await connection.query(sqlDeleteAssociatedVulns, [req.body.poamId]);
+
+                    let vulnArray = [];
+                    if (typeof req.body.associatedVulnerabilities === 'string') {
+                        vulnArray = req.body.associatedVulnerabilities.split(',').map(v => v.trim()).filter(v => v);
+                    } else if (Array.isArray(req.body.associatedVulnerabilities)) {
+                        vulnArray = req.body.associatedVulnerabilities;
+                    }
+
+                    for (let vuln of vulnArray) {
+                        let sql_query = `INSERT INTO cpat.poamassociatedvulnerabilities (poamId, associatedVulnerability) VALUES (?, ?)`;
+                        await connection.query(sql_query, [updatedPoam.poamId, vuln]);
+                    }
+                }
+
+                if (req.body.labels && Array.isArray(req.body.labels)) {
+                    let sqlDeleteLabels = "DELETE FROM cpat.poamlabels WHERE poamId = ?";
+                    await connection.query(sqlDeleteLabels, [req.body.poamId]);
+
+                    for (let label of req.body.labels) {
+                        if (!label.labelId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { "labels.labelId": "is required" } };
+                        }
+
+                        let sql_query = `INSERT INTO cpat.poamlabels (poamId, labelId) VALUES (?, ?)`;
+                        await connection.query(sql_query, [updatedPoam.poamId, label.labelId]);
+                    }
+                }
+
+                if (req.body.milestones && Array.isArray(req.body.milestones)) {
+                    let sqlDeleteMilestones = "DELETE FROM cpat.poammilestones WHERE poamId = ?";
+                    await connection.query(sqlDeleteMilestones, [req.body.poamId]);
+
+                    for (let milestone of req.body.milestones) {
+                        let sql_query = `INSERT INTO cpat.poammilestones (
+                            poamId, milestoneDate, milestoneComments, milestoneChangeDate,
+                            milestoneChangeComments, milestoneStatus, assignedTeamId
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+                        await connection.query(sql_query, [
+                            updatedPoam.poamId,
+                            milestone.milestoneDate || null,
+                            milestone.milestoneComments || null,
+                            milestone.milestoneChangeDate || null,
+                            milestone.milestoneChangeComments || null,
+                            milestone.milestoneStatus || null,
+                            milestone.assignedTeamId || null
+                        ]);
+                    }
+                }
+
+                if (req.body.teamMitigations && Array.isArray(req.body.teamMitigations)) {
+                    let sqlDeleteTeamMitigations = "DELETE FROM cpat.poamteammitigations WHERE poamId = ?";
+                    await connection.query(sqlDeleteTeamMitigations, [req.body.poamId]);
+
+                    for (let mitigation of req.body.teamMitigations) {
+                        if (!mitigation.assignedTeamId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { "teamMitigations.assignedTeamId": "is required" } };
+                        }
+
+                        let sql_query = `INSERT INTO cpat.poamteammitigations
+                            (poamId, assignedTeamId, mitigationText, isActive)
+                            VALUES (?, ?, ?, ?)`;
+
+                        await connection.query(sql_query, [
+                            updatedPoam.poamId,
+                            mitigation.assignedTeamId,
+                            mitigation.mitigationText || '',
+                            mitigation.isActive !== undefined ? mitigation.isActive : true
+                        ]);
+                    }
+                }
+
+                if (req.body.status === 'Submitted') {
+                    let sql = `
+                        SELECT pa.userId
+                        FROM cpat.poamapprovers pa
+                        JOIN cpat.collectionpermissions cp ON pa.userId = cp.userId
+                        WHERE pa.poamId = ? AND cp.accessLevel = 3
+                    `;
+
+                    let [rows] = await connection.query(sql, [req.body.poamId]);
+                    const poamApprovers = rows.map(row => ({ ...row }));
+
+                    const notificationPromises = poamApprovers.map(async (approver) => {
+                        const notification = {
+                            title: 'POAM Pending Approval',
+                            message: `POAM ${req.body.poamId} has been submitted and is pending Approver review.`,
+                            userId: approver.userId
+                        };
+
+                        const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                        await connection.query(notificationSql, [approver.userId, notification.title, notification.message]);
+                    });
+
+                    await Promise.all(notificationPromises);
+                }
+
+                await connection.commit();
+                return updatedPoam;
+            } catch (error) {
+                await connection.rollback();
+                throw error;
             }
-
-            if (req.body.status === 'Submitted') {
-                let sql = `
-    SELECT pa.userId
-    FROM cpat.poamapprovers pa
-    JOIN cpat.collectionpermissions cp ON pa.userId = cp.userId
-    WHERE pa.poamId = ? AND cp.accessLevel = 3
-  `;
-
-                let [rows] = await connection.query(sql, [req.body.poamId]);
-
-                const poamApprovers = rows.map(row => ({ ...row }));
-
-                const notificationPromises = poamApprovers.map(async (approver) => {
-                    const notification = {
-                        title: 'POAM Pending Approval',
-                        message: `POAM ${req.body.poamId} has been submitted and is pending Approver review.`,
-                        userId: approver.userId
-                    };
-
-                    const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(notificationSql, [approver.userId, notification.title, notification.message]);
-                });
-
-                await Promise.all(notificationPromises);
-            }
-
-            return updatedPoam;
         });
     } catch (error) {
         return { error: error.message };
@@ -632,7 +889,8 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
                     submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                     closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                     iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                    hqs: row.hqs != null ? Boolean(row.hqs) : null
+                    hqs: row.hqs != null ? Boolean(row.hqs) : null,
+                    isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null
                 }))[0];
 
                     let poamId = req.params.poamId;

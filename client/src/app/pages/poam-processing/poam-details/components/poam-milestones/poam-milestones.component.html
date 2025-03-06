@@ -1,0 +1,170 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<div class="milestone-table-container">
+  <p-toast></p-toast>
+  <i class="pi pi-info-circle mb-4"
+     style="color: var(--p-text-color)"
+     pTooltip="Milestone with Completion Dates: A milestone identifies specific requirements for correcting an identified vulnerability. The initial milestones and completion dates may not be altered. Any changes to the milestones should be noted in the Milestone Changes within the POAM extension panel."></i>
+
+  <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
+    <ng-template pTemplate="header">
+      <tr>
+        <th scope="col">Milestone Comments</th>
+        <th pSortableColumn="milestoneDate" scope="col">Milestone Due Date</th>
+        <th pSortableColumn="milestoneStatus" scope="col">Status</th>
+        <th pSortableColumn="assignedTeamId" scope="col">Team</th>
+        <th *ngIf="poam?.status === 'Draft' || !poam.status" scope="col" style="width: 8rem; text-align: center">
+          <button pButton
+                  icon="pi pi-plus"
+                  class="p-button-rounded p-button-text"
+                  (click)="onAddNewMilestone()"
+                  [disabled]="accessLevel < 2"></button>
+        </th>
+        <th *ngIf="poam?.status && poam.status !== 'Draft'" scope="col" style="width: 8rem; text-align: center">
+          <button pButton
+                  icon="pi pi-plus"
+                  class="p-button-rounded p-button-text"
+                  severity="secondary"
+                  pTooltip="Milestones can only be added when the POAM status is Draft"
+                  [disabled]="accessLevel < 2"></button>
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body"
+                 let-milestone
+                 let-editing="editing"
+                 let-ri="rowIndex">
+      <tr [pEditableRow]="milestone"
+          [class.p-highlight]="milestone.editing || editingMilestoneId() === milestone.milestoneId">
+        <td>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <textarea pTextarea
+                        class="w-full"
+                        [rows]="4"
+                        [(ngModel)]="milestone.milestoneComments"
+                        [disabled]="accessLevel < 2"></textarea>
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{milestone.milestoneComments}}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <p-datepicker [(ngModel)]="milestone.milestoneDate"
+                            dateFormat="yy-mm-dd"
+                            styleClass="w-full"
+                            [showIcon]="true"
+                            appendTo="body"
+                            [disabled]="accessLevel < 2"></p-datepicker>
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{milestone.milestoneDate | date:'yyyy-MM-dd'}}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <p-select [options]="milestoneStatusOptions"
+                        [(ngModel)]="milestone.milestoneStatus"
+                        styleClass="w-full"
+                        appendTo="body"
+                        [disabled]="accessLevel < 2"></p-select>
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{milestone.milestoneStatus}}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <p-select [options]="assignedTeamOptions"
+                        placeholder="Select Team..."
+                        [(ngModel)]="milestone.assignedTeamId"
+                        optionLabel="assignedTeamName"
+                        optionValue="assignedTeamId"
+                        styleClass="w-full"
+                        appendTo="body"
+                        [disabled]="accessLevel < 2"></p-select>
+            </ng-template>
+            <ng-template pTemplate="output">
+              <span>{{getTeamName(milestone.assignedTeamId)}}</span>
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td style="text-align: center">
+          <div class="p-d-flex p-jc-center">
+            <button *ngIf="!milestone.editing && editingMilestoneId() === null && (poam?.status === 'Draft' || !poam.status)"
+                    pButton
+                    type="button"
+                    pInitEditableRow
+                    icon="pi pi-pencil"
+                    (click)="onRowEditInit(milestone)"
+                    class="p-button-rounded p-button-text"
+                    [disabled]="accessLevel < 2"></button>
+
+            <button *ngIf="milestone.editing || editingMilestoneId() === milestone.milestoneId"
+                    pButton
+                    type="button"
+                    icon="pi pi-check"
+                    (click)="onRowEditSave(milestone)"
+                    class="p-button-rounded p-button-text p-button-success mr-2"
+                    [disabled]="accessLevel < 2"></button>
+
+            <button *ngIf="milestone.editing || editingMilestoneId() === milestone.milestoneId"
+                    pButton
+                    type="button"
+                    pCancelEditableRow
+                    icon="pi pi-times"
+                    (click)="onRowEditCancel(milestone, ri)"
+                    class="p-button-rounded p-button-text p-button-danger"
+                    [disabled]="accessLevel < 2"></button>
+
+            <button *ngIf="!milestone.editing && editingMilestoneId() === null && (poam?.status === 'Draft' || !poam.status)"
+                    pButton
+                    type="button"
+                    icon="pi pi-trash"
+                    (click)="deleteMilestone(milestone, ri)"
+                    class="p-button-rounded p-button-text p-button-danger"
+                    [disabled]="accessLevel < 2"></button>
+
+            <button *ngIf="poam?.status && poam.status !== 'Draft' && !milestone.editing && editingMilestoneId() === null"
+                    pButton
+                    type="button"
+                    icon="pi pi-pencil"
+                    class="p-button-rounded p-button-text p-button-secondary"
+                    pTooltip="Milestones can only be modified when the POAM status is Draft"
+                    [disabled]="true"></button>
+
+            <button *ngIf="poam?.status && poam.status !== 'Draft' && !milestone.editing && editingMilestoneId() === null"
+                    pButton
+                    type="button"
+                    icon="pi pi-trash"
+                    class="p-button-rounded p-button-text p-button-secondary"
+                    pTooltip="Milestones can only be deleted when the POAM status is Draft"
+                    [disabled]="true"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" style="text-align: center">No Milestones to Display</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>

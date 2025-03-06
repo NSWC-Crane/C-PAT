@@ -14,23 +14,23 @@ export interface Poam {
   vulnerabilitySource: string;
   vulnerabilityTitle: string | null;
   controlAPs: string;
-  iavmNumber: string;
+  iavmNumber: string | null;
   iavComplyByDate: Date | string | null;
-  taskOrderNumber: string;
+  taskOrderNumber: string | null;
   aaPackage: string;
-  vulnerabilityId: string;
+  vulnerabilityId: string | null;
   stigBenchmarkId?: string | null;
   stigCheckData?: string | null;
   tenablePluginData?: string | null;
   description: string;
   rawSeverity: string;
-  adjSeverity: string;
+  adjSeverity: string | null;
   scheduledCompletionDate: Date | string;
   submitterId: number;
   submitterName: string;
-  mitigations: string;
-  requiredResources: string;
-  residualRisk: string;
+  mitigations: string | null;
+  requiredResources: string | null;
+  residualRisk: string | null;
   status: string;
   submittedDate: Date | string;
   closedDate: Date | string | null;
@@ -38,33 +38,54 @@ export interface Poam {
   predisposingConditions: string | null;
   severity: string;
   environmentOfThreat: string;
-  likelihood: string;
+  likelihood: string | null;
   devicesAffected: string;
   impactDescription: string | null;
   extensionTimeAllowed: number;
   extensionJustification: string;
-  hqs: boolean;
+  hqs: boolean | null;
+  isGlobalFinding: boolean | null;
   created: Date | string;
   lastUpdated: Date | string;
-  localImpact: string;
-  associatedVulnerabilities: string;
-  labels: string[];
+  localImpact: string | null;
+  associatedVulnerabilities: string[];
+  labels: {
+    labelId: number;
+  }[];
+  approvers?: {
+    userId: number;
+    approvalStatus: string;
+    approvedDate: Date | string | null;
+    comments: string | null;
+    hqs: boolean | null;
+  }[];
   milestones?: {
-    poamMilestones: {
-      milestoneId: number;
-      poamId: number;
-      milestoneDate: string | null;
-      milestoneComments: string | null;
-      milestoneStatus: string;
-      milestoneChangeComments: string | null;
-      milestoneChangeDate: string | null;
-      milestoneTeam: string;
-    }[];
-  };
+    milestoneId: number | null;
+    milestoneDate: string | null;
+    milestoneComments: string | null;
+    milestoneStatus: string | null;
+    milestoneChangeComments: string | null;
+    milestoneChangeDate: string | null;
+    milestoneTeam?: string;
+    assignedTeamId?: number | null;
+  }[];
   assignedTeams?: {
     assignedTeamId: number;
-    assignedTeamName: string;
+    assignedTeamName?: string;
+    poamId?: number;
+    status?: string;
+    automated?: boolean;
+  }[];
+  assets?: {
+    assetId?: number;
+    assetName?: string;
+  }[];
+  teamMitigations?: {
+    mitigationId: number;
     poamId: number;
-    status: string;
+    assignedTeamId: number;
+    assignedTeamName: string;
+    mitigationText: string;
+    isActive: boolean;
   }[];
 }

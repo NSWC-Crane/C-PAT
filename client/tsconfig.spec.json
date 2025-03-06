@@ -4,15 +4,23 @@
     "outDir": "./out-tsc/spec",
     "types": [
       "jasmine",
-      "node",
-      "@angular/localize"
+      "node"
+    ],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": [
+      "node_modules/@types",
+      "src"
     ]
   },
-  "files": [
-    "src/test.ts"
-  ],
   "include": [
     "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/test.ts",
+    "src/polyfills.ts"
+  ],
+  "files": [
+    "src/test.ts",
+    "src/jasmine-global.d.ts"
   ]
 }

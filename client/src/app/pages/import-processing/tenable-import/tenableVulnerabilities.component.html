@@ -198,7 +198,7 @@
                 </p-tablist>
                 <p-tabpanels>
                     <p-tabpanel value="0">
-                        <div class="col-span-12 row">
+                        <div class="row col-span-12">
                             <div class="col">
                                 <div class="p-fluid">
                                     <div class="toolbar mb-4">
@@ -295,25 +295,24 @@
                                                     <th *ngFor="let col of columns" pResizableColumn scope="col">
                                                         {{col.header}}
                                                         <ng-container *ngIf="col.field === 'poam' && tenableTool === 'sumid'">
-                                                            <p-columnFilter [field]="'poamStatus'"
-                                                                            [type]="'text'"
-                                                                            [showOperator]="false"
-                                                                            [showMatchModes]="false"
-                                                                            [showAddButton]="false"
-                                                                            [showButtons]="true"
-                                                                            display="menu">
-                                                                <ng-template pTemplate="filter"
-                                                                             let-value
-                                                                             let-filter="filterCallback">
-                                                                    <p-select [ngModel]="value"
-                                                                              [options]="poamStatusOptions"
-                                                                              (onChange)="filter($event.value)"
-                                                                              placeholder="Select Status"
-                                                                              [showClear]="true"
-                                                                              styleClass="w-full">
-                                                                    </p-select>
-                                                                </ng-template>
-                                                            </p-columnFilter>
+                                                          <p-columnFilter [field]="col.filterField"
+                                                                          type="multi"
+                                                                          matchMode="in"
+                                                                          [showOperator]="false"
+                                                                          [showMatchModes]="false"
+                                                                          [showAddButton]="false"
+                                                                          [showButtons]="true"
+                                                                          display="menu">
+                                                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                              <p-multiSelect [ngModel]="value"
+                                                                             [options]="col.filterOptions"
+                                                                             (onChange)="filter($event.value)"
+                                                                             placeholder="Select Status"
+                                                                             [showClear]="true"
+                                                                             styleClass="w-full">
+                                                              </p-multiSelect>
+                                                            </ng-template>
+                                                          </p-columnFilter>
                                                         </ng-container>
                                                         <ng-container *ngIf="(col.field === 'navyComplyDate' || col.field === 'iav' ||  col.field === 'total' || col.field === 'hostTotal') && tenableTool === 'sumid'">
                                                             <p-columnFilter [field]="col.field"
@@ -321,7 +320,6 @@
                                                                             [showOperator]="false"
                                                                             [showMatchModes]="true"
                                                                             [showAddButton]="true"
-                                                                            [showButtons]="true"
                                                                             display="menu">
                                                             </p-columnFilter>
                                                         </ng-container>
@@ -331,6 +329,8 @@
                                                                             [showMatchModes]="false"
                                                                             [showAddButton]="false"
                                                                             [showButtons]="false"
+                                                                            [showApplyButton]="false"
+                                                                            [showClearButton]="false"
                                                                             display="menu">
                                                                 <ng-template pTemplate="filter" let-field="field">
                                                                     <ng-container [ngSwitch]="field">
@@ -391,7 +391,8 @@
                                                                                       [(ngModel)]="tempFilters[field].value"
                                                                                       (onChange)="onRangeChange($event, field)"
                                                                                       placeholder="Select filter option..."
-                                                                                      styleClass="mb-2">
+                                                                                      styleClass="mb-2 w-full"
+                                                                                      class="mb-2 w-full">
                                                                             </p-select>
                                                                             <div *ngIf="tempFilters[field].value === 'customRange'"
                                                                                  class="range-input mt-2 flex items-center">
@@ -401,8 +402,6 @@
                                                                                                [max]="getMaxValue(field)"
                                                                                                [showButtons]="false"
                                                                                                (onInput)="onRangeValueChange(field)"
-                                                                                               styleClass="w-16"
-                                                                                               class="w-16"
                                                                                                [useGrouping]="false">
                                                                                 </p-inputNumber>
                                                                                 <span class="mx-2">and</span>
@@ -411,8 +410,6 @@
                                                                                                [max]="getMaxValue(field)"
                                                                                                [showButtons]="false"
                                                                                                (onInput)="onRangeValueChange(field)"
-                                                                                               styleClass="w-16"
-                                                                                               class="w-16"
                                                                                                [useGrouping]="false">
                                                                                 </p-inputNumber>
                                                                             </div>

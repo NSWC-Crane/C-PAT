@@ -33,6 +33,7 @@ import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { LabelService } from '../../label-processing/label.service';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'cpat-poam-extend',
@@ -49,6 +50,7 @@ import { LabelService } from '../../label-processing/label.service';
     Select,
     InputTextModule,
     TextareaModule,
+    TooltipModule,
     StepperModule,
     TableModule,
     ToastModule,
@@ -157,7 +159,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   }
 
   async setPayload() {
-    await this.setPayloadService.setPayload();
+    this.setPayloadService.setPayload();
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe(user => {
         this.user = user;
@@ -184,7 +186,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       ]).subscribe({
         next: ([poamData, extension, poamMilestones, assignedTeamOptions]: any) => {
           const extensionDataset = extension;
-          this.poamMilestones = poamMilestones.poamMilestones.map((milestone: any) => ({
+          this.poamMilestones = poamMilestones.map((milestone: any) => ({
             ...milestone,
             milestoneDate: milestone.milestoneDate ? milestone.milestoneDate.split('T')[0] : null,
             milestoneChangeDate: milestone.milestoneChangeDate
@@ -487,6 +489,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     this.displayExtensionDialog = false;
     this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
   }
+
   async submitPoamExtension() {
     if (this.poam.extensionTimeAllowed > 0) {
       const hasChangedMilestone = this.poamMilestones.some(
@@ -502,13 +505,21 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         });
         return;
       }
-    }
 
+      this.putPoamExtension('Extension Requested');
+    }
+  }
+
+  approveExtension() {
+    this.putPoamExtension('Approved');
+  }
+
+  putPoamExtension(status: string) {
     const extensionData = {
       poamId: parseInt(this.poamId, 10),
       extensionTimeAllowed: this.poam.extensionTimeAllowed,
       extensionJustification: this.extensionJustification,
-      status: 'Extension Requested',
+      status: status,
       mitigations: this.poam.mitigations,
       requiredResources: this.poam.requiredResources,
       residualRisk: this.poam.residualRisk,

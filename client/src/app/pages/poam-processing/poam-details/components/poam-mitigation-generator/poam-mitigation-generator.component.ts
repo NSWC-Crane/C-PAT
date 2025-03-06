@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -19,7 +19,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { PoamService } from '../poams.service';
+import { PoamService } from '../../../poams.service';
 
 @Component({
   selector: 'cpat-poam-mitigation-generator',
@@ -37,11 +37,12 @@ import { PoamService } from '../poams.service';
   ],
   templateUrl: './poam-mitigation-generator.component.html'
 })
-export class PoamMitigationGeneratorComponent implements OnInit {
+export class PoamMitigationGeneratorComponent implements OnInit, OnChanges {
   @Input() poam: any;
-  @Input() aiEnabled: boolean = false;
-  @Output() mitigationGenerated = new EventEmitter<string>();
-
+  @Input() team: any = null;
+  @Input() teams: any[] = [];
+  @Output() mitigationGenerated = new EventEmitter<{ mitigation: string, teamId?: number }>();
+  aiEnabled: boolean = CPAT.Env.features.aiEnabled;
   isGenerating = signal<boolean>(false);
   showPromptEditor = signal<boolean>(false);
   generatedMitigation: string = '';
@@ -76,7 +77,34 @@ export class PoamMitigationGeneratorComponent implements OnInit {
 
   ngOnInit(): void { }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['teams'] && !changes['teams'].firstChange) {
+      if (this.team && !this.teams.some(t => t.assignedTeamId === this.team.assignedTeamId)) {
+        this.reset();
+      }
+    }
+
+    if (changes['team'] && !changes['team'].firstChange && this.generatedMitigation) {
+       this.reset();
+    }
+  }
+
+
+  isTeamActive(): boolean {
+    if (!this.team) return true;
+    return this.team.isActive !== false;
+  }
+
   initiateGeneration() {
+    if (this.team && !this.isTeamActive()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: `Cannot generate mitigations for inactive team ${this.team.assignedTeamName}`
+      });
+      return;
+    }
+
     this.buildMitigationPrompt();
     this.showPromptEditor.set(true);
   }
@@ -93,7 +121,7 @@ export class PoamMitigationGeneratorComponent implements OnInit {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
-              detail: 'Mitigation content generated successfully'
+              detail: `Mitigation content generated successfully${this.team ? ' for ' + this.team.assignedTeamName : ''}`
             });
           } else {
             this.messageService.add({
@@ -154,7 +182,10 @@ Remember: Focus only on concrete measures that WILL be implemented, not theoreti
   }
 
   confirmApplyMitigation() {
-    this.mitigationGenerated.emit(this.generatedMitigation);
+    this.mitigationGenerated.emit({
+      mitigation: this.generatedMitigation,
+      teamId: this.team?.assignedTeamId
+    });
     this.consentDialogVisible = false;
     this.reset();
   }

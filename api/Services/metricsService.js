@@ -228,7 +228,7 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
 
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
-                    SELECT collectionId 
+                    SELECT collectionId
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);
@@ -267,7 +267,7 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
 
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
-                    SELECT collectionId 
+                    SELECT collectionId
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);
@@ -377,7 +377,7 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
 
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
-                    SELECT collectionId 
+                    SELECT collectionId
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);
@@ -416,7 +416,7 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) 
 
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
-                    SELECT collectionId 
+                    SELECT collectionId
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);
@@ -505,7 +505,7 @@ exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamSch
 
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
-                    SELECT collectionId 
+                    SELECT collectionId
                     FROM cpat.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);

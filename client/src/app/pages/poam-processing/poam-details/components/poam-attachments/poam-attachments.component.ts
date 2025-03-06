@@ -11,10 +11,10 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { HttpResponse } from '@angular/common/http';
-import { PoamAttachmentService } from './poam-attachments.service';
+import { PoamAttachmentService } from '../../services/poam-attachments.service';
 import { Subscription } from 'rxjs';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
-import { PayloadService } from '../../../common/services/setPayload.service';
+import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BadgeModule } from 'primeng/badge';
@@ -44,10 +44,9 @@ import { TooltipModule } from 'primeng/tooltip';
 })
 export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   @ViewChild('fileUpload') fileUpload!: FileUpload;
-  @Input() poamId: number;
+  @Input() poamId: number | string;
+  private accessLevelSubscription: Subscription;
   protected accessLevel: any;
-  user: any;
-  payload: any;
   totalSize: string = '0';
   totalSizePercent: number = 0;
   attachedFiles: any[] = [];
@@ -98,7 +97,6 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     '.nessus',
     '.txt'
   ];
-  private payloadSubscription: Subscription[] = [];
 
   constructor(
     private messageService: MessageService,
@@ -107,25 +105,21 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit() {
-    await this.setPayloadService.setPayload();
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
-        this.user = user;
-      }),
-      this.setPayloadService.payload$.subscribe(payload => {
-        this.payload = payload;
-      }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
-        this.accessLevel = level;
-        if (this.accessLevel > 0) {
-          this.loadAttachedFiles();
-        }
-      })
-    );
+    this.setPayloadService.setPayload();
+    this.accessLevelSubscription = this.setPayloadService.accessLevel$.subscribe(level => {
+      this.accessLevel = level;
+      if (this.accessLevel > 0) {
+        this.loadAttachedFiles();
+      }
+    });
   }
 
   loadAttachedFiles() {
-    this.poamAttachmentService.getAttachmentsByPoamId(this.poamId).subscribe({
+    if (this.poamId === 'ADDPOAM') {
+      return;
+    }
+
+    this.poamAttachmentService.getAttachmentsByPoamId(+this.poamId).subscribe({
       next: (attachments: any) => {
         this.attachedFiles = attachments;
       },
@@ -141,7 +135,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   }
 
   downloadFile(attachment: any) {
-    this.poamAttachmentService.downloadAttachment(this.poamId, attachment.attachmentId)
+    this.poamAttachmentService.downloadAttachment(+this.poamId, attachment.attachmentId)
       .subscribe({
         next: (blob: any) => {
           const url = window.URL.createObjectURL(blob);
@@ -163,7 +157,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   }
 
   deleteAttachment(attachment: any) {
-    this.poamAttachmentService.deleteAttachment(this.poamId, attachment.attachmentId)
+    this.poamAttachmentService.deleteAttachment(+this.poamId, attachment.attachmentId)
       .subscribe({
         next: () => {
           this.messageService.add({
@@ -218,8 +212,11 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
 
     return true;
   }
-
   customUploadHandler(event: any) {
+    if (this.poamId === 'ADDPOAM') {
+      return;
+    }
+
     const file = event.files[0];
     if (!file) {
       console.error('No file selected');
@@ -227,16 +224,6 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
         severity: 'error',
         summary: 'Error',
         detail: 'No file selected'
-      });
-      return;
-    }
-
-    if (!this.user?.userId) {
-      console.error('User ID is not available');
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'User ID is not available'
       });
       return;
     }
@@ -306,7 +293,9 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  ngOnDestroy(): void {
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+  ngOnDestroy() {
+    if (this.accessLevelSubscription) {
+      this.accessLevelSubscription.unsubscribe();
+    }
   }
 }
