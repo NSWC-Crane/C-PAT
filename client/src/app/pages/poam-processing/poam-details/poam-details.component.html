@@ -365,7 +365,7 @@
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <p-accordion [value]="['0']" [multiple]="true">
+                  <p-accordion [value]="['0', '1']" [multiple]="true">
                     <p-accordion-panel value="0">
                       <p-accordion-header>Teams Assigned</p-accordion-header>
                       <p-accordion-content>
@@ -394,6 +394,7 @@
                   </p-accordion>
                 </div>
                 <div class="stepper-buttons">
+                  <div></div>
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                             icon="pi pi-arrow-right"
                             iconPos="right"
@@ -421,11 +422,11 @@
                 <div class="stepper-buttons">
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                             icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(2)"></p-button>
+                            (onClick)="activateCallback(1)"></p-button>
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                             icon="pi pi-arrow-right"
                             iconPos="right"
-                            (onClick)="activateCallback(4)"></p-button>
+                            (onClick)="activateCallback(3)"></p-button>
                 </div>
               </div>
             </ng-template>
@@ -451,11 +452,11 @@
                 <div class="stepper-buttons">
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                             icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(3)"></p-button>
+                            (onClick)="activateCallback(2)"></p-button>
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                             icon="pi pi-arrow-right"
                             iconPos="right"
-                            (onClick)="activateCallback(5)"></p-button>
+                            (onClick)="activateCallback(4)"></p-button>
                 </div>
               </div>
             </ng-template>
@@ -538,11 +539,11 @@
                 <div class="stepper-buttons">
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                             icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(4)"></p-button>
+                            (onClick)="activateCallback(3)"></p-button>
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                             icon="pi pi-arrow-right"
                             iconPos="right"
-                            (onClick)="activateCallback(6)"></p-button>
+                            (onClick)="activateCallback(5)"></p-button>
                 </div>
               </div>
             </ng-template>
@@ -568,11 +569,11 @@
                 <div class="stepper-buttons">
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                             icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(5)"></p-button>
+                            (onClick)="activateCallback(4)"></p-button>
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                             icon="pi pi-arrow-right"
                             iconPos="right"
-                            (onClick)="activateCallback(7)"></p-button>
+                            (onClick)="activateCallback(6)"></p-button>
                 </div>
               </div>
             </ng-template>
@@ -650,11 +651,11 @@
                 <div class="stepper-buttons">
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                             icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(6)"></p-button>
+                            (onClick)="activateCallback(5)"></p-button>
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                             icon="pi pi-arrow-right"
                             iconPos="right"
-                            (onClick)="activateCallback(8)"></p-button>
+                            (onClick)="activateCallback(7)"></p-button>
                 </div>
               </div>
             </ng-template>
@@ -675,11 +676,11 @@
                 <div class="stepper-buttons">
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                             icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(7)"></p-button>
+                            (onClick)="activateCallback(6)"></p-button>
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                             icon="pi pi-arrow-right"
                             iconPos="right"
-                            (onClick)="activateCallback(9)"></p-button>
+                            (onClick)="activateCallback(8)"></p-button>
                 </div>
               </div>
             </ng-template>
@@ -701,11 +702,11 @@
                 <div class="stepper-buttons">
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                             icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(8)"></p-button>
+                            (onClick)="activateCallback(7)"></p-button>
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                             icon="pi pi-arrow-right"
                             iconPos="right"
-                            (onClick)="activateCallback(10)"></p-button>
+                            (onClick)="activateCallback(9)"></p-button>
                 </div>
               </div>
             </ng-template>
@@ -726,6 +727,10 @@
                 <div class="stepper-buttons">
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                             icon="pi pi-arrow-left"
+                            (onClick)="activateCallback(8)"></p-button>
+                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
                             (onClick)="activateCallback(10)"></p-button>
                 </div>
               </div>
@@ -744,10 +749,6 @@
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
                             icon="pi pi-arrow-left"
                             (onClick)="activateCallback(9)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            (onClick)="activateCallback(11)"></p-button>
                 </div>
               </div>
             </ng-template>
