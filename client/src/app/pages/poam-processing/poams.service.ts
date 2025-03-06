@@ -64,13 +64,20 @@ export class PoamService {
     poamId: number,
     includeApprovers: boolean = false,
     includeAssignedTeams: boolean = false,
-    includeAssets: boolean = false
+    includeAssets: boolean = false,
+    includeLabels: boolean = false,
+    includeMilestones: boolean = false,
+    includeAssociatedVulnerabilities: boolean = false,
+    includeTeamMitigations: boolean = false
   ): Observable<any> {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignedTeams', includeAssignedTeams.toString())
-      .set('assets', includeAssets.toString());
-
+      .set('assets', includeAssets.toString())
+      .set('labels', includeLabels.toString())
+      .set('milestones', includeMilestones.toString())
+      .set('associatedVulnerabilities', includeAssociatedVulnerabilities.toString())
+      .set('teamMitigations', includeTeamMitigations.toString());
     return this.http
       .get(`${this.cpatApiBase}/poam/${poamId}`, { params })
       .pipe(catchError(this.handleError));
@@ -80,13 +87,20 @@ export class PoamService {
     collectionId: number,
     includeApprovers: boolean = false,
     includeAssignedTeams: boolean = false,
-    includeAssets: boolean = false
+    includeAssets: boolean = false,
+    includeLabels: boolean = false,
+    includeMilestones: boolean = false,
+    includeAssociatedVulnerabilities: boolean = false,
+    includeTeamMitigations: boolean = false
   ): Observable<any> {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignedTeams', includeAssignedTeams.toString())
-      .set('assets', includeAssets.toString());
-
+      .set('assets', includeAssets.toString())
+      .set('labels', includeLabels.toString())
+      .set('milestones', includeMilestones.toString())
+      .set('associatedVulnerabilities', includeAssociatedVulnerabilities.toString())
+      .set('teamMitigations', includeTeamMitigations.toString());
     return this.http
       .get(`${this.cpatApiBase}/poams/collection/${collectionId}`, { params })
       .pipe(catchError(this.handleError));
@@ -96,15 +110,44 @@ export class PoamService {
     submitterId: number,
     includeApprovers: boolean = false,
     includeAssignedTeams: boolean = false,
-    includeAssets: boolean = false
+    includeAssets: boolean = false,
+    includeLabels: boolean = false,
+    includeMilestones: boolean = false,
+    includeAssociatedVulnerabilities: boolean = false,
+    includeTeamMitigations: boolean = false
   ): Observable<any> {
     const params = new HttpParams()
       .set('approvers', includeApprovers.toString())
       .set('assignedTeams', includeAssignedTeams.toString())
-      .set('assets', includeAssets.toString());
-
+      .set('assets', includeAssets.toString())
+      .set('labels', includeLabels.toString())
+      .set('milestones', includeMilestones.toString())
+      .set('associatedVulnerabilities', includeAssociatedVulnerabilities.toString())
+      .set('teamMitigations', includeTeamMitigations.toString());
     return this.http
       .get(`${this.cpatApiBase}/poams/submitter/${submitterId}`, { params })
+      .pipe(catchError(this.handleError));
+  }
+
+  getAvailablePoams(
+    includeApprovers: boolean = false,
+    includeAssignedTeams: boolean = false,
+    includeAssets: boolean = false,
+    includeLabels: boolean = false,
+    includeMilestones: boolean = false,
+    includeAssociatedVulnerabilities: boolean = false,
+    includeTeamMitigations: boolean = false
+  ): Observable<any> {
+    const params = new HttpParams()
+      .set('approvers', includeApprovers.toString())
+      .set('assignedTeams', includeAssignedTeams.toString())
+      .set('assets', includeAssets.toString())
+      .set('labels', includeLabels.toString())
+      .set('milestones', includeMilestones.toString())
+      .set('associatedVulnerabilities', includeAssociatedVulnerabilities.toString())
+      .set('teamMitigations', includeTeamMitigations.toString());
+    return this.http
+      .get(`${this.cpatApiBase}/poams`, { params })
       .pipe(catchError(this.handleError));
   }
 
@@ -314,12 +357,6 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  getAvailablePoams(): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/poams`)
-      .pipe(catchError(this.handleError));
-  }
-
   getAvailablePoamLabels(): Observable<any> {
     return this.http
       .get(`${this.cpatApiBase}/poamLabels`)
@@ -335,6 +372,36 @@ export class PoamService {
   automateMitigation(prompt: string): Observable<any> {
     return this.http
       .post<any>(`${this.cpatApiBase}/ai/mitigation`, prompt)
+      .pipe(catchError(this.handleError));
+  }
+
+  getPoamTeamMitigations(poamId: number): Observable<any> {
+    return this.http
+      .get<any>(`${this.cpatApiBase}/poamTeamMitigations/poam/${poamId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  postPoamTeamMitigation(teamMitigation: any): Observable<any> {
+    return this.http
+      .post<any>(`${this.cpatApiBase}/poamTeamMitigation`, teamMitigation)
+      .pipe(catchError(this.handleError));
+  }
+
+  updatePoamTeamMitigation(poamId: number, assignedTeamId: number, mitigationText: string): Observable<any> {
+    return this.http
+      .put<any>(`${this.cpatApiBase}/poamTeamMitigation/${poamId}/${assignedTeamId}`, { mitigationText })
+      .pipe(catchError(this.handleError));
+  }
+
+  updatePoamTeamMitigationStatus(poamId: number, assignedTeamId: number, isActive: boolean): Observable<any> {
+    return this.http
+      .patch<any>(`${this.cpatApiBase}/poamTeamMitigation/${poamId}/${assignedTeamId}/status`, { isActive })
+      .pipe(catchError(this.handleError));
+  }
+
+  deletePoamTeamMitigation(poamId: number, assignedTeamId: number): Observable<any> {
+    return this.http
+      .delete<any>(`${this.cpatApiBase}/poamTeamMitigation/${poamId}/${assignedTeamId}`)
       .pipe(catchError(this.handleError));
   }
 }

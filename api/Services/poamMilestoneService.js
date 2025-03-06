@@ -43,7 +43,7 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
             let sql = "SELECT * FROM cpat.poammilestones WHERE poamId = ?;";
             let [rows] = await connection.query(sql, [poamId]);
             const poamMilestones = rows.map(row => ({ ...row }));
-            return { poamMilestones };
+            return poamMilestones;
         });
     } catch (error) {
         return { error: error.message };
@@ -109,7 +109,7 @@ Milestone Comment: ${req.body.milestoneComments}`;
                     let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                     await connection.query(logSql, [poamId, action, userId]);
             }
-            return { poamMilestone };
+            return poamMilestone;
         });
     } catch (error) {
         return { error: error.message };
@@ -193,7 +193,7 @@ New Milestone Status: ${req.body.milestoneStatus}`);
                 let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
 
-            return { poamMilestone };
+            return poamMilestone;
         });
     } catch (error) {
         return { error: error.message };

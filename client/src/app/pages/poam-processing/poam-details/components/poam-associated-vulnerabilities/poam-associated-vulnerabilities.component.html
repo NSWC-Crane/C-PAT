@@ -1,0 +1,70 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<p-table [value]="displayVulnerabilities" [paginator]="false">
+  <ng-template pTemplate="header">
+    <tr>
+      <th pSortableColumn="associatedVulnerability" scope="col">Associated Vulnerability</th>
+      <th scope="col"
+          style="width: 8rem"
+          pTooltip="Associating additional vulnerabilities is restricted to CAT-I Approvers."
+          tooltipPosition="top"
+          *ngIf="accessLevel < 4">
+        <button pButton
+                icon="pi pi-plus"
+                class="p-button-rounded p-button-text"
+                [disabled]="accessLevel < 4"></button>
+      </th>
+      <th scope="col" style="width: 8rem" *ngIf="accessLevel >= 4">
+        <button pButton
+                icon="pi pi-plus"
+                (click)="addAssociatedVulnerability()"
+                class="p-button-rounded p-button-text"
+                [disabled]="accessLevel < 4"></button>
+      </th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body"
+               let-associatedVulnerability
+               let-rowIndex="rowIndex">
+    <tr>
+      <td>
+        <span *ngIf="!associatedVulnerability.isNew">{{associatedVulnerability.associatedVulnerability}}</span>
+        <input *ngIf="associatedVulnerability.isNew"
+               type="text"
+               pInputText
+               class="w-full"
+               [(ngModel)]="associatedVulnerability.associatedVulnerability"
+               [maxlength]="15"
+               name="associatedVulnerability"
+               placeholder="Plugin ID / Vulnerability ID..."
+               [disabled]="accessLevel < 4" />
+      </td>
+      <td>
+        <button pButton
+                icon="pi pi-check"
+                *ngIf="associatedVulnerability.isNew"
+                (click)="onAssociatedVulnerabilityChange(associatedVulnerability, rowIndex)"
+                class="p-button-rounded p-button-text p-button-success"
+                [disabled]="accessLevel < 4"></button>
+        <button pButton
+                icon="pi pi-trash"
+                (click)="deleteAssociatedVulnerability(associatedVulnerability, rowIndex)"
+                class="p-button-rounded p-button-text p-button-danger"
+                [disabled]="accessLevel < 4"></button>
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="2" style="text-align: center">No Associated Vulnerabilities</td>
+    </tr>
+  </ng-template>
+</p-table>

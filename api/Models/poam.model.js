@@ -121,8 +121,12 @@ module.exports = (sequelize, DataTypes) => {
         },
         hqs: {
             type: DataTypes.TINYINT(1),
-            allowNull: true,
+            allowNull: true
         },
+        isGlobalFinding: {
+            type: DataTypes.TINYINT(1),
+            allowNull: true
+        }
     }, {
         freezeTableName: true,
         timestamps: false,

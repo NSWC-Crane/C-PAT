@@ -35,7 +35,7 @@ exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
         const poamAssignedTeams = rowPoamAssignedTeams.map(row => ({
             assignedTeamId: row.assignedTeamId,
             assignedTeamName: row.assignedTeamName,
-            automated: row.automated,
+            automated: row.automated != null ? Boolean(row.automated) : false,
             poamId: row.poamId,
             status: row.status,
         }));
@@ -61,7 +61,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
         const poamAssignedTeams = rowPoamAssignedTeams.map(row => ({
             assignedTeamId: row.assignedTeamId,
             assignedTeamName: row.assignedTeamName,
-            automated: row.automated,
+            automated: row.automated != null ? Boolean(row.automated) : false,
             poamId: row.poamId,
             status: row.status,
         }));
@@ -103,7 +103,9 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
             const [newAssignedTeam] = await connection.query(fetchNewSql, [req.body.assignedTeamId, req.body.poamId]);
 
             if (newAssignedTeam.length > 0) {
-                return newAssignedTeam[0];
+                const result = { ...newAssignedTeam[0] };
+                result.automated = result.automated != null ? Boolean(result.automated) : null;
+                return result;
             } else {
                 throw new Error('Assigned Team not found after insertion');
             }
@@ -112,7 +114,10 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
                 return await withConnection(async (connection) => {
                     let fetchSql = "SELECT poamId, assignedTeamId, automated FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
                     const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
-                    return existingAssignedTeam[0];
+
+                    const result = { ...existingAssignedTeamexistingAssignedTeam[0] };
+                    result.automated = result.automated != null ? Boolean(result.automated) : null;
+                    return result;
                 });
             }
             else {
