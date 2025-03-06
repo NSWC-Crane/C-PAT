@@ -14,6 +14,7 @@ const dbUtils = require('./utils');
 const mysql = require('mysql2');
 const SmError = require('../utils/error');
 const logger = require('../utils/logger');
+const { format } = require('date-fns');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -47,7 +48,7 @@ exports.getIAVTableData = async function getIAVTableData(req, res, next) {
     GROUP BY i.iav
 `;
             let [tableData] = await connection.query(sql);
-
+            let nessusPluginsMapped = null;
             if (tableData.length > 0) {
                 const [nessusPluginsUpdated] = await connection.query('SELECT `value` FROM config WHERE `key` = ?', ['nessusPluginsMapped']);
                 nessusPluginsMapped = nessusPluginsUpdated.length > 0 ? nessusPluginsUpdated[0].value : null;
@@ -117,6 +118,7 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
                 };
             } catch (error) {
                 await connection.rollback();
+                logger.writeError(`Error in mapIAVPluginIds transaction: ${error.message}`);
                 throw error;
             }
         });
@@ -151,6 +153,12 @@ exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) {
 
 exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
     try {
+
+        if (!Array.isArray(pluginIDs) || pluginIDs.length === 0) {
+            logger.writeWarn('No valid plugin IDs provided');
+            return [];
+        }
+
         const validPluginIDs = pluginIDs
             .filter(id => {
                 const num = Number(id);
