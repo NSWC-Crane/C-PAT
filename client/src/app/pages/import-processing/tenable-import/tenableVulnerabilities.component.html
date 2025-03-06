@@ -295,25 +295,24 @@
                                                     <th *ngFor="let col of columns" pResizableColumn scope="col">
                                                         {{col.header}}
                                                         <ng-container *ngIf="col.field === 'poam' && tenableTool === 'sumid'">
-                                                            <p-columnFilter [field]="'poamStatus'"
-                                                                            [type]="'text'"
-                                                                            [showOperator]="false"
-                                                                            [showMatchModes]="false"
-                                                                            [showAddButton]="false"
-                                                                            [showButtons]="true"
-                                                                            display="menu">
-                                                                <ng-template pTemplate="filter"
-                                                                             let-value
-                                                                             let-filter="filterCallback">
-                                                                    <p-select [ngModel]="value"
-                                                                              [options]="poamStatusOptions"
-                                                                              (onChange)="filter($event.value)"
-                                                                              placeholder="Select Status"
-                                                                              [showClear]="true"
-                                                                              styleClass="w-full">
-                                                                    </p-select>
-                                                                </ng-template>
-                                                            </p-columnFilter>
+                                                          <p-columnFilter [field]="col.filterField"
+                                                                          type="multi"
+                                                                          matchMode="in"
+                                                                          [showOperator]="false"
+                                                                          [showMatchModes]="false"
+                                                                          [showAddButton]="false"
+                                                                          [showButtons]="true"
+                                                                          display="menu">
+                                                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                              <p-multiSelect [ngModel]="value"
+                                                                             [options]="col.filterOptions"
+                                                                             (onChange)="filter($event.value)"
+                                                                             placeholder="Select Status"
+                                                                             [showClear]="true"
+                                                                             styleClass="w-full">
+                                                              </p-multiSelect>
+                                                            </ng-template>
+                                                          </p-columnFilter>
                                                         </ng-container>
                                                         <ng-container *ngIf="(col.field === 'navyComplyDate' || col.field === 'iav' ||  col.field === 'total' || col.field === 'hostTotal') && tenableTool === 'sumid'">
                                                             <p-columnFilter [field]="col.field"

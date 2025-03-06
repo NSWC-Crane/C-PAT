@@ -153,25 +153,24 @@
                           scope="col">
                           {{col.header}}
                           <ng-container *ngIf="col.field === 'poam'">
-                              <p-columnFilter [type]="col.filterType"
-                                              [field]="'poamStatus'"
-                                              [showMatchModes]="false"
-                                              [showOperator]="false"
-                                              [showAddButton]="false"
-                                              [showApplyButton]="true"
-                                              [showClearButton]="true"
-                                              [display]="'menu'"
-                                              [showMenu]="true">
-                                  <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                      <p-select [ngModel]="value"
-                                                [options]="poamStatusOptions"
-                                                (onChange)="filter($event.value)"
-                                                placeholder="Select Status"
-                                                [showClear]="true"
-                                                styleClass="w-full">
-                                      </p-select>
-                                  </ng-template>
-                              </p-columnFilter>
+                            <p-columnFilter [field]="col.filterField"
+                                            type="multi"
+                                            matchMode="in"
+                                            [showOperator]="false"
+                                            [showMatchModes]="false"
+                                            [showAddButton]="false"
+                                            [showButtons]="true"
+                                            display="menu">
+                              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-multiSelect [ngModel]="value"
+                                               [options]="col.filterOptions"
+                                               (onChange)="filter($event.value)"
+                                               placeholder="Select Status"
+                                               [showClear]="true"
+                                               styleClass="w-full">
+                                </p-multiSelect>
+                              </ng-template>
+                            </p-columnFilter>
                           </ng-container>
                           <ng-container *ngIf="col.field !== 'poam'">
                             <p-columnFilter [type]="col.filterType"
