@@ -358,6 +358,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
           this.loadAssetDeltaList();
           this.fileUpload.clear();
           this.showUploadDialog.set(false);
+          this.checkAllStatuses();
         }
       },
       error: error => {
@@ -474,8 +475,32 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       summary: 'Initiated',
       detail: 'Status check initiated'
     });
-    const tenableCheck = this.checkTenableStatus(this.assets().map(a => a.key));
-    const stigManagerCheck = this.checkStigManagerStatus();
+
+    const tenableCheck = this.checkTenableStatus(this.assets().map(a => a.key)).pipe(
+      takeUntil(this.destroy$),
+      catchError(error => {
+        console.error('Error checking Tenable status:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Tenable status check failed'
+        });
+        return of(null);
+      })
+    );
+
+    const stigManagerCheck = this.checkStigManagerStatus().pipe(
+      takeUntil(this.destroy$),
+      catchError(error => {
+        console.error('Error checking STIG Manager status:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'STIG Manager status check failed'
+        });
+        return of(null);
+      })
+    );
 
     forkJoin([tenableCheck, stigManagerCheck]).pipe(
       takeUntil(this.destroy$),
@@ -484,32 +509,52 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       })
     ).subscribe({
       next: ([tenableResponse, stigManagerAssets]) => {
-        const tenableResults = tenableResponse.response.results.map((r: any) => r.dnsName.toLowerCase());
+        let tenableResults: string[] = [];
+        if (tenableResponse) {
+          tenableResults = tenableResponse.response.results.map((r: any) => r.dnsName.toLowerCase());
+        }
 
-        this.assets.update(assets => assets.map(asset => ({
-          ...asset,
-          loading: false,
-          existsInTenable: tenableResults.some((dnsName: string) => dnsName.includes(asset.key.toLowerCase())),
-          existsInStigManager: stigManagerAssets.has(asset.key.toLowerCase())
-        })));
+        this.assets.update(assets => assets.map(asset => {
+          const updatedAsset = { ...asset, loading: false };
+
+          if (tenableResponse) {
+            updatedAsset.existsInTenable = tenableResults.some((dnsName: string) =>
+              dnsName.includes(asset.key.toLowerCase())
+            );
+          }
+
+          if (stigManagerAssets) {
+            updatedAsset.existsInStigManager = stigManagerAssets.has(asset.key.toLowerCase());
+          }
+
+          return updatedAsset;
+        }));
 
         this.filteredAssets.set(this.assets());
         this.updateChartData();
         this.cdr.detectChanges();
 
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'All status checks completed'
-        });
+        if (tenableResponse && stigManagerAssets) {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'All status checks completed'
+          });
+        } else {
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Partial Success',
+            detail: 'Some status checks completed' +
+              (tenableResponse ? '' : ' - Tenable check failed') +
+              (stigManagerAssets ? '' : ' - STIG Manager check failed')
+          });
+        }
       },
       error: error => {
         console.error('Error during status checks:', error);
         this.assets.update(assets => assets.map(asset => ({
           ...asset,
-          loading: false,
-          existsInTenable: undefined,
-          existsInStigManager: undefined
+          loading: false
         })));
 
         this.filteredAssets.set(this.assets());
@@ -517,7 +562,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Status checks failed'
+          detail: 'All status checks failed'
         });
         this.cdr.detectChanges();
       }

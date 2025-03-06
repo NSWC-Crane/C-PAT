@@ -24,6 +24,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 if (environment.production) {
   enableProdMode();
@@ -124,6 +125,8 @@ bootstrapApplication(AppComponent, {
         }
       ]
     }, withAppInitializerAuthCheck()),
-    provideHttpClient(withInterceptors([authInterceptor]))
+    provideHttpClient(withInterceptors([authInterceptor])),
+    MessageService,
+    ConfirmationService
   ]
 }).catch(err => console.error(err));
