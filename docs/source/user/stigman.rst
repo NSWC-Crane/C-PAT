@@ -9,7 +9,7 @@ The STIG Manager component was designed to quickly identify vulnerabilities and 
 Findings Grid
 ^^^^^^^^^^^^^^^
 
-The STIG Manager findings grid is a display of the results from STIG Manager ``api/collections/{collectionId}/findings`` aggregator: ``groupId`` acceptedOnly: ``false`` projection(s): ``stigs, rules``. The results of this API call are then parsed into columns for Group ID, Rule Title, Benchmark ID, Severity, and [affected] Asset Count. 
+The STIG Manager findings grid is a display of the results from STIG Manager ``api/collections/{collectionId}/findings`` aggregator: ``groupId`` acceptedOnly: ``false`` projection(s): ``stigs, rules``. The results of this API call are then parsed into columns for Group ID, Rule Title, Benchmark ID, Severity, and [affected] Asset Count.
 The results are simultaneously compared against existing POAM's in CPAT to determine the existience of a POAM and the POAM Status, if applicable. The results of this determination are displayed in the first column, labeled POAM.
 
 The POAM column is color coded to reflect the POAM status. The color coding is as follows:
@@ -25,7 +25,7 @@ The POAM column is color coded to reflect the POAM status. The color coding is a
 
 In cases where a POAM exists, clicking the aforementioned icon will direct the user to the POAM details page for further information.
 
-In cases where a POAM does not exist, clicking the aforementioned icon will submit an additional query to STIG Manager ``api/stigs/rules/{ruleId}`` projection(s): ``detail, check, fix`` and a query to ``api/stigs/`` while the user is being directed to the POAM creation page. 
+In cases where a POAM does not exist, clicking the aforementioned icon will submit an additional query to STIG Manager ``api/stigs/rules/{ruleId}`` projection(s): ``detail, check, fix`` and a query to ``api/stigs/`` while the user is being directed to the POAM creation page.
 Upon arrival, the user will be presented with a POAM draft that contains a toggleable section that contains STIG Manager Rule, Check, and Fix data. The POAM Description, Source Identifying Control Vulnerability, STIG Title, Source Identifying Control Vulnerability - ID #, Raw Severity value, Adjusted Severity Value, Scheduled Completion Date, Submitted Date, Residual Risk, Liklihood, and Assets automated based upon the data from STIG Manager.
 
 By default, the Scheduled Completion Date will be set to 30 days for CAT I (High), 180 days for CAT II (Medium), and 365 days for CAT III (Low) vulnerabilities. The Scheduled Completion Date can be manually adjusted by the user as needed to align with organizational policy.
