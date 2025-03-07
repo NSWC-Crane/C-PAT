@@ -139,6 +139,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   user: any;
   payload: any;
   teamMitigations: any[] = [];
+  milestoneTeamOptions: any[] = [];
   activeTabIndex: number = 0;
   mitigationSaving: boolean = false;
   isGlobalFinding: boolean;
@@ -237,7 +238,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
     return items;
   });
-
   constructor(
     private assignedTeamService: AssignedTeamService,
     private confirmationService: ConfirmationService,
@@ -270,7 +270,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.setPayload();
   }
 
-  async setPayload() {
+  setPayload() {
     this.setPayloadService.setPayload();
     this.subs.add(
       this.setPayloadService.user$.subscribe(user => {
@@ -284,6 +284,18 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         if (this.accessLevel() > 0) {
           this.obtainCollectionData(true);
           this.getData();
+          if (this.selectedCollection) {
+            this.getLabelData();
+          }
+        }
+      })
+    );
+
+    this.subs.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+        if (this.selectedCollection) {
+          this.getLabelData();
         }
       })
     );
@@ -292,7 +304,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   async getData() {
     this.loadAAPackages();
     this.loadAssetDeltaList();
-    this.getLabelData();
 
     if (this.poamId === undefined || !this.poamId) {
       return;
@@ -423,6 +434,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.poamAssets = result.poamAssets;
         }
         this.loadingTeams.set(false);
+        this.updateMilestoneTeamOptions();
       },
       error: (error) => {
         console.error('Error loading assets:', error);
@@ -455,7 +467,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.poamAssignedTeams
     );
     this.poamAssignedTeams = updatedTeams;
-
+    this.updateMilestoneTeamOptions();
     if (this.poam?.poamId && this.poam.poamId !== 'ADDPOAM') {
       this.syncTeamMitigations();
     }
@@ -634,7 +646,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   savePoam(saveState: boolean = false): Promise<boolean> {
     return new Promise((resolve) => {
-      if (!this.validateData(saveState)) {
+      if (!this.validateData()) {
         resolve(false);
         return;
       }
@@ -880,27 +892,35 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  verifySubmitPoam() {
-    const validationResult = this.poamValidationService.validateMilestones(this.poamMilestones);
-    if (!validationResult.valid) {
+  verifySubmitPoam(showDialog: boolean = true): boolean {
+    const milestoneValidation = this.poamValidationService.validateMilestones(this.poamMilestones);
+    if (!milestoneValidation.valid) {
       this.messageService.add({
         severity: 'error',
         summary: 'Information',
-        detail: validationResult.message
+        detail: milestoneValidation.message
       });
-    } else {
+      return false;
+    }
+
+    const submissionValidation = this.poamValidationService.validateSubmissionRequirements(this.poam, this.teamMitigations, this.dates);
+    if (!submissionValidation.valid) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail: submissionValidation.message
+      });
+      return false;
+    }
+
+    if (showDialog) {
       this.submitDialogVisible = true;
     }
+    return true;
   }
 
   async confirmSubmit() {
-    const validationResult = this.poamValidationService.validateMilestones(this.poamMilestones);
-    if (!validationResult.valid) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Information',
-        detail: validationResult.message
-      });
+    if (!this.verifySubmitPoam(false)) {
       return;
     }
 
@@ -923,8 +943,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.submitDialogVisible = false;
   }
 
-  validateData(saveState: boolean): boolean {
-    const result = this.poamValidationService.validateData(this.poam, this.dates, saveState);
+  validateData(): boolean {
+    const result = this.poamValidationService.validateData(this.poam);
     if (!result.valid) {
       this.messageService.add({
         severity: 'error',
@@ -970,6 +990,25 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   handleTeamsChanged(event: { teams: any[], action: string, team?: any }) {
     this.poamAssignedTeams = event.teams;
+    this.updateMilestoneTeamOptions();
+
+    if (event.action === 'added' && event.team?.assignedTeamId) {
+      const hasTeamMitigation = this.teamMitigations.some(
+        m => m.assignedTeamId === event.team.assignedTeamId
+      );
+
+      if (!hasTeamMitigation) {
+        this.teamMitigations.push({
+          assignedTeamId: event.team.assignedTeamId,
+          assignedTeamName: event.team.assignedTeamName,
+          mitigationText: '',
+          isActive: true
+        });
+      }
+
+      this.updateMilestoneTeamOptions();
+    }
+
     if (this.poam && event.action !== 'save-request') {
       this.poam.assignedTeams = this.poamAssignedTeams
         .filter(team => team.assignedTeamId)
@@ -1015,6 +1054,22 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     if (this.activeTabIndex > 0 && this.activeTabIndex > this.teamMitigations.length) {
       this.activeTabIndex = 0;
     }
+  }
+
+  updateMilestoneTeamOptions() {
+    if (!this.poamAssignedTeams || !this.assignedTeamOptions) {
+      this.milestoneTeamOptions = [];
+      return;
+    }
+
+    const activeTeamIds = this.poamAssignedTeams
+      .filter(team => team.isActive !== false)
+      .map(team => team.assignedTeamId);
+
+    const filteredTeams = this.assignedTeamOptions
+      .filter(team => activeTeamIds.includes(team.assignedTeamId));
+
+    this.milestoneTeamOptions = [...filteredTeams];
   }
 
   loadTeamMitigations() {

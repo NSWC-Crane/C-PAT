@@ -394,10 +394,10 @@
                   </p-accordion>
                 </div>
                 <div class="stepper-buttons">
-                  <div></div>
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
                             icon="pi pi-arrow-right"
                             iconPos="right"
+                            class="ml-auto"
                             (onClick)="activateCallback(2)"></p-button>
                 </div>
               </div>
@@ -669,7 +669,7 @@
                   <cpat-poam-milestones [poam]="poam"
                                         [accessLevel]="accessLevel()"
                                         [poamMilestones]="poamMilestones"
-                                        [assignedTeamOptions]="assignedTeamOptions"
+                                        [assignedTeamOptions]="milestoneTeamOptions"
                                         (milestonesChanged)="handleMilestonesChanged($event)">
                   </cpat-poam-milestones>
                 </div>
