@@ -293,7 +293,7 @@ async function initializeAuth(depStatus) {
       jwksUri: jwksUri,
       timeout: 10000,
       rateLimit: true,
-      jwksRequestsPerMinute: 30,
+      jwksRequestsPerMinute: 45,
       requestAgent,
       handleSigningKeyError: async (err, cb) => {
         logger.writeError("oidc", "jwks", {
