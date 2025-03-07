@@ -54,6 +54,7 @@ import {
   FilterValue,
   FilterHandler
 } from '../../../common/models/tenable.model';
+import { parseISO } from 'date-fns/fp';
 
 @Component({
   selector: 'cpat-tenable-vulnerabilities',
@@ -1242,9 +1243,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             ...vuln,
             poam: !!poamAssociation,
             poamId: poamAssociation?.poamId || null,
-            poamStatus: poamAssociation?.status || null,
+            poamStatus: poamAssociation?.status ? poamAssociation.status : 'No Existing POAM',
             iav: iavInfo.iav,
-            navyComplyDate: iavInfo.navyComplyDate ? new Date(iavInfo.navyComplyDate) : null,
+            navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
             pluginName: vuln.name || '',
             family: vuln.family?.name || '',
             severity: { name: vuln.severity?.name || '' },

@@ -367,7 +367,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
             ...vuln,
             poam: !!poamAssociation,
             poamId: poamAssociation?.poamId || null,
-            poamStatus: poamAssociation ? poamAssociation.status : 'No Existing POAM',
+            poamStatus: poamAssociation?.status ? poamAssociation.status : 'No Existing POAM',
             iav: iavInfo?.iav || '',
             navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
             supersededBy: iavInfo?.supersededBy || 'N/A',
