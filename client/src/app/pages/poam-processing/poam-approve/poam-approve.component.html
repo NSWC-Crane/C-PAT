@@ -46,18 +46,16 @@
         ></textarea>
       </div>
       <div class="flex items-center">
-        <p-checkbox
-          [(ngModel)]="hqsChecked"
-          inputId="hqsChecked"
-          label="High-Quality Submission?"
-          [disabled]="accessLevel < 3"
-        ></p-checkbox>
+        <p-checkbox [(ngModel)]="hqsChecked"
+                    inputId="hqsChecked"
+                    [binary]="true"
+                    [disabled]="accessLevel < 3"></p-checkbox>
         <label for="hqsChecked" class="ml-2"> High-Quality Submission? </label>
       </div>
     </div>
   </ng-template>
   <ng-template pTemplate="footer">
-    <div class="flex justify-between items-center w-full m-2">
+    <div class="m-2 flex w-full items-center justify-between">
       <p-button
         [outlined]="true"
         label="Save"
