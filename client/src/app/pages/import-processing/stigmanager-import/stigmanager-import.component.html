@@ -36,65 +36,85 @@
                              dataKey="groupId">
                         <ng-template pTemplate="header">
                             <tr>
-                                <th *ngFor="let col of allColumns"
-                                    id="col"
-                                    [pSortableColumn]="col.field"
-                                    [ngStyle]="{'width': col.width}">
-                                    {{col.header}}
-                                    <ng-container *ngIf="col.field === 'benchmarkId'">
-                                        <p-columnFilter [type]="'multi'"
-                                                        [field]="col.field"
-                                                        [showOperator]="false"
-                                                        [showMatchModes]="false"
-                                                        showAddButton="false"
-                                                        showClearButton="false"
-                                                        showApplyButton="false"
-                                                        [matchMode]="'in'"
-                                                        display="menu">
-                                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                <p-multiSelect [(ngModel)]="selectedBenchmarkIds"
-                                                               [options]="col.filterOptions"
-                                                               placeholder="Select Benchmarks"
-                                                               [showClear]="true"
-                                                               (onChange)="onBenchmarkFilterChange($event, filter)"
-                                                               (onClear)="onBenchmarkFilterClear($event, filter)"
-                                                               styleClass="w-full"
-                                                               [maxSelectedLabels]="1"
-                                                               [showToggleAll]="true"
-                                                               optionLabel="label"
-                                                               optionValue="value"
-                                                               selectedItemsLabel="{0} benchmarks selected">
-                                                </p-multiSelect>
-                                            </ng-template>
-                                        </p-columnFilter>
-                                    </ng-container>
-                                    <ng-container *ngIf="col.field === 'poam'">
-                                        <p-columnFilter [field]="col.filterField"
-                                                        type="multi"
-                                                        matchMode="in"
-                                                        [showOperator]="false"
-                                                        [showMatchModes]="false"
-                                                        [showAddButton]="false"
-                                                        [showButtons]="true"
-                                                        display="menu">
-                                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                <p-multiSelect [ngModel]="value"
-                                                          [options]="col.filterOptions"
-                                                          (onChange)="filter($event.value)"
-                                                          placeholder="Select Status"
-                                                          [showClear]="true"
-                                                          styleClass="w-full">
-                                                </p-multiSelect>
-                                            </ng-template>
-                                        </p-columnFilter>
-                                    </ng-container>
-                                    <p-columnFilter *ngIf="col.field !== 'poam' && col.field !== 'benchmarkId'"
-                                                    [type]="col.filterType"
-                                                    [field]="col.field"
-                                                    [showOperator]="false"
-                                                    display="menu">
-                                    </p-columnFilter>
-                                </th>
+                              <th *ngFor="let col of allColumns"
+                                  id="col"
+                                  [pSortableColumn]="col.field"
+                                  [ngStyle]="{'width': col.width}">
+                                {{col.header}}
+                                <ng-container *ngIf="col.field === 'benchmarkId'">
+                                  <p-columnFilter [type]="'multi'"
+                                                  [field]="col.field"
+                                                  [showOperator]="false"
+                                                  [showMatchModes]="false"
+                                                  showAddButton="false"
+                                                  showClearButton="false"
+                                                  showApplyButton="false"
+                                                  [matchMode]="'in'"
+                                                  display="menu">
+                                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                      <p-multiSelect [(ngModel)]="selectedBenchmarkIds"
+                                                     [options]="col.filterOptions"
+                                                     placeholder="Select Benchmarks"
+                                                     [showClear]="true"
+                                                     (onChange)="onBenchmarkFilterChange($event, filter)"
+                                                     (onClear)="onBenchmarkFilterClear($event, filter)"
+                                                     styleClass="w-full"
+                                                     [maxSelectedLabels]="1"
+                                                     [showToggleAll]="true"
+                                                     optionLabel="label"
+                                                     optionValue="value"
+                                                     selectedItemsLabel="{0} benchmarks selected">
+                                      </p-multiSelect>
+                                    </ng-template>
+                                  </p-columnFilter>
+                                </ng-container>
+                                <ng-container *ngIf="col.field === 'poam'">
+                                  <p-columnFilter [field]="col.filterField"
+                                                  type="multi"
+                                                  matchMode="in"
+                                                  [showOperator]="false"
+                                                  [showMatchModes]="false"
+                                                  [showAddButton]="false"
+                                                  [showButtons]="true"
+                                                  display="menu">
+                                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                      <p-multiSelect [ngModel]="value"
+                                                     [options]="col.filterOptions"
+                                                     (onChange)="filter($event.value)"
+                                                     placeholder="Select Status"
+                                                     [showClear]="true"
+                                                     styleClass="w-full">
+                                      </p-multiSelect>
+                                    </ng-template>
+                                  </p-columnFilter>
+                                </ng-container>
+                                <ng-container *ngIf="col.field === 'severity'">
+                                  <p-columnFilter type="multi"
+                                                  [field]="col.field"
+                                                  matchMode="in"
+                                                  [showOperator]="false"
+                                                  [showMatchModes]="false"
+                                                  [showAddButton]="false"
+                                                  [showButtons]="true"
+                                                  display="menu">
+                                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                      <p-multiSelect [ngModel]="value"
+                                                     [options]="col.filterOptions"
+                                                     (onChange)="filter($event.value)"
+                                                     placeholder="Select Severity"
+                                                     [showClear]="true"
+                                                     styleClass="w-full">
+                                      </p-multiSelect>
+                                    </ng-template>
+                                  </p-columnFilter>
+                                </ng-container>
+                                <p-columnFilter *ngIf="col.field !== 'poam' && col.field !== 'benchmarkId' && col.field !== 'severity'"
+                                                [type]="col.filterType"
+                                                [field]="col.field"
+                                                [showOperator]="false"
+                                                display="menu">
+                                </p-columnFilter>
+                              </th>
                             </tr>
                         </ng-template>
                         <ng-template pTemplate="body" let-rowData>

@@ -119,7 +119,17 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       filterType: 'multi',
       filterOptions: [{ label: 'Any', value: null }]
     },
-    { field: 'severity', header: 'Severity', width: '15%', filterType: 'text' },
+    {
+      field: 'severity',
+      header: 'Severity',
+      width: '15%',
+      filterType: 'text',
+      filterOptions: [
+        { label: 'CAT I - High', value: 'CAT I - High' },
+        { label: 'CAT II - Medium', value: 'CAT II - Medium' },
+        { label: 'CAT III - Low', value: 'CAT III - Low' }
+      ]
+    },
     { field: 'assetCount', header: 'Asset Count', width: '15%', filterType: 'numeric' },
   ];
   private dataSource: AssetEntry[] = [];
