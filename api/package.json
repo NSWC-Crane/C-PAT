@@ -1,6 +1,6 @@
 {
   "name": "cpat-api",
-  "version": "1.0.0-rc.9",
+  "version": "1.0.0",
   "description": "C-PAT API",
   "main": "index.js",
   "scripts": {
