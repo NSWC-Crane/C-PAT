@@ -31,9 +31,30 @@ const presets = {
   Material,
   Lara,
   Nora,
-};
+} as const;
 
-type PresetType = 'Aura' | 'Material' | 'Lara' | 'Nora';
+declare type KeyOfType<T> = keyof T extends infer U ? U : never;
+
+type PresetType = KeyOfType<typeof presets>;
+
+declare type SurfacesType = {
+  name?: string;
+  display?: boolean;
+  palette?: {
+    0?: string;
+    50?: string;
+    100?: string;
+    200?: string;
+    300?: string;
+    400?: string;
+    500?: string;
+    600?: string;
+    700?: string;
+    800?: string;
+    900?: string;
+    950?: string;
+  };
+};
 
 @Component({
   selector: 'cpat-configurator',
@@ -167,7 +188,7 @@ export class AppConfiguratorComponent implements OnInit {
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.onPresetChange((this.configService.appState().preset as keyof typeof presets) ?? 'Aura');
+      this.onPresetChange((this.configService.appState().preset as KeyOfType<typeof presets>) ?? 'Aura');
       this.toggleRTL(this.configService.appState().RTL ?? false);
     }
     this.loadUserPreferences();
@@ -189,20 +210,26 @@ export class AppConfiguratorComponent implements OnInit {
 
           try {
             const prefs = JSON.parse(user.defaultTheme);
+            const preset = this.presets.includes(prefs.preset) ? prefs.preset : defaults.preset;
+            const primary = this.primaryColors().some(c => c.name === prefs.primary)
+              ? prefs.primary
+              : defaults.primary;
+            const surface = this.surfaces.some(s => s.name === prefs.surface)
+              ? prefs.surface
+              : defaults.surface;
+            const darkTheme = typeof prefs.darkTheme === 'boolean' ? prefs.darkTheme : defaults.darkTheme;
+            const rtl = typeof prefs.rtl === 'boolean' ? prefs.rtl : defaults.rtl;
+
             this.configService.appState.update(state => ({
               ...state,
-              preset: this.presets.includes(prefs.preset) ? prefs.preset : defaults.preset,
-              primary: this.primaryColors().some(c => c.name === prefs.primary)
-                ? prefs.primary
-                : defaults.primary,
-              surface: this.surfaces.some(s => s.name === prefs.surface)
-                ? prefs.surface
-                : defaults.surface,
-              darkTheme: typeof prefs.darkTheme === 'boolean' ? prefs.darkTheme : defaults.darkTheme,
-              RTL: typeof prefs.rtl === 'boolean' ? prefs.rtl : defaults.rtl,
+              preset,
+              primary,
+              surface,
+              darkTheme,
+              RTL: rtl,
             }));
 
-            this.onPresetChange(prefs.preset);
+            this.onPresetChange(preset as PresetType);
           } catch (error) {
             console.error('Error parsing user preferences:', error);
           }
@@ -239,7 +266,7 @@ export class AppConfiguratorComponent implements OnInit {
 
   displayedSurfaces = computed(() => this.surfaces.filter(s => s.display));
 
-  surfaces = [
+  surfaces: SurfacesType[] = [
     {
       name: 'slate',
       display: true,
@@ -566,15 +593,17 @@ export class AppConfiguratorComponent implements OnInit {
     },
   ];
 
-  selectedPrimaryColor = computed(() => {
+  selectedPrimaryColor = computed<string>(() => {
     return this.configService.appState().primary;
   });
 
-  selectedSurfaceColor = computed(() => this.configService.appState().surface);
+  selectedSurfaceColor = computed<string>(() => this.configService.appState().surface);
 
-  selectedPreset = computed(() => this.configService.appState().preset);
+  selectedPreset = computed<PresetType>(() =>
+    this.configService.appState().preset as PresetType
+  );
 
-  primaryColors = computed(() => {
+  primaryColors = computed<SurfacesType[]>(() => {
     const preset = this.configService.appState().preset as keyof typeof presets;
     const presetPalette = presets[preset]?.primitive || {};
     const colors = [
@@ -596,12 +625,12 @@ export class AppConfiguratorComponent implements OnInit {
       'pink',
       'rose',
     ];
-    const palettes = [{ name: 'noir', palette: {} }];
+    const palettes: SurfacesType[] = [{ name: 'noir', palette: {} }];
 
     colors.forEach(color => {
       palettes.push({
         name: color,
-        palette: presetPalette[color],
+        palette: presetPalette?.[color as KeyOfType<typeof presetPalette>] as SurfacesType['palette']
       });
     });
 
@@ -609,9 +638,11 @@ export class AppConfiguratorComponent implements OnInit {
   });
 
   getPresetExt() {
-    const color = this.primaryColors().find(c => c.name === this.selectedPrimaryColor());
+    const color: SurfacesType | undefined = this.primaryColors().find(c => c.name === this.selectedPrimaryColor());
 
-    if (color?.name === 'noir') {
+    if (!color) return {};
+
+    if (color.name === 'noir') {
       return {
         semantic: {
           primary: {
@@ -772,7 +803,9 @@ export class AppConfiguratorComponent implements OnInit {
     }
   }
 
-  updateColors(event: any, type: string, color: any) {
+  updateColors(event: any, type: string, color: SurfacesType) {
+    if (!color) return;
+
     if (type === 'primary') {
       this.configService.appState.update(state => ({ ...state, primary: color.name }));
     } else if (type === 'surface') {
@@ -783,30 +816,39 @@ export class AppConfiguratorComponent implements OnInit {
     event.stopPropagation();
   }
 
-  applyTheme(type: string, color: any) {
+  applyTheme(type: string, color: SurfacesType) {
+    if (!color) return;
+
     if (type === 'primary') {
       updatePreset(this.getPresetExt());
     } else if (type === 'surface') {
-      updateSurfacePalette(color.palette);
+      updateSurfacePalette(color.palette || {});
     }
   }
 
   onPresetChange(event: PresetType) {
+    if (!event || !Object.keys(presets).includes(event)) {
+      return;
+    }
+
     this.configService.appState.update(state => ({ ...state, preset: event }));
     const preset = presets[event];
     const surfacePalette = this.surfaces.find(s => s.name === this.selectedSurfaceColor())?.palette;
-    if (this.configService.appState().preset === 'Material') {
+
+    if (event === 'Material') {
       document.body.classList.add('material');
       this.config.ripple.set(true);
     } else {
       document.body.classList.remove('material');
       this.config.ripple.set(false);
     }
+
     $t()
       .preset(preset)
       .preset(this.getPresetExt())
-      .surfacePalette(surfacePalette)
+      .surfacePalette(surfacePalette || {})
       .use({ useDefaultOptions: true });
+
     this.saveUserPreferences();
   }
 }
