@@ -10,35 +10,34 @@
 
 import { AppState } from '../domain/appstate';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, PLATFORM_ID, signal, Signal, WritableSignal } from '@angular/core';
+
 @Injectable({
   providedIn: 'root',
 })
 export class AppConfigService {
   private readonly STORAGE_KEY = 'appConfigState';
 
-  appState = signal<AppState>(null);
-
-  designerActive = signal(false);
-
-  newsActive = signal(false);
+  appState: WritableSignal<AppState> = signal<AppState>(this.getDefaultState());
+  designerActive: WritableSignal<boolean> = signal<boolean>(false);
+  newsActive: WritableSignal<boolean> = signal<boolean>(false);
 
   document = inject(DOCUMENT);
-
   platformId = inject(PLATFORM_ID);
 
-  theme = computed(() => (this.appState()?.darkTheme ? 'dark' : 'light'));
+  theme: Signal<'dark' | 'light'> = computed(() =>
+    (this.appState()?.darkTheme ? 'dark' : 'light')
+  );
 
-  transitionComplete = signal<boolean>(false);
+  transitionComplete: WritableSignal<boolean> = signal<boolean>(false);
 
   private initialized = false;
 
   constructor() {
-    this.appState.set({ ...this.loadAppState() });
+    this.appState.set(this.loadAppState());
 
     effect(() => {
       const state = this.appState();
-
       if (!this.initialized || !state) {
         this.initialized = true;
         return;
@@ -50,7 +49,7 @@ export class AppConfigService {
 
   private handleDarkModeTransition(state: AppState): void {
     if (isPlatformBrowser(this.platformId)) {
-      if ((document as any).startViewTransition) {
+      if ('startViewTransition' in document) {
         this.startViewTransition(state);
       } else {
         this.toggleDarkMode(state);
@@ -60,10 +59,22 @@ export class AppConfigService {
   }
 
   private startViewTransition(state: AppState): void {
-    const transition = (document as any).startViewTransition(() => {
-      this.toggleDarkMode(state);
-    });
-    transition.ready.then(() => this.onTransitionEnd()).catch(() => this.onTransitionEnd());
+    const doc = this.document as Document & {
+      startViewTransition(callback: () => void): {
+        ready: Promise<void>;
+        finished: Promise<void>;
+      }
+    };
+
+    if ('startViewTransition' in doc) {
+      const transition = doc.startViewTransition(() => {
+        this.toggleDarkMode(state);
+      });
+
+      transition.ready
+        .then(() => this.onTransitionEnd())
+        .catch(() => this.onTransitionEnd());
+    }
   }
 
   private toggleDarkMode(state: AppState): void {
@@ -74,64 +85,76 @@ export class AppConfigService {
     }
   }
 
-  private onTransitionEnd() {
+  private onTransitionEnd(): void {
     this.transitionComplete.set(true);
     setTimeout(() => {
       this.transitionComplete.set(false);
     });
   }
 
-  hideMenu() {
-    this.appState.update(state => ({
+  hideMenu(): void {
+    this.appState.update((state) => ({
       ...state,
       menuActive: false,
     }));
   }
 
-  showMenu() {
-    this.appState.update(state => ({
+  showMenu(): void {
+    this.appState.update((state) => ({
       ...state,
       menuActive: true,
     }));
   }
 
-  hideNews() {
+  hideNews(): void {
     this.newsActive.set(false);
   }
 
-  showNews() {
+  showNews(): void {
     this.newsActive.set(true);
   }
 
-  showDesigner() {
+  showDesigner(): void {
     this.designerActive.set(true);
   }
 
-  hideDesigner() {
+  hideDesigner(): void {
     this.designerActive.set(false);
   }
 
-  private loadAppState(): any {
-    if (isPlatformBrowser(this.platformId)) {
-      const storedState = localStorage.getItem(this.STORAGE_KEY);
-      if (storedState) {
-        return JSON.parse(storedState);
-      }
-    }
+  private getDefaultState(): AppState {
     return {
       preset: 'Aura',
       primary: 'noir',
       surface: null,
       darkTheme: true,
       menuActive: false,
-      designerKey: 'primeng-designer-theme',
       RTL: false,
     };
   }
 
-  private saveAppState(state: any): void {
+  private loadAppState(): AppState {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
+      try {
+        const storedState = localStorage.getItem(this.STORAGE_KEY);
+        if (storedState) {
+          const parsedState = JSON.parse(storedState) as Partial<AppState>;
+          return { ...this.getDefaultState(), ...parsedState };
+        }
+      } catch (error) {
+        console.error('Error loading app state from storage:', error);
+      }
+    }
+    return this.getDefaultState();
+  }
+
+  private saveAppState(state: AppState): void {
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
+      } catch (error) {
+        console.error('Error saving app state to storage:', error);
+      }
     }
   }
 }

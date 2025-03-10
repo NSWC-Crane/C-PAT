@@ -14,6 +14,5 @@ export interface AppState {
   surface?: string;
   darkTheme?: boolean;
   menuActive?: boolean;
-  designerKey?: string;
   RTL?: boolean;
 }
