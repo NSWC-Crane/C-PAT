@@ -2285,6 +2285,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     );
   }
 
+  onTableFilter(event: any) {
+    this.totalRecords = event.filteredValue ? event.filteredValue.length : 0;
+  }
+
   showErrorMessage(message: string) {
     this.messageService.add({
       severity: 'error',
