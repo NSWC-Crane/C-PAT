@@ -97,12 +97,11 @@
                   </p-progressBar>
                 </td>
                 <td>
-                  <p-progressBar [value]="((benchmark.metrics?.assessments - benchmark.metrics?.assessed) / benchmark.metrics?.assessments) * 100 || 0"
+                  <p-progressBar [value]="((benchmark.metrics?.results?.unassessed) / benchmark.metrics?.results?.unassessed) * 100 || 0"
                                  [style]="{'height': '20px'}"
-                                 styleClass="unassessed-progress"
-                                 [pTooltip]="(benchmark.metrics?.assessments - benchmark.metrics?.assessed) + ' / ' + benchmark.metrics?.assessments + ' (' + (((benchmark.metrics?.assessments - benchmark.metrics?.assessed) / benchmark.metrics?.assessments) * 100 || 0 | number:'1.0-0') + '%)'">
+                                 styleClass="unassessed-progress">
                     <ng-template pTemplate="content" let-value>
-                      {{(value || 0) | number:'1.0-0'}}%
+                      {{benchmark.metrics?.results?.unassessed || 0}}
                     </ng-template>
                   </p-progressBar>
                 </td>
