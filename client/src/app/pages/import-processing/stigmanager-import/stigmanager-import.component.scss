@@ -37,9 +37,18 @@
     background-color: rgba(244, 67, 54, 0.75) !important;
   }
 
+  .unassessed-progress .p-progressbar-value {
+    background-color: rgba(158, 158, 158, 0.75) !important;
+  }
+
   .p-progressbar {
     height: 20px !important;
     background: rgba(85, 86, 91, 0.3) !important;
+    cursor: pointer;
+  }
+
+  .p-progressbar:hover {
+    opacity: 0.9;
   }
 
   .p-progressbar .p-progressbar-label {
