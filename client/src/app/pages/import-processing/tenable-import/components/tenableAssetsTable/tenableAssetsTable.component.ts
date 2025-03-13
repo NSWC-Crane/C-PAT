@@ -26,6 +26,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
 import { TabsModule } from 'primeng/tabs';
+import { TagModule } from 'primeng/tag';
 
 interface Reference {
   type: string;
@@ -55,6 +56,7 @@ interface ExportColumn {
     DialogModule,
     ToastModule,
     TooltipModule,
+    TagModule
   ],
 })
 export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
@@ -569,6 +571,21 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
       this.multiSelect.hide();
     } else {
       this.multiSelect.show();
+    }
+  }
+
+  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+    switch (severity) {
+      case 'Critical':
+      case 'High':
+        return "danger";
+      case 'Medium':
+        return "warn";
+      case 'Low':
+      case 'Info':
+        return "info";
+      default:
+        return "info";
     }
   }
 }

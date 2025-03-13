@@ -115,9 +115,10 @@
                     <td *ngFor="let col of columns">
                       <ng-container [ngSwitch]="col.field">
                         <ng-container *ngSwitchCase="'severity'">
-                          <span [class]="'severity-badge severity-' + vulnerability[col.field]">
-                            {{vulnerability[col.field]}}
-                          </span>
+                          <p-tag [value]="vulnerability[col.field]"
+                                 [severity]="getSeverityStyling(vulnerability[col.field])"
+                                 [rounded]="false">
+                          </p-tag>
                         </ng-container>
                         <ng-container *ngSwitchDefault> {{vulnerability[col.field]}} </ng-container>
                       </ng-container>

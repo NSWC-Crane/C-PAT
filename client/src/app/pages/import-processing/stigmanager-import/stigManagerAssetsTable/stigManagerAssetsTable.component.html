@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<div class="col-span-12 row">
+<div class="row col-span-12">
   <div class="col">
     <div class="p-fluid">
       <div class="toolbar mb-4">
@@ -119,8 +119,7 @@
                       *ngFor="let label of getAssetLabels(asset)"
                       [rounded]="true"
                       [value]="label.name"
-                      [style]="{'background': 'color-mix(in srgb, #' + label.color + ', transparent 20%)', 'margin-left': '0.5rem', 'color': 'black'}"
-                    >
+                      [style]="{'background': 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.5rem', 'color': '#' + label.color}">
                     </p-tag>
                   </ng-container>
                   <ng-container *ngSwitchDefault> {{asset[col.field]}} </ng-container>

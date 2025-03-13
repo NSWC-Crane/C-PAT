@@ -77,6 +77,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   assetsByTeam: { [teamId: string]: any[] } = {};
   teamTabs: { teamId: string, teamName: string, assets: any[] }[] = [];
   activeTab: string = 'all';
+  loading: boolean = true;
   private tableMap = new Map<string, Table>();
 
   constructor(
@@ -134,6 +135,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
 
 
   loadData() {
+    this.loading = true;
     forkJoin({
       poamAssets: this.sharedService.getPOAMAssetsFromSTIGMAN(
         this.stigmanCollectionId,
@@ -146,12 +148,14 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
 
         if (!poamAssets || poamAssets.length === 0) {
           this.showErrorMessage('No affected assets found.');
+          this.loading = false;
           return;
         }
 
         const matchingItem = poamAssets.find(item => item.groupId === this.groupId);
         if (!matchingItem) {
           this.showErrorMessage(`No assets found with vulnerabilityId: ${this.groupId}`);
+          this.loading = false;
           return;
         }
 
@@ -165,6 +169,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       error: (error) => {
         console.error('Error loading data:', error);
         this.showErrorMessage('Failed to fetch data. Please try again later.');
+        this.loading = false;
       }
     });
   }
@@ -202,11 +207,13 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
           this.totalRecords = this.affectedAssets.length;
 
           this.matchAssetsWithTeams();
+          this.loading = false;
         },
         error: (error) => {
           console.error('Failed to fetch asset details from STIGMAN:', error);
           this.showErrorMessage('Failed to fetch asset details. Please try again later.');
           this.affectedAssets = mappedAssets;
+          this.loading = false;
         }
       });
   }

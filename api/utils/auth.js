@@ -15,7 +15,6 @@ const jwt = require("jsonwebtoken");
 const retry = require("async-retry");
 const _ = require("lodash");
 const User = require("../Services/usersService");
-const axios = require("axios");
 const SmError = require("./error");
 const { differenceInMinutes } = require("date-fns");
 const https = require("https");
@@ -272,15 +271,20 @@ async function initializeAuth(depStatus) {
       attempt: ++initAttempt,
     });
 
-    const openidConfig = (await axios.get(wellKnown)).data;
-    logger.writeDebug("oidc", "discovery", {
-      metadataUri: wellKnown,
-      metadata: openidConfig,
-    });
+      const response = await fetch(wellKnown);
+      if (!response.ok) {
+          throw new Error(`Failed to fetch OpenID configuration: ${response.status} ${response.statusText}`);
+      }
+      const openidConfig = await response.json();
 
-    if (!openidConfig.jwks_uri) {
-      throw new Error("No jwks_uri property found");
-    }
+      logger.writeDebug("oidc", "discovery", {
+          metadataUri: wellKnown,
+          metadata: openidConfig,
+      });
+
+      if (!openidConfig.jwks_uri) {
+          throw new Error("No jwks_uri property found");
+      }
 
     jwksUri = openidConfig.jwks_uri;
     const isHttps = jwksUri.toLowerCase().startsWith("https");

@@ -18,6 +18,8 @@ import { MessageService } from 'primeng/api';
 import { PoamService } from '../../poam-processing/poams.service';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
 import { ToastModule } from 'primeng/toast';
 import { TabsModule } from 'primeng/tabs';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -25,12 +27,13 @@ import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
+import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
-import { ChartModule } from 'primeng/chart';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { SelectModule } from 'primeng/select';
+import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
+import { ProgressBarModule } from 'primeng/progressbar';
 
-interface AssetEntry {
+interface STIGManagerFinding {
   groupId: string;
   ruleTitle: string;
   ruleId: string;
@@ -41,30 +44,6 @@ interface AssetEntry {
   poamStatus?: string;
 }
 
-interface STIGData {
-  benchmarkId: string;
-  collectionIds: string[];
-  lastRevisionDate: string;
-  lastRevisionStr: string;
-  revisionStrs: string[];
-  revisions: STIGRevision[];
-  ruleCount: number;
-  status: string;
-  title: string;
-}
-
-interface STIGRevision {
-  benchmarkDate: string;
-  benchmarkId: string;
-  collectionIds: string[];
-  release: string;
-  revisionStr: string;
-  ruleCount: number;
-  status: string;
-  statusDate: string;
-  version: string;
-}
-
 @Component({
   selector: 'cpat-stigmanager-import',
   templateUrl: './stigmanager-import.component.html',
@@ -73,17 +52,20 @@ interface STIGRevision {
   imports: [
     ButtonModule,
     CardModule,
-    ChartModule,
     CommonModule,
     FormsModule,
     InputTextModule,
     MultiSelectModule,
-    SelectModule,
     SkeletonModule,
     TableModule,
     TabsModule,
     ToastModule,
     TooltipModule,
+    STIGManagerReviewsTableComponent,
+    InputIconModule,
+    IconFieldModule,
+    ProgressBarModule,
+    TagModule
   ],
   providers: [MessageService],
 })
@@ -132,59 +114,20 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     },
     { field: 'assetCount', header: 'Asset Count', width: '15%', filterType: 'numeric' },
   ];
-  private dataSource: AssetEntry[] = [];
-  public displayDataSource: AssetEntry[] = [];
+  private dataSource: STIGManagerFinding[] = [];
+  public displayDataSource: STIGManagerFinding[] = [];
   public existingPoams: any[] = [];
-  benchmarkIds: string[] = [];
-  selectedBenchmarkId: string | null = null;
   loadingTableInfo: boolean = true;
   loadingSkeletonData: any[] = Array(15).fill({});
   multiSortMeta: any[] = [];
-  selectedFindings: string = '';
   selectedCollection: any;
   stigmanCollection: any;
   user: any;
+  benchmarkSummaries: any[] = [];
+  selectedBenchmark: any = null;
+  viewMode: 'summary' | 'findings' = 'summary';
   private subscriptions = new Subscription();
-  selectedBenchmarkIds: string[] = [];
   findingsCount: number = 0;
-  chartData: any;
-  chartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    scales: {
-      x: {
-        beginAtZero: true,
-        grace: '5%',
-        grid: {
-          display: false,
-        },
-        ticks: {
-          font: {
-            weight: 600,
-          },
-        },
-      },
-      y: {
-        grid: {
-          display: true,
-        },
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: 'bottom',
-        labels: {
-          font: {
-            size: 13,
-            family: 'sans-serif',
-            weight: 600,
-          },
-        },
-      },
-    },
-  };
 
   constructor(
     private router: Router,
@@ -202,8 +145,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       })
     );
     this.initializeComponent();
-    this.selectedFindings = 'All';
-    this.loadBenchmarkIds();
   }
 
   private initializeComponent() {
@@ -223,40 +164,22 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     });
   }
 
-  private updateFindingsChartData(findings: any[]): void {
-    this.chartData = {
-      labels: [''],
-      datasets: findings.map(item => ({
-        label: item.severity,
-        data: [item.severityCount]
-      }))
-    };
-  }
-
-  getSeverityClass(severity: string): string {
-    const severityMap: { [key: string]: string } = {
-      'CAT I - High': 'severity-High',
-      'CAT II - Medium': 'severity-Medium',
-      'CAT III - Low': 'severity-Low',
-    };
-    return severityMap[severity] || 'severity-Info';
+  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+    switch (severity) {
+      case 'CAT I - High':
+        return "danger";
+      case 'CAT II - Medium':
+        return "warn";
+      case 'CAT III - Low':
+        return "info";
+      default:
+        return "info";
+    }
   }
 
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
     this.table.filterGlobal(inputValue, 'contains');
-  }
-
-  exportChart() {
-    if (document) {
-      const canvas = document.getElementsByTagName('canvas')[0];
-      if (canvas) {
-        const link = document.createElement('a');
-        link.download = 'STIG_Manager_Findings_Chart.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      }
-    }
   }
 
   validateStigManagerCollection() {
@@ -288,7 +211,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.getFindingsGrid(this.stigmanCollection.collectionId);
+        this.loadBenchmarkSummaries(this.stigmanCollection.collectionId);
       },
       error: (error) => {
         console.error('Error in validateStigManagerCollection:', error);
@@ -297,12 +220,47 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     });
   }
 
-  getFindingsGrid(stigmanCollection: number) {
+  private loadBenchmarkSummaries(stigmanCollectionId: number) {
     this.loadingTableInfo = true;
-    this.sharedService.getFindingsFromSTIGMAN(stigmanCollection).subscribe({
+    this.sharedService.getCollectionSTIGSummaryFromSTIGMAN(stigmanCollectionId).subscribe({
       next: (data) => {
         if (!data || data.length === 0) {
-          this.showWarn('No affected assets found.');
+          this.showWarn('No benchmark summaries found.');
+          this.loadingTableInfo = false;
+          return;
+        }
+        this.benchmarkSummaries = data;
+      },
+      error: (error) => {
+        console.error('Failed to fetch benchmark summaries:', error);
+        this.showError('Failed to fetch benchmark summaries. Please try again.');
+      },
+      complete: () => {
+        this.loadingTableInfo = false;
+      }
+    });
+  }
+
+  selectBenchmark(benchmark: any) {
+    this.selectedBenchmark = benchmark;
+    this.viewMode = 'findings';
+    this.getFindingsByBenchmark(this.stigmanCollection.collectionId, benchmark.benchmarkId);
+  }
+
+  backToBenchmarkSummary() {
+    this.viewMode = 'summary';
+    this.selectedBenchmark = null;
+    this.dataSource = [];
+    this.displayDataSource = [];
+    this.findingsCount = 0;
+  }
+
+  getFindingsByBenchmark(stigmanCollectionId: number, benchmarkId: string) {
+    this.loadingTableInfo = true;
+    this.sharedService.getFindingsByBenchmarkFromSTIGMAN(stigmanCollectionId, benchmarkId).subscribe({
+      next: (data) => {
+        if (!data || data.length === 0) {
+          this.showWarn('No affected assets found for this benchmark.');
           this.loadingTableInfo = false;
           return;
         }
@@ -319,11 +277,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
         this.displayDataSource = [...this.dataSource];
         this.findingsCount = this.displayDataSource.length;
-
-        const findings = this.processSeverityGroups(data);
-        this.selectedFindings = 'All';
         this.filterFindings();
-        this.updateFindingsChartData(findings);
       },
       error: (error) => {
         console.error('Failed to fetch affected assets from STIGMAN:', error);
@@ -335,60 +289,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadBenchmarkIds() {
-    this.subscriptions.add(
-      this.sharedService.getSTIGsFromSTIGMAN().subscribe({
-        next: (data: STIGData[]) => {
-          this.benchmarkIds = [...new Set(data.map(stig => stig.benchmarkId))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-          this.updateBenchmarkFilter();
-        },
-        error: (error) => {
-          console.error('Error loading STIG data:', error);
-          this.showError('Failed to load benchmark IDs. Please try again.');
-        }
-      })
-    );
-  }
-
-  private updateBenchmarkFilter(): void {
-    const benchmarkColumn = this.allColumns.find(col => col.field === 'benchmarkId');
-    if (benchmarkColumn) {
-      benchmarkColumn.filterOptions = this.benchmarkIds.map(id => ({
-        label: id,
-        value: id
-      }));
-    }
-  }
-
-  onBenchmarkFilterChange(event: any, filterCallback: Function) {
-    if (!event || !event.value) {
-      filterCallback(null);
-      this.displayDataSource = [...this.dataSource];
-    } else {
-      const selectedValues = event.value;
-      this.selectedBenchmarkIds = selectedValues;
-
-      filterCallback(selectedValues);
-
-      this.displayDataSource = this.dataSource.filter(item =>
-        selectedValues.length === 0 || selectedValues.includes(item.benchmarkId)
-      );
-    }
-
-    this.findingsCount = this.displayDataSource.length;
-    const findings = this.processSeverityGroupsFromDisplayData();
-    this.updateFindingsChartData(findings);
-  }
-
-  onBenchmarkFilterClear(_event: any, filterCallback: Function) {
-  this.selectedBenchmarkIds = [];
-  filterCallback(null);
-  this.displayDataSource = [...this.dataSource];
-  this.findingsCount = this.displayDataSource.length;
-  const findings = this.processSeverityGroupsFromDisplayData();
-  this.updateFindingsChartData(findings);
-}
-
   private mapSeverity(severity: string): string {
     switch (severity) {
       case 'high': return 'CAT I - High';
@@ -396,33 +296,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       case 'low': return 'CAT III - Low';
       default: return severity;
     }
-  }
-
-  private processSeverityGroups(data: any[]) {
-    const severityGroups = data.reduce((groups: any, item: any) => {
-      const severity = this.mapSeverity(item.severity);
-      if (!groups[severity]) {
-        groups[severity] = 0;
-      }
-      groups[severity]++;
-      return groups;
-    }, {});
-
-    const findings = Object.entries(severityGroups).map(([severity, count]) => ({
-      severity,
-      severityCount: count,
-    }));
-
-    const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
-    allSeverities.forEach(severity => {
-      if (!findings.find(finding => finding.severity === severity)) {
-        findings.push({ severity, severityCount: 0 });
-      }
-    });
-
-    return findings.sort(
-      (a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity)
-    );
   }
 
   updateSort(event: any) {
@@ -435,8 +308,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         next: (response: any) => {
           this.existingPoams = response;
           this.updateExistingPoams();
-          const findings = this.processSeverityGroupsFromDisplayData();
-          this.updateFindingsChartData(findings);
         },
         error: (error) => {
           console.error('Error retrieving existing POAMs:', error);
@@ -456,35 +327,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
     this.displayDataSource = [...this.dataSource];
     this.findingsCount = this.displayDataSource.length;
-  }
-
-  private processSeverityGroupsFromDisplayData() {
-    const severityGroups = this.displayDataSource.reduce(
-      (groups: Record<string, number>, item) => {
-        if (!groups[item.severity]) {
-          groups[item.severity] = 0;
-        }
-        groups[item.severity]++;
-        return groups;
-      },
-      {}
-    );
-
-    const findings = Object.entries(severityGroups).map(([severity, count]) => ({
-      severity,
-      severityCount: count,
-    }));
-
-    const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
-    allSeverities.forEach(severity => {
-      if (!findings.find(finding => finding.severity === severity)) {
-        findings.push({ severity, severityCount: 0 });
-      }
-    });
-
-    return findings.sort(
-      (a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity)
-    );
   }
 
   getPoamStatusColor(status: string): string {
@@ -523,49 +365,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       return 'This vulnerability is associated with an existing master POAM. Click icon to view POAM.';
 
     return `POAM Status: ${status}. Click to view POAM.`;
-  }
-
-  updateChartAndGrid(existingPoams: any[]) {
-    this.dataSource.forEach(item => {
-      const existingPoam = existingPoams.find(poam => poam.vulnerabilityId === item.groupId);
-      item.hasExistingPoam = !!existingPoam;
-      item.poamStatus = existingPoam?.status;
-    });
-
-    this.displayDataSource = this.dataSource.filter(item => {
-      if (this.selectedFindings === 'All') {
-        return true;
-      }
-      if (this.selectedFindings === 'No Existing POAM') {
-        return !item.hasExistingPoam;
-      }
-      return item.hasExistingPoam && item.poamStatus === this.selectedFindings;
-    });
-
-    this.findingsCount = this.displayDataSource.length;
-    const severityGroups = this.displayDataSource.reduce((groups: Record<string, number>, item) => {
-      const severity = item.severity;
-      if (!groups[severity]) {
-        groups[severity] = 0;
-      }
-      groups[severity]++;
-      return groups;
-    }, {});
-
-    const findings = Object.entries(severityGroups).map(([severity, count]) => ({
-      severity,
-      severityCount: count,
-    }));
-
-    const allSeverities = ['CAT I - High', 'CAT II - Medium', 'CAT III - Low'];
-    allSeverities.forEach(severity => {
-      if (!findings.find(finding => finding.severity === severity)) {
-        findings.push({ severity, severityCount: 0 });
-      }
-    });
-    findings.sort((a, b) => allSeverities.indexOf(a.severity) - allSeverities.indexOf(b.severity));
-
-    this.updateFindingsChartData(findings);
   }
 
   addPoam(rowData: any): void {
@@ -640,6 +439,14 @@ ${ruleData.detail.vulnDiscussion}`;
         this.findingsCount = this.displayDataSource.length;
       }
     }
+  }
+
+  exportCSV() {
+    this.table.exportCSV();
+  }
+
+  clear() {
+    this.table.clear();
   }
 
   showWarn(message: string) {

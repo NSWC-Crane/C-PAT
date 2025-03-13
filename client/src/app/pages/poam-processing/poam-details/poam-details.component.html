@@ -18,7 +18,7 @@
            pTooltip="Created: {{poam.created ? (poam.created | date:'yyyy-MM-dd') : ''}}, Last Updated: {{poam.lastUpdated ? (poam.lastUpdated | date:'yyyy-MM-dd') : ''}}"></i>
         POAM ID: {{poam.poamId}}
         <div class="label-tags ml-2" *ngFor="let label of poamLabels">
-          <p-tag value="{{label.labelName}}" severity="info" styleClass="p-mr-2"></p-tag>
+          <p-tag value="{{label.labelName}}" styleClass="p-mr-2"></p-tag>
         </div>
       </div>
 
@@ -47,8 +47,8 @@
         <div class="form-group">
           <div class="switch-container">
             <p-toggleSwitch [(ngModel)]="poam.isGlobalFinding"
-                            [disabled]="accessLevel() < 2"
-                            (onChange)="onGlobalFindingToggle()"></p-toggleSwitch>
+                            (onChange)="onGlobalFindingToggle()"
+                            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-toggleSwitch>
             <label class="ml-2">Global Finding</label>
           </div>
         </div>
@@ -117,7 +117,7 @@
                     name="description"
                     [maxlength]="10000"
                     placeholder="Description..."
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></textarea>
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></textarea>
         </div>
 
         <!-- AA Package -->
@@ -127,7 +127,7 @@
                     [options]="aaPackages"
                     optionLabel="aaPackage"
                     optionValue="aaPackage"
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"
                     placeholder="Select A&A Package"
                     name="aaPackage"
                     id="aaPackage"
@@ -149,7 +149,7 @@
                     name="vulnerabilitySource"
                     id="vulnerabilitySource"
                     [style]="{'width':'100%'}"
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2">
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3">
           </p-select>
         </div>
 
@@ -163,7 +163,7 @@
                  [maxlength]="25"
                  name="taskOrderNumber"
                  placeholder="Task Order #..."
-                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2" />
+                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
         </div>
 
         <!-- STIG Title -->
@@ -182,7 +182,7 @@
                           [dropdown]="true"
                           field="title"
                           [style]="{'width':'100%'}"
-                          [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"
+                          [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"
                           readonly></p-autoComplete>
         </div>
 
@@ -208,7 +208,7 @@
                  name="vulnerabilityId"
                  id="vulnerabilityId"
                  placeholder="Vulnerability ID..."
-                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2" />
+                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
         </div>
 
         <!-- Source Identifying Control Vulnerability - ID # for STIG-->
@@ -226,7 +226,7 @@
                  name="vulnerabilityId"
                  id="vulnerabilityId"
                  placeholder="Vulnerability ID..."
-                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2" />
+                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
         </div>
 
         <!-- IAVM # -->
@@ -241,7 +241,7 @@
                    [maxlength]="25"
                    name="iavmNumber"
                    placeholder="IAVM #..."
-                   [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2" />
+                   [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
             <button type="button"
                     pButton
                     icon="pi pi-external-link"
@@ -261,7 +261,7 @@
                         placeholder="IAV Comply By Date..."
                         [showIcon]="true"
                         [style]="{'width':'25rem'}"
-                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></p-datepicker>
+                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-datepicker>
         </div>
 
         <!-- Raw Severity -->
@@ -280,7 +280,7 @@
                     optionValue="value"
                     [style]="{'width':'25rem'}"
                     (onChange)="onAdjSeverityChange()"
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></p-select>
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-select>
         </div>
 
         <!-- Adj Severity -->
@@ -298,7 +298,7 @@
                     placeholder="Adjusted Severity..."
                     optionLabel="label"
                     optionValue="value"
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 3"
+                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"
                     [style]="{'width':'25rem'}"
                     (onChange)="onAdjSeverityChange()">
           </p-select>
@@ -328,7 +328,7 @@
                         placeholder="Scheduled Completion Date..."
                         [showIcon]="true"
                         [style]="{'width':'25rem'}"
-                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></p-datepicker>
+                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-datepicker>
         </div>
 
         <!-- Submitted Date -->
@@ -340,7 +340,7 @@
                         placeholder="Submitted Date..."
                         [showIcon]="true"
                         [style]="{'width':'25rem'}"
-                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></p-datepicker>
+                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-datepicker>
         </div>
       </div>
     </div>
@@ -447,7 +447,7 @@
                             [rows]="16"
                             [maxlength]="2000"
                             placeholder="Predisposing conditions..."
-                            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></textarea>
+                            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></textarea>
                 </div>
                 <div class="stepper-buttons">
                   <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
@@ -528,7 +528,7 @@
                                       [rows]="16"
                                       [maxlength]="10000"
                                       placeholder="Team-specific mitigations..."
-                                      [disabled]="!teamMitigation.isActive || accessLevel() < 2"></textarea>
+                                      [disabled]="!teamMitigation.isActive && accessLevel() < 3"></textarea>
                           </div>
                         </p-tabpanel>
                         }
@@ -610,7 +610,7 @@
                               [rows]="16"
                               [maxlength]="2000"
                               placeholder="Impact Description..."
-                              [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') || accessLevel() < 2"></textarea>
+                              [disabled]="accessLevel() < 2"></textarea>
                   </div>
 
                   <div class="form-group">

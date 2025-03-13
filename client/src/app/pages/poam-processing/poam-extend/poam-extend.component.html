@@ -8,59 +8,51 @@
 !##########################################################################
 -->
 
-<p-dialog
-  [(visible)]="displayExtensionDialog"
-  [modal]="true"
-  [style]="{width: '80vw', height: '80vh'}"
-  [draggable]="false"
-  [resizable]="false"
-  [closable]="true"
-  (onHide)="cancelExtension()"
->
+<p-dialog [(visible)]="displayExtensionDialog"
+          [modal]="true"
+          [style]="{width: '80vw', height: '80vh'}"
+          [draggable]="false"
+          [resizable]="false"
+          [closable]="true"
+          (onHide)="cancelExtension()">
   <div class="container" *ngIf="poam">
     <div class="p-grid">
       <!-- Extension Time Allowed -->
       <div class="p-col-12">
         <div class="p-field">
           <label for="extensionTimeAllowed">Extension Time Requested:</label>
-          <p-select
-            [options]="extensionTimeOptions"
-            [(ngModel)]="poam.extensionTimeAllowed"
-            (onChange)="computeDeadlineWithExtension()"
-            placeholder="Extension Time Requested..."
-            [showClear]="true"
-            [style]="{'width':'100%'}"
-            [disabled]="accessLevel < 2"
-          ></p-select>
+          <p-select [options]="extensionTimeOptions"
+                    [(ngModel)]="poam.extensionTimeAllowed"
+                    (onChange)="computeDeadlineWithExtension()"
+                    placeholder="Extension Time Requested..."
+                    [showClear]="true"
+                    [style]="{'width':'100%'}"
+                    [disabled]="accessLevel < 2"></p-select>
         </div>
       </div>
       <!-- Deadline With Extension -->
       <div class="p-col-12">
         <div class="p-field">
           <label for="extensionDeadline">Deadline With Extension:</label>
-          <input
-            type="text"
-            pInputText
-            [value]="completionDateWithExtension"
-            name="extensionDeadline"
-            disabled
-            [style]="{'width':'100%'}"
-          />
+          <input type="text"
+                 pInputText
+                 [value]="completionDateWithExtension"
+                 name="extensionDeadline"
+                 disabled
+                 [style]="{'width':'100%'}" />
         </div>
       </div>
       <!-- Justification for Extension -->
       <div class="p-col-12">
         <div class="p-field">
           <label for="extensionJustification">Justification for Extension:</label>
-          <p-autoComplete
-            [(ngModel)]="extensionJustification"
-            [dropdown]="true"
-            [suggestions]="filteredJustifications"
-            (completeMethod)="filterJustifications($event)"
-            [placeholder]="extensionJustificationPlaceholder"
-            [style]="{'width':'100%'}"
-            [disabled]="accessLevel < 2"
-          >
+          <p-autoComplete [(ngModel)]="extensionJustification"
+                          [dropdown]="true"
+                          [suggestions]="filteredJustifications"
+                          (completeMethod)="filterJustifications($event)"
+                          [placeholder]="extensionJustificationPlaceholder"
+                          [style]="{'width':'100%'}"
+                          [disabled]="accessLevel < 2">
           </p-autoComplete>
         </div>
       </div>
@@ -92,33 +84,27 @@
                       <th scope="col" pSortableColumn="assignedTeamId">Milestone Team</th>
                       <th scope="col"></th>
                       <th scope="col">
-                        <button
-                          pButton
-                          icon="pi pi-plus"
-                          class="p-button-text"
-                          (click)="onAddNewMilestone()"
-                          [disabled]="accessLevel < 2"
-                        ></button>
+                        <button pButton
+                                icon="pi pi-plus"
+                                class="p-button-text"
+                                (click)="onAddNewMilestone()"
+                                [disabled]="accessLevel < 2"></button>
                       </th>
                     </tr>
                   </ng-template>
-                  <ng-template
-                    pTemplate="body"
-                    let-milestone
-                    let-editing="editing"
-                    let-ri="rowIndex"
-                  >
+                  <ng-template pTemplate="body"
+                               let-milestone
+                               let-editing="editing"
+                               let-ri="rowIndex">
                     <tr [pEditableRow]="milestone" [class.p-highlight]="milestone.editing">
                       <td>
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <textarea
-                              pTextarea
-                              class="w-full"
-                              [rows]="2"
-                              [(ngModel)]="milestone.milestoneComments"
-                              disabled
-                            ></textarea>
+                            <textarea pTextarea
+                                      class="w-full"
+                                      [rows]="2"
+                                      [(ngModel)]="milestone.milestoneComments"
+                                      disabled></textarea>
                           </ng-template>
                           <ng-template pTemplate="output">
                             {{milestone.milestoneComments}}
@@ -128,13 +114,11 @@
                       <td>
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <p-datepicker
-                              [(ngModel)]="milestone.milestoneDate"
-                              dateFormat="yy-mm-dd"
-                              [showIcon]="true"
-                              appendTo="body"
-                              disabled
-                            ></p-datepicker>
+                            <p-datepicker [(ngModel)]="milestone.milestoneDate"
+                                          dateFormat="yy-mm-dd"
+                                          [showIcon]="true"
+                                          appendTo="body"
+                                          disabled></p-datepicker>
                           </ng-template>
                           <ng-template pTemplate="output">
                             {{milestone.milestoneDate | date:'yyyy-MM-dd'}}
@@ -144,13 +128,11 @@
                       <td>
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <textarea
-                              pTextarea
-                              class="w-full"
-                              [rows]="2"
-                              [(ngModel)]="milestone.milestoneChangeComments"
-                              [disabled]="accessLevel < 2"
-                            ></textarea>
+                            <textarea pTextarea
+                                      class="w-full"
+                                      [rows]="2"
+                                      [(ngModel)]="milestone.milestoneChangeComments"
+                                      [disabled]="accessLevel < 2"></textarea>
                           </ng-template>
                           <ng-template pTemplate="output">
                             {{milestone.milestoneChangeComments}}
@@ -160,14 +142,12 @@
                       <td>
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <p-datepicker
-                              [(ngModel)]="milestone.milestoneChangeDate"
-                              dateFormat="yy-mm-dd"
-                              [showIcon]="true"
-                              appendTo="body"
-                              [baseZIndex]="9999"
-                              [disabled]="accessLevel < 2"
-                            ></p-datepicker>
+                            <p-datepicker [(ngModel)]="milestone.milestoneChangeDate"
+                                          dateFormat="yy-mm-dd"
+                                          [showIcon]="true"
+                                          appendTo="body"
+                                          [baseZIndex]="9999"
+                                          [disabled]="accessLevel < 2"></p-datepicker>
                           </ng-template>
                           <ng-template pTemplate="output">
                             {{milestone.milestoneChangeDate | date:'yyyy-MM-dd'}}
@@ -177,14 +157,12 @@
                       <td>
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <p-select
-                              [options]="milestoneStatusOptions"
-                              [(ngModel)]="milestone.milestoneStatus"
-                              [style]="{'width':'100%'}"
-                              appendTo="body"
-                              [baseZIndex]="9999"
-                              [disabled]="accessLevel < 2"
-                            ></p-select>
+                            <p-select [options]="milestoneStatusOptions"
+                                      [(ngModel)]="milestone.milestoneStatus"
+                                      [style]="{'width':'100%'}"
+                                      appendTo="body"
+                                      [baseZIndex]="9999"
+                                      [disabled]="accessLevel < 2"></p-select>
                           </ng-template>
                           <ng-template pTemplate="output">
                             {{milestone.milestoneStatus}}
@@ -210,36 +188,30 @@
                       </td>
                       <td></td>
                       <td style="text-align: center">
-                        <button
-                          *ngIf="!editing"
-                          pButton
-                          type="button"
-                          pInitEditableRow
-                          icon="pi pi-pencil"
-                          (click)="onRowEditInit(milestone)"
-                          class="p-button-rounded p-button-text"
-                          [disabled]="accessLevel < 2"
-                        ></button>
-                        <button
-                          *ngIf="editing"
-                          pButton
-                          type="button"
-                          pSaveEditableRow
-                          icon="pi pi-check"
-                          (click)="onRowEditSave(milestone)"
-                          class="p-button-rounded p-button-text p-button-success mr-2"
-                          [disabled]="accessLevel < 2"
-                        ></button>
-                        <button
-                          *ngIf="editing"
-                          pButton
-                          type="button"
-                          pCancelEditableRow
-                          icon="pi pi-times"
-                          (click)="onRowEditCancel(milestone, ri)"
-                          class="p-button-rounded p-button-text p-button-danger"
-                          [disabled]="accessLevel < 2"
-                        ></button>
+                        <button *ngIf="!editing"
+                                pButton
+                                type="button"
+                                pInitEditableRow
+                                icon="pi pi-pencil"
+                                (click)="onRowEditInit(milestone)"
+                                class="p-button-rounded p-button-text"
+                                [disabled]="accessLevel < 2"></button>
+                        <button *ngIf="editing"
+                                pButton
+                                type="button"
+                                pSaveEditableRow
+                                icon="pi pi-check"
+                                (click)="onRowEditSave(milestone)"
+                                class="p-button-rounded p-button-text p-button-success mr-2"
+                                [disabled]="accessLevel < 2"></button>
+                        <button *ngIf="editing"
+                                pButton
+                                type="button"
+                                pCancelEditableRow
+                                icon="pi pi-times"
+                                (click)="onRowEditCancel(milestone, ri)"
+                                class="p-button-rounded p-button-text p-button-danger"
+                                [disabled]="accessLevel < 2"></button>
                       </td>
                     </tr>
                   </ng-template>
@@ -251,12 +223,10 @@
                 </p-table>
               </div>
               <div class="stepper-buttons first-panel">
-                <p-button
-                  styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                  icon="pi pi-arrow-right"
-                  iconPos="right"
-                  (onClick)="activateCallback(2)"
-                ></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                          icon="pi pi-arrow-right"
+                          iconPos="right"
+                          (onClick)="activateCallback(2)"></p-button>
               </div>
             </div>
           </ng-template>
@@ -267,29 +237,23 @@
           <ng-template #content let-activateCallback="activateCallback">
             <div class="stepper-content-wrapper">
               <div class="stepper-content">
-                <textarea
-                  pTextarea
-                  class="w-full"
-                  [(ngModel)]="poam.mitigations"
-                  name="mitigations"
-                  [rows]="16"
-                  [maxlength]="2000"
-                  placeholder="Mitigations..."
-                  [disabled]="accessLevel < 2"
-                ></textarea>
+                <textarea pTextarea
+                          class="w-full"
+                          [(ngModel)]="poam.mitigations"
+                          name="mitigations"
+                          [rows]="16"
+                          [maxlength]="2000"
+                          placeholder="Mitigations..."
+                          [disabled]="accessLevel < 2"></textarea>
               </div>
               <div class="stepper-buttons">
-                <p-button
-                  styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                  icon="pi pi-arrow-left"
-                  (onClick)="activateCallback(1)"
-                ></p-button>
-                <p-button
-                  styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                  icon="pi pi-arrow-right"
-                  iconPos="right"
-                  (onClick)="activateCallback(3)"
-                ></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                          icon="pi pi-arrow-left"
+                          (onClick)="activateCallback(1)"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                          icon="pi pi-arrow-right"
+                          iconPos="right"
+                          (onClick)="activateCallback(3)"></p-button>
               </div>
             </div>
           </ng-template>
@@ -300,29 +264,23 @@
           <ng-template #content let-activateCallback="activateCallback">
             <div class="stepper-content-wrapper">
               <div class="stepper-content">
-                <textarea
-                  pTextarea
-                  class="w-full"
-                  [(ngModel)]="poam.requiredResources"
-                  name="requiredResources"
-                  [rows]="16"
-                  [maxlength]="2000"
-                  placeholder="Required Resources..."
-                  [disabled]="accessLevel < 2"
-                ></textarea>
+                <textarea pTextarea
+                          class="w-full"
+                          [(ngModel)]="poam.requiredResources"
+                          name="requiredResources"
+                          [rows]="16"
+                          [maxlength]="2000"
+                          placeholder="Required Resources..."
+                          [disabled]="accessLevel < 2"></textarea>
               </div>
               <div class="stepper-buttons">
-                <p-button
-                  styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                  icon="pi pi-arrow-left"
-                  (onClick)="activateCallback(2)"
-                ></p-button>
-                <p-button
-                  styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                  icon="pi pi-arrow-right"
-                  iconPos="right"
-                  (onClick)="activateCallback(4)"
-                ></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                          icon="pi pi-arrow-left"
+                          (onClick)="activateCallback(2)"></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
+                          icon="pi pi-arrow-right"
+                          iconPos="right"
+                          (onClick)="activateCallback(4)"></p-button>
               </div>
             </div>
           </ng-template>
@@ -335,71 +293,61 @@
               <div class="stepper-content">
                 <div class="form-group">
                   <label for="localImpact">Local Impact:</label>
-                  <p-select
-                    [options]="localImpactOptions"
-                    [(ngModel)]="poam.localImpact"
-                    id="localImpact"
-                    name="localImpact"
-                    placeholder="Local Impact..."
-                    optionLabel="label"
-                    optionValue="value"
-                    appendTo="body"
-                    [baseZIndex]="9999"
-                    [style]="{'width':'100%'}"
-                    [disabled]="accessLevel < 2"
-                  ></p-select>
+                  <p-select [options]="localImpactOptions"
+                            [(ngModel)]="poam.localImpact"
+                            id="localImpact"
+                            name="localImpact"
+                            placeholder="Local Impact..."
+                            optionLabel="label"
+                            optionValue="value"
+                            appendTo="body"
+                            [baseZIndex]="9999"
+                            [style]="{'width':'100%'}"
+                            [disabled]="accessLevel < 2"></p-select>
                 </div>
 
                 <div class="form-group">
                   <label for="impactDescription">Impact Description: </label>
-                  <textarea
-                    pTextarea
-                    class="w-full"
-                    [(ngModel)]="poam.impactDescription"
-                    name="impactDescription"
-                    [rows]="16"
-                    placeholder="Impact Description..."
-                    [disabled]="accessLevel < 2"
-                  ></textarea>
+                  <textarea pTextarea
+                            class="w-full"
+                            [(ngModel)]="poam.impactDescription"
+                            name="impactDescription"
+                            [rows]="16"
+                            placeholder="Impact Description..."
+                            [disabled]="accessLevel < 2"></textarea>
                 </div>
 
                 <div class="form-group">
                   <label for="residualRisk">Residual Risk:</label>
-                  <p-select
-                    [options]="residualRiskOptions"
-                    [(ngModel)]="poam.residualRisk"
-                    name="residualRisk"
-                    placeholder="Residual Risk..."
-                    optionLabel="label"
-                    optionValue="value"
-                    appendTo="body"
-                    [style]="{'width':'100%'}"
-                    [disabled]="true"
-                  ></p-select>
+                  <p-select [options]="residualRiskOptions"
+                            [(ngModel)]="poam.residualRisk"
+                            name="residualRisk"
+                            placeholder="Residual Risk..."
+                            optionLabel="label"
+                            optionValue="value"
+                            appendTo="body"
+                            [style]="{'width':'100%'}"
+                            [disabled]="true"></p-select>
                 </div>
 
                 <div class="form-group">
                   <label for="likelihood">Likelihood:</label>
-                  <p-select
-                    [options]="likelihoodOptions"
-                    [(ngModel)]="poam.likelihood"
-                    id="likelihood"
-                    name="likelihood"
-                    placeholder="Likelihood..."
-                    optionLabel="label"
-                    optionValue="value"
-                    appendTo="body"
-                    [style]="{'width':'100%'}"
-                    [disabled]="true"
-                  ></p-select>
+                  <p-select [options]="likelihoodOptions"
+                            [(ngModel)]="poam.likelihood"
+                            id="likelihood"
+                            name="likelihood"
+                            placeholder="Likelihood..."
+                            optionLabel="label"
+                            optionValue="value"
+                            appendTo="body"
+                            [style]="{'width':'100%'}"
+                            [disabled]="true"></p-select>
                 </div>
               </div>
               <div class="stepper-buttons">
-                <p-button
-                  styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                  icon="pi pi-arrow-left"
-                  (onClick)="activateCallback(3)"
-                ></p-button>
+                <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
+                          icon="pi pi-arrow-left"
+                          (onClick)="activateCallback(3)"></p-button>
               </div>
             </div>
           </ng-template>
@@ -437,5 +385,5 @@
     </div>
   </ng-template>
 </p-dialog>
-<p-toast></p-toast>
+<p-toast [baseZIndex]="10000"></p-toast>
 <p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>

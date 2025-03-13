@@ -38,6 +38,7 @@ import { AccordionModule } from 'primeng/accordion';
 import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
 import { TenableFiltersComponent } from './components/tenableFilters/tenableFilters.component';
+import { TagModule } from 'primeng/tag';
 import {
   AssetsFilter,
   FilterConfig,
@@ -80,7 +81,8 @@ import { parseISO } from 'date-fns/fp';
     TenableIAVVulnerabilitiesComponent,
     ToastModule,
     TooltipModule,
-    TenableFiltersComponent
+    TenableFiltersComponent,
+    TagModule
   ],
   providers: [MessageService],
 })
@@ -2283,6 +2285,21 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         return EMPTY;
       })
     );
+  }
+
+  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+    switch (severity) {
+      case 'Critical':
+      case 'High':
+        return "danger";
+      case 'Medium':
+        return "warn";
+      case 'Low':
+      case 'Info':
+        return "info";
+      default:
+        return "info";
+    }
   }
 
   onTableFilter(event: any) {
