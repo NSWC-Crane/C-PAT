@@ -153,11 +153,6 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  private readonly thirtyDaysFromNow = computed(() => {
-    const currentDate = new Date();
-    return new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-  });
-
   private readonly userTeamIds = computed(() => {
     return new Set(
       this.user()?.assignedTeams?.map((team: any) => team.assignedTeamId)
@@ -170,9 +165,19 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     const needingAttention = this.poams().filter(poam => {
       if (!poam.scheduledCompletionDate) return false;
       const completionDate = new Date(poam.scheduledCompletionDate);
+
+      const isHighSeverity = poam.rawSeverity === 'CAT I - High';
+      const thresholdDate = new Date();
+
+      if (isHighSeverity) {
+        thresholdDate.setDate(thresholdDate.getDate() + 7);
+      } else {
+        thresholdDate.setDate(thresholdDate.getDate() + 30);
+      }
+
       return (
         !isNaN(completionDate.getTime()) &&
-        completionDate <= this.thirtyDaysFromNow() &&
+        completionDate <= thresholdDate &&
         !this.CLOSED_STATUSES.has(poam.status)
       );
     });
