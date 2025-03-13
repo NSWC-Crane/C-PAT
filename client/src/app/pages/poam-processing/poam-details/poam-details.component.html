@@ -20,6 +20,12 @@
         <div class="label-tags ml-2" *ngFor="let label of poamLabels">
           <p-tag value="{{label.labelName}}" styleClass="p-mr-2"></p-tag>
         </div>
+        <div class="ml-2" *ngIf="poam.stigCheckData.includes('requirement must be documented with the ISSO')">
+          <i class="pi pi-flag-fill"
+             style="color: var(--p-primary-color); font-size: 1rem"
+             pTooltip="STIG Check Data indicates the requirement must be documented with the ISSO."
+             tooltipPosition="bottom"></i>
+        </div>
       </div>
 
       <div class="button-group">
