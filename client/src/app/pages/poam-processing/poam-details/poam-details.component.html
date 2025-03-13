@@ -18,7 +18,7 @@
            pTooltip="Created: {{poam.created ? (poam.created | date:'yyyy-MM-dd') : ''}}, Last Updated: {{poam.lastUpdated ? (poam.lastUpdated | date:'yyyy-MM-dd') : ''}}"></i>
         POAM ID: {{poam.poamId}}
         <div class="label-tags ml-2" *ngFor="let label of poamLabels">
-          <p-tag value="{{label.labelName}}" severity="info" styleClass="p-mr-2"></p-tag>
+          <p-tag value="{{label.labelName}}" styleClass="p-mr-2"></p-tag>
         </div>
       </div>
 

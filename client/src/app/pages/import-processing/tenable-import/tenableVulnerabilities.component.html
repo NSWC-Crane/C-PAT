@@ -471,9 +471,10 @@
                                                   </span>
                                                 </ng-container>
                                                 <ng-container *ngSwitchCase="'severity'">
-                                                  <span [class]="'severity-badge severity-' + vulnerability.severity.name">
-                                                    {{vulnerability.severity.name}}
-                                                  </span>
+                                                  <p-tag [value]="vulnerability.severity.name"
+                                                         [severity]="getSeverityStyling(vulnerability.severity.name)"
+                                                         [rounded]="false">
+                                                  </p-tag>
                                                 </ng-container>
                                                 <ng-container *ngSwitchCase="'iav'">
                                                   <span>{{ vulnerability.iav || '-' }}</span>

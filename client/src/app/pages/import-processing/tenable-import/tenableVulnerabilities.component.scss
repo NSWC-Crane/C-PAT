@@ -100,47 +100,6 @@
   }
 }
 
-.severity-badge {
-  border-radius: 2px;
-  padding: 0.25em 0.5em;
-  text-transform: uppercase;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.3px;
-  text-align: center;
-  width: 6rem;
-
-  &.severity-Critical {
-    background-color: #c63737;
-    color: #ffffff;
-    opacity: 0.9;
-  }
-
-  &.severity-High {
-    background-color: #ff8800;
-    color: #ffffff;
-    opacity: 0.9;
-  }
-
-  &.severity-Medium {
-    background-color: #ffcc00;
-    color: #ffffff;
-    opacity: 0.9;
-  }
-
-  &.severity-Low {
-    background-color: #47d147;
-    color: #ffffff;
-    opacity: 0.9;
-  }
-
-  &.severity-Info {
-    background-color: #007bff;
-    color: #ffffff;
-    opacity: 0.9;
-  }
-}
-
 .table-header {
   display: flex;
   justify-content: space-between;

@@ -31,6 +31,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
+import { TagModule } from 'primeng/tag';
 
 interface Reference {
   type: string;
@@ -68,6 +69,7 @@ interface NavyComplyDateFilter {
     TableModule,
     ToastModule,
     TooltipModule,
+    TagModule
   ],
   providers: [MessageService],
 })
@@ -850,6 +852,21 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.multiSelect.hide();
     } else {
       this.multiSelect.show();
+    }
+  }
+
+  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+    switch (severity) {
+      case 'Critical':
+      case 'High':
+        return "danger";
+      case 'Medium':
+        return "warn";
+      case 'Low':
+      case 'Info':
+        return "info";
+      default:
+        return "info";
     }
   }
 

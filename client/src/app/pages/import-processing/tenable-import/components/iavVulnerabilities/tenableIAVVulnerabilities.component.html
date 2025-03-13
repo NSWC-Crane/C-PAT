@@ -220,9 +220,10 @@
                                   </span>
                               </ng-container>
                               <ng-container *ngSwitchCase="'severity'">
-                                  <span [class]="'severity-badge severity-' + vulnerability[col.field]">
-                                      {{vulnerability[col.field]}}
-                                  </span>
+                                <p-tag [value]="vulnerability[col.field]"
+                                       [severity]="getSeverityStyling(vulnerability[col.field])"
+                                       [rounded]="false">
+                                </p-tag>
                               </ng-container>
                               <ng-container *ngSwitchCase="'navyComplyDate'">
                                   {{vulnerability[col.field] | date:'mediumDate'}}
