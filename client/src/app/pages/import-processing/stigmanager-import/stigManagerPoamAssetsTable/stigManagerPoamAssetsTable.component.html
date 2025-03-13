@@ -80,6 +80,7 @@
               <p-table #dt
                        [value]="tab.assets"
                        [columns]="selectedColumns"
+                       [loading]="loading"
                        [paginator]="true"
                        [rows]="20"
                        [totalRecords]="tab.assets.length"
@@ -110,7 +111,7 @@
                           <p-tag *ngFor="let label of getAssetLabels(asset)"
                                  [rounded]="true"
                                  [value]="label.name"
-                                 [style]="{'background': 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.25rem', 'color': 'black'}">
+                                 [style]="{'background': 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.5rem', 'color': '#' + label.color}">
                           </p-tag>
                         </ng-container>
                         <ng-container *ngSwitchDefault> {{asset[col.field]}} </ng-container>

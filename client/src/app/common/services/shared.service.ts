@@ -57,6 +57,11 @@ export class SharedService {
       .pipe(catchError(this.handleError));
   }
 
+  getCollectionSTIGSummaryFromSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/metrics/summary/stig`)
+      .pipe(catchError(this.handleError));
+  }
+
   getCollectionsFromSTIGMAN(): Observable<any[]> {
     return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/`)
       .pipe(catchError(this.handleError));
@@ -86,6 +91,12 @@ export class SharedService {
   getFindingsFromSTIGMAN(collectionId: number): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=stigs&projection=rules`
+    ).pipe(catchError(this.handleError));
+  }
+
+  getFindingsByBenchmarkFromSTIGMAN(collectionId: number, benchmarkId: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=rules&projection=stigs`
     ).pipe(catchError(this.handleError));
   }
 
@@ -137,9 +148,13 @@ export class SharedService {
     ).pipe(catchError(this.handleError));
   }
 
-  selectedAssetsFromSTIGMAN(assetId: number): Observable<any> {
-    return this.http.get<any>(
-      `${this.STIGMANAGER_URL}/assets/${assetId}`
-    ).pipe(catchError(this.handleError));
+  getReviewsFromSTIGMAN(collectionId: number, result: string, benchmarkId: string): Observable<any[]> {
+    let queryUrl: string = '';
+    if (result === 'all') {
+      queryUrl = `${this.STIGMANAGER_URL}/collections/${collectionId}/reviews?rules=default-mapped&benchmarkId=${benchmarkId}&projection=rule`
+    } else {
+      queryUrl = `${this.STIGMANAGER_URL}/collections/${collectionId}/reviews?rules=default-mapped&result=${result}&benchmarkId=${benchmarkId}&projection=rule`
+    }
+    return this.http.get<any[]>(queryUrl).pipe(catchError(this.handleError));
   }
 }
