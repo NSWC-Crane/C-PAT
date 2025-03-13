@@ -730,8 +730,9 @@ async function processCSVAssetList(file) {
                     rowNumber++;
                     if (rowNumber > 1 && row.length === 2 && row[0]) {
                         const key = row[0].toString().trim();
+                        const lowercaseKey = key.toLowerCase();
                         const value = row[1] ? row[1].toString().trim() : '';
-                        assetMap.set(key, value);
+                        assetMap.set(lowercaseKey, { originalKey: key, value: value });
                     }
                 })
                 .on('error', (error) => {
@@ -739,7 +740,10 @@ async function processCSVAssetList(file) {
                 })
                 .on('end', async (totalRowCount) => {
                     try {
-                        const assetData = Array.from(assetMap).map(([key, value]) => ({ key, value }));
+                        const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
+                            key: data.originalKey,
+                            value: data.value
+                        }));
                         if (assetData.length === 0) {
                             reject(new Error('No valid data found in the CSV file'));
                             return;
@@ -793,13 +797,17 @@ async function processRegularAssetList(worksheet) {
             const values = row.values.slice(1);
             if (values.length === 2 && values[0]) {
                 const key = values[0].toString().trim();
+                const lowercaseKey = key.toLowerCase();
                 const value = values[1] ? values[1].toString().trim() : '';
-                assetMap.set(key, value);
+                assetMap.set(lowercaseKey, { originalKey: key, value: value });
             }
         }
     });
 
-    const assetData = Array.from(assetMap).map(([key, value]) => ({ key, value }));
+    const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
+        key: data.originalKey,
+        value: data.value
+    }));
 
     if (assetData.length === 0) {
         throw new Error('No valid data found in the Excel file');
