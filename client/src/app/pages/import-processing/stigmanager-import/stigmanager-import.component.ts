@@ -126,7 +126,6 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   benchmarkSummaries: any[] = [];
   selectedBenchmark: any = null;
   viewMode: 'summary' | 'findings' = 'summary';
-  progressDisplayMode: 'percentage' | 'numeric' = 'percentage';
   private subscriptions = new Subscription();
   findingsCount: number = 0;
 
@@ -440,10 +439,6 @@ ${ruleData.detail.vulnDiscussion}`;
         this.findingsCount = this.displayDataSource.length;
       }
     }
-  }
-
-  toggleProgressDisplayMode() {
-    this.progressDisplayMode = this.progressDisplayMode === 'percentage' ? 'numeric' : 'percentage';
   }
 
   exportCSV() {

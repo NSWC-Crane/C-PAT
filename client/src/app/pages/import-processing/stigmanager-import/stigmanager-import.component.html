@@ -58,81 +58,51 @@
                 <td>{{benchmark.metrics?.maxTouchTs ? (benchmark.metrics.maxTouchTs | date:'shortDate') : '-'}}</td>
                 <td>
                   <p-progressBar [value]="(benchmark.metrics?.assessed / benchmark.metrics?.assessments) * 100 || 0"
-                                 [style]="{'height': '20px', 'cursor': 'pointer'}"
+                                 [style]="{'height': '20px'}"
                                  styleClass="assessed-progress"
-                                 pTooltip="Click to toggle between percentage and count"
-                                 (click)="toggleProgressDisplayMode(); $event.stopPropagation()">
+                                 [pTooltip]="benchmark.metrics?.assessed + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.assessed / benchmark.metrics?.assessments) * 100 || 0 | number:'1.0-0') + '%)'">
                     <ng-template pTemplate="content" let-value>
-                      <ng-container *ngIf="progressDisplayMode === 'percentage'">
-                        {{(value || 0) | number:'1.0-0'}}%
-                      </ng-container>
-                      <ng-container *ngIf="progressDisplayMode === 'numeric'">
-                        {{benchmark.metrics?.assessed || 0}}/{{benchmark.metrics?.assessments || 0}}
-                      </ng-container>
+                      {{(value || 0) | number:'1.0-0'}}%
                     </ng-template>
                   </p-progressBar>
                 </td>
                 <td>
                   <p-progressBar [value]="(benchmark.metrics?.statuses?.submitted / benchmark.metrics?.assessments) * 100 || 0"
-                                 [style]="{'height': '20px', 'cursor': 'pointer'}"
+                                 [style]="{'height': '20px'}"
                                  styleClass="submitted-progress"
-                                 pTooltip="Click to toggle between percentage and count"
-                                 (click)="toggleProgressDisplayMode(); $event.stopPropagation()">
+                                 [pTooltip]="benchmark.metrics?.statuses?.submitted + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.statuses?.submitted / benchmark.metrics?.assessments) * 100 || 0 | number:'1.0-0') + '%)'">
                     <ng-template pTemplate="content" let-value>
-                      <ng-container *ngIf="progressDisplayMode === 'percentage'">
-                        {{(value || 0) | number:'1.0-0'}}%
-                      </ng-container>
-                      <ng-container *ngIf="progressDisplayMode === 'numeric'">
-                        {{benchmark.metrics?.statuses?.submitted || 0}}/{{benchmark.metrics?.assessments || 0}}
-                      </ng-container>
+                      {{(value || 0) | number:'1.0-0'}}%
                     </ng-template>
                   </p-progressBar>
                 </td>
                 <td>
                   <p-progressBar [value]="(benchmark.metrics?.statuses?.accepted / benchmark.metrics?.assessments) * 100 || 0"
-                                 [style]="{'height': '20px', 'cursor': 'pointer'}"
+                                 [style]="{'height': '20px'}"
                                  styleClass="accepted-progress"
-                                 pTooltip="Click to toggle between percentage and count"
-                                 (click)="toggleProgressDisplayMode(); $event.stopPropagation()">
+                                 [pTooltip]="benchmark.metrics?.statuses?.accepted + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.statuses?.accepted / benchmark.metrics?.assessments) * 100 || 0 | number:'1.0-0') + '%)'">
                     <ng-template pTemplate="content" let-value>
-                      <ng-container *ngIf="progressDisplayMode === 'percentage'">
-                        {{(value || 0) | number:'1.0-0'}}%
-                      </ng-container>
-                      <ng-container *ngIf="progressDisplayMode === 'numeric'">
-                        {{benchmark.metrics?.statuses?.accepted || 0}}/{{benchmark.metrics?.assessments || 0}}
-                      </ng-container>
+                      {{(value || 0) | number:'1.0-0'}}%
                     </ng-template>
                   </p-progressBar>
                 </td>
                 <td>
                   <p-progressBar [value]="(benchmark.metrics?.statuses?.rejected / benchmark.metrics?.assessments) * 100 || 0"
-                                 [style]="{'height': '20px', 'cursor': 'pointer'}"
+                                 [style]="{'height': '20px'}"
                                  styleClass="rejected-progress"
-                                 pTooltip="Click to toggle between percentage and count"
-                                 (click)="toggleProgressDisplayMode(); $event.stopPropagation()">
+                                 [pTooltip]="benchmark.metrics?.statuses?.rejected + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.statuses?.rejected / benchmark.metrics?.assessments) * 100 || 0 | number:'1.0-0') + '%)'">
                     <ng-template pTemplate="content" let-value>
-                      <ng-container *ngIf="progressDisplayMode === 'percentage'">
-                        {{(value || 0) | number:'1.0-0'}}%
-                      </ng-container>
-                      <ng-container *ngIf="progressDisplayMode === 'numeric'">
-                        {{benchmark.metrics?.statuses?.rejected || 0}}/{{benchmark.metrics?.assessments || 0}}
-                      </ng-container>
+                      {{(value || 0) | number:'1.0-0'}}%
                     </ng-template>
                   </p-progressBar>
                 </td>
                 <td>
                   <p-progressBar [value]="((benchmark.metrics?.assessments - benchmark.metrics?.assessed) / benchmark.metrics?.assessments) * 100 || 0"
-                                 [style]="{'height': '20px', 'cursor': 'pointer'}"
+                                 [style]="{'height': '20px'}"
                                  styleClass="unassessed-progress"
-                                 pTooltip="Click to toggle between percentage and count"
-                                 (click)="toggleProgressDisplayMode(); $event.stopPropagation()">
+                                 [pTooltip]="(benchmark.metrics?.assessments - benchmark.metrics?.assessed) + ' / ' + benchmark.metrics?.assessments + ' (' + (((benchmark.metrics?.assessments - benchmark.metrics?.assessed) / benchmark.metrics?.assessments) * 100 || 0 | number:'1.0-0') + '%)'">
                     <ng-template pTemplate="content" let-value>
-                      <ng-container *ngIf="progressDisplayMode === 'percentage'">
-                        {{(value || 0) | number:'1.0-0'}}%
-                      </ng-container>
-                      <ng-container *ngIf="progressDisplayMode === 'numeric'">
-                        {{(benchmark.metrics?.assessments - benchmark.metrics?.assessed) || 0}}/{{benchmark.metrics?.assessments || 0}}
-                      </ng-container>
+                      {{(value || 0) | number:'1.0-0'}}%
                     </ng-template>
                   </p-progressBar>
                 </td>
