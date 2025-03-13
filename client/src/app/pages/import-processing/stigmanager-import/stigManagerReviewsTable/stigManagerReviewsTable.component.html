@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -90,7 +90,7 @@
           </ng-template>
           <ng-template pTemplate="header">
             <tr>
-              <th *ngFor="let col of selectedColumns" [ttSortableColumn]="col.field" ttResizableColumn>
+              <th *ngFor="let col of selectedColumns" [ttSortableColumn]="col.field" ttResizableColumn scope="col">
                 {{col.header}}
                 <button *ngIf="col.filterable"
                         pButton

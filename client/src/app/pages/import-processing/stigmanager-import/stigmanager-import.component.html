@@ -30,20 +30,20 @@
                    dataKey="benchmarkId">
             <ng-template pTemplate="header">
               <tr>
-                <th pSortableColumn="benchmarkId">Benchmark</th>
-                <th pSortableColumn="revisionStr">Revision</th>
-                <th pSortableColumn="assets">Assets</th>
-                <th pSortableColumn="metrics.assessments">Checks</th>
-                <th pSortableColumn="metrics.minTs">Oldest</th>
-                <th pSortableColumn="metrics.maxTs">Newest</th>
-                <th pSortableColumn="metrics.maxTouchTs">Updated</th>
-                <th>Assessed</th>
-                <th>Submitted</th>
-                <th>Accepted</th>
-                <th>Rejected</th>
-                <th>CAT 3</th>
-                <th>CAT 2</th>
-                <th>CAT 1</th>
+                <th pSortableColumn="benchmarkId" scope="col">Benchmark</th>
+                <th pSortableColumn="revisionStr" scope="col">Revision</th>
+                <th pSortableColumn="assets" scope="col">Assets</th>
+                <th pSortableColumn="metrics.assessments" scope="col">Checks</th>
+                <th pSortableColumn="metrics.minTs" scope="col">Oldest</th>
+                <th pSortableColumn="metrics.maxTs" scope="col">Newest</th>
+                <th pSortableColumn="metrics.maxTouchTs" scope="col">Updated</th>
+                <th scope="col">Assessed</th>
+                <th scope="col">Submitted</th>
+                <th scope="col">Accepted</th>
+                <th scope="col">Rejected</th>
+                <th scope="col">CAT 3</th>
+                <th scope="col">CAT 2</th>
+                <th scope="col">CAT 1</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-benchmark>
