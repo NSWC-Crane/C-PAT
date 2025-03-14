@@ -194,8 +194,8 @@ export class PoamDataService {
     );
   }
 
-  loadAssetDeltaList(): Observable<any> {
-    return this.assetDeltaService.getAssetDeltaList().pipe(
+  loadAssetDeltaList(collectionId: number): Observable<any> {
+    return this.assetDeltaService.getAssetDeltaListByCollection(collectionId).pipe(
       catchError(() => {
         this.messageService.add({
           severity: 'error',

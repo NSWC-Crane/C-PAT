@@ -12,9 +12,12 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, E
 import { MessageService } from 'primeng/api';
 import { HttpResponse } from '@angular/common/http';
 import { AssetDeltaService } from './asset-delta.service';
+import { CollectionsService } from '../collection-processing/collections.service';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { UsersService } from '../user-processing/users.service';
 import { EMPTY, Observable, Subject, catchError, finalize, forkJoin, map, of, switchMap, takeUntil } from 'rxjs';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { FloatLabel } from "primeng/floatlabel"
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -33,6 +36,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
 import { SelectModule } from 'primeng/select';
+
 interface AssetDeltaResponse {
   assets: AssetData[];
   assetDeltaUpdated?: string | null;
@@ -76,6 +80,7 @@ interface ChartData {
     CommonModule,
     DialogModule,
     FileUploadModule,
+    FloatLabel,
     FormsModule,
     InputTextModule,
     IconField,
@@ -95,9 +100,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
   @Output() navigateToPluginMapping = new EventEmitter<void>();
   cols!: Column[];
   exportColumns!: Column[];
+  availableCollections: CollectionsBasicList[] = [];
+  selectedCollection = signal<number | null>(null);
   assetDeltaUpdated = signal<string | null>(null);
   emassHardwareListUpdated = signal<string | null>(null);
-  uploadUrl: string = '/api/import/assetlist';
   user: any;
   showUploadDialog = signal<boolean>(false);
   loading = signal<boolean>(false);
@@ -136,6 +142,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     private importService: ImportService,
     private messageService: MessageService,
     private assetDeltaService: AssetDeltaService,
+    private collectionsService: CollectionsService,
     private sharedService: SharedService,
     private userService: UsersService,
     private configService: AppConfigService,
@@ -211,7 +218,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
   });
 
   ngOnInit() {
-    this.loadAssetDeltaList();
     this.initializeColumns();
     this.themeInitialized.set(false);
 
@@ -228,6 +234,43 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       })
     ).subscribe(user => {
       this.user = user;
+
+      this.collectionsService.getCollectionBasicList().pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: (response) => {
+          this.availableCollections = response || [];
+          if (this.availableCollections.length > 0) {
+            let collectionToUse = null;
+            if (this.user?.lastCollectionAccessedId) {
+              const userCollection = this.availableCollections.find(
+                c => c.collectionId === this.user.lastCollectionAccessedId
+              );
+
+              if (userCollection) {
+                collectionToUse = userCollection.collectionId;
+              }
+            }
+
+            if (collectionToUse === null) {
+              collectionToUse = this.availableCollections[0].collectionId;
+            }
+            this.selectedCollection.set(collectionToUse);
+            this.loadAssetDeltaList(collectionToUse);
+          } else {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'No Collections',
+              detail: 'No collections available. Please create a collection first.'
+            });
+          }
+        },
+        error: () => this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load available collections'
+        })
+      });
     });
   }
 
@@ -321,6 +364,32 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     }));
   }
 
+  loadCollections() {
+    this.collectionsService.getCollectionBasicList().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.availableCollections = response || [];
+        console.log(this.availableCollections);
+        console.log(this.user?.lastCollectionAccessedId);
+        if (this.availableCollections.length > 0) {
+          const lastCollection = this.user;
+          const initialCollection = lastCollection &&
+            this.availableCollections.some(c => c.collectionId === lastCollection)
+            ? lastCollection
+            : this.availableCollections[0].collectionId;
+
+          this.onCollectionChange(initialCollection);
+        }
+      },
+      error: () => this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load available collections'
+      })
+    });
+  }
+
   onUpload() {
     this.messageService.add({
       severity: 'info',
@@ -335,6 +404,8 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
 
   customUploadHandler(event: any) {
     const file = event.files[0];
+    const collectionId = this.selectedCollection();
+
     if (!file) {
       console.error('No file selected');
       this.messageService.add({
@@ -345,7 +416,16 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.assetDeltaService.upload(file).pipe(
+    if (!collectionId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Please select a collection first'
+      });
+      return;
+    }
+
+    this.assetDeltaService.upload(file, collectionId).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (event: any) => {
@@ -355,7 +435,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
             summary: 'Success',
             detail: 'File uploaded successfully'
           });
-          this.loadAssetDeltaList();
+          this.loadAssetDeltaList(collectionId);
           this.fileUpload.clear();
           this.showUploadDialog.set(false);
           this.checkAllStatuses();
@@ -372,13 +452,31 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     });
   }
 
-  loadAssetDeltaList() {
-    this.assetDeltaService.getAssetDeltaList().pipe(
-      takeUntil(this.destroy$)
+  onCollectionChange(collectionId: number) {
+    if (!collectionId || collectionId === this.selectedCollection()) return;
+
+    this.selectedCollection.set(collectionId);
+    this.loadAssetDeltaList(collectionId);
+  }
+
+  loadAssetDeltaList(collectionId: number = this.selectedCollection()) {
+    if (!collectionId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please select a collection first'
+      });
+      return;
+    }
+
+    this.loading.set(true);
+    this.assetDeltaService.getAssetDeltaListByCollection(collectionId).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loading.set(false))
     ).subscribe({
       next: (response: AssetDeltaResponse) => {
         if (!response) {
-          console.error('Invalid response from getAssetDeltaList');
+          console.error('Invalid response from getAssetDeltaListByCollection');
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

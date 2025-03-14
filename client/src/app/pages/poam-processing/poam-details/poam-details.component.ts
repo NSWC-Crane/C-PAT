@@ -449,7 +449,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   loadAssetDeltaList() {
-    this.poamDataService.loadAssetDeltaList().subscribe({
+    this.poamDataService.loadAssetDeltaList(this.selectedCollection).subscribe({
       next: (response) => {
         this.assetDeltaList = response || [];
       }

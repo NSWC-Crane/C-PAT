@@ -8,13 +8,13 @@
 !##########################################################################
 */
 
-import { AfterViewInit, Component, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { SharedService } from 'src/app/common/services/shared.service';
-import { forkJoin } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 import { ToastModule } from 'primeng/toast';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -58,7 +58,7 @@ interface Label {
     TagModule,
   ],
 })
-export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit {
+export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() stigmanCollectionId!: number;
   @Input() groupId!: string;
   @Input() benchmarkId: string;
@@ -79,6 +79,8 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   activeTab: string = 'all';
   loading: boolean = true;
   private tableMap = new Map<string, Table>();
+  selectedCollection: any;
+  private subscriptions = new Subscription();
 
   constructor(
     private assetDeltaService: AssetDeltaService,
@@ -87,6 +89,11 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   ) {}
 
   ngOnInit() {
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
     this.initColumnsAndFilters();
     this.loadAssetDeltaList();
 
@@ -121,7 +128,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   }
 
   loadAssetDeltaList() {
-    this.assetDeltaService.getAssetDeltaList().subscribe({
+    this.assetDeltaService.getAssetDeltaListByCollection(this.selectedCollection).subscribe({
       next: (response) => {
         this.assetDeltaList = response || [];
       },
@@ -371,5 +378,9 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
     } else {
       this.multiSelect.show();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 }

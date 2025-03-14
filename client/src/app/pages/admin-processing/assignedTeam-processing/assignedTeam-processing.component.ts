@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { AssignedTeamService } from './assignedTeam-processing.service';
 import { CommonModule } from '@angular/common';
@@ -23,12 +23,13 @@ import { CollectionsService } from '../collection-processing/collections.service
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
-import { EMPTY, catchError } from 'rxjs';
+import { EMPTY, Subscription, catchError } from 'rxjs';
 import { Permission } from '../../../common/models/permission.model';
 import { AssetDeltaService } from '../asset-delta/asset-delta.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TagModule } from 'primeng/tag';
+import { SharedService } from '../../../common/services/shared.service';
 
 interface AssignedTeam {
   assignedTeamId: number;
@@ -59,7 +60,7 @@ interface AssignedTeam {
   ],
   providers: [MessageService],
 })
-export class AssignedTeamProcessingComponent implements OnInit {
+export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table!: Table;
   private allCollections: CollectionsBasicList[] = [];
   assignedTeams: AssignedTeam[] = [];
@@ -72,19 +73,27 @@ export class AssignedTeamProcessingComponent implements OnInit {
   teamDialog: boolean = false;
   dialogMode: 'new' | 'edit' = 'new';
   selectedAdTeams: string[] = [];
+  selectedCollection: any;
+  private subscriptions = new Subscription();
 
   constructor(
     private assetDeltaService: AssetDeltaService,
     private assignedTeamService: AssignedTeamService,
     private collectionsService: CollectionsService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private sharedService: SharedService
   ) {}
 
   ngOnInit() {
-    this.loadAssignedTeams();
-    this.loadAssetDeltaList();
-    this.loadCollections();
-    this.filteredTeams = this.uniqueTeams || [];
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+        this.loadAssignedTeams();
+        this.loadAssetDeltaList();
+        this.loadCollections();
+        this.filteredTeams = this.uniqueTeams || [];
+      })
+    );
   }
 
   loadAssignedTeams() {
@@ -99,20 +108,15 @@ export class AssignedTeamProcessingComponent implements OnInit {
   }
 
   loadAssetDeltaList() {
-    this.assetDeltaService.getAssetDeltaList().subscribe({
-      next: (response) => {
-        this.assetDeltaList = response || [];
-        if (this.assetDeltaList && this.assetDeltaList.assets) {
-          this.uniqueTeams = [...new Set(this.assetDeltaList.assets
-            .filter(asset => asset.value)
-            .map(asset => asset.value))];
-          this.filteredTeams = [...this.uniqueTeams];
-        }
+    this.assetDeltaService.getAssetDeltaTeams().subscribe({
+      next: (response: string[]) => {
+        this.uniqueTeams = response;
+        this.filteredTeams = [...this.uniqueTeams];
       },
       error: () => this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load Asset Delta List'
+        detail: 'Failed to load Asset Delta Teams'
       })
     });
   }
@@ -146,8 +150,19 @@ export class AssignedTeamProcessingComponent implements OnInit {
         .split(',')
         .map(team => team.trim())
         .filter(team => team.length > 0);
+
+      const missingTeams = this.selectedAdTeams.filter(
+        team => !this.uniqueTeams.includes(team)
+      );
+
+      if (missingTeams.length > 0) {
+        this.filteredTeams = [...this.uniqueTeams, ...missingTeams];
+      } else {
+        this.filteredTeams = [...this.uniqueTeams];
+      }
     } else {
       this.selectedAdTeams = [];
+      this.filteredTeams = [...this.uniqueTeams];
     }
 
     this.assignedCollections = assignedTeam.permissions?.map(p => ({
@@ -391,5 +406,9 @@ export class AssignedTeamProcessingComponent implements OnInit {
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
     this.table.filterGlobal(inputValue, 'contains');
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 }
