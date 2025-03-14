@@ -179,7 +179,7 @@
                style="color: var(--p-text-color)"
                pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."></i>STIG Title:
           </label>
-          <p-autoComplete [(ngModel)]="selectedStigTitle"
+          <p-autoComplete [(ngModel)]="poam.vulnerabilityTitle"
                           [suggestions]="filteredStigmanSTIGs"
                           (completeMethod)="searchStigTitles($event)"
                           (onSelect)="onStigSelected($event)"
@@ -188,8 +188,8 @@
                           [dropdown]="true"
                           field="title"
                           [style]="{'width':'100%'}"
-                          [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"
-                          readonly></p-autoComplete>
+                          [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3">
+          </p-autoComplete>
         </div>
 
         <!-- Source Identifying Control Vulnerability - ID # for Non STIGs-->

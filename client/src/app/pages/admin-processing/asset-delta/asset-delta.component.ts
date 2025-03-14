@@ -370,8 +370,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     ).subscribe({
       next: (response) => {
         this.availableCollections = response || [];
-        console.log(this.availableCollections);
-        console.log(this.user?.lastCollectionAccessedId);
         if (this.availableCollections.length > 0) {
           const lastCollection = this.user;
           const initialCollection = lastCollection &&

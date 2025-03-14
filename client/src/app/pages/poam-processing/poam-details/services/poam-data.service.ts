@@ -220,6 +220,37 @@ export class PoamDataService {
     );
   }
 
+  loadSTIGsFromSTIGMAN(): Observable<any[]> {
+    return this.sharedService.getSTIGsFromSTIGMAN().pipe(
+      map(data => {
+        return data.map((stig: any) => {
+          const [version, release] = stig.lastRevisionStr?.match(/\d+/g) || [];
+          const formattedRevision = version && release
+            ? `Version ${version}, Release: ${release}`
+            : stig.lastRevisionStr;
+
+          const formattedTitle = `${stig.title} :: ${formattedRevision} Benchmark Date: ${stig.lastRevisionDate}`;
+
+          return {
+            title: formattedTitle,
+            benchmarkId: stig.benchmarkId,
+            lastRevisionStr: stig.lastRevisionStr,
+            lastRevisionDate: stig.lastRevisionDate
+          };
+        });
+      }),
+      catchError(error => {
+        console.error('Error loading STIGs:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load STIG data'
+        });
+        return of([]);
+      })
+    );
+  }
+
   obtainCollectionData(selectedCollectionId: number, background: boolean = false): Observable<CollectionInfo> {
     return this.collectionsService.getCollectionBasicList().pipe(
       map(basicListData => {
