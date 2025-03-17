@@ -131,7 +131,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   tenableVulnResponse: any;
   tenablePluginData: string;
   filteredStigmanSTIGs: string[] = [];
-  selectedStigTitle: string = '';
   selectedCollection: any;
   originCollectionId: number;
   stateData: any;
@@ -372,7 +371,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.poamAssociatedVulnerabilities = poam.associatedVulnerabilities || [];
           this.teamMitigations = poam.teamMitigations || [];
 
-          this.selectedStigTitle = this.poam.vulnerabilityTitle;
           this.collectionApprovers = this.collectionUsers.filter(
             (user: Permission) => user.accessLevel >= 3
           );
@@ -386,6 +384,15 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
           if (this.poam.tenablePluginData) {
             this.tenablePluginData = this.poamCreationService.parsePluginData(this.poam.tenablePluginData);
+          } else {
+            this.poamDataService.loadSTIGsFromSTIGMAN().subscribe({
+              next: stigmanSTIGs => {
+                this.stigmanSTIGs = stigmanSTIGs;
+              },
+              error: (error) => {
+                console.error('Error loading STIGs:', error);
+              }
+            });
           }
           this.loadTeamMitigations();
           this.loadAssets();
@@ -449,7 +456,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   loadAssetDeltaList() {
-    this.poamDataService.loadAssetDeltaList().subscribe({
+    this.poamDataService.loadAssetDeltaList(this.selectedCollection).subscribe({
       next: (response) => {
         this.assetDeltaList = response || [];
       }
@@ -539,7 +546,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.poam = result.poam;
       this.dates = result.dates;
       this.stigmanSTIGs = result.stigmanSTIGs;
-      this.selectedStigTitle = result.selectedStigTitle;
       this.assignedTeamOptions = result.assignedTeamOptions;
       this.collectionUsers = result.collectionUsers;
       this.collectionApprovers = result.collectionApprovers;
@@ -839,25 +845,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   onStigSelected(event: any) {
-    let selectedStig;
-    if (typeof event === 'string') {
-      selectedStig = this.stigmanSTIGs.find((stig: any) => stig.title === event);
-    } else {
-      selectedStig = event;
-    }
-    if (selectedStig) {
-      this.selectedStigTitle = selectedStig.title;
-      this.poam.stigBenchmarkId = selectedStig.benchmarkId;
-      this.poam.vulnerabilityTitle = (() => {
-        const [version, release] = selectedStig.lastRevisionStr?.match(/\d+/g) || [];
-        const formattedRevision =
-          version && release
-            ? `Version ${version}, Release: ${release}`
-            : selectedStig.lastRevisionStr;
-
-        return `${selectedStig.title} :: ${formattedRevision} Benchmark Date: ${selectedStig.lastRevisionDate}`;
-      })();
-    }
+    this.poam.vulnerabilityTitle = event.value.title;
+    this.poam.stigBenchmarkId = event.value.benchmarkId;
   }
 
   onMitigationGenerated(event: { mitigation: string, teamId?: number }) {

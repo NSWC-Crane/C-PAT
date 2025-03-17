@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { AfterViewInit, Component, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { AssetDeltaService } from '../../../../admin-processing/asset-delta/asset-delta.service';
 import { MessageService } from 'primeng/api';
 import { ImportService } from '../../../import.service';
@@ -27,6 +27,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
+import { SharedService } from '../../../../../common/services/shared.service';
+import { Subscription } from 'rxjs';
 
 interface Reference {
   type: string;
@@ -59,7 +61,7 @@ interface ExportColumn {
     TagModule
   ],
 })
-export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
+export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() pluginID!: string;
   @Input() assetProcessing: boolean = false;
   @Input() tenableRepoId: number;
@@ -87,14 +89,22 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   teamTabs: { teamId: string, teamName: string, assets: any[] }[] = [];
   activeTab: string = 'all';
   private tableMap = new Map<string, Table>();
+  private subscriptions = new Subscription();
+
   constructor(
     private assetDeltaService: AssetDeltaService,
     private importService: ImportService,
     private sanitizer: DomSanitizer,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private sharedService: SharedService
   ) {}
 
   async ngOnInit() {
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe(collectionId => {
+        this.selectedCollection = collectionId;
+      })
+    );
     this.initColumnsAndFilters();
     this.loadAssetDeltaList();
 
@@ -194,7 +204,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   }
 
   loadAssetDeltaList() {
-    this.assetDeltaService.getAssetDeltaList().subscribe({
+    this.assetDeltaService.getAssetDeltaListByCollection(this.selectedCollection).subscribe({
       next: (response) => {
         this.assetDeltaList = response || [];
       },
@@ -587,5 +597,9 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
       default:
         return "info";
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 }

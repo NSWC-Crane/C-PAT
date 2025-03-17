@@ -19,14 +19,48 @@
     </p-tablist>
     <p-tabpanels>
       <p-tabpanel value="0">
-        <div *ngIf="viewMode === 'summary'" class="benchmark-summary">
-          <p-table [value]="loadingTableInfo ? loadingSkeletonData : benchmarkSummaries"
+        <div *ngIf="viewMode === 'summary'" class="benchmark-summary mt-4">
+          <div class="toolbar mb-4">
+            <div class="flex items-center">
+              <p-iconField iconPosition="left">
+                <p-inputIcon>
+                  <i class="pi pi-search"></i>
+                </p-inputIcon>
+                <input pInputText
+                       type="text"
+                       class="w-48"
+                       (input)="filterBenchmarkGlobal($event)"
+                       placeholder="Search..." />
+              </p-iconField>
+              <p-button [rounded]="true"
+                        [text]="true"
+                        [raised]="true"
+                        severity="secondary"
+                        class="ml-4"
+                        icon="pi pi-filter-slash"
+                        (click)="clearBenchmarkFilter()"
+                        pTooltip="Clear all filters">
+              </p-button>
+              <p-button [rounded]="true"
+                        [text]="true"
+                        [raised]="true"
+                        class="ml-4"
+                        icon="pi pi-search-plus"
+                        pTooltip="Load all findings"
+                        (click)="getAllFindings()">
+              </p-button>
+            </div>
+          </div>
+
+          <p-table #stigBenchmarksTable
+                   [value]="loadingTableInfo ? loadingSkeletonData : benchmarkSummaries"
                    selectionMode="single"
                    [paginator]="true"
                    [rows]="25"
                    [scrollable]="true"
                    scrollHeight="calc(100vh - 25rem)"
                    [rowsPerPageOptions]="[10, 25, 50]"
+                   [globalFilterFields]="['benchmarkId', 'revisionStr']"
                    dataKey="benchmarkId">
             <ng-template pTemplate="header">
               <tr>

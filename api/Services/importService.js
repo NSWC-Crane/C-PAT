@@ -590,30 +590,34 @@ async function updateVRAMConfigEntry(configEntry, fileDate, transaction) {
     }
 }
 
-exports.importAssetListFile = async function importAssetListFile(file) {
+exports.importAssetListFile = async function importAssetListFile(file, collectionId) {
     if (!file) {
         throw new Error("Please upload an Excel or CSV file!");
+    }
+
+    if (!collectionId) {
+        throw new Error("Collection ID is required");
     }
 
     const isCSV = file.mimetype === 'text/csv' || file.mimetype === 'application/csv';
 
     if (isCSV) {
-        return await processCSVAssetList(file);
+        return await processCSVAssetList(file, collectionId);
     } else {
         const workbook = await loadWorkbook(file);
 
         const isEMassFile = workbook.worksheets.some(sheet => sheet.name === 'Hardware');
 
         if (isEMassFile) {
-            return await processEMassHardwareList(workbook);
+            return await processEMassHardwareList(workbook, collectionId);
         } else {
             const worksheet = getFirstWorksheet(workbook);
-            return await processRegularAssetList(worksheet);
+            return await processRegularAssetList(worksheet, collectionId);
         }
     }
 };
 
-async function processEMassHardwareList(workbook) {
+async function processEMassHardwareList(workbook, collectionId) {
     const worksheet = workbook.worksheets.find(sheet => sheet.name === 'Hardware');
 
     if (!worksheet) {
@@ -677,10 +681,13 @@ async function processEMassHardwareList(workbook) {
             await connection.beginTransaction();
 
             try {
-                await connection.query('UPDATE assetdeltalist SET eMASS = FALSE');
+                await connection.query('UPDATE assetdeltalist SET eMASS = FALSE WHERE collectionId = ?', [collectionId]);
 
                 if (assetNames.length > 0) {
-                    const [allAssets] = await connection.query('SELECT `key` FROM assetdeltalist');
+                    const [allAssets] = await connection.query(
+                        'SELECT `key` FROM assetdeltalist WHERE collectionId = ?',
+                        [collectionId]
+                    );
                     const existingLowercaseKeys = allAssets.map(row => row.key.toLowerCase());
 
                     const matchingAssets = assetNames.filter(name =>
@@ -690,8 +697,8 @@ async function processEMassHardwareList(workbook) {
                     if (matchingAssets.length > 0) {
                         for (const lowercaseName of matchingAssets) {
                             await connection.query(
-                                'UPDATE assetdeltalist SET eMASS = TRUE WHERE LOWER(`key`) = ?',
-                                [lowercaseName]
+                                'UPDATE assetdeltalist SET eMASS = TRUE WHERE LOWER(`key`) = ? AND collectionId = ?',
+                                [lowercaseName, collectionId]
                             );
                         }
                     }
@@ -699,7 +706,7 @@ async function processEMassHardwareList(workbook) {
 
                 await connection.query(
                     'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
-                    ['emassHardwareListUpdated', emassDate, emassDate]
+                    [`emassHardwareListUpdated_${collectionId}`, emassDate, emassDate]
                 );
 
                 await connection.commit();
@@ -718,7 +725,7 @@ async function processEMassHardwareList(workbook) {
     }
 }
 
-async function processCSVAssetList(file) {
+async function processCSVAssetList(file, collectionId) {
     try {
         return new Promise((resolve, reject) => {
             const assetMap = new Map();
@@ -751,20 +758,23 @@ async function processCSVAssetList(file) {
                         const result = await withConnection(async (connection) => {
                             await connection.beginTransaction();
                             try {
-                                await connection.query('TRUNCATE TABLE assetdeltalist');
+                                await connection.query('DELETE FROM assetdeltalist WHERE collectionId = ?', [collectionId]);
+
                                 if (assetData.length > 0) {
-                                    const placeholders = assetData.map(() => '(?, ?, FALSE)').join(',');
-                                    const values = assetData.flatMap(asset => [asset.key, asset.value]);
+                                    const placeholders = assetData.map(() => '(?, ?, ?, FALSE)').join(',');
+                                    const values = assetData.flatMap(asset => [asset.key, asset.value, collectionId]);
                                     await connection.query(
-                                        `INSERT INTO assetdeltalist (\`key\`, \`value\`, \`eMASS\`) VALUES ${placeholders}`,
+                                        `INSERT INTO assetdeltalist (\`key\`, \`value\`, \`collectionId\`, \`eMASS\`) VALUES ${placeholders}`,
                                         values
                                     );
                                 }
+
                                 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
                                 await connection.query(
                                     'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
-                                    ['assetDeltaUpdated', formattedDate, formattedDate]
+                                    [`assetDeltaUpdated_${collectionId}`, formattedDate, formattedDate]
                                 );
+
                                 await connection.commit();
                                 return {
                                     message: "Asset list updated successfully from CSV",
@@ -787,7 +797,7 @@ async function processCSVAssetList(file) {
     }
 }
 
-async function processRegularAssetList(worksheet) {
+async function processRegularAssetList(worksheet, collectionId) {
     validateAssetListHeaders(worksheet);
 
     const assetMap = new Map();
@@ -818,22 +828,23 @@ async function processRegularAssetList(worksheet) {
             await connection.beginTransaction();
 
             try {
-                await connection.query('TRUNCATE TABLE assetdeltalist');
+                await connection.query('DELETE FROM assetdeltalist WHERE collectionId = ?', [collectionId]);
 
                 if (assetData.length > 0) {
-                    const placeholders = assetData.map(() => '(?, ?, FALSE)').join(',');
-                    const values = assetData.flatMap(asset => [asset.key, asset.value]);
+                    const placeholders = assetData.map(() => '(?, ?, ?, FALSE)').join(',');
+                    const values = assetData.flatMap(asset => [asset.key, asset.value, collectionId]);
 
                     await connection.query(
-                        `INSERT INTO assetdeltalist (\`key\`, \`value\`, \`eMASS\`) VALUES ${placeholders}`,
+                        `INSERT INTO assetdeltalist (\`key\`, \`value\`, \`collectionId\`, \`eMASS\`) VALUES ${placeholders}`,
                         values
                     );
                 }
 
                 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+
                 await connection.query(
                     'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
-                    ['assetDeltaUpdated', formattedDate, formattedDate]
+                    [`assetDeltaUpdated_${collectionId}`, formattedDate, formattedDate]
                 );
 
                 await connection.commit();
@@ -875,23 +886,6 @@ function extractAssetListData(worksheet) {
     });
 
     return assetData;
-}
-
-async function updateAssetListData(assetData, transaction) {
-    if (assetData.length > 0) {
-        await db.sequelize.query('TRUNCATE TABLE assetdeltalist', { transaction });
-        await db.sequelize.queryInterface.bulkInsert(
-            'assetdeltalist',
-            assetData,
-            { transaction }
-        );
-
-        const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
-        await db.Config.upsert({
-            key: 'assetDeltaUpdated',
-            value: formattedDate
-        }, { transaction });
-    }
 }
 
 module.exports = {

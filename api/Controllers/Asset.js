@@ -106,8 +106,32 @@ module.exports.getAssetDeltaList = async function getAssetDeltaList(req, res, ne
     try {
         const response = await assetService.getAssetDeltaList(req, res, next);
         res.status(200).json({
+            assets: response.assets
+        });
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+}
+
+module.exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollection(req, res, next) {
+    try {
+        const collectionId = req.params.collectionId;
+        if (!collectionId) {
+            return res.status(400).json({
+                error: 'Validation Error',
+                detail: 'Collection ID is required'
+            });
+        }
+
+        const response = await assetService.getAssetDeltaListByCollection(req, res, next, collectionId);
+        res.status(200).json({
             assets: response.assets,
-            assetDeltaUpdated: response.assetDeltaUpdated || null
+            assetDeltaUpdated: response.assetDeltaUpdated || null,
+            emassHardwareListUpdated: response.emassHardwareListUpdated || null
         });
     } catch (error) {
         if (error.status === 400) {

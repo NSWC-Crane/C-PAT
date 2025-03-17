@@ -63,9 +63,14 @@ module.exports.importVRAMExcel = async (req, res, next) => {
 
 module.exports.importAssetListFile = async (req, res, next) => {
     const file = req.files[0];
+    const collectionId = parseInt(req.params.collectionId, 10);
 
     if (!file) {
         return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    if (isNaN(collectionId)) {
+        return res.status(400).json({ message: "Collection ID must be a valid number" });
     }
 
     importService.excelAndCsvFilter(req, file, async (err) => {
@@ -75,7 +80,7 @@ module.exports.importAssetListFile = async (req, res, next) => {
             });
         } else {
             try {
-                const result = await importService.importAssetListFile(file);
+                const result = await importService.importAssetListFile(file, collectionId);
                 res.status(201).json(result);
             } catch (error) {
                 res.status(500).json({

@@ -215,6 +215,38 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /assets/delta/teams:
+    get:
+      summary: Return a list of all AD Team names
+      operationId: getADTeamsList
+      responses:
+        '200':
+          description: List of available AD Team names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  description: AD Team name
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - ADTeams
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   /assets/delta/list:
     get:
       summary: Return a master list of assets for delta comparison
@@ -238,6 +270,73 @@ paths:
                           type: string
                         eMASS:
                           type: boolean
+                          nullable: true
+                        assignedTeam:
+                          type: object
+                          nullable: true
+                          properties:
+                            assignedTeamId:
+                              type: integer
+                            assignedTeamName:
+                              type: string
+                          required:
+                            - assignedTeamId
+                            - assignedTeamName
+                      required:
+                        - key
+                        - value
+                required:
+                  - assets
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Asset
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  /assets/delta/list/{collectionId}:
+    parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return a master list of assets for delta comparison
+      operationId: getAssetDeltaListByCollection
+      responses:
+        '200':
+          description: Asset array response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        key:
+                          type: string
+                        value:
+                          type: string
+                        eMASS:
+                          type: boolean
+                          nullable: true
+                        collectionId:
+                          type: integer
                           nullable: true
                         assignedTeam:
                           type: object
@@ -1359,7 +1458,14 @@ paths:
         - oauth:
             - 'c-pat:op'
 
-  '/import/assetlist':
+  '/import/assetlist/{collectionId}':
+    parameters:
+    - name: collectionId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: The ID of the collection to associate with the asset list
     post:
       summary: Parse and import an asset list
       operationId: importAssetListFile
@@ -1388,7 +1494,7 @@ paths:
                   message:
                     type: string
         '400':
-          description: Bad request - invalid file format, missing file, or missing userId
+          description: Bad request - invalid file format, missing file, or missing collectionId
           content:
             application/json:
               schema:

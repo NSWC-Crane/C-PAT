@@ -20,7 +20,7 @@
         <div class="label-tags ml-2" *ngFor="let label of poamLabels">
           <p-tag value="{{label.labelName}}" styleClass="p-mr-2"></p-tag>
         </div>
-        <div class="ml-2" *ngIf="poam.stigCheckData.includes('requirement must be documented with the ISSO')">
+        <div class="ml-2" *ngIf="poam.stigCheckData?.includes('requirement must be documented with the ISSO')">
           <i class="pi pi-flag-fill"
              style="color: var(--p-primary-color); font-size: 1rem"
              pTooltip="STIG Check Data indicates the requirement must be documented with the ISSO."
@@ -179,7 +179,7 @@
                style="color: var(--p-text-color)"
                pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."></i>STIG Title:
           </label>
-          <p-autoComplete [(ngModel)]="selectedStigTitle"
+          <p-autoComplete [(ngModel)]="poam.vulnerabilityTitle"
                           [suggestions]="filteredStigmanSTIGs"
                           (completeMethod)="searchStigTitles($event)"
                           (onSelect)="onStigSelected($event)"
@@ -188,8 +188,8 @@
                           [dropdown]="true"
                           field="title"
                           [style]="{'width':'100%'}"
-                          [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"
-                          readonly></p-autoComplete>
+                          [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3">
+          </p-autoComplete>
         </div>
 
         <!-- Source Identifying Control Vulnerability - ID # for Non STIGs-->

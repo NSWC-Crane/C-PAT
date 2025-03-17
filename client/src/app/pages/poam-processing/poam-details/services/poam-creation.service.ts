@@ -250,12 +250,9 @@ ${pluginData.description || ''}`,
               );
 
               let selectedStigObject = null;
-              let selectedStigTitle = '';
 
               if (selectedStig) {
                 selectedStigObject = selectedStig;
-                selectedStigTitle = selectedStig.title;
-                poam.vulnerabilityName = selectedStig.title;
 
                 const [version, release] = selectedStig.lastRevisionStr?.match(/\d+/g) || [];
                 const formattedRevision = version && release
@@ -263,6 +260,7 @@ ${pluginData.description || ''}`,
                   : selectedStig.lastRevisionStr;
 
                 poam.vulnerabilityTitle = `${selectedStig.title} :: ${formattedRevision} Benchmark Date: ${selectedStig.lastRevisionDate}`;
+                poam.vulnerabilityName = selectedStig.title;
               } else {
                 poam.vulnerabilityName = poam.stigBenchmarkId;
               }
@@ -272,7 +270,6 @@ ${pluginData.description || ''}`,
                 dates,
                 stigmanSTIGs,
                 selectedStigObject,
-                selectedStigTitle,
                 assignedTeamOptions,
                 collectionUsers: users,
                 collectionApprovers,
