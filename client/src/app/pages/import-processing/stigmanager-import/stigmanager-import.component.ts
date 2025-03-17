@@ -70,7 +70,8 @@ interface STIGManagerFinding {
   providers: [MessageService],
 })
 export class STIGManagerImportComponent implements OnInit, OnDestroy {
-  @ViewChild('stigFindingsTable') table!: Table;
+  @ViewChild('stigFindingsTable') findingsTable!: Table;
+  @ViewChild('stigBenchmarksTable') benchmarksTable!: Table;
   allColumns = [
     {
       field: 'poam',
@@ -179,7 +180,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
-    this.table.filterGlobal(inputValue, 'contains');
+    this.findingsTable.filterGlobal(inputValue, 'contains');
   }
 
   validateStigManagerCollection() {
@@ -244,7 +245,12 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   selectBenchmark(benchmark: any) {
     this.selectedBenchmark = benchmark;
     this.viewMode = 'findings';
-    this.getFindingsByBenchmark(this.stigmanCollection.collectionId, benchmark.benchmarkId);
+    this.getSTIGMANFindings(this.stigmanCollection.collectionId, benchmark.benchmarkId);
+  }
+
+  getAllFindings() {
+    this.viewMode = 'findings';
+    this.getSTIGMANFindings(this.stigmanCollection.collectionId);
   }
 
   backToBenchmarkSummary() {
@@ -255,12 +261,17 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.findingsCount = 0;
   }
 
-  getFindingsByBenchmark(stigmanCollectionId: number, benchmarkId: string) {
+  getSTIGMANFindings(stigmanCollectionId: number, benchmarkId?: string) {
     this.loadingTableInfo = true;
-    this.sharedService.getFindingsByBenchmarkFromSTIGMAN(stigmanCollectionId, benchmarkId).subscribe({
+
+    const apiCall = benchmarkId
+      ? this.sharedService.getFindingsByBenchmarkFromSTIGMAN(stigmanCollectionId, benchmarkId)
+      : this.sharedService.getFindingsFromSTIGMAN(stigmanCollectionId);
+
+    apiCall.subscribe({
       next: (data) => {
         if (!data || data.length === 0) {
-          this.showWarn('No affected assets found for this benchmark.');
+          this.showWarn('No affected assets found' + (benchmarkId ? ' for this benchmark.' : '.'));
           this.loadingTableInfo = false;
           return;
         }
@@ -432,9 +443,9 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   onFilter(_event: any) {
-    if (this.table) {
-      if (this.table.filteredValue) {
-        this.findingsCount = this.table.filteredValue.length;
+    if (this.findingsTable) {
+      if (this.findingsTable.filteredValue) {
+        this.findingsCount = this.findingsTable.filteredValue.length;
       } else {
         this.findingsCount = this.displayDataSource.length;
       }
@@ -442,11 +453,22 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   exportCSV() {
-    this.table.exportCSV();
+    this.findingsTable.exportCSV();
+  }
+
+  filterBenchmarkGlobal(event: Event) {
+    const inputValue = (event.target as HTMLInputElement)?.value || '';
+    this.benchmarksTable.filterGlobal(inputValue, 'contains');
+  }
+
+  clearBenchmarkFilter() {
+    if (this.benchmarksTable) {
+      this.benchmarksTable.clear();
+    }
   }
 
   clear() {
-    this.table.clear();
+    this.findingsTable.clear();
   }
 
   showWarn(message: string) {
