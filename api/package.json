@@ -14,7 +14,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^1.1.17",
     "@ai-sdk/cerebras": "^0.1.15",
-    "@ai-sdk/cohere": "^1.1.15",
+    "@ai-sdk/cohere": "^1.1.16",
     "@ai-sdk/deepinfra": "^0.1.16",
     "@ai-sdk/fireworks": "^0.1.16",
     "@ai-sdk/google": "^1.1.25",
