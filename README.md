@@ -1,6 +1,4 @@
 # Overview
-<img src="https://i.imgur.com/ddskFL0.gif" />
-
   C-PAT™ is an API and web client currently being developed through Naval Surface Warfare Center Crane Division that aims to automate vulnerability documentation and tracking. C-PAT™ is, and will continue to be architected with emphasis towards interoperability with other RMF Tools. C-PAT™ is designed to integrate with [STIG Manager](https://github.com/NUWCDIVNPT/stig-manager) and [Tenable.sc [Assured Compliance Assessment Solution (ACAS) Nessus Scanner]](https://www.tenable.com/products/security-center) to provide a more comprehensive solution for oversight throughout the RMF process.
 
   ##  What is a POAM?
