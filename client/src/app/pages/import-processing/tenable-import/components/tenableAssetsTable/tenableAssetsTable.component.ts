@@ -99,7 +99,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     private sharedService: SharedService
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
@@ -111,9 +111,9 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
 
     if (this.pluginID && this.tenableRepoId) {
-      await this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
+      this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
     } else if (this.assetProcessing && this.tenableRepoId) {
-      await this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
+      this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
     }
   }
 
@@ -287,7 +287,6 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   matchAssetsWithTeams() {
     if (!this.assetDeltaList?.assets || !this.affectedAssets) return;
-
     this.assetsByTeam = {};
 
     this.affectedAssets.forEach(asset => {
@@ -300,45 +299,39 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
           if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
             deltaAsset.assignedTeams.forEach(team => {
-              const teamId = team.assignedTeamId;
-              const teamName = team.assignedTeamName;
-
-              if (!this.assetsByTeam[teamId]) {
-                this.assetsByTeam[teamId] = [];
-              }
-
-              const assetKey = asset.netbiosName + asset.dnsName;
-              if (!this.assetsByTeam[teamId].some(a => (a.netbiosName + a.dnsName) === assetKey)) {
-                this.assetsByTeam[teamId].push({
-                  ...asset,
-                  assignedTeamId: teamId,
-                  assignedTeamName: teamName
-                });
-              }
+              this.addAssetToTeam(asset, team.assignedTeamId, team.assignedTeamName);
             });
           }
           else if (deltaAsset.assignedTeam) {
-            const teamId = deltaAsset.assignedTeam.assignedTeamId;
-            const teamName = deltaAsset.assignedTeam.assignedTeamName;
-
-            if (!this.assetsByTeam[teamId]) {
-              this.assetsByTeam[teamId] = [];
-            }
-
-            const assetKey = asset.netbiosName + asset.dnsName;
-            if (!this.assetsByTeam[teamId].some(a => (a.netbiosName + a.dnsName) === assetKey)) {
-              this.assetsByTeam[teamId].push({
-                ...asset,
-                assignedTeamId: teamId,
-                assignedTeamName: teamName
-              });
-            }
+            this.addAssetToTeam(
+              asset,
+              deltaAsset.assignedTeam.assignedTeamId,
+              deltaAsset.assignedTeam.assignedTeamName
+            );
           }
         }
       });
     });
 
     this.createTeamTabs();
+  }
+
+  addAssetToTeam(asset, teamId, teamName) {
+    if (!this.assetsByTeam[teamId]) {
+      this.assetsByTeam[teamId] = [];
+    }
+
+    const isDuplicate = this.assetsByTeam[teamId].some(existingAsset =>
+      JSON.stringify(existingAsset) === JSON.stringify(asset)
+    );
+
+    if (!isDuplicate) {
+      this.assetsByTeam[teamId].push({
+        ...asset,
+        assignedTeamId: teamId,
+        assignedTeamName: teamName
+      });
+    }
   }
 
   createTeamTabs() {
@@ -358,12 +351,11 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     });
   }
 
-
-  async lazyOrNot(event: TableLazyLoadEvent) {
+  lazyOrNot(event: TableLazyLoadEvent) {
     if (this.pluginID && !this.assetProcessing) {
-      await this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
+      this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
     } else if (this.assetProcessing) {
-      await this.getAffectedAssets(event);
+      this.getAffectedAssets(event);
     }
   }
 
