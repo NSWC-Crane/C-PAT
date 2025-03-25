@@ -63,6 +63,7 @@
           <p-cellEditor>
             <ng-template pTemplate="input">
               <p-datepicker [(ngModel)]="milestone.milestoneDate"
+                            (ngModelChange)="onDateChange(milestone)"
                             dateFormat="yy-mm-dd"
                             styleClass="w-full"
                             [showIcon]="true"
