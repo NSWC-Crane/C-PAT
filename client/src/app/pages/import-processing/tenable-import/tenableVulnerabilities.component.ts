@@ -1917,6 +1917,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         break;
       case 'seol':
         this.tempFilters['pluginName'] = { operator: '=', value: 'SEoL' };
+        this.tempFilters['seolDate'] = '30:all';
+        this.tempFilters['severity'] = ['1', '2', '3', '4'];
         this.tempFilters['lastSeen'] = '0:30';
         break;
       case 'nonCredentialedBad':

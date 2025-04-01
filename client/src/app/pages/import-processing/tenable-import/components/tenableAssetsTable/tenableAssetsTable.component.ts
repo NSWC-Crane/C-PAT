@@ -99,7 +99,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     private sharedService: SharedService
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
@@ -109,11 +109,12 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     this.loadAssetDeltaList();
 
     this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
+    this.activeTab = 'all';
 
     if (this.pluginID && this.tenableRepoId) {
-      await this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
+      this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
     } else if (this.assetProcessing && this.tenableRepoId) {
-      await this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
+      this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
     }
   }
 
@@ -177,6 +178,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         width: '200px',
         filterable: false,
       },
+      { field: 'teamAssigned', header: 'Team', width: '120px', filterable: false },
     ];
     this.exportColumns = this.cols.map(col => ({
       title: col.header,
@@ -199,8 +201,25 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         'protocol',
         'uuid',
         'hostUUID',
+        'teamAssigned'
       ].includes(col.field)
     );
+  }
+
+  isAssetAssignedToTeam(asset: any): boolean {
+    if (!this.assetDeltaList?.assets) return false;
+
+    const netbiosName = asset.netbiosName?.toLowerCase() || '';
+    const dnsName = asset.dnsName?.toLowerCase() || '';
+
+    return this.assetDeltaList.assets.some(deltaAsset => {
+      const deltaKey = deltaAsset.key.toLowerCase();
+      if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
+        return (deltaAsset.assignedTeams && deltaAsset.assignedTeams.length > 0) ||
+          (deltaAsset.assignedTeam && deltaAsset.assignedTeam.assignedTeamId);
+      }
+      return false;
+    });
   }
 
   loadAssetDeltaList() {
@@ -287,7 +306,6 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   matchAssetsWithTeams() {
     if (!this.assetDeltaList?.assets || !this.affectedAssets) return;
-
     this.assetsByTeam = {};
 
     this.affectedAssets.forEach(asset => {
@@ -300,45 +318,39 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
           if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
             deltaAsset.assignedTeams.forEach(team => {
-              const teamId = team.assignedTeamId;
-              const teamName = team.assignedTeamName;
-
-              if (!this.assetsByTeam[teamId]) {
-                this.assetsByTeam[teamId] = [];
-              }
-
-              const assetKey = asset.netbiosName + asset.dnsName;
-              if (!this.assetsByTeam[teamId].some(a => (a.netbiosName + a.dnsName) === assetKey)) {
-                this.assetsByTeam[teamId].push({
-                  ...asset,
-                  assignedTeamId: teamId,
-                  assignedTeamName: teamName
-                });
-              }
+              this.addAssetToTeam(asset, team.assignedTeamId, team.assignedTeamName);
             });
           }
           else if (deltaAsset.assignedTeam) {
-            const teamId = deltaAsset.assignedTeam.assignedTeamId;
-            const teamName = deltaAsset.assignedTeam.assignedTeamName;
-
-            if (!this.assetsByTeam[teamId]) {
-              this.assetsByTeam[teamId] = [];
-            }
-
-            const assetKey = asset.netbiosName + asset.dnsName;
-            if (!this.assetsByTeam[teamId].some(a => (a.netbiosName + a.dnsName) === assetKey)) {
-              this.assetsByTeam[teamId].push({
-                ...asset,
-                assignedTeamId: teamId,
-                assignedTeamName: teamName
-              });
-            }
+            this.addAssetToTeam(
+              asset,
+              deltaAsset.assignedTeam.assignedTeamId,
+              deltaAsset.assignedTeam.assignedTeamName
+            );
           }
         }
       });
     });
 
     this.createTeamTabs();
+  }
+
+  addAssetToTeam(asset, teamId, teamName) {
+    if (!this.assetsByTeam[teamId]) {
+      this.assetsByTeam[teamId] = [];
+    }
+
+    const isDuplicate = this.assetsByTeam[teamId].some(existingAsset =>
+      JSON.stringify(existingAsset) === JSON.stringify(asset)
+    );
+
+    if (!isDuplicate) {
+      this.assetsByTeam[teamId].push({
+        ...asset,
+        assignedTeamId: teamId,
+        assignedTeamName: teamName
+      });
+    }
   }
 
   createTeamTabs() {
@@ -358,78 +370,87 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     });
   }
 
-
-  async lazyOrNot(event: TableLazyLoadEvent) {
+  lazyOrNot(event: TableLazyLoadEvent) {
     if (this.pluginID && !this.assetProcessing) {
-      await this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
+      this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
     } else if (this.assetProcessing) {
-      await this.getAffectedAssets(event);
+      this.getAffectedAssets(event);
     }
   }
 
-    getAffectedAssets(event: TableLazyLoadEvent) {
-        if (!this.tenableRepoId) return;
+  getAffectedAssets(event: TableLazyLoadEvent) {
+    if (!this.tenableRepoId) return;
 
-        const startOffset = event.first ?? 0;
-        const endOffset = startOffset + (event.rows ?? 20);
-        const repoFilter = {
-            id: 'repository',
-            filterName: 'repository',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: [{ id: this.tenableRepoId.toString() }],
-        };
+    this.isLoading = true;
 
-        const analysisParams = {
-            query: {
-                description: '',
-                context: '',
-                status: -1,
-                createdTime: 0,
-                modifiedTime: 0,
-                groups: [],
-                type: 'vuln',
-                tool: 'listvuln',
-                sourceType: 'cumulative',
-                startOffset: startOffset,
-                endOffset: endOffset,
-                filters: [repoFilter],
-                vulnTool: 'listvuln',
-            },
-            sourceType: 'cumulative',
-            columns: [],
-            type: 'vuln',
-        };
+    const startOffset = event.first ?? 0;
+    const endOffset = startOffset + (event.rows ?? 20);
+    const repoFilter = {
+      id: 'repository',
+      filterName: 'repository',
+      operator: '=',
+      type: 'vuln',
+      isPredefined: true,
+      value: [{ id: this.tenableRepoId.toString() }],
+    };
 
-        this.importService.postTenableAnalysis(analysisParams).subscribe({
-            next: (data) => {
-                this.affectedAssets = data.response.results.map((asset: any) => {
-                    const defaultAsset = {
-                        pluginID: '',
-                        pluginName: '',
-                        family: { name: '' },
-                        severity: { name: '' },
-                        vprScore: '',
-                    };
-                    return {
-                        ...defaultAsset,
-                        ...asset,
-                        pluginName: asset.name || '',
-                        family: asset.family?.name || '',
-                        severity: asset.severity?.name || '',
-                    };
-                });
-                this.totalRecords = data.response.totalRecords;
-            this.isLoading = false;
-            this.matchAssetsWithTeams();
-            },
-            error: (error) => {
-                console.error('Error fetching affected assets:', error);
-                this.showErrorMessage('Error fetching affected assets. Please try again.');
-            }
+    const analysisParams = {
+      query: {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: 'listvuln',
+        sourceType: 'cumulative',
+        startOffset: startOffset,
+        endOffset: endOffset,
+        filters: [repoFilter],
+        vulnTool: 'listvuln',
+      },
+      sourceType: 'cumulative',
+      columns: [],
+      type: 'vuln',
+    };
+
+    this.importService.postTenableAnalysis(analysisParams).subscribe({
+      next: (data) => {
+        this.affectedAssets = data.response.results.map((asset: any) => {
+          const defaultAsset = {
+            pluginID: '',
+            pluginName: '',
+            family: { name: '' },
+            severity: { name: '' },
+            vprScore: '',
+          };
+          return {
+            ...defaultAsset,
+            ...asset,
+            pluginName: asset.name || '',
+            family: asset.family?.name || '',
+            severity: asset.severity?.name || '',
+          };
         });
-    }
+
+        this.totalRecords = data.response.totalRecords;
+
+        if (this.assetProcessing) {
+          this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }];
+        } else {
+          this.matchAssetsWithTeams();
+        }
+
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error fetching affected assets:', error);
+        this.showErrorMessage('Error fetching affected assets. Please try again.');
+        this.isLoading = false;
+      }
+    });
+  }
 
     showDetails(vulnerability: any) {
         if (!vulnerability || !vulnerability.pluginID) {
@@ -570,7 +591,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   resetColumnSelections() {
     this.selectedColumns = this.cols.filter(col =>
-      ['netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID'].includes(
+      ['netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID', 'teamAssigned'].includes(
         col.field
       )
     );

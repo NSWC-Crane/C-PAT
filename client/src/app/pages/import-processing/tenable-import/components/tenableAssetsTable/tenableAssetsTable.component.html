@@ -70,8 +70,12 @@
       <div class="scrollable-vulnerabilities">
         <p-tabs [(value)]="activeTab">
           <p-tablist>
+            @if (!assetProcessing) {
             @for (tab of teamTabs; track tab.teamId) {
             <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>
+            }
+            } @else {
+            <p-tab [value]="'all'">All Assets</p-tab>
             }
           </p-tablist>
           <p-tabpanels>
@@ -82,7 +86,9 @@
                        [columns]="selectedColumns"
                        [paginator]="true"
                        [rows]="20"
-                       [totalRecords]="tab.assets.length"
+                       [totalRecords]="assetProcessing ? totalRecords : tab.assets.length"
+                       [lazy]="assetProcessing"
+                       (onLazyLoad)="assetProcessing ? lazyOrNot($event) : null"
                        [loading]="isLoading"
                        [showCurrentPageReport]="true"
                        [rowsPerPageOptions]="[10,20,50]"
@@ -119,6 +125,15 @@
                                  [severity]="getSeverityStyling(vulnerability[col.field])"
                                  [rounded]="false">
                           </p-tag>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'teamAssigned'">
+                          <ng-container *ngIf="tab.teamId === 'all'">
+                            <i class="pi"
+                               [ngClass]="{'pi-check-circle': isAssetAssignedToTeam(vulnerability), 'pi-times-circle': !isAssetAssignedToTeam(vulnerability)}"
+                               [ngStyle]="{'color': isAssetAssignedToTeam(vulnerability) ? 'green' : 'maroon', 'font-size': '1.2rem'}"
+                               [pTooltip]="isAssetAssignedToTeam(vulnerability) ? 'Team association detected' : 'No team association detected'">
+                            </i>
+                          </ng-container>
                         </ng-container>
                         <ng-container *ngSwitchDefault> {{vulnerability[col.field]}} </ng-container>
                       </ng-container>

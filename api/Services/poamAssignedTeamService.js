@@ -47,7 +47,6 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
     if (!poamId) {
         throw new Error('getPoamAssignedTeamsByPoamId: poamId is required');
     }
-
     return await withConnection(async (connection) => {
         let sql = `
             SELECT t1.assignedTeamId, t1.automated, t1.poamId, t2.assignedTeamName, t3.status
@@ -58,17 +57,59 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
             ORDER BY t2.assignedTeamName
         `;
         let [rowPoamAssignedTeams] = await connection.query(sql, [poamId]);
-        const poamAssignedTeams = rowPoamAssignedTeams.map(row => ({
-            assignedTeamId: row.assignedTeamId,
-            assignedTeamName: row.assignedTeamName,
-            automated: row.automated != null ? Boolean(row.automated) : false,
-            poamId: row.poamId,
-            status: row.status,
-        }));
+
+        let mitigationSql = `
+            SELECT assignedTeamId, mitigationText, isActive
+            FROM cpat.poamteammitigations
+            WHERE poamId = ?
+        `;
+        let [mitigations] = await connection.query(mitigationSql, [poamId]);
+
+        let milestoneSql = `
+            SELECT assignedTeamId, milestoneComments
+            FROM cpat.poammilestones
+            WHERE poamId = ? AND assignedTeamId IS NOT NULL
+        `;
+        let [milestones] = await connection.query(milestoneSql, [poamId]);
+
+        const poamAssignedTeams = rowPoamAssignedTeams.map(row => {
+            const teamId = row.assignedTeamId;
+
+            const hasMitigation = mitigations.some(m =>
+                m.assignedTeamId === teamId &&
+                m.isActive &&
+                m.mitigationText &&
+                m.mitigationText.trim() !== ''
+            );
+
+            const hasMilestone = milestones.some(m =>
+                m.assignedTeamId === teamId &&
+                m.milestoneComments &&
+                m.milestoneComments.length >= 15
+            );
+
+            let complete;
+            if (hasMitigation && hasMilestone) {
+                complete = "true";
+            } else if (hasMitigation || hasMilestone) {
+                complete = "partial";
+            } else {
+                complete = "false";
+            }
+
+            return {
+                assignedTeamId: teamId,
+                assignedTeamName: row.assignedTeamName,
+                automated: row.automated != null ? Boolean(row.automated) : false,
+                poamId: row.poamId,
+                status: row.status,
+                complete: complete
+            };
+        });
+
         return poamAssignedTeams;
     });
 };
-
 
 exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, next) {
     if (!req.body.assignedTeamId) {

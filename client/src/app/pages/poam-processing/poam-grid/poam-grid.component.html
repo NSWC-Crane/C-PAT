@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -16,7 +16,9 @@
           <p-inputIcon>
             <i class="pi pi-search"></i>
           </p-inputIcon>
-          <input pInputText
+          <input id="poamGridSearch"
+                 name="poamGridSearch"
+                 pInputText
                  type="text"
                  [ngModel]="globalFilter"
                  (ngModelChange)="globalFilterSignal.set($event)"
@@ -253,14 +255,18 @@
                         </div>
                     </td>
                     <td>
-                        <div class="flex flex-wrap gap-2">
-                            <ng-container *ngFor="let team of row.assignedTeams.split(', ')">
-                                <p-tag *ngIf="team?.trim()"
-                                       [rounded]="true"
-                                       [value]="team.trim()">
-                                </p-tag>
-                            </ng-container>
-                        </div>
+                      <div class="flex flex-wrap gap-2">
+                        <p-tag *ngFor="let team of row.assignedTeams"
+                               [rounded]="true"
+                               [value]="team.name"
+                               [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : 'danger'"
+                               [pTooltip]="team.complete === 'true' ? 'Team has fulfilled all POAM requirements' :
+                          team.complete === 'partial' ? 'Team has partially fulfilled POAM requirements' :
+                          'Team has not fulfilled any POAM requirements'"
+                               tooltipPosition="top"
+                               [class.hidden]="!team.name">
+                        </p-tag>
+                      </div>
                     </td>
                     <td>
                         <div class="flex flex-wrap gap-2">

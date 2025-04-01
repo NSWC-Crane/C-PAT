@@ -25,6 +25,8 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { TagModule } from 'primeng/tag';
 import { TabsModule } from 'primeng/tabs';
+import { TooltipModule } from 'primeng/tooltip';
+
 interface ExportColumn {
   title: string;
   dataKey: string;
@@ -56,6 +58,7 @@ interface Label {
     TableModule,
     ToastModule,
     TagModule,
+    TooltipModule
   ],
 })
 export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -316,12 +319,29 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       { field: 'ip', header: 'IP Address', width: '150px', filterable: true },
       { field: 'mac', header: 'MAC Address', width: '150px', filterable: true },
       { field: 'labels', header: 'Labels', width: '200px', filterable: true },
+      { field: 'teamAssigned', header: 'Team', width: '120px', filterable: false },
     ];
     this.exportColumns = this.cols.map(col => ({
       title: col.header,
       dataKey: col.field,
     }));
     this.resetColumnSelections();
+  }
+
+  isAssetAssignedToTeam(asset: any): boolean {
+    if (!this.assetDeltaList?.assets) return false;
+
+    const assetName = asset.assetName?.toLowerCase() || '';
+    const fqdn = asset.fqdn?.toLowerCase() || '';
+
+    return this.assetDeltaList.assets.some(deltaAsset => {
+      const deltaKey = deltaAsset.key.toLowerCase();
+      if (assetName === deltaKey || fqdn === deltaKey) {
+        return (deltaAsset.assignedTeams && deltaAsset.assignedTeams.length > 0) ||
+          (deltaAsset.assignedTeam && deltaAsset.assignedTeam.assignedTeamId);
+      }
+      return false;
+    });
   }
 
   showErrorMessage(message: string) {

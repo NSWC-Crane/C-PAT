@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -19,7 +19,9 @@
             <p-inputIcon>
                 <i class="pi pi-search"></i>
             </p-inputIcon>
-            <input pInputText
+            <input id="poamAssignedGridSearch"
+                   name="poamAssignedGridSearch"
+                   pInputText
                    type="text"
                    [ngModel]="globalFilter()"
                    (input)="onFilterChange($event)"
@@ -27,11 +29,15 @@
         </p-iconField>
     </ng-template>
     <ng-template pTemplate="header">
-        <tr>
-            <th *ngFor="let col of assignedColumns()" [pSortableColumn]="getColumnKey(col)" scope="col">
-                {{ col }}
-            </th>
-        </tr>
+      <tr>
+        <th *ngFor="let col of assignedColumns()"
+            [pSortableColumn]="getColumnKey(col)"
+            scope="col"
+            [pTooltip]="col === 'Scheduled Completion' ? 'Date shown includes extension time if applicable' : null"
+            tooltipPosition="top">
+          {{ col }}
+        </th>
+      </tr>
     </ng-template>
     <ng-template pTemplate="body" let-row>
         <tr>
@@ -40,20 +46,25 @@
                     <ng-container *ngSwitchCase="'POAM ID'">
                         <a href="javascript:void(0)"
                            (click)="managePoam(row)"
-                           class="cursor-pointer font-semibold text-primary hover:font-bold"
+                           class="text-primary cursor-pointer font-semibold hover:font-bold"
                            pTooltip="Navigate to this POAM"
                            tooltipPosition="top">
                             {{row[getColumnKey(col)]}}
                         </a>
                     </ng-container>
                     <ng-container *ngSwitchCase="'Assigned Team'">
-                        <div class="flex flex-wrap gap-2">
-                            <p-tag *ngFor="let team of row[getColumnKey(col)]"
-                                   [value]="team"
-                                   [rounded]="true"
-                                   [class.hidden]="!team">
-                            </p-tag>
-                        </div>
+                      <div class="flex flex-wrap gap-2">
+                        <p-tag *ngFor="let team of row[getColumnKey(col)]"
+                               [value]="team.name"
+                               [rounded]="true"
+                               [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : 'danger'"
+                               [pTooltip]="team.complete === 'true' ? 'Team has fulfilled all POAM requirements' :
+                          team.complete === 'partial' ? 'Team has partially fulfilled POAM requirements' :
+                          'Team has not fulfilled any POAM requirements'"
+                               tooltipPosition="top"
+                               [class.hidden]="!team.name">
+                        </p-tag>
+                      </div>
                     </ng-container>
                     <ng-container *ngSwitchCase="'Labels'">
                         <div class="flex flex-wrap gap-2">

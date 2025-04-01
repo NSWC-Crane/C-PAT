@@ -31,6 +31,7 @@ export interface Milestone {
   assignedTeamId: number | null;
   isNew?: boolean;
   editing?: boolean;
+  dateModified?: boolean;
 }
 
 @Component({
@@ -63,6 +64,7 @@ export class PoamMilestonesComponent implements OnInit {
 
   editingMilestoneId = signal<string | null>(null);
   clonedMilestones: { [s: string]: any } = {};
+  defaultMilestoneDateOffset = 30;
 
   milestoneStatusOptions = [
     { label: 'Pending', value: 'Pending' },
@@ -91,14 +93,17 @@ export class PoamMilestonesComponent implements OnInit {
     }
 
     const tempId = this.generateTempId();
+    const defaultDate = addDays(new Date(), this.defaultMilestoneDateOffset);
+
     const newMilestone = {
       milestoneId: tempId,
       milestoneComments: null,
-      milestoneDate: new Date(),
+      milestoneDate: defaultDate,
       milestoneStatus: 'Pending',
       assignedTeamId: null,
       isNew: true,
       editing: true,
+      dateModified: false,
     };
 
     this.poamMilestones = [newMilestone, ...this.poamMilestones];
@@ -115,6 +120,12 @@ export class PoamMilestonesComponent implements OnInit {
     this.milestonesChanged.emit(this.poamMilestones);
   }
 
+  onDateChange(milestone: Milestone) {
+    if (milestone.isNew) {
+      milestone.dateModified = true;
+    }
+  }
+
   onRowEditInit(milestone: Milestone) {
     milestone.editing = true;
     this.editingMilestoneId.set(milestone.milestoneId);
@@ -126,12 +137,33 @@ export class PoamMilestonesComponent implements OnInit {
       return;
     }
 
+    if (milestone.isNew && !milestone.dateModified) {
+      this.confirmationService.confirm({
+        message: 'The milestone date has not been modified. Would you like to proceed?',
+        header: 'Confirm Milestone Date',
+        icon: 'pi pi-exclamation-triangle',
+        acceptButtonStyleClass: 'p-button-primary',
+        rejectButtonStyleClass: 'p-button-secondary',
+        accept: () => {
+          this.finalizeRowEdit(milestone);
+        },
+        reject: () => {
+        }
+      });
+      return;
+    }
+
+    this.finalizeRowEdit(milestone);
+  }
+
+  private finalizeRowEdit(milestone: Milestone) {
     milestone.editing = false;
     this.editingMilestoneId.set(null);
     delete this.clonedMilestones[milestone.milestoneId];
 
     if (milestone.isNew) {
       milestone.isNew = false;
+      delete milestone.dateModified;
     }
 
     if (this.table) {

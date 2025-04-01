@@ -566,8 +566,11 @@ export class PoamGridComponent implements OnInit, OnDestroy {
       submittedDate: poam.submittedDate?.split('T')[0],
       scheduledCompletionDate: poam.scheduledCompletionDate?.split('T')[0],
       assignedTeams: poam.assignedTeams
-        ? poam.assignedTeams.map((team: any) => team.assignedTeamName).join(', ')
-        : '',
+        ? poam.assignedTeams.map((team: any) => ({
+          name: team.assignedTeamName,
+          complete: team.complete
+        }))
+        : [],
       labels: poam.labels
         ? poam.labels.map((label: any) => label.labelName)
         : [],

@@ -161,20 +161,12 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   updateGridData() {
     this.allPoams.set(this.poams());
-
     const needingAttention = this.poams().filter(poam => {
       if (!poam.scheduledCompletionDate) return false;
       const completionDate = new Date(poam.scheduledCompletionDate);
-
-      const isHighSeverity = poam.rawSeverity === 'CAT I - High';
       const thresholdDate = new Date();
 
-      if (isHighSeverity) {
-        thresholdDate.setDate(thresholdDate.getDate() + 7);
-      } else {
-        thresholdDate.setDate(thresholdDate.getDate() + 30);
-      }
-
+      thresholdDate.setDate(thresholdDate.getDate() + 30);
       return (
         !isNaN(completionDate.getTime()) &&
         completionDate <= thresholdDate &&
@@ -182,18 +174,15 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     });
     this.poamsNeedingAttention.set(needingAttention);
-
     const submitted = this.poams().filter(poam =>
       poam.status !== 'Closed' &&
       poam.submitterId === this.user()?.userId
     );
     this.submittedPoams.set(submitted);
-
     const pendingApproval = this.poams().filter(poam =>
       this.PENDING_STATUSES.has(poam.status)
     );
     this.poamsPendingApproval.set(pendingApproval);
-
     const teamPoams = this.poams().filter(poam =>
       poam.assignedTeams?.some((poamTeam: any) =>
         this.userTeamIds().has(poamTeam.assignedTeamId)

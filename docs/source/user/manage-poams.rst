@@ -39,7 +39,7 @@ The All POAMs tab displays all POAMs that are currently available within the col
 
 Needs Attention
 """"""""""""""""
-The Needs Attention tab contains POAMs where the Scheduled Completion Date is less than 30 days for CAT II - Medium or CAT III - Low, less than 7 days for CAT I - High, and where the POAM status is not Draft, Closed, or False Positive. Access Level of 1 (Viewer) or greater is required to view this tab.
+The Needs Attention tab contains POAMs where the Scheduled Completion Date is less than 30 days and where the POAM status is not Draft, Closed, or False Positive. Access Level of 1 (Viewer) or greater is required to view this tab.
 
 
 My POAMs

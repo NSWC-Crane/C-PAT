@@ -117,13 +117,13 @@ declare type SurfacesType = {
         <div class="flex-1">
           <div class="config-panel-settings">
             <span class="config-panel-label">Ripple</span>
-            <p-toggleswitch [(ngModel)]="ripple" />
+            <p-toggleswitch id="ripple" name="ripple" [(ngModel)]="ripple" />
           </div>
         </div>
         <!-- <div class="flex-1">
                     <div class="config-panel-settings items-end">
                         <span class="config-panel-label">RTL</span>
-                        <p-toggleswitch [ngModel]="isRTL" (ngModelChange)="onRTLChange($event)" />
+                        <p-toggleswitch id="isRTL" name="isRTL" [ngModel]="isRTL" (ngModelChange)="onRTLChange($event)" />
                     </div>
                 </div> -->
       </div>
