@@ -3424,6 +3424,129 @@ paths:
         - oauth:
             - 'c-pat:write'
 
+  '/poam/{poamId}/chat':
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return chat messages for a specific POAM
+      operationId: getMessagesByPoamId
+      responses:
+        '200':
+          description: Array of chat messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/chatMessage'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamChat
+      security:
+        - oauth:
+            - 'c-pat:read'
+    post:
+      summary: Create a new chat message for a POAM
+      operationId: createMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: The message text
+      responses:
+        '201':
+          description: Message created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chatMessage'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamChat
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  '/poam/chat/{messageId}':
+    parameters:
+      - in: path
+        name: messageId
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Delete a chat message
+      operationId: deleteMessage
+      responses:
+        '204':
+          description: Message deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Unauthorized - not the message owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Message not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamChat
+      security:
+        - oauth:
+            - 'c-pat:write'
+
   /poamExtension/{poamId}:
     get:
       summary: Return POAM extension by POAM ID
@@ -6071,6 +6194,9 @@ components:
           type: boolean
         poamStatus:
           type: string
+        complete:
+          type: string
+          nullable: true
 
     poamAssets_Object:
       type: object
@@ -6102,6 +6228,35 @@ components:
           format: date-time
         uploadedBy:
           type: integer
+
+    chatMessage:
+      type: object
+      properties:
+        messageId:
+          type: integer
+          description: Unique identifier for the message
+        userId:
+          type: integer
+          description: ID of the user who created the message
+        poamId:
+          type: integer
+          description: ID of the POAM this message belongs to
+        text:
+          type: string
+          description: Message content
+        createdAt:
+          type: string
+          format: date-time
+          description: When the message was created
+        user:
+          type: object
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+            userName:
+              type: string
 
     poamExtensionObject:
       type: object
