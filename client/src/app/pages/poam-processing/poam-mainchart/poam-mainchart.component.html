@@ -191,7 +191,9 @@
 
     <div class="mt-4 flex w-full items-center gap-2">
         <div class="flex-grow">
-            <p-multiSelect [options]="filterOptions()"
+            <p-multiSelect id="mainChartFilter"
+                           name="mainChartFilter"
+                           [options]="filterOptions()"
                            [(ngModel)]="selectedOptionsValues"
                            placeholder="Filter by..."
                            (onChange)="onGroupSelect($event)"
