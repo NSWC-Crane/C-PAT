@@ -47,6 +47,7 @@ import { TabsModule } from 'primeng/tabs';
 import { PoamApproversComponent } from './components/poam-approvers/poam-approvers.component';
 import { PoamAssetsComponent } from './components/poam-assets/poam-assets.component';
 import { PoamAssociatedVulnerabilitiesComponent } from './components/poam-associated-vulnerabilities/poam-associated-vulnerabilities.component';
+import { PoamChatComponent } from './components/poam-chat/poam-chat.component';
 import { PoamMilestonesComponent } from './components/poam-milestones/poam-milestones.component';
 import { PoamLabelsComponent } from './components/poam-labels/poam-labels.component';
 import { PoamTeamsComponent } from './components/poam-teams/poam-teams.component';
@@ -89,6 +90,7 @@ import { PoamValidationService } from './services/poam-validation.service';
     PoamApproversComponent,
     PoamAssetsComponent,
     PoamAssociatedVulnerabilitiesComponent,
+    PoamChatComponent,
     PoamMilestonesComponent,
     PoamLabelsComponent,
     PoamTeamsComponent,
@@ -142,6 +144,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   activeTabIndex: number = 0;
   mitigationSaving: boolean = false;
   isGlobalFinding: boolean;
+  showPoamNotes: boolean = false;
   private subs = new SubSink();
 
   vulnerabilitySources: string[] = [
@@ -187,6 +190,16 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.poamLog();
           this.menu?.hide();
         },
+      },
+      {
+        label: 'POAM Chat',
+        icon: 'pi pi-comment',
+        styleClass: 'menu-item-info',
+        command: () => {
+          this.showPoamNotes = true;
+          this.menu?.hide();
+        },
+        visible: this.poam?.poamId !== 'ADDPOAM'
       },
       {
         label: 'POAM Extension',
@@ -281,11 +294,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.setPayloadService.accessLevel$.subscribe(async level => {
         this.accessLevel.set(level);
         if (this.accessLevel() > 0) {
-          this.obtainCollectionData(true);
+          await this.obtainCollectionDataAsync(true);
           this.getData();
-          if (this.selectedCollection) {
-            this.getLabelData();
-          }
         }
       })
     );
@@ -298,6 +308,24 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         }
       })
     );
+  }
+
+  obtainCollectionDataAsync(background: boolean = false): Promise<any> {
+    return new Promise((resolve) => {
+      this.poamDataService.obtainCollectionData(this.selectedCollection, background).subscribe({
+        next: (collectionInfo) => {
+          this.collectionAAPackage = collectionInfo.collectionAAPackage;
+          this.collectionPredisposingConditions = collectionInfo.collectionPredisposingConditions;
+          this.collectionType = collectionInfo.collectionType;
+          this.originCollectionId = collectionInfo.originCollectionId;
+          resolve(collectionInfo);
+        },
+        error: (error) => {
+          console.error('Error loading collection data:', error);
+          resolve(null);
+        }
+      });
+    });
   }
 
   async getData() {
@@ -868,17 +896,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         });
       }
     }
-  }
-
-  obtainCollectionData(background: boolean = false) {
-    this.poamDataService.obtainCollectionData(this.selectedCollection, background).subscribe({
-      next: (collectionInfo) => {
-        this.collectionAAPackage = collectionInfo.collectionAAPackage;
-        this.collectionPredisposingConditions = collectionInfo.collectionPredisposingConditions;
-        this.collectionType = collectionInfo.collectionType;
-        this.originCollectionId = collectionInfo.originCollectionId;
-      }
-    });
   }
 
   verifySubmitPoam(showDialog: boolean = true): boolean {

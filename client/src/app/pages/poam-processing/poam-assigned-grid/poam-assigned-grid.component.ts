@@ -20,6 +20,7 @@ import { TableModule } from 'primeng/table';
 import { MessageService } from 'primeng/api';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { addDays, format } from 'date-fns';
 
 @Component({
   selector: 'cpat-poam-assigned-grid',
@@ -51,6 +52,7 @@ export class PoamAssignedGridComponent implements OnChanges {
   protected readonly assignedColumns = signal<string[]>([
     'POAM ID',
     'Vulnerability ID',
+    'Scheduled Completion',
     'Adjusted Severity',
     'Status',
     'Submitter',
@@ -69,19 +71,32 @@ export class PoamAssignedGridComponent implements OnChanges {
   updateDataSource() {
     const data = this.assignedData;
 
-    const transformedData = data.map(item => ({
-      poamId: item.poamId,
-      vulnerabilityId: item.vulnerabilityId,
-      adjSeverity: item.adjSeverity,
-      status: item.status,
-      submitter: item.submitterName,
-      assignedTeams: item.assignedTeams
-        ? item.assignedTeams.map((team: any) => team.assignedTeamName)
-        : [],
-      labels: item.labels
-        ? item.labels.map((label: any) => label.labelName)
-        : []
-    }));
+    const transformedData = data.map(item => {
+      let adjustedDate = new Date(item.scheduledCompletionDate);
+      if (item.extensionTimeAllowed && typeof item.extensionTimeAllowed === 'number' && item.extensionTimeAllowed > 0) {
+        adjustedDate = addDays(adjustedDate, item.extensionTimeAllowed);
+      }
+
+      const formattedDate = format(adjustedDate, 'yyyy-MM-dd');
+
+      return {
+        poamId: item.poamId,
+        vulnerabilityId: item.vulnerabilityId,
+        scheduledCompletionDate: formattedDate,
+        adjSeverity: item.adjSeverity,
+        status: item.status,
+        submitter: item.submitterName,
+        assignedTeams: item.assignedTeams
+          ? item.assignedTeams.map((team) => ({
+            name: team.assignedTeamName,
+            complete: team.complete
+          }))
+          : [],
+        labels: item.labels
+          ? item.labels.map((label) => label.labelName)
+          : []
+      };
+    });
 
     this.assignedDataSource.set(transformedData);
     this.filteredData.set(transformedData);
@@ -119,6 +134,8 @@ export class PoamAssignedGridComponent implements OnChanges {
         return 'poamId';
       case 'Vulnerability ID':
         return 'vulnerabilityId';
+      case 'Scheduled Completion':
+        return 'scheduledCompletionDate';
       case 'Adjusted Severity':
         return 'adjSeverity';
       case 'Status':
