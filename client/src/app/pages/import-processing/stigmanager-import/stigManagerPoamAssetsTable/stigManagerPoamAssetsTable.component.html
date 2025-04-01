@@ -115,6 +115,15 @@
                           </p-tag>
                         </ng-container>
                         <ng-container *ngSwitchDefault> {{asset[col.field]}} </ng-container>
+                        <ng-container *ngSwitchCase="'teamAssigned'">
+                          <ng-container *ngIf="tab.teamId === 'all'">
+                            <i class="pi"
+                               [ngClass]="{'pi-check-circle': isAssetAssignedToTeam(asset), 'pi-times-circle': !isAssetAssignedToTeam(asset)}"
+                               [ngStyle]="{'color': isAssetAssignedToTeam(asset) ? 'green' : 'maroon', 'font-size': '1.2rem'}"
+                               [pTooltip]="isAssetAssignedToTeam(asset) ? 'Team association detected' : 'No team association detected'">
+                            </i>
+                          </ng-container>
+                        </ng-container>
                       </ng-container>
                     </td>
                   </tr>
