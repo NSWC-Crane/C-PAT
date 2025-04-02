@@ -12,11 +12,11 @@ import { CommonModule } from "@angular/common";
 import { Component, Input, Output, EventEmitter, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
-import { InputTextModule } from "primeng/inputtext";
 import { TableModule } from "primeng/table";
 import { MessageService } from "primeng/api";
 import { PoamService } from "../../../poams.service";
 import { TooltipModule } from "primeng/tooltip";
+import { AutoCompleteCompleteEvent, AutoCompleteModule } from "primeng/autocomplete";
 
 @Component({
   selector: 'cpat-poam-associated-vulnerabilities',
@@ -27,8 +27,8 @@ import { TooltipModule } from "primeng/tooltip";
     FormsModule,
     TableModule,
     ButtonModule,
-    InputTextModule,
-    TooltipModule
+    TooltipModule,
+    AutoCompleteModule
   ]
 })
 export class PoamAssociatedVulnerabilitiesComponent implements OnInit {
@@ -40,6 +40,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit {
 
   displayVulnerabilities: any[] = [];
   newVulnerability: string = '';
+  selectedVulnerabilities: string[] = [];
 
   constructor(
     public poamService: PoamService,
@@ -74,10 +75,14 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit {
       .filter(v => v !== null && v.associatedVulnerability);
   }
 
+  search(_event: AutoCompleteCompleteEvent) {
+  }
+
   async addAssociatedVulnerability() {
     const newAssociatedVulnerability = {
       associatedVulnerability: '',
       isNew: true,
+      selectedVulnerabilities: []
     };
 
     this.displayVulnerabilities = [
@@ -86,12 +91,12 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit {
     ];
   }
 
-  async onAssociatedVulnerabilityChange(associatedVulnerability: any, rowIndex: number) {
-    if (!associatedVulnerability.associatedVulnerability) {
+  async onAssociatedVulnerabilityChange(rowData: any, rowIndex: number) {
+    if (!rowData.selectedVulnerabilities || rowData.selectedVulnerabilities.length === 0) {
       this.messageService.add({
         severity: 'error',
         summary: 'Validation Error',
-        detail: 'Please enter a vulnerability ID'
+        detail: 'Please enter at least one vulnerability ID'
       });
       return;
     }
@@ -100,21 +105,38 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit {
       .subscribe({
         next: async (response: any) => {
           const existingPoams = response;
-          const duplicatePoam = existingPoams.find(poam => poam.vulnerabilityId === associatedVulnerability.associatedVulnerability);
+          const newVulnerabilities = [...rowData.selectedVulnerabilities];
 
-          if (duplicatePoam) {
-            this.messageService.add({
-              severity: 'warn',
-              summary: 'Duplicate Vulnerability',
-              detail: `A POAM (ID: ${duplicatePoam.poamId}) already exists for vulnerability ID: ${associatedVulnerability.associatedVulnerability}`
-            });
-            return;
+          for (const vulnId of newVulnerabilities) {
+            const duplicatePoam = existingPoams.find(poam => poam.vulnerabilityId === vulnId);
+
+            if (duplicatePoam) {
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'Duplicate Vulnerability',
+                detail: `A POAM (ID: ${duplicatePoam.poamId}) already exists for vulnerability ID: ${vulnId}`
+              });
+              continue;
+            }
+
+            if (rowIndex === 0) {
+              this.displayVulnerabilities.push({
+                associatedVulnerability: vulnId,
+                isNew: false
+              });
+            }
           }
 
-          associatedVulnerability.isNew = false;
-          this.displayVulnerabilities[rowIndex] = associatedVulnerability;
+          if (rowData.isNew) {
+            this.displayVulnerabilities.splice(rowIndex, 1);
+          }
+
+          if (rowIndex === 0 && rowData.isNew) {
+            this.addAssociatedVulnerability();
+          }
 
           const updatedVulnerabilities = this.displayVulnerabilities
+            .filter(item => !item.isNew)
             .map(item => item.associatedVulnerability)
             .filter(vuln => vuln);
 
