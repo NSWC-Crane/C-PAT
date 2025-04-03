@@ -27,8 +27,34 @@ const sequelize = new Sequelize(
             acquire: parseInt(config.database.acquire, 10),
             idle: parseInt(config.database.idle, 10),
         },
+        dialectOptions: {
+            ssl: getSslConfig()
+        }
     }
 );
+
+function getSslConfig() {
+    const fs = require("fs");
+    const path = require('path');
+
+    if (config.database.tls.ca_file || config.database.tls.cert_file || config.database.tls.key_file) {
+        const sslConfig = {};
+        if (config.database.tls.ca_file) {
+            sslConfig.ca = fs.readFileSync(path.join(__dirname, '..', 'tls', config.database.tls.ca_file));
+        }
+        if (config.database.tls.cert_file) {
+            sslConfig.cert = fs.readFileSync(path.join(__dirname, '..', 'tls', config.database.tls.cert_file));
+        }
+        if (config.database.tls.key_file) {
+            sslConfig.key = fs.readFileSync(path.join(__dirname, '..', 'tls', config.database.tls.key_file));
+        }
+        return sslConfig;
+    }
+
+    return {
+        rejectUnauthorized: false
+    };
+}
 
 const db = {};
 db.Sequelize = Sequelize;
