@@ -49,7 +49,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
     }
     return await withConnection(async (connection) => {
         let sql = `
-            SELECT t1.assignedTeamId, t1.automated, t1.poamId, t2.assignedTeamName, t3.status
+            SELECT t1.assignedTeamId, t1.automated, t1.poamId, t2.assignedTeamName, t3.status, t3.isGlobalFinding
             FROM cpat.poamassignedteams t1
             INNER JOIN cpat.assignedteams t2 ON t1.assignedTeamId = t2.assignedTeamId
             INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
@@ -57,44 +57,44 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
             ORDER BY t2.assignedTeamName
         `;
         let [rowPoamAssignedTeams] = await connection.query(sql, [poamId]);
-
         let mitigationSql = `
             SELECT assignedTeamId, mitigationText, isActive
             FROM cpat.poamteammitigations
             WHERE poamId = ?
         `;
         let [mitigations] = await connection.query(mitigationSql, [poamId]);
-
         let milestoneSql = `
             SELECT assignedTeamId, milestoneComments
             FROM cpat.poammilestones
             WHERE poamId = ? AND assignedTeamId IS NOT NULL
         `;
         let [milestones] = await connection.query(milestoneSql, [poamId]);
-
         const poamAssignedTeams = rowPoamAssignedTeams.map(row => {
             const teamId = row.assignedTeamId;
-
-            const hasMitigation = mitigations.some(m =>
-                m.assignedTeamId === teamId &&
-                m.isActive &&
-                m.mitigationText &&
-                m.mitigationText.trim() !== ''
-            );
-
-            const hasMilestone = milestones.some(m =>
-                m.assignedTeamId === teamId &&
-                m.milestoneComments &&
-                m.milestoneComments.length >= 15
-            );
-
             let complete;
-            if (hasMitigation && hasMilestone) {
-                complete = "true";
-            } else if (hasMitigation || hasMilestone) {
-                complete = "partial";
+
+            if (row.isGlobalFinding) {
+                complete = "global";
             } else {
-                complete = "false";
+                const hasMitigation = mitigations.some(m =>
+                    m.assignedTeamId === teamId &&
+                    m.isActive &&
+                    m.mitigationText &&
+                    m.mitigationText.trim() !== ''
+                );
+                const hasMilestone = milestones.some(m =>
+                    m.assignedTeamId === teamId &&
+                    m.milestoneComments &&
+                    m.milestoneComments.length >= 15
+                );
+
+                if (hasMitigation && hasMilestone) {
+                    complete = "true";
+                } else if (hasMitigation || hasMilestone) {
+                    complete = "partial";
+                } else {
+                    complete = "false";
+                }
             }
 
             return {
@@ -106,7 +106,6 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
                 complete: complete
             };
         });
-
         return poamAssignedTeams;
     });
 };

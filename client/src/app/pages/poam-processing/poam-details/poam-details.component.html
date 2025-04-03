@@ -21,10 +21,11 @@
         <p-tag *ngFor="let team of poamAssignedTeams"
                [value]="team.assignedTeamName"
                [rounded]="true"
-               [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : 'danger'"
+               [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
                [pTooltip]="team.complete === 'true' ? 'Team has fulfilled all POAM requirements' :
-                    team.complete === 'partial' ? 'Team has partially fulfilled POAM requirements' :
-                    'Team has not fulfilled any POAM requirements'"
+            team.complete === 'partial' ? 'Team has partially fulfilled POAM requirements' :
+            team.complete === 'global' ? 'Global Finding - No Team Requirements' :
+            'Team has not fulfilled any POAM requirements'"
                tooltipPosition="top"
                styleClass="team-badge mb-1 mr-2">
         </p-tag>
@@ -629,7 +630,7 @@
                     <label for="impactDescription">
                       <i class="pi pi-info-circle mr-4"
                          style="color: var(--p-text-color)"
-                         pTooltip="Impact Description: Describe the identified impact."></i>Impact Description:
+                         pTooltip="Impact Description: Describe the identified impact. This field will export to the eMASS Comments Section prefaced with 'Local Impact'."></i>Impact Description:
                     </label>
                     <textarea pTextarea
                               class="w-full"

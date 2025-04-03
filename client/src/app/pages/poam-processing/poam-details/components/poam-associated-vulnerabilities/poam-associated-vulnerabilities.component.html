@@ -37,15 +37,19 @@
     <tr>
       <td>
         <span *ngIf="!associatedVulnerability.isNew">{{associatedVulnerability.associatedVulnerability}}</span>
-        <input *ngIf="associatedVulnerability.isNew"
-               type="text"
-               pInputText
-               class="w-full"
-               [(ngModel)]="associatedVulnerability.associatedVulnerability"
-               [maxlength]="15"
-               name="associatedVulnerability"
-               placeholder="Plugin ID / Vulnerability ID..."
-               [disabled]="accessLevel < 4" />
+        <p-autocomplete *ngIf="associatedVulnerability.isNew"
+                        [(ngModel)]="associatedVulnerability.selectedVulnerabilities"
+                        [multiple]="true"
+                        [typeahead]="false"
+                        class="w-full"
+                        styleClass="w-full"
+                        id="associatedVulnerability"
+                        name="associatedVulnerability"
+                        [placeholder]="'Plugin ID / Vulnerability ID...'"
+                        [maxlength]="15"
+                        [disabled]="accessLevel < 4"
+                        (completeMethod)="search($event)">
+        </p-autocomplete>
       </td>
       <td>
         <button pButton

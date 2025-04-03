@@ -167,7 +167,7 @@ The Asset Deltas component is designed to handle two types of imports.
 The import process will automatically parse the document and populate the Asset Deltas table with the provided data. The table can be sorted by any column by clicking on the respective column header. The table can also be filtered by entering text into the search bar located above the table or through clicking the filter icon located next to any column name. This component contains functionality to query Tenable and STIG Manager using the provided asset names and determine if the asset exists within the respective service. After a successful query runs, the Tenable and STIG Manager column will be populated with icons (Green Checkmark or Red X) and the charts will update to depict asset existence and Team breakdown. Any subsequent column filtering will also update the "Total Assets" count located above the chart. Exporting of this table is also available for further analysis or record keeping. Asset existence will be exported as True or False.
 
 .. note::
-   The importing of Assets also enables functionality to automatically assign a Team to a POAM if an asset name matches with an AD row entry. This feature is enabled by populating the AD Team field in the Assigned Teams component.
+   The importing of Assets enables functionality to automatically assign a Team to a POAM if a match is found to an asset within the imported asset list. This feature is enabled by populating the AD Team field after selecting a team within the Assigned Teams component.
 
 
 A&A Packages
