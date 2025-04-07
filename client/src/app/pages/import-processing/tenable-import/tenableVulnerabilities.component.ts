@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { ImportService } from '../import.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
@@ -56,6 +56,7 @@ import {
   FilterHandler
 } from '../../../common/models/tenable.model';
 import { parseISO } from 'date-fns/fp';
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 @Component({
   selector: 'cpat-tenable-vulnerabilities',
@@ -115,6 +116,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   sidebarVisible: boolean = false;
   activeFilters: CustomFilter[] = [];
   tempFilters: TempFilters = this.initializeTempFilters();
+  filterHistory: TempFilters[] = [];
+  currentFilterHistoryIndex: number = -1;
   selectedPremadeFilter: any = null;
   overlayVisible: boolean = false;
   selectedCollection: any;
@@ -124,6 +127,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   savedSourceType: string = 'cumulative';
   savedTool: string = 'sumid';
   existingPoamPluginIDs: { [key: string]: PoamAssociation } = {};
+  accessLevel = signal<number>(0);
+  user: any;
+  payload: any;
   private subscriptions = new Subscription();
   @ViewChild('ms') multiSelect!: MultiSelect;
   @ViewChild('op') overlayPanel!: Popover;
@@ -800,14 +806,19 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private collectionsService: CollectionsService,
-    private messageService: MessageService,
+    protected messageService: MessageService,
     private poamService: PoamService,
+    private setPayloadService: PayloadService,
     private sharedService: SharedService,
     private router: Router
   ) { }
 
   ngOnInit() {
     this.filteredAccordionItems = [...this.accordionItems];
+    this.filterHistory = [];
+    this.currentFilterHistoryIndex = -1;
+    this.setPayloadService.setPayload();
+
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
@@ -840,8 +851,22 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             this.updateAccordionItems();
             this.initializeColumnsAndFilters();
             this.filteredAccordionItems = [...this.accordionItems];
+            this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+            this.currentFilterHistoryIndex = 0;
           }
         });
+      })
+    );
+
+    this.subscriptions.add(
+      this.setPayloadService.user$.subscribe(user => {
+        this.user = user;
+      })
+    );
+
+    this.subscriptions.add(
+      this.setPayloadService.accessLevel$.subscribe(async level => {
+        this.accessLevel.set(level);
       })
     );
   }
@@ -1543,7 +1568,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               operator: '=',
               type: 'vuln',
               isPredefined: true,
-              value: value
+              value: value?.value !== undefined ? value.value : value
             } : null;
 
           default:
@@ -1580,6 +1605,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   applyFilters(loadVuln: boolean = true) {
+    if (this.currentFilterHistoryIndex < this.filterHistory.length - 1) {
+      this.filterHistory = this.filterHistory.slice(0, this.currentFilterHistoryIndex + 1);
+    }
+
+    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     this.activeFilters = this.convertTempFiltersToAPI();
     this.filterAccordionItems();
 
@@ -1587,6 +1618,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     }
     this.sidebarVisible = false;
+  }
+
+  revertFilters() {
+    if (this.currentFilterHistoryIndex > 0) {
+      this.currentFilterHistoryIndex--;
+      this.tempFilters = JSON.parse(JSON.stringify(this.filterHistory[this.currentFilterHistoryIndex]));
+      this.applyFilters(true);
+    }
   }
 
   clearIndividualFilter(identifier: string, event: Event) {
@@ -1791,6 +1830,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.tempFilters['lastSeen'] = '0:30';
     this.activeFilters = [];
     this.filterSearch = '';
+    this.filterHistory = [];
+    this.currentFilterHistoryIndex = -1;
+    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.currentFilterHistoryIndex = 0;
+
     this.applyFilters(false);
     this.filterAccordionItems();
     this.resetColumnSelections();
@@ -1849,6 +1893,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     const selectedFilter = this.findFilterByValue(event.value);
     if (!selectedFilter) return;
+
+    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.currentFilterHistoryIndex = this.filterHistory.length - 1;
 
     if (event.value.startsWith('saved_')) {
       const savedFilter = typeof selectedFilter.filter === 'string'
@@ -1942,6 +1989,50 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
   }
 
+  deleteFilter(event: Event, filterId: string) {
+    event.stopPropagation();
+    const numericId = parseInt(filterId.replace('saved_', ''));
+
+    if (isNaN(numericId)) {
+      this.showErrorMessage('Invalid filter ID');
+      return;
+    }
+
+    this.messageService.clear();
+    this.messageService.add({
+      key: 'deleteConfirmation',
+      sticky: true,
+      severity: 'warn',
+      summary: 'Confirm Deletion',
+      detail: 'Are you sure you want to delete this saved filter?',
+      closable: false,
+      data: numericId
+    });
+  }
+
+  confirmDeleteFilter(filterId: number) {
+    this.importService.deleteTenableFilter(this.selectedCollection, filterId).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Filter deleted successfully'
+        });
+
+        if (this.selectedPremadeFilter === `saved_${filterId}`) {
+          this.selectedPremadeFilter = null;
+        }
+
+        this.loadSavedFilters();
+        this.messageService.clear();
+      },
+      error: (error) => {
+        console.error('Error deleting filter:', error);
+        this.showErrorMessage('Error deleting filter. You may not have permission to delete this filter.');
+      }
+    });
+  }
+
   private createRepositoryFilter(): CustomFilter {
     return {
       id: 'repository',
@@ -1968,6 +2059,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   loadSavedFilters() {
+    console.log(this.user);
+    console.log(this.accessLevel());
     if (this.selectedCollection) {
       this.importService.getTenableFilters(this.selectedCollection).subscribe({
         next: (filters: TenableFilter[]) => {
@@ -1975,7 +2068,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             label: String(filter.filterName),
             value: `saved_${filter.filterId}`,
             filter: filter.filter,
-            subLabel: `Created by ${filter.createdBy || 'Unknown'}`
+            subLabel: `Created by ${filter.createdBy || 'Unknown'}`,
+            createdBy: filter.createdBy || 'Unknown'
           }));
 
           this.premadeFilterOptions = [
@@ -2009,12 +2103,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   loadVulnList() {
     this.tenableTool = 'listvuln';
+    this.table.clear();
     this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     this.expandColumnSelections();
   }
 
   loadVulnSummary() {
     this.tenableTool = 'sumid';
+    this.table.clear();
     this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     this.resetColumnSelections();
   }
@@ -2095,7 +2191,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   getPoamStatusTooltip(status: string | null): string {
-    if (!status && status !== '') {
+    if (!status || status === 'No Existing POAM') {
       return 'No Existing POAM. Click icon to create draft POAM.';
     }
 

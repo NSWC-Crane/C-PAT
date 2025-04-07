@@ -64,13 +64,13 @@ module.exports.putTenableFilter = async function putTenableFilter(req, res, next
 
 module.exports.deleteTenableFilter = async function deleteTenableFilter(req, res, next) {
     try {
-        await tenableFilterService.deleteTenableFilter(req, res, next);
+        await tenableFilterService.deleteTenableFilter(req);
         res.status(204).send();
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
         } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+            res.status(500).json({ error: 'Internal Server Error', detail: error.errors || error.message });
         }
     }
 };
