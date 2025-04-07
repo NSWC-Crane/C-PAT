@@ -162,12 +162,15 @@ ${pluginData.description || ''}`,
         tenablePluginData: this.parsePluginData(poam.tenablePluginData),
         assignedTeamOptions,
         collectionUsers: users,
-        collectionApprovers: users.filter((u: Permission) => u.accessLevel >= 3),
-        poamApprovers: users.filter((u: Permission) => u.accessLevel >= 3).map((approver: any) => ({
-          userId: approver.userId,
-          approvalStatus: 'Not Reviewed',
-          comments: '',
-        }))
+        collectionApprovers: Array.isArray(users)
+          ? users.filter((user: Permission) => user.accessLevel >= 3)
+          : [],
+        poamApprovers: Array.isArray(users)
+          ? users.filter((user: Permission) => user.accessLevel >= 3).map((approver: any) => ({
+            userId: approver.userId,
+            approvalStatus: 'Not Reviewed',
+            comments: '',
+          })) : []
       };
 
       poam.residualRisk = this.mappingService.mapToEmassValues(poam.rawSeverity);
@@ -220,9 +223,9 @@ ${pluginData.description || ''}`,
             submittedDate: new Date(poam.submittedDate)
           };
 
-          const collectionApprovers = users.filter(
-            (user: Permission) => user.accessLevel >= 3
-          );
+          const collectionApprovers = Array.isArray(users)
+            ? users.filter((user: Permission) => user.accessLevel >= 3)
+            : [];
 
           const poamApprovers = collectionApprovers.map((approver: any) => ({
             userId: approver.userId,
@@ -330,9 +333,9 @@ ${pluginData.description || ''}`,
             submittedDate: new Date(poam.submittedDate)
           };
 
-          const collectionApprovers = users.filter(
-            (user: Permission) => user.accessLevel >= 3
-          );
+          const collectionApprovers = Array.isArray(users)
+            ? users.filter((user: Permission) => user.accessLevel >= 3)
+            : [];
 
           const poamApprovers = collectionApprovers.map((approver: any) => ({
             userId: approver.userId,

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ImportService } from '../../../import.service';
 import { Table, TableModule } from 'primeng/table';
@@ -113,7 +113,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     private poamService: PoamService,
     private collectionsService: CollectionsService,
     private sharedService: SharedService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -131,7 +132,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
           this.initColumnsAndFilters();
           this.loadPoamAssociations();
-          this.getIAVPluginIDs();
+            this.getIAVPluginIDs();
           setTimeout(() => {
             if (this.table) {
               this.table.filters = { ...this.filters };
@@ -142,7 +143,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           this.handleMissingTenable();
         }
       },
-      error: () => {
+      error: (error) => {
+        console.error("Error fetching collection list:", error);
         this.handleMissingTenable();
       },
     });
@@ -150,6 +152,10 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   private handleMissingTenable(): void {
     this.tenableRepoId = '';
+    if (!this.cols) {
+      this.initColumnsAndFilters();
+    }
+    this.isLoading = false;
     this.messageService.add({
       severity: 'error',
       summary: 'Error',
@@ -328,6 +334,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       }),
       finalize(() => {
         this.isLoading = false;
+        this.cdr.detectChanges();
       })
     ).subscribe({
       next: ({ vulnData, iavData }) => {
@@ -390,9 +397,11 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.totalRecordsChange.emit(this.totalRecords);
 
         if (this.table) {
-          this.table.filters = { ...this.filters };
+          const currentFilters = this.table.filters || {};
+          this.table.filters = { ...currentFilters, ...this.filters };
           this.table._filter();
         }
+        this.cdr.detectChanges();
       }
     });
   }
@@ -481,23 +490,23 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       },
     ];
     if (this.table) {
-      this.table.filters = { ...this.filters };
+      const currentFilters = this.table.filters || {};
+      this.table.filters = { ...currentFilters, ...this.filters };
       this.table._filter();
     }
     this.loadVulnList();
-    this.expandColumnSelections();
   }
 
   loadVulnList() {
     this.tenableTool = 'listvuln';
-    this.getIAVFindings(this.iavPluginIDs);
     this.expandColumnSelections();
+    this.getIAVFindings(this.iavPluginIDs);
   }
 
   loadVulnSummary() {
     this.tenableTool = 'sumid';
-    this.getIAVFindings(this.iavPluginIDs);
     this.resetColumnSelections();
+    this.getIAVFindings(this.iavPluginIDs);
   }
 
   onPluginIDClick(vulnerability: any, event: Event) {

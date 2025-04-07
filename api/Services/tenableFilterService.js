@@ -178,31 +178,32 @@ exports.putTenableFilter = async function putTenableFilter(req, res, next) {
     }
 }
 
-exports.deleteTenableFilter = async function deleteTenableFilter(req, res, next) {
-    if (!req.params.filterId) {
-        return next({
+exports.deleteTenableFilter = async function deleteTenableFilter(req) {
+    const { tenableFilterId, collectionId } = req.params;
+
+    if (!tenableFilterId) {
+        throw {
             status: 400,
-            errors: {
-                filterId: 'is required',
-            }
-        });
-    } else if (!req.params.collectionId) {
-        return next({
+            errors: { tenableFilterId: 'is required' }
+        };
+    }
+
+    if (!collectionId) {
+        throw {
             status: 400,
-            errors: {
-                collectionId: 'is required',
-            }
-        });
+            errors: { collectionId: 'is required' }
+        };
     }
 
     try {
-        return await withConnection(async (connection) => {
-            let sql = "DELETE FROM cpat.tenablefilters WHERE filterId = ? AND collectionId = ?";
-            await connection.query(sql, [req.params.filterId, req.params.collectionId]);
-
-            return { tenableFilter: [] };
+        await withConnection(async (connection) => {
+            const sql = "DELETE FROM cpat.tenablefilters WHERE filterId = ? AND collectionId = ?";
+            await connection.query(sql, [tenableFilterId, collectionId]);
         });
     } catch (error) {
-        return { error: error.message };
+        throw {
+            status: 500,
+            errors: { database: error.message }
+        };
     }
-}
+};

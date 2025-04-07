@@ -331,60 +331,97 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   async getData() {
     this.loadAAPackages();
     this.loadAssetDeltaList();
+    const isNewPoam = this.poamId === "ADDPOAM";
+    const source = this.stateData.vulnerabilitySource;
 
     if (this.poamId === undefined || !this.poamId) {
+      console.error("Failed to create POAM. POAM ID is undefined.");
+      this.messageService.add({
+        severity: "error",
+        summary: "Error",
+        detail: "Failed to create POAM",
+      });
       return;
-    } else if (
-      this.poamId === 'ADDPOAM' &&
-      this.stateData.vulnerabilitySource ===
-      'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'
-    ) {
-      await this.createNewACASPoam();
-      this.loadAssets();
-    } else if (this.poamId === 'ADDPOAM' && this.stateData.vulnerabilitySource === 'STIG') {
-      await this.createNewSTIGManagerPoam();
-      this.loadAssets();
-    } else if (this.poamId === 'ADDPOAM') {
-      await this.createNewPoam();
-      this.loadAssets();
+    } else if (isNewPoam && source === "Assured Compliance Assessment Solution (ACAS) Nessus Scanner") {
+      try {
+        await this.createNewACASPoam();
+        this.loadAssets();
+      } catch (error) {
+        console.error("Failed to create ACAS POAM:", error);
+        this.messageService.add({
+          severity: "error",
+          summary: "Error",
+          detail: "Failed to create ACAS POAM",
+        });
+      }
+    } else if (isNewPoam && source === "STIG") {
+      try {
+        await this.createNewSTIGManagerPoam();
+        this.loadAssets();
+      } catch (error) {
+        console.error("Failed to create STIG Manager POAM:", error);
+        this.messageService.add({
+          severity: "error",
+          summary: "Error",
+          detail: "Failed to create STIG Manager POAM",
+        });
+      }
+    } else if (isNewPoam) {
+      try {
+        await this.createNewPoam();
+        this.loadAssets();
+      } catch (error) {
+        console.error("Failed to create POAM:", error);
+        this.messageService.add({
+          severity: "error",
+          summary: "Error",
+          detail: "Failed to create POAM",
+        });
+      }
     } else {
       forkJoin([
         this.poamService.getPoam(
           this.poamId,
-          true,  // includeApprovers
-          true,  // includeAssignedTeams
+          true, // includeApprovers
+          true, // includeAssignedTeams
           false, // includeAssets
-          true,  // includeLabels
-          true,  // includeMilestones
-          true,  // includeAssociatedVulnerabilities
-          true   // includeTeamMitigations
+          true, // includeLabels
+          true, // includeMilestones
+          true, // includeAssociatedVulnerabilities
+          true // includeTeamMitigations
         ),
         this.collectionsService.getCollectionPermissions(
           this.payload.lastCollectionAccessedId
         ),
-        this.assignedTeamService.getAssignedTeams()
+        this.assignedTeamService.getAssignedTeams(),
       ]).subscribe({
-        next: ([
-          poam,
-          users,
-          assignedTeamOptions
-        ]) => {
+        next: ([poam, users, assignedTeamOptions]) => {
           this.poam = poam;
           this.dates.scheduledCompletionDate = poam.scheduledCompletionDate
-            ? poam.scheduledCompletionDate.split('T')[0]
+            ? poam.scheduledCompletionDate.split("T")[0]
             : null;
 
-          if (this.poam.scheduledCompletionDate && this.poam.extensionTimeAllowed > 0) {
-            this.completionDateWithExtension = format(addDays(
-              parseISO(this.poam.scheduledCompletionDate),
-              this.poam.extensionTimeAllowed
-            ), 'yyyy-MM-dd');
+          if (
+            this.poam.scheduledCompletionDate &&
+            this.poam.extensionTimeAllowed > 0
+          ) {
+            this.completionDateWithExtension = format(
+              addDays(
+                parseISO(this.poam.scheduledCompletionDate),
+                this.poam.extensionTimeAllowed
+              ),
+              "yyyy-MM-dd"
+            );
           }
           this.dates.iavComplyByDate = poam.iavComplyByDate
-            ? poam.iavComplyByDate.split('T')[0]
+            ? poam.iavComplyByDate.split("T")[0]
             : null;
-          this.dates.submittedDate = poam.submittedDate ? poam.submittedDate.split('T')[0] : null;
-          this.dates.closedDate = poam.closedDate ? poam.closedDate.split('T')[0] : null;
+          this.dates.submittedDate = poam.submittedDate
+            ? poam.submittedDate.split("T")[0]
+            : null;
+          this.dates.closedDate = poam.closedDate
+            ? poam.closedDate.split("T")[0]
+            : null;
           this.assignedTeamOptions = assignedTeamOptions;
           this.collectionUsers = users;
 
@@ -392,16 +429,20 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.poamApprovers = poam.approvers || [];
           this.poamMilestones = (poam.milestones || []).map((milestone: any) => ({
             ...milestone,
-            milestoneDate: milestone.milestoneDate ? milestone.milestoneDate.split('T')[0] : null,
-            assignedTeamId: +milestone.assignedTeamId
+            milestoneDate: milestone.milestoneDate
+              ? milestone.milestoneDate.split("T")[0]
+              : null,
+            assignedTeamId: +milestone.assignedTeamId,
           }));
           this.poamLabels = poam.labels || [];
           this.poamAssociatedVulnerabilities = poam.associatedVulnerabilities || [];
           this.teamMitigations = poam.teamMitigations || [];
 
-          this.collectionApprovers = this.collectionUsers.filter(
-            (user: Permission) => user.accessLevel >= 3
-          );
+          this.collectionApprovers = Array.isArray(this.collectionUsers)
+            ? this.collectionUsers.filter(
+              (user: Permission) => user.accessLevel >= 3
+            )
+            : [];
 
           if (
             this.collectionApprovers.length > 0 &&
@@ -411,28 +452,30 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           }
 
           if (this.poam.tenablePluginData) {
-            this.tenablePluginData = this.poamCreationService.parsePluginData(this.poam.tenablePluginData);
+            this.tenablePluginData = this.poamCreationService.parsePluginData(
+              this.poam.tenablePluginData
+            );
           } else {
             this.poamDataService.loadSTIGsFromSTIGMAN().subscribe({
-              next: stigmanSTIGs => {
+              next: (stigmanSTIGs) => {
                 this.stigmanSTIGs = stigmanSTIGs;
               },
               error: (error) => {
-                console.error('Error loading STIGs:', error);
-              }
+                console.error("Error loading STIGs:", error);
+              },
             });
           }
           this.loadTeamMitigations();
           this.loadAssets();
         },
         error: (error) => {
-          console.error('Error loading POAM data:', error);
+          console.error("Error loading POAM data:", error);
           this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to load POAM data'
+            severity: "error",
+            summary: "Error",
+            detail: "Failed to load POAM data",
           });
-        }
+        },
       });
     }
   }
