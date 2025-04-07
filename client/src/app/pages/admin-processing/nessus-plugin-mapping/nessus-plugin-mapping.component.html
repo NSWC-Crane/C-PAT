@@ -28,6 +28,7 @@
 
 <div class="scrollable-plugins overflow-hidden">
   <p-table #dt
+           [columns]="cols"
            [value]="tableData"
            dataKey="iav"
            [rows]="20"
@@ -66,6 +67,15 @@
                 severity="primary"
                 pTooltip="Clear"
                 (click)="clear(dt)"></button>
+        <p-button icon="pi pi-download"
+                  (onClick)="dt.exportCSV()"
+                  [rounded]="true"
+                  [text]="true"
+                  [raised]="true"
+                  severity="primary"
+                  pTooltip="Export Data"
+                  tooltipPosition="bottom">
+        </p-button>
       </div>
     </ng-template>
     <ng-template pTemplate="header">
