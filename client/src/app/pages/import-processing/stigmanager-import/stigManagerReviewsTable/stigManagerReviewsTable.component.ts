@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { MessageService, TreeNode } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
@@ -44,7 +44,7 @@ interface BenchmarkOption {
   value: string;
 }
 
-interface DateFilterOption {
+interface FilterOption {
   label: string;
   value: string;
 }
@@ -83,6 +83,7 @@ interface Label {
   ],
 })
 export class STIGManagerReviewsTableComponent implements OnInit {
+  @Output() reviewsCountChange = new EventEmitter<number>();
   @Input() stigmanCollectionId!: number;
   @ViewChild('dt') table!: Table;
   @ViewChild('ms') multiSelect!: MultiSelect;
@@ -111,6 +112,8 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   originalTreeNodes: TreeNode[] = [];
   dateFilterMode: { [key: string]: string } = { 'evaluatedDate': 'equals' };
   dateFilterValues: { [key: string]: Date } = {};
+  versionFilterMode: { [key: string]: string } = { 'resultEngine.version': 'equals' };
+  versionFilterValues: { [key: string]: string } = {};
 
   resultMapping: ValueMapping = {
     'all': 'All',
@@ -145,7 +148,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     'Submitted': 'pi-reply'
   };
 
-  dateFilterOptions: DateFilterOption[] = [
+  dateFilterOptions: FilterOption[] = [
     { label: 'Date is', value: 'equals' },
     { label: 'Date is not', value: 'notEquals' },
     { label: 'Date before', value: 'before' },
@@ -156,6 +159,15 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     { label: 'CAT I - High', value: 'high' },
     { label: 'CAT II - Medium', value: 'medium' },
     { label: 'CAT III - Low', value: 'low' }
+  ];
+
+  versionFilterOptions: FilterOption[] = [
+    { label: 'Version is', value: 'equals' },
+    { label: 'Version is not', value: 'notEquals' },
+    { label: 'Version is less than', value: 'lt' },
+    { label: 'Version is less than or equal to', value: 'lte' },
+    { label: 'Version is greater than', value: 'gt' },
+    { label: 'Version is greater than or equal to', value: 'gte' }
   ];
 
   constructor(
@@ -239,6 +251,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
         this.reviews = processedReviews;
         this.totalRecords = this.reviews.length;
+        this.reviewsCountChange.emit(this.totalRecords);
         this.labels = labels || [];
         this.treeNodes = this.transformReviewsToTreeNodes(processedReviews);
         this.originalTreeNodes = [...this.treeNodes];
@@ -361,6 +374,11 @@ export class STIGManagerReviewsTableComponent implements OnInit {
         value: this.dateFilterValues[field],
         mode: this.dateFilterMode[field] || 'equals'
       };
+    } else if (field.includes('version') && this.versionFilterValues[field]) {
+      this.filters[field] = {
+        value: this.versionFilterValues[field],
+        mode: this.versionFilterMode[field] || 'equals'
+      };
     }
 
     this.applyFilters();
@@ -372,16 +390,29 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       delete this.dateFilterMode[field];
       delete this.dateFilterValues[field];
     }
+    if (field.includes('version')) {
+      delete this.versionFilterMode[field];
+      delete this.versionFilterValues[field];
+    }
+
     this.applyFilters();
+
+    if (Object.keys(this.filters).length === 0) {
+      this.totalRecords = this.reviews.length;
+      this.reviewsCountChange.emit(this.totalRecords);
+    }
   }
 
   clearFilters() {
     this.filters = {};
     this.dateFilterMode = {};
     this.dateFilterValues = {};
+    this.versionFilterMode = {};
+    this.versionFilterValues = {};
     this.treeNodes = [...this.originalTreeNodes];
     this.assetCount = this.originalTreeNodes.length;
     this.totalRecords = this.reviews.length;
+    this.reviewsCountChange.emit(this.totalRecords);
   }
 
   clear() {
@@ -393,12 +424,14 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     if (Object.keys(this.filters).length === 0) {
       this.treeNodes = [...this.originalTreeNodes];
       this.assetCount = this.originalTreeNodes.length;
+      this.reviewsCountChange.emit(this.totalRecords);
       return;
     }
 
     this.treeNodes = this.filterTreeNodes(this.originalTreeNodes);
     this.assetCount = this.treeNodes.length;
     this.totalRecords = this.countAllNodes(this.treeNodes);
+    this.reviewsCountChange.emit(this.totalRecords);
   }
 
   countAllNodes(nodes: TreeNode[]): number {
@@ -484,6 +517,42 @@ export class STIGManagerReviewsTableComponent implements OnInit {
         return nodeDate.setHours(0, 0, 0, 0) === filterValue.setHours(0, 0, 0, 0);
       }
 
+      if (field.includes('version') && typeof filterValue === 'object' && filterValue.value) {
+        const nodeVersion = fieldValue || '';
+        const filterVersionStr = filterValue.value;
+
+        const compareVersions = (v1: string, v2: string): number => {
+          const parts1 = v1.split('.').map(p => parseInt(p, 10) || 0);
+          const parts2 = v2.split('.').map(p => parseInt(p, 10) || 0);
+
+          for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+            const p1 = parts1[i] || 0;
+            const p2 = parts2[i] || 0;
+            if (p1 !== p2) return p1 - p2;
+          }
+          return 0;
+        };
+
+        const comparison = compareVersions(nodeVersion, filterVersionStr);
+
+        switch (filterValue.mode) {
+          case 'equals':
+            return comparison === 0;
+          case 'notEquals':
+            return comparison !== 0;
+          case 'lt':
+            return comparison < 0;
+          case 'lte':
+            return comparison <= 0;
+          case 'gt':
+            return comparison > 0;
+          case 'gte':
+            return comparison >= 0;
+          default:
+            return comparison === 0;
+        }
+      }
+
       if (Array.isArray(filterValue)) {
         if (filterValue.length === 0) return true;
         if (typeof fieldValue === 'string') {
@@ -512,6 +581,25 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     }
 
     return value || '';
+  }
+
+  applyVersionFilter(field: string, event: Event) {
+    if (!this.versionFilterMode[field]) {
+      this.versionFilterMode[field] = 'equals';
+    }
+
+    const inputElement = event.target as HTMLInputElement;
+    const value = inputElement.value;
+
+    this.versionFilterValues[field] = value;
+
+    this.filters[field] = {
+      value: value,
+      mode: this.versionFilterMode[field]
+    };
+
+    this.applyFilters();
+    this.filterPopover.hide();
   }
 
   exportCSV() {

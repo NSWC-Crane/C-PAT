@@ -1388,21 +1388,27 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (!handler) return;
 
     const filterValue = handler(filter);
-    this.tempFilters[config.uiName] = filterValue;
 
-    if (filterValue.operator) {
-      this.onFilterChange({ value: filterValue.value }, config.uiName, true);
-      this.onFilterChange({ value: filterValue.operator }, config.uiName, false, true);
-    } else if (config.handler === 'range' && filterValue.value === 'customRange') {
-      this.onFilterChange({ value: 'customRange' }, config.uiName);
-      this.tempFilters[config.uiName] = {
-        value: 'customRange',
-        min: filterValue.min,
-        max: filterValue.max
-      };
-      this.onRangeValueChange(config.uiName);
-    } else {
+    if (config.handler === 'simpleValue') {
+      this.tempFilters[config.uiName] = filterValue.value;
       this.onFilterChange({ value: filterValue.value }, config.uiName);
+    } else {
+      this.tempFilters[config.uiName] = filterValue;
+
+      if (filterValue.operator) {
+        this.onFilterChange({ value: filterValue.value }, config.uiName, true);
+        this.onFilterChange({ value: filterValue.operator }, config.uiName, false, true);
+      } else if (config.handler === 'range' && filterValue.value === 'customRange') {
+        this.onFilterChange({ value: 'customRange' }, config.uiName);
+        this.tempFilters[config.uiName] = {
+          value: 'customRange',
+          min: filterValue.min,
+          max: filterValue.max
+        };
+        this.onRangeValueChange(config.uiName);
+      } else {
+        this.onFilterChange({ value: filterValue.value }, config.uiName);
+      }
     }
   }
 
@@ -1616,6 +1622,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     if (loadVuln) {
       this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
+      this.selectedPremadeFilter = null;
     }
     this.sidebarVisible = false;
   }
@@ -1623,8 +1630,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   revertFilters() {
     if (this.currentFilterHistoryIndex > 0) {
       this.currentFilterHistoryIndex--;
+      this.selectedPremadeFilter = null;
       this.tempFilters = JSON.parse(JSON.stringify(this.filterHistory[this.currentFilterHistoryIndex]));
-      this.applyFilters(true);
+      this.activeFilters = this.convertTempFiltersToAPI();
+      this.filteredAccordionItems = [...this.accordionItems];
+      this.filterAccordionItems();
+      this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     }
   }
 
@@ -1894,8 +1905,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     const selectedFilter = this.findFilterByValue(event.value);
     if (!selectedFilter) return;
 
-    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
-    this.currentFilterHistoryIndex = this.filterHistory.length - 1;
+    if (this.tempFilters) {
+      this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+      this.currentFilterHistoryIndex = this.filterHistory.length - 1;
+    }
 
     if (event.value.startsWith('saved_')) {
       const savedFilter = typeof selectedFilter.filter === 'string'
@@ -1903,9 +1916,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         : selectedFilter.filter;
 
       if (savedFilter) {
-        this.clearFilters(false);
-        this.tenableTool = savedFilter.tenableTool;
+        this.table.clear();
+        this.tenableTool = savedFilter.tenableTool || 'sumid';
         this.tempFilters = this.initializeTempFilters();
+        this.tempFilters['severity'] = ['1', '2', '3', '4'];
+        this.tempFilters['lastSeen'] = '0:30';
+        this.activeFilters = [];
+        this.filterSearch = '';
 
         if (Array.isArray(savedFilter.filters)) {
           savedFilter.filters.forEach(filter => {
@@ -1915,10 +1932,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           });
         }
 
+        this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+        this.currentFilterHistoryIndex = this.filterHistory.length - 1;
         this.activeFilters = this.convertTempFiltersToAPI();
         this.filteredAccordionItems = [...this.accordionItems];
         this.filterAccordionItems();
-        this.isLoading = true;
         this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
         return;
       }
@@ -1983,6 +2001,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         break;
     }
 
+    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     this.activeFilters = this.convertTempFiltersToAPI();
     this.filteredAccordionItems = [...this.accordionItems];
     this.filterAccordionItems();
@@ -2059,8 +2079,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   loadSavedFilters() {
-    console.log(this.user);
-    console.log(this.accessLevel());
     if (this.selectedCollection) {
       this.importService.getTenableFilters(this.selectedCollection).subscribe({
         next: (filters: TenableFilter[]) => {

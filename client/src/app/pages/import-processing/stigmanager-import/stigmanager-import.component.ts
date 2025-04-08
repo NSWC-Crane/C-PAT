@@ -129,6 +129,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   viewMode: 'summary' | 'findings' = 'summary';
   private subscriptions = new Subscription();
   findingsCount: number = 0;
+  reviewsCount: number = 0;
 
   constructor(
     private router: Router,
@@ -459,6 +460,10 @@ ${ruleData.detail.vulnDiscussion}`;
   filterBenchmarkGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
     this.benchmarksTable.filterGlobal(inputValue, 'contains');
+  }
+
+  onReviewsCountChange(count: number) {
+    this.reviewsCount = count;
   }
 
   clearBenchmarkFilter() {

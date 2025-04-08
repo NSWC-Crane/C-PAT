@@ -15,7 +15,7 @@
         <span *ngIf="viewMode === 'summary'">STIG Manager Benchmarks</span>
         <span *ngIf="viewMode === 'findings'">STIG Manager Findings ({{ findingsCount }})</span>
       </p-tab>
-      <p-tab value="1">STIG Manager Reviews</p-tab>
+      <p-tab value="1">STIG Manager Reviews ({{ reviewsCount }})</p-tab>
     </p-tablist>
     <p-tabpanels>
       <p-tabpanel value="0">
@@ -292,7 +292,9 @@
         </div>
       </p-tabpanel>
       <p-tabpanel value="1" *ngIf="this.stigmanCollection?.collectionId">
-        <cpat-stigmanager-reviews-table [stigmanCollectionId]="this.stigmanCollection?.collectionId"></cpat-stigmanager-reviews-table>
+        <cpat-stigmanager-reviews-table [stigmanCollectionId]="this.stigmanCollection?.collectionId"
+                                        (reviewsCountChange)="onReviewsCountChange($event)">
+        </cpat-stigmanager-reviews-table>
       </p-tabpanel>
     </p-tabpanels>
   </p-tabs>
