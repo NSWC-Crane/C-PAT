@@ -30,9 +30,9 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collect
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM cpat.assetlabels pl
-                INNER JOIN cpat.asset p ON pl.assetId = p.assetId
-                INNER JOIN cpat.label l ON pl.labelId = l.labelId
+                FROM ${config.database.schema}.assetlabels pl
+                INNER JOIN ${config.database.schema}.asset p ON pl.assetId = p.assetId
+                INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
                 WHERE p.collectionId = ?
                 GROUP BY l.labelName;
             `;
@@ -79,9 +79,9 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectio
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM cpat.poamlabels pl
-                INNER JOIN cpat.poam p ON pl.poamId = p.poamId
-                INNER JOIN cpat.label l ON pl.labelId = l.labelId
+                FROM ${config.database.schema}.poamlabels pl
+                INNER JOIN ${config.database.schema}.poam p ON pl.poamId = p.poamId
+                INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
                 WHERE p.collectionId = ?
                 GROUP BY l.labelName;
             `;
@@ -219,9 +219,9 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
 
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM cpat.assetlabels pl
-                INNER JOIN cpat.asset p ON pl.assetId = p.assetId
-                INNER JOIN cpat.label l ON pl.labelId = l.labelId
+                FROM ${config.database.schema}.assetlabels pl
+                INNER JOIN ${config.database.schema}.asset p ON pl.assetId = p.assetId
+                INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
             `;
 
             let params = [];
@@ -229,7 +229,7 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId
-                    FROM cpat.collectionpermissions
+                    FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);
 
@@ -268,7 +268,7 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId
-                    FROM cpat.collectionpermissions
+                    FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);
 
@@ -319,7 +319,7 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
           SELECT collectionId
-          FROM cpat.collectionpermissions
+          FROM ${config.database.schema}.collectionpermissions
           WHERE userId = ? AND accessLevel >= 3
         `, [req.userObject.userId]);
 
@@ -368,9 +368,9 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM cpat.poamlabels pl
-                INNER JOIN cpat.poam p ON pl.poamId = p.poamId
-                INNER JOIN cpat.label l ON pl.labelId = l.labelId
+                FROM ${config.database.schema}.poamlabels pl
+                INNER JOIN ${config.database.schema}.poam p ON pl.poamId = p.poamId
+                INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
             `;
 
             let params = [];
@@ -378,7 +378,7 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId
-                    FROM cpat.collectionpermissions
+                    FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);
 
@@ -417,7 +417,7 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) 
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId
-                    FROM cpat.collectionpermissions
+                    FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);
 
@@ -457,7 +457,7 @@ exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoam
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
           SELECT collectionId
-          FROM cpat.collectionpermissions
+          FROM ${config.database.schema}.collectionpermissions
           WHERE userId = ? AND accessLevel >= 3
         `, [req.userObject.userId]);
 
@@ -506,7 +506,7 @@ exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamSch
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
                     SELECT collectionId
-                    FROM cpat.collectionpermissions
+                    FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
                 `, [req.userObject.userId]);
 

@@ -33,7 +33,7 @@ exports.getAssetsByCollection = async function getAssetsByCollection(req, res, n
             });
         }
         return await withConnection(async (connection) => {
-            const sql = "SELECT * FROM cpat.asset WHERE collectionId = ? ORDER BY assetName;";
+            const sql = `SELECT * FROM ${config.database.schema}.asset WHERE collectionId = ? ORDER BY assetName;`;
             let [rowAssets] = await connection.query(sql, [req.params.collectionId]);
             const assets = rowAssets.map(row => ({
                 "assetId": row.assetId,
@@ -62,7 +62,7 @@ exports.getAsset = async function getAsset(req, res, next) {
     }
     try {
         return await withConnection(async (connection) => {
-            const sql = "SELECT * FROM  cpat.asset WHERE assetId = ?";
+            const sql = `SELECT * FROM  ${config.database.schema}.asset WHERE assetId = ?`;
             let [rowAssets] = await connection.execute(sql, [req.params.assetId]);
             const response = {
                 asset: rowAssets.map(asset => ({
@@ -93,7 +93,7 @@ exports.getAssetByName = async function getAssetByName(req, res, next) {
     }
     try {
         return await withConnection(async (connection) => {
-            const sql = "SELECT * FROM cpat.asset WHERE assetName = ?";
+            const sql = `SELECT * FROM ${config.database.schema}.asset WHERE assetName = ?`;
             let [rowAssets] = await connection.execute(sql, [req.params.assetName]);
             const response = {
                 asset: rowAssets.map(asset => ({
@@ -141,7 +141,7 @@ exports.postAsset = async function postAsset(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                INSERT INTO cpat.asset (assetName, fullyQualifiedDomainName,
+                INSERT INTO ${config.database.schema}.asset (assetName, fullyQualifiedDomainName,
                 collectionId, description, ipAddress, macAddress)
                 VALUES (?, ?, ?, ?, ?, ?)
             `;
@@ -150,13 +150,13 @@ exports.postAsset = async function postAsset(req, res, next) {
                 req.body.collectionId, req.body.description, req.body.ipAddress,
                 req.body.macAddress
             ]);
-            let sql = "SELECT * FROM cpat.asset WHERE assetName = ?";
+            let sql = `SELECT * FROM ${config.database.schema}.asset WHERE assetName = ?`;
             let [rowAsset] = await connection.query(sql, [req.body.assetName]);
             if (req.body.labels) {
                 let labels = req.body.labels;
                 for (let label of labels) {
                     let sql_query = `
-                        INSERT INTO cpat.assetLabels (assetId, labelId)
+                        INSERT INTO ${config.database.schema}.assetLabels (assetId, labelId)
                         VALUES (?, ?)
                     `;
                     await connection.query(sql_query, [rowAsset[0].assetId, label.labelId]);
@@ -208,7 +208,7 @@ exports.putAsset = async function putAsset(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql_query = `
-                UPDATE cpat.asset
+                UPDATE ${config.database.schema}.asset
                 SET assetName = ?, fullyQualifiedDomainName = ?,
                 collectionId = ?, description = ?, ipAddress = ?, macAddress = ?
                 WHERE assetId = ?
@@ -218,7 +218,7 @@ exports.putAsset = async function putAsset(req, res, next) {
                 req.body.collectionId, req.body.description, req.body.ipAddress,
                 req.body.macAddress, req.body.assetId
             ]);
-            let sql = "SELECT * FROM cpat.asset WHERE assetId = ?";
+            let sql = `SELECT * FROM ${config.database.schema}.asset WHERE assetId = ?`;
             let [rowAsset] = await connection.query(sql, [req.body.assetId]);
             const message = {
                 assetId: rowAsset[0].assetId,
@@ -247,7 +247,7 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
     }
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM cpat.asset WHERE assetId = ?";
+            let sql = `DELETE FROM ${config.database.schema}.asset WHERE assetId = ?`;
             await connection.query(sql, [req.params.assetId]);
             return { asset: [] };
         });
@@ -267,13 +267,13 @@ exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, nex
     }
     try {
         await withConnection(async (connection) => {
-            let findAssetSql = "SELECT * FROM cpat.poamassets WHERE poamId = ?";
+            let findAssetSql = `SELECT * FROM ${config.database.schema}.poamassets WHERE poamId = ?`;
             const [rowAssets] = await connection.query(findAssetSql, [req.params.poamId]);
 
             const assetIds = rowAssets.map(asset => asset.assetId);
 
             if (assetIds.length > 0) {
-                let deleteSql = "DELETE FROM cpat.asset WHERE assetId IN (?)";
+                let deleteSql = `DELETE FROM ${config.database.schema}.asset WHERE assetId IN (?)`;
                 await connection.query(deleteSql, [assetIds]);
             }
         });
@@ -293,8 +293,8 @@ exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
                     t.assignedTeamId,
                     t.assignedTeamName,
                     t.adTeam
-                FROM cpat.assetdeltalist a
-                LEFT JOIN cpat.assignedteams t ON
+                FROM ${config.database.schema}.assetdeltalist a
+                LEFT JOIN ${config.database.schema}.assignedteams t ON
                     FIND_IN_SET(TRIM(a.value), REPLACE(t.adTeam, ', ', ',')) > 0
                     OR a.value = t.adTeam
             `;
@@ -347,8 +347,8 @@ exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollec
                     t.assignedTeamId,
                     t.assignedTeamName,
                     t.adTeam
-                FROM cpat.assetdeltalist a
-                LEFT JOIN cpat.assignedteams t ON
+                FROM ${config.database.schema}.assetdeltalist a
+                LEFT JOIN ${config.database.schema}.assignedteams t ON
                     FIND_IN_SET(TRIM(a.value), REPLACE(t.adTeam, ', ', ',')) > 0
                     OR a.value = t.adTeam
                 WHERE a.collectionId = ?

@@ -31,10 +31,10 @@ exports.getAssignedTeams = async function getAssignedTeams(req, res, next) {
                     t.assignedTeamName,
                     t.adTeam,
                     GROUP_CONCAT(CONCAT(p.collectionId, ':', c.collectionName) SEPARATOR ',') as collectionData
-                FROM cpat.assignedteams t
-                LEFT JOIN cpat.assignedteampermissions p
+                FROM ${config.database.schema}.assignedteams t
+                LEFT JOIN ${config.database.schema}.assignedteampermissions p
                     ON t.assignedTeamId = p.assignedTeamId
-                LEFT JOIN cpat.collection c
+                LEFT JOIN ${config.database.schema}.collection c
                     ON p.collectionId = c.collectionId
                 GROUP BY t.assignedTeamId, t.assignedTeamName, t.adTeam
             `;
@@ -77,10 +77,10 @@ exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
                     t.assignedTeamName,
                     t.adTeam,
                     GROUP_CONCAT(CONCAT(p.collectionId, ':', c.collectionName) SEPARATOR ',') as collectionData
-                FROM cpat.assignedteams t
-                LEFT JOIN cpat.assignedteampermissions p
+                FROM ${config.database.schema}.assignedteams t
+                LEFT JOIN ${config.database.schema}.assignedteampermissions p
                     ON t.assignedTeamId = p.assignedTeamId
-                LEFT JOIN cpat.collection c
+                LEFT JOIN ${config.database.schema}.collection c
                     ON p.collectionId = c.collectionId
                 WHERE t.assignedTeamId = ?
                 GROUP BY t.assignedTeamId, t.assignedTeamName, t.adTeam
@@ -120,10 +120,10 @@ exports.postAssignedTeam = async function postAssignedTeam(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.assignedteams (assignedTeamName, adTeam) VALUES (?, ?)`;
+            let sql_query = `INSERT INTO ${config.database.schema}.assignedteams (assignedTeamName, adTeam) VALUES (?, ?)`;
             await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam ]);
 
-            let sql = "SELECT * FROM cpat.assignedteams WHERE assignedTeamName = ?";
+            let sql = `SELECT * FROM ${config.database.schema}.assignedteams WHERE assignedTeamName = ?`;
             let [rowAssignedTeam] = await connection.query(sql, [req.body.assignedTeamName]);
 
             const assignedTeam = {
@@ -157,7 +157,7 @@ exports.putAssignedTeam = async function putAssignedTeam(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE cpat.assignedteams SET assignedTeamName = ?, adTeam = ? WHERE assignedTeamId = ?";
+            let sql_query = `UPDATE ${config.database.schema}.assignedteams SET assignedTeamName = ?, adTeam = ? WHERE assignedTeamId = ?`;
             await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam, req.body.assignedTeamId ]);
 
             const assignedTeam = {
@@ -184,7 +184,7 @@ exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM cpat.assignedteams WHERE assignedTeamId = ?";
+            let sql = `DELETE FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
             await connection.query(sql, [req.params.assignedTeamId]);
 
             return { assignedTeam: [] };
@@ -200,7 +200,7 @@ exports.postAssignedTeamPermission = async function postAssignedTeamPermission(r
             const { assignedTeamId, collectionId } = req.body;
 
             let sql = `
-                INSERT INTO cpat.assignedteampermissions
+                INSERT INTO ${config.database.schema}.assignedteampermissions
                 (assignedTeamId, collectionId)
                 VALUES (?, ?)
             `;
@@ -223,7 +223,7 @@ exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermissi
             const { assignedTeamId, collectionId } = req.params;
 
             let sql = `
-                DELETE FROM cpat.assignedteampermissions
+                DELETE FROM ${config.database.schema}.assignedteampermissions
                 WHERE assignedTeamId = ? AND collectionId = ?
             `;
 

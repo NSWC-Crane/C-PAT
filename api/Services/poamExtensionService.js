@@ -9,6 +9,7 @@
 */
 
 'use strict';
+const config = require('../utils/config');
 const dbUtils = require('./utils');
 
 async function withConnection(callback) {
@@ -28,7 +29,7 @@ function addDays(date, days) {
 
 exports.getPoamExtension = async function (poamId) {
     return withConnection(async (connection) => {
-        let sql = "SELECT poamId, extensionTimeAllowed, extensionJustification, scheduledCompletionDate FROM cpat.poam WHERE poamId = ?";
+        let sql = `SELECT poamId, extensionTimeAllowed, extensionJustification, scheduledCompletionDate FROM ${config.database.schema}.poam WHERE poamId = ?`;
         let [poamExtensions] = await connection.query(sql, [poamId]);
         return poamExtensions;
     });
@@ -37,8 +38,8 @@ exports.getPoamExtension = async function (poamId) {
 exports.putPoamExtension = async function (req, res, next) {
     return withConnection(async (connection) => {
         try {
-            let sql = `UPDATE cpat.poam SET 
-                extensionTimeAllowed = ?, 
+            let sql = `UPDATE ${config.database.schema}.poam SET
+                extensionTimeAllowed = ?,
                 extensionJustification = ?,
                 mitigations = ?,
                 requiredResources = ?,
@@ -65,7 +66,7 @@ exports.putPoamExtension = async function (req, res, next) {
 
                 let action = `POAM Updated. Status: ${req.body.status}`;
                 if (req.body.extensionTimeAllowed > 0) {
-                    let scheduledCompletionDateQuery = `SELECT scheduledCompletionDate FROM cpat.poam WHERE poamId = ?`;
+                    let scheduledCompletionDateQuery = `SELECT scheduledCompletionDate FROM ${config.database.schema}.poam WHERE poamId = ?`;
                     let [[scheduledCompletionDateResult]] = await connection.query(scheduledCompletionDateQuery, [req.body.poamId]);
                     if (scheduledCompletionDateResult) {
                         let scheduledCompletionDate = new Date(scheduledCompletionDateResult.scheduledCompletionDate);
@@ -74,7 +75,7 @@ exports.putPoamExtension = async function (req, res, next) {
                         action += `<br>Extension time requested: ${req.body.extensionTimeAllowed} days<br>Extension Justification: ${req.body.extensionJustification}<br>Deadline with Extension: ${formattedDeadline}`;
                     }
                 }
-                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
             return result;
@@ -86,7 +87,7 @@ exports.putPoamExtension = async function (req, res, next) {
 
 exports.deletePoamExtension = async function ({ poamId }) {
     return withConnection(async (connection) => {
-        let sql = "UPDATE cpat.poam SET extensionTimeAllowed = NULL, extensionJustification = NULL WHERE poamId = ?";
+        let sql = `UPDATE ${config.database.schema}.poam SET extensionTimeAllowed = NULL, extensionJustification = NULL WHERE poamId = ?`;
         await connection.query(sql, [poamId]);
     });
 };

@@ -36,9 +36,9 @@ exports.getPoamLabels = async function getPoamLabels(collectionId) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
-                FROM cpat.poamlabels t1
-                INNER JOIN cpat.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId
+                FROM ${config.database.schema}.poamlabels t1
+                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
                 WHERE t2.collectionId = ?
                 ORDER BY t3.labelName
             `;
@@ -60,16 +60,16 @@ exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
-                FROM cpat.poamlabels t1
-                INNER JOIN cpat.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId
+                FROM ${config.database.schema}.poamlabels t1
+                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
             `;
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(`
-                    SELECT collectionId 
-                    FROM cpat.collectionpermissions
+                    SELECT collectionId
+                    FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 2
                 `, [req.userObject.userId]);
 
@@ -114,9 +114,9 @@ exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
-                FROM cpat.poamlabels t1
-                INNER JOIN cpat.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId
+                FROM ${config.database.schema}.poamlabels t1
+                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
                 WHERE t1.poamId = ?
                 ORDER BY t3.labelName
             `;
@@ -147,9 +147,9 @@ exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
-                FROM cpat.poamlabels t1
-                INNER JOIN cpat.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId
+                FROM ${config.database.schema}.poamlabels t1
+                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
                 WHERE t1.labelId = ?
                 ORDER BY t3.labelName
             `;
@@ -187,9 +187,9 @@ exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
-                FROM cpat.poamlabels t1
-                INNER JOIN cpat.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId
+                FROM ${config.database.schema}.poamlabels t1
+                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
                 WHERE t1.poamId = ? AND t1.labelId = ?
                 ORDER BY t3.labelName
             `;
@@ -221,22 +221,22 @@ exports.postPoamLabel = async function postPoamLabel(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.poamlabels (poamId, labelId) VALUES (?, ?)`;
+            let sql_query = `INSERT INTO ${config.database.schema}.poamlabels (poamId, labelId) VALUES (?, ?)`;
             await connection.query(sql_query, [req.body.poamId, req.body.labelId]);
 
-                let labelSql = "SELECT labelName FROM cpat.label WHERE labelId = ?";
+                let labelSql = `SELECT labelName FROM ${config.database.schema}.label WHERE labelId = ?`;
                 const [label] = await connection.query(labelSql, [req.body.labelId]);
                 const labelName = label[0] ? label[0].labelName : "Unknown Label";
 
                 let action = `"${labelName}" label was added to the POAM.`;
-                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
-                FROM cpat.poamlabels t1
-                INNER JOIN cpat.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN cpat.label t3 ON t1.labelId = t3.labelId
+                FROM ${config.database.schema}.poamlabels t1
+                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
                 WHERE t1.poamId = ? AND t1.labelId = ?
                 ORDER BY t3.labelName
             `;
@@ -247,7 +247,7 @@ exports.postPoamLabel = async function postPoamLabel(req, res, next) {
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             return await withConnection(async (connection) => {
-                let fetchSql = "SELECT * FROM cpat.poamlabels WHERE labelId = ? AND poamId = ?";
+                let fetchSql = `SELECT * FROM ${config.database.schema}.poamlabels WHERE labelId = ? AND poamId = ?`;
                 const [existingLabel] = await connection.query(fetchSql, [req.body.labelId, req.body.poamId]);
                 return existingLabel[0];
             });
@@ -277,15 +277,15 @@ exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM cpat.poamlabels WHERE poamId = ? AND labelId = ?";
+            let sql = `DELETE FROM ${config.database.schema}.poamlabels WHERE poamId = ? AND labelId = ?`;
             await connection.query(sql, [req.params.poamId, req.params.labelId]);
 
-                let labelSql = "SELECT labelName FROM cpat.label WHERE labelId = ?";
+                let labelSql = `SELECT labelName FROM ${config.database.schema}.label WHERE labelId = ?`;
                 const [label] = await connection.query(labelSql, [req.params.labelId]);
                 const labelName = label[0] ? label[0].labelName : "Unknown Label";
 
                 let action = `"${labelName}" label was removed from the POAM.`;
-                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
 
             return {};

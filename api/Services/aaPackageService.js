@@ -25,7 +25,7 @@ async function withConnection(callback) {
 exports.getAAPackages = async function getAAPackages(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM cpat.aapackages;";
+            let sql = `SELECT * FROM ${config.database.schema}.aapackages;`;
             let [rowAAPackage] = await connection.query(sql);
 
             const aaPackages = rowAAPackage.map(row => ({
@@ -52,7 +52,7 @@ exports.getAAPackage = async function getAAPackage(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM cpat.aapackages WHERE aaPackageId = ?";
+            let sql = `SELECT * FROM ${config.database.schema}.aapackages WHERE aaPackageId = ?`;
             let [rowAAPackage] = await connection.query(sql, [req.params.aaPackageId]);
 
             const AAPackage = rowAAPackage.length > 0 ? [rowAAPackage[0]] : [];
@@ -76,10 +76,10 @@ exports.postAAPackage = async function postAAPackage(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.aapackages (aapackage) VALUES (?)`;
+            let sql_query = `INSERT INTO ${config.database.schema}.aapackages (aapackage) VALUES (?)`;
             await connection.query(sql_query, [req.body.aaPackage]);
 
-            let sql = "SELECT * FROM cpat.aapackages WHERE aaPackage = ?";
+            let sql = `SELECT * FROM ${config.database.schema}.aapackages WHERE aaPackage = ?`;
             let [rowAAPackage] = await connection.query(sql, [req.body.aaPackage]);
 
             const AAPackage = {
@@ -112,7 +112,7 @@ exports.putAAPackage = async function putAAPackage(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE cpat.aapackages SET aaPackage = ? WHERE aaPackageId = ?";
+            let sql_query = `UPDATE ${config.database.schema}.aapackages SET aaPackage = ? WHERE aaPackageId = ?`;
             await connection.query(sql_query, [req.body.aaPackage, req.body.aaPackageId]);
 
             const AAPackage = {
@@ -138,7 +138,7 @@ exports.deleteAAPackage = async function deleteAAPackage(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM cpat.aapackages WHERE aaPackageId = ?";
+            let sql = `DELETE FROM ${config.database.schema}.aapackages WHERE aaPackageId = ?`;
             await connection.query(sql, [req.params.aaPackageId]);
 
             return { aaPackage: [] };

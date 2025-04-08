@@ -40,7 +40,7 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
         }
 
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM cpat.poammilestones WHERE poamId = ?;";
+            let sql = `SELECT * FROM ${config.database.schema}.poammilestones WHERE poamId = ?;`;
             let [rows] = await connection.query(sql, [poamId]);
             const poamMilestones = rows.map(row => ({ ...row }));
             return poamMilestones;
@@ -76,7 +76,7 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, req) {
         if (!req.body.milestoneStatus) req.body.milestoneStatus = null;
         if (!req.body.assignedTeamId) req.body.assignedTeamId = null;
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneChangeComments, milestoneChangeDate, milestoneStatus, assignedTeamId) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+            let sql_query = `INSERT INTO ${config.database.schema}.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneChangeComments, milestoneChangeDate, milestoneStatus, assignedTeamId) VALUES (?, ?, ?, ?, ?, ?, ?)`;
             await connection.query(sql_query, [
                 poamId,
                 req.body.milestoneDate,
@@ -87,7 +87,7 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, req) {
                 req.body.assignedTeamId,
             ]);
 
-            let sql = "SELECT * FROM cpat.poamMilestones WHERE poamId = ?";
+            let sql = `SELECT * FROM ${config.database.schema}.poamMilestones WHERE poamId = ?`;
             let [rows] = await connection.query(sql, [poamId]);
 
             const poamMilestone = rows.map(row => ({ ...row }));
@@ -98,7 +98,7 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, req) {
 Milestone Date: ${normalizeDate(req.body.milestoneChangeDate)}<br>
 Milestone Comment: ${req.body.milestoneChangeComments}`;
 
-                let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
             } else {
                     let userId = req.userObject.userId;
@@ -106,7 +106,7 @@ Milestone Comment: ${req.body.milestoneChangeComments}`;
 Milestone Date: ${normalizeDate(req.body.milestoneDate)}<br>
 Milestone Comment: ${req.body.milestoneComments}`;
 
-                    let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                    let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                     await connection.query(logSql, [poamId, action, userId]);
             }
             return poamMilestone;
@@ -150,10 +150,10 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
         if (!req.body.assignedTeamId) req.body.assignedTeamId = null;
 
         return await withConnection(async (connection) => {
-            let getMilestoneSql = "SELECT * FROM cpat.poammilestones WHERE poamId = ? AND milestoneId = ?";
+            let getMilestoneSql = `SELECT * FROM ${config.database.schema}.poammilestones WHERE poamId = ? AND milestoneId = ?`;
             let [existingMilestone] = await connection.query(getMilestoneSql, [poamId, milestoneId]);
 
-            let sql_query = `UPDATE cpat.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneChangeDate = ?, milestoneChangeComments = ?, milestoneStatus = ?, assignedTeamId = ? WHERE poamId = ? AND milestoneId = ?`;
+            let sql_query = `UPDATE ${config.database.schema}.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneChangeDate = ?, milestoneChangeComments = ?, milestoneStatus = ?, assignedTeamId = ? WHERE poamId = ? AND milestoneId = ?`;
             await connection.query(sql_query, [
                 req.body.milestoneDate,
                 req.body.milestoneComments,
@@ -165,7 +165,7 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
                 milestoneId,
             ]);
 
-            sql_query = "SELECT * FROM cpat.poamMilestones WHERE poamId = ?;";
+            sql_query = `SELECT * FROM ${config.database.schema}.poamMilestones WHERE poamId = ?;`;
             let [rows] = await connection.query(sql_query, [poamId]);
 
             const poamMilestone = rows.map(row => ({ ...row }));
@@ -190,7 +190,7 @@ New Milestone Status: ${req.body.milestoneStatus}`);
 
                 let action = actionParts.join("<br>");
 
-                let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
 
             return poamMilestone;
@@ -219,7 +219,7 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
         }
 
         return await withConnection(async (connection) => {
-            let sql = "DELETE FROM cpat.poammilestones WHERE poamId= ? AND milestoneId = ?";
+            let sql = `DELETE FROM ${config.database.schema}.poammilestones WHERE poamId= ? AND milestoneId = ?`;
             await connection.query(sql, [poamId, milestoneId]);
 
             let action = `Milestone Deleted.`;
@@ -229,7 +229,7 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
                 else {
                     action = `POAM milestone deleted.`;
                 }
-                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, req.userObject.userId]);
             return {};
         });

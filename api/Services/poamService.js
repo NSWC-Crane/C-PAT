@@ -42,15 +42,15 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
         return await withConnection(async (connection) => {
             let sql = `
               SELECT p.*, u.fullName AS submitterName
-              FROM cpat.poam p
-              LEFT JOIN cpat.user u ON p.submitterId = u.userId
+              FROM ${config.database.schema}.poam p
+              LEFT JOIN ${config.database.schema}.user u ON p.submitterId = u.userId
             `;
             let params = [];
 
             if (!req.userObject.isAdmin) {
                 const [permissionRows] = await connection.query(`
                   SELECT collectionId
-                  FROM cpat.collectionpermissions
+                  FROM ${config.database.schema}.collectionpermissions
                   WHERE userId = ? AND accessLevel >= 2
                 `, [userId]);
 
@@ -133,8 +133,8 @@ exports.getPoam = async function getPoam(req, res, next) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT T1.*, T2.fullName AS submitterName
-                FROM cpat.poam T1
-                LEFT JOIN cpat.user T2 ON T1.submitterId = T2.userId
+                FROM ${config.database.schema}.poam T1
+                LEFT JOIN ${config.database.schema}.user T2 ON T1.submitterId = T2.userId
                 WHERE poamId = ?;
                 `;
             let [rowPoams] = await connection.query(sql, [req.params.poamId]);
@@ -191,8 +191,8 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
         return await withConnection(async (connection) => {
             let sql = `
             SELECT T1.*, T2.fullName AS submitterName
-            FROM cpat.poam T1
-            LEFT JOIN cpat.user T2 ON T1.submitterId = T2.userId
+            FROM ${config.database.schema}.poam T1
+            LEFT JOIN ${config.database.schema}.user T2 ON T1.submitterId = T2.userId
             WHERE T1.collectionId = ?
             ORDER BY T1.poamId DESC;
             `;
@@ -261,8 +261,8 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
         return await withConnection(async (connection) => {
             let sql = `
             SELECT T1.*, T2.fullName AS submitterName
-            FROM cpat.poam T1
-            LEFT JOIN cpat.user T2 ON T1.submitterId = T2.userId
+            FROM ${config.database.schema}.poam T1
+            LEFT JOIN ${config.database.schema}.user T2 ON T1.submitterId = T2.userId
             WHERE T1.submitterId = ?
             ORDER BY T1.poamId DESC;
             `;
@@ -322,13 +322,13 @@ exports.getPluginIDsWithPoam = async function getPluginIDsWithPoam(req, res, nex
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT poamId, status, vulnerabilityId
-                FROM cpat.poam
+                FROM ${config.database.schema}.poam
                 UNION ALL
                 SELECT p.poamId, 'Associated' as status, p.associatedVulnerability as vulnerabilityId
-                FROM cpat.poamassociatedvulnerabilities p
+                FROM ${config.database.schema}.poamassociatedvulnerabilities p
                 WHERE NOT EXISTS (
                     SELECT 1
-                    FROM cpat.poam
+                    FROM ${config.database.schema}.poam
                     WHERE vulnerabilityId = p.associatedVulnerability
                 )
                 ORDER BY poamId;
@@ -346,14 +346,14 @@ exports.getPluginIDsWithPoamByCollection = async function getPluginIDsWithPoamBy
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT poamId, status, vulnerabilityId
-                FROM cpat.poam
+                FROM ${config.database.schema}.poam
                 WHERE collectionId = ?
 
                 UNION ALL
 
                 SELECT pav.poamId, 'Associated' AS status, pav.associatedVulnerability AS vulnerabilityId
-                FROM cpat.poamassociatedvulnerabilities pav
-                JOIN cpat.poam po ON pav.poamId = po.poamId
+                FROM ${config.database.schema}.poamassociatedvulnerabilities pav
+                JOIN ${config.database.schema}.poam po ON pav.poamId = po.poamId
                 WHERE po.collectionId = ?
 
                 ORDER BY poamId;
@@ -380,7 +380,7 @@ exports.postPoam = async function postPoam(req) {
     req.body.closedDate = req.body.closedDate || null;
     req.body.iavComplyByDate = req.body.iavComplyByDate || null;
 
-    let sql_query = `INSERT INTO cpat.poam (collectionId, vulnerabilitySource, vulnerabilityTitle, stigBenchmarkId, stigCheckData, tenablePluginData,
+    let sql_query = `INSERT INTO ${config.database.schema}.poam (collectionId, vulnerabilitySource, vulnerabilityTitle, stigBenchmarkId, stigCheckData, tenablePluginData,
                     iavmNumber, taskOrderNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate,
                     scheduledCompletionDate, submitterId, officeOrg, predisposingConditions, mitigations, requiredResources, residualRisk,
                     likelihood, localImpact, impactDescription, status, submittedDate, closedDate, isGlobalFinding)
@@ -392,7 +392,7 @@ exports.postPoam = async function postPoam(req) {
 
             try {
                 if (!req.body.officeOrg) {
-                    let userSql = "SELECT officeOrg, fullName, email FROM cpat.user WHERE userId = ?";
+                    let userSql = `SELECT officeOrg, fullName, email FROM ${config.database.schema}.user WHERE userId = ?`;
                     let [userRows] = await connection.query(userSql, [req.body.submitterId]);
 
                     if (userRows.length > 0) {
@@ -407,7 +407,7 @@ exports.postPoam = async function postPoam(req) {
                 req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.localImpact, req.body.impactDescription,
                 req.body.status, req.body.submittedDate, req.body.closedDate, req.body.isGlobalFinding]);
 
-                let sql = "SELECT * FROM cpat.poam WHERE poamId = LAST_INSERT_ID();";
+                let sql = `SELECT * FROM ${config.database.schema}.poam WHERE poamId = LAST_INSERT_ID();`;
                 let [rowPoam] = await connection.query(sql);
                 let poam = rowPoam.map(row => ({
                     ...row,
@@ -426,7 +426,7 @@ exports.postPoam = async function postPoam(req) {
                             await connection.rollback();
                             return { status: 400, errors: { "assignedTeams.assignedTeamId": "is required" } };
                         }
-                        let sql_query = `INSERT INTO cpat.poamassignedTeams (poamId, assignedTeamId, automated) values (?, ?, ?)`;
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamassignedTeams (poamId, assignedTeamId, automated) values (?, ?, ?)`;
                         await connection.query(sql_query, [poam.poamId, team.assignedTeamId, team.automated || false]);
                     }
                 }
@@ -438,7 +438,7 @@ exports.postPoam = async function postPoam(req) {
                             await connection.rollback();
                             return { status: 400, errors: { "approvers.userId": "is required" } };
                         }
-                        let sql_query = `INSERT INTO cpat.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments) values (?, ?, ?, ?, ?)`;
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments) values (?, ?, ?, ?, ?)`;
                         await connection.query(sql_query, [
                             poam.poamId,
                             user.userId,
@@ -453,21 +453,21 @@ exports.postPoam = async function postPoam(req) {
                     let assets = req.body.assets;
                     for (let asset of assets) {
                         if (asset.assetId) {
-                            let sql_query = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                            let sql_query = `INSERT INTO ${config.database.schema}.poamassets (poamId, assetId) VALUES (?, ?)`;
                             await connection.query(sql_query, [poam.poamId, asset.assetId]);
                         } else if (asset.assetName) {
-                            let sql_query_check = `SELECT assetId FROM cpat.asset WHERE assetName = ? AND collectionId = ?`;
+                            let sql_query_check = `SELECT assetId FROM ${config.database.schema}.asset WHERE assetName = ? AND collectionId = ?`;
                             let [existingAsset] = await connection.query(sql_query_check, [asset.assetName, poam.collectionId]);
 
                             if (existingAsset.length > 0) {
                                 let assetId = existingAsset[0].assetId;
-                                let sql_query2 = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                                let sql_query2 = `INSERT INTO ${config.database.schema}.poamassets (poamId, assetId) VALUES (?, ?)`;
                                 await connection.query(sql_query2, [poam.poamId, assetId]);
                             } else {
-                                let sql_query_insert = `INSERT INTO cpat.asset (assetName, collectionId) VALUES (?, ?)`;
+                                let sql_query_insert = `INSERT INTO ${config.database.schema}.asset (assetName, collectionId) VALUES (?, ?)`;
                                 let [rowAsset] = await connection.query(sql_query_insert, [asset.assetName, poam.collectionId]);
                                 let assetId = rowAsset.insertId;
-                                let sql_query_insert_poamasset = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                                let sql_query_insert_poamasset = `INSERT INTO ${config.database.schema}.poamassets (poamId, assetId) VALUES (?, ?)`;
                                 await connection.query(sql_query_insert_poamasset, [poam.poamId, assetId]);
                             }
                         }
@@ -483,7 +483,7 @@ exports.postPoam = async function postPoam(req) {
                     }
 
                     for (let vuln of vulnArray) {
-                        let sql_query = `INSERT INTO cpat.poamassociatedvulnerabilities (poamId, associatedVulnerability) VALUES (?, ?)`;
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamassociatedvulnerabilities (poamId, associatedVulnerability) VALUES (?, ?)`;
                         await connection.query(sql_query, [poam.poamId, vuln]);
                     }
                 }
@@ -494,14 +494,14 @@ exports.postPoam = async function postPoam(req) {
                             await connection.rollback();
                             return { status: 400, errors: { "labels.labelId": "is required" } };
                         }
-                        let sql_query = `INSERT INTO cpat.poamlabels (poamId, labelId) VALUES (?, ?)`;
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamlabels (poamId, labelId) VALUES (?, ?)`;
                         await connection.query(sql_query, [poam.poamId, label.labelId]);
                     }
                 }
 
                 if (req.body.milestones && Array.isArray(req.body.milestones)) {
                     for (let milestone of req.body.milestones) {
-                        let sql_query = `INSERT INTO cpat.poammilestones (
+                        let sql_query = `INSERT INTO ${config.database.schema}.poammilestones (
                             poamId, milestoneDate, milestoneComments, milestoneChangeDate,
                             milestoneChangeComments, milestoneStatus, assignedTeamId
                         ) VALUES (?, ?, ?, ?, ?, ?, ?)`;
@@ -525,7 +525,7 @@ exports.postPoam = async function postPoam(req) {
                             return { status: 400, errors: { "teamMitigations.assignedTeamId": "is required" } };
                         }
 
-                        let sql_query = `INSERT INTO cpat.poamteammitigations
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamteammitigations
                             (poamId, assignedTeamId, mitigationText, isActive)
                             VALUES (?, ?, ?, ?)`;
 
@@ -539,7 +539,7 @@ exports.postPoam = async function postPoam(req) {
                 }
 
                 let action = `POAM Created. POAM Status: ${req.body.status}.`;
-                let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poam.poamId, action, req.userObject.userId]);
 
                 await connection.commit();
@@ -605,7 +605,7 @@ exports.putPoam = async function putPoam(req, res, next) {
             await connection.beginTransaction();
 
             try {
-                const [existingPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.body.poamId]);
+                const [existingPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.body.poamId]);
                 const existingPoam = existingPoamRow[0];
 
                 if (!existingPoam) {
@@ -622,7 +622,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                 };
 
                 if (!req.body.officeOrg) {
-                    let userSql = "SELECT officeOrg, fullName, email FROM cpat.user WHERE userId = ?";
+                    let userSql = `SELECT officeOrg, fullName, email FROM ${config.database.schema}.user WHERE userId = ?`;
                     let [userRows] = await connection.query(userSql, [req.body.submitterId]);
 
                     if (userRows.length > 0) {
@@ -631,7 +631,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                     }
                 }
 
-                const sqlInsertPoam = `UPDATE cpat.poam SET collectionId = ?, vulnerabilitySource = ?, vulnerabilityTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
+                const sqlInsertPoam = `UPDATE ${config.database.schema}.poam SET collectionId = ?, vulnerabilitySource = ?, vulnerabilityTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
                           tenablePluginData = ?, iavmNumber = ?, taskOrderNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
                           iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
                           residualRisk = ?, likelihood = ?, localImpact = ?, impactDescription = ?, status = ?, submittedDate = ?, closedDate = ?, officeOrg = ?, isGlobalFinding = ? WHERE poamId = ?`;
@@ -644,7 +644,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                     req.body.status, req.body.submittedDate, req.body.closedDate, req.body.officeOrg, req.body.isGlobalFinding, req.body.poamId
                 ]);
 
-                const [updatedPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.body.poamId]);
+                const [updatedPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.body.poamId]);
                 const updatedPoam = updatedPoamRow.map(row => ({
                     ...row,
                     scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
@@ -664,31 +664,31 @@ exports.putPoam = async function putPoam(req, res, next) {
                 });
                 const modifiedFieldFullNames = modifiedFields.map(field => fieldNameMap[field] || field);
                 let action = `POAM Updated. POAM Status: ${req.body.status}, Severity: ${req.body.adjSeverity ? req.body.adjSeverity : req.body.rawSeverity}.<br> ${(modifiedFields.length > 0) ? "Fields modified: " + modifiedFieldFullNames.join(', ') + "." : "No POAM fields modified."}`;
-                let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, req.userObject.userId]);
 
                 if (req.body.assets) {
-                    let sqlDeletePoamAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?";
+                    let sqlDeletePoamAssets = `DELETE FROM ${config.database.schema}.poamassets WHERE poamId = ?`;
                     await connection.query(sqlDeletePoamAssets, [req.body.poamId]);
 
                     let assets = req.body.assets;
                     for (let asset of assets) {
                         if (asset.assetId) {
-                            let sql_query = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                            let sql_query = `INSERT INTO ${config.database.schema}.poamassets (poamId, assetId) VALUES (?, ?)`;
                             await connection.query(sql_query, [updatedPoam.poamId, asset.assetId]);
                         } else if (asset.assetName) {
-                            let sql_query_check = `SELECT assetId FROM cpat.asset WHERE assetName = ? AND collectionId = ?`;
+                            let sql_query_check = `SELECT assetId FROM ${config.database.schema}.asset WHERE assetName = ? AND collectionId = ?`;
                             let [existingAsset] = await connection.query(sql_query_check, [asset.assetName, updatedPoam.collectionId]);
 
                             if (existingAsset.length > 0) {
                                 let assetId = existingAsset[0].assetId;
-                                let sql_query2 = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                                let sql_query2 = `INSERT INTO ${config.database.schema}.poamassets (poamId, assetId) VALUES (?, ?)`;
                                 await connection.query(sql_query2, [updatedPoam.poamId, assetId]);
                             } else {
-                                let sql_query_insert = `INSERT INTO cpat.asset (assetName, collectionId) VALUES (?, ?)`;
+                                let sql_query_insert = `INSERT INTO ${config.database.schema}.asset (assetName, collectionId) VALUES (?, ?)`;
                                 let [rowAsset] = await connection.query(sql_query_insert, [asset.assetName, updatedPoam.collectionId]);
                                 let assetId = rowAsset.insertId;
-                                let sql_query_insert_poamasset = `INSERT INTO cpat.poamassets (poamId, assetId) VALUES (?, ?)`;
+                                let sql_query_insert_poamasset = `INSERT INTO ${config.database.schema}.poamassets (poamId, assetId) VALUES (?, ?)`;
                                 await connection.query(sql_query_insert_poamasset, [updatedPoam.poamId, assetId]);
                             }
                         }
@@ -696,7 +696,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                 }
 
                 if (req.body.approvers) {
-                    let sqlDeletePoamApprovers = "DELETE FROM cpat.poamapprovers WHERE poamId = ?";
+                    let sqlDeletePoamApprovers = `DELETE FROM ${config.database.schema}.poamapprovers WHERE poamId = ?`;
                     await connection.query(sqlDeletePoamApprovers, [req.body.poamId]);
 
                     let approvers = req.body.approvers;
@@ -706,7 +706,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                             return { status: 400, errors: { "approvers.userId": "is required" } };
                         }
 
-                        let sql_query = `INSERT INTO cpat.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments)
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments)
                                          VALUES (?, ?, ?, ?, ?)`;
                         await connection.query(sql_query, [
                             updatedPoam.poamId,
@@ -719,7 +719,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                 }
 
                 if (req.body.assignedTeams) {
-                    let sqlDeletePoamAssignedTeams = "DELETE FROM cpat.poamassignedteams WHERE poamId = ?";
+                    let sqlDeletePoamAssignedTeams = `DELETE FROM ${config.database.schema}.poamassignedteams WHERE poamId = ?`;
                     await connection.query(sqlDeletePoamAssignedTeams, [req.body.poamId]);
 
                     let assignedTeams = req.body.assignedTeams;
@@ -729,7 +729,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                             return { status: 400, errors: { "assignedTeams.assignedTeamId": "is required" } };
                         }
 
-                        let sql_query = `INSERT INTO cpat.poamassignedteams (poamId, assignedTeamId, automated)
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamassignedteams (poamId, assignedTeamId, automated)
                                          VALUES (?, ?, ?)`;
                         await connection.query(sql_query, [
                             updatedPoam.poamId,
@@ -740,7 +740,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                 }
 
                 if (req.body.associatedVulnerabilities !== undefined) {
-                    let sqlDeleteAssociatedVulns = "DELETE FROM cpat.poamassociatedvulnerabilities WHERE poamId = ?";
+                    let sqlDeleteAssociatedVulns = `DELETE FROM ${config.database.schema}.poamassociatedvulnerabilities WHERE poamId = ?`;
                     await connection.query(sqlDeleteAssociatedVulns, [req.body.poamId]);
 
                     let vulnArray = [];
@@ -751,13 +751,13 @@ exports.putPoam = async function putPoam(req, res, next) {
                     }
 
                     for (let vuln of vulnArray) {
-                        let sql_query = `INSERT INTO cpat.poamassociatedvulnerabilities (poamId, associatedVulnerability) VALUES (?, ?)`;
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamassociatedvulnerabilities (poamId, associatedVulnerability) VALUES (?, ?)`;
                         await connection.query(sql_query, [updatedPoam.poamId, vuln]);
                     }
                 }
 
                 if (req.body.labels && Array.isArray(req.body.labels)) {
-                    let sqlDeleteLabels = "DELETE FROM cpat.poamlabels WHERE poamId = ?";
+                    let sqlDeleteLabels = `DELETE FROM ${config.database.schema}.poamlabels WHERE poamId = ?`;
                     await connection.query(sqlDeleteLabels, [req.body.poamId]);
 
                     for (let label of req.body.labels) {
@@ -766,17 +766,17 @@ exports.putPoam = async function putPoam(req, res, next) {
                             return { status: 400, errors: { "labels.labelId": "is required" } };
                         }
 
-                        let sql_query = `INSERT INTO cpat.poamlabels (poamId, labelId) VALUES (?, ?)`;
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamlabels (poamId, labelId) VALUES (?, ?)`;
                         await connection.query(sql_query, [updatedPoam.poamId, label.labelId]);
                     }
                 }
 
                 if (req.body.milestones && Array.isArray(req.body.milestones)) {
-                    let sqlDeleteMilestones = "DELETE FROM cpat.poammilestones WHERE poamId = ?";
+                    let sqlDeleteMilestones = `DELETE FROM ${config.database.schema}.poammilestones WHERE poamId = ?`;
                     await connection.query(sqlDeleteMilestones, [req.body.poamId]);
 
                     for (let milestone of req.body.milestones) {
-                        let sql_query = `INSERT INTO cpat.poammilestones (
+                        let sql_query = `INSERT INTO ${config.database.schema}.poammilestones (
                             poamId, milestoneDate, milestoneComments, milestoneChangeDate,
                             milestoneChangeComments, milestoneStatus, assignedTeamId
                         ) VALUES (?, ?, ?, ?, ?, ?, ?)`;
@@ -794,7 +794,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                 }
 
                 if (req.body.teamMitigations && Array.isArray(req.body.teamMitigations)) {
-                    let sqlDeleteTeamMitigations = "DELETE FROM cpat.poamteammitigations WHERE poamId = ?";
+                    let sqlDeleteTeamMitigations = `DELETE FROM ${config.database.schema}.poamteammitigations WHERE poamId = ?`;
                     await connection.query(sqlDeleteTeamMitigations, [req.body.poamId]);
 
                     for (let mitigation of req.body.teamMitigations) {
@@ -803,7 +803,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                             return { status: 400, errors: { "teamMitigations.assignedTeamId": "is required" } };
                         }
 
-                        let sql_query = `INSERT INTO cpat.poamteammitigations
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamteammitigations
                             (poamId, assignedTeamId, mitigationText, isActive)
                             VALUES (?, ?, ?, ?)`;
 
@@ -819,8 +819,8 @@ exports.putPoam = async function putPoam(req, res, next) {
                 if (req.body.status === 'Submitted') {
                     let sql = `
                         SELECT pa.userId
-                        FROM cpat.poamapprovers pa
-                        JOIN cpat.collectionpermissions cp ON pa.userId = cp.userId
+                        FROM ${config.database.schema}.poamapprovers pa
+                        JOIN ${config.database.schema}.collectionpermissions cp ON pa.userId = cp.userId
                         WHERE pa.poamId = ? AND cp.accessLevel = 3
                     `;
 
@@ -834,7 +834,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                             userId: approver.userId
                         };
 
-                        const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                        const notificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
                         await connection.query(notificationSql, [approver.userId, notification.title, notification.message]);
                     });
 
@@ -872,16 +872,16 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
 
         try {
             return await withConnection(async (connection) => {
-                const [existingPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.params.poamId]);
+                const [existingPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.params.poamId]);
 
                 if (existingPoamRow.length === 0) {
                     return res.status(404).json({ errors: 'POAM not found' });
                 }
 
-                const sqlUpdatePoam = `UPDATE cpat.poam SET status = ? WHERE poamId = ?`;
+                const sqlUpdatePoam = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
                 await connection.query(sqlUpdatePoam, [req.body.status, req.params.poamId]);
 
-                const [updatedPoamRow] = await connection.query("SELECT * FROM cpat.poam WHERE poamId = ?", [req.params.poamId]);
+                const [updatedPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.params.poamId]);
 
                 const updatedPoam = updatedPoamRow.map(row => ({
                     ...row,
@@ -895,14 +895,14 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
 
                     let poamId = req.params.poamId;
                     let action = `POAM Status Updated. POAM Status: ${req.body.status}.`;
-                    let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                    let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
 
                     await connection.query(logSql, [poamId, action, req.userObject.userId]).catch(error => {
                         next(error);
                     });
 
                 if (req.body.status === 'Submitted') {
-                    let sql = "SELECT * FROM cpat.poamapprovers WHERE poamId = ?";
+                    let sql = `SELECT * FROM ${config.database.schema}.poamapprovers WHERE poamId = ?`;
                     let [rows] = await connection.query(sql, [req.params.poamId]);
 
                     const poamApprovers = rows.map(row => ({ ...row }));
@@ -914,7 +914,7 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
                             userId: approver.userId
                         };
 
-                        const notificationSql = `INSERT INTO cpat.notification (userId, title, message) VALUES (?, ?, ?)`;
+                        const notificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
                         await connection.query(notificationSql, [approver.userId, notification.title, notification.message]);
                     });
 
@@ -942,8 +942,8 @@ exports.deletePoam = async function deletePoam(req) {
         return await withConnection(async (connection) => {
             let validatePermissionsSql = `
                 SELECT cp.accessLevel
-                FROM cpat.collectionpermissions cp
-                JOIN cpat.poam p ON cp.collectionId = p.collectionId
+                FROM ${config.database.schema}.collectionpermissions cp
+                JOIN ${config.database.schema}.poam p ON cp.collectionId = p.collectionId
                 WHERE cp.userId = ? AND p.poamId = ?
             `;
 
@@ -960,10 +960,10 @@ exports.deletePoam = async function deletePoam(req) {
 
             await connection.beginTransaction();
             try {
-                let sqlDeleteAssets = "DELETE FROM cpat.poamassets WHERE poamId = ?";
+                let sqlDeleteAssets = `DELETE FROM ${config.database.schema}.poamassets WHERE poamId = ?`;
                 await connection.query(sqlDeleteAssets, [req.params.poamId]);
 
-                let sqlDeletePoam = "DELETE FROM cpat.poam WHERE poamId = ?";
+                let sqlDeletePoam = `DELETE FROM ${config.database.schema}.poam WHERE poamId = ?`;
                 await connection.query(sqlDeletePoam, [req.params.poamId]);
 
                 await connection.commit();

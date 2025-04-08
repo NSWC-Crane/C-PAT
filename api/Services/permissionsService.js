@@ -34,8 +34,8 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
 
     try {
         const permissions = await withConnection(async (connection) => {
-            let sql = "SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email FROM cpat.collectionpermissions T1 " +
-                "INNER JOIN cpat.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;"
+            let sql = `SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email FROM ${config.database.schema}.collectionpermissions T1
+                       INNER JOIN ${config.database.schema}.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;`
 
             let [rowPermissions] = await connection.query(sql, req.params.collectionId);
             return rowPermissions.map(permission => ({
@@ -82,7 +82,7 @@ exports.postPermission = async function postPermission(userId, elevate, req) {
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-                let sql_query = "INSERT INTO cpat.collectionpermissions (accessLevel, userId, collectionId) VALUES (?, ?, ?);";
+                let sql_query = `INSERT INTO ${config.database.schema}.collectionpermissions (accessLevel, userId, collectionId) VALUES (?, ?, ?);`;
                 await connection.query(sql_query, [req.body.accessLevel, req.body.userId, req.body.collectionId]);
 
                 const message = {
@@ -99,7 +99,7 @@ exports.postPermission = async function postPermission(userId, elevate, req) {
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             return await withConnection(async (connection) => {
-                let fetchSql = "SELECT * FROM cpat.collectionpermissions WHERE userId = ? AND collectionId = ?";
+                let fetchSql = `SELECT * FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`;
                 const [existingPermission] = await connection.query(fetchSql, [req.body.userId, req.body.collectionId]);
                 return existingPermission[0];
             });
@@ -142,7 +142,7 @@ exports.putPermission = async function putPermission(userId, elevate, req) {
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-                let sql_query = "UPDATE cpat.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;";
+                let sql_query = `UPDATE ${config.database.schema}.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;`;
                 await connection.query(sql_query, [req.body.newCollectionId, req.body.accessLevel, req.body.userId, req.body.oldCollectionId]);
 
                 const message = {
@@ -184,7 +184,7 @@ exports.deletePermission = async function deletePermission(userId, elevate, req)
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-                let sql = "DELETE FROM  cpat.collectionpermissions WHERE userId = ? AND collectionId = ?";
+                let sql = `DELETE FROM  ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`;
                 await connection.query(sql, [req.params.userId, req.params.collectionId]);
 
                 return {

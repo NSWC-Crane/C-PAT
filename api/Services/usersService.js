@@ -28,10 +28,10 @@ exports.getUsers = async function getUsers(elevate, req) {
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-                const allUsersSql = "SELECT * FROM cpat.user";
+                const allUsersSql = `SELECT * FROM ${config.database.schema}.user`;
                 const [allUsersRows] = await connection.query(allUsersSql);
                 const users = await Promise.all(allUsersRows.map(async (user) => {
-                    const permissionsSql = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
+                    const permissionsSql = `SELECT * FROM ${config.database.schema}.collectionpermissions WHERE userId = ?`;
                     const [permissionRows] = await connection.query(permissionsSql, [user.userId]);
                     const permissions = permissionRows.map(permission => ({
                         userId: permission.userId,
@@ -39,7 +39,7 @@ exports.getUsers = async function getUsers(elevate, req) {
                         accessLevel: permission.accessLevel,
                     }));
 
-                    const assignedTeamSql = "SELECT * FROM cpat.userassignedteams WHERE userId = ?";
+                    const assignedTeamSql = `SELECT * FROM ${config.database.schema}.userassignedteams WHERE userId = ?`;
                     const [assignedTeamsRows] = await connection.query(assignedTeamSql, [user.userId]);
                     const assignedTeams = assignedTeamsRows.map(assignedTeam => ({
                         assignedTeamId: assignedTeam.assignedTeamId,
@@ -87,7 +87,7 @@ exports.getUsers = async function getUsers(elevate, req) {
 exports.getCurrentUser = async function getCurrentUser(req) {
     try {
         return await withConnection(async (connection) => {
-            const sqlUser = "SELECT * FROM user WHERE userId = ?";
+            const sqlUser = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
             const [userRows] = await connection.query(sqlUser, [req.userObject.userId]);
 
             if (userRows.length === 0) {
@@ -96,7 +96,7 @@ exports.getCurrentUser = async function getCurrentUser(req) {
 
             const user = userRows[0];
 
-            const sqlPermissions = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
+            const sqlPermissions = `SELECT * FROM ${config.database.schema}.collectionpermissions WHERE userId = ?`;
             const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
 
             const permissions = permissionRows.map(permission => ({
@@ -105,7 +105,7 @@ exports.getCurrentUser = async function getCurrentUser(req) {
                 accessLevel: permission.accessLevel,
             }));
 
-            const assignedTeamSql = "SELECT * FROM cpat.userassignedteams WHERE userId = ?";
+            const assignedTeamSql = `SELECT * FROM ${config.database.schema}.userassignedteams WHERE userId = ?`;
             const [assignedTeamsRows] = await connection.query(assignedTeamSql, [user.userId]);
             const assignedTeams = assignedTeamsRows.map(assignedTeam => ({
                 assignedTeamId: assignedTeam.assignedTeamId,
@@ -150,7 +150,7 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-                let sql = "SELECT * FROM user WHERE userId = ?";
+                let sql = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
                 const [userQueryRows] = await connection.query(sql, [req.params.userId]);
 
                 if (userQueryRows.length === 0) {
@@ -159,7 +159,7 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
 
                 const user = userQueryRows[0];
 
-                const sqlPermissions = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
+                const sqlPermissions = `SELECT * FROM ${config.database.schema}.collectionpermissions WHERE userId = ?`;
                 const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
 
                 const permissions = permissionRows.map(permission => ({
@@ -168,7 +168,7 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
                     accessLevel: permission.accessLevel,
                 }));
 
-                const assignedTeamSql = "SELECT * FROM cpat.userassignedteams WHERE userId = ?";
+                const assignedTeamSql = `SELECT * FROM ${config.database.schema}.userassignedteams WHERE userId = ?`;
                 const [assignedTeamsRows] = await connection.query(assignedTeamSql, [user.userId]);
                 const assignedTeams = assignedTeamsRows.map(assignedTeam => ({
                     assignedTeamId: assignedTeam.assignedTeamId,
@@ -214,14 +214,14 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
 exports.getUserByUserName = async function getUserByUserName(userName) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM user WHERE userName = ?";
+            let sql = `SELECT * FROM ${config.database.schema}.user WHERE userName = ?`;
             const [userRows] = await connection.query(sql, [userName]);
             if (userRows.length === 0) {
                 return userRows[0];
             }
 
             const user = userRows[0];
-            const sqlPermissions = "SELECT * FROM cpat.collectionpermissions WHERE userId = ?";
+            const sqlPermissions = `SELECT * FROM ${config.database.schema}.collectionpermissions WHERE userId = ?`;
             const [permissionRows] = await connection.query(sqlPermissions, [user.userId]);
 
             const permissions = permissionRows.map(permission => ({
@@ -285,7 +285,7 @@ exports.updateUser = async function updateUser(userId, elevate, req) {
                 req.body.userId
             ]);
 
-            sql = "SELECT * FROM user WHERE userId = ?";
+                sql = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
             let [updatedUser] = await connection.query(sql, [req.body.userId]);
 
             return updatedUser[0];
@@ -415,7 +415,7 @@ exports.setUserData = async function setUserData(userObject, fields, newUser) {
                 updateColumns.push('lastClaims = VALUES(lastClaims)')
                 binds.push(JSON.stringify(fields.lastClaims))
             }
-            let sqlUpsert = `INSERT INTO cpat.user (
+            let sqlUpsert = `INSERT INTO ${config.database.schema}.user (
     ${insertColumns.join(',\n')}
   ) VALUES ? ON DUPLICATE KEY UPDATE
     ${updateColumns.join(',\n')}`

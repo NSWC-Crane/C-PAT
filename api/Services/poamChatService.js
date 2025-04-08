@@ -37,8 +37,8 @@ exports.getMessagesByPoamId = async function getMessagesByPoamId(req, res, next)
             let sql = `
                 SELECT pc.messageId, pc.userId, pc.poamId, pc.text, pc.createdAt,
                        u.firstName, u.lastName, u.userName
-                FROM cpat.poamchat pc
-                JOIN cpat.user u ON pc.userId = u.userId
+                FROM ${config.database.schema}.poamchat pc
+                JOIN ${config.database.schema}.user u ON pc.userId = u.userId
                 WHERE pc.poamId = ?
                 ORDER BY pc.createdAt ASC
             `;
@@ -83,7 +83,7 @@ exports.createMessage = async function createMessage(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let checkSql = 'SELECT 1 FROM cpat.poam WHERE poamId = ?';
+            let checkSql = `SELECT 1 FROM ${config.database.schema}.poam WHERE poamId = ?`;
             let [checkRows] = await connection.query(checkSql, [req.params.poamId]);
 
             if (checkRows.length === 0) {
@@ -96,7 +96,7 @@ exports.createMessage = async function createMessage(req, res, next) {
             }
 
             let sql = `
-                INSERT INTO cpat.poamchat (userId, poamId, text, createdAt)
+                INSERT INTO ${config.database.schema}.poamchat (userId, poamId, text, createdAt)
                 VALUES (?, ?, ?, NOW())
             `;
 
@@ -110,8 +110,8 @@ exports.createMessage = async function createMessage(req, res, next) {
                 let selectSql = `
                     SELECT pc.messageId, pc.userId, pc.poamId, pc.text, pc.createdAt,
                            u.firstName, u.lastName, u.userName
-                    FROM cpat.poamchat pc
-                    JOIN cpat.user u ON pc.userId = u.userId
+                    FROM ${config.database.schema}.poamchat pc
+                    JOIN ${config.database.schema}.user u ON pc.userId = u.userId
                     WHERE pc.messageId = ?
                 `;
                 let [messages] = await connection.query(selectSql, [result.insertId]);
@@ -157,7 +157,7 @@ exports.deleteMessage = async function deleteMessage(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let checkSql = 'SELECT userId FROM cpat.poamchat WHERE messageId = ?';
+            let checkSql = `SELECT userId FROM ${config.database.schema}.poamchat WHERE messageId = ?`;
             let [checkRows] = await connection.query(checkSql, [req.params.messageId]);
 
             if (checkRows.length === 0) {
@@ -178,7 +178,7 @@ exports.deleteMessage = async function deleteMessage(req, res, next) {
                 });
             }
 
-            let sql = 'DELETE FROM cpat.poamchat WHERE messageId = ?';
+            let sql = `DELETE FROM ${config.database.schema}.poamchat WHERE messageId = ?`;
             let [result] = await connection.query(sql, [req.params.messageId]);
 
             if (result.affectedRows === 1) {

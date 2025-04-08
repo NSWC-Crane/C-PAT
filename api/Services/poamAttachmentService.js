@@ -9,6 +9,7 @@
 */
 
 'use strict';
+const config = require('../utils/config');
 const dbUtils = require('./utils');
 const SmError = require('../utils/error');
 const crypto = require('crypto');
@@ -38,7 +39,7 @@ exports.getPoamAttachmentsByPoamId = async function (req, res, next) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy
-                FROM cpat.poamattachments
+                FROM ${config.database.schema}.poamattachments
                 WHERE poamId = ?
             `;
             let [rowPoamAttachments] = await connection.query(sql, [req.params.poamId]);
@@ -72,7 +73,7 @@ exports.downloadPoamAttachment = async function (req, res, next) {
         return await withConnection(async (connection) => {
             let sql = `
                 SELECT filename, fileSize, mimeType, fileContent
-                FROM cpat.poamattachments
+                FROM ${config.database.schema}.poamattachments
                 WHERE poamId = ? AND attachmentId = ?
             `;
             let [[attachment]] = await connection.query(sql, [req.params.poamId, req.params.attachmentId]);
@@ -212,7 +213,7 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
         return await withConnection(async (connection) => {
             const fileHash = validationResult.hash;
 
-            let sql = `INSERT INTO cpat.poamattachments
+            let sql = `INSERT INTO ${config.database.schema}.poamattachments
                 (poamId, filename, fileSize, mimeType, uploadedBy, fileContent, fileHash)
                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
@@ -228,12 +229,12 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
 
             if (result.insertId) {
                 let fetchSql = `SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy
-                                FROM cpat.poamattachments
+                                FROM ${config.database.schema}.poamattachments
                                 WHERE attachmentId = ?`;
                 let [[newAttachment]] = await connection.query(fetchSql, [result.insertId]);
 
                 let action = `File "${file.originalname}" was attached to POAM.`;
-                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [req.body.poamId, action, userId]);
 
                 return newAttachment;
@@ -258,19 +259,19 @@ exports.deletePoamAttachment = async function (req, res, next, userId) {
 
     try {
         return await withConnection(async (connection) => {
-            let fetchSql = "SELECT filename FROM cpat.poamattachments WHERE attachmentId = ? AND poamId = ?";
+            let fetchSql = `SELECT filename FROM ${config.database.schema}.poamattachments WHERE attachmentId = ? AND poamId = ?`;
             let [[attachment]] = await connection.query(fetchSql, [req.params.attachmentId, req.params.poamId]);
 
             if (!attachment) {
                 return { error: 'Attachment not found' };
             }
 
-            let sql = "DELETE FROM cpat.poamattachments WHERE attachmentId = ? AND poamId = ?";
+            let sql = `DELETE FROM ${config.database.schema}.poamattachments WHERE attachmentId = ? AND poamId = ?`;
             await connection.query(sql, [req.params.attachmentId, req.params.poamId]);
 
             if (userId) {
                 let action = `File "${attachment.filename}" was removed from POAM.`;
-                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [req.params.poamId, action, userId]);
             }
             return { message: 'Attachment deleted successfully' };

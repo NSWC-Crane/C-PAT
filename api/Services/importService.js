@@ -758,13 +758,13 @@ async function processCSVAssetList(file, collectionId) {
                         const result = await withConnection(async (connection) => {
                             await connection.beginTransaction();
                             try {
-                                await connection.query('DELETE FROM assetdeltalist WHERE collectionId = ?', [collectionId]);
+                                await connection.query(`DELETE FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [collectionId]);
 
                                 if (assetData.length > 0) {
                                     const placeholders = assetData.map(() => '(?, ?, ?, FALSE)').join(',');
                                     const values = assetData.flatMap(asset => [asset.key, asset.value, collectionId]);
                                     await connection.query(
-                                        `INSERT INTO assetdeltalist (\`key\`, \`value\`, \`collectionId\`, \`eMASS\`) VALUES ${placeholders}`,
+                                        `INSERT INTO ${config.database.schema}.assetdeltalist (\`key\`, \`value\`, \`collectionId\`, \`eMASS\`) VALUES ${placeholders}`,
                                         values
                                     );
                                 }
@@ -828,7 +828,7 @@ async function processRegularAssetList(worksheet, collectionId) {
             await connection.beginTransaction();
 
             try {
-                await connection.query('DELETE FROM assetdeltalist WHERE collectionId = ?', [collectionId]);
+                await connection.query(`DELETE FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [collectionId]);
 
                 if (assetData.length > 0) {
                     const placeholders = assetData.map(() => '(?, ?, ?, FALSE)').join(',');
