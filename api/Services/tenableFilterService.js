@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -34,7 +34,7 @@ exports.getTenableFilters = async function getTenableFilters(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM cpat.tenablefilters WHERE collectionId = ? ORDER BY filterName;";
+            let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE collectionId = ? ORDER BY filterName;`;
             let [rowTenableFilters] = await connection.query(sql, [req.params.collectionId]);
 
             const tenableFilters = rowTenableFilters.map(row => ({
@@ -71,7 +71,7 @@ exports.getTenableFilter = async function getTenableFilter(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT * FROM cpat.tenablefilters WHERE filterId = ? AND collectionId = ?";
+            let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE filterId = ? AND collectionId = ?`;
             let [rowTenableFilter] = await connection.query(sql, [req.params.filterId, req.params.collectionId]);
 
             const tenableFilter = rowTenableFilter.length > 0 ? [rowTenableFilter[0]] : [];
@@ -109,10 +109,10 @@ exports.postTenableFilter = async function postTenableFilter(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.tenablefilters (filterName, filter, collectionId, createdBy) VALUES (?, ?, ?, ?)`;
+            let sql_query = `INSERT INTO ${config.database.schema}.tenablefilters (filterName, filter, collectionId, createdBy) VALUES (?, ?, ?, ?)`;
             await connection.query(sql_query, [req.body.filterName, req.body.filter, req.params.collectionId, req.userObject.userName]);
 
-            let sql = "SELECT * FROM cpat.tenablefilters WHERE filterName = ? AND collectionId = ?";
+            let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE filterName = ? AND collectionId = ?`;
             let [rowTenableFilter] = await connection.query(sql, [req.body.filterName, req.params.collectionId]);
 
             const message = {
@@ -162,7 +162,7 @@ exports.putTenableFilter = async function putTenableFilter(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE cpat.tenablefilters SET filterName = ?, filter = ? WHERE filterId = ? AND collectionId = ?";
+            let sql_query = `UPDATE ${config.database.schema}.tenablefilters SET filterName = ?, filter = ? WHERE filterId = ? AND collectionId = ?`;
             await connection.query(sql_query, [req.body.filterName, req.body.filter, req.body.filterId, req.params.collectionId]);
 
             const message = {
@@ -197,7 +197,7 @@ exports.deleteTenableFilter = async function deleteTenableFilter(req) {
 
     try {
         await withConnection(async (connection) => {
-            const sql = "DELETE FROM cpat.tenablefilters WHERE filterId = ? AND collectionId = ?";
+            const sql = `DELETE FROM ${config.database.schema}.tenablefilters WHERE filterId = ? AND collectionId = ?`;
             await connection.query(sql, [tenableFilterId, collectionId]);
         });
     } catch (error) {

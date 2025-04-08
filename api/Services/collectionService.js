@@ -31,7 +31,7 @@ exports.getCollections = async function getCollections(elevate, req) {
                 const user = {
                     collections: []
                 }
-                    let sql2 = "SELECT * FROM collection;"
+                let sql2 = `SELECT * FROM ${config.database.schema}.collection;`
                     let [row2] = await connection.query(sql2)
                     const size = Object.keys(row2).length
                     for (let counter = 0; counter < size; counter++) {
@@ -71,7 +71,7 @@ exports.getCollections = async function getCollections(elevate, req) {
 exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            const sql = "SELECT collectionId, collectionName, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions FROM collection";
+            const sql = `SELECT collectionId, collectionName, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions FROM ${config.database.schema}.collection`;
             const [rows] = await connection.query(sql);
             return rows;
         });
@@ -101,9 +101,9 @@ exports.postCollection = async function postCollection(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO cpat.collection (collectionName, description, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) `
+            let sql_query = `INSERT INTO ${config.database.schema}.collection (collectionName, description, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) `
             await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.collectionOrigin, req.body.originCollectionId, req.body.systemType, req.body.systemName, req.body.ccsafa, req.body.aaPackage, req.body.predisposingConditions])
-            let sql = "SELECT * FROM cpat.collection WHERE collectionId = LAST_INSERT_ID();"
+            let sql = `SELECT * FROM ${config.database.schema}.collection WHERE collectionId = LAST_INSERT_ID();`
             let [rowCollection] = await connection.query(sql)
 
             const collection = rowCollection[0]
@@ -133,7 +133,7 @@ exports.putCollection = async function putCollection(req, res, next) {
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = "UPDATE cpat.collection SET collectionName = ?, description = ?, systemType = ?, systemName = ?, ccsafa = ?, aaPackage = ?, predisposingConditions = ? WHERE collectionId = ?";
+            let sql_query = `UPDATE ${config.database.schema}.collection SET collectionName = ?, description = ?, systemType = ?, systemName = ?, ccsafa = ?, aaPackage = ?, predisposingConditions = ? WHERE collectionId = ?`;
             await connection.query(sql_query, [
                 req.body.collectionName,
                 req.body.description,

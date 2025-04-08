@@ -80,7 +80,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   @ViewChild('ms') multiSelect!: MultiSelect;
   readonly filters: { [key: string]: FilterMetadata[] } = {
     supersededBy: [{ value: 'N/A', matchMode: 'contains', operator: 'and' }],
-    severity: [{ value: 'Info', matchMode: 'notContains', operator: 'and' }],
+    severity: [{ value: ['Low', 'Medium', 'High', 'Critical'], matchMode: 'in', operator: 'and' }]
   };
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -106,6 +106,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
   private subscriptions = new Subscription();
+  selectedSeverities: string[] = ['Low', 'Medium', 'High', 'Critical'];
+
   constructor(
     private importService: ImportService,
     private sanitizer: DomSanitizer,
@@ -115,7 +117,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     private sharedService: SharedService,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.subscriptions.add(
@@ -132,10 +134,11 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
           this.initColumnsAndFilters();
           this.loadPoamAssociations();
-            this.getIAVPluginIDs();
+          this.getIAVPluginIDs();
           setTimeout(() => {
             if (this.table) {
               this.table.filters = { ...this.filters };
+              this.selectedSeverities = ['Low', 'Medium', 'High', 'Critical'];
               this.table._filter();
             }
           });
@@ -202,7 +205,14 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       {
         field: 'severity',
         header: 'Severity',
-        filterType: 'text',
+        filterType: 'multi',
+        filterOptions: [
+          { label: 'Info', value: 'Info' },
+          { label: 'Low', value: 'Low' },
+          { label: 'Medium', value: 'Medium' },
+          { label: 'High', value: 'High' },
+          { label: 'Critical', value: 'Critical' },
+        ],
       },
       {
         field: 'vprScore',
@@ -548,26 +558,26 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   private processPluginData() {
-  this.formattedDescription = this.pluginData.description
-    ? this.sanitizer.bypassSecurityTrustHtml(
+    this.formattedDescription = this.pluginData.description
+      ? this.sanitizer.bypassSecurityTrustHtml(
         this.pluginData.description.replace(/\n\n/g, '<br>')
       )
-    : '';
+      : '';
 
-  if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
-    this.parseReferences(this.pluginData.xrefs);
-  } else {
-    this.cveReferences = [];
-    this.iavReferences = [];
-    this.otherReferences = [];
-  }
+    if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
+      this.parseReferences(this.pluginData.xrefs);
+    } else {
+      this.cveReferences = [];
+      this.iavReferences = [];
+      this.otherReferences = [];
+    }
 
-  if (Array.isArray(this.pluginData.vprContext)) {
-    this.parseVprContext(this.pluginData.vprContext);
-  } else {
-    this.parsedVprContext = [];
+    if (Array.isArray(this.pluginData.vprContext)) {
+      this.parseVprContext(this.pluginData.vprContext);
+    } else {
+      this.parsedVprContext = [];
+    }
   }
-}
 
   async onPoamIconClick(vulnerability: any, event: Event) {
     event.stopPropagation();
@@ -773,17 +783,17 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   clear() {
     this.table.clear();
+    this.selectedSeverities = ['Low', 'Medium', 'High', 'Critical'];
     this.filters['supersededBy'] = [{ value: 'N/A', matchMode: 'contains', operator: 'and' }];
-    this.filters['severity'] = [{ value: 'Info', matchMode: 'notContains', operator: 'and' }];
+    this.filters['severity'] = [{ value: ['Low', 'Medium', 'High', 'Critical'], matchMode: 'in', operator: 'and' }];
 
     if (this.table) {
-      this.table.filters['navyComplyDate'] = [];
       this.table.filters = { ...this.filters };
-      this.table._filter();
-      this.table.filterGlobal(null, 'contains');
       this.totalRecords = this.IAVVulnerabilities.length;
       this.totalRecordsChange.emit(this.totalRecords);
     }
+
+    this.cdr.detectChanges();
     this.filterValue = '';
     this.selectedNavyComplyDateFilter = null;
     this.loadVulnSummary();
@@ -845,6 +855,15 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
       const filteredValue = this.table.filteredValue || [];
       this.totalRecords = filteredValue.length;
       this.totalRecordsChange.emit(this.totalRecords);
+
+      const severityFilter: any = this.table.filters['severity'][0];
+      if (severityFilter) {
+        if (!severityFilter.value || (Array.isArray(severityFilter.value) && severityFilter.value.length < 1)) {
+          this.selectedSeverities = [];
+        } else if ((Array.isArray(severityFilter.value) && severityFilter.value.length >= 1)) {
+          this.selectedSeverities = severityFilter.value;
+        }
+      }
     }
   }
 

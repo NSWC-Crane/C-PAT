@@ -21,6 +21,16 @@ import { AssignedTeamService } from "../../../admin-processing/assignedTeam-proc
 import { AssetService } from "../../../asset-processing/assets.service";
 import { PoamVariableMappingService } from "./poam-variable-mapping.service";
 
+interface UserCollectionPermission {
+  userId: number;
+  collectionId?: number;
+  accessLevel: number;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  email?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -170,6 +180,8 @@ ${pluginData.description || ''}`,
             userId: approver.userId,
             approvalStatus: 'Not Reviewed',
             comments: '',
+            approvedDate: null,
+            isNew: false
           })) : []
       };
 
@@ -227,11 +239,15 @@ ${pluginData.description || ''}`,
             ? users.filter((user: Permission) => user.accessLevel >= 3)
             : [];
 
-          const poamApprovers = collectionApprovers.map((approver: any) => ({
-            userId: approver.userId,
-            approvalStatus: 'Not Reviewed',
-            comments: ''
-          }));
+          const poamApprovers = Array.isArray(collectionApprovers)
+            ? collectionApprovers.map((approver: UserCollectionPermission) => ({
+              userId: approver.userId,
+              approvalStatus: 'Not Reviewed',
+              comments: '',
+              approvedDate: null,
+              isNew: false
+            }))
+            : [];
 
           this.sharedService.getSTIGsFromSTIGMAN().subscribe({
             next: data => {
@@ -337,11 +353,15 @@ ${pluginData.description || ''}`,
             ? users.filter((user: Permission) => user.accessLevel >= 3)
             : [];
 
-          const poamApprovers = collectionApprovers.map((approver: any) => ({
-            userId: approver.userId,
-            approvalStatus: 'Not Reviewed',
-            comments: ''
-          }));
+          const poamApprovers = Array.isArray(collectionApprovers)
+            ? collectionApprovers.map((approver: UserCollectionPermission) => ({
+              userId: approver.userId,
+              approvalStatus: 'Not Reviewed',
+              comments: '',
+              approvedDate: null,
+              isNew: false
+            }))
+            : [];
 
           this.sharedService.getSTIGsFromSTIGMAN().subscribe({
             next: data => {

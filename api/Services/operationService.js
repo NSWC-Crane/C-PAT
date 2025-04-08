@@ -70,10 +70,10 @@ exports.deleteConfigurationItem = async function (key) {
 exports.getAppInfo = async function () {
     const schema = 'cpat-appinfo-v0.9'
     const sqlUserInfo = `
-  select 
+  select
     ud.userId,
     ud.username,
-    ud.created, 
+    ud.created,
     ud.lastAccess,
     coalesce(
       JSON_EXTRACT(ud.lastClaims, "$.${config.oauth.claims.privilegesPath}"),
@@ -85,9 +85,9 @@ exports.getAppInfo = async function () {
 		  "Approver", sum(case when cg.accessLevel = 3 then 1 else 0 end),
       "CAT-I Approver", sum(case when cg.accessLevel = 4 then 1 else 0 end)
 	  ) as roles
-  from 
-    user ud
-    left join collectionpermissions cg using (userId)
+  from
+    ${config.database.schema}.user ud
+    left join ${config.database.schema}.collectionpermissions cg using (userId)
   group by
 	  ud.userId
   `
@@ -137,12 +137,12 @@ exports.getAppInfo = async function () {
         'long_query_time'
     ]
     const sqlMySqlVariablesValues = `
-  SELECT 
+  SELECT
     variable_name,
     variable_value as value
-    FROM 
+    FROM
     performance_schema.global_variables
-  WHERE 
+  WHERE
     variable_name IN (${mySqlVariablesOnly.map(v => `'${v}'`).join(',')})
     ORDER by variable_name
   `
@@ -173,12 +173,12 @@ exports.getAppInfo = async function () {
         'Uptime'
     ]
     const sqlMySqlStatusValues = `
-  SELECT 
+  SELECT
     variable_name,
     variable_value as value
-  FROM 
+  FROM
     performance_schema.global_status
-  WHERE 
+  WHERE
     variable_name IN (
         ${mySqlStatusOnly.map(v => `'${v}'`).join(',')}
     )
@@ -202,7 +202,7 @@ exports.getAppInfo = async function () {
         dbUtils.pool.query(sqlUserInfo),
         dbUtils.pool.query(sqlMySqlVersion),
         dbUtils.pool.query(sqlMySqlVariablesValues),
-        dbUtils.pool.query(sqlMySqlStatusValues),        
+        dbUtils.pool.query(sqlMySqlStatusValues),
         Promise.all(rowCountQueries)
     ])
 

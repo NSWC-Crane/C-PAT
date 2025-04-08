@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -34,8 +34,8 @@ exports.getTeamAssignments = async function getTeamAssignments(req, res, next) {
 
     try {
         const assignedTeams = await withConnection(async (connection) => {
-            let sql = "SELECT T1.*, T2.fullName, T2.userName, T2.email FROM cpat.userassignedteams T1 " +
-                "INNER JOIN cpat.user T2 ON t1.userId = t2.userId WHERE assignedTeamId = ?;"
+            let sql = `SELECT T1.*, T2.fullName, T2.userName, T2.email FROM ${config.database.schema}.userassignedteams T1
+                       INNER JOIN ${config.database.schema}.user T2 ON t1.userId = t2.userId WHERE assignedTeamId = ?;`;
 
             let [rowAssignedTeams] = await connection.query(sql, req.params.assignedTeamId);
             return rowAssignedTeams.map(assignedTeam => ({
@@ -82,7 +82,7 @@ exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, 
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-                let sql_query = "INSERT INTO cpat.userassignedteams (accessLevel, userId, assignedTeamId) VALUES (?, ?, ?);";
+                let sql_query = `INSERT INTO ${config.database.schema}.userassignedteams (accessLevel, userId, assignedTeamId) VALUES (?, ?, ?);`;
                 await connection.query(sql_query, [req.body.accessLevel, req.body.userId, req.body.assignedTeamId]);
 
                 const message = {
@@ -99,7 +99,7 @@ exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, 
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             return await withConnection(async (connection) => {
-                let fetchSql = "SELECT * FROM cpat.userassignedteams WHERE userId = ? AND assignedTeamId = ?";
+                let fetchSql = `SELECT * FROM ${config.database.schema}.userassignedteams WHERE userId = ? AND assignedTeamId = ?`;
                 const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.userId, req.body.assignedTeamId]);
                 return existingAssignedTeam[0];
             });
@@ -142,7 +142,7 @@ exports.putTeamAssignment = async function putTeamAssignment(userId, elevate, re
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-                let sql_query = "UPDATE cpat.userassignedteams SET assignedTeamId = ?, accessLevel = ? WHERE userId = ? AND assignedTeamId = ?;";
+                let sql_query = `UPDATE ${config.database.schema}.userassignedteams SET assignedTeamId = ?, accessLevel = ? WHERE userId = ? AND assignedTeamId = ?;`;
                 await connection.query(sql_query, [req.body.newAssignedTeamId, req.body.accessLevel, req.body.userId, req.body.oldAssignedTeamId]);
 
                 const message = {
@@ -184,7 +184,7 @@ exports.deleteTeamAssignment = async function deleteTeamAssignment(userId, eleva
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-                let sql = "DELETE FROM  cpat.userassignedteams WHERE userId = ? AND assignedTeamId = ?";
+                let sql = `DELETE FROM  ${config.database.schema}.userassignedteams WHERE userId = ? AND assignedTeamId = ?`;
                 await connection.query(sql, [req.params.userId, req.params.assignedTeamId]);
 
                 return {

@@ -37,8 +37,8 @@ exports.getPoamLogByPoamId = async function getPoamLogByPoamId(poamId) {
         return await withConnection(async (connection) => {
             const sql = `
         SELECT pl.timestamp, pl.action, u.fullName
-        FROM cpat.poamlogs pl
-        JOIN cpat.user u ON pl.userId = u.userId
+        FROM ${config.database.schema}.poamlogs pl
+        JOIN ${config.database.schema}.user u ON pl.userId = u.userId
         WHERE pl.poamId = ?
       `;
             const [rows] = await connection.query(sql, [poamId]);

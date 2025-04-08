@@ -26,9 +26,9 @@ exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
     return await withConnection(async (connection) => {
         let sql = `
             SELECT t1.assignedTeamId, t2.assignedTeamName, t1.automated, t1.poamId, t3.status
-            FROM cpat.poamassignedteams t1
-            INNER JOIN cpat.assignedteams t2 ON t1.assignedTeamId = t2.assignedTeamId
-            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
+            FROM ${config.database.schema}.poamassignedteams t1
+            INNER JOIN ${config.database.schema}.assignedteams t2 ON t1.assignedTeamId = t2.assignedTeamId
+            INNER JOIN ${config.database.schema}.poam t3 ON t1.poamId = t3.poamId
             ORDER BY t2.assignedTeamName
         `;
         let [rowPoamAssignedTeams] = await connection.query(sql);
@@ -50,22 +50,22 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
     return await withConnection(async (connection) => {
         let sql = `
             SELECT t1.assignedTeamId, t1.automated, t1.poamId, t2.assignedTeamName, t3.status, t3.isGlobalFinding
-            FROM cpat.poamassignedteams t1
-            INNER JOIN cpat.assignedteams t2 ON t1.assignedTeamId = t2.assignedTeamId
-            INNER JOIN cpat.poam t3 ON t1.poamId = t3.poamId
+            FROM ${config.database.schema}.poamassignedteams t1
+            INNER JOIN ${config.database.schema}.assignedteams t2 ON t1.assignedTeamId = t2.assignedTeamId
+            INNER JOIN ${config.database.schema}.poam t3 ON t1.poamId = t3.poamId
             WHERE t1.poamId = ?
             ORDER BY t2.assignedTeamName
         `;
         let [rowPoamAssignedTeams] = await connection.query(sql, [poamId]);
         let mitigationSql = `
             SELECT assignedTeamId, mitigationText, isActive
-            FROM cpat.poamteammitigations
+            FROM ${config.database.schema}.poamteammitigations
             WHERE poamId = ?
         `;
         let [mitigations] = await connection.query(mitigationSql, [poamId]);
         let milestoneSql = `
             SELECT assignedTeamId, milestoneComments
-            FROM cpat.poammilestones
+            FROM ${config.database.schema}.poammilestones
             WHERE poamId = ? AND assignedTeamId IS NOT NULL
         `;
         let [milestones] = await connection.query(milestoneSql, [poamId]);
@@ -121,25 +121,25 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
 
     return await withConnection(async (connection) => {
         try {
-            let fetchSql = "SELECT poamId, assignedTeamId, automated FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
+            let fetchSql = `SELECT poamId, assignedTeamId, automated FROM ${config.database.schema}.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?`;
             const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
 
             if (existingAssignedTeam.length > 0) {
                 return existingAssignedTeam[0];
             }
 
-            let addSql = "INSERT INTO cpat.poamassignedteams (poamId, assignedTeamId, automated) VALUES (?, ?, ?)";
+            let addSql = `INSERT INTO ${config.database.schema}.poamassignedteams (poamId, assignedTeamId, automated) VALUES (?, ?, ?)`;
             await connection.query(addSql, [req.body.poamId, req.body.assignedTeamId, req.body.automated ? req.body.automated : false ]);
 
-            let assignedTeamSql = "SELECT assignedTeamName FROM cpat.assignedteams WHERE assignedTeamId = ?";
+            let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
             const [team] = await connection.query(assignedTeamSql, [req.body.assignedTeamId]);
             const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
 
                 let action = `${teamName} was added to the Assigned Team List.`;
-                let logSql = "INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)";
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
             await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
-            let fetchNewSql = "SELECT poamId, assignedTeamId, automated FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
+            let fetchNewSql = `SELECT poamId, assignedTeamId, automated FROM ${config.database.schema}.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?`;
             const [newAssignedTeam] = await connection.query(fetchNewSql, [req.body.assignedTeamId, req.body.poamId]);
 
             if (newAssignedTeam.length > 0) {
@@ -152,7 +152,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY') {
                 return await withConnection(async (connection) => {
-                    let fetchSql = "SELECT poamId, assignedTeamId, automated FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
+                    let fetchSql = `SELECT poamId, assignedTeamId, automated FROM ${config.database.schema}.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?`;
                     const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
 
                     const result = { ...existingAssignedTeamexistingAssignedTeam[0] };
@@ -176,15 +176,15 @@ exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req, res,
     }
 
     await withConnection(async (connection) => {
-        let assignedTeamSql = "SELECT assignedTeamName FROM cpat.assignedteams WHERE assignedTeamId = ?";
+        let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
         const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
         const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
 
-        let sql = "DELETE FROM cpat.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?";
+        let sql = `DELETE FROM ${config.database.schema}.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?`;
         await connection.query(sql, [req.params.assignedTeamId, req.params.poamId]);
 
             let action = `${teamName} was removed from the Assigned Team List.`;
-        let logSql = `INSERT INTO cpat.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+        let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
             await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
     });
 };

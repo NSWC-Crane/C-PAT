@@ -91,7 +91,10 @@
           <ng-template pTemplate="header">
             <tr>
               <th *ngFor="let col of selectedColumns" [ttSortableColumn]="col.field" ttResizableColumn scope="col">
-                {{col.header}}
+                <span [pTooltip]="col.header === 'Evaluated' ? 'Last Ran' : null"
+                      tooltipPosition="top">
+                  {{col.header}}
+                </span>
                 <button *ngIf="col.filterable"
                         pButton
                         severity="secondary"
@@ -227,6 +230,25 @@
                           (onClick)="$event.stopPropagation()"
                           dateFormat="mm/dd/yy">
             </p-datepicker>
+          </ng-container>
+          <ng-container *ngSwitchCase="'resultEngine.version'">
+            <div class="mb-2">
+              <p-select class="w-full"
+                        [options]="versionFilterOptions"
+                        [(ngModel)]="versionFilterMode[currentFilterColumn.field]"
+                        (onClick)="$event.stopPropagation()"
+                        placeholder="Select comparison"
+                        appendTo="body">
+              </p-select>
+            </div>
+            <div class="p-input-icon-right w-full">
+              <input pInputText
+                     type="text"
+                     [(ngModel)]="versionFilterValues[currentFilterColumn.field]"
+                     placeholder="Enter version (e.g., 24.2.1)"
+                     class="w-full"
+                     (change)="applyVersionFilter(currentFilterColumn.field, $event)">
+            </div>
           </ng-container>
           <ng-container *ngSwitchDefault>
             <div class="p-input-icon-right w-full">

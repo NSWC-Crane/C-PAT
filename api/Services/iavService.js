@@ -28,7 +28,7 @@ async function withConnection(callback) {
 exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT value FROM cpat.config WHERE config.key = 'vramUpdate';";
+            let sql = `SELECT value FROM ${config.database.schema}.config WHERE config.key = 'vramUpdate';`;
             let [vramUpdate] = await connection.query(sql);
             const vramUpdateDate = vramUpdate[0];
             return vramUpdateDate;
@@ -43,8 +43,8 @@ exports.getIAVTableData = async function getIAVTableData(req, res, next) {
         return await withConnection(async (connection) => {
             let sql = `
     SELECT i.*, GROUP_CONCAT(ip.pluginID) as pluginID
-    FROM cpat.iav i
-    LEFT JOIN cpat.iav_plugin ip ON i.iav = ip.iav
+    FROM ${config.database.schema}.iav i
+    LEFT JOIN ${config.database.schema}.iav_plugin ip ON i.iav = ip.iav
     GROUP BY i.iav
 `;
             let [tableData] = await connection.query(sql);
@@ -94,10 +94,10 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
                 }, {});
 
                 for (const [iav, pluginIDs] of Object.entries(iavGroups)) {
-                    await connection.query("DELETE FROM iav_plugin WHERE iav = ?", [iav]);
+                    await connection.query(`DELETE FROM ${config.database.schema}.iav_plugin WHERE iav = ?`, [iav]);
                     const values = Array.from(pluginIDs).map(pluginID => [iav, pluginID]);
                     if (values.length > 0) {
-                        await connection.query("INSERT INTO iav_plugin (iav, pluginID) VALUES ?", [values]);
+                        await connection.query(`INSERT INTO ${config.database.schema}.iav_plugin (iav, pluginID) VALUES ?`, [values]);
                     }
                     updatedCount++;
                 }
@@ -138,7 +138,7 @@ function validatePluginID(pluginID) {
 exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            let sql = `SELECT DISTINCT pluginID FROM cpat.iav_plugin`;
+            let sql = `SELECT DISTINCT pluginID FROM ${config.database.schema}.iav_plugin`;
             let [pluginIDs] = await connection.query(sql);
 
             const uniquePluginIDs = [...new Set(pluginIDs.map(row => row.pluginID))];
@@ -173,8 +173,8 @@ exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
         return await withConnection(async (connection) => {
             const sql = `
                 SELECT ip.pluginID, i.iav, i.navyComplyDate, i.supersededBy
-                FROM cpat.iav_plugin ip
-                JOIN cpat.iav i ON ip.iav = i.iav
+                FROM ${config.database.schema}.iav_plugin ip
+                JOIN ${config.database.schema}.iav i ON ip.iav = i.iav
                 WHERE ip.pluginID IN (?)
                 ORDER BY ip.pluginID, i.navyComplyDate DESC
             `;

@@ -27,7 +27,7 @@ async function withConnection(callback) {
 exports.getAllThemes = async function getAllThemes() {
     try {
         return await withConnection(async (connection) => {
-            const sql = `SELECT * FROM themes`;
+            const sql = `SELECT * FROM ${config.database.schema}.themes`;
             const [rows] = await connection.query(sql);
             return rows;
         });
@@ -39,14 +39,14 @@ exports.getAllThemes = async function getAllThemes() {
 exports.purchaseTheme = async function purchaseTheme(userId, themeId) {
     try {
         return await withConnection(async (connection) => {
-            const userQuery = `SELECT points FROM user WHERE userId = ?`;
+            const userQuery = `SELECT points FROM ${config.database.schema}.user WHERE userId = ?`;
             const [userRows] = await connection.query(userQuery, [userId]);
             if (userRows.length === 0) {
                 return { success: false, message: 'User not found' };
             }
             const userPoints = userRows[0].points;
 
-            const themeQuery = `SELECT cost FROM themes WHERE themeId = ?`;
+            const themeQuery = `SELECT cost FROM ${config.database.schema}.themes WHERE themeId = ?`;
             const [themeRows] = await connection.query(themeQuery, [themeId]);
             if (themeRows.length === 0) {
                 return { success: false, message: 'Theme not found' };
@@ -57,10 +57,10 @@ exports.purchaseTheme = async function purchaseTheme(userId, themeId) {
                 return { success: false, message: 'Not enough points' };
             }
 
-            const deductPointsQuery = `UPDATE user SET points = points - ? WHERE userId = ?`;
+            const deductPointsQuery = `UPDATE ${config.database.schema}.user SET points = points - ? WHERE userId = ?`;
             await connection.query(deductPointsQuery, [themeCost, userId]);
 
-            const purchaseQuery = `INSERT INTO marketplace (themeId, userId) VALUES (?, ?)`;
+            const purchaseQuery = `INSERT INTO ${config.database.schema}.marketplace (themeId, userId) VALUES (?, ?)`;
             await connection.query(purchaseQuery, [themeId, userId]);
 
             return { success: true, message: 'Theme purchased successfully' };
@@ -73,8 +73,8 @@ exports.purchaseTheme = async function purchaseTheme(userId, themeId) {
 exports.getUserThemes = async function getUserThemes(userId) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `SELECT themes.* FROM themes 
-                         JOIN marketplace ON themes.themeId = marketplace.themeId 
+            const sql = `SELECT themes.* FROM ${config.database.schema}.themes
+                         JOIN ${config.database.schema}.marketplace ON themes.themeId = marketplace.themeId
                          WHERE marketplace.userId = ?`;
             const [rows] = await connection.query(sql, [userId]);
             return rows;
@@ -87,7 +87,7 @@ exports.getUserThemes = async function getUserThemes(userId) {
 exports.getUserPoints = async function getUserPoints(userId) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `SELECT userId, points FROM user WHERE userId = ?`;
+            const sql = `SELECT userId, points FROM ${config.database.schema}.user WHERE userId = ?`;
             const [row] = await connection.query(sql, [userId]);
             return row[0];
         });

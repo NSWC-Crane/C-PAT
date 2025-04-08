@@ -25,7 +25,7 @@ async function withConnection(callback) {
 exports.getADTeamsList = async function getADTeamsList(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT DISTINCT value FROM cpat.assetdeltalist ORDER BY value;"
+            let sql = `SELECT DISTINCT value FROM ${config.database.schema}.assetdeltalist ORDER BY value;`
             let [rowADTeams] = await connection.query(sql);
             return rowADTeams.map(row => row.value);
         });
