@@ -94,8 +94,8 @@
   ::ng-deep .p-listbox {
     border: none;
     padding: 0;
-    background-color: var(--p-surface-900);
-    border-bottom: 1px solid var(--p-surface-950);
+    background-color: var(--card-background);
+    border-bottom: 1px solid var(--ground-background);
     &:last-child {
       border-bottom: none;
     }

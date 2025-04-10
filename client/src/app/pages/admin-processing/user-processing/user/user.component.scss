@@ -92,7 +92,7 @@
   }
 
   .p-dialog {
-    background-color: var(--p-surface-950);
+    background-color: var(--ground-background);
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 90vw;
@@ -105,7 +105,7 @@
     }
 
     .p-dialog-content {
-      background-color: var(--p-surface-950);
+      background-color: var(--ground-background);
       color: var(--p-text-color);
       padding: 0 1.5rem 1.5rem;
 

@@ -50,13 +50,13 @@
         a {
           border: none;
           border-radius: 0;
-          border-bottom: 1px solid var(--p-surface-700);
+          border-bottom: 1px solid var(--border-color);
         }
       }
 
       .p-accordion-content {
         border: none;
-        border-bottom: 1px solid var(--p-surface-700);
+        border-bottom: 1px solid var(--border-color);
         padding: 1rem;
       }
 
@@ -169,7 +169,7 @@
 
 .filter-panel {
   border-radius: 10px;
-  background-color: var(--p-surface-900);
+  background-color: var(--card-background);
   width: 300px;
   height: 100%;
   display: flex;
@@ -191,7 +191,7 @@
 
   .filter-header {
     padding: 1rem;
-    border-bottom: 1px solid var(--p-surface-700);
+    border-bottom: 1px solid var(--border-color);
   }
 
   .filter-content {
@@ -202,8 +202,8 @@
 
   .filter-footer {
     border-radius: 0 0 10px 10px;
-    background-color: var(--p-surface-900);
-    border-top: 1px solid var(--p-surface-700);
+    background-color: var(--card-background);
+    border-top: 1px solid var(--border-color);
   }
 
   ::ng-deep {
