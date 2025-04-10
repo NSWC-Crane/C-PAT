@@ -50,7 +50,7 @@ exports.getIAVTableData = async function getIAVTableData(req, res, next) {
             let [tableData] = await connection.query(sql);
             let nessusPluginsMapped = null;
             if (tableData.length > 0) {
-                const [nessusPluginsUpdated] = await connection.query('SELECT `value` FROM config WHERE `key` = ?', ['nessusPluginsMapped']);
+                const [nessusPluginsUpdated] = await connection.query(`SELECT \`value\` FROM ${config.database.schema}.config WHERE \`key\` = ?`, ['nessusPluginsMapped']);
                 nessusPluginsMapped = nessusPluginsUpdated.length > 0 ? nessusPluginsUpdated[0].value : null;
             }
 
@@ -72,7 +72,7 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
             let ignoredCount = 0;
             await connection.beginTransaction();
             try {
-                const [existingIAVs] = await connection.query("SELECT iav FROM iav");
+                const [existingIAVs] = await connection.query(`SELECT iav FROM ${config.database.schema}.iav`);
                 const existingIAVSet = new Set(existingIAVs.map(row => row.iav));
 
                 const iavGroups = mappedData.reduce((acc, { iav, pluginID }) => {
@@ -106,7 +106,7 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
 
                 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
                 await connection.query(
-                    'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
+                    `INSERT INTO ${config.database.schema}.config (\`key\`, \`value\`) VALUES (?, ?) ON DUPLICATE KEY UPDATE \`value\` = ?`,
                     ['nessusPluginsMapped', formattedDate, formattedDate]
                 );
 

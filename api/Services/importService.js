@@ -681,11 +681,11 @@ async function processEMassHardwareList(workbook, collectionId) {
             await connection.beginTransaction();
 
             try {
-                await connection.query('UPDATE assetdeltalist SET eMASS = FALSE WHERE collectionId = ?', [collectionId]);
+                await connection.query(`UPDATE ${config.database.schema}.assetdeltalist SET eMASS = FALSE WHERE collectionId = ?`, [collectionId]);
 
                 if (assetNames.length > 0) {
                     const [allAssets] = await connection.query(
-                        'SELECT `key` FROM assetdeltalist WHERE collectionId = ?',
+                        `SELECT \`key\` FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`,
                         [collectionId]
                     );
                     const existingLowercaseKeys = allAssets.map(row => row.key.toLowerCase());
@@ -697,7 +697,7 @@ async function processEMassHardwareList(workbook, collectionId) {
                     if (matchingAssets.length > 0) {
                         for (const lowercaseName of matchingAssets) {
                             await connection.query(
-                                'UPDATE assetdeltalist SET eMASS = TRUE WHERE LOWER(`key`) = ? AND collectionId = ?',
+                                `UPDATE ${config.database.schema}.assetdeltalist SET eMASS = TRUE WHERE LOWER(\`key\`) = ? AND collectionId = ?`,
                                 [lowercaseName, collectionId]
                             );
                         }
@@ -705,7 +705,7 @@ async function processEMassHardwareList(workbook, collectionId) {
                 }
 
                 await connection.query(
-                    'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
+                    `INSERT INTO ${config.database.schema}.config (\`key\`, \`value\`) VALUES (?, ?) ON DUPLICATE KEY UPDATE \`value\` = ?`,
                     [`emassHardwareListUpdated_${collectionId}`, emassDate, emassDate]
                 );
 
@@ -771,7 +771,7 @@ async function processCSVAssetList(file, collectionId) {
 
                                 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
                                 await connection.query(
-                                    'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
+                                    `INSERT INTO ${config.database.schema}.config (\`key\`, \`value\`) VALUES (?, ?) ON DUPLICATE KEY UPDATE \`value\` = ?`,
                                     [`assetDeltaUpdated_${collectionId}`, formattedDate, formattedDate]
                                 );
 
@@ -835,7 +835,7 @@ async function processRegularAssetList(worksheet, collectionId) {
                     const values = assetData.flatMap(asset => [asset.key, asset.value, collectionId]);
 
                     await connection.query(
-                        `INSERT INTO assetdeltalist (\`key\`, \`value\`, \`collectionId\`, \`eMASS\`) VALUES ${placeholders}`,
+                        `INSERT INTO ${config.database.schema}.assetdeltalist (\`key\`, \`value\`, \`collectionId\`, \`eMASS\`) VALUES ${placeholders}`,
                         values
                     );
                 }
@@ -843,7 +843,7 @@ async function processRegularAssetList(worksheet, collectionId) {
                 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
 
                 await connection.query(
-                    'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
+                    `INSERT INTO ${config.database.schema}.config (\`key\`, \`value\`) VALUES (?, ?) ON DUPLICATE KEY UPDATE \`value\` = ?`,
                     [`assetDeltaUpdated_${collectionId}`, formattedDate, formattedDate]
                 );
 

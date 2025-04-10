@@ -53,7 +53,7 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collect
 exports.getCollectionPoamStatus = async function getCollectionPoamStatus(collectionId) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT status, COUNT(*) AS statusCount FROM poam WHERE collectionId = ?  GROUP BY status;"
+            let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY status;`
             let [rows] = await connection.query(sql, [collectionId])
 
             const size = Object.keys(rows).length
@@ -102,7 +102,7 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectio
 exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(collectionId) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam WHERE collectionId = ?  GROUP BY rawSeverity;"
+            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY rawSeverity;`
             let [rows] = await connection.query(sql, [collectionId])
 
             const size = Object.keys(rows).length
@@ -262,7 +262,7 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
 exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT status, COUNT(*) AS statusCount FROM poam";
+            let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam`;
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
@@ -411,7 +411,7 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
 exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam";
+            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam`;
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
@@ -451,7 +451,7 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) 
 exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(req) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "SELECT rawSeverity, COUNT(*) AS severityCount FROM poam WHERE submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`;
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
