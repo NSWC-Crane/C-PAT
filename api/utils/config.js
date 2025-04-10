@@ -49,7 +49,7 @@ let config = {
         docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../docs/_build/html',
     },
     http: {
-        address: process.env.CPAT_API_ADDRESS || "127.0.0.1",
+        address: process.env.CPAT_API_ADDRESS || "0.0.0.0",
         port: process.env.CPAT_API_PORT || 8086,
         maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || "52428800",
         maxUpload: process.env.CPAT_API_MAX_UPLOAD || "52428800",

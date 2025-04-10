@@ -12,11 +12,15 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, O
 import { SubSink } from 'subsink';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
+import { ImportService } from '../../import-processing/import.service';
 import {
   Observable,
+  catchError,
   combineLatest,
   filter,
   forkJoin,
+  map,
+  of,
   switchMap,
   take,
   tap,
@@ -45,7 +49,7 @@ import { Poam } from '../../../common/models/poam.model';
     PoamAdvancedPieComponent,
     PoamMainchartComponent,
     PoamAssignedGridComponent,
-    PoamGridComponent,
+    PoamGridComponent
   ],
 })
 export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -60,6 +64,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   submittedPoams = signal<any[]>([]);
   poamsPendingApproval = signal<any[]>([]);
   teamPoams = signal<any[]>([]);
+  findingsData = signal<any[]>([]);
   user = signal<any>(null);
   payload = signal<any>(null);
   accessLevel = signal<number>(0);
@@ -92,12 +97,19 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     'Draft',
   ];
 
+  findingsByCategory = signal<{ [key: string]: { total: number, withPoam: number, percentage: number } }>({
+    'CAT I': { total: 0, withPoam: 0, percentage: 0 },
+    'CAT II': { total: 0, withPoam: 0, percentage: 0 },
+    'CAT III': { total: 0, withPoam: 0, percentage: 0 }
+  });
+
   constructor(
     private collectionsService: CollectionsService,
     private sharedService: SharedService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private setPayloadService: PayloadService
+    private setPayloadService: PayloadService,
+    private importService: ImportService
   ) { }
 
   async ngOnInit() {
@@ -132,9 +144,133 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
         ));
         this.updateGridData();
         this.updateAdvancedPieChart();
+        if (this.selectedCollection()) {
+          this.fetchFindingsData(this.selectedCollection().originCollectionId, this.selectedCollection().collectionOrigin);
+        }
       },
       error: (error) => console.error('Error loading POAM data:', error)
     });
+  }
+
+  private fetchFindingsData(collectionId: number, collectionOrigin: string): void {
+    if (collectionOrigin === 'STIG Manager') {
+      this.subs.sink = this.sharedService.getFindingsMetricsFromSTIGMAN(collectionId)
+        .subscribe({
+          next: (data) => {
+            this.findingsData.set(data);
+            this.calculateFindingStats();
+          },
+          error: (error) => console.error('Error loading findings data:', error)
+        });
+    } else if (collectionOrigin === 'Tenable') {
+      this.subs.sink = this.importService.postTenableAnalysis({
+        query: {
+          description: '',
+          context: '',
+          status: -1,
+          createdTime: 0,
+          modifiedTime: 0,
+          groups: [],
+          type: 'vuln',
+          tool: 'sumid',
+          sourceType: 'cumulative',
+          startOffset: 0,
+          endOffset: 10000,
+          filters: [
+            {
+              id: 'repository',
+              filterName: 'repository',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: [{ id: collectionId.toString() }]
+            }
+          ],
+          vulnTool: 'sumid',
+        },
+        sourceType: 'cumulative',
+        columns: [],
+        type: 'vuln',
+      }).pipe(
+        catchError(error => {
+          console.error('Error fetching Tenable findings:', error);
+          return of({ response: { results: [] } });
+        }),
+        map(data => {
+          if (data.error_msg) {
+            console.error('Error in Tenable response:', data.error_msg);
+            return [];
+          }
+
+          return data.response.results.map((vuln: any) => ({
+            groupId: vuln.pluginID,
+            severity: this.mapTenableSeverityToCategory(vuln.severity?.name || ''),
+            pluginName: vuln.name || '',
+            family: vuln.family?.name || ''
+          }));
+        })
+      ).subscribe({
+        next: (findings) => {
+          this.findingsData.set(findings);
+          this.calculateFindingStats();
+        },
+        error: (error) => console.error('Error processing Tenable findings data:', error)
+      });
+    } else {
+      this.calculateFindingStats();
+    }
+  }
+
+  private calculateFindingStats(): void {
+    const stats = {
+      'CAT I': { total: 0, withPoam: 0, percentage: 0 },
+      'CAT II': { total: 0, withPoam: 0, percentage: 0 },
+      'CAT III': { total: 0, withPoam: 0, percentage: 0 }
+    };
+
+    const severityToCategoryMap: { [key: string]: string } = {
+      'critical': 'CAT I',
+      'high': 'CAT I',
+      'medium': 'CAT II',
+      'low': 'CAT III',
+      'informational': 'CAT III'
+    };
+
+    for (const finding of this.findingsData()) {
+      const category = severityToCategoryMap[finding.severity] || 'CAT III';
+      stats[category].total++;
+
+      const matchingPoams = this.poams().filter(poam =>
+        poam.vulnerabilityId === finding.groupId &&
+        poam.status !== 'Draft'
+      );
+
+      if (matchingPoams.length > 0) {
+        stats[category].withPoam++;
+      }
+    }
+
+    for (const category in stats) {
+      if (stats[category].total > 0) {
+        stats[category].percentage = Math.round((stats[category].withPoam / stats[category].total) * 100);
+      }
+    }
+    this.findingsByCategory.set(stats);
+  }
+
+  private mapTenableSeverityToCategory(severity: string): string {
+    switch (severity.toLowerCase()) {
+      case 'critical':
+        return 'critical';
+      case 'high':
+        return 'high';
+      case 'medium':
+        return 'medium';
+      case 'low':
+        return 'low';
+      default:
+        return 'informational';
+    }
   }
 
   private getPoamData(collectionId: number): Observable<[any[], any[]]> {

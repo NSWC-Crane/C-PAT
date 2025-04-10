@@ -74,11 +74,11 @@
 
     .legend-items-container .legend-items {
       justify-content: flex-end;
-      margin-top: 0.1rem;
+      margin-top: 0rem;
 
       .legend-item {
         flex: 1 1 auto;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0rem;
 
         @media screen and (min-width: 768px) {
           flex: 1 1 calc(25% - 0.5rem);
@@ -89,12 +89,19 @@
 }
 
 :host ::ng-deep {
+  .severity-chart-card .p-card-body {
+    padding-top: 0rem !important;
+    padding-bottom: 0rem !important;
+  }
+
   .assigned-grid .p-card-body {
     padding: 0rem 0.5rem 0.5rem 0rem;
   }
+
   .p-card .p-card-content {
     padding-bottom: 0;
   }
+
   .ngx-poam-assigned-grid {
     &.p-card .p-card-body {
       padding: 0 !important;
@@ -107,11 +114,94 @@
       .p-datatable {
         width: 100% !important;
         padding: 0;
+
         .p-datatable-wrapper {
           border-left: 0 !important;
           border-right: 0 !important;
         }
       }
+    }
+  }
+
+  .finding-progress-bars {
+    display: flex;
+    justify-content: space-between;
+    margin-top: -2.75rem !important;
+    padding: 1rem 0.65rem 1rem 0.65rem;
+
+    .progress-bar-item {
+      flex: 1;
+      margin: 0 1rem;
+      max-width: 30%;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: scale(1.10);
+
+        .progress-bar {
+          background-color: color-mix(in srgb, var(--ground-background) 80%, transparent);
+        }
+      }
+
+      &:first-child {
+        margin-left: 0;
+      }
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+      font-weight: bold;
+      font-size: 0.75rem;
+      transition: transform 0.2s ease;
+    }
+
+    .progress-bar {
+      background-color: color-mix(in srgb, var(--ground-background) 70%, transparent);
+      border-radius: 4px;
+      height: 12px;
+      overflow: hidden;
+      transition: background-color 0.2s ease;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: transform 0.2s ease;
+    }
+
+    .cat-i {
+      background-color: rgba(54, 162, 235, .7);
+    }
+
+    .cat-ii {
+      background-color: rgba(75, 192, 192, .7);
+    }
+
+    .cat-iii {
+      background-color: rgba(201, 203, 207, .7);
+    }
+
+    .progress-stats {
+      font-size: 0.65rem;
+      color: var(--text-secondary-color);
+      margin-top: 2px;
+      text-align: right;
+      transition: transform 0.2s ease;
+    }
+
+    .category-label {
+      white-space: nowrap;
+      color: var(--text-secondary-color);
+    }
+
+    .percentage-label {
+      color: var(--text-secondary-color);
     }
   }
 }
@@ -129,6 +219,7 @@
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
+
   .poam-severity-advanced-pie {
     ::ng-deep .advanced-pie-legend .legend-items-container .legend-items {
       gap: 0.25rem;
@@ -140,6 +231,17 @@
   .poam-severity-advanced-pie {
     ::ng-deep .advanced-pie-legend .legend-items-container .legend-items {
       gap: 0.125rem;
+    }
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .finding-progress-bars {
+    flex-direction: column;
+
+    .progress-bar-item {
+      max-width: 100%;
+      margin: 5px 0;
     }
   }
 }

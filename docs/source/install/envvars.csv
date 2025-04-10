@@ -1,5 +1,5 @@
 "Variable","Description","Affects"
-"CPAT_API_ADDRESS","| **Default** ``127.0.0.1``
+"CPAT_API_ADDRESS","| **Default** ``0.0.0.0``
 | The IP address on which the the API server will listen ","API"
 "CPAT_API_MAX_JSON_BODY","| **Default** ``52428800``
 | The maximum size in bytes of the request body when Content-Type is application/json","API"

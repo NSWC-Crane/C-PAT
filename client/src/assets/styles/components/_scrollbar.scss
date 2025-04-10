@@ -12,20 +12,26 @@
 @use 'tailwind/main.css';
 @use 'primeicons/primeicons.css';
 
-@mixin custom-scrollbar($track-color, $thumb-color) {
+@mixin custom-scrollbar($track-color, $thumb-color, $corner-color) {
   ::-webkit-scrollbar {
     width: 0.4rem;
     height: 0.4rem;
   }
+
   ::-webkit-scrollbar-track {
     background: $track-color;
+    border-radius: math.div(0.4rem, 2);
+    margin-bottom: 10px;
+    margin-right: 6px;
   }
+
   ::-webkit-scrollbar-thumb {
     background: $thumb-color;
     cursor: pointer;
     border-radius: math.div(0.4rem, 2);
   }
+
   ::-webkit-scrollbar-corner {
-    background: #192038;
+    background: $corner-color;
   }
 }

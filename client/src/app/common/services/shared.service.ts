@@ -94,6 +94,12 @@ export class SharedService {
     ).pipe(catchError(this.handleError));
   }
 
+  getFindingsMetricsFromSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=stigs`
+    ).pipe(catchError(this.handleError));
+  }
+
   getFindingsByBenchmarkFromSTIGMAN(collectionId: number, benchmarkId: string): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=rules&projection=stigs`

@@ -8,6 +8,8 @@
 !##########################################################################
 */
 
+const config = require('../../../utils/config');
+
 module.exports = class MyStorage {
     constructor(options) {
         this.pool = options.pool
@@ -15,7 +17,7 @@ module.exports = class MyStorage {
     }
 
     async createMigrationTable() {
-        await this.pool.query(`CREATE TABLE IF NOT EXISTS _migrations (
+        await this.pool.query(`CREATE TABLE IF NOT EXISTS ${config.database.schema}._migrations (
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP, 
       updatedAt DATETIME ON UPDATE CURRENT_TIMESTAMP, 
       name VARCHAR(128) 
@@ -27,21 +29,21 @@ module.exports = class MyStorage {
         if (!this.hasMigrationTable) {
             await this.createMigrationTable()
         }
-        await this.pool.query('INSERT into _migrations (name) VALUES (?)', [migrationName])
+        await this.pool.query(`INSERT into ${config.database.schema}._migrations (name) VALUES (?)`, [migrationName])
     }
 
     async unlogMigration(migrationName) {
         if (!this.hasMigrationTable) {
             await this.createMigrationTable()
         }
-        await this.pool.query('DELETE from _migrations WHERE name = ?', [migrationName])
+        await this.pool.query(`DELETE from ${config.database.schema}._migrations WHERE name = ?`, [migrationName])
     }
 
     async executed() {
         if (!this.hasMigrationTable) {
             await this.createMigrationTable()
         }
-        let [rows] = await this.pool.query('SELECT name from _migrations')
+        let [rows] = await this.pool.query(`SELECT name from ${config.database.schema}._migrations`)
         return rows.map(r => r.name)
     }
 }

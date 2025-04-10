@@ -28,7 +28,7 @@ async function withConnection(callback) {
 exports.getConfiguration = async function () {
     try {
         return await withConnection(async (connection) => {
-            let sql = `SELECT * from config`
+            let sql = `SELECT * from ${config.database.schema}.config`
             let [rows] = await connection.query(sql)
             let config = {}
             for (const row of rows) {
@@ -45,7 +45,7 @@ exports.getConfiguration = async function () {
 exports.setConfigurationItem = async function (key, value) {
     try {
         return await withConnection(async (connection) => {
-        let sql = 'INSERT INTO config (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)'
+        let sql = `INSERT INTO ${config.database.schema}.config (\`key\`, \`value\`) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)`
             await connection.query(sql, [key, value])
         return (true)
         });
@@ -58,7 +58,7 @@ exports.setConfigurationItem = async function (key, value) {
 exports.deleteConfigurationItem = async function (key) {
     try {
         return await withConnection(async (connection) => {
-            let sql = 'DELETE FROM config WHERE `key` = ?';
+            let sql = `DELETE FROM ${config.database.schema}.config WHERE \`key\` = ?`;
             await connection.query(sql, [key]);
             return true;
         });

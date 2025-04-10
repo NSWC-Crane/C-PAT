@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe, Location } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild, computed, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AccordionModule } from 'primeng/accordion';
 import { addDays, format, parseISO } from 'date-fns';
@@ -266,7 +266,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     private collectionsService: CollectionsService,
     private setPayloadService: PayloadService,
     private mappingService: PoamVariableMappingService,
-    private location: Location
+    private location: Location,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
@@ -581,7 +582,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.payload.userId
       );
 
-      this.poam = result.poam;
       this.dates = result.dates;
       this.tenableVulnResponse = result.tenableVulnResponse;
       this.tenablePluginData = result.tenablePluginData;
@@ -589,6 +589,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.collectionUsers = result.collectionUsers;
       this.collectionApprovers = result.collectionApprovers;
       this.poamApprovers = result.poamApprovers;
+      this.poam = result.poam;
+      this.cdr.detectChanges();
 
     } catch (error) {
       console.error('Error in createNewACASPoam:', error);
@@ -614,13 +616,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.payload.userId
       );
 
-      this.poam = result.poam;
       this.dates = result.dates;
       this.stigmanSTIGs = result.stigmanSTIGs;
       this.assignedTeamOptions = result.assignedTeamOptions;
       this.collectionUsers = result.collectionUsers;
       this.collectionApprovers = result.collectionApprovers;
       this.poamApprovers = result.poamApprovers;
+      this.poam = result.poam;
+      this.cdr.detectChanges();
 
     } catch (error) {
       console.error('Error in createNewSTIGManagerPoam:', error);
@@ -645,13 +648,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.payload.userId
       );
 
-      this.poam = result.poam;
       this.dates = result.dates;
       this.stigmanSTIGs = result.stigmanSTIGs;
       this.assignedTeamOptions = result.assignedTeamOptions;
       this.collectionUsers = result.collectionUsers;
       this.collectionApprovers = result.collectionApprovers;
       this.poamApprovers = result.poamApprovers;
+      this.poam = result.poam;
+      this.cdr.detectChanges();
 
     } catch (error) {
       console.error('Error in createNewPoam:', error);

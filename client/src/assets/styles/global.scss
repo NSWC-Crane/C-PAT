@@ -14,15 +14,16 @@
 @use './components/_pace-theme.scss' as *;
 @use './components/_scrollbar.scss' as *;
 @use './layout/_mixins.scss' as *;
+@use 'sass:color';
 
 @include ngx-pace-theme();
 
 * {
-    @include custom-scrollbar(var(--p-surface-900), var(--p-surface-700));
+    @include custom-scrollbar(color-mix(in srgb, var(--p-surface-900) 90%, black), var(--p-surface-700), var(--p-surface-900));
 }
 
 html, body {
-    @include custom-scrollbar(var(--p-surface-900), var(--p-surface-700));
+    @include custom-scrollbar(color-mix(in srgb, var(--p-surface-900) 90%, black), var(--p-surface-700), var(--p-surface-900));
 }
 
 .tenable-icon {

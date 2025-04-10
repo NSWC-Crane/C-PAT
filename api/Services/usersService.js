@@ -268,7 +268,7 @@ exports.updateUser = async function updateUser(userId, elevate, req) {
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-            let sql = "UPDATE user SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, points = ? WHERE userId = ?";
+            let sql = `UPDATE ${config.database.schema}.user SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, points = ? WHERE userId = ?`;
 
             await connection.query(sql, [
                 req.body.firstName,
@@ -301,7 +301,7 @@ exports.updateUser = async function updateUser(userId, elevate, req) {
 exports.updateUserTheme = async function updateUserTheme(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "UPDATE user SET defaultTheme = ? WHERE userId = ?";
+        let sql = `UPDATE ${config.database.schema}.user SET defaultTheme = ? WHERE userId = ?`;
 
             await connection.query(sql, [
                 req.body.defaultTheme,
@@ -319,7 +319,7 @@ exports.updateUserPoints = async function updateUserPoints(elevate, req) {
     try {
         return await withConnection(async (connection) => {
             if (elevate && req.userObject.isAdmin === true) {
-            let sql = "UPDATE user SET points = ? WHERE userId = ?";
+            let sql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
 
                 await connection.query(sql, [req.body.points, req.body.userId]);
 
@@ -336,11 +336,11 @@ exports.updateUserPoints = async function updateUserPoints(elevate, req) {
 exports.hourlyPoints = async function hourlyPoints(userId) {
     try {
         return await withConnection(async (connection) => {
-            let findUserSql = "SELECT points from user WHERE userId = ?";
+            let findUserSql = `SELECT points from ${config.database.schema}.user WHERE userId = ?`;
             const [response] = await connection.query(findUserSql, [userId]);
             const points = response[0].points + 1;
 
-                let sql = "UPDATE user SET points = ? WHERE userId = ?";
+                let sql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
                 await connection.query(sql, [points, userId]);
                 return { success: true, message: 'User points updated successfully' };
         });
@@ -352,11 +352,11 @@ exports.hourlyPoints = async function hourlyPoints(userId) {
 exports.dailyPoints = async function dailyPoints(userId) {
     try {
         return await withConnection(async (connection) => {
-            let findUserSql = "SELECT points from user WHERE userId = ?";
+            let findUserSql = `SELECT points from ${config.database.schema}.user WHERE userId = ?`;
             const [response] = await connection.query(findUserSql, [userId]);
             const points = response[0].points + 5;
 
-            let sql = "UPDATE user SET points = ? WHERE userId = ?";
+            let sql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
             await connection.query(sql, [points, userId]);
             return { success: true, message: 'User points updated successfully' };
         });
@@ -368,7 +368,7 @@ exports.dailyPoints = async function dailyPoints(userId) {
 exports.updateUserLastCollectionAccessed = async function updateUserLastCollectionAccessed(userId, lastCollectionAccessedId) {
     try {
         return await withConnection(async (connection) => {
-            let sql = "UPDATE user SET lastCollectionAccessedId = ? WHERE userId = ?";
+            let sql = `UPDATE ${config.database.schema}.user SET lastCollectionAccessedId = ? WHERE userId = ?`;
             await connection.query(sql, [lastCollectionAccessedId, userId]);
 
             return { success: true, message: 'User lastCollectionAccessedId updated successfully' };
@@ -431,7 +431,7 @@ exports.setUserData = async function setUserData(userObject, fields, newUser) {
 exports.setLastAccess = async function (userId, timestamp) {
     try {
         return await withConnection(async (connection) => {
-            let sql = `UPDATE user SET lastAccess = ? where userId = ?`;
+            let sql = `UPDATE ${config.database.schema}.user SET lastAccess = ? where userId = ?`;
             await connection.query(sql, [timestamp, userId]);
             return true
         });
@@ -452,9 +452,9 @@ exports.disableUser = async function disableUser(elevate, userId) {
             }
 
             let deleteSql = `DELETE uat, cp
-                      FROM userassignedteams uat, collectionpermissions cp
+                      FROM ${config.database.schema}.userassignedteams uat, collectionpermissions cp
                       WHERE uat.userId = ? AND cp.userId = ?`;
-            let updateSql = `UPDATE user SET accountStatus = 'DISABLED' WHERE userId = ?`;
+            let updateSql = `UPDATE ${config.database.schema}.user SET accountStatus = 'DISABLED' WHERE userId = ?`;
 
             await connection.query(deleteSql, [userId, userId]);
             await connection.query(updateSql, [userId]);
