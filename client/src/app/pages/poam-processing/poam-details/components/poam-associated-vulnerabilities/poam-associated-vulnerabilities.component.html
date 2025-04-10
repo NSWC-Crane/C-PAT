@@ -36,19 +36,40 @@
                let-rowIndex="rowIndex">
     <tr>
       <td>
-        <span *ngIf="!associatedVulnerability.isNew">{{associatedVulnerability.associatedVulnerability}}</span>
+        <span *ngIf="!associatedVulnerability.isNew">
+          <p-tag [value]="matchVulnerabilityTitle(associatedVulnerability.associatedVulnerability)"
+                 [rounded]="true">
+          </p-tag>
+          <span *ngIf="getVulnerabilityTitleText(associatedVulnerability.associatedVulnerability)" class="ml-2">
+            {{getVulnerabilityTitleText(associatedVulnerability.associatedVulnerability)}}
+          </span>
+        </span>
         <p-autocomplete *ngIf="associatedVulnerability.isNew"
                         [(ngModel)]="associatedVulnerability.selectedVulnerabilities"
                         [multiple]="true"
-                        [typeahead]="false"
+                        [typeahead]="true"
+                        [suggestions]="selectedVulnerabilities"
                         class="w-full"
                         styleClass="w-full"
+                        [style]="{'width':'100%'}"
+                        [inputStyle]="{'width':'100%'}"
+                        [panelStyle]="{'width':'auto', 'min-width':'100%'}"
+                        appendTo="body"
                         id="associatedVulnerability"
                         name="associatedVulnerability"
                         [placeholder]="'Plugin ID / Vulnerability ID...'"
                         [maxlength]="15"
                         [disabled]="accessLevel < 4"
-                        (completeMethod)="search($event)">
+                        (completeMethod)="search($event)"
+                        optionLabel="">
+          <ng-template let-item pTemplate="item">
+            <div>
+              <span>{{item}}</span>
+              <span *ngIf="getVulnerabilityTitleText(item)" class="ml-2" style="color: var(--text-secondary-color)">
+                - {{getVulnerabilityTitleText(item)}}
+              </span>
+            </div>
+          </ng-template>
         </p-autocomplete>
       </td>
       <td>

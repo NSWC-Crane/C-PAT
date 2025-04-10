@@ -41,6 +41,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { AAPackage } from '../../../common/models/aaPackage.model';
 import { Permission } from '../../../common/models/permission.model';
+import { Collections } from '../../../common/models/collections.model';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { PoamMitigationGeneratorComponent } from './components/poam-mitigation-generator/poam-mitigation-generator.component';
 import { TabsModule } from 'primeng/tabs';
@@ -120,7 +121,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   assignedTeamOptions: any;
   collectionUsers: any;
   collectionApprovers: any = [];
-  collectionBasicList: any[] = [];
   collectionType: string = '';
   aaPackages: AAPackage[] = [];
   poamApprovers: any[] = [];
@@ -135,6 +135,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   filteredStigmanSTIGs: string[] = [];
   selectedCollection: any;
   originCollectionId: number;
+  collectionData: Collections;
   stateData: any;
   submitDialogVisible: boolean = false;
   user: any;
@@ -300,21 +301,17 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         }
       })
     );
-
-    this.subs.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
-        this.selectedCollection = collectionId;
-        if (this.selectedCollection) {
-          this.getLabelData();
-        }
-      })
-    );
+    if (this.selectedCollection) {
+      this.getLabelData();
+    }
   }
 
   obtainCollectionDataAsync(background: boolean = false): Promise<any> {
     return new Promise((resolve) => {
       this.poamDataService.obtainCollectionData(this.selectedCollection, background).subscribe({
         next: (collectionInfo) => {
+          this.collectionData = collectionInfo;
+          this.collectionData.collectionId = this.selectedCollection;
           this.collectionAAPackage = collectionInfo.collectionAAPackage;
           this.collectionPredisposingConditions = collectionInfo.collectionPredisposingConditions;
           this.collectionType = collectionInfo.collectionType;
