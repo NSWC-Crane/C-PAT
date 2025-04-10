@@ -43,7 +43,7 @@ const db = require(`./Services/utils`);
 const apiSpecPath = path.join(__dirname, './specification/C-PAT.yaml');
 let spec = fs.readFileSync(apiSpecPath, 'utf8');
 let oasDoc = jsyaml.load(spec);
-oasDoc.servers[0].url = `http://${config.http.address}:${config.http.port}/api`;
+oasDoc.servers[0].url = config.swaggerUi.server;
 oasDoc.components.securitySchemes.oauth.openIdConnectUrl = `${config.client.authority}/.well-known/openid-configuration`
 const depStatus = {
     db: 'waiting',
@@ -197,7 +197,6 @@ async function run() {
         }
 
         oasDoc.info.version = config.version
-        oasDoc.servers[0].url = config.swaggerUi.server
         config.definition = oasDoc
 
         if (config.swaggerUi.enabled) {
