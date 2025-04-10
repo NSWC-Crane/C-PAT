@@ -34,10 +34,12 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
 
     try {
         const permissions = await withConnection(async (connection) => {
-            let sql = `SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email FROM ${config.database.schema}.collectionpermissions T1
-                       INNER JOIN ${config.database.schema}.user T2 ON t1.userId = t2.userId WHERE collectionId = ?;`
+            let sql = `SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
+                       FROM ${config.database.schema}.collectionpermissions T1
+                       INNER JOIN ${config.database.schema}.user T2 ON T1.userId = T2.userId
+                       WHERE collectionId = ?;`
 
-            let [rowPermissions] = await connection.query(sql, req.params.collectionId);
+            let [rowPermissions] = await connection.query(sql, [req.params.collectionId]);
             return rowPermissions.map(permission => ({
                 ...permission
             }));
