@@ -78,7 +78,7 @@ AI
    - By default, AI integration will be disabled. Set to ``true`` to enable.
  * - ``CPAT_AI_PROVIDER``
    - **No default**
-   - Valid options include: ``anthropic`` ``openai`` ``gemini`` ``mistral`` ``groq`` ``xai`` ``togetherai`` ``cohere`` ``fireworks`` ``cerebras`` ``perplexity`` ``deepinfra``.
+   - Valid options include: ``anthropic`` ``cerebras`` ``cohere`` ``deepinfra`` ``fireworks`` ``google`` ``groq`` ``mistral`` ``ollama`` ``openai`` ``perplexity`` ``replicate`` ``togetherai`` ``xai``.
  * - ``CPAT_AI_MODEL_NAME``
    - **No default**
    - Underlying AI integration is enabled by Vercel AI SDK. For precise model naming instructions, please visit the `Vercel docs <https://sdk.vercel.ai/providers/ai-sdk-providers/openai>`_.
@@ -86,5 +86,5 @@ AI
    - **No default**
    - The API key for your chosen AI provider. This is not applicable when using ollama.
  * - ``CPAT_AI_BASE_URL``
-   - ``http://localhost:11434``
-   - URL prefix for API calls to ollama.
+   - ``Conditional``
+   - URL prefix for API calls. Default will be set according to the providers [CPAT_AI_PROVIDER] documented default.
