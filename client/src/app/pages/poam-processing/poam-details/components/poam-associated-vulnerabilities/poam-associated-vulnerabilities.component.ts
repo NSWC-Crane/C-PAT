@@ -189,6 +189,19 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
     }
   }
 
+  handleKeydown(event: KeyboardEvent, rowData: any): void {
+    if (event.key === ' ' || event.code === 'Space') {
+      const inputElement = event.target as HTMLInputElement;
+      const value = inputElement.value.trim();
+
+      if (value && !rowData.selectedVulnerabilities.includes(value)) {
+        rowData.selectedVulnerabilities.push(value);
+        inputElement.value = '';
+        event.preventDefault();
+      }
+    }
+  }
+
   async addAssociatedVulnerability() {
     const newAssociatedVulnerability = {
       associatedVulnerability: '',

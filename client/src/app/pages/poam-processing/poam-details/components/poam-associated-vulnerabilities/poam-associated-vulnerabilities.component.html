@@ -53,7 +53,7 @@
                         styleClass="w-full"
                         [style]="{'width':'100%'}"
                         [inputStyle]="{'width':'100%'}"
-                        [panelStyle]="{'width':'auto', 'min-width':'100%'}"
+                        [panelStyle]="{'width':'auto', 'min-width':'90%', 'max-width':'100%'}"
                         appendTo="body"
                         id="associatedVulnerability"
                         name="associatedVulnerability"
@@ -61,6 +61,7 @@
                         [maxlength]="15"
                         [disabled]="accessLevel < 4"
                         (completeMethod)="search($event)"
+                        (keydown)="handleKeydown($event, associatedVulnerability)"
                         optionLabel="">
           <ng-template let-item pTemplate="item">
             <div>
