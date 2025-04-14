@@ -24,11 +24,6 @@
 @white: #f3f4f5;
 
 body {
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  -webkit-user-select: none;
-  overflow: hidden;
-
   .vertical-centered-box {
     position: absolute;
     width: 100%;
