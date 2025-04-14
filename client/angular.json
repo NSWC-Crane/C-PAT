@@ -75,8 +75,7 @@
               }
             ],
             "scripts": [
-              "node_modules/pace-js/pace.min.js",
-              "src/assets/js/particleBackground.js"
+              "node_modules/pace-js/pace.min.js"
             ],
             "sourceMap": {
               "scripts": true,
