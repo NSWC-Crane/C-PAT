@@ -715,7 +715,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
           filterName: 'dnsName',
           id: 'dnsName',
           isPredefined: true,
-          operator: '=',
+          operator: '~',
           type: 'vuln',
           value: hostnames.join(',')
         }],
