@@ -39,16 +39,24 @@ services:
       - ./kc/h2:/opt/keycloak/data/h2
 
   cpat:
-    image: nswccrane/c-pat:dev
+    image: nswccrane/c-pat:latest
     container_name: cpat
     ports:
       - "8086:8086"
     environment:
+      - CPAT_CLASSIFICATION=U
       - CPAT_OIDC_PROVIDER=http://keycloak:8080/realms/RMFTools
       - CPAT_CLIENT_OIDC_PROVIDER=https://localhost/kc/realms/RMFTools
+      - CPAT_OIDC_CLIENT_ID=c-pat
+      - CPAT_SWAGGER_SERVER=http://localhost:8086/api
+      - CPAT_SWAGGER_REDIRECT=http://localhost:8086/api-docs/oauth2-redirect.html
       - CPAT_DB_HOST=mysql
       - CPAT_DB_USER=root
       - CPAT_DB_PASSWORD=rootpw
+      - CPAT_DB_SCHEMA=cpat
+      - STIGMAN_OIDC_CLIENT_ID=stig-manager
+      - STIGMAN_API_URL=http://stigman:8086/api
+      - TENABLE_ENABLED=false
       # - TENABLE_URL=http://something.com
       # - TENABLE_ACCESS_KEY=something
       # - TENABLE_SECRET_KEY=something
