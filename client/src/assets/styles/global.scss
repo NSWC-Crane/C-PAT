@@ -8,13 +8,15 @@
 !##########################################################################
 */
 
-@use './tailwind/main.css';
 @use 'primeicons/primeicons.css';
 @use './layout/layout.scss';
 @use './components/_pace-theme.scss' as *;
 @use './components/_scrollbar.scss' as *;
 @use './layout/_mixins.scss' as *;
 @use 'sass:color';
+@use "tailwindcss";
+@plugin "tailwindcss-primeui";
+@custom-variant dark (&:where(.p-dark, .p-dark *));
 
 @include ngx-pace-theme();
 
