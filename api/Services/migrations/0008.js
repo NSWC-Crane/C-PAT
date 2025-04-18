@@ -10,6 +10,8 @@
 
 const MigrationHandler = require('./lib/MigrationHandler')
 const upMigration = [
+    `ALTER TABLE \`cpat\`.\`poam\`
+    CHANGE COLUMN \`vulnerabilityTitle\` \`vulnerabilityTitle\` VARCHAR(500) NULL DEFAULT NULL ;`,
     `DROP PROCEDURE IF EXISTS daily_poam_status_update;`,
     `CREATE PROCEDURE daily_poam_status_update()
     BEGIN
