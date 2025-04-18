@@ -28,7 +28,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
 import { STIGManagerAssetsTableComponent } from '../import-processing/stigmanager-import/stigManagerAssetsTable/stigManagerAssetsTable.component';
-import { TenableAssetsTableComponent } from '../import-processing/tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
+import { TenableHostAssetsTableComponent } from '../import-processing/tenable-import/components/tenableHostAssetsTable/tenableHostAssetsTable.component';
 import { TabsModule } from 'primeng/tabs';
 import { DialogModule } from 'primeng/dialog';
 import { AssetComponent } from './asset/asset.component';
@@ -71,7 +71,7 @@ interface AssetEntry {
     STIGManagerAssetsTableComponent,
     TableModule,
     TabsModule,
-    TenableAssetsTableComponent,
+    TenableHostAssetsTableComponent,
     TooltipModule,
   ],
   providers: [DialogService],
