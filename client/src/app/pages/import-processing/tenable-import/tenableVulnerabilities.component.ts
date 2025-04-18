@@ -1324,6 +1324,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     isInput: boolean = false,
     isOperator: boolean = false
   ) {
+    if (!identifier) {
+      console.warn('Missing identifier in onFilterChange', { event, isInput, isOperator });
+      return;
+    }
+    if (!event) {
+      console.warn('Missing event in onFilterChange', { identifier, isInput, isOperator });
+      return;
+    }
     if (identifier === 'severity') {
       this.tempFilters['severity'] = event.value;
       return;
@@ -1332,7 +1340,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters['lastSeen'] = event.value;
       return;
     }
-
     if (identifier === 'family') {
       this.tempFilters['family'] = Array.isArray(event.value) ?
         event.value :
@@ -1346,7 +1353,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     if (identifier) {
       const accordionItem = this.accordionItems.find(item => item.identifier === identifier);
-      const value = isInput ? event.target.value : event.value;
+      const value = isInput ? event.target?.value ?? event.value : event.value;
 
       if (!this.tempFilters[identifier]) {
         this.tempFilters[identifier] = { operator: null, value: null };
@@ -1364,6 +1371,16 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   private mapSingleFilter(filter: any): void {
+    if (!filter) {
+      console.warn('Invalid filter object:', filter);
+      return;
+    }
+
+    if (!filter.filterName) {
+      console.warn('Filter missing filterName:', filter);
+      return;
+    }
+
     if (filter.filterName === 'xref' && filter.value.includes('IAVA|20*,IAVB|20*')) {
       const value = filter.operator === '=' ? 'iav' : 'non-iav';
       this.tempFilters['vulnerabilityType'] = value;
@@ -1900,7 +1917,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   applyPremadeFilter(event: any) {
-    if (!event.value) return;
+    if (!event?.value) return;
 
     const selectedFilter = this.findFilterByValue(event.value);
     if (!selectedFilter) return;
@@ -1926,8 +1943,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
         if (Array.isArray(savedFilter.filters)) {
           savedFilter.filters.forEach(filter => {
-            if (filter.filterName && filter.value !== undefined) {
-              this.mapSingleFilter(filter);
+            if (filter && typeof filter === 'object' && filter.filterName && filter.value !== undefined) {
+              try {
+                this.mapSingleFilter(filter);
+              } catch (error) {
+                console.error('Error applying saved filter:', error, filter);
+              }
             }
           });
         }
