@@ -61,18 +61,7 @@ interface TreeNode<T> {
 })
 export class CollectionProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table!: TreeTable;
-  customColumn = 'Collection ID';
-  defaultColumns = [
-    'Name',
-    'Description',
-    'System Type',
-    'System Name',
-    'CC/S/A/FA',
-    'A&A Package',
-    'Collection Origin',
-    'Origin Collection ID',
-  ];
-  allColumns = [this.customColumn, ...this.defaultColumns];
+  cols: any = [];
   aaPackages: AAPackage[] = [];
   filteredAAPackages: string[] = [];
   collectionTreeData: TreeNode<Collections>[] = [];
@@ -114,8 +103,23 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     private poamService: PoamService
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.initColumnsAndFilters();
     this.setPayload();
+  }
+
+  initColumnsAndFilters() {
+    this.cols = [
+      { field: 'Collection ID', header: 'Collection ID' },
+      { field: 'Name', header: 'Name' },
+      { field: 'Description', header: 'Description' },
+      { field: 'System Type', header: 'System Type' },
+      { field: 'System Name', header: 'System Name' },
+      { field: 'CC/S/A/FA', header: 'CC/S/A/FA' },
+      { field: 'A&A Package', header: 'A&A Package' },
+      { field: 'Collection Origin', header: 'Collection Origin' },
+      { field: 'Origin Collection ID', header: 'Origin Collection ID' }
+    ];
   }
 
   setPayload() {

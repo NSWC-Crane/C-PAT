@@ -50,9 +50,7 @@ import { InputTextModule } from 'primeng/inputtext';
 export class UserProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('usersTable') usersTable!: TreeTable;
   public isLoggedIn = false;
-  customColumn = 'User';
-  defaultColumns = ['Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level'];
-  allColumns = [this.customColumn, ...this.defaultColumns];
+  cols: any = [];
   collectionList: any[] = [];
   users: TreeNode[] = [];
   data: any = [];
@@ -79,7 +77,20 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.initColumnsAndFilters();
     this.setPayload();
+  }
+
+  initColumnsAndFilters() {
+    this.cols = [
+      { field: 'User', header: 'User' },
+      { field: 'Status', header: 'Status' },
+      { field: 'First Name', header: 'First Name' },
+      { field: 'Last Name', header: 'Last Name' },
+      { field: 'Email', header: 'Email' },
+      { field: 'Collection', header: 'Collection' },
+      { field: 'Access Level', header: 'Access Level' }
+    ];
   }
 
   async setPayload() {

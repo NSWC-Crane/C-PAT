@@ -12,7 +12,7 @@
       <p-treeTable
         #dt
         [value]="collectionTreeData"
-        [columns]="allColumns"
+        [columns]="cols"
         [filterDelay]="0"
         [rows]="20"
         [paginator]="true"
@@ -58,17 +58,17 @@
         </ng-template>
         <ng-template pTemplate="header" let-columns>
           <tr>
-            <th scope="col" *ngFor="let col of columns">{{col}}</th>
+            <th scope="col" *ngFor="let col of columns" [ttSortableColumn]="col.field">{{col.header}}</th>
             <th scope="col">Actions</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
             <tr (click)="showModifyCollectionDialog(rowData)" class="cursor-pointer hover:surface-200">
                 <td *ngFor="let col of columns; let i = index"
-                    [style]="col === 'Name' ? {'max-width': '200px'} : {}">
+                    [style]="col.field === 'Name' ? {'max-width': '200px'} : {}">
                     <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-                    <span [style]="col === 'Name' ? {'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', 'display': 'inline-block', 'width': '100%'} : {}">
-                        {{rowData[col]}}
+                    <span [style]="col.field === 'Name' ? {'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', 'display': 'inline-block', 'width': '100%'} : {}">
+                        {{rowData[col.field]}}
                     </span>
                 </td>
                 <td>
