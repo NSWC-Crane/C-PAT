@@ -25,6 +25,7 @@ const { perplexity } = require('@ai-sdk/perplexity');
 const { replicate } = require('@ai-sdk/replicate');
 const { togetherai } = require('@ai-sdk/togetherai');
 const { xai } = require('@ai-sdk/xai');
+const { createOpenAICompatible } = require('@ai-sdk/openai-compatible');
 const config = require('../utils/config');
 const logger = require('../utils/logger');
 
@@ -37,6 +38,7 @@ const AI_BASE_URLS = {
     google: 'https://generativelanguage.googleapis.com/v1beta',
     groq: 'https://api.groq.com/openai/v1',
     mistral: 'https://api.mistral.ai/v1',
+    niprgpt: 'https://api.niprgpt.mil/v1',
     ollama: 'http://localhost:11434/api',
     openai: 'https://api.openai.com/v1',
     perplexity: 'https://api.perplexity.ai',
@@ -54,6 +56,7 @@ const AI_MODELS = {
     google: 'gemini-1.5-pro-latest',
     groq: 'gemma2-9b-it',
     mistral: 'mistral-small-latest',
+    niprgpt: 'Anthropic Sonnet 3.7',
     ollama: 'llama3.2',
     openai: 'gpt-4-turbo',
     perplexity: 'sonar-pro',
@@ -115,6 +118,13 @@ async function getAIModel() {
             return groq(modelName);
         case 'mistral':
             return mistral(modelName);
+        case 'niprgpt':
+            const niprgptProvider = createOpenAICompatible({
+                baseURL: AI_BASE_URLS.niprgpt,
+                apiKey: config.ai.apiKey,
+                name: 'niprgpt-provider'
+            });
+            return niprgptProvider.chatModel(modelName);
         case 'ollama':
             return ollama(modelName);
         case 'openai':
