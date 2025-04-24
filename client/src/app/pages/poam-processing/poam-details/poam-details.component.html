@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -514,7 +514,7 @@
                   <div class="team-mitigations-container">
                     <p-progressBar *ngIf="mitigationSaving" mode="indeterminate" [style]="{'height': '4px'}"></p-progressBar>
 
-                    <p-tabs [(value)]="activeTabIndex" (onChange)="onTabChange($event)">
+                    <p-tabs [(value)]="activeTabIndex" (onChange)="onTabChange($event)" scrollable>
                       <p-tablist>
                         <p-tab [value]="0">
                           <span>{{ poam.isGlobalFinding ? 'Global Finding' : 'Global Mitigations' }}</span>
@@ -545,7 +545,7 @@
                         @for(teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
                         <p-tabpanel [value]="i + 1" *ngIf="!poam.isGlobalFinding">
                           <div [ngClass]="{'opacity-70': !teamMitigation.isActive}">
-                            <div *ngIf="!teamMitigation.isActive" class="mb-2 rounded-md bg-yellow-600 p-2">
+                            <div *ngIf="!teamMitigation.isActive" class="mb-2 bg-yellow-600 p-2 rounded-md">
                               <i class="pi pi-info-circle mr-2"></i>
                               This team is no longer assigned to this POAM. Mitigation content is preserved but cannot be edited.
                             </div>

@@ -178,7 +178,7 @@
         </p-accordion>
       </div>
       <div class="filter-footer">
-        <div class="flex justify-between p-4">
+        <div class="p-4 flex justify-between">
           <p-button label="Apply"
                     [rounded]="true"
                     icon="pi pi-filter"
@@ -199,7 +199,7 @@
   <div class="main-content"
        [ngClass]="{'content-full': !sidebarVisible, 'content-shifted': sidebarVisible}">
     <p-card styleClass="ml-6">
-      <p-tabs value="0">
+      <p-tabs value="0" scrollable>
         <p-tablist>
           <p-tab value="0">Vulnerabilities ({{totalRecords}})</p-tab>
           <p-tab value="1">IAV Vulnerabilities ({{iavVulnerabilitiesCount}})</p-tab>
