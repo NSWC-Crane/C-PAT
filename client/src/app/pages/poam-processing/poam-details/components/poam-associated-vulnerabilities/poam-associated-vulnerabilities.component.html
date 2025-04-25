@@ -57,11 +57,12 @@
                         appendTo="body"
                         id="associatedVulnerability"
                         name="associatedVulnerability"
-                        [placeholder]="'Plugin ID / Vulnerability ID...'"
-                        [maxlength]="15"
+                        [placeholder]="'Plugin ID / Vulnerability ID (comma or space separated)...'"
+                        [maxlength]="100"
                         [disabled]="accessLevel < 4"
                         (completeMethod)="search($event)"
                         (keydown)="handleKeydown($event, associatedVulnerability)"
+                        (paste)="handlePaste($event, associatedVulnerability)"
                         optionLabel="">
           <ng-template let-item pTemplate="item">
             <div>

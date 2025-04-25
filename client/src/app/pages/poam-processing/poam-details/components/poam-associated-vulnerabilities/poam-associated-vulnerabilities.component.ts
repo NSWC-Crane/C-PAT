@@ -190,15 +190,34 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   }
 
   handleKeydown(event: KeyboardEvent, rowData: any): void {
-    if (event.key === ' ' || event.code === 'Space') {
+    if (event.key === ' ' || event.code === 'Space' || event.key === 'Enter' || event.code === 'Enter') {
       const inputElement = event.target as HTMLInputElement;
-      const value = inputElement.value.trim();
-
+      let value = inputElement.value.trim();
+      value = value.toUpperCase();
       if (value && !rowData.selectedVulnerabilities.includes(value)) {
         rowData.selectedVulnerabilities.push(value);
         inputElement.value = '';
         event.preventDefault();
       }
+    }
+  }
+
+  handlePaste(event: ClipboardEvent, rowData: any): void {
+    const pastedText = event.clipboardData?.getData('text');
+
+    if (pastedText) {
+      const vulnerabilityIds = pastedText
+        .split(/[,\s]+/)
+        .filter(id => id.length > 0)
+        .map(id => id.toUpperCase());
+
+      vulnerabilityIds.forEach(id => {
+        if (id && !rowData.selectedVulnerabilities.includes(id)) {
+          rowData.selectedVulnerabilities.push(id);
+        }
+      });
+
+      event.preventDefault();
     }
   }
 
@@ -229,7 +248,9 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
       .subscribe({
         next: async (response: any) => {
           const existingPoams = response;
-          const newVulnerabilities = [...rowData.selectedVulnerabilities];
+          const newVulnerabilities = rowData.selectedVulnerabilities.map(vulnId =>
+            typeof vulnId === 'string' ? vulnId.toUpperCase() : vulnId
+          );
 
           for (const vulnId of newVulnerabilities) {
             const duplicatePoam = existingPoams.find(poam => poam.vulnerabilityId === vulnId);
