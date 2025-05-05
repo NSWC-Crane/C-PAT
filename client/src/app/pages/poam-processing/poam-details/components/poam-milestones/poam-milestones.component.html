@@ -21,20 +21,11 @@
         <th pSortableColumn="milestoneDate" scope="col">Milestone Due Date</th>
         <th pSortableColumn="milestoneStatus" scope="col">Status</th>
         <th pSortableColumn="assignedTeamId" scope="col">Team</th>
-        <th *ngIf="(poam.status === 'Draft' || poam.status === 'Extension Requested' || poam.status === 'Rejected' || poam.status === 'Submitted') || accessLevel >= 3" scope="col" style="width: 8rem; text-align: center">
+        <th scope="col" style="width: 8rem; text-align: center">
           <button pButton
                   icon="pi pi-plus"
                   class="p-button-rounded p-button-text"
                   (click)="onAddNewMilestone()"
-                  [disabled]="accessLevel < 2"></button>
-        </th>
-        <th *ngIf="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel < 3" scope="col" style="width: 8rem; text-align: center">
-          <button pButton
-                  icon="pi pi-plus"
-                  class="p-button-rounded p-button-text"
-                  severity="secondary"
-                  pTooltip="Milestones can only be added when the POAM status is Draft, Extension Requested, Rejected, or Submitted."
-                  tooltipPosition="left"
                   [disabled]="accessLevel < 2"></button>
         </th>
       </tr>
@@ -52,7 +43,7 @@
                         class="w-full"
                         [rows]="4"
                         [(ngModel)]="milestone.milestoneComments"
-                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel < 3"></textarea>
+                        [disabled]="accessLevel < 3 && !milestone.isNew && (poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted')"></textarea>
             </ng-template>
             <ng-template pTemplate="output">
               {{milestone.milestoneComments}}
@@ -68,7 +59,7 @@
                             styleClass="w-full"
                             [showIcon]="true"
                             appendTo="body"
-                            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel < 3"></p-datepicker>
+                            [disabled]="accessLevel < 3 && !milestone.isNew && (poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted')"></p-datepicker>
             </ng-template>
             <ng-template pTemplate="output">
               {{milestone.milestoneDate | date:'yyyy-MM-dd'}}
