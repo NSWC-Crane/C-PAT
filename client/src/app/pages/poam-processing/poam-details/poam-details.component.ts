@@ -237,7 +237,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       });
     }
 
-    if (this.accessLevel() >= 4 || (this.poam?.submitterId === this.user?.userId && this.poam?.status === 'Draft')) {
+    if (this.accessLevel() >= 3 || (this.poam?.submitterId === this.user?.userId && this.poam?.status === 'Draft')) {
       items.push({
         label: 'Delete POAM',
         icon: 'pi pi-trash',
