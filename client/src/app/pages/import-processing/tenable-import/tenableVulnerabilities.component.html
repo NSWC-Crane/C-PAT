@@ -178,7 +178,7 @@
         </p-accordion>
       </div>
       <div class="filter-footer">
-        <div class="p-4 flex justify-between">
+        <div class="flex justify-between p-4">
           <p-button label="Apply"
                     [rounded]="true"
                     icon="pi pi-filter"
@@ -464,7 +464,7 @@
                             <ng-container [ngSwitch]="col.field">
                               <ng-container *ngSwitchCase="'poam'">
                                 <i class="pi"
-                                   [ngClass]="vulnerability.poam ? 'pi-check-circle' : 'pi-times-circle'"
+                                   [ngClass]="vulnerability.poam ? 'pi-check-circle' : 'pi-plus-circle'"
                                    [ngStyle]="{
        'color': vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus) : 'maroon',
        'font-size': '1.5rem',

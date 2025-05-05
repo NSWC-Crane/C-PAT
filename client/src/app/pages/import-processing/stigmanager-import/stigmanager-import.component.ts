@@ -365,7 +365,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   getPoamStatusIcon(hasExistingPoam: boolean): string {
     if (!hasExistingPoam) {
-      return 'pi-times-circle';
+      return 'pi-plus-circle';
     }
     return 'pi-check-circle';
   }
