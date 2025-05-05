@@ -31,6 +31,7 @@ import { AppConfiguratorComponent } from '../components/app.configurator.compone
 import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, filter, map, merge, of, switchMap, take, takeUntil } from 'rxjs';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { Popover } from 'primeng/popover';
+import { TooltipModule } from 'primeng/tooltip';
 import { NotificationsPanelComponent } from '../../common/components/notifications/notifications-popover/notifications-popover.component';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
@@ -47,6 +48,7 @@ import { UsersService } from '../../pages/admin-processing/user-processing/users
     RouterModule,
     AppConfiguratorComponent,
     Popover,
+    TooltipModule,
     NotificationsPanelComponent,
   ],
   template: `<div class="layout-topbar">
@@ -160,6 +162,15 @@ import { UsersService } from '../../pages/admin-processing/user-processing/users
             <cpat-notifications-popover [overlayPanel]="op"></cpat-notifications-popover>
           </p-popover>
         </li>
+        <li>
+          <a href="/docs"
+             *ngIf="docsDisabled === false"
+             pTooltip="C-PAT Documentation"
+             tooltipPosition="top"
+             class="topbar-item">
+            <i class="pi pi-info-circle"></i>
+          </a>
+        </li>
       </ul>
     </div>
   </div>`,
@@ -169,6 +180,7 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
   scrollListener: VoidFunction | null = null;
   private window: Window;
   notificationCount: number | null = null;
+  readonly docsDisabled: boolean;
   private destroy$ = new Subject<void>();
   readonly user$ = inject(AuthService).user$;
 
@@ -181,6 +193,7 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
     private router: Router,
     private notificationService: NotificationService
   ) {
+    this.docsDisabled = CPAT.Env?.features?.docsDisabled ?? false;
     this.window = this.document.defaultView as Window;
 
     afterNextRender(() => {
