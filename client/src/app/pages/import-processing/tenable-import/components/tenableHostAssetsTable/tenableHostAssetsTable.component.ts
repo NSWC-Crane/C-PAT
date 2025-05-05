@@ -79,6 +79,13 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   pluginData: any;
   selectedPoamStatuses: string[] = [];
   selectedSeverities: string[] = [];
+  selectedPlugin: any;
+  pluginDetailData: any;
+  displayPluginDialog: boolean = false;
+  isLoadingPluginDetails: boolean = false;
+  cveReferences: any[] = [];
+  iavReferences: any[] = [];
+  otherReferences: any[] = [];
   private subscriptions = new Subscription();
 
 
@@ -388,6 +395,133 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     });
   }
 
+  onPluginIDClick(plugin: any, event: Event) {
+    event.stopPropagation();
+    this.isLoadingPluginDetails = true;
+    this.showPluginDetails(plugin);
+  }
+
+showPluginDetails(plugin: any): Promise<void> {
+    if (!plugin || !plugin.pluginID) {
+      this.isLoadingPluginDetails = false;
+      this.showErrorMessage('Invalid plugin ID');
+      return Promise.reject('Invalid plugin ID');
+    }
+
+    this.selectedPlugin = plugin;
+
+    const filters = [
+      {
+        filterName: "pluginID",
+        id: "pluginID",
+        isPredefined: true,
+        operator: "=",
+        type: "vuln",
+        value: plugin.pluginID
+      },
+      {
+        filterName: "repository",
+        id: "repository",
+        isPredefined: true,
+        operator: "=",
+        type: "vuln",
+        value: [
+          {
+            id: this.tenableRepoId.toString()
+          }
+        ]
+      }
+    ];
+
+    if (this.selectedHost?.ipAddress) {
+      filters.push({
+        filterName: "ip",
+        id: "ip",
+        isPredefined: true,
+        operator: "=",
+        type: "vuln",
+        value: this.selectedHost.ipAddress
+      });
+    }
+
+    if (this.selectedHost?.dns) {
+      filters.push({
+        filterName: "dnsName",
+        id: "dnsName",
+        isPredefined: true,
+        operator: "=",
+        type: "vuln",
+        value: this.selectedHost.dns
+      });
+    }
+
+    if (plugin.port) {
+      filters.push({
+        filterName: "port",
+        id: "port",
+        isPredefined: true,
+        operator: "=",
+        type: "vuln",
+        value: plugin.port
+      });
+    }
+
+    const analysisParams = {
+      columns: [],
+      query: {
+        context: "",
+        createdTime: 0,
+        description: "",
+        endOffset: 50,
+        filters: filters,
+        groups: [],
+        modifiedTime: 0,
+        name: "",
+        sourceType: "cumulative",
+        startOffset: 0,
+        status: -1,
+        tool: "vulndetails",
+        type: "vuln",
+        vulnTool: "vulndetails"
+      },
+      sourceType: "cumulative",
+      type: "vuln"
+    };
+
+    return new Promise((resolve, reject) => {
+      this.importService.postTenableAnalysis(analysisParams)
+        .subscribe({
+          next: (data) => {
+            if (!data || !data.response || !data.response.results || !data.response.results.length) {
+              reject(new Error('Invalid response from postTenableAnalysis'));
+              this.isLoadingPluginDetails = false;
+              return;
+            }
+
+            this.pluginDetailData = data.response.results[0];
+
+            if (this.pluginDetailData.xrefs) {
+              this.parseReferences(this.pluginDetailData.xrefs);
+            } else {
+              this.cveReferences = [];
+              this.iavReferences = [];
+              this.otherReferences = [];
+            }
+            this.displayDialog = false;
+            this.displayPluginDialog = true;
+            this.isLoadingPluginDetails = false;
+            resolve();
+          },
+          error: (error) => {
+            console.error('Error fetching plugin details:', error);
+            this.isLoadingPluginDetails = false;
+            this.showErrorMessage('Error fetching plugin details. Please try again.');
+            reject(error);
+          }
+        });
+    });
+  }
+
   getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
     switch (severity) {
       case 'Critical':
@@ -501,6 +635,48 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
           }
         });
     });
+  }
+
+  parseReferences(xrefs: string) {
+    if (!xrefs) {
+      this.cveReferences = [];
+      this.iavReferences = [];
+      this.otherReferences = [];
+      return;
+    }
+
+    const refs = xrefs.split(/\s+/).filter(Boolean);
+    this.cveReferences = [];
+    this.iavReferences = [];
+    this.otherReferences = [];
+
+    refs.forEach((ref: string) => {
+      const [refType, ...valueParts] = ref.split(':');
+      const value = valueParts.join(':').replace(/,\s*$/, '').trim();
+
+      if (refType && value) {
+        if (refType === 'CVE') {
+          this.cveReferences.push({ type: refType, value });
+        } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType)) {
+          this.iavReferences.push({ type: refType, value });
+        } else {
+          this.otherReferences.push({ type: refType, value });
+        }
+      }
+    });
+  }
+
+  parsePluginOutput(pluginText: string): string {
+    if (!pluginText) return '';
+    return pluginText.replace(/<plugin_output>/g, '').replace(/<\/plugin_output>/g, '');
+  }
+
+  getIavUrl(iavNumber: string): string {
+    return `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavNumber}`;
+  }
+
+  getCveUrl(cve: string): string {
+    return `https://web.nvd.nist.gov/view/vuln/detail?vulnId=${cve}`;
   }
 
   showErrorMessage(message: string) {
