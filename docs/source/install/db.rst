@@ -1,7 +1,7 @@
 .. _db:
 
 
-Database 
+Database
 ########################################
 
 
@@ -11,7 +11,7 @@ The C-PAT API was developed with a Controller-Service model that allows addition
 Database User Requirements
 -----------------------------------
 
-The database user specified must have sufficient permissions on the specified schema to update and create tables. 
+The database user specified must have sufficient permissions on the specified schema to update and create tables.
 Specify the User and Schema with these environment variables:
 
     * ``CPAT_DB_SCHEMA``
@@ -42,8 +42,8 @@ Example commands to prepare MySQL for initial API execution:
 
   * Create database: ``CREATE DATABASE cpat``
   * Create API user account - ``CREATE USER 'cpat'@'%' IDENTIFIED BY 'new_password'``
-  * Grant API user account all privileges on created database ``GRANT ALL ON cpat.* TO 'cpat'`` 
-
+  * Grant API user account all privileges on created database ``GRANT ALL ON cpat.* TO 'cpat'``
+  * Set ``event_scheduler=ON`` in the MySQL configuration file (my.cnf or my.ini) to enable the event scheduler. This is required for the database to run scheduled tasks, such as updating POAM statuses to 'Expired'.
 .. note::
    Suggested DB configuration options:
     - ``sort_buffer_size`` - set to at least 2M (2097152), and perhaps up to 64M (Increasing the sort_buffer_size from the default of 256k may only be required if you have very large detail/comment text fields).
@@ -63,6 +63,6 @@ Specify your MySQL DB with the following Environment Variables:
 
 To enable TLS connections with your MySQL database, specify the following Environment Variables:
 
- * *CPAT_DB_TLS_CA_FILE* - A file/path relative to the API /tls directory that contains the PEM encoded CA certificate used to sign the database TLS certificate. Setting this variable enables TLS connections to the database. 
+ * *CPAT_DB_TLS_CA_FILE* - A file/path relative to the API /tls directory that contains the PEM encoded CA certificate used to sign the database TLS certificate. Setting this variable enables TLS connections to the database.
  * *CPAT_DB_TLS_CERT_FILE* - A file/path relative to the API /tls directory that contains the PEM encoded Client certificate used when authenticating the database client.
  * *CPAT_DB_TLS_KEY_FILE* - A file/path relative to the API /tls directory that contains the PEM encoded Client private key used when authenticating the database client.

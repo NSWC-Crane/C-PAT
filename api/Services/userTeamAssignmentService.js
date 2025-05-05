@@ -37,7 +37,7 @@ exports.getTeamAssignments = async function getTeamAssignments(req, res, next) {
             let sql = `SELECT T1.*, T2.fullName, T2.userName, T2.email FROM ${config.database.schema}.userassignedteams T1
                        INNER JOIN ${config.database.schema}.user T2 ON t1.userId = t2.userId WHERE assignedTeamId = ?;`;
 
-            let [rowAssignedTeams] = await connection.query(sql, req.params.assignedTeamId);
+            let [rowAssignedTeams] = await connection.query(sql, [req.params.assignedTeamId]);
             return rowAssignedTeams.map(assignedTeam => ({
                 ...assignedTeam
             }));

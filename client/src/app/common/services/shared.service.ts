@@ -96,7 +96,7 @@ export class SharedService {
 
   getFindingsMetricsFromSTIGMAN(collectionId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=stigs`
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=rules`
     ).pipe(catchError(this.handleError));
   }
 

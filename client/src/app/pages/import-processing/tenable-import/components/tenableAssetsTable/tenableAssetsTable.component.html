@@ -68,7 +68,7 @@
         </div>
       </div>
       <div class="scrollable-vulnerabilities">
-        <p-tabs [(value)]="activeTab">
+        <p-tabs [(value)]="activeTab" scrollable>
           <p-tablist>
             @if (!assetProcessing) {
             @for (tab of teamTabs; track tab.teamId) {

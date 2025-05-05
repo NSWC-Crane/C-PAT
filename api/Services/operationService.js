@@ -30,11 +30,11 @@ exports.getConfiguration = async function () {
         return await withConnection(async (connection) => {
             let sql = `SELECT * from ${config.database.schema}.config`
             let [rows] = await connection.query(sql)
-            let config = {}
+            let configResult = {}
             for (const row of rows) {
-                config[row.key] = row.value
+                configResult[row.key] = row.value
             }
-            return (config)
+            return (configResult)
         });
     }
     catch (err) {

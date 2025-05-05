@@ -80,7 +80,7 @@
     </ng-template>
     <ng-template pTemplate="header">
       <tr>
-        <th *ngFor="let col of cols" [style.min-width]="col.minWidth" [scope]="'col'">
+        <th *ngFor="let col of cols" [style.min-width]="col.minWidth" [scope]="'col'" [pSortableColumn]="col.field">
           <div class="flex items-center">
             {{col.header}}
             <p-columnFilter [type]="getFilterType(col)"

@@ -14,7 +14,8 @@
           [draggable]="false"
           [resizable]="false"
           [closable]="true"
-          (onHide)="cancelExtension()">
+          (onHide)="cancelExtension()"
+          autoZIndex="false">
   <div class="container" *ngIf="poam">
     <div class="p-grid">
       <!-- Extension Time Allowed -->

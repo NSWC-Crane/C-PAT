@@ -157,7 +157,7 @@ export class PoamExportService {
     exportCollection: any
   ): Promise<Blob> {
     const ExcelJS = await import('exceljs');
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new ExcelJS.default.Workbook();
     const response = await fetch('../../../assets/eMASS_Template.xlsx');
     const arrayBuffer = await response.arrayBuffer();
     await workbook.xlsx.load(arrayBuffer, {
@@ -441,7 +441,7 @@ export class PoamExportService {
     );
 
     const ExcelJS = await import('exceljs');
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new ExcelJS.default.Workbook();
     const arrayBuffer = await emassterFile.arrayBuffer();
     await workbook.xlsx.load(arrayBuffer);
 

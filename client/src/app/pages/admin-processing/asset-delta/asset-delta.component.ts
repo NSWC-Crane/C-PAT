@@ -336,7 +336,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         const cardBottom = cardContainer.getBoundingClientRect().bottom;
         const chartsHeight = chartsContainer ? chartsContainer.offsetHeight : 0;
         const headerHeight = tableHeader ? tableHeader.offsetHeight : 0;
-        const bottomPadding = 32;
+        const bottomPadding = 90;
         const availableHeight = cardBottom - tabPanelTop - chartsHeight - headerHeight - bottomPadding;
         const finalHeight = Math.max(availableHeight, 200);
         this.tableScrollHeight = `${finalHeight}px`;
@@ -715,7 +715,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
           filterName: 'dnsName',
           id: 'dnsName',
           isPredefined: true,
-          operator: '=',
+          operator: '~',
           type: 'vuln',
           value: hostnames.join(',')
         }],

@@ -9,7 +9,6 @@
 */
 
 const multer = require("multer");
-const ExcelJS = require('exceljs');
 const fastcsv = require('fast-csv');
 const config = require('../utils/config');
 const db = require('../utils/sequelize');
@@ -121,7 +120,8 @@ exports.processPoamFile = async function processPoamFile(file, userId) {
 };
 
 async function loadWorkbook(file) {
-    const workbook = new ExcelJS.Workbook();
+    const ExcelJS = require('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
     try {
         await workbook.xlsx.load(file.buffer);
         return workbook;

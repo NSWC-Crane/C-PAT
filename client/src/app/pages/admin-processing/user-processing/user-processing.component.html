@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -13,7 +13,7 @@
       <p-treeTable
         #usersTable
         [value]="treeData"
-        [columns]="allColumns"
+        [columns]="cols"
         [filterDelay]="0"
         [paginator]="true"
         [rows]="20"
@@ -38,14 +38,16 @@
         </ng-template>
         <ng-template pTemplate="header" let-columns>
           <tr>
-            <th scope="col" *ngFor="let col of columns">{{col}}</th>
+            <th scope="col" *ngFor="let col of columns" [ttSortableColumn]="col.field">
+              {{col.header}}
+            </th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
           <tr [ngClass]="{'pending-status': rowData['Status'] === 'PENDING'}" (click)="setUserFromTable(rowData)">
             <td *ngFor="let col of columns; let i = index">
               <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-              {{rowData[col]}}
+              {{rowData[col.field]}}
             </td>
           </tr>
         </ng-template>

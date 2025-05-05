@@ -41,6 +41,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { AAPackage } from '../../../common/models/aaPackage.model';
 import { Permission } from '../../../common/models/permission.model';
+import { Collections } from '../../../common/models/collections.model';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { PoamMitigationGeneratorComponent } from './components/poam-mitigation-generator/poam-mitigation-generator.component';
 import { TabsModule } from 'primeng/tabs';
@@ -120,7 +121,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   assignedTeamOptions: any;
   collectionUsers: any;
   collectionApprovers: any = [];
-  collectionBasicList: any[] = [];
   collectionType: string = '';
   aaPackages: AAPackage[] = [];
   poamApprovers: any[] = [];
@@ -135,6 +135,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   filteredStigmanSTIGs: string[] = [];
   selectedCollection: any;
   originCollectionId: number;
+  collectionData: Collections;
   stateData: any;
   submitDialogVisible: boolean = false;
   user: any;
@@ -236,7 +237,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       });
     }
 
-    if (this.accessLevel() >= 4 || (this.poam?.submitterId === this.user?.userId && this.poam?.status === 'Draft')) {
+    if (this.accessLevel() >= 3 || (this.poam?.submitterId === this.user?.userId && this.poam?.status === 'Draft')) {
       items.push({
         label: 'Delete POAM',
         icon: 'pi pi-trash',
@@ -300,21 +301,17 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         }
       })
     );
-
-    this.subs.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
-        this.selectedCollection = collectionId;
-        if (this.selectedCollection) {
-          this.getLabelData();
-        }
-      })
-    );
+    if (this.selectedCollection) {
+      this.getLabelData();
+    }
   }
 
   obtainCollectionDataAsync(background: boolean = false): Promise<any> {
     return new Promise((resolve) => {
       this.poamDataService.obtainCollectionData(this.selectedCollection, background).subscribe({
         next: (collectionInfo) => {
+          this.collectionData = collectionInfo;
+          this.collectionData.collectionId = this.selectedCollection;
           this.collectionAAPackage = collectionInfo.collectionAAPackage;
           this.collectionPredisposingConditions = collectionInfo.collectionPredisposingConditions;
           this.collectionType = collectionInfo.collectionType;
@@ -438,6 +435,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.poamLabels = poam.labels || [];
           this.poamAssociatedVulnerabilities = poam.associatedVulnerabilities || [];
           this.teamMitigations = poam.teamMitigations || [];
+          this._ensureUniqueTeamMitigations();
 
           this.collectionApprovers = Array.isArray(this.collectionUsers)
             ? this.collectionUsers.filter(
@@ -549,14 +547,15 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.updateMilestoneTeamOptions();
     if (this.poam?.poamId && this.poam.poamId !== 'ADDPOAM') {
       this.syncTeamMitigations();
+      this._ensureUniqueTeamMitigations();
     }
     else if (this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
       this.poamAssignedTeams.forEach(team => {
-        const hasTeamMitigation = this.teamMitigations.some(
+        const existingMitigationIndex = this.teamMitigations.findIndex(
           m => m.assignedTeamId === team.assignedTeamId
         );
 
-        if (!hasTeamMitigation) {
+        if (existingMitigationIndex === -1) {
           this.teamMitigations.push({
             assignedTeamId: team.assignedTeamId,
             assignedTeamName: team.assignedTeamName,
@@ -565,6 +564,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           });
         }
       });
+      this._ensureUniqueTeamMitigations();
     }
   }
 
@@ -590,6 +590,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.collectionApprovers = result.collectionApprovers;
       this.poamApprovers = result.poamApprovers;
       this.poam = result.poam;
+      this.teamMitigations = [];
       this.cdr.detectChanges();
 
     } catch (error) {
@@ -623,6 +624,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.collectionApprovers = result.collectionApprovers;
       this.poamApprovers = result.poamApprovers;
       this.poam = result.poam;
+      this.teamMitigations = [];
       this.cdr.detectChanges();
 
     } catch (error) {
@@ -655,6 +657,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.collectionApprovers = result.collectionApprovers;
       this.poamApprovers = result.poamApprovers;
       this.poam = result.poam;
+      this.teamMitigations = [];
       this.cdr.detectChanges();
 
     } catch (error) {
@@ -752,10 +755,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       if (this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
         poamToSubmit.assignedTeams = this.poamAssignedTeams
-          .filter(team => team.assignedTeamId)
-          .map(team => ({
-            assignedTeamId: +team.assignedTeamId,
-            automated: team.automated || false
+        .filter(team => team.assignedTeamId)
+        .map(team => ({
+          assignedTeamId: +team.assignedTeamId,
+          automated: team.automated || false
           }));
       } else {
         poamToSubmit.assignedTeams = [];
@@ -774,11 +777,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       if (this.poamApprovers && this.poamApprovers.length > 0) {
         poamToSubmit.approvers = this.poamApprovers
-          .filter(approver => approver.userId)
-          .map(approver => ({
+        .filter(approver => approver.userId)
+        .map(approver => ({
             userId: approver.userId,
-            approvalStatus: approver.approvalStatus || 'Not Reviewed',
-            comments: approver.comments || '',
+          approvalStatus: approver.approvalStatus || 'Not Reviewed',
+          comments: approver.comments || '',
             approvedDate: approver.approvedDate ? format(new Date(approver.approvedDate), 'yyyy-MM-dd') : null
           }));
       } else {
@@ -787,7 +790,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       if (this.poamLabels && this.poamLabels.length > 0) {
         poamToSubmit.labels = this.poamLabels
-          .filter(label => label.labelId)
+        .filter(label => label.labelId)
           .map(label => ({ labelId: label.labelId }));
       } else {
         poamToSubmit.labels = [];
@@ -796,12 +799,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       if (this.poamMilestones && this.poamMilestones.length > 0) {
         poamToSubmit.milestones = this.poamMilestones
           .filter(milestone => milestone.milestoneComments)
-          .map(milestone => ({
+        .map(milestone => ({
             milestoneDate: milestone.milestoneDate ? format(new Date(milestone.milestoneDate), 'yyyy-MM-dd') : null,
-            milestoneComments: milestone.milestoneComments || null,
-            milestoneStatus: milestone.milestoneStatus || 'Pending',
+          milestoneComments: milestone.milestoneComments || null,
+          milestoneStatus: milestone.milestoneStatus || 'Pending',
             assignedTeamId: milestone.assignedTeamId || null
-          }));
+        }));
       } else {
         poamToSubmit.milestones = [];
       }
@@ -820,11 +823,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       if (this.teamMitigations && this.teamMitigations.length > 0) {
         poamToSubmit.teamMitigations = this.teamMitigations
           .filter(mitigation => mitigation.assignedTeamId)
-          .map(mitigation => ({
-            assignedTeamId: mitigation.assignedTeamId,
-            mitigationText: mitigation.mitigationText || '',
-            isActive: mitigation.isActive !== undefined ? mitigation.isActive : true
-          }));
+        .map(mitigation => ({
+          assignedTeamId: mitigation.assignedTeamId,
+          mitigationText: mitigation.mitigationText || '',
+          isActive: mitigation.isActive !== undefined ? mitigation.isActive : true
+        }));
       } else {
         poamToSubmit.teamMitigations = [];
       }
@@ -917,7 +920,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     if (this.teamMitigations) {
       this.teamMitigations.forEach(mitigation => mitigation.poamId = poamId);
     }
-  }
+    }
 
   onStigSelected(event: any) {
     this.poam.vulnerabilityTitle = event.value.title;
@@ -943,6 +946,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         });
       }
     }
+    this._ensureUniqueTeamMitigations();
   }
 
   verifySubmitPoam(showDialog: boolean = true): boolean {
@@ -956,6 +960,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       return false;
     }
 
+    this._ensureUniqueTeamMitigations();
     const submissionValidation = this.poamValidationService.validateSubmissionRequirements(this.poam, this.teamMitigations, this.dates);
     if (!submissionValidation.valid) {
       this.messageService.add({
@@ -988,9 +993,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       ? format(this.dates.submittedDate, 'yyyy-MM-dd')
       : null;
     await this.savePoam();
-    this.submitDialogVisible = false;
-    this.router.navigate(['/poam-processing/poam-manage']);
-  }
+      this.submitDialogVisible = false;
+      this.router.navigate(['/poam-processing/poam-manage']);
+    }
 
   cancelSubmit() {
     this.submitDialogVisible = false;
@@ -1015,6 +1020,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   handleAssetsChanged(assets: any[]) {
     this.poamAssets = assets;
+    this.compareAssetsAndAssignTeams();
   }
 
   handleLabelsChanged(labels: any[]) {
@@ -1029,7 +1035,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         milestone.milestoneDate = typeof milestone.milestoneDate === 'string'
           ? milestone.milestoneDate
           : format(milestone.milestoneDate, 'yyyy-MM-dd');
-      }
+        }
     });
   }
 
@@ -1046,62 +1052,44 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.updateMilestoneTeamOptions();
 
     if (event.action === 'added' && event.team?.assignedTeamId) {
-      const hasTeamMitigation = this.teamMitigations.some(
+      const existingMitigationIndex = this.teamMitigations.findIndex(
         m => m.assignedTeamId === event.team.assignedTeamId
       );
 
-      if (!hasTeamMitigation) {
+      if (existingMitigationIndex === -1) {
         this.teamMitigations.push({
           assignedTeamId: event.team.assignedTeamId,
           assignedTeamName: event.team.assignedTeamName,
           mitigationText: '',
           isActive: true
         });
+      } else {
+        this.teamMitigations[existingMitigationIndex].isActive = true;
+        this.teamMitigations[existingMitigationIndex].assignedTeamName = event.team.assignedTeamName;
       }
+    } else if (event.action === 'deleted' && event.team?.assignedTeamId) {
+      const mitigationIndex = this.teamMitigations.findIndex(
+        m => m.assignedTeamId === event.team.assignedTeamId
+      );
 
-      this.updateMilestoneTeamOptions();
+      if (mitigationIndex > -1) {
+        this.teamMitigations[mitigationIndex].isActive = false;
+
+        if (this.activeTabIndex > 0 && this.activeTabIndex === mitigationIndex + 1) {
+          this.activeTabIndex = 0;
+        }
+      }
     }
 
+    this._ensureUniqueTeamMitigations();
     if (this.poam && event.action !== 'save-request') {
       this.poam.assignedTeams = this.poamAssignedTeams
         .filter(team => team.assignedTeamId)
         .map(team => ({
           assignedTeamId: +team.assignedTeamId,
           automated: team.automated || false
-        }));
-    }
-
-    if (event.action === 'added' && event.team?.assignedTeamId) {
-      const hasTeamMitigation = this.teamMitigations.some(
-        m => m.assignedTeamId === event.team.assignedTeamId
-      );
-
-      if (!hasTeamMitigation) {
-        this.teamMitigations.push({
-          assignedTeamId: event.team.assignedTeamId,
-          assignedTeamName: event.team.assignedTeamName,
-          mitigationText: '',
-          isActive: true
-        });
-      }
-    }
-    else if (event.action === 'deleted' && event.team?.assignedTeamId) {
-      const mitigation = this.teamMitigations.find(
-        m => m.assignedTeamId === event.team.assignedTeamId
-      );
-
-      if (mitigation) {
-        mitigation.isActive = false;
-
-        if (this.activeTabIndex > 0) {
-          const teamIndex = this.teamMitigations.findIndex(
-            t => t.assignedTeamId === event.team.assignedTeamId
-          );
-          if (this.activeTabIndex === teamIndex + 1) {
-            this.activeTabIndex = 0;
-          }
-        }
-      }
+        }))
+        .filter((team, index, self) => index === self.findIndex(t => t.assignedTeamId === team.assignedTeamId));
     }
 
     if (this.activeTabIndex > 0 && this.activeTabIndex > this.teamMitigations.length) {
@@ -1115,32 +1103,43 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const activeTeamIds = this.poamAssignedTeams
+    const currentAssignedTeams = Array.isArray(this.poamAssignedTeams) ? this.poamAssignedTeams : [];
+
+    const activeTeamIds = currentAssignedTeams
       .filter(team => team.isActive !== false)
       .map(team => team.assignedTeamId);
 
-    const filteredTeams = this.assignedTeamOptions
-      .filter(team => activeTeamIds.includes(team.assignedTeamId));
+    const filteredTeams = (this.assignedTeamOptions || [])
+      .filter((teamOption: any) => activeTeamIds.includes(teamOption.assignedTeamId));
 
     this.milestoneTeamOptions = [...filteredTeams];
   }
 
   loadTeamMitigations() {
     if (!this.poam?.poamId || this.poam.poamId === 'ADDPOAM') {
+      this._ensureUniqueTeamMitigations();
       return;
     }
 
     this.poamMitigationService.loadTeamMitigations(this.poam.poamId).subscribe({
-      next: (mitigations) => {
-        this.teamMitigations = mitigations;
+      next: async (mitigations) => {
+        this.teamMitigations = mitigations || [];
+        this._ensureUniqueTeamMitigations();
 
-        if (this.teamMitigations.length === 0 &&
-          this.poamAssignedTeams &&
-          this.poamAssignedTeams.length > 0) {
-          this.initializeTeamMitigations();
-        } else {
+        const needsInitialization = this.teamMitigations.length === 0 && this.poamAssignedTeams && this.poamAssignedTeams.length > 0;
+        const needsSync = this.teamMitigations.length > 0 && this.poamAssignedTeams && this.poamAssignedTeams.length > 0;
+
+        if (needsInitialization) {
+          await this.initializeTeamMitigations();
+        } else if (needsSync) {
           this.syncTeamMitigations();
         }
+        this._ensureUniqueTeamMitigations();
+
+        if (this.activeTabIndex > 0 && this.activeTabIndex > this.teamMitigations.length) {
+          this.activeTabIndex = 0;
+        }
+
       },
       error: (error) => {
         console.error('Error loading team mitigations:', error);
@@ -1149,11 +1148,17 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           summary: 'Error',
           detail: 'Failed to load team mitigations'
         });
+        this._ensureUniqueTeamMitigations();
       }
     });
   }
 
   syncTeamMitigations() {
+    if (!this.poam || !this.poamAssignedTeams || !this.teamMitigations) {
+      console.warn("Cannot sync team mitigations: Missing required data.");
+      return;
+    }
+
     this.poamMitigationService.syncTeamMitigations(
       this.poam,
       this.poamAssignedTeams,
@@ -1162,6 +1167,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   saveTeamMitigation(teamMitigation: any) {
+    if (!this.poam || !teamMitigation || !teamMitigation.assignedTeamId) {
+      console.error("Cannot save team mitigation: Missing POAM or team mitigation data.");
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Cannot save, missing data.' });
+      return;
+    }
+
     this.mitigationSaving = true;
     this.poamMitigationService.saveTeamMitigation(this.poam, teamMitigation).subscribe({
       next: () => {
@@ -1190,43 +1201,41 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.poamAssignedTeams,
       this.teamMitigations
     );
-
-    if (this.activeTabIndex > 0 && this.activeTabIndex > this.teamMitigations.length) {
-      this.activeTabIndex = 0;
-    }
   }
+
 
   onGlobalFindingToggle(): void {
     if (this.poam.isGlobalFinding) {
       this.activeTabIndex = 0;
-
-      if (!this.poam.isGlobalFinding) {
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Global Finding Mode',
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Global Finding Mode',
           detail: 'Team-specific mitigations are now hidden. They will be preserved but not displayed.'
-        });
-      }
+      });
     }
   }
 
   onTabChange(_event: any): void {
     if (this.poam.isGlobalFinding && this.activeTabIndex !== 0) {
-      this.activeTabIndex = 0;
+      setTimeout(() => this.activeTabIndex = 0, 0);
     }
   }
 
   openIavLink(iavmNumber: string) {
-    window.open(
-      `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavmNumber}`,
-      '_blank'
-    );
+      window.open(
+        `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavmNumber}`,
+        '_blank'
+      );
   }
 
   searchStigTitles(event: any) {
-    const query = event.query.toLowerCase();
+    const query = event?.query?.toLowerCase() || '';
+    if (!this.stigmanSTIGs) {
+      this.filteredStigmanSTIGs = [];
+      return;
+    }
     this.filteredStigmanSTIGs = this.stigmanSTIGs.filter((stig: any) =>
-      stig.title.toLowerCase().includes(query)
+      stig?.title && stig.title.toLowerCase().includes(query)
     );
   }
 
@@ -1234,6 +1243,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.poamDataService.loadAAPackages().subscribe({
       next: (response) => {
         this.aaPackages = response || [];
+      },
+      error: (error) => {
+        console.error('Error loading A&A Packages:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load A&A Packages.' });
+        this.aaPackages = [];
       }
     });
   }
@@ -1245,6 +1259,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   deletePoam() {
+    if (!this.poam || !this.poam.poamId || this.poam.poamId === 'ADDPOAM') {
+      this.messageService.add({ severity: 'warn', summary: 'Cannot Delete', detail: 'POAM must be saved before it can be deleted.' });
+      return;
+    }
+
     this.confirmationService.confirm({
       message: `Are you sure you want to delete POAM ${this.poam.poamId}? This action is irreversable.`,
       header: 'Confirm POAM Deletion',
@@ -1276,8 +1295,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   isIavmNumberValid(iavmNumber: string): boolean {
-  return this.mappingService.isIavmNumberValid(iavmNumber);
-}
+    return this.mappingService.isIavmNumberValid(iavmNumber);
+  }
 
   confirm(options: { header: string; message: string; accept: () => void }) {
     this.confirmationService.confirm({
@@ -1296,6 +1315,16 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   hideErrorDialog() {
     this.errorDialogVisible = false;
+  }
+
+  private _ensureUniqueTeamMitigations(): void {
+    if (this.teamMitigations && Array.isArray(this.teamMitigations)) {
+      this.teamMitigations = this.teamMitigations.filter((mitigation, index, self) =>
+        index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId)
+      );
+    } else {
+      this.teamMitigations = [];
+    }
   }
 
   ngOnDestroy(): void {

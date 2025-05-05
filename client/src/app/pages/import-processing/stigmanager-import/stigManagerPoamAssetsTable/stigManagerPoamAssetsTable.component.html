@@ -68,7 +68,7 @@
         </div>
       </div>
       <div class="scrollable-assets">
-        <p-tabs [(value)]="activeTab">
+        <p-tabs [(value)]="activeTab" scrollable>
           <p-tablist>
             @for (tab of teamTabs; track tab.teamId) {
             <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>

@@ -199,7 +199,7 @@
   <div class="main-content"
        [ngClass]="{'content-full': !sidebarVisible, 'content-shifted': sidebarVisible}">
     <p-card styleClass="ml-6">
-      <p-tabs value="0">
+      <p-tabs value="0" scrollable>
         <p-tablist>
           <p-tab value="0">Vulnerabilities ({{totalRecords}})</p-tab>
           <p-tab value="1">IAV Vulnerabilities ({{iavVulnerabilitiesCount}})</p-tab>
@@ -464,7 +464,7 @@
                             <ng-container [ngSwitch]="col.field">
                               <ng-container *ngSwitchCase="'poam'">
                                 <i class="pi"
-                                   [ngClass]="vulnerability.poam ? 'pi-check-circle' : 'pi-times-circle'"
+                                   [ngClass]="vulnerability.poam ? 'pi-check-circle' : 'pi-plus-circle'"
                                    [ngStyle]="{
        'color': vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus) : 'maroon',
        'font-size': '1.5rem',

@@ -287,6 +287,15 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   }
 
   private validateMilestoneFields(milestone: any): boolean {
+    if (milestone.milestoneChangeDate && !milestone.milestoneChangeComments) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail: 'When providing a milestone change date, you must also include milestone change comments.'
+      });
+      return false;
+    }
+
     const requiredFields = [
       {
         field: 'milestoneChangeComments',
@@ -503,7 +512,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   }
 
   async submitPoamExtension() {
-    // Validate required fields
     if (!this.poam.extensionTimeAllowed) {
       this.messageService.add({
         severity: 'error',
@@ -532,6 +540,36 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     }
 
     if (this.poam.extensionTimeAllowed > 0) {
+      const milestoneWithChangeDateButNoComment = this.poamMilestones.some(
+        milestone => milestone.milestoneChangeDate && !milestone.milestoneChangeComments
+      );
+
+      if (milestoneWithChangeDateButNoComment) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'All milestones with a change date must also have change comments.'
+        });
+        return;
+      }
+
+      const today = new Date();
+      const pastDueMilestonesWithoutChanges = this.poamMilestones.some(milestone => {
+        if (!milestone.milestoneDate) return false;
+
+        const milestoneDate = new Date(milestone.milestoneDate);
+        return milestoneDate < today && !milestone.milestoneChangeDate;
+      });
+
+      if (pastDueMilestonesWithoutChanges) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'All past-due milestones must have a milestone change date and comments before submitting an extension request.'
+        });
+        return;
+      }
+
       const hasChangedMilestone = this.poamMilestones.some(
         milestone => milestone.milestoneChangeComments && milestone.milestoneChangeDate
       );

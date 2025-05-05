@@ -104,7 +104,7 @@ let config = {
         provider: process.env.CPAT_AI_PROVIDER,
         modelName: process.env.CPAT_AI_MODEL_NAME,
         apiKey: process.env.CPAT_AI_API_KEY,
-        aiBaseURL: process.env.CPAT_AI_BASE_URL || 'http://localhost:11434'
+        aiBaseURL: process.env.CPAT_AI_BASE_URL
     },
     log: {
         level: parseInt(process.env.CPAT_LOG_LEVEL) || 3,

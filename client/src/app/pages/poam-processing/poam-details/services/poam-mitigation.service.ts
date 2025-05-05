@@ -135,9 +135,11 @@ export class PoamMitigationService {
         }
       }
 
-      return teamMitigations.sort((a, b) =>
-        a.assignedTeamName.localeCompare(b.assignedTeamName)
-      );
+      return teamMitigations
+        .sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName))
+        .filter((mitigation, index, self) =>
+          index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId)
+        );
     }
 
     return teamMitigations;

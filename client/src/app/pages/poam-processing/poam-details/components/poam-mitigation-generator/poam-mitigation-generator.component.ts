@@ -174,7 +174,11 @@ Required Output:
 4. Overall risk mitigation effectiveness
    - Do not assign a risk rating; instead, provide a brief qualitative assessment of the effectiveness of the compensating controls
 
-Remember: Focus only on concrete measures that WILL be implemented, not theoretical possibilities or recommendations.`;
+Remember:
+- Focus only on concrete measures that WILL be implemented, not theoretical possibilities or recommendations.
+- Your response should be written as a formal POAM mitigation statement that stands on its own without restating the vulnerability details unless they are applicable to the mitigation.
+- Write in a professional, direct tone appropriate for a formal security document.
+- Structure your response as a complete mitigation plan that could be copied directly into a POAM document.`;
   }
 
   applyMitigation() {

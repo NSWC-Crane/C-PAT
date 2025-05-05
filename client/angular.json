@@ -59,6 +59,11 @@
                 "inject": true
               },
               {
+                "input": "src/assets/styles/layout/loader.scss",
+                "bundleName": "loader",
+                "inject": true
+              },
+              {
                 "input": "node_modules/pace-js/templates/pace-theme-flash.tmpl.css",
                 "bundleName": "pace",
                 "inject": true

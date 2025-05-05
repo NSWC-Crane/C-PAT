@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<div class="grid-cols-12 grid gap-4">
+<div class="grid grid-cols-12 gap-4">
   <div class="col-span-12">
     <div class="scrollable-aaPackages overflow-hidden">
       <p-table
@@ -52,8 +52,8 @@
         </ng-template>
         <ng-template pTemplate="header">
           <tr>
-            <th scope="col">A&A Package ID</th>
-            <th scope="col">A&A Package Name</th>
+            <th scope="col" pSortableColumn="aaPackageId">A&A Package ID</th>
+            <th scope="col" pSortableColumn="aaPackageName">A&A Package Name</th>
             <th scope="col">Actions</th>
           </tr>
         </ng-template>

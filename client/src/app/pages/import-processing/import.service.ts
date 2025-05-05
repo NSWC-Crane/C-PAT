@@ -37,6 +37,12 @@ export class ImportService {
       .pipe(catchError(this.handleError));
   }
 
+  postTenableHostSearch(hostParams: any): Observable<any> {
+    return this.http
+      .post(`${this.cpatApiBase}/tenable/hosts/search?sortField=acr&sortDirection=DESC&paginated=false&fields=assetID,name,ipAddress,os,systemType,macAddress,firstSeen,lastSeen,source,netBios,dns,acr,aes`, hostParams)
+      .pipe(catchError(this.handleError));
+  }
+
   getTenablePlugin(pluginId: any): Observable<any> {
     return this.http
       .get(`${this.cpatApiBase}/tenable/plugin/${pluginId}`)
