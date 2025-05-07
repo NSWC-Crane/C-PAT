@@ -426,7 +426,7 @@ exports.postPoam = async function postPoam(req) {
                             await connection.rollback();
                             return { status: 400, errors: { "assignedTeams.assignedTeamId": "is required" } };
                         }
-                        let sql_query = `INSERT INTO ${config.database.schema}.poamassignedTeams (poamId, assignedTeamId, automated) values (?, ?, ?)`;
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamassignedteams (poamId, assignedTeamId, automated) values (?, ?, ?)`;
                         await connection.query(sql_query, [poam.poamId, team.assignedTeamId, team.automated || false]);
                     }
                 }
