@@ -63,7 +63,7 @@ export class PoamTeamsComponent {
       assignedTeam.assignedTeamName = selectedTeam ? selectedTeam.assignedTeamName : '';
 
       assignedTeam.isNew = false;
-      this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'updated', team: assignedTeam });
+      this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'added', team: assignedTeam });
 
       this.messageService.add({
         severity: 'success',
