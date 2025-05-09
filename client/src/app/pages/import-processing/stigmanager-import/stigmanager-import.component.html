@@ -267,7 +267,7 @@
                     <ng-template #loadedData>
                       <ng-container [ngSwitch]="col.field">
                         <ng-container *ngSwitchCase="'poam'">
-                          <i [class]="'pi ' + getPoamStatusIcon(rowData.hasExistingPoam)"
+                          <i [ngClass]="rowData.hasExistingPoam ? getPoamStatusIcon(rowData.poamStatus) : 'pi pi-plus-circle'"
                              [ngStyle]="{ 'color': !rowData.hasExistingPoam ? 'maroon' : getPoamStatusColor(rowData.poamStatus), 'font-size': '1.5rem', 'cursor': 'pointer', 'justify-content': 'center' }"
                              (click)="addPoam(rowData)"
                              (keyup.enter)="addPoam(rowData)"

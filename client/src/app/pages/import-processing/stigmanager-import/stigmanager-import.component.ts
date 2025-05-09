@@ -343,14 +343,15 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   getPoamStatusColor(status: string): string {
     switch (status?.toLowerCase()) {
+      case 'draft':
+        return 'darkorange';
       case 'expired':
       case 'rejected':
-      case 'draft':
-        return 'maroon';
+        return 'firebrick';
       case 'submitted':
       case 'pending cat-i approval':
       case 'extension requested':
-        return 'gold';
+        return 'goldenrod';
       case 'false-positive':
       case 'closed':
         return 'black';
@@ -363,11 +364,25 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     }
   }
 
-  getPoamStatusIcon(hasExistingPoam: boolean): string {
-    if (!hasExistingPoam) {
-      return 'pi-plus-circle';
+  getPoamStatusIcon(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'no existing poam':
+        return 'pi pi-plus-circle';
+      case 'expired':
+      case 'rejected':
+        return 'pi pi-ban';
+      case 'draft':
+      case 'submitted':
+      case 'pending cat-i approval':
+      case 'extension requested':
+      case 'false-positive':
+      case 'closed':
+      case 'approved':
+      case 'associated':
+        return 'pi pi-check-circle';
+      default:
+        return 'pi pi-question-circle';
     }
-    return 'pi-check-circle';
   }
 
   getPoamStatusTooltip(status: string | undefined, hasExistingPoam: boolean): string {

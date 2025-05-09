@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -313,7 +313,7 @@
               <ng-container [ngSwitch]="col.field">
                 <ng-container *ngSwitchCase="'poam'">
                   <i class="pi"
-                     [ngClass]="item.poam ? 'pi-plus-circle' : 'pi-times-circle'"
+                     [ngClass]="item.poam ? getPoamStatusIcon(item.poamStatus) : 'pi pi-plus-circle'"
                      [ngStyle]="{
                          'color': item.poam ? getPoamStatusColor(item.poamStatus) : 'maroon',
                          'font-size': '1.5rem',
