@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -72,16 +72,21 @@
                     </span>
                 </td>
                 <td>
-                    <button pButton
-                            type="button"
-                            icon="pi pi-pencil"
-                            class="p-button-rounded p-button-text mr-2"
-                            (click)="$event.stopPropagation(); showModifyCollectionDialog(rowData)"></button>
-                    <button pButton
-                            type="button"
-                            icon="pi pi-download"
-                            class="p-button-rounded p-button-text"
-                            (click)="$event.stopPropagation(); exportCollection(rowData)"></button>
+                  <button pButton
+                          type="button"
+                          icon="pi pi-pencil"
+                          class="p-button-rounded p-button-text mr-2"
+                          (click)="$event.stopPropagation(); showModifyCollectionDialog(rowData)"></button>
+                  <button pButton
+                          type="button"
+                          icon="pi pi-download"
+                          class="p-button-rounded p-button-text mr-2"
+                          (click)="$event.stopPropagation(); exportCollection(rowData)"></button>
+                  <button pButton
+                          type="button"
+                          icon="pi pi-trash"
+                          class="p-button-rounded p-button-text p-button-danger"
+                          (click)="$event.stopPropagation(); confirmDeleteCollection(rowData)"></button>
                 </td>
             </tr>
         </ng-template>
@@ -184,6 +189,31 @@
       class="p-button-text"
       (click)="saveCollection()"
     ></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="displayDeleteDialog" [style]="{width: 'auto'}" [modal]="true" header="Confirm Delete">
+  <div class="custom-confirm-popup">
+    <div class="icon-container">
+      <i class="pi pi-exclamation-triangle"></i>
+    </div>
+    <h3>Confirm Collection Deletion</h3>
+    <h5>Are you sure that you would like to delete the "{{collectionToDelete?.Name}}" collection?</h5>
+    <p class="!mb-0 text-sm text-red-400">This is an irreversible action and will result in all data associated with this collection being deleted.</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="m-2 flex w-full items-center justify-between">
+      <button pButton
+              label="Yes"
+              icon="pi pi-check"
+              (click)="deleteCollection()"
+              class="p-button-primary"></button>
+      <button pButton
+              label="No"
+              icon="pi pi-times"
+              (click)="hideDeleteDialog()"
+              class="p-button-secondary"></button>
+    </div>
   </ng-template>
 </p-dialog>
 

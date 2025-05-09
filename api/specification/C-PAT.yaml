@@ -1194,6 +1194,56 @@ paths:
         - oauth:
             - 'c-pat:write'
 
+  /collection/{collectionId}:
+    parameters:
+      - $ref: '#/components/parameters/ElevateQuery'
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Delete a Collection by ID
+      operationId: deleteCollection
+      responses:
+        '204':
+          description: Collection deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Collection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '409':
+          description: Conflict - collection has related records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Collection
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   /iav/vramUpdatedDate:
     get:
       summary: Get VRAM data updated date
