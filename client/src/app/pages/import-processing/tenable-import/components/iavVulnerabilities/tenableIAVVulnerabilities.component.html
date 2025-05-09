@@ -196,7 +196,7 @@
                 <ng-container [ngSwitch]="col.field">
                   <ng-container *ngSwitchCase="'poam'">
                     <i class="pi"
-                       [ngClass]="vulnerability.poam ? 'pi-check-circle' : 'pi-plus-circle'"
+                       [ngClass]="vulnerability.poam ? getPoamStatusIcon(vulnerability.poamStatus) : 'pi pi-plus-circle'"
                        [ngStyle]="{
        'color': vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus) : 'maroon',
        'font-size': '1.5rem',

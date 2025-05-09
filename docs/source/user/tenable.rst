@@ -16,6 +16,19 @@ Default Display
 When the Vulnerability Summary view is selected, the component will display columns for the following fields:
 ``POAM`` ``Plugin ID`` ``Name`` ``Family`` ``Severity`` ``VPR`` ``IAV`` ``Navy Comply Date`` ``Total`` ``Host Total``
 
+POAM Column
+"""""""""""""
+Tenable findings tables are compared against existing POAM's in CPAT to determine the existience of a POAM and the POAM Status, if applicable. The results of this determination are displayed in the first column, labeled POAM.
+
+The POAM column is color coded to reflect the POAM status. The color coding is as follows:
+- Maroon Plus (+): No POAM exists for this finding.
+- Red Slash (\): POAM exists and is in a status of "Expired" or "Rejected".
+- Orange Checkmark: POAM exists and is in a status of "Draft".
+- Yellow Checkmark: POAM exists and is in a status of "Submitted", "Pending CAT-I Approval", or "Extension Requested".
+- Green Checkmark: POAM exists and is in a status of "Approved"
+- Grey Checkmark: The vulnerability is listed as being "Associated" with an existing POAM. This result is often the case when one master POAM is sufficient to cover multiple similar findings.
+- Black Checkmark: POAM exists and is in a status of "Closed" or "False-Positive".
+
 Predefined Filters
 """""""""""""""""""
 To access the filter menu, a filter button is available to the top left of the table. At the top of the filter panel, a dropdown has been provided with several pre-made filters:
