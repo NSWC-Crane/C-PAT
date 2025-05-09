@@ -161,3 +161,77 @@ exports.putCollection = async function putCollection(req, res, next) {
         return { error: error.message };
     }
 }
+
+exports.deleteCollection = async function deleteCollection(req) {
+    if (!req.params.collectionId) {
+        return {
+            status: 400,
+            errors: {
+                collectionId: 'is required'
+            }
+        };
+    }
+
+    try {
+        return await withConnection(async (connection) => {
+            if (!req.query.elevate || req.userObject?.isAdmin !== true) {
+                return {
+                    status: 403,
+                    errors: {
+                        authorization: 'Insufficient privileges. Elevate parameter and administrative privileges are required.'
+                    }
+                };
+            }
+
+            const checkSql = `SELECT COUNT(*) as count FROM ${config.database.schema}.collection WHERE collectionId = ?`;
+            const [checkResult] = await connection.query(checkSql, [req.params.collectionId]);
+
+            if (checkResult[0].count === 0) {
+                return {
+                    status: 404,
+                    errors: {
+                        collection: 'Collection not found'
+                    }
+                };
+            }
+
+            await connection.beginTransaction();
+            try {
+                const sqlDeleteCollection = `DELETE FROM ${config.database.schema}.collection WHERE collectionId = ?`;
+                const [deleteResult] = await connection.query(sqlDeleteCollection, [req.params.collectionId]);
+
+                if (deleteResult.affectedRows === 0) {
+                    await connection.rollback();
+                    return {
+                        status: 404,
+                        errors: {
+                            collection: 'Collection not found'
+                        }
+                    };
+                }
+
+                await connection.commit();
+                return { success: true };
+            } catch (error) {
+                await connection.rollback();
+                if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+                    return {
+                        status: 409,
+                        errors: {
+                            database: 'Cannot delete collection because it is referenced by other records'
+                        }
+                    };
+                }
+
+                throw error;
+            }
+        });
+    } catch (error) {
+        return {
+            status: 500,
+            errors: {
+                database: error.message
+            }
+        };
+    }
+};

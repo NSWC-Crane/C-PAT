@@ -60,7 +60,7 @@ export class CollectionsService {
 
   deleteCollection(collectionId: number): Observable<Collections> {
     return this.http
-      .delete<Collections>(`${this.cpatApiBase}/collections/${collectionId}`)
+      .delete<Collections>(`${this.cpatApiBase}/collection/${collectionId}?elevate=true`)
       .pipe(catchError(this.handleError));
   }
 

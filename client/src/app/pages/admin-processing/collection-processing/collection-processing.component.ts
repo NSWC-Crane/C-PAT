@@ -89,6 +89,8 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   cpatAffectedAssets: any;
   stigmanAffectedAssets: any;
   tenableAffectedAssets: any;
+  displayDeleteDialog: boolean = false;
+  collectionToDelete: any = null;
   private findingsCache: Map<string, any[]> = new Map();
   private payloadSubscription: Subscription[] = [];
   private subs = new SubSink();
@@ -471,6 +473,42 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       predisposingConditions: rowData['Predisposing Conditions']
     };
     this.displayCollectionDialog = true;
+  }
+
+  confirmDeleteCollection(rowData: any) {
+    this.collectionToDelete = rowData;
+    this.displayDeleteDialog = true;
+  }
+
+  deleteCollection() {
+    if (!this.collectionToDelete) return;
+
+    const collectionId = this.collectionToDelete['Collection ID'];
+    this.collectionsService.deleteCollection(collectionId).pipe(
+      catchError(error => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to delete collection: ${error.message}`,
+          life: 3000
+        });
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Collection Deleted',
+        life: 3000
+      });
+      this.getCollectionData();
+      this.hideDeleteDialog();
+    });
+  }
+
+  hideDeleteDialog() {
+    this.displayDeleteDialog = false;
+    this.collectionToDelete = null;
   }
 
   hideCollectionDialog() {

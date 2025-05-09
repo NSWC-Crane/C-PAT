@@ -63,3 +63,18 @@ module.exports.putCollection = async function putCollection(req, res, next) {
         }
     }
 };
+
+module.exports.deleteCollection = async function deleteCollection(req, res, next) {
+    try {
+        const result = await collectionService.deleteCollection(req);
+        if (result.status) {
+            return res.status(result.status).json({ error: result.errors });
+        }
+        if (result.success) {
+            return res.status(204).send();
+        }
+        return res.status(500).json({ error: 'Unknown error occurred' });
+    } catch (error) {
+        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+};
