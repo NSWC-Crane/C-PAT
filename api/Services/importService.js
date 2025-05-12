@@ -121,7 +121,7 @@ exports.processPoamFile = async function processPoamFile(file, userId) {
 
 async function loadWorkbook(file) {
     const ExcelJS = require('exceljs');
-    const workbook = new ExcelJS.default.Workbook();
+    const workbook = new ExcelJS.Workbook();
     try {
         await workbook.xlsx.load(file.buffer);
         return workbook;
