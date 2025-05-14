@@ -240,7 +240,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       this.assetDeltaList.assets.forEach(deltaAsset => {
         const deltaKey = deltaAsset.key.toLowerCase();
 
-        if (assetName === deltaKey || fqdn === deltaKey) {
+        if (assetName.includes(deltaKey) || fqdn.includes(deltaKey)) {
           if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
             deltaAsset.assignedTeams.forEach(team => {
               const teamId = team.assignedTeamId;
