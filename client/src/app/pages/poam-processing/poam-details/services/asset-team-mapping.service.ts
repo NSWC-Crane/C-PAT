@@ -52,7 +52,6 @@ export class AssetTeamMappingService {
         source: 'CPAT' as const
       })) :
       externalAssets;
-
     const teamsWithAssets = new Set<number>();
 
     assetsToCheck.forEach(asset => {
@@ -62,12 +61,10 @@ export class AssetTeamMappingService {
 
         let assetMatchesRule = false;
 
-        if (asset.source === 'STIG Manager' && assetName === deltaKey) {
-          assetMatchesRule = true;
-        }
-        else if (asset.source === 'Tenable' &&
-          (asset.dnsName?.toLowerCase().includes(deltaKey) ||
-            assetName.includes(deltaKey))) {
+        if ((asset.source === 'STIG Manager' || asset.source === 'Tenable') &&
+          (assetName.includes(deltaKey) ||
+            asset.dnsName?.toLowerCase().includes(deltaKey) ||
+            asset.fqdn?.toLowerCase().includes(deltaKey))) {
           assetMatchesRule = true;
         }
         else if (asset.source === 'CPAT' && assetName === deltaKey) {
