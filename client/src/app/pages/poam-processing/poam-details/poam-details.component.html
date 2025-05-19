@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -106,7 +106,7 @@
         <!-- Status -->
         <div class="status form-group">
           <label for="status">POAM Status: </label>
-          <p-select [options]="accessLevel() >= 3 ? approverStatusOptions : userStatusOptions"
+          <p-select [options]="filteredStatusOptions"
                     [(ngModel)]="poam.status"
                     id="status"
                     name="status"

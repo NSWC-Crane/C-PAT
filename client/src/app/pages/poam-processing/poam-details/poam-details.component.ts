@@ -153,7 +153,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     'STIG'
   ];
 
-  approverStatusOptions = [
+  statusOptions = [
     'Draft',
     'Closed',
     'Expired',
@@ -165,11 +165,17 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     'False-Positive'
   ];
 
-  userStatusOptions = [
-    'Draft',
-    'Closed',
-    'Expired'
-  ];
+  get filteredStatusOptions(): string[] {
+    const accessLevel = this.accessLevel();
+
+    if (accessLevel >= 4) {
+      return this.statusOptions;
+    } else if (accessLevel === 3) {
+      return this.statusOptions.filter(status => status !== 'Approved');
+    } else {
+      return ['Draft', 'Closed', 'Expired'];
+    }
+  }
 
   severityOptions = [
     { value: 'CAT I - Critical', label: 'CAT I - Critical' },
