@@ -154,16 +154,28 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   ];
 
   statusOptions = [
-    { label: 'Draft', value: 'Draft', disabled: false },
-    { label: 'Closed', value: 'Closed', disabled: false },
-    { label: 'Expired', value: 'Expired', disabled: false },
-    { label: 'Submitted', value: 'Submitted', disabled: true },
-    { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval', disabled: true },
-    { label: 'Extension Requested', value: 'Extension Requested', disabled: true },
-    { label: 'Approved', value: 'Approved', disabled: true },
-    { label: 'Rejected', value: 'Rejected', disabled: true },
-    { label: 'False-Positive', value: 'False-Positive', disabled: true }
+    'Draft',
+    'Closed',
+    'Expired',
+    'Submitted',
+    'Pending CAT-I Approval',
+    'Extension Requested',
+    'Approved',
+    'Rejected',
+    'False-Positive'
   ];
+
+  get filteredStatusOptions(): string[] {
+    const accessLevel = this.accessLevel();
+
+    if (accessLevel >= 4) {
+      return this.statusOptions;
+    } else if (accessLevel === 3) {
+      return this.statusOptions.filter(status => status !== 'Approved');
+    } else {
+      return ['Draft', 'Closed', 'Expired'];
+    }
+  }
 
   severityOptions = [
     { value: 'CAT I - Critical', label: 'CAT I - Critical' },
