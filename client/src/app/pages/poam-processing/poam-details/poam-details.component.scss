@@ -8,6 +8,10 @@
 !##########################################################################
 */
 
+.status ::ng-deep .p-select-label.p-placeholder {
+  color: var(--text-color) !important;
+}
+
 .team-badges-container {
   display: flex;
   flex-wrap: wrap;

@@ -104,20 +104,15 @@
         </div>
 
         <!-- Status -->
-        <div class="form-group">
+        <div class="status form-group">
           <label for="status">POAM Status: </label>
-          <p-select [options]="statusOptions"
+          <p-select [options]="accessLevel() >= 3 ? approverStatusOptions : userStatusOptions"
                     [(ngModel)]="poam.status"
                     id="status"
                     name="status"
-                    placeholder="POAM Status..."
-                    optionLabel="label"
-                    optionValue="value"
+                    [placeholder]="poam.status ? poam.status : 'POAM Status...'"
                     [style]="{'width':'100%'}"
                     [disabled]="accessLevel() < 2">
-            <ng-template let-option pTemplate="item">
-              <span [ngClass]="{'ui-state-disabled': option.disabled}">{{option.label}}</span>
-            </ng-template>
           </p-select>
         </div>
 
@@ -545,7 +540,7 @@
                         @for(teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
                         <p-tabpanel [value]="i + 1" *ngIf="!poam.isGlobalFinding">
                           <div [ngClass]="{'opacity-70': !teamMitigation.isActive}">
-                            <div *ngIf="!teamMitigation.isActive" class="mb-2 bg-yellow-600 p-2 rounded-md">
+                            <div *ngIf="!teamMitigation.isActive" class="mb-2 rounded-md bg-yellow-600 p-2">
                               <i class="pi pi-info-circle mr-2"></i>
                               This team is no longer assigned to this POAM. Mitigation content is preserved but cannot be edited.
                             </div>

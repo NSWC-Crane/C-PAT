@@ -153,16 +153,22 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     'STIG'
   ];
 
-  statusOptions = [
-    { label: 'Draft', value: 'Draft', disabled: false },
-    { label: 'Closed', value: 'Closed', disabled: false },
-    { label: 'Expired', value: 'Expired', disabled: false },
-    { label: 'Submitted', value: 'Submitted', disabled: true },
-    { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval', disabled: true },
-    { label: 'Extension Requested', value: 'Extension Requested', disabled: true },
-    { label: 'Approved', value: 'Approved', disabled: true },
-    { label: 'Rejected', value: 'Rejected', disabled: true },
-    { label: 'False-Positive', value: 'False-Positive', disabled: true }
+  approverStatusOptions = [
+    'Draft',
+    'Closed',
+    'Expired',
+    'Submitted',
+    'Pending CAT-I Approval',
+    'Extension Requested',
+    'Approved',
+    'Rejected',
+    'False-Positive'
+  ];
+
+  userStatusOptions = [
+    'Draft',
+    'Closed',
+    'Expired'
   ];
 
   severityOptions = [
