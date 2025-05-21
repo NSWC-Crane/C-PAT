@@ -87,11 +87,13 @@ export class PoamAssignedGridComponent {
       }
       const formattedDate = format(adjustedDate, 'yyyy-MM-dd');
       const count = assetCountMap.get(item.vulnerabilityId);
+      const isAssetsLoading = count === undefined;
 
       return {
         poamId: item.poamId,
         vulnerabilityId: item.vulnerabilityId,
-        affectedAssets: count !== undefined ? count : 'loading',
+        affectedAssets: isAssetsLoading ? 0 : count,
+        isAffectedAssetsLoading: isAssetsLoading,
         scheduledCompletionDate: formattedDate,
         adjSeverity: item.adjSeverity,
         status: item.status,
