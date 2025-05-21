@@ -42,42 +42,50 @@
     <ng-template pTemplate="body" let-row>
         <tr>
             <td *ngFor="let col of assignedColumns()">
-                <ng-container [ngSwitch]="col">
-                    <ng-container *ngSwitchCase="'POAM ID'">
-                        <a href="javascript:void(0)"
-                           (click)="managePoam(row)"
-                           class="text-primary cursor-pointer font-semibold hover:font-bold"
-                           pTooltip="Navigate to this POAM"
-                           tooltipPosition="top">
-                            {{row[getColumnKey(col)]}}
-                        </a>
-                    </ng-container>
-                    <ng-container *ngSwitchCase="'Assigned Team'">
-                      <div class="flex flex-wrap gap-2">
-                        <p-tag *ngFor="let team of row[getColumnKey(col)]"
-                               [value]="team.name"
-                               [rounded]="true"
-                               [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
-                               [pTooltip]="team.complete === 'true' ? 'Team has fulfilled all POAM requirements' :
+              <ng-container [ngSwitch]="col">
+                <ng-container *ngSwitchCase="'POAM ID'">
+                  <a href="javascript:void(0)"
+                     (click)="managePoam(row)"
+                     class="text-primary cursor-pointer font-semibold hover:font-bold"
+                     pTooltip="Navigate to this POAM"
+                     tooltipPosition="top">
+                    {{row[getColumnKey(col)]}}
+                  </a>
+                </ng-container>
+                <ng-container *ngSwitchCase="'Affected Assets'">
+                  <ng-container *ngIf="row[getColumnKey(col)] === 'loading'; else assetCount">
+                    <p-progressSpinner [style]="{width: '20px', height: '20px'}" strokeWidth="4"></p-progressSpinner>
+                  </ng-container>
+                  <ng-template #assetCount>
+                    {{row[getColumnKey(col)]}}
+                  </ng-template>
+                </ng-container>
+                <ng-container *ngSwitchCase="'Assigned Team'">
+                  <div class="flex flex-wrap gap-2">
+                    <p-tag *ngFor="let team of row[getColumnKey(col)]"
+                           [value]="team.name"
+                           [rounded]="true"
+                           [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
+                           [pTooltip]="team.complete === 'true' ? 'Team has fulfilled all POAM requirements' :
                                            team.complete === 'partial' ? 'Team has partially fulfilled POAM requirements' :
                                            team.complete === 'global' ? 'Global Finding - No Team Requirements' :
                                            'Team has not fulfilled any POAM requirements'"
-                               tooltipPosition="top"
-                               [class.hidden]="!team.name">
-                        </p-tag>
-                      </div>
-                    </ng-container>
-                    <ng-container *ngSwitchCase="'Labels'">
-                        <div class="flex flex-wrap gap-2">
-                            <p-tag *ngFor="let label of row[getColumnKey(col)]"
-                                   [value]="label"
-                                   [rounded]="true"
-                                   [class.hidden]="!label">
-                            </p-tag>
-                        </div>
-                    </ng-container>
-                    <ng-container *ngSwitchDefault> {{row[getColumnKey(col)]}} </ng-container>
+                           tooltipPosition="top"
+                           [class.hidden]="!team.name">
+                    </p-tag>
+                  </div>
                 </ng-container>
+                <ng-container *ngSwitchCase="'Labels'">
+                  <div class="flex flex-wrap gap-2">
+                    <p-tag *ngFor="let label of row[getColumnKey(col)]"
+                           [value]="label"
+                           [rounded]="true"
+                           [class.hidden]="!label">
+                    </p-tag>
+                  </div>
+                </ng-container>
+                <ng-container *ngSwitchDefault> {{row[getColumnKey(col)]}} </ng-container>
+              </ng-container>
             </td>
         </tr>
     </ng-template>

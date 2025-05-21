@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnChanges, SimpleChanges, signal } from '@angular/core';
+import { Component, Input, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,6 +18,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { MessageService } from 'primeng/api';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { addDays, format } from 'date-fns';
@@ -32,6 +33,7 @@ import { addDays, format } from 'date-fns';
     CommonModule,
     FormsModule,
     TableModule,
+    ProgressSpinnerModule,
     IconFieldModule,
     InputIconModule,
     InputTextModule,
@@ -40,18 +42,25 @@ import { addDays, format } from 'date-fns';
   ],
   providers: [MessageService],
 })
-export class PoamAssignedGridComponent implements OnChanges {
+export class PoamAssignedGridComponent {
   @Input() userId!: number;
-  @Input() assignedData!: any[];
-  @Input() gridHeight!: string;
 
-  private assignedDataSource = signal<any[]>([]);
-  filteredData = signal<any[]>([]);
+  private _assignedData = signal<any[]>([]);
+  @Input() set assignedData(value: any[]) {
+    this._assignedData.set(value || []);
+  }
+
+  private _affectedAssetCounts = signal<{ vulnerabilityId: string, assetCount: number }[]>([]);
+  @Input() set affectedAssetCounts(value: { vulnerabilityId: string, assetCount: number }[]) {
+    this._affectedAssetCounts.set(value || []);
+  }
+
   globalFilter = signal<string>('');
 
   protected readonly assignedColumns = signal<string[]>([
     'POAM ID',
     'Vulnerability ID',
+    'Affected Assets',
     'Scheduled Completion',
     'Adjusted Severity',
     'Status',
@@ -60,72 +69,70 @@ export class PoamAssignedGridComponent implements OnChanges {
     'Labels'
   ]);
 
-  constructor(private router: Router) { }
+  private transformedData = computed(() => {
+    const data = this._assignedData();
+    const assetCounts = this._affectedAssetCounts();
+    const assetCountMap = new Map<string, number>();
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['assignedData']) {
-      this.updateDataSource();
+    if (assetCounts && assetCounts.length > 0) {
+      assetCounts.forEach(item => {
+        assetCountMap.set(item.vulnerabilityId, item.assetCount);
+      });
     }
-  }
 
-  updateDataSource() {
-    const data = this.assignedData;
-
-    const transformedData = data.map(item => {
+    return data.map(item => {
       let adjustedDate = new Date(item.scheduledCompletionDate);
       if (item.extensionTimeAllowed && typeof item.extensionTimeAllowed === 'number' && item.extensionTimeAllowed > 0) {
         adjustedDate = addDays(adjustedDate, item.extensionTimeAllowed);
       }
-
       const formattedDate = format(adjustedDate, 'yyyy-MM-dd');
+      const count = assetCountMap.get(item.vulnerabilityId);
 
       return {
         poamId: item.poamId,
         vulnerabilityId: item.vulnerabilityId,
+        affectedAssets: count !== undefined ? count : 'loading',
         scheduledCompletionDate: formattedDate,
         adjSeverity: item.adjSeverity,
         status: item.status,
         submitter: item.submitterName,
         assignedTeams: item.assignedTeams
-          ? item.assignedTeams.map((team) => ({
+          ? item.assignedTeams.map((team: any) => ({
             name: team.assignedTeamName,
             complete: team.complete
           }))
           : [],
         labels: item.labels
-          ? item.labels.map((label) => label.labelName)
+          ? item.labels.map((label: any) => label.labelName)
           : []
       };
     });
+  });
 
-    this.assignedDataSource.set(transformedData);
-    this.filteredData.set(transformedData);
-    this.applyFilter();
-  }
+  filteredData = computed(() => {
+    const sourceData = this.transformedData();
+    const filterValue = this.globalFilter() ? this.globalFilter().toLowerCase() : '';
+
+    if (!filterValue) {
+      return sourceData;
+    }
+    return sourceData.filter(poam =>
+      Object.values(poam).some(
+        value => value && value.toString().toLowerCase().includes(filterValue)
+      )
+    );
+  });
+
+  constructor(private router: Router) { }
 
   managePoam(row: any) {
     const poamId = row.poamId;
     this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
   }
 
-  applyFilter() {
-    const filterValue = this.globalFilter() ? this.globalFilter().toLowerCase() : '';
-    if (!filterValue) {
-      this.filteredData.set([...this.assignedDataSource()]);
-    } else {
-      const filtered = this.assignedDataSource().filter(poam =>
-        Object.values(poam).some(
-          value => value && value.toString().toLowerCase().includes(filterValue)
-        )
-      );
-      this.filteredData.set(filtered);
-    }
-  }
-
   onFilterChange(event: Event) {
     const target = event.target as HTMLInputElement;
     this.globalFilter.set(target.value);
-    this.applyFilter();
   }
 
   getColumnKey(col: string): string {
@@ -134,6 +141,8 @@ export class PoamAssignedGridComponent implements OnChanges {
         return 'poamId';
       case 'Vulnerability ID':
         return 'vulnerabilityId';
+      case 'Affected Assets':
+        return 'affectedAssets';
       case 'Scheduled Completion':
         return 'scheduledCompletionDate';
       case 'Adjusted Severity':
@@ -147,7 +156,7 @@ export class PoamAssignedGridComponent implements OnChanges {
       case 'Labels':
         return 'labels';
       default:
-        return col.toLowerCase().replace(/\s+/g, '');
+        return col.toLowerCase().replace(/\s+/g, '').replace('#', '');
     }
   }
 }
