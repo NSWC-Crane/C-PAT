@@ -107,6 +107,13 @@
                   <tr>
                     <td *ngFor="let col of columns">
                       <ng-container [ngSwitch]="col.field">
+                        <ng-container *ngSwitchCase="'sourceVulnIds'">
+                          <p-tag *ngFor="let vulnId of asset.sourceVulnIds"
+                                 [value]="vulnId"
+                                 [rounded]="true"
+                                 [style]="{'margin-right': '0.25rem'}">
+                          </p-tag>
+                        </ng-container>
                         <ng-container *ngSwitchCase="'labels'">
                           <p-tag *ngFor="let label of getAssetLabels(asset)"
                                  [rounded]="true"

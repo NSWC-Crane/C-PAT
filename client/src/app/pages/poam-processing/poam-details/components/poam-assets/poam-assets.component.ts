@@ -46,6 +46,7 @@ export class PoamAssetsComponent implements OnChanges {
   @Input() originCollectionId: any;
   @Input() poamService: PoamService;
   @Input() poamAssignedTeams: any[] = [];
+  @Input() poamAssociatedVulnerabilities: any[] = [];
   @Output() assetsChanged = new EventEmitter<any[]>();
 
   private messageService = inject(MessageService);
