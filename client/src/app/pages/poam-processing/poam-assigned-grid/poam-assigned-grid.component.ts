@@ -86,14 +86,31 @@ export class PoamAssignedGridComponent {
         adjustedDate = addDays(adjustedDate, item.extensionTimeAllowed);
       }
       const formattedDate = format(adjustedDate, 'yyyy-MM-dd');
-      const count = assetCountMap.get(item.vulnerabilityId);
-      const isAssetsLoading = count === undefined;
+      const primaryCount = assetCountMap.get(item.vulnerabilityId);
+      const isAssetsLoading = primaryCount === undefined;
+
+      let hasAssociatedVulnerabilities = false;
+      let associatedVulnerabilitiesTooltip = "Associated Vulnerabilities:";
+
+      if (item.associatedVulnerabilities && item.associatedVulnerabilities.length > 0) {
+        hasAssociatedVulnerabilities = true;
+        item.associatedVulnerabilities.forEach((vulnId: string) => {
+          const associatedCount = assetCountMap.get(vulnId);
+          if (associatedCount !== undefined) {
+            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}`;
+          } else {
+            associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
+          }
+        });
+      }
 
       return {
         poamId: item.poamId,
         vulnerabilityId: item.vulnerabilityId,
-        affectedAssets: isAssetsLoading ? 0 : count,
+        affectedAssets: isAssetsLoading ? 0 : primaryCount,
         isAffectedAssetsLoading: isAssetsLoading,
+        hasAssociatedVulnerabilities,
+        associatedVulnerabilitiesTooltip,
         scheduledCompletionDate: formattedDate,
         adjSeverity: item.adjSeverity,
         status: item.status,

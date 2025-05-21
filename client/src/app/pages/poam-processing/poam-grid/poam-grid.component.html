@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -248,11 +248,18 @@
                 <td>
                   <ng-container *ngIf="row.isAffectedAssetsLoading; else assetCount">
                     <p-progressSpinner [style]="{width: '20px', height: '20px'}"
-                                       strokeWidth="4" pTooltip="Unable to load affected asset count for Vulnerability ID: {{ row.vulnerabilityId }}"
+                                       strokeWidth="4" pTooltip="Unable to load affected assets for Vulnerability ID: {{ row.vulnerabilityId }}"
                                        tooltipPosition="top"></p-progressSpinner>
                   </ng-container>
                   <ng-template #assetCount>
-                    {{ row.affectedAssets }}
+                    <div class="align-items-center flex">
+                      <span>{{ row.affectedAssets }}</span>
+                      <i *ngIf="row.hasAssociatedVulnerabilities"
+                         class="pi pi-info-circle ml-2 mt-1 cursor-pointer"
+                         style="color: var(--primary-color)"
+                         pTooltip="{{row.associatedVulnerabilitiesTooltip}}"
+                         tooltipPosition="top"></i>
+                    </div>
                   </ng-template>
                 </td>
                 <td>{{ row.vulnerabilityTitle }}</td>

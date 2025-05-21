@@ -90,16 +90,33 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     }
 
     return poams.map(poam => {
-      const count = assetCountMap.get(poam.vulnerabilityId);
-      const isAssetsLoading = count === undefined;
+      const primaryCount = assetCountMap.get(poam.vulnerabilityId);
+      const isAssetsLoading = primaryCount === undefined;
+
+      let hasAssociatedVulnerabilities = false;
+      let associatedVulnerabilitiesTooltip = "Associated Vulnerabilities:";
+
+      if (poam.associatedVulnerabilities && poam.associatedVulnerabilities.length > 0) {
+        hasAssociatedVulnerabilities = true;
+        poam.associatedVulnerabilities.forEach((vulnId: string) => {
+          const associatedCount = assetCountMap.get(vulnId);
+          if (associatedCount !== undefined) {
+            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}`;
+          } else {
+            associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
+          }
+        });
+      }
 
       return {
         lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
         poamId: poam.poamId,
         status: poam.status,
         vulnerabilityId: poam.vulnerabilityId,
-        affectedAssets: isAssetsLoading ? 0 : count,
+        affectedAssets: isAssetsLoading ? 0 : primaryCount,
         isAffectedAssetsLoading: isAssetsLoading,
+        hasAssociatedVulnerabilities,
+        associatedVulnerabilitiesTooltip,
         iavmNumber: poam.iavmNumber,
         taskOrderNumber: poam.taskOrderNumber,
         source: poam.vulnerabilitySource,
