@@ -246,8 +246,10 @@
                 <td>{{ row.source }}</td>
                 <td>{{ row.vulnerabilityId }}</td>
                 <td>
-                  <ng-container *ngIf="row.affectedAssets === 'loading'; else assetCount">
-                    <p-progressSpinner [style]="{width: '20px', height: '20px'}" strokeWidth="4"></p-progressSpinner>
+                  <ng-container *ngIf="row.isAffectedAssetsLoading; else assetCount">
+                    <p-progressSpinner [style]="{width: '20px', height: '20px'}"
+                                       strokeWidth="4" pTooltip="Unable to load affected asset count for Vulnerability ID: {{ row.vulnerabilityId }}"
+                                       tooltipPosition="top"></p-progressSpinner>
                   </ng-container>
                   <ng-template #assetCount>
                     {{ row.affectedAssets }}

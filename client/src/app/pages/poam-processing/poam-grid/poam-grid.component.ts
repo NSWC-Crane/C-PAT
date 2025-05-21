@@ -91,12 +91,15 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
     return poams.map(poam => {
       const count = assetCountMap.get(poam.vulnerabilityId);
+      const isAssetsLoading = count === undefined;
+
       return {
         lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
         poamId: poam.poamId,
         status: poam.status,
         vulnerabilityId: poam.vulnerabilityId,
-        affectedAssets: count !== undefined ? count : 'loading',
+        affectedAssets: isAssetsLoading ? 0 : count,
+        isAffectedAssetsLoading: isAssetsLoading,
         iavmNumber: poam.iavmNumber,
         taskOrderNumber: poam.taskOrderNumber,
         source: poam.vulnerabilitySource,
@@ -147,7 +150,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
 
-  private collectionOriginSignal = signal<string>('');
+  protected collectionOriginSignal = signal<string>('');
   poamStatusOptions = signal([
     { label: 'Any', value: null },
     { label: 'Approved', value: 'approved' },
