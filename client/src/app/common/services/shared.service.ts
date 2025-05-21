@@ -82,9 +82,9 @@ export class SharedService {
       .pipe(catchError(this.handleError));
   }
 
-  getPOAMAssetsFromSTIGMAN(collectionId: number, benchmarkId: string): Observable<any[]> {
+  getPOAMAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=assets`
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets`
     ).pipe(catchError(this.handleError));
   }
 

@@ -57,13 +57,14 @@
   <div *ngIf="collectionType === 'STIG Manager'" class="stepper-content">
     <cpat-stigmanager-poam-assets-table [stigmanCollectionId]="originCollectionId"
                                         [groupId]="poam.vulnerabilityId"
-                                        [benchmarkId]="poam.stigBenchmarkId">
+                                        [associatedVulnerabilities]="poamAssociatedVulnerabilities">
     </cpat-stigmanager-poam-assets-table>
   </div>
 
   <div *ngIf="collectionType === 'Tenable'" class="stepper-content">
     <cpat-tenable-assets-table [pluginID]="poam.vulnerabilityId"
-                               [tenableRepoId]="originCollectionId">
+                               [tenableRepoId]="originCollectionId"
+                               [associatedVulnerabilities]="poamAssociatedVulnerabilities">
     </cpat-tenable-assets-table>
   </div>
 </div>

@@ -28,7 +28,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { SharedService } from '../../../../../common/services/shared.service';
-import { Subscription } from 'rxjs';
+import { Subscription, of, map, catchError, Observable } from 'rxjs';
 
 interface Reference {
   type: string;
@@ -65,6 +65,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   @Input() pluginID!: string;
   @Input() assetProcessing: boolean = false;
   @Input() tenableRepoId: number;
+  @Input() associatedVulnerabilities: any[] = [];
   @ViewChildren(Table) tables: QueryList<Table>;
   @ViewChild('ms') multiSelect!: MultiSelect;
 
@@ -112,7 +113,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     this.activeTab = 'all';
 
     if (this.pluginID && this.tenableRepoId) {
-      this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
+      this.getAffectedAssetsForAllPlugins();
     } else if (this.assetProcessing && this.tenableRepoId) {
       this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
     }
@@ -128,14 +129,14 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   initColumnsAndFilters() {
     this.cols = [
-      {
-        field: 'pluginID',
-        header: 'Plugin ID',
-        width: '100px',
-        filterable: true,
-      },
       { field: 'pluginName', header: 'Name', width: '200px', filterable: true },
       { field: 'family', header: 'Family', width: '150px', filterable: true },
+      {
+        field: 'sourcePluginIDs',
+        header: 'Source',
+        width: '150px',
+        filterable: true,
+      },
       {
         field: 'severity',
         header: 'Severity',
@@ -186,7 +187,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     }));
     this.selectedColumns = this.cols.filter(col =>
       [
-        'pluginID',
+        'sourcePluginIDs',
         'pluginName',
         'family',
         'severity',
@@ -235,48 +236,144 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     });
   }
 
-  getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number) {
-        const analysisParams = {
-            query: {
-                description: '',
-                context: '',
-                status: -1,
-                createdTime: 0,
-                modifiedTime: 0,
-                groups: [],
-                type: 'vuln',
-                tool: 'listvuln',
-                sourceType: 'cumulative',
-                startOffset: 0,
-                endOffset: 5000,
-                filters: [
-                    {
-                        id: 'pluginID',
-                        filterName: 'pluginID',
-                        operator: '=',
-                        type: 'vuln',
-                        isPredefined: true,
-                        value: pluginID,
-                    },
-                    {
-                        id: 'repository',
-                        filterName: 'repository',
-                        operator: '=',
-                        type: 'vuln',
-                        isPredefined: true,
-                        value: [{ id: tenableRepoId.toString() }],
-                    },
-                ],
-                vulnTool: 'listvuln',
-            },
-            sourceType: 'cumulative',
-            columns: [],
+  getAffectedAssetsForAllPlugins() {
+    this.isLoading = true;
+
+    const associatedPluginIds = this.associatedVulnerabilities
+      .map(vuln => typeof vuln === 'string' ? vuln :
+        typeof vuln === 'object' && vuln.associatedVulnerability ?
+          vuln.associatedVulnerability : null)
+      .filter(id => id !== null);
+
+    const allPluginIds = [this.pluginID, ...associatedPluginIds];
+
+    const analysisParams = {
+      query: {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: 'listvuln',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 5000,
+        filters: [
+          {
+            id: 'pluginID',
+            filterName: 'pluginID',
+            operator: '=',
             type: 'vuln',
-        };
+            isPredefined: true,
+            value: allPluginIds.join(','),
+          },
+          {
+            id: 'repository',
+            filterName: 'repository',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: [{ id: this.tenableRepoId.toString() }],
+          },
+        ],
+        vulnTool: 'listvuln',
+      },
+      sourceType: 'cumulative',
+      columns: [],
+      type: 'vuln',
+    };
 
     this.importService.postTenableAnalysis(analysisParams).subscribe({
       next: (data) => {
-        this.affectedAssets = data.response.results.map((asset: any) => {
+        if (!data?.response?.results) {
+          this.showErrorMessage('No assets found for these vulnerabilities');
+          this.isLoading = false;
+          return;
+        }
+
+        const processedAssets = data.response.results.map((asset: any) => {
+          const sourcePluginID = asset.pluginID || '';
+
+          return {
+            ...asset,
+            pluginName: asset.name || '',
+            family: asset.family?.name || '',
+            severity: asset.severity?.name || '',
+            sourcePluginIDs: [sourcePluginID]
+          };
+        });
+
+        const assetMap = new Map();
+
+        processedAssets.forEach(asset => {
+          const key = `${asset.hostUUID || ''}-${asset.netbiosName || ''}-${asset.dnsName || ''}-${asset.macAddress || ''}`;
+
+          if (!assetMap.has(key)) {
+            assetMap.set(key, asset);
+          } else {
+            const existing = assetMap.get(key);
+            existing.sourcePluginIDs = [...new Set([...existing.sourcePluginIDs, ...asset.sourcePluginIDs])];
+          }
+        });
+
+        this.affectedAssets = Array.from(assetMap.values());
+        this.totalRecords = this.affectedAssets.length;
+        this.isLoading = false;
+
+        this.matchAssetsWithTeams();
+      },
+      error: (error) => {
+        console.error('Error fetching affected assets:', error);
+        this.showErrorMessage('Error fetching affected assets. Please try again.');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number): Observable<any[]> {
+    const analysisParams = {
+      query: {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: 'listvuln',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 5000,
+        filters: [
+          {
+            id: 'pluginID',
+            filterName: 'pluginID',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: pluginID,
+          },
+          {
+            id: 'repository',
+            filterName: 'repository',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: [{ id: tenableRepoId.toString() }],
+          },
+        ],
+        vulnTool: 'listvuln',
+      },
+      sourceType: 'cumulative',
+      columns: [],
+      type: 'vuln',
+    };
+
+    return this.importService.postTenableAnalysis(analysisParams).pipe(
+      map((data) => {
+        return data.response.results.map((asset: any) => {
           const defaultAsset = {
             pluginID: '',
             pluginName: '',
@@ -290,18 +387,15 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
             pluginName: asset.name || '',
             family: asset.family?.name || '',
             severity: asset.severity?.name || '',
+            sourcePluginID: pluginID
           };
         });
-        this.totalRecords = this.affectedAssets.length;
-        this.isLoading = false;
-
-        this.matchAssetsWithTeams();
-      },
-      error: (error) => {
-        console.error('Error fetching affected assets:', error);
-        this.showErrorMessage('Error fetching affected assets. Please try again.');
-      }
-    });
+      }),
+      catchError(error => {
+        console.error(`Error fetching assets for plugin ${pluginID}:`, error);
+        return of([]);
+      })
+    );
   }
 
   matchAssetsWithTeams() {

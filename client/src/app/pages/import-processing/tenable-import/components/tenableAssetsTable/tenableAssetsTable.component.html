@@ -120,6 +120,13 @@
                       style="cursor: pointer">
                     <td *ngFor="let col of columns">
                       <ng-container [ngSwitch]="col.field">
+                        <ng-container *ngSwitchCase="'sourcePluginIDs'">
+                          <p-tag *ngFor="let pluginId of vulnerability.sourcePluginIDs"
+                                 [value]="pluginId"
+                                 [rounded]="true"
+                                 [style]="{'margin-right': '0.25rem'}">
+                          </p-tag>
+                        </ng-container>
                         <ng-container *ngSwitchCase="'severity'">
                           <p-tag [value]="vulnerability[col.field]"
                                  [severity]="getSeverityStyling(vulnerability[col.field])"

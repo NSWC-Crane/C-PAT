@@ -20,10 +20,12 @@ import { SharedService } from "../../../../common/services/shared.service";
 import { ImportService } from "../../../import-processing/import.service";
 
 export interface AssetData {
+  assetId?: any;
   assetName: string;
   dnsName?: string;
   fqdn?: string;
   source: 'CPAT' | 'Tenable' | 'STIG Manager';
+  sourceVulnIds?: any;
 }
 
 export interface CollectionInfo {
@@ -48,49 +50,86 @@ export class PoamDataService {
     private sharedService: SharedService
   ) { }
 
-  loadAssets(collectionType: string, originCollectionId: number, poam: any, collectionId: number): Observable<{
-    externalAssets?: AssetData[],
-    assetList?: any[],
-    poamAssets?: any[]
-  }> {
+  loadAssets(
+    collectionType: string,
+    originCollectionId: number,
+    poam: any,
+    collectionId: number
+  ): Observable<{ externalAssets?: AssetData[], assetList?: any[], poamAssets?: any[] }> {
+    if (!poam || !collectionId) {
+      return of({ externalAssets: [], assetList: [], poamAssets: [] });
+    }
+
     if (collectionType === 'C-PAT') {
       return this.fetchAssets(collectionId, poam.poamId).pipe(
         map(result => result)
       );
     }
-    else if (collectionType === 'STIG Manager' && originCollectionId && poam.vulnerabilityId && poam.stigBenchmarkId) {
+    else if (collectionType === 'STIG Manager' && originCollectionId && poam.vulnerabilityId) {
+      const allVulnIds = this.getAllVulnerabilityIds(poam);
+
       return forkJoin({
         poamAssets: this.sharedService.getPOAMAssetsFromSTIGMAN(
-          originCollectionId,
-          poam.stigBenchmarkId
+          originCollectionId
         ),
         assetDetails: this.sharedService.getAssetDetailsFromSTIGMAN(originCollectionId)
       }).pipe(
         map(({ poamAssets, assetDetails }) => {
-          const matchingItem = poamAssets.find(item => item.groupId === poam.vulnerabilityId);
-          if (!matchingItem) {
+          let allAssets: AssetData[] = [];
+
+          allVulnIds.forEach(vulnId => {
+            const matchingItem = poamAssets.find(item => item.groupId === vulnId);
+            if (matchingItem && matchingItem.assets) {
+              const assetsForVuln = matchingItem.assets.map((asset: any) => {
+                const details = assetDetails.find(detail => detail.assetId === asset.assetId);
+                return {
+                  assetId: asset.assetId,
+                  assetName: asset.name,
+                  fqdn: details?.fqdn || undefined,
+                  source: 'STIG Manager' as const,
+                  sourceVulnIds: [vulnId]
+                };
+              });
+
+              allAssets = [...allAssets, ...assetsForVuln];
+            }
+          });
+
+          if (allAssets.length === 0 && poamAssets.length > 0) {
             this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
+              severity: 'warning',
+              summary: 'Warning',
               detail: `No assets found with vulnerabilityId: ${poam.vulnerabilityId}`
             });
             return { externalAssets: [] };
           }
 
-          const standardizedAssets: AssetData[] = matchingItem.assets.map((asset: any) => {
-            const details = assetDetails.find(detail => detail.assetId === asset.assetId);
-            return {
-              assetName: asset.name,
-              fqdn: details?.fqdn || undefined,
-              source: 'STIG Manager' as const
-            };
+          const assetMap = new Map<number, AssetData>();
+          allAssets.forEach(asset => {
+            if (!assetMap.has(asset.assetId)) {
+              assetMap.set(asset.assetId, asset);
+            } else {
+              const existing = assetMap.get(asset.assetId)!;
+              existing.sourceVulnIds = [...new Set([...existing.sourceVulnIds!, ...asset.sourceVulnIds!])];
+            }
           });
 
-          return { externalAssets: standardizedAssets };
+          return { externalAssets: Array.from(assetMap.values()) };
+        }),
+        catchError(error => {
+          console.error('Error loading STIG Manager assets:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load STIG Manager assets'
+          });
+          return of({ externalAssets: [] });
         })
       );
     }
     else if (collectionType === 'Tenable' && originCollectionId && poam.vulnerabilityId) {
+      const allPluginIds = this.getAllVulnerabilityIds(poam);
+
       const analysisParams = {
         query: {
           description: '',
@@ -111,7 +150,7 @@ export class PoamDataService {
               operator: '=',
               type: 'vuln',
               isPredefined: true,
-              value: poam.vulnerabilityId,
+              value: allPluginIds.join(','),
             },
             {
               id: 'repository',
@@ -135,21 +174,51 @@ export class PoamDataService {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'No assets found for this vulnerability'
+              detail: 'No assets found for these vulnerabilities'
             });
             return { externalAssets: [] };
           }
 
-          const standardizedAssets: AssetData[] = data.response.results.map((asset: any) => ({
-            assetName: asset.netbiosName || '',
-            dnsName: asset.dnsName || '',
-            source: 'Tenable' as const
-          }));
+          const allAssets = data.response.results.map((asset: any) => {
+            const sourcePluginID = asset.pluginID || '';
 
-          return { externalAssets: standardizedAssets };
+            return {
+              assetName: asset.netbiosName || '',
+              dnsName: asset.dnsName || '',
+              hostUUID: asset.hostUUID,
+              macAddress: asset.macAddress,
+              source: 'Tenable' as const,
+              sourcePluginIDs: [sourcePluginID],
+
+              ...asset,
+              pluginName: asset.name || '',
+              family: asset.family?.name || '',
+              severity: asset.severity?.name || '',
+            };
+          });
+
+          const assetMap = new Map();
+          allAssets.forEach(asset => {
+            const key = `${asset.hostUUID || ''}-${asset.netbiosName || ''}-${asset.dnsName || ''}-${asset.macAddress || ''}`;
+
+            if (!assetMap.has(key)) {
+              assetMap.set(key, asset);
+            } else {
+              const existing = assetMap.get(key);
+              existing.sourcePluginIDs = [...new Set([...existing.sourcePluginIDs, ...asset.sourcePluginIDs])];
+
+              if (asset.sourcePluginIDs.includes(poam.vulnerabilityId)) {
+                const sourceIds = [...existing.sourcePluginIDs];
+                Object.assign(existing, asset);
+                existing.sourcePluginIDs = sourceIds;
+              }
+            }
+          });
+
+          return { externalAssets: Array.from(assetMap.values()) };
         }),
         catchError(error => {
-          console.error('Error loading Tenable assets:', error);
+          console.error('Error processing Tenable assets:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -159,8 +228,24 @@ export class PoamDataService {
         })
       );
     }
-
     return of({ externalAssets: [] });
+  }
+
+  private getAllVulnerabilityIds(poam: any): string[] {
+    if (!poam) return [];
+
+    const primaryId = poam.vulnerabilityId;
+    if (!primaryId) return [];
+
+    const associatedIds = Array.isArray(poam.associatedVulnerabilities)
+      ? poam.associatedVulnerabilities.map(vuln =>
+        typeof vuln === 'string' ? vuln :
+          typeof vuln === 'object' && vuln.associatedVulnerability ?
+            vuln.associatedVulnerability : null)
+        .filter(id => id !== null && id !== undefined && id !== '')
+      : [];
+
+    return [primaryId, ...associatedIds];
   }
 
   fetchAssets(collectionId: number, poamId: number): Observable<any> {

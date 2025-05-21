@@ -64,7 +64,7 @@ interface Label {
 export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() stigmanCollectionId!: number;
   @Input() groupId!: string;
-  @Input() benchmarkId: string;
+  @Input() associatedVulnerabilities: any[] = [];
 
   @ViewChildren(Table) tables: QueryList<Table>;
   @ViewChild('ms') multiSelect!: MultiSelect;
@@ -73,6 +73,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   exportColumns!: ExportColumn[];
   selectedColumns: any[];
   affectedAssets: any[] = [];
+  combinedAssets: any[] = [];
   labels: Label[] = [];
   totalRecords: number = 0;
   filterValue: string = '';
@@ -102,12 +103,14 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
 
     this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
 
-    if (this.stigmanCollectionId && this.groupId) {
-      this.loadData();
-    } else {
-      this.showErrorMessage(
-        'No vulnerability ID provided. Please enter a vulnerability ID and re-open the assets tab.'
-      );
+    if (this.stigmanCollectionId) {
+      if (this.groupId) {
+        this.loadData();
+      } else {
+        this.showErrorMessage(
+          'No vulnerability ID provided. Please enter a vulnerability ID and re-open the assets tab.'
+        );
+      }
     }
   }
 
@@ -143,38 +146,48 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
     });
   }
 
-
   loadData() {
     this.loading = true;
+    const associatedVulnIds = this.associatedVulnerabilities
+      .map(vuln => typeof vuln === 'string' ? vuln :
+        typeof vuln === 'object' && vuln.associatedVulnerability ?
+          vuln.associatedVulnerability : null)
+      .filter(id => id !== null);
+
+    const allVulnIds = [this.groupId, ...associatedVulnIds];
+
     forkJoin({
-      poamAssets: this.sharedService.getPOAMAssetsFromSTIGMAN(
-        this.stigmanCollectionId,
-        this.benchmarkId
-      ),
-      labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
+      labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId),
+      poamAssets: this.sharedService.getPOAMAssetsFromSTIGMAN(this.stigmanCollectionId)
     }).subscribe({
-      next: ({ poamAssets, labels }) => {
+      next: ({ labels, poamAssets }) => {
         this.labels = labels || [];
+        let allAssets: any[] = [];
 
-        if (!poamAssets || poamAssets.length === 0) {
-          this.showErrorMessage('No affected assets found.');
-          this.loading = false;
-          return;
-        }
+        allVulnIds.forEach(vulnId => {
+          const matchingItem = poamAssets.find(item => item.groupId === vulnId);
+          if (matchingItem && matchingItem.assets) {
+            const assetsForVuln = matchingItem.assets.map((asset: any) => ({
+              assetName: asset.name,
+              assetId: asset.assetId,
+              sourceVulnIds: [vulnId]
+            }));
 
-        const matchingItem = poamAssets.find(item => item.groupId === this.groupId);
-        if (!matchingItem) {
-          this.showErrorMessage(`No assets found with vulnerabilityId: ${this.groupId}`);
-          this.loading = false;
-          return;
-        }
+            allAssets = [...allAssets, ...assetsForVuln];
+          }
+        });
 
-        const mappedAssets = matchingItem.assets.map((asset: { name: string; assetId: number }) => ({
-          assetName: asset.name,
-          assetId: asset.assetId,
-        }));
+        const assetMap = new Map<number, any>();
+        allAssets.forEach(asset => {
+          if (!assetMap.has(asset.assetId)) {
+            assetMap.set(asset.assetId, asset);
+          } else {
+            const existing = assetMap.get(asset.assetId)!;
+            existing.sourceVulnIds = [...new Set([...existing.sourceVulnIds, ...asset.sourceVulnIds])];
+          }
+        });
 
-        this.loadAssetDetails(mappedAssets);
+        this.loadAssetDetails(Array.from(assetMap.values()));
       },
       error: (error) => {
         console.error('Error loading data:', error);
@@ -315,6 +328,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
         width: '200px',
         filterable: true,
       },
+      { field: 'sourceVulnIds', header: 'Source', width: '200px', filterable: true },
       { field: 'fqdn', header: 'FQDN', width: '200px', filterable: true },
       { field: 'ip', header: 'IP Address', width: '150px', filterable: true },
       { field: 'mac', header: 'MAC Address', width: '150px', filterable: true },
