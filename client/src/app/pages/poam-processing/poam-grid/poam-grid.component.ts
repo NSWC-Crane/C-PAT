@@ -101,7 +101,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         poam.associatedVulnerabilities.forEach((vulnId: string) => {
           const associatedCount = assetCountMap.get(vulnId);
           if (associatedCount !== undefined) {
-            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}`;
+            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}\n`;
           } else {
             associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
           }
