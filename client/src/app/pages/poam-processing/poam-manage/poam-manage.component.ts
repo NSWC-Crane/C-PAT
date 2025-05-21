@@ -65,6 +65,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   poamsPendingApproval = signal<any[]>([]);
   teamPoams = signal<any[]>([]);
   findingsData = signal<any[]>([]);
+  affectedAssetCounts = signal<{ vulnerabilityId: string, assetCount: number }[]>([]);
   user = signal<any>(null);
   payload = signal<any>(null);
   accessLevel = signal<number>(0);
@@ -158,6 +159,12 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
         .subscribe({
           next: (data) => {
             this.findingsData.set(data);
+
+            const assetCounts = data.map((finding: any) => ({
+              vulnerabilityId: finding.groupId,
+              assetCount: finding.assetCount || 0
+            }));
+            this.affectedAssetCounts.set(assetCounts);
             this.calculateFindingStats();
           },
           error: (error) => console.error('Error loading findings data:', error)
@@ -202,6 +209,12 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
             return [];
           }
 
+          const assetCounts = data.response.results.map((vuln: any) => ({
+            vulnerabilityId: vuln.pluginID?.toString() || '',
+            assetCount: vuln.hostTotal || 0
+          }));
+          this.affectedAssetCounts.set(assetCounts);
+
           return data.response.results.map((vuln: any) => ({
             groupId: vuln.pluginID,
             severity: this.mapTenableSeverityToCategory(vuln.severity?.name || ''),
@@ -217,6 +230,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
         error: (error) => console.error('Error processing Tenable findings data:', error)
       });
     } else {
+      this.affectedAssetCounts.set([]);
       this.calculateFindingStats();
     }
   }

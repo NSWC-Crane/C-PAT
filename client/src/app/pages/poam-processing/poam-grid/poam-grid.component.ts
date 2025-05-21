@@ -29,6 +29,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -49,6 +50,7 @@ import { EMASSOverwriteSelectionComponent } from '../../../common/utils/emasster
     InputTextModule,
     InputIconModule,
     IconFieldModule,
+    ProgressSpinnerModule,
     TableModule,
     TooltipModule,
     ToastModule,
@@ -62,16 +64,70 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   @Input() allColumns!: string[];
 
   globalFilterSignal = signal<string>('');
-  private filteredDataSignal = signal<any[]>([]);
-  displayedData = computed(() => {
-    const filterValue = this.globalFilterSignal();
-    const filteredData = this.filteredDataSignal();
 
-    if (!filterValue) {
-      return filteredData;
+  private poamsDataSignal = signal<any[]>([]);
+  @Input() set poamsData(value: any[]) {
+    this.poamsDataSignal.set(value || []);
+  }
+
+  private affectedAssetCountsSignal = signal<{ vulnerabilityId: string, assetCount: number }[]>([]);
+  @Input() set affectedAssetCounts(value: { vulnerabilityId: string, assetCount: number }[]) {
+    this.affectedAssetCountsSignal.set(value || []);
+  }
+  get affectedAssetCounts(): { vulnerabilityId: string, assetCount: number }[] {
+    return this.affectedAssetCountsSignal();
+  }
+
+  private preparedData = computed(() => {
+    const poams = this.poamsDataSignal();
+    const assetCounts = this.affectedAssetCountsSignal();
+    const assetCountMap = new Map<string, number>();
+
+    if (assetCounts && assetCounts.length > 0) {
+      assetCounts.forEach(item => {
+        assetCountMap.set(item.vulnerabilityId, item.assetCount);
+      });
     }
 
-    return filteredData.filter(poam =>
+    return poams.map(poam => {
+      const count = assetCountMap.get(poam.vulnerabilityId);
+      return {
+        lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
+        poamId: poam.poamId,
+        status: poam.status,
+        vulnerabilityId: poam.vulnerabilityId,
+        affectedAssets: count !== undefined ? count : 'loading',
+        iavmNumber: poam.iavmNumber,
+        taskOrderNumber: poam.taskOrderNumber,
+        source: poam.vulnerabilitySource,
+        vulnerabilityTitle: poam.vulnerabilityTitle ?? '',
+        adjSeverity: poam.adjSeverity,
+        submitter: poam.submitterName,
+        submittedDate: poam.submittedDate?.split('T')[0],
+        scheduledCompletionDate: poam.scheduledCompletionDate?.split('T')[0],
+        assignedTeams: poam.assignedTeams
+          ? poam.assignedTeams.map((team: any) => ({
+            name: team.assignedTeamName,
+            complete: team.complete
+          }))
+          : [],
+        labels: poam.labels
+          ? poam.labels.map((label: any) => label.labelName)
+          : [],
+        associatedVulnerabilities: poam.associatedVulnerabilities,
+      };
+    });
+  });
+
+  displayedData = computed(() => {
+    const filterValue = this.globalFilterSignal();
+    const dataToFilter = this.preparedData();
+
+    if (!filterValue) {
+      return dataToFilter;
+    }
+
+    return dataToFilter.filter(poam =>
       Object.values(poam).some(
         value => value && value.toString().toLowerCase().includes(filterValue.toLowerCase())
       )
@@ -88,11 +144,9 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   selectedCollection = signal<any>(null);
 
   private findingsCache: Map<string, any[]> = new Map();
-  private memoizedFilteredData: { [key: string]: any[] } = {};
   private payloadSubscription: Subscription[] = [];
   private subscriptions = new Subscription();
 
-  private poamsDataSignal = signal<any[]>([]);
   private collectionOriginSignal = signal<string>('');
   poamStatusOptions = signal([
     { label: 'Any', value: null },
@@ -129,11 +183,6 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     }
     return poams;
   });
-  @Input() set poamsData(value: any[]) {
-    this.poamsDataSignal.set(value || []);
-    this.resetData();
-    this.updateFilteredData();
-  }
 
   constructor(
     private dialogService: DialogService,
@@ -274,7 +323,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   }
 
   processPoamsWithTenableFindings(poams: any[]): Promise<any[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const processedPoams: any[] = [];
       const vulnerabilityIds = [
         ...new Set(
@@ -287,6 +336,11 @@ export class PoamGridComponent implements OnInit, OnDestroy {
             .map(poam => poam.vulnerabilityId)
         )
       ];
+
+      if (vulnerabilityIds.length === 0) {
+        resolve(poams.filter(poam => poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'));
+        return;
+      }
 
       const analysisParams = {
         query: {
@@ -327,7 +381,15 @@ export class PoamGridComponent implements OnInit, OnDestroy {
           })));
 
           let completedPoams = 0;
-          poams.forEach(poam => {
+          const targetPoams = poams.filter(poam => poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner');
+          const otherPoams = poams.filter(poam => poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner');
+
+          if (targetPoams.length === 0) {
+            resolve(otherPoams);
+            return;
+          }
+
+          targetPoams.forEach(poam => {
             this.importService.getTenablePlugin(poam.vulnerabilityId).subscribe({
               next: (plugin: any) => {
                 let controlAPs = poam.controlAPs ?? '';
@@ -369,16 +431,16 @@ export class PoamGridComponent implements OnInit, OnDestroy {
                 });
 
                 completedPoams++;
-                if (completedPoams === poams.length) {
-                  resolve(processedPoams);
+                if (completedPoams === targetPoams.length) {
+                  resolve([...processedPoams, ...otherPoams]);
                 }
               },
               error: (error) => {
                 console.error(`Error processing Tenable POAM ${poam.poamId}:`, error);
                 processedPoams.push(poam);
                 completedPoams++;
-                if (completedPoams === poams.length) {
-                  resolve(processedPoams);
+                if (completedPoams === targetPoams.length) {
+                  resolve([...processedPoams, ...otherPoams]);
                 }
               }
             });
@@ -386,7 +448,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error fetching Tenable analysis:', error);
-          reject(error);
+          resolve(poams);
         }
       });
     });
@@ -394,7 +456,15 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
   processPoamsWithStigFindings(poams: any[], originCollectionId: number): Promise<any[]> {
     return new Promise((resolve) => {
-      const processedPoams: any[] = [];
+      const stigPoams = poams.filter(p => p.vulnerabilitySource === 'STIG');
+      const otherPoams = poams.filter(p => p.vulnerabilitySource !== 'STIG');
+      const processedStigPoams: any[] = [];
+
+      if (stigPoams.length === 0) {
+        resolve(otherPoams);
+        return;
+      }
+
       let completedPoams = 0;
 
       const processPoam = (poam: any) => {
@@ -412,14 +482,14 @@ export class PoamGridComponent implements OnInit, OnDestroy {
                 processPoamWithFindings(poam, findings);
               },
               error: (error) => {
-                console.error(`Error fetching affected assets for POAM ${poam.poamId}:`, error);
-                processedPoams.push(poam);
+                console.error(`Error fetching affected assets for STIG POAM ${poam.poamId}:`, error);
+                processedStigPoams.push(poam);
                 checkCompletion();
               }
             });
           }
         } else {
-          processedPoams.push(poam);
+          processedStigPoams.push(poam);
           checkCompletion();
         }
       };
@@ -436,26 +506,26 @@ export class PoamGridComponent implements OnInit, OnDestroy {
           const controlAPs = matchingFinding.ccis[0]?.apAcronym;
           const cci = matchingFinding.ccis[0]?.cci;
 
-          processedPoams.push({
+          processedStigPoams.push({
             ...poam,
             controlAPs,
             cci,
             devicesAffected: affectedDevices.join(' ')
           });
         } else {
-          processedPoams.push(poam);
+          processedStigPoams.push(poam);
         }
         checkCompletion();
       };
 
       const checkCompletion = () => {
         completedPoams++;
-        if (completedPoams === poams.length) {
-          resolve(processedPoams);
+        if (completedPoams === stigPoams.length) {
+          resolve([...processedStigPoams, ...otherPoams]);
         }
       };
 
-      poams.forEach(processPoam);
+      stigPoams.forEach(processPoam);
     });
   }
 
@@ -493,9 +563,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
       });
 
       try {
-        const poams = await this.collectionsService
-          .getPoamsByCollection(this.selectedCollectionId())
-          .toPromise();
+        const poams = this.poamsDataSignal();
 
         const updatedFile = await PoamExportService.updateEMASSterPoams(
           file,
@@ -539,46 +607,6 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
   clearCache() {
     this.findingsCache.clear();
-  }
-
-  resetData() {
-    this.filteredDataSignal.set([]);
-  }
-
-  updateFilteredData() {
-    const cacheKey = JSON.stringify(this.poamsDataSignal());
-    if (this.memoizedFilteredData[cacheKey]) {
-      this.filteredDataSignal.set(this.memoizedFilteredData[cacheKey]);
-      return;
-    }
-
-    const newFilteredData = this.poamsDataSignal().map(poam => ({
-      lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
-      poamId: poam.poamId,
-      status: poam.status,
-      vulnerabilityId: poam.vulnerabilityId,
-      iavmNumber: poam.iavmNumber,
-      taskOrderNumber: poam.taskOrderNumber,
-      source: poam.vulnerabilitySource,
-      vulnerabilityTitle: poam.vulnerabilityTitle ?? '',
-      adjSeverity: poam.adjSeverity,
-      submitter: poam.submitterName,
-      submittedDate: poam.submittedDate?.split('T')[0],
-      scheduledCompletionDate: poam.scheduledCompletionDate?.split('T')[0],
-      assignedTeams: poam.assignedTeams
-        ? poam.assignedTeams.map((team: any) => ({
-          name: team.assignedTeamName,
-          complete: team.complete
-        }))
-        : [],
-      labels: poam.labels
-        ? poam.labels.map((label: any) => label.labelName)
-        : [],
-      associatedVulnerabilities: poam.associatedVulnerabilities,
-    }));
-
-    this.filteredDataSignal.set(newFilteredData);
-    this.memoizedFilteredData[cacheKey] = newFilteredData;
   }
 
   managePoam(row: any) {
