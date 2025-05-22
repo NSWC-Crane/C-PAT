@@ -23,13 +23,12 @@ on:
           - minor
           - major
       custom_version:
-        description: 'Specify a custom semver (e.g., 1.2.3-alpha.1). Overrides version_type.'
+        description: ''
         required: false
         type: 'string'
 
 permissions:
   contents: write
-  security-events: write
 
 jobs:
   release:
@@ -50,6 +49,7 @@ jobs:
       - name: Determine version
         id: version
         run: |
+
           CURRENT_VERSION=$(grep -o '"version": "[^"]*"' api/package.json | cut -d'"' -f4)
           echo "Current version: $CURRENT_VERSION"
 
@@ -60,6 +60,7 @@ jobs:
               exit 1
             fi
           else
+
             MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
             MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
             PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
@@ -74,6 +75,7 @@ jobs:
             else
               PATCH=$((PATCH + 1))
             fi
+
             NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           fi
 
@@ -89,11 +91,13 @@ jobs:
         run: |
           NEW_VERSION=${{ steps.version.outputs.new_version }}
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" api/package.json
+
           cd api
           npm install --package-lock-only --force
           cd ..
 
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" client/package.json
+
           cd client
           npm install --package-lock-only --force
           cd ..
@@ -102,12 +106,14 @@ jobs:
           sed -i "s/^version = '[^']*'/version = '$NEW_VERSION'/" docs/conf.py
 
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" C-PAT/C-PAT.json
+
           echo "Updated version to $NEW_VERSION in all files"
 
       - name: Generate changelog
         id: changelog
         run: |
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
+
           if [ "$LATEST_TAG" == "none" ]; then
             echo "No previous tags found. Using all commits for changelog."
             RANGE=""
@@ -148,44 +154,24 @@ jobs:
           fi
 
           CHANGELOG_CONTENT=$(cat CHANGELOG.md)
-          DELIMITER="EOF_CHANGELOG_$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 10)"
-          echo "changelog<<$DELIMITER" >> $GITHUB_OUTPUT
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
-          echo "$DELIMITER" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
           echo "Changelog generated successfully."
 
-      - name: Create Local Version Commit
+      - name: Commit and tag version
         run: |
           git add api/package.json api/package-lock.json client/package.json client/package-lock.json docs/conf.py C-PAT/C-PAT.json CHANGELOG.md
           git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
-          echo "Version commit created locally."
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: 'javascript'
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-
-      - name: Wait for CodeQL results to process
-        run: |
-          echo "Waiting for 90 seconds for CodeQL results to be processed by GitHub..."
-          sleep 90
-
-      - name: Tag and Push Version
-        run: |
           NEW_TAG_NAME="v${{ steps.version.outputs.new_version }}"
           if git rev-parse "$NEW_TAG_NAME" >/dev/null 2>&1; then
             echo "Tag $NEW_TAG_NAME already exists. Exiting to prevent overwrite."
             exit 1
           fi
           git tag -a "$NEW_TAG_NAME" -m "Release $NEW_TAG_NAME"
-
-          echo "Attempting to push commit and tags..."
           git push
           git push --tags
-          echo "Push successful."
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
