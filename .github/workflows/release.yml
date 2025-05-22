@@ -93,13 +93,13 @@ jobs:
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" api/package.json
 
           cd api
-          npm install --package-lock-only
+          npm install --package-lock-only --force
           cd ..
 
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" client/package.json
 
           cd client
-          npm install --package-lock-only
+          npm install --package-lock-only --force
           cd ..
 
           sed -i "s/^release = '[^']*'/release = '$NEW_VERSION'/" docs/conf.py
