@@ -97,7 +97,7 @@ export class PoamAssignedGridComponent {
         item.associatedVulnerabilities.forEach((vulnId: string) => {
           const associatedCount = assetCountMap.get(vulnId);
           if (associatedCount !== undefined) {
-            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}`;
+            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}\n`;
           } else {
             associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
           }
@@ -107,7 +107,7 @@ export class PoamAssignedGridComponent {
       return {
         poamId: item.poamId,
         vulnerabilityId: item.vulnerabilityId,
-        affectedAssets: isAssetsLoading ? 0 : primaryCount,
+        affectedAssets: isAssetsLoading ? 0 : Number(primaryCount || 0),
         isAffectedAssetsLoading: isAssetsLoading,
         hasAssociatedVulnerabilities,
         associatedVulnerabilitiesTooltip,
