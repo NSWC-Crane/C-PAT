@@ -1,0 +1,203 @@
+# Follow [Conventional Commits](https://www.conventionalcommits.org/) for generating changelogs automatically.
+# `feat:` for new features
+# `fix:` for bug fixes
+# `docs:` for documentation changes
+# `chore:` for maintenance tasks
+# `style:` for formatting/style changes
+# `refactor:` for code refactoring
+# `perf:` for performance improvements
+# `test:` for adding or updating tests
+
+name: Release New Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Type of version bump'
+        required: true
+        default: 'patch'
+        type: 'choice'
+        options:
+          - patch
+          - minor
+          - major
+      custom_version:
+        description: ''
+        required: false
+        type: 'string'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: 'main'
+
+      - name: Set up Git
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+      - name: Determine version
+        id: version
+        run: |
+
+          CURRENT_VERSION=$(grep -o '"version": "[^"]*"' api/package.json | cut -d'"' -f4)
+          echo "Current version: $CURRENT_VERSION"
+
+          if [ -n "${{ github.event.inputs.custom_version }}" ]; then
+            NEW_VERSION=${{ github.event.inputs.custom_version }}
+            if ! [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][a-zA-Z0-9]+)*$ ]]; then
+              echo "Error: Custom version '$NEW_VERSION' is not a valid SemVer format."
+              exit 1
+            fi
+          else
+
+            MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+            MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+            PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
+
+            if [ "${{ github.event.inputs.version_type }}" == "major" ]; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+            elif [ "${{ github.event.inputs.version_type }}" == "minor" ]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              PATCH=$((PATCH + 1))
+            fi
+
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          fi
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version will be: $NEW_VERSION"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Update version in files
+        run: |
+          NEW_VERSION=${{ steps.version.outputs.new_version }}
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" api/package.json
+
+          cd api
+          npm install --package-lock-only
+          cd ..
+
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" client/package.json
+
+          cd client
+          npm install --package-lock-only
+          cd ..
+
+          sed -i "s/^release = '[^']*'/release = '$NEW_VERSION'/" docs/conf.py
+          sed -i "s/^version = '[^']*'/version = '$NEW_VERSION'/" docs/conf.py
+
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" C-PAT/C-PAT.json
+
+          echo "Updated version to $NEW_VERSION in all files"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
+
+          if [ "$LATEST_TAG" == "none" ]; then
+            echo "No previous tags found. Using all commits for changelog."
+            RANGE=""
+          else
+            echo "Using commits since $LATEST_TAG for changelog."
+            RANGE="$LATEST_TAG..HEAD"
+          fi
+
+          echo "## What's Changed" > CHANGELOG.md
+          CHANGELOG_HAS_CONTENT=false
+
+          FEATURES_LOG=$(git log $RANGE --pretty=format:"* %s (%h)" --grep="^feat")
+          if [ -n "$FEATURES_LOG" ]; then
+            echo "" >> CHANGELOG.md
+            echo "### New Features" >> CHANGELOG.md
+            echo "$FEATURES_LOG" >> CHANGELOG.md
+            CHANGELOG_HAS_CONTENT=true
+          fi
+
+          FIXES_LOG=$(git log $RANGE --pretty=format:"* %s (%h)" --grep="^fix")
+          if [ -n "$FIXES_LOG" ]; then
+            echo "" >> CHANGELOG.md
+            echo "### Bug Fixes" >> CHANGELOG.md
+            echo "$FIXES_LOG" >> CHANGELOG.md
+            CHANGELOG_HAS_CONTENT=true
+          fi
+
+          OTHER_LOG=$(git log $RANGE --pretty=format:"* %s (%h)" --grep="^chore\|^docs\|^style\|^refactor\|^perf\|^test")
+          if [ -n "$OTHER_LOG" ]; then
+            echo "" >> CHANGELOG.md
+            echo "### Other Changes" >> CHANGELOG.md
+            echo "$OTHER_LOG" >> CHANGELOG.md
+            CHANGELOG_HAS_CONTENT=true
+          fi
+
+          if [ "$CHANGELOG_HAS_CONTENT" = true ]; then
+            echo "" >> CHANGELOG.md
+          fi
+
+          CHANGELOG_CONTENT=$(cat CHANGELOG.md)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "Changelog generated successfully."
+
+      - name: Commit and tag version
+        run: |
+          git add api/package.json api/package-lock.json client/package.json client/package-lock.json docs/conf.py C-PAT/C-PAT.json CHANGELOG.md
+          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
+          NEW_TAG_NAME="v${{ steps.version.outputs.new_version }}"
+          if git rev-parse "$NEW_TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $NEW_TAG_NAME already exists. Exiting to prevent overwrite."
+            exit 1
+          fi
+          git tag -a "$NEW_TAG_NAME" -m "Release $NEW_TAG_NAME"
+          git push
+          git push --tags
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: Release v${{ steps.version.outputs.new_version }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            nswccrane/c-pat:latest
+            nswccrane/c-pat:${{ steps.version.outputs.new_version }}
