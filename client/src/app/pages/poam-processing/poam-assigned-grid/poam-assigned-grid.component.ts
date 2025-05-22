@@ -107,7 +107,7 @@ export class PoamAssignedGridComponent {
       return {
         poamId: item.poamId,
         vulnerabilityId: item.vulnerabilityId,
-        affectedAssets: isAssetsLoading ? 0 : primaryCount,
+        affectedAssets: isAssetsLoading ? 0 : Number(primaryCount || 0),
         isAffectedAssetsLoading: isAssetsLoading,
         hasAssociatedVulnerabilities,
         associatedVulnerabilitiesTooltip,

@@ -113,7 +113,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         poamId: poam.poamId,
         status: poam.status,
         vulnerabilityId: poam.vulnerabilityId,
-        affectedAssets: isAssetsLoading ? 0 : primaryCount,
+        affectedAssets: isAssetsLoading ? 0 : Number(primaryCount || 0),
         isAffectedAssetsLoading: isAssetsLoading,
         hasAssociatedVulnerabilities,
         associatedVulnerabilitiesTooltip,
