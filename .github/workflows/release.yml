@@ -164,7 +164,7 @@ jobs:
         run: |
           git add api/package.json api/package-lock.json client/package.json client/package-lock.json docs/conf.py C-PAT/C-PAT.json CHANGELOG.md
           git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
-          NEW_TAG_NAME="v${{ steps.version.outputs.new_version }}"
+          NEW_TAG_NAME="${{ steps.version.outputs.new_version }}"
           if git rev-parse "$NEW_TAG_NAME" >/dev/null 2>&1; then
             echo "Tag $NEW_TAG_NAME already exists. Exiting to prevent overwrite."
             exit 1
@@ -176,8 +176,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.version.outputs.new_version }}
-          name: Release v${{ steps.version.outputs.new_version }}
+          tag_name: ${{ steps.version.outputs.new_version }}
+          name: ${{ steps.version.outputs.new_version }}
           body: ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: false
@@ -192,6 +192,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build documentation with Docker
+        run: |
+          cd docs
+          docker build -t docs-builder -f Dockerfile .
+          docker run --rm -v $(pwd):/docs docs-builder sphinx-build -b html . _build/html
+          cd ..
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
