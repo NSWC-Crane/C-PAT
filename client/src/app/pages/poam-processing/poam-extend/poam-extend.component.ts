@@ -396,13 +396,21 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   private updateExistingMilestone(milestone: any) {
     const milestoneUpdate = {
       ...(milestone.milestoneDate && {
-        milestoneDate: format(milestone.milestoneDate, 'yyyy-MM-dd'),
+        milestoneDate: milestone.milestoneDate
+          ? (typeof milestone.milestoneDate === 'string'
+            ? milestone.milestoneDate
+            : format(milestone.milestoneDate, 'yyyy-MM-dd'))
+          : null,
       }),
       ...(milestone.milestoneComments && {
         milestoneComments: milestone.milestoneComments,
       }),
       ...(milestone.milestoneChangeDate && {
-        milestoneChangeDate: format(milestone.milestoneChangeDate, 'yyyy-MM-dd'),
+        milestoneChangeDate: milestone.milestoneChangeDate
+          ? (typeof milestone.milestoneChangeDate === 'string'
+            ? milestone.milestoneChangeDate
+            : format(milestone.milestoneChangeDate, 'yyyy-MM-dd'))
+          : null,
       }),
       ...(milestone.milestoneChangeComments && {
         milestoneChangeComments: milestone.milestoneChangeComments,

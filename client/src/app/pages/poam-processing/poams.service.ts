@@ -106,8 +106,8 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  getPoamsBySubmitter(
-    submitterId: number,
+  getPoamsByOwnership(
+    userId: number,
     includeApprovers: boolean = false,
     includeAssignedTeams: boolean = false,
     includeAssets: boolean = false,
@@ -125,7 +125,7 @@ export class PoamService {
       .set('associatedVulnerabilities', includeAssociatedVulnerabilities.toString())
       .set('teamMitigations', includeTeamMitigations.toString());
     return this.http
-      .get(`${this.cpatApiBase}/poams/submitter/${submitterId}`, { params })
+      .get(`${this.cpatApiBase}/poams/ownership/${userId}`, { params })
       .pipe(catchError(this.handleError));
   }
 

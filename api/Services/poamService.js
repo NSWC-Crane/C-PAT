@@ -41,9 +41,12 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
-              SELECT p.*, u.fullName AS submitterName
-              FROM ${config.database.schema}.poam p
-              LEFT JOIN ${config.database.schema}.user u ON p.submitterId = u.userId
+            SELECT p.*,
+                   u.fullName AS submitterName,
+                   u2.fullName AS ownerName
+            FROM ${config.database.schema}.poam p
+            LEFT JOIN ${config.database.schema}.user u ON p.submitterId = u.userId
+            LEFT JOIN ${config.database.schema}.user u2 ON p.ownerId = u2.userId
             `;
             let params = [];
 
@@ -75,6 +78,7 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
                 submitterName: row.submitterName || null,
+                ownerName: row.ownerName || null,
                 hqs: row.hqs != null ? Boolean(row.hqs) : null,
                 isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null
             }));
@@ -132,10 +136,13 @@ exports.getPoam = async function getPoam(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
-                SELECT T1.*, T2.fullName AS submitterName
-                FROM ${config.database.schema}.poam T1
-                LEFT JOIN ${config.database.schema}.user T2 ON T1.submitterId = T2.userId
-                WHERE poamId = ?;
+            SELECT T1.*,
+                   T2.fullName AS submitterName,
+                   T3.fullName AS ownerName
+            FROM ${config.database.schema}.poam T1
+            LEFT JOIN ${config.database.schema}.user T2 ON T1.submitterId = T2.userId
+            LEFT JOIN ${config.database.schema}.user T3 ON T1.ownerId = T3.userId
+            WHERE poamId = ?;
                 `;
             let [rowPoams] = await connection.query(sql, [req.params.poamId]);
             const poam = rowPoams.map(row => ({
@@ -190,9 +197,12 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
     try {
         return await withConnection(async (connection) => {
             let sql = `
-            SELECT T1.*, T2.fullName AS submitterName
+            SELECT T1.*,
+                   T2.fullName AS submitterName,
+                   T3.fullName AS ownerName
             FROM ${config.database.schema}.poam T1
             LEFT JOIN ${config.database.schema}.user T2 ON T1.submitterId = T2.userId
+            LEFT JOIN ${config.database.schema}.user T3 ON T1.ownerId = T3.userId
             WHERE T1.collectionId = ?
             ORDER BY T1.poamId DESC;
             `;
@@ -247,12 +257,12 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
     }
 };
 
-exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, next) {
-    if (!req.params.submitterId) {
+exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next) {
+    if (!req.params.userId) {
         return next({
             status: 400,
             errors: {
-                submitterId: 'is required',
+                userId: 'is required',
             }
         });
     }
@@ -263,10 +273,10 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
             SELECT T1.*, T2.fullName AS submitterName
             FROM ${config.database.schema}.poam T1
             LEFT JOIN ${config.database.schema}.user T2 ON T1.submitterId = T2.userId
-            WHERE T1.submitterId = ?
+            WHERE T1.submitterId = ? OR T1.ownerId = ?
             ORDER BY T1.poamId DESC;
             `;
-            let [rowPoams] = await connection.query(sql, [req.params.submitterId]);
+            let [rowPoams] = await connection.query(sql, [req.params.userId, req.params.userId]);
             const poams = rowPoams.map(row => ({
                 ...row,
                 scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
@@ -392,6 +402,7 @@ exports.postPoam = async function postPoam(req) {
         }
     }
 
+    req.body.ownerId || null;
     req.body.submittedDate = req.body.submittedDate || null;
     req.body.scheduledCompletionDate = req.body.scheduledCompletionDate || null;
     req.body.closedDate = req.body.closedDate || null;
@@ -399,9 +410,9 @@ exports.postPoam = async function postPoam(req) {
 
     let sql_query = `INSERT INTO ${config.database.schema}.poam (collectionId, vulnerabilitySource, vulnerabilityTitle, stigBenchmarkId, stigCheckData, tenablePluginData,
                     iavmNumber, taskOrderNumber, aaPackage, vulnerabilityId, description, rawSeverity, adjSeverity, iavComplyByDate,
-                    scheduledCompletionDate, submitterId, officeOrg, predisposingConditions, mitigations, requiredResources, residualRisk,
+                    scheduledCompletionDate, submitterId, ownerId, officeOrg, predisposingConditions, mitigations, requiredResources, residualRisk,
                     likelihood, localImpact, impactDescription, status, submittedDate, closedDate, isGlobalFinding)
-                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     try {
         return await withConnection(async (connection) => {
@@ -420,7 +431,7 @@ exports.postPoam = async function postPoam(req) {
 
                 await connection.query(sql_query, [req.body.collectionId, req.body.vulnerabilitySource, req.body.vulnerabilityTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
                 req.body.tenablePluginData, req.body.iavmNumber, req.body.taskOrderNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description, req.body.rawSeverity, req.body.adjSeverity,
-                req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.officeOrg, req.body.predisposingConditions, req.body.mitigations,
+                    req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.ownerId, req.body.officeOrg, req.body.predisposingConditions, req.body.mitigations,
                 req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.localImpact, req.body.impactDescription,
                 req.body.status, req.body.submittedDate, req.body.closedDate, req.body.isGlobalFinding]);
 
@@ -599,6 +610,7 @@ exports.putPoam = async function putPoam(req, res, next) {
         "adjSeverity": "Adjusted Severity",
         "scheduledCompletionDate": "Scheduled Completion Date",
         "submitterId": "POAM Submitter",
+        "ownerId": "POAM Owner",
         "predisposingConditions": "Predisposing Conditions",
         "mitigations": "Mitigations",
         "requiredResources": "Required Resources",
@@ -630,13 +642,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                     return { status: 404, errors: { "poamId": "POAM not found" } };
                 }
 
-                const existingPoamNormalized = {
-                    ...existingPoam,
-                    submittedDate: normalizeDate(existingPoam.submittedDate) || null,
-                    scheduledCompletionDate: normalizeDate(existingPoam.scheduledCompletionDate) || null,
-                    closedDate: normalizeDate(existingPoam.closedDate) || null,
-                    iavComplyByDate: normalizeDate(existingPoam.iavComplyByDate) || null,
-                };
+                const ownerId = req.body.ownerId || null;
 
                 if (!req.body.officeOrg) {
                     let userSql = `SELECT officeOrg, fullName, email FROM ${config.database.schema}.user WHERE userId = ?`;
@@ -650,18 +656,19 @@ exports.putPoam = async function putPoam(req, res, next) {
 
                 const sqlInsertPoam = `UPDATE ${config.database.schema}.poam SET collectionId = ?, vulnerabilitySource = ?, vulnerabilityTitle = ?, stigBenchmarkId = ?, stigCheckData = ?,
                           tenablePluginData = ?, iavmNumber = ?, taskOrderNumber = ?, aaPackage = ?, vulnerabilityId = ?, description = ?, rawSeverity = ?, adjSeverity = ?,
-                          iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
+                          iavComplyByDate = ?, scheduledCompletionDate = ?, submitterId = ?, ownerId = ?, predisposingConditions = ?, mitigations = ?, requiredResources = ?,
                           residualRisk = ?, likelihood = ?, localImpact = ?, impactDescription = ?, status = ?, submittedDate = ?, closedDate = ?, officeOrg = ?, isGlobalFinding = ? WHERE poamId = ?`;
 
                 await connection.query(sqlInsertPoam, [
                     req.body.collectionId, req.body.vulnerabilitySource, req.body.vulnerabilityTitle, req.body.stigBenchmarkId, req.body.stigCheckData,
                     req.body.tenablePluginData, req.body.iavmNumber, req.body.taskOrderNumber, req.body.aaPackage, req.body.vulnerabilityId, req.body.description,
-                    req.body.rawSeverity, req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, req.body.predisposingConditions,
+                    req.body.rawSeverity, req.body.adjSeverity, req.body.iavComplyByDate, req.body.scheduledCompletionDate, req.body.submitterId, ownerId, req.body.predisposingConditions,
                     req.body.mitigations, req.body.requiredResources, req.body.residualRisk, req.body.likelihood, req.body.localImpact, req.body.impactDescription,
                     req.body.status, req.body.submittedDate, req.body.closedDate, req.body.officeOrg, req.body.isGlobalFinding, req.body.poamId
                 ]);
 
                 const [updatedPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.body.poamId]);
+                const updatedPoamComparison = updatedPoamRow[0];
                 const updatedPoam = updatedPoamRow.map(row => ({
                     ...row,
                     scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
@@ -675,9 +682,25 @@ exports.putPoam = async function putPoam(req, res, next) {
                 let poamId = req.body.poamId;
 
                 const modifiedFields = Object.keys(req.body).filter(field => {
-                    return !['poamId', 'collectionId', 'officeOrg', 'poamLog', 'severity', 'extensionTimeAllowed', 'extensionJustification'].includes(field) &&
-                        req.body[field] !== undefined &&
-                        req.body[field] !== existingPoamNormalized[field];
+                    if (['poamId', 'collectionId', 'officeOrg', 'poamLog', 'severity', 'extensionTimeAllowed', 'extensionJustification', 'hqs', 'created', 'lastUpdated', 'submitterName', 'ownerName', 'approvers', 'assignedTeams', 'associatedVulnerabilities', 'labels', 'milestones', 'teamMitigations', 'assets'].includes(field)) {
+                        return false;
+                    }
+
+                    if (!(field in existingPoam) || !(field in updatedPoamComparison)) {
+                        return false;
+                    }
+
+                    const oldValue = existingPoam[field];
+                    const newValue = updatedPoamComparison[field];
+
+                    if (oldValue === null && newValue === null) return false;
+                    if (oldValue === null || newValue === null) return oldValue !== newValue;
+
+                    if (oldValue instanceof Date && newValue instanceof Date) {
+                        return oldValue.getTime() !== newValue.getTime();
+                    }
+
+                    return oldValue !== newValue;
                 });
                 const modifiedFieldFullNames = modifiedFields.map(field => fieldNameMap[field] || field);
                 let action = `POAM Updated. POAM Status: ${req.body.status}, Severity: ${req.body.adjSeverity ? req.body.adjSeverity : req.body.rawSeverity}.<br> ${(modifiedFields.length > 0) ? "Fields modified: " + modifiedFieldFullNames.join(', ') + "." : "No POAM fields modified."}`;
