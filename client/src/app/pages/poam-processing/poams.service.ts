@@ -151,15 +151,15 @@ export class PoamService {
       .pipe(catchError(this.handleError));
   }
 
-  getPluginIDsWithPoam(): Observable<any> {
+  getVulnerabilityIdsWithPoam(): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poam/pluginIDs/`)
+      .get(`${this.cpatApiBase}/poam/vulnerabilityIds/`)
       .pipe(catchError(this.handleError));
   }
 
-  getPluginIDsWithPoamByCollection(collectionId: number): Observable<any> {
+  getVulnerabilityIdsWithPoamByCollection(collectionId: number): Observable<any> {
     return this.http
-      .get(`${this.cpatApiBase}/poam/pluginIDs/${collectionId}`)
+      .get(`${this.cpatApiBase}/poam/${collectionId}/vulnerabilityIds`)
       .pipe(catchError(this.handleError));
   }
 

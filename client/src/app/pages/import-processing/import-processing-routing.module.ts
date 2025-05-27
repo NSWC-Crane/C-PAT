@@ -10,7 +10,7 @@
 
 import { Routes } from '@angular/router';
 import { STIGManagerImportComponent } from './stigmanager-import/stigmanager-import.component';
-import { TenableVulnerabilitiesComponent } from './tenable-import/tenableVulnerabilities.component';
+import { TenableComponent } from './tenable-import/tenable.component';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
 export const importProcessingRoutes: Routes = [
@@ -22,6 +22,6 @@ export const importProcessingRoutes: Routes = [
   {
     path: 'tenable-import',
     canActivate: [AuthGuard],
-    component: TenableVulnerabilitiesComponent,
+    component: TenableComponent,
   },
 ];

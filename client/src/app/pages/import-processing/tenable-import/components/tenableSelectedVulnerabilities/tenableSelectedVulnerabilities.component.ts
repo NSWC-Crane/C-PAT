@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ImportService } from '../../../import.service';
 import { Table, TableModule } from 'primeng/table';
@@ -52,9 +52,9 @@ interface NavyComplyDateFilter {
 }
 
 @Component({
-  selector: 'cpat-tenable-iav-vulnerabilities',
-  templateUrl: './tenableIAVVulnerabilities.component.html',
-  styleUrls: ['./tenableIAVVulnerabilities.component.scss'],
+  selector: 'cpat-tenable-selected-vulnerabilities',
+  templateUrl: './tenableSelectedVulnerabilities.component.html',
+  styleUrls: ['./tenableSelectedVulnerabilities.component.scss'],
   standalone: true,
   imports: [
     ButtonModule,
@@ -73,8 +73,9 @@ interface NavyComplyDateFilter {
   ],
   providers: [MessageService],
 })
-export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
+export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestroy {
   @Output() totalRecordsChange = new EventEmitter<number>();
+  @Input() currentPreset: string = "iav";
   @ViewChild('dt') table!: Table;
   @ViewChild('dd') select!: Select;
   @ViewChild('ms') multiSelect!: MultiSelect;
@@ -89,8 +90,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   cveReferences: Reference[] = [];
   iavReferences: Reference[] = [];
   otherReferences: Reference[] = [];
-  IAVVulnerabilities: any[] = [];
-  iavPluginIDs: string = '';
+  applicableVulnerabilities: any[] = [];
+  applicablePluginIDs: string = '';
   selectedVulnerability: any;
   displayDialog: boolean = false;
   parsedVprContext: any[] = [];
@@ -134,7 +135,11 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
           this.initColumnsAndFilters();
           this.loadPoamAssociations();
-          this.getIAVPluginIDs();
+          if (this.currentPreset === 'taskOrder') {
+            this.getTaskOrderVulnerabilityIds();
+          } else {
+            this.getIAVPluginIDs();
+          }
           setTimeout(() => {
             if (this.table) {
               this.table.filters = { ...this.filters };
@@ -274,8 +279,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   getIAVPluginIDs() {
     this.importService.getIAVPluginIds().subscribe({
       next: (data) => {
-        this.iavPluginIDs = data;
-        this.getIAVFindings(this.iavPluginIDs);
+        this.applicablePluginIDs = data;
+        this.getApplicableFindings(this.applicablePluginIDs);
       },
       error: (error) => {
         console.error('Error fetching IAV mapped pluginIDs:', error);
@@ -284,7 +289,35 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
     });
   }
 
-  getIAVFindings(pluginIDs: string) {
+  getTaskOrderVulnerabilityIds() {
+    this.importService.getVulnerabilityIdsWithTaskOrderByCollection(this.selectedCollection).subscribe({
+      next: (data) => {
+        if (!data || data.length === 0) {
+          this.applicableVulnerabilities = [];
+          this.totalRecords = 0;
+          this.totalRecordsChange.emit(this.totalRecords);
+          this.isLoading = false;
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Notice',
+            detail: 'There are no POAMs with Task Orders within the collection.',
+            sticky: true,
+          });
+          this.cdr.detectChanges();
+          return;
+        }
+        const mappedPluginIDs = data.map((item: any) => item.vulnerabilityId).join(',');
+        this.applicablePluginIDs = mappedPluginIDs;
+        this.getApplicableFindings(this.applicablePluginIDs);
+      },
+      error: (error) => {
+        console.error('Error fetching task order pluginIDs:', error);
+        this.showErrorMessage('Error fetching task order pluginIDs. Please try again.');
+      }
+    });
+  }
+
+  getApplicableFindings(pluginIDs: string) {
     const analysisParams = {
       query: {
         description: '',
@@ -338,8 +371,8 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
         );
       }),
       catchError(error => {
-        console.error('Error fetching IAV Vulnerabilities:', error);
-        this.showErrorMessage('Error fetching IAV Vulnerabilities. Please try again.');
+        console.error('Error fetching Vulnerabilities:', error);
+        this.showErrorMessage('Error fetching Vulnerabilities. Please try again.');
         return EMPTY;
       }),
       finalize(() => {
@@ -357,7 +390,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           return acc;
         }, {});
 
-        this.IAVVulnerabilities = vulnData.response.results.map((vuln: any) => {
+        this.applicableVulnerabilities = vulnData.response.results.map((vuln: any) => {
           const defaultVuln = {
             pluginID: '',
             pluginName: '',
@@ -403,7 +436,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
           };
         });
 
-        this.totalRecords = this.IAVVulnerabilities.length;
+        this.totalRecords = this.applicableVulnerabilities.length;
         this.totalRecordsChange.emit(this.totalRecords);
 
         if (this.table) {
@@ -417,7 +450,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   loadPoamAssociations() {
-    this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)
+    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection)
       .subscribe({
         next: (poamData) => {
           if (poamData && Array.isArray(poamData)) {
@@ -513,7 +546,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   onRowClick(vulnerability: any, event: any) {
     event.stopPropagation();
-    this.IAVVulnerabilities = [];
+    this.applicableVulnerabilities = [];
     this.filters['pluginID'] = [
       {
         value: vulnerability.pluginID,
@@ -532,13 +565,13 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
   loadVulnList() {
     this.tenableTool = 'listvuln';
     this.expandColumnSelections();
-    this.getIAVFindings(this.iavPluginIDs);
+    this.getApplicableFindings(this.applicablePluginIDs);
   }
 
   loadVulnSummary() {
     this.tenableTool = 'sumid';
     this.resetColumnSelections();
-    this.getIAVFindings(this.iavPluginIDs);
+    this.getApplicableFindings(this.applicablePluginIDs);
   }
 
   onPluginIDClick(vulnerability: any, event: Event) {
@@ -811,7 +844,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     if (this.table) {
       this.table.filters = { ...this.filters };
-      this.totalRecords = this.IAVVulnerabilities.length;
+      this.totalRecords = this.applicableVulnerabilities.length;
       this.totalRecordsChange.emit(this.totalRecords);
     }
 
@@ -874,7 +907,7 @@ export class TenableIAVVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   onFilter(_event: any) {
     if (this.table) {
-      const filteredValue = this.table.filteredValue || [];
+      const filteredValue = this.table.filteredValue ?? this.applicableVulnerabilities;
       this.totalRecords = filteredValue.length;
       this.totalRecordsChange.emit(this.totalRecords);
 

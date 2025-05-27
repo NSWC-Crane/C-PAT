@@ -115,6 +115,12 @@ export class ImportService {
       .pipe(catchError(this.handleError));
   }
 
+  getVulnerabilityIdsWithTaskOrderByCollection(collectionId: number): Observable<any> {
+    return this.http
+      .get(`${this.cpatApiBase}/poam/${collectionId}/taskOrders`)
+      .pipe(catchError(this.handleError));
+  }
+
   getTenableFilters(collectionId: number): Observable<TenableFilter[]> {
     return this.http
       .get<TenableFilter[]>(`${this.cpatApiBase}/tenableFilters/${collectionId}`)

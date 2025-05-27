@@ -8,9 +8,9 @@
 !##########################################################################
 */
 
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
-import { ImportService } from '../import.service';
-import { PoamService } from '../../poam-processing/poams.service';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, signal, Input, Output, EventEmitter } from '@angular/core';
+import { ImportService } from '../../../import.service';
+import { PoamService } from '../../../../poam-processing/poams.service';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Popover } from 'primeng/popover';
@@ -19,8 +19,8 @@ import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
 import { EMPTY, Observable, Subscription, catchError, finalize, forkJoin, map, of, switchMap, tap } from 'rxjs';
-import { SharedService } from '../../../common/services/shared.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { SharedService } from '../../../../../common/services/shared.service';
+import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
@@ -30,14 +30,12 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { CardModule } from 'primeng/card';
-import { TenableSolutionsComponent } from './components/solutions/tenableSolutions.component';
-import { TenableIAVVulnerabilitiesComponent } from './components/iavVulnerabilities/tenableIAVVulnerabilities.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccordionModule } from 'primeng/accordion';
 import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
-import { TenableFiltersComponent } from './components/tenableFilters/tenableFilters.component';
+import { TenableFiltersComponent } from '../../components/tenableFilters/tenableFilters.component';
 import { TagModule } from 'primeng/tag';
 import {
   AssetsFilter,
@@ -54,9 +52,9 @@ import {
   PremadeFilterOption,
   FilterValue,
   FilterHandler
-} from '../../../common/models/tenable.model';
+} from '../../../../../common/models/tenable.model';
 import { parseISO } from 'date-fns/fp';
-import { PayloadService } from '../../../common/services/setPayload.service';
+import { PayloadService } from '../../../../../common/services/setPayload.service';
 
 @Component({
   selector: 'cpat-tenable-vulnerabilities',
@@ -78,8 +76,6 @@ import { PayloadService } from '../../../common/services/setPayload.service';
     TableModule,
     TabsModule,
     SkeletonModule,
-    TenableSolutionsComponent,
-    TenableIAVVulnerabilitiesComponent,
     ToastModule,
     TooltipModule,
     TenableFiltersComponent,
@@ -131,6 +127,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   user: any;
   payload: any;
   private subscriptions = new Subscription();
+  @Input() parentSidebarVisible: boolean = false;
+  @Input() currentPreset: string = "main";
+  @Output() sidebarToggle = new EventEmitter<boolean>();
+  @Output() totalRecordsChange = new EventEmitter<number>();
+
   @ViewChild('ms') multiSelect!: MultiSelect;
   @ViewChild('op') overlayPanel!: Popover;
   @ViewChild('dt') table!: Table;
@@ -957,8 +958,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       title: col.header,
       dataKey: col.field,
     }));
-    this.tempFilters['severity'] = ['1', '2', '3', '4'];
-    this.tempFilters['lastSeen'] = '0:30';
+    if (this.currentPreset === 'exploitAvailable') {
+      this.tempFilters['exploitAvailable'] = 'true';
+    } else if (this.currentPreset === 'failedCredential') {
+      this.tempFilters['pluginID'] = { operator: '=', value: '117886,10428,21745,24786,26917,102094,104410,110385,110723' };
+    } else {
+      this.tempFilters['severity'] = ['1', '2', '3', '4'];
+      this.tempFilters['lastSeen'] = '0:30';
+    }
     this.applyFilters();
     this.filterAccordionItems();
   }
@@ -1072,12 +1079,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
 
     items.sort((a, b) => {
-      const aIsDefault = a.identifier === 'severity' || a.identifier === 'lastSeen';
-      const bIsDefault = b.identifier === 'severity' || b.identifier === 'lastSeen';
-
-      if (aIsDefault && !bIsDefault) return -1;
-      if (!aIsDefault && bIsDefault) return 1;
-
       const aActive = this.isFilterActive(a.identifier);
       const bActive = this.isFilterActive(b.identifier);
 
@@ -1279,7 +1280,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           };
         });
 
-        this.totalRecords = vulnData.totalRecords;
+        this.totalRecords = this.allVulnerabilities.length;
+        this.totalRecordsChange.emit(this.totalRecords)
       }
     });
   }
@@ -1316,6 +1318,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   toggleSidebar() {
     this.sidebarVisible = !this.sidebarVisible;
+    this.sidebarToggle.emit(this.sidebarVisible);
   }
 
   onFilterChange(
@@ -1602,28 +1605,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     let activeFilters: CustomFilter[] = [];
 
-    if (!tempActiveFilters.some(f => f.filterName === 'severity')) {
-      activeFilters.push({
-        id: 'severity',
-        filterName: 'severity',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: '1,2,3,4'
-      });
-    }
-
-    if (!tempActiveFilters.some(f => f.filterName === 'lastSeen')) {
-      activeFilters.push({
-        id: 'lastSeen',
-        filterName: 'lastSeen',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: '0:30'
-      });
-    }
-
     return [...activeFilters, ...tempActiveFilters];
   }
 
@@ -1642,6 +1623,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.selectedPremadeFilter = null;
     }
     this.sidebarVisible = false;
+    this.sidebarToggle.emit(this.sidebarVisible);
   }
 
   revertFilters() {
@@ -1854,8 +1836,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.table.clear();
     this.tenableTool = 'sumid';
     this.tempFilters = this.initializeTempFilters();
-    this.tempFilters['severity'] = ['1', '2', '3', '4'];
-    this.tempFilters['lastSeen'] = '0:30';
+    if (this.currentPreset === 'exploitAvailable') {
+      this.tempFilters['exploitAvailable'] = 'true';
+    } else if (this.currentPreset === 'failedCredential') {
+      this.tempFilters['pluginID'] = { operator: '=', value: '117886,10428,21745,24786,26917,102094,104410,110385,110723' };
+    } else {
+      this.tempFilters['severity'] = ['1', '2', '3', '4'];
+      this.tempFilters['lastSeen'] = '0:30';
+    }
     this.activeFilters = [];
     this.filterSearch = '';
     this.filterHistory = [];
@@ -1895,27 +1883,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  getDefaultFilters(): CustomFilter[] {
-    return [
-      {
-        id: 'severity',
-        filterName: 'severity',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: '1,2,3,4',
-      },
-      {
-        id: 'lastSeen',
-        filterName: 'lastSeen',
-        operator: '=',
-        type: 'vuln',
-        isPredefined: true,
-        value: '0:30',
-      },
-    ];
-  }
-
   applyPremadeFilter(event: any) {
     if (!event?.value) return;
 
@@ -1936,8 +1903,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.table.clear();
         this.tenableTool = savedFilter.tenableTool || 'sumid';
         this.tempFilters = this.initializeTempFilters();
-        this.tempFilters['severity'] = ['1', '2', '3', '4'];
-        this.tempFilters['lastSeen'] = '0:30';
         this.activeFilters = [];
         this.filterSearch = '';
 
@@ -2417,7 +2382,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   loadPoamAssociations(): Observable<any> {
-    return this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection).pipe(
+    return this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).pipe(
       map(poamData => {
         if (poamData && Array.isArray(poamData)) {
           this.existingPoamPluginIDs = poamData.reduce(
@@ -2463,6 +2428,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   onTableFilter(event: any) {
     this.totalRecords = event.filteredValue ? event.filteredValue.length : 0;
+    this.totalRecordsChange.emit(this.totalRecords);
   }
 
   showErrorMessage(message: string) {

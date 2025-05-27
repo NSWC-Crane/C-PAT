@@ -13,17 +13,6 @@
     <div class="p-fluid">
       <div class="toolbar mb-4">
         <div class="flex items-center justify-between">
-          <p-iconField iconPosition="left">
-            <p-inputIcon>
-              <i class="pi pi-search"></i>
-            </p-inputIcon>
-            <input pInputText
-                   type="text"
-                   class="w-48"
-                   [(ngModel)]="filterValue"
-                   (input)="onGlobalFilter($event)"
-                   placeholder="Global Search" />
-          </p-iconField>
           <p-button icon="pi pi-filter"
                     class="ml-2"
                     [rounded]="true"
@@ -107,7 +96,7 @@
       </div>
       <div class="scrollable-vulnerabilities">
         <p-table #dt
-                 [value]="IAVVulnerabilities"
+                 [value]="applicableVulnerabilities"
                  [columns]="selectedColumns"
                  [paginator]="true"
                  [filters]="filters"

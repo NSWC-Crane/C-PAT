@@ -317,7 +317,7 @@ exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, n
     }
 };
 
-exports.getPluginIDsWithPoam = async function getPluginIDsWithPoam(req, res, next) {
+exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
@@ -333,15 +333,15 @@ exports.getPluginIDsWithPoam = async function getPluginIDsWithPoam(req, res, nex
                 )
                 ORDER BY poamId;
             `;
-            let [PluginIDs] = await connection.query(sql);
-            return PluginIDs;
+            let [vulnerabilityIds] = await connection.query(sql);
+            return vulnerabilityIds;
         });
     } catch (error) {
         return { error: error.message };
     }
 };
 
-exports.getPluginIDsWithPoamByCollection = async function getPluginIDsWithPoamByCollection(req, res, next) {
+exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilityIdsWithPoamByCollection(req, res, next) {
     try {
         return await withConnection(async (connection) => {
             let sql = `
@@ -358,8 +358,25 @@ exports.getPluginIDsWithPoamByCollection = async function getPluginIDsWithPoamBy
 
                 ORDER BY poamId;
             `;
-            let [PluginIDs] = await connection.query(sql, [req.params.collectionId, req.params.collectionId]);
-            return PluginIDs;
+            let [vulnerabilityIds] = await connection.query(sql, [req.params.collectionId, req.params.collectionId]);
+            return vulnerabilityIds;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
+exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnerabilityIdsWithTaskOrderByCollection(req, res, next) {
+    try {
+        return await withConnection(async (connection) => {
+            let sql = `
+            SELECT poamId, status, vulnerabilityId, taskOrderNumber
+            FROM ${config.database.schema}.poam
+            WHERE collectionId = ? AND taskOrderNumber IS NOT NULL
+            ORDER BY poamId;
+            `;
+            let [vulnerabilityIds] = await connection.query(sql, [req.params.collectionId]);
+            return vulnerabilityIds;
         });
     } catch (error) {
         return { error: error.message };

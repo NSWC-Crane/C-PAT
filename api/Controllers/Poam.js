@@ -63,10 +63,10 @@ module.exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req,
     }
 };
 
-module.exports.getPluginIDsWithPoam = async function getPluginIDsWithPoam(req, res, next) {
+module.exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam(req, res, next) {
     try {
-        const pluginIDs = await poamService.getPluginIDsWithPoam(req, res, next);
-        res.status(200).json(pluginIDs);
+        const vulnerabilityIds = await poamService.getVulnerabilityIdsWithPoam(req, res, next);
+        res.status(200).json(vulnerabilityIds);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
@@ -76,10 +76,23 @@ module.exports.getPluginIDsWithPoam = async function getPluginIDsWithPoam(req, r
     }
 };
 
-module.exports.getPluginIDsWithPoamByCollection = async function getPluginIDsWithPoamByCollection(req, res, next) {
+module.exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilityIdsWithPoamByCollection(req, res, next) {
     try {
-        const pluginIDs = await poamService.getPluginIDsWithPoamByCollection(req, res, next);
-        res.status(200).json(pluginIDs);
+        const vulnerabilityIds = await poamService.getVulnerabilityIdsWithPoamByCollection(req, res, next);
+        res.status(200).json(vulnerabilityIds);
+    } catch (error) {
+        if (error.status === 400) {
+            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
+
+module.exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnerabilityIdsWithTaskOrderByCollection(req, res, next) {
+    try {
+        const vulnerabilityIds = await poamService.getVulnerabilityIdsWithTaskOrderByCollection(req, res, next);
+        res.status(200).json(vulnerabilityIds);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });

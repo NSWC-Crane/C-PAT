@@ -206,5 +206,5 @@ jobs:
           context: .
           push: true
           tags: |
-            nswccrane/c-pat:latest
             nswccrane/c-pat:${{ steps.version.outputs.new_version }}
+            nswccrane/c-pat:latest
