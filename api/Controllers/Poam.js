@@ -50,9 +50,9 @@ module.exports.getPoamsByCollectionId = async function getPoamsByCollectionId(re
     }
 };
 
-module.exports.getPoamsBySubmitterId = async function getPoamsBySubmitterId(req, res, next) {
+module.exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next) {
     try {
-        const poams = await poamService.getPoamsBySubmitterId(req, res, next);
+        const poams = await poamService.getPoamsByOwnership(req, res, next);
             res.status(200).json(poams);
     } catch (error) {
         if (error.status === 400) {

@@ -326,7 +326,8 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.poamsNeedingAttention.set(needingAttention);
     const submitted = this.poams().filter(poam =>
       poam.status !== 'Closed' &&
-      poam.submitterId === this.user()?.userId
+      poam.submitterId === this.user()?.userId ||
+      poam.ownerId === this.user()?.userId
     );
     this.submittedPoams.set(submitted);
     const pendingApproval = this.poams().filter(poam =>

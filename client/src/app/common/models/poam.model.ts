@@ -27,7 +27,9 @@ export interface Poam {
   adjSeverity: string | null;
   scheduledCompletionDate: Date | string;
   submitterId: number;
+  ownerId: number | null;
   submitterName: string;
+  ownerName: string | null;
   mitigations: string | null;
   requiredResources: string | null;
   residualRisk: string | null;

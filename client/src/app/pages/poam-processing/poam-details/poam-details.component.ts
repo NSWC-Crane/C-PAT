@@ -436,7 +436,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.collectionUsers = users;
 
           this.poamAssignedTeams = poam.assignedTeams || [];
-          this.poamApprovers = poam.approvers || [];
+          this.poamApprovers = (poam.approvers || []).map((approver: any) => ({
+            ...approver,
+            approvedDate: approver.approvedDate
+              ? approver.approvedDate.split("T")[0]
+              : null
+          }));
           this.poamMilestones = (poam.milestones || []).map((milestone: any) => ({
             ...milestone,
             milestoneDate: milestone.milestoneDate
@@ -600,7 +605,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.assignedTeamOptions = result.assignedTeamOptions;
       this.collectionUsers = result.collectionUsers;
       this.collectionApprovers = result.collectionApprovers;
-      this.poamApprovers = result.poamApprovers;
+      this.poamApprovers = (result.poamApprovers || []).map((approver: any) => ({
+        ...approver,
+        approvedDate: approver.approvedDate
+          ? approver.approvedDate.split("T")[0]
+          : null
+      }));
       this.poam = result.poam;
       this.teamMitigations = [];
       this.cdr.detectChanges();
@@ -634,7 +644,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.assignedTeamOptions = result.assignedTeamOptions;
       this.collectionUsers = result.collectionUsers;
       this.collectionApprovers = result.collectionApprovers;
-      this.poamApprovers = result.poamApprovers;
+      this.poamApprovers = (result.poamApprovers || []).map((approver: any) => ({
+        ...approver,
+        approvedDate: approver.approvedDate
+          ? approver.approvedDate.split("T")[0]
+          : null
+      }));
       this.poam = result.poam;
       this.teamMitigations = [];
       this.cdr.detectChanges();
@@ -667,7 +682,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.assignedTeamOptions = result.assignedTeamOptions;
       this.collectionUsers = result.collectionUsers;
       this.collectionApprovers = result.collectionApprovers;
-      this.poamApprovers = result.poamApprovers;
+      this.poamApprovers = (result.poamApprovers || []).map((approver: any) => ({
+        ...approver,
+        approvedDate: approver.approvedDate
+          ? approver.approvedDate.split("T")[0]
+          : null
+      }));
       this.poam = result.poam;
       this.teamMitigations = [];
       this.cdr.detectChanges();
@@ -748,13 +768,21 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       }
 
       this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate
-        ? format(this.dates.scheduledCompletionDate, 'yyyy-MM-dd')
+        ? (typeof this.dates.scheduledCompletionDate === 'string'
+          ? this.dates.scheduledCompletionDate
+          : format(this.dates.scheduledCompletionDate, 'yyyy-MM-dd'))
         : null;
+
       this.poam.submittedDate = this.dates.submittedDate
-        ? format(this.dates.submittedDate, 'yyyy-MM-dd')
+        ? (typeof this.dates.submittedDate === 'string'
+          ? this.dates.submittedDate
+          : format(this.dates.submittedDate, 'yyyy-MM-dd'))
         : null;
+
       this.poam.iavComplyByDate = this.dates.iavComplyByDate
-        ? format(this.dates.iavComplyByDate, 'yyyy-MM-dd')
+        ? (typeof this.dates.iavComplyByDate === 'string'
+          ? this.dates.iavComplyByDate
+          : format(this.dates.iavComplyByDate, 'yyyy-MM-dd'))
         : null;
       this.poam.requiredResources = this.poam.requiredResources ? this.poam.requiredResources : '';
       this.poam.isGlobalFinding = this.poam.isGlobalFinding ?? false;
@@ -791,10 +819,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         poamToSubmit.approvers = this.poamApprovers
         .filter(approver => approver.userId)
         .map(approver => ({
-            userId: approver.userId,
+          userId: approver.userId,
           approvalStatus: approver.approvalStatus || 'Not Reviewed',
           comments: approver.comments || '',
-            approvedDate: approver.approvedDate ? format(new Date(approver.approvedDate), 'yyyy-MM-dd') : null
+          approvedDate: approver.approvedDate
+            ? (typeof approver.approvedDate === 'string'
+              ? approver.approvedDate
+              : format(approver.approvedDate, 'yyyy-MM-dd'))
+            : null,
           }));
       } else {
         poamToSubmit.approvers = [];
@@ -811,12 +843,16 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       if (this.poamMilestones && this.poamMilestones.length > 0) {
         poamToSubmit.milestones = this.poamMilestones
           .filter(milestone => milestone.milestoneComments)
-        .map(milestone => ({
-            milestoneDate: milestone.milestoneDate ? format(new Date(milestone.milestoneDate), 'yyyy-MM-dd') : null,
-          milestoneComments: milestone.milestoneComments || null,
-          milestoneStatus: milestone.milestoneStatus || 'Pending',
+          .map(milestone => ({
+            milestoneDate: milestone.milestoneDate
+              ? (typeof milestone.milestoneDate === 'string'
+                ? milestone.milestoneDate
+                : format(milestone.milestoneDate, 'yyyy-MM-dd'))
+              : null,
+            milestoneComments: milestone.milestoneComments || null,
+            milestoneStatus: milestone.milestoneStatus || 'Pending',
             assignedTeamId: milestone.assignedTeamId || null
-        }));
+          }));
       } else {
         poamToSubmit.milestones = [];
       }
@@ -1044,10 +1080,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
     this.poamMilestones.forEach(milestone => {
       if (milestone.milestoneDate) {
-        milestone.milestoneDate = typeof milestone.milestoneDate === 'string'
-          ? milestone.milestoneDate
-          : format(milestone.milestoneDate, 'yyyy-MM-dd');
+        if (milestone.milestoneDate instanceof Date) {
+          milestone.milestoneDate = format(milestone.milestoneDate, 'yyyy-MM-dd');
         }
+      }
     });
   }
 

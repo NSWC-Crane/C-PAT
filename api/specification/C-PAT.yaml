@@ -4346,16 +4346,16 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /poams/submitter/{submitterId}:
+  /poams/ownership/{userId}:
     parameters:
       - in: path
-        name: submitterId
+        name: userId
         required: true
         schema:
           type: integer
     get:
-      summary: Return POAMs by Submitter ID
-      operationId: getPoamsBySubmitterId
+      summary: Return POAMs owned or submitted by a user
+      operationId: getPoamsByOwnership
       parameters:
         - in: query
           name: approvers
