@@ -193,31 +193,64 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
     }
 
     return await withConnection(async (connection) => {
-        try {
-            let updateSql = `UPDATE ${config.database.schema}.poamteammitigations SET isActive = ? WHERE assignedTeamId = ? AND poamId = ?`;
-            await connection.query(updateSql, [req.body.isActive, req.params.assignedTeamId, req.params.poamId]);
+        const maxRetries = 3;
+        let retryCount = 0;
 
-            let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
-            const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
-            const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
+        while (retryCount < maxRetries) {
+            try {
+                await connection.beginTransaction();
 
-            let action = `Team Mitigation status was ${req.body.isActive ? 'activated' : 'deactivated'} for ${teamName}.`;
-            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
+                try {
+                    let lockSql = `SELECT mitigationId FROM ${config.database.schema}.poamteammitigations
+                                   WHERE assignedTeamId = ? AND poamId = ?
+                                   FOR UPDATE`;
+                    const [existingRecord] = await connection.query(lockSql, [req.params.assignedTeamId, req.params.poamId]);
 
-            let fetchSql = `SELECT mitigationId, poamId, assignedTeamId, mitigationText, isActive FROM ${config.database.schema}.poamteammitigations WHERE assignedTeamId = ? AND poamId = ?`;
-            const [teamMitigation] = await connection.query(fetchSql, [req.params.assignedTeamId, req.params.poamId]);
+                    if (existingRecord.length === 0) {
+                        throw new Error('Team Mitigation not found');
+                    }
 
-            if (teamMitigation.length > 0) {
-                const result = { ...teamMitigation[0] };
-                result.isActive = result.isActive != null ? Boolean(result.isActive) : null;
-                return result;
-            } else {
-                throw new Error('Team Mitigation not found after status update');
+                    let updateSql = `UPDATE ${config.database.schema}.poamteammitigations
+                                     SET isActive = ?
+                                     WHERE assignedTeamId = ? AND poamId = ?`;
+                    await connection.query(updateSql, [req.body.isActive, req.params.assignedTeamId, req.params.poamId]);
+
+                    let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams
+                                           WHERE assignedTeamId = ?`;
+                    const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
+                    const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
+
+                    let fetchSql = `SELECT mitigationId, poamId, assignedTeamId, mitigationText, isActive
+                                    FROM ${config.database.schema}.poamteammitigations
+                                    WHERE assignedTeamId = ? AND poamId = ?`;
+                    const [teamMitigation] = await connection.query(fetchSql, [req.params.assignedTeamId, req.params.poamId]);
+
+                    await connection.commit();
+
+                    if (teamMitigation.length > 0) {
+                        const result = { ...teamMitigation[0] };
+                        result.isActive = result.isActive != null ? Boolean(result.isActive) : null;
+                        return result;
+                    } else {
+                        throw new Error('Team Mitigation not found after status update');
+                    }
+
+                } catch (error) {
+                    await connection.rollback();
+                    throw error;
+                }
+
+            } catch (error) {
+                if (error.code === 'ER_LOCK_DEADLOCK' && retryCount < maxRetries - 1) {
+                    retryCount++;
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 50));
+                    continue;
+                }
+                return { error: error.message };
             }
-        } catch (error) {
-            return { error: error.message };
         }
+
+        return { error: 'Failed after maximum retry attempts due to deadlock' };
     });
 };
 
