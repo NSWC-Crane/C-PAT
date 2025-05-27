@@ -998,6 +998,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   verifySubmitPoam(showDialog: boolean = true): boolean {
+    this.savePoam(true);
     const milestoneValidation = this.poamValidationService.validateMilestones(this.poamMilestones);
     if (!milestoneValidation.valid) {
       this.messageService.add({
