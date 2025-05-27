@@ -1,0 +1,76 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+::ng-deep .tenable-container {
+  height: calc(100vh - 11rem);
+  position: relative;
+  transition: all 0.3s ease-in-out;
+
+  &.sidebar-visible {
+    ::ng-deep {
+      .p-card {
+        margin-left: 316px;
+        transition: margin-left 0.3s ease-in-out;
+      }
+    }
+  }
+
+  &.sidebar-hidden {
+    ::ng-deep {
+      .p-card {
+        margin-left: 0;
+        transition: margin-left 0.3s ease-in-out;
+      }
+    }
+  }
+}
+
+::ng-deep {
+  .p-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s ease-in-out;
+    overflow: visible !important;
+  }
+
+  .p-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  p-tabs {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .p-tabview {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .p-tabview-panels {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .p-tabview-panel {
+    height: 100%;
+    padding: 0;
+  }
+}

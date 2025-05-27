@@ -192,7 +192,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   loadPoamAssociations() {
     if (!this.selectedCollection) return;
 
-    this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)
+    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection)
       .subscribe({
         next: (poamData) => {
           if (poamData && Array.isArray(poamData)) {

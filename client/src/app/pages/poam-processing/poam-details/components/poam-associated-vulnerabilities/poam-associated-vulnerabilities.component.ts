@@ -244,7 +244,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
       return;
     }
 
-    this.poamService.getPluginIDsWithPoamByCollection(this.currentCollection.collectionId)
+    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.currentCollection.collectionId)
       .subscribe({
         next: async (response: any) => {
           const existingPoams = response;

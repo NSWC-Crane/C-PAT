@@ -4412,13 +4412,13 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /poam/pluginIDs:
+  /poam/vulnerabilityIds:
     get:
-      summary: Return a list of Plugin IDs with existing POAMs
-      operationId: getPluginIDsWithPoam
+      summary: Return a list of Vulnerability IDs with existing POAMs
+      operationId: getVulnerabilityIdsWithPoam
       responses:
         '200':
-          description: Successfully retrieved Plugin ID list
+          description: Successfully retrieved Vulnerability ID list
           content:
             application/json:
               schema:
@@ -4450,7 +4450,7 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  /poam/pluginIDs/{collectionId}:
+  /poam/{collectionId}/vulnerabilityIds:
     parameters:
       - in: path
         name: collectionId
@@ -4458,11 +4458,11 @@ paths:
         schema:
           type: integer
     get:
-      summary: Return a list of Plugin IDs with existing POAMs by collection
-      operationId: getPluginIDsWithPoamByCollection
+      summary: Return a list of Vulnerability IDs with existing POAMs by collection
+      operationId: getVulnerabilityIdsWithPoamByCollection
       responses:
         '200':
-          description: Successfully retrieved Plugin ID list
+          description: Successfully retrieved Vulnerability ID list
           content:
             application/json:
               schema:
@@ -4475,6 +4475,52 @@ paths:
                     status:
                       type: string
                     vulnerabilityId:
+                      type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Poam
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /poam/{collectionId}/taskOrders:
+    parameters:
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return a list of Vulnerability IDs with an associated task order by collection
+      operationId: getVulnerabilityIdsWithTaskOrderByCollection
+      responses:
+        '200':
+          description: Successfully retrieved Vulnerability ID list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    poamId:
+                      type: string
+                    status:
+                      type: string
+                    vulnerabilityId:
+                      type: string
+                    taskOrderNumber:
                       type: string
         '400':
           description: Bad Request

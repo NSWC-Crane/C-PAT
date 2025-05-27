@@ -315,7 +315,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   filterFindings() {
-    this.poamService.getPluginIDsWithPoamByCollection(this.selectedCollection)
+    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection)
       .subscribe({
         next: (response: any) => {
           this.existingPoams = response;

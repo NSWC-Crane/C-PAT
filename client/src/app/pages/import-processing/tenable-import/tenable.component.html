@@ -1,0 +1,70 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<div class="tenable-container" [ngClass]="{'sidebar-visible': sidebarVisible, 'sidebar-hidden': !sidebarVisible}">
+  <p-card styleClass="h-full">
+    <p-tabs #tabComponent value="0" (valueChange)="onTabChange($event)" scrollable>
+      <p-tablist>
+        <p-tab value="0">Vulnerabilities ({{mainTotal}})</p-tab>
+        <p-tab value="1">
+          IAV Vulnerabilities{{loadedTabs.has(1) ? ' (' + iavVulnerabilitiesCount + ')' : ''}}
+        </p-tab>
+        <p-tab value="2">Task Orders{{loadedTabs.has(2) ? ' (' + taskOrderCount + ')' : ''}}</p-tab>
+        <p-tab value="3">Exploitable{{loadedTabs.has(3) ? ' (' + exploitableTotal + ')' : ''}}</p-tab>
+        <p-tab value="4">Failed Credential{{loadedTabs.has(4) ? ' (' + failedCredentialCount + ')' : ''}}</p-tab>
+        <p-tab value="5">Solutions</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="0">
+          <cpat-tenable-vulnerabilities (totalRecordsChange)="mainTotal = $event"
+                                        (sidebarToggle)="onSidebarToggle($event)"
+                                        [parentSidebarVisible]="sidebarVisible"
+                                        currentPreset="main">
+          </cpat-tenable-vulnerabilities>
+        </p-tabpanel>
+        <p-tabpanel value="1">
+          @defer (when tabComponent.value() === '1') {
+          <cpat-tenable-selected-vulnerabilities (totalRecordsChange)="iavVulnerabilitiesCount = $event" currentPreset="iav">
+          </cpat-tenable-selected-vulnerabilities>
+          }
+        </p-tabpanel>
+        <p-tabpanel value="2">
+          @defer (when tabComponent.value() === '2') {
+          <cpat-tenable-selected-vulnerabilities (totalRecordsChange)="taskOrderCount = $event" currentPreset="taskOrder">
+          </cpat-tenable-selected-vulnerabilities>
+          }
+        </p-tabpanel>
+        <p-tabpanel value="3">
+          @defer (when tabComponent.value() === '3') {
+          <cpat-tenable-vulnerabilities (totalRecordsChange)="exploitableTotal = $event"
+                                        (sidebarToggle)="onSidebarToggle($event)"
+                                        [parentSidebarVisible]="sidebarVisible"
+                                        currentPreset="exploitAvailable">
+          </cpat-tenable-vulnerabilities>
+          }
+        </p-tabpanel>
+        <p-tabpanel value="4">
+          @defer (when tabComponent.value() === '4') {
+          <cpat-tenable-vulnerabilities (totalRecordsChange)="failedCredentialCount = $event"
+                                        (sidebarToggle)="onSidebarToggle($event)"
+                                        [parentSidebarVisible]="sidebarVisible"
+                                        currentPreset="failedCredential">
+          </cpat-tenable-vulnerabilities>
+          }
+        </p-tabpanel>
+        <p-tabpanel value="5">
+          @defer (when tabComponent.value() === '5') {
+          <cpat-tenable-solutions></cpat-tenable-solutions>
+          }
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </p-card>
+</div>
