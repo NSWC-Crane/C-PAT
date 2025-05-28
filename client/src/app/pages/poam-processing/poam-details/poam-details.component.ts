@@ -447,7 +447,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             milestoneDate: milestone.milestoneDate
               ? milestone.milestoneDate.split("T")[0]
               : null,
-            assignedTeamId: +milestone.assignedTeamId,
+            assignedTeamId: +milestone.assignedTeamId
           }));
           this.poamLabels = poam.labels || [];
           this.poamAssociatedVulnerabilities = poam.associatedVulnerabilities || [];
@@ -999,18 +999,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   verifySubmitPoam(showDialog: boolean = true): boolean {
     this.savePoam(true);
-    const milestoneValidation = this.poamValidationService.validateMilestones(this.poamMilestones);
-    if (!milestoneValidation.valid) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Information',
-        detail: milestoneValidation.message
-      });
-      return false;
-    }
-
     this._ensureUniqueTeamMitigations();
-    const submissionValidation = this.poamValidationService.validateSubmissionRequirements(this.poam, this.teamMitigations, this.dates);
+
+    const submissionValidation = this.poamValidationService.validateSubmissionRequirements(this.poam, this.teamMitigations, this.poamMilestones, this.dates);
     if (!submissionValidation.valid) {
       this.messageService.add({
         severity: 'error',

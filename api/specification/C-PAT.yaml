@@ -6682,6 +6682,7 @@ components:
 
     PoamMilestone:
       type: object
+      additionalProperties: true
       properties:
         milestoneId:
           type: integer

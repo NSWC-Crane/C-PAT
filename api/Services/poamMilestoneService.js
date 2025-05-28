@@ -40,7 +40,10 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
         }
 
         return await withConnection(async (connection) => {
-            let sql = `SELECT * FROM ${config.database.schema}.poammilestones WHERE poamId = ?;`;
+            let sql = `SELECT pm.*, at.assignedTeamName
+                       FROM ${config.database.schema}.poammilestones pm
+                       LEFT JOIN ${config.database.schema}.assignedteams at ON pm.assignedTeamId = at.assignedTeamId
+                       WHERE pm.poamId = ?;`;
             let [rows] = await connection.query(sql, [poamId]);
             const poamMilestones = rows.map(row => ({ ...row }));
             return poamMilestones;
