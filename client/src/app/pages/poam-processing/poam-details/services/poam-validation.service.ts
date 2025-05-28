@@ -51,7 +51,7 @@ export class PoamValidationService {
     return { valid: true };
   }
 
-  validateSubmissionRequirements(poam: any, teamMitigations: any[], dates: any): { valid: boolean, message?: string } {
+  validateSubmissionRequirements(poam: any, teamMitigations: any[], poamMilestones: any[], dates: any): { valid: boolean, message?: string } {
     if (!poam.description) {
       return {
         valid: false,
@@ -155,9 +155,15 @@ export class PoamValidationService {
           message: 'Global Mitigations is a required field for submission when using Global Finding mode.'
         };
       }
+
+      if (!poamMilestones || poamMilestones.length < 1) {
+        return {
+          valid: false,
+          message: 'A minimum of 1 POAM milestone is required before a Global POAM can be submitted for review.'
+        };
+      }
     } else {
       const activeTeams = teamMitigations.filter(tm => tm.isActive);
-
       if (activeTeams.length === 0) {
         return {
           valid: false,
@@ -183,24 +189,32 @@ export class PoamValidationService {
           };
         }
       }
-    }
 
-    return { valid: true };
-  }
+      const teamsWithoutMilestones = activeTeams.filter(activeTeam => {
+        return !poamMilestones.some(milestone =>
+        (
+          (milestone.assignedTeamName === activeTeam.teamName ||
+            milestone.assignedTeamId === activeTeam.assignedTeamId) &&
+          milestone.milestoneComments &&
+          milestone.milestoneComments.trim() !== ''
+        )
+        );
+      });
 
-  validateMilestones(poamMilestones: any): { valid: boolean, message?: string } {
-    if (!poamMilestones || poamMilestones.length < 1) {
-      return {
-        valid: false,
-        message: 'A minimum of 1 POAM milestone is required before a POAM can be submitted for review.'
-      };
-    }
-
-    if (poamMilestones[0]?.milestoneComments?.length < 15) {
-      return {
-        valid: false,
-        message: 'A milestone comment has a 15 character count minimum to satisfy the requirement for POAM submission.'
-      };
+      if (teamsWithoutMilestones.length > 0) {
+        if (teamsWithoutMilestones.length === 1) {
+          return {
+            valid: false,
+            message: `Team "${teamsWithoutMilestones[0].assignedTeamName}" is missing milestones. All teams must have milestones for submission.`
+          };
+        } else {
+          const teamNames = teamsWithoutMilestones.map(t => t.assignedTeamName).join('", "');
+          return {
+            valid: false,
+            message: `Teams "${teamNames}" are missing milestones. All teams must have milestones for submission.`
+          };
+        }
+      }
     }
 
     return { valid: true };
