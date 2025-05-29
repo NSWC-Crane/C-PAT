@@ -85,7 +85,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
 
   getVulnTitles() {
     if (this.currentCollection.collectionType === 'STIG Manager' && this.currentCollection.originCollectionId) {
-      this.sharedService.getFindingsMetricsFromSTIGMAN(this.currentCollection.originCollectionId)
+      this.sharedService.getFindingsMetricsAndRulesFromSTIGMAN(this.currentCollection.originCollectionId)
         .subscribe({
           next: (response: any) => {
             this.vulnTitles = response.reduce((map, group) => {
