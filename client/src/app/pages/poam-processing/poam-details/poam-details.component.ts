@@ -784,6 +784,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           ? this.dates.iavComplyByDate
           : format(this.dates.iavComplyByDate, 'yyyy-MM-dd'))
         : null;
+      this.poam.closedDate = this.dates.closedDate
+        ? (typeof this.dates.closedDate === 'string'
+          ? this.dates.closedDate
+          : format(this.dates.closedDate, 'yyyy-MM-dd'))
+        : null;
       this.poam.requiredResources = this.poam.requiredResources ? this.poam.requiredResources : '';
       this.poam.isGlobalFinding = this.poam.isGlobalFinding ?? false;
 
