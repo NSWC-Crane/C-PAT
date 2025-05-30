@@ -8,94 +8,121 @@
 !##########################################################################
 */
 
-import { Component, input, computed } from '@angular/core';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { Color, ScaleType } from '@swimlane/ngx-charts';
 import { CommonModule } from '@angular/common';
-import { TooltipModule } from 'primeng/tooltip';
+import { Component, input, computed } from '@angular/core';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'cpat-poam-advanced-pie',
   template: `
-    <ngx-charts-advanced-pie-chart
-      [scheme]="colorScheme"
-      [results]="sortedPieChartData()"
-      [percentageFormatting]="formatPercentages"
-      [label]="collectionName() + ' POAMs'">
-    </ngx-charts-advanced-pie-chart>
-
-    <div *ngIf="findingStats() && showProgressBars()" class="finding-progress-bars" pTooltip="Percentage of open findings with POAMs (Excluding Draft)" tooltipPosition="right">
-      <div *ngFor="let category of categories" class="progress-bar-item">
-        <div class="progress-label">
-          <span class="category-label">{{ category }}</span>
-          <span class="percentage-label">{{ findingStats()[category].percentage }}%</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill"
-               [style.width.%]="findingStats()[category].percentage"
-               [ngClass]="getCategoryClass(category)">
-          </div>
-        </div>
-        <div class="progress-stats">
-          {{ findingStats()[category].withPoam }} / {{ findingStats()[category].total }}
-        </div>
+    @if (pieChartData() && pieChartData().length > 0) {
+      <ngx-charts-advanced-pie-chart
+        [scheme]="colorScheme()"
+        [results]="sortedPieChartData()"
+        [gradient]="gradient"
+        arcWidth="0.65">
+      </ngx-charts-advanced-pie-chart>
+    } @else {
+      <div class="spinner-container">
+        <p-progress-spinner ariaLabel="loading" />
       </div>
-    </div>
+    }
   `,
+  styles: [`
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  min-height: 20rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 40%;
+    background: linear-gradient(135deg, var(--primary-contrast-color) 0%, var(--primary-color) 100%);
+    opacity: 0.1;
+    border-radius: 50%;
+    filter: blur(40px);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.1;
+    }
+
+    50% {
+      transform: scale(1.1);
+      opacity: 0.2;
+    }
+  }
+}
+  `],
   standalone: true,
-  imports: [NgxChartsModule, CommonModule, TooltipModule]
+  imports: [NgxChartsModule, CommonModule, ProgressSpinnerModule]
 })
 export class PoamAdvancedPieComponent {
   pieChartData = input.required<any[]>();
   collectionName = input.required<string>();
-  findingStats = input<{ [key: string]: { total: number, withPoam: number, percentage: number } }>();
-  showProgressBars = input<boolean>(false);
+  gradient: boolean = true;
 
   categories = ['CAT I', 'CAT II', 'CAT III'];
+
+  private statusColorMap: { [key: string]: string } = {
+    'Submitted': 'rgba(54, 162, 235, .6)',
+    'Approved': 'rgba(75, 192, 192, .6)',
+    'Open Findings': 'rgba(201, 203, 207, .4)',
+    'Extension Requested': 'rgba(255, 205, 86, .6)',
+    'False-Positive': 'rgba(255, 99, 132, .6)',
+    'Pending CAT-I Approval': 'rgba(152, 102, 255, .6)',
+    'Expired': 'rgba(255, 159, 64, .6)',
+    'Rejected': 'rgba(255, 52, 75, 0.6)',
+    'Closed': 'rgba(25, 25, 25, .6)',
+    'No Data': 'rgba(200, 200, 200, .6)'
+  };
 
   sortedPieChartData = computed(() => {
     const data = this.pieChartData();
     if (!data) return [];
 
     const sortedData = [...data];
-    const categoryOrder: { [key: string]: number } = {
-      'CAT I': 0,
-      'CAT II': 1,
-      'CAT III': 2
-    };
 
-    return sortedData.sort((a, b) => {
-      const orderA = categoryOrder[a.name] !== undefined ? categoryOrder[a.name] : 999;
-      const orderB = categoryOrder[b.name] !== undefined ? categoryOrder[b.name] : 999;
-      return orderA - orderB;
-    });
+      const typeOrder: { [key: string]: number } = {
+        'Approved': 0,
+        'Submitted': 1,
+        'Extension Requested': 2,
+        'Pending CAT-I Approval': 3,
+        'False-Positive': 4,
+        'Expired': 5,
+        'Rejected': 6,
+        'Closed': 7,
+        'Open Findings': 8,
+        'No Data': 9
+      };
+
+      return sortedData.sort((a, b) => {
+        const orderA = typeOrder[a.name] !== undefined ? typeOrder[a.name] : 999;
+        const orderB = typeOrder[b.name] !== undefined ? typeOrder[b.name] : 999;
+        return orderA - orderB;
+      });
   });
 
-  colorScheme: Color = {
-    name: 'custom',
-    selectable: true,
-    group: ScaleType.Ordinal,
-    domain: [
-      'rgba(54, 162, 235, .7)',
-      'rgba(75, 192, 192, .7)',
-      'rgba(201, 203, 207, .7)',
-      'rgba(255, 99, 132, .7)',
-      'rgba(255, 205, 86, .7)',
-      'rgba(255, 159, 64, .7)',
-      'rgba(152, 102, 255, .7)',
-    ]
-  };
+  colorScheme = computed(() => {
+    const data = this.sortedPieChartData();
+    const colors = data.map(item =>
+      this.statusColorMap[item.name] || 'rgba(128, 128, 128, .7)'
+    );
 
-  formatPercentages(value: number): string {
-    const str = value.toFixed(0);
-    return str;
-  }
-
-  getCategoryClass(category: string): string {
-    const match = category.match(/CAT\s+([I|V|X]+)/i);
-    if (match && match[1]) {
-      return 'cat-' + match[1].toLowerCase();
-    }
-    return '';
-  }
+    return {
+      name: 'custom',
+      selectable: true,
+      group: ScaleType.Ordinal,
+      domain: colors
+    } as Color;
+  });
 }

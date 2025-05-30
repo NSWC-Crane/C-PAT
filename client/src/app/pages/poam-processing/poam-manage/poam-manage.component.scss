@@ -8,48 +8,215 @@
 !##########################################################################
 */
 
-.poam-severity-advanced-pie {
-  padding-bottom: 5rem;
-  margin-top: -2rem;
+.category-chart-card {
+  height: fit-content;
+  overflow: visible !important;
+  position: relative;
+
+  .chart-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 1rem 0 1rem 0;
+    color: var(--p-tabs-tab-color);
+    transition: background var(--p-tabs-transition-duration), border-color var(--p-tabs-transition-duration), color var(--p-tabs-transition-duration), outline-color var(--p-tabs-transition-duration), box-shadow var(--p-tabs-transition-duration);
+  }
+
+  .chart-title:hover {
+    background: var(--p-tabs-tab-hover-background);
+    border-color: var(--p-tabs-tab-hover-border-color);
+    color: var(--p-tabs-tab-hover-color);
+  }
 }
-.poam-severity-advanced-pie,
-.poam-status-advanced-pie {
+
+.poam-category-advanced-pie {
+  ::ng-deep {
+    .ngx-charts .arc {
+      transition: all 0.3s ease;
+    }
+
+    .legend-item {
+      transition: all 0.3s ease;
+
+      &:hover {
+        cursor: default;
+        transform: translateX(8px);
+        overflow: visible !important;
+
+        .item-color {
+          transform: scale(1.2);
+          filter: brightness(0.9);
+          opacity: 0.7;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .item-percent {
+          overflow: visible !important;
+        }
+      }
+    }
+  }
+}
+
+.poam-category-advanced-pie {
   display: block;
-  height: auto !important;
-  min-height: 16rem;
-  max-height: 22.5rem;
+  height: 20rem;
+  min-height: 20rem;
+  max-height: 20rem;
   width: 100%;
   position: relative;
-  overflow: visible;
 
   ::ng-deep {
+    ngx-charts-advanced-pie-chart {
+      > div:first-child {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        width: 100% !important;
+
+        > .advanced-pie.chart {
+          flex: 0 0 55% !important;
+          width: 55% !important;
+          max-width: 55% !important;
+          min-width: 55% !important;
+          height: 100% !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          overflow: hidden !important;
+
+          ngx-charts-chart {
+            width: 100% !important;
+            height: 100% !important;
+
+            .ngx-charts-outer {
+              width: 100% !important;
+              height: 100% !important;
+
+              svg.ngx-charts {
+                width: 100% !important;
+                height: 100% !important;
+
+                g.pie.chart {
+                  transform: translate(50%, 50%) scale(3);
+                  transform-origin: 0 0 !important;
+                }
+              }
+            }
+          }
+        }
+
+        > .advanced-pie-legend-wrapper {
+          flex: 0 0 45% !important;
+          width: 45% !important;
+          max-width: 45% !important;
+          min-width: 45% !important;
+
+          ngx-charts-advanced-legend {
+            width: 100% !important;
+          }
+        }
+      }
+    }
+
     .total-value,
-    .item-value,
-    .item-percent {
-      line-height: 1.5;
+    .total-label {
+      display: none;
     }
 
     .advanced-pie-legend {
-      width: 100%;
+      width: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      margin-left: 0.5rem;
 
       .legend-items-container {
-        width: 100%;
+        width: 100% !important;
 
         .legend-items {
-          display: flex;
-          flex-wrap: wrap;
-          width: 100%;
-          gap: 0.5rem;
+          display: flex !important;
+          flex-direction: column !important;
+          width: 100% !important;
+          align-items: flex-start !important;
+          overflow: hidden;
+          gap: 1rem !important;
+
+          &:has(.legend-item:nth-child(4)) {
+            gap: 0.75rem !important;
+
+            .item-color {
+              height: 2.5rem;
+            }
+          }
+
+          &:has(.legend-item:nth-child(6)) {
+            gap: 0.5rem !important;
+
+            .item-color {
+              height: 2rem;
+            }
+          }
+
+          &:has(.legend-item:nth-child(8)) {
+            gap: 0.25rem !important;
+
+            .item-color {
+              height: 1.5rem;
+            }
+          }
 
           .legend-item {
-            flex: 1 1 auto;
-            min-width: 0;
-            width: fit-content;
+            width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            margin-bottom: 0.25rem;
+            padding-right: 0.5rem;
+
+            &:hover {
+              .item-label,
+              .item-value,
+              .item-percent {
+                opacity: 1;
+              }
+            }
+
+            .item-color {
+              flex-shrink: 0;
+              margin-right: 0.25rem;
+            }
 
             .item-label {
+              color: var(--text-color);
+              opacity: 0.7;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
+              font-size: 0.875rem;
+              font-weight: 600;
+              margin-left: 0.5rem;
+              flex: 1;
+            }
+
+            .item-value {
+              color: var(--text-color);
+              opacity: 0.7;
+              font-size: 0.875rem;
+              font-weight: 550;
+              margin-left: 0.25rem;
+              margin-bottom: 0rem;
+              min-width: 1.5rem;
+            }
+
+            .item-percent {
+              color: var(--text-color);
+              opacity: 0.7;
+              font-size: 0.875rem;
+              margin-left: 0.5rem;
+              margin-bottom: 0.375rem;
+              width: 2rem;
+              text-align: left;
+              flex-shrink: 0;
             }
           }
         }
@@ -59,49 +226,34 @@
 }
 
 .poam-severity-advanced-pie {
-  ::ng-deep .advanced-pie-legend {
-    .legend-items-container .legend-items {
-      flex-wrap: nowrap !important;
-      justify-content: center;
-
-      .legend-item {
-        flex: 1;
-        min-width: 0;
-      }
-    }
-  }
-}
-
-.poam-status-advanced-pie {
-  ::ng-deep .advanced-pie-legend {
-    .total-value,
-    .total-label {
-      display: none;
-    }
-
-    .legend-items-container .legend-items {
-      justify-content: flex-end;
-      margin-top: 0rem;
-
-      .legend-item {
-        flex: 1 1 auto;
-        margin-bottom: 0rem;
-
-        @media screen and (min-width: 768px) {
-          flex: 1 1 calc(25% - 0.5rem);
-        }
-      }
-    }
-  }
+  padding-bottom: 5rem;
+  margin-top: -2rem;
 }
 
 :host ::ng-deep {
+  .tenable-collection {
+    ::ng-deep .p-datatable-table-container {
+      max-height: 67rem !important;
+    }
+  }
+
+  .category-chart-card .p-card-body {
+    padding-top: 0rem !important;
+    padding-bottom: 0rem !important;
+    padding-left: 0rem !important;
+  }
+
+  .category-chart-card .p-card-header {
+    padding-bottom: 0rem !important;
+  }
+
   .severity-chart-card {
     height: fit-content;
     overflow: visible !important;
     margin-bottom: 3rem;
     position: relative;
   }
+
   .severity-chart-card .p-card-body {
     padding-top: 0rem !important;
     padding-bottom: 0rem !important;
@@ -135,98 +287,23 @@
       }
     }
   }
-
-  .finding-progress-bars {
-  display: flex;
-  justify-content: space-between;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 1rem 0.65rem 1rem 0.65rem;
-  z-index: 2;
-
-    .progress-bar-item {
-      flex: 1;
-      margin: 0 1rem;
-      max-width: 30%;
-      transition: transform 0.2s ease;
-
-      &:hover {
-        transform: scale(1.10);
-
-        .progress-bar {
-          background-color: color-mix(in srgb, var(--ground-background) 80%, transparent);
-        }
-      }
-
-      &:first-child {
-        margin-left: 0;
-      }
-
-      &:last-child {
-        margin-right: 0;
-      }
-    }
-
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 2px;
-      font-weight: bold;
-      font-size: 0.75rem;
-      transition: transform 0.2s ease;
-    }
-
-    .progress-bar {
-      background-color: color-mix(in srgb, var(--ground-background) 70%, transparent);
-      border-radius: 4px;
-      height: 12px;
-      overflow: hidden;
-      transition: background-color 0.2s ease;
-    }
-
-    .progress-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: transform 0.2s ease;
-    }
-
-    .cat-i {
-      background-color: rgba(54, 162, 235, .7);
-    }
-
-    .cat-ii {
-      background-color: rgba(75, 192, 192, .7);
-    }
-
-    .cat-iii {
-      background-color: rgba(201, 203, 207, .7);
-    }
-
-    .progress-stats {
-      font-size: 0.65rem;
-      color: var(--text-secondary-color);
-      margin-top: 2px;
-      text-align: right;
-      transition: transform 0.2s ease;
-    }
-
-    .category-label {
-      white-space: nowrap;
-      color: var(--text-secondary-color);
-    }
-
-    .percentage-label {
-      color: var(--text-secondary-color);
-    }
-  }
 }
 
-@media screen and (max-width: 992px) {
-  .poam-severity-advanced-pie {
-    ::ng-deep .advanced-pie-legend .legend-items-container .legend-items {
-      gap: 0.375rem;
+@media screen and (max-width: 576px) {
+  .poam-category-advanced-pie {
+    min-height: 8rem;
+    max-height: 12rem;
+
+    ::ng-deep {
+      .advanced-pie-legend .legend-items-container .legend-items {
+        gap: 0.1rem !important;
+
+        .legend-item .item-label,
+        .legend-item .item-value,
+        .legend-item .item-percent {
+          font-size: 0.7rem;
+        }
+      }
     }
   }
 }
@@ -237,31 +314,103 @@
     padding-right: 0 !important;
   }
 
-  .poam-severity-advanced-pie {
-    ::ng-deep .advanced-pie-legend .legend-items-container .legend-items {
-      gap: 0.25rem;
+  .poam-category-advanced-pie {
+    min-height: 10rem;
+    max-height: 14rem;
+
+    ::ng-deep {
+      ngx-charts-advanced-pie-chart > div:first-child {
+        flex-direction: column !important;
+
+        > .advanced-pie.chart {
+          flex: 1 1 auto !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          min-width: 100% !important;
+          height: 60% !important;
+        }
+
+        > .advanced-pie-legend-wrapper {
+          flex: 1 1 auto !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          min-width: 100% !important;
+          padding-left: 0 !important;
+          padding-top: 0.5rem !important;
+        }
+      }
+
+      .advanced-pie-legend .legend-items-container .legend-items {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 0.15rem !important;
+
+        .legend-item {
+          width: auto !important;
+          flex: 0 0 auto !important;
+
+          .item-label,
+          .item-value,
+          .item-percent {
+            font-size: 0.75rem;
+          }
+        }
+      }
     }
   }
 
-  .finding-progress-bars {
-    flex-direction: column;
-    margin-top: 0rem !important;
+  .category-chart-card .chart-title {
+    font-size: 1rem;
+    padding: 0.25rem 0;
   }
 }
 
-@media screen and (max-width: 576px) {
-  .poam-severity-advanced-pie {
-    ::ng-deep .advanced-pie-legend .legend-items-container .legend-items {
-      gap: 0.125rem;
+@media screen and (max-width: 992px) {
+  .poam-category-advanced-pie {
+    min-height: 12rem;
+    max-height: 16rem;
+
+    ::ng-deep {
+      .advanced-pie-legend .legend-items-container .legend-items {
+        gap: 0.3rem !important;
+
+        .legend-item .item-label,
+        .legend-item .item-value,
+        .legend-item .item-percent {
+          font-size: 0.8rem;
+        }
+      }
     }
   }
+}
 
-  .finding-progress-bars {
-    flex-direction: column;
-    margin-top: 0rem !important;
-    .progress-bar-item {
-      max-width: 100%;
-      margin: 5px 0;
+@media screen and (min-width: 1920px) {
+  .poam-category-advanced-pie {
+    ::ng-deep {
+      svg.ngx-charts g.pie.chart {
+        transform: translate(50%, 50%) scale(2.5) !important;
+      }
+    }
+  }
+}
+
+@media screen and (min-width: 2560px) {
+  .poam-category-advanced-pie {
+    ::ng-deep {
+      svg.ngx-charts g.pie.chart {
+        transform: translate(50%, 50%) scale(1.6) !important;
+      }
+    }
+  }
+}
+
+@media screen and (min-width: 3840px) {
+  .poam-category-advanced-pie {
+    ::ng-deep {
+      svg.ngx-charts g.pie.chart {
+        transform: translate(50%, 50%) scale(1.4) !important;
+      }
     }
   }
 }
