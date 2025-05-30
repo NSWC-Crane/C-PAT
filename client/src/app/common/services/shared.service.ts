@@ -84,43 +84,49 @@ export class SharedService {
 
   getPOAMAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets`
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets`
     ).pipe(catchError(this.handleError));
   }
 
   getFindingsFromSTIGMAN(collectionId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=stigs&projection=rules`
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=stigs&projection=rules`
     ).pipe(catchError(this.handleError));
   }
 
   getFindingsMetricsFromSTIGMAN(collectionId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=rules`
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId`
+    ).pipe(catchError(this.handleError));
+  }
+
+  getFindingsMetricsAndRulesFromSTIGMAN(collectionId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=rules`
     ).pipe(catchError(this.handleError));
   }
 
   getFindingsByBenchmarkFromSTIGMAN(collectionId: number, benchmarkId: string): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=rules&projection=stigs`
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&benchmarkId=${benchmarkId}&projection=rules&projection=stigs`
     ).pipe(catchError(this.handleError));
   }
 
   getAffectedAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=stigs&projection=rules&projection=ccis`
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets&projection=stigs&projection=rules&projection=ccis`
     ).pipe(catchError(this.handleError));
   }
 
   getSTIGMANAffectedAssetsForExport(collectionId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&projection=assets&projection=ccis`
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets&projection=ccis`
     ).pipe(catchError(this.handleError));
   }
 
   getSTIGMANAffectedAssetsByPoam(collectionId: number, benchmarkId: string): Observable<any> {
     return this.http.get<any>(
-      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId=${benchmarkId}&projection=assets&projection=ccis`
+      `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&benchmarkId=${benchmarkId}&projection=assets&projection=ccis`
     ).pipe(catchError(this.handleError));
   }
 

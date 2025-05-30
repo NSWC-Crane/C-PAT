@@ -19,7 +19,6 @@ import {
   combineLatest,
   filter,
   forkJoin,
-  map,
   of,
   switchMap,
   take,
@@ -53,8 +52,17 @@ import { Poam } from '../../../common/models/poam.model';
   ],
 })
 export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
-  advancedSeverityseverityPieChartData = signal<any[]>([]);
-  advancedStatusPieChartData = signal<any[]>([]);
+  catIPieChartData = signal<any[]>([]);
+  catIIPieChartData = signal<any[]>([]);
+  catIIIPieChartData = signal<any[]>([]);
+
+  catIPieChartData30Days = signal<any[]>([]);
+  catIIPieChartData30Days = signal<any[]>([]);
+  catIIIPieChartData30Days = signal<any[]>([]);
+
+  findingsData = signal<any[]>([]);
+  findingsData30Days = signal<any[]>([]);
+
   poams = signal<Poam[]>([]);
   selectedPoamId = signal<any>(null);
   selectedCollection = signal<any>(null);
@@ -64,13 +72,11 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   submittedPoams = signal<any[]>([]);
   poamsPendingApproval = signal<any[]>([]);
   teamPoams = signal<any[]>([]);
-  findingsData = signal<any[]>([]);
   affectedAssetCounts = signal<{ vulnerabilityId: string, assetCount: number }[]>([]);
   user = signal<any>(null);
   payload = signal<any>(null);
   accessLevel = signal<number>(0);
   private subs = new SubSink();
-
 
   private readonly CLOSED_STATUSES = new Set(['Closed', 'Draft', 'False-Positive']);
   private readonly PENDING_STATUSES = new Set([
@@ -78,30 +84,35 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     'Extension Requested',
     'Pending CAT-I Approval'
   ]);
-  private readonly SEVERITY_MAPPING: { [key: string]: string } = {
-    'CAT I - Critical': 'CAT I',
-    'CAT I - High': 'CAT I',
-    'CAT II - Medium': 'CAT II',
-    'CAT III - Low': 'CAT III',
-    'CAT III - Informational': 'CAT III',
-  };
-
-  private readonly STATUS_ORDER: string[] = [
-    'Submitted',
-    'Pending CAT-I Approval',
-    'Approved',
-    'Closed',
-    'False-Positive',
-    'Rejected',
-    'Extension Requested',
-    'Expired',
-    'Draft',
-  ];
 
   findingsByCategory = signal<{ [key: string]: { total: number, withPoam: number, percentage: number } }>({
     'CAT I': { total: 0, withPoam: 0, percentage: 0 },
     'CAT II': { total: 0, withPoam: 0, percentage: 0 },
     'CAT III': { total: 0, withPoam: 0, percentage: 0 }
+  });
+
+  catITotal = computed(() => {
+    return this.catIPieChartData().reduce((sum, item) => sum + item.value, 0);
+  });
+
+  catIITotal = computed(() => {
+    return this.catIIPieChartData().reduce((sum, item) => sum + item.value, 0);
+  });
+
+  catIIITotal = computed(() => {
+    return this.catIIIPieChartData().reduce((sum, item) => sum + item.value, 0);
+  });
+
+  catITotal30Days = computed(() => {
+    return this.catIPieChartData30Days().reduce((sum, item) => sum + item.value, 0);
+  });
+
+  catIITotal30Days = computed(() => {
+    return this.catIIPieChartData30Days().reduce((sum, item) => sum + item.value, 0);
+  });
+
+  catIIITotal30Days = computed(() => {
+    return this.catIIIPieChartData30Days().reduce((sum, item) => sum + item.value, 0);
   });
 
   constructor(
@@ -144,7 +155,6 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
           (collection: any) => collection.collectionId === this.selectedCollectionId()
         ));
         this.updateGridData();
-        this.updateAdvancedPieChart();
         if (this.selectedCollection()) {
           this.fetchFindingsData(this.selectedCollection().originCollectionId, this.selectedCollection().collectionOrigin);
         }
@@ -166,23 +176,46 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
             }));
             this.affectedAssetCounts.set(assetCounts);
             this.calculateFindingStats();
+            this.updateCategoryPieCharts();
           },
           error: (error) => console.error('Error loading findings data:', error)
         });
     } else if (collectionOrigin === 'Tenable') {
-      this.subs.sink = this.importService.postTenableAnalysis({
+      const baseQuery = {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: 'sumid',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 10000,
+        vulnTool: 'sumid',
+      };
+
+      const allFindingsQuery = {
         query: {
-          description: '',
-          context: '',
-          status: -1,
-          createdTime: 0,
-          modifiedTime: 0,
-          groups: [],
-          type: 'vuln',
-          tool: 'sumid',
-          sourceType: 'cumulative',
-          startOffset: 0,
-          endOffset: 10000,
+          ...baseQuery,
+          filters: [{
+            id: 'repository',
+            filterName: 'repository',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: [{ id: collectionId.toString() }]
+          }]
+        },
+        sourceType: 'cumulative',
+        columns: [],
+        type: 'vuln',
+      };
+
+      const thirtyDaysQuery = {
+        query: {
+          ...baseQuery,
           filters: [
             {
               id: 'repository',
@@ -191,47 +224,82 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
               type: 'vuln',
               isPredefined: true,
               value: [{ id: collectionId.toString() }]
+            },
+            {
+              id: 'lastSeen',
+              filterName: 'lastSeen',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: '30:all'
             }
-          ],
-          vulnTool: 'sumid',
+          ]
         },
         sourceType: 'cumulative',
         columns: [],
         type: 'vuln',
-      }).pipe(
+      };
+
+      this.subs.sink = forkJoin([
+        this.importService.postTenableAnalysis(allFindingsQuery),
+        this.importService.postTenableAnalysis(thirtyDaysQuery)
+      ]).pipe(
         catchError(error => {
           console.error('Error fetching Tenable findings:', error);
-          return of({ response: { results: [] } });
-        }),
-        map(data => {
-          if (data.error_msg) {
-            console.error('Error in Tenable response:', data.error_msg);
-            return [];
-          }
+          return of([
+            { response: { results: [] } },
+            { response: { results: [] } }
+          ]);
+        })
+      ).subscribe({
+        next: ([allData, thirtyDaysData]) => {
+          const processFindings = (data: any) => {
+            if (data.error_msg) {
+              console.error('Error in Tenable response:', data.error_msg);
+              return [];
+            }
 
-          const assetCounts = data.response.results.map((vuln: any) => ({
+            return data.response.results.map((vuln: any) => ({
+              groupId: vuln.pluginID,
+              severity: this.mapTenableSeverityToCategory(vuln.severity?.name || ''),
+              pluginName: vuln.name || '',
+              family: vuln.family?.name || ''
+            }));
+          };
+
+          const assetCounts = allData.response.results.map((vuln: any) => ({
             vulnerabilityId: vuln.pluginID?.toString() || '',
             assetCount: vuln.hostTotal || 0
           }));
           this.affectedAssetCounts.set(assetCounts);
 
-          return data.response.results.map((vuln: any) => ({
-            groupId: vuln.pluginID,
-            severity: this.mapTenableSeverityToCategory(vuln.severity?.name || ''),
-            pluginName: vuln.name || '',
-            family: vuln.family?.name || ''
-          }));
-        })
-      ).subscribe({
-        next: (findings) => {
-          this.findingsData.set(findings);
+          const allFindings = processFindings(allData);
+          const thirtyDaysFindings = processFindings(thirtyDaysData);
+
+          this.findingsData.set(allFindings);
+          this.findingsData30Days.set(thirtyDaysFindings);
+
           this.calculateFindingStats();
+          this.updateCategoryPieCharts();
+
+          const originalFindings = this.findingsData();
+          this.findingsData.set(thirtyDaysFindings);
+          this.calculateFindingStats();
+
+          this.catIPieChartData30Days.set(this.catIPieChartData());
+          this.catIIPieChartData30Days.set(this.catIIPieChartData());
+          this.catIIIPieChartData30Days.set(this.catIIIPieChartData());
+
+          this.findingsData.set(originalFindings);
+          this.calculateFindingStats();
+          this.updateCategoryPieCharts();
         },
         error: (error) => console.error('Error processing Tenable findings data:', error)
       });
     } else {
       this.affectedAssetCounts.set([]);
       this.calculateFindingStats();
+      this.updateCategoryPieCharts();
     }
   }
 
@@ -255,8 +323,10 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
       stats[category].total++;
 
       const matchingPoams = this.poams().filter(poam =>
-        poam.vulnerabilityId === finding.groupId &&
-        poam.status !== 'Draft'
+        poam.status !== 'Draft' && (
+          poam.vulnerabilityId === finding.groupId ||
+          (poam.associatedVulnerabilities && poam.associatedVulnerabilities.includes(finding.groupId))
+        )
       );
 
       if (matchingPoams.length > 0) {
@@ -266,10 +336,11 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const category in stats) {
       if (stats[category].total > 0) {
-        stats[category].percentage = Math.round((stats[category].withPoam / stats[category].total) * 100);
+        stats[category].percentage = (stats[category].withPoam / stats[category].total) * 100;
       }
     }
     this.findingsByCategory.set(stats);
+    this.updateCategoryPieCharts();
   }
 
   private mapTenableSeverityToCategory(severity: string): string {
@@ -342,34 +413,438 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.teamPoams.set(teamPoams);
   }
 
-  updateAdvancedPieChart() {
-    const severityCounts = new Map();
-    const statusCounts = new Map();
+  updateCategoryPieCharts() {
+    const severityToCategoryMap: { [key: string]: string } = {
+      'critical': 'CAT I',
+      'high': 'CAT I',
+      'medium': 'CAT II',
+      'low': 'CAT III',
+      'informational': 'CAT III'
+    };
 
-    for (const poam of this.poams()) {
-      const mappedSeverity = this.SEVERITY_MAPPING[poam.rawSeverity] || poam.rawSeverity;
-      severityCounts.set(
-        mappedSeverity,
-        (severityCounts.get(mappedSeverity) || 0) + 1
-      );
+    const approvedPoams = this.poams().filter(poam => poam.status === 'Approved');
+    const submittedPoams = this.poams().filter(poam => poam.status === 'Submitted');
+    const extensionRequestedPoams = this.poams().filter(poam => poam.status === 'Extension Requested');
+    const falsePositivePoams = this.poams().filter(poam => poam.status === 'False-Positive');
+    const pendingApprovalPoams = this.poams().filter(poam => poam.status === 'Pending CAT-I Approval');
+    const expiredPoams = this.poams().filter(poam => poam.status === 'Expired');
+    const rejectedPoams = this.poams().filter(poam => poam.status === 'Rejected');
+    const closedPoams = this.poams().filter(poam => poam.status === 'Closed');
 
-      statusCounts.set(
-        poam.status,
-        (statusCounts.get(poam.status) || 0) + 1
-      );
+    if (this.findingsData().length === 0) {
+      const fallbackCategoryData = {
+        'CAT I': {
+          approvedPoams: 0,
+          submittedPoams: 0,
+          extensionPoams: 0,
+          falsePositivePoams: 0,
+          pendingApprovalPoams: 0,
+          expiredPoams: 0,
+          rejectedPoams: 0,
+          closedPoams: 0,
+          openFindings: 0
+        },
+        'CAT II': {
+          approvedPoams: 0,
+          submittedPoams: 0,
+          extensionPoams: 0,
+          falsePositivePoams: 0,
+          pendingApprovalPoams: 0,
+          expiredPoams: 0,
+          rejectedPoams: 0,
+          closedPoams: 0,
+          openFindings: 0
+        },
+        'CAT III': {
+          approvedPoams: 0,
+          submittedPoams: 0,
+          extensionPoams: 0,
+          falsePositivePoams: 0,
+          pendingApprovalPoams: 0,
+          expiredPoams: 0,
+          rejectedPoams: 0,
+          closedPoams: 0,
+          openFindings: 0
+        }
+      };
+
+      const categorizePOAM = (poam: any): string => {
+        const severity = poam.rawSeverity?.toLowerCase() || 'low';
+        if (severity === 'critical' || severity === 'high' || severity === 'cat i - high' || severity === 'cat i - critical') return 'CAT I';
+        if (severity === 'medium' || severity === 'cat ii - medium') return 'CAT II';
+        return 'CAT III';
+      };
+
+      for (const poam of approvedPoams) {
+        const category = categorizePOAM(poam);
+        fallbackCategoryData[category].approvedPoams++;
+      }
+
+      for (const poam of submittedPoams) {
+        const category = categorizePOAM(poam);
+        fallbackCategoryData[category].submittedPoams++;
+      }
+
+      for (const poam of extensionRequestedPoams) {
+        const category = categorizePOAM(poam);
+        fallbackCategoryData[category].extensionPoams++;
+      }
+
+      for (const poam of falsePositivePoams) {
+        const category = categorizePOAM(poam);
+        fallbackCategoryData[category].falsePositivePoams++;
+      }
+
+      for (const poam of pendingApprovalPoams) {
+        const category = categorizePOAM(poam);
+        fallbackCategoryData[category].pendingApprovalPoams++;
+      }
+
+      for (const poam of expiredPoams) {
+        const category = categorizePOAM(poam);
+        fallbackCategoryData[category].expiredPoams++;
+      }
+
+      for (const poam of rejectedPoams) {
+        const category = categorizePOAM(poam);
+        fallbackCategoryData[category].rejectedPoams++;
+      }
+
+      for (const poam of closedPoams) {
+        const category = categorizePOAM(poam);
+        fallbackCategoryData[category].closedPoams++;
+      }
+
+      this.catIPieChartData.set(this.createCategoryChartData('CAT I', fallbackCategoryData['CAT I']));
+      this.catIIPieChartData.set(this.createCategoryChartData('CAT II', fallbackCategoryData['CAT II']));
+      this.catIIIPieChartData.set(this.createCategoryChartData('CAT III', fallbackCategoryData['CAT III']));
+
+      return;
     }
 
-    const severityData = Array.from(severityCounts.entries())
-      .map(([name, value]) => ({ name, value }));
+    const approvedVulnIdsByCategory = {
+      'CAT I': new Set<string>(),
+      'CAT II': new Set<string>(),
+      'CAT III': new Set<string>()
+    };
 
-    const statusData = this.STATUS_ORDER
-      .map(status => ({
-        name: status,
-        value: statusCounts.get(status) || 0
-      }));
+    const submittedVulnIdsByCategory = {
+      'CAT I': new Set<string>(),
+      'CAT II': new Set<string>(),
+      'CAT III': new Set<string>()
+    };
 
-    this.advancedSeverityseverityPieChartData.set(severityData);
-    this.advancedStatusPieChartData.set(statusData);
+    const extensionVulnIdsByCategory = {
+      'CAT I': new Set<string>(),
+      'CAT II': new Set<string>(),
+      'CAT III': new Set<string>()
+    };
+
+    const falsePositiveVulnIdsByCategory = {
+      'CAT I': new Set<string>(),
+      'CAT II': new Set<string>(),
+      'CAT III': new Set<string>()
+    };
+
+    const pendingApprovalVulnIdsByCategory = {
+      'CAT I': new Set<string>(),
+      'CAT II': new Set<string>(),
+      'CAT III': new Set<string>()
+    };
+
+    const expiredVulnIdsByCategory = {
+      'CAT I': new Set<string>(),
+      'CAT II': new Set<string>(),
+      'CAT III': new Set<string>()
+    };
+
+    const rejectedVulnIdsByCategory = {
+      'CAT I': new Set<string>(),
+      'CAT II': new Set<string>(),
+      'CAT III': new Set<string>()
+    };
+
+    const closedVulnIdsByCategory = {
+      'CAT I': new Set<string>(),
+      'CAT II': new Set<string>(),
+      'CAT III': new Set<string>()
+    };
+
+    const addVulnerabilityToCategory = (
+      vulnId: string,
+      categoryMap: { [key: string]: Set<string> }
+    ) => {
+      const matchingFinding = this.findingsData().find(finding =>
+        finding.groupId === vulnId
+      );
+
+      if (matchingFinding) {
+        const category = severityToCategoryMap[matchingFinding.severity] || 'CAT III';
+        categoryMap[category].add(vulnId);
+      }
+    };
+
+    for (const poam of approvedPoams) {
+      addVulnerabilityToCategory(poam.vulnerabilityId, approvedVulnIdsByCategory);
+      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+        for (const assocVulnId of poam.associatedVulnerabilities) {
+          addVulnerabilityToCategory(assocVulnId, approvedVulnIdsByCategory);
+        }
+      }
+    }
+
+    for (const poam of submittedPoams) {
+      addVulnerabilityToCategory(poam.vulnerabilityId, submittedVulnIdsByCategory);
+      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+        for (const assocVulnId of poam.associatedVulnerabilities) {
+          addVulnerabilityToCategory(assocVulnId, submittedVulnIdsByCategory);
+        }
+      }
+    }
+
+    for (const poam of extensionRequestedPoams) {
+      addVulnerabilityToCategory(poam.vulnerabilityId, extensionVulnIdsByCategory);
+      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+        for (const assocVulnId of poam.associatedVulnerabilities) {
+          addVulnerabilityToCategory(assocVulnId, extensionVulnIdsByCategory);
+        }
+      }
+    }
+
+    for (const poam of falsePositivePoams) {
+      addVulnerabilityToCategory(poam.vulnerabilityId, falsePositiveVulnIdsByCategory);
+      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+        for (const assocVulnId of poam.associatedVulnerabilities) {
+          addVulnerabilityToCategory(assocVulnId, falsePositiveVulnIdsByCategory);
+        }
+      }
+    }
+
+    for (const poam of pendingApprovalPoams) {
+      addVulnerabilityToCategory(poam.vulnerabilityId, pendingApprovalVulnIdsByCategory);
+      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+        for (const assocVulnId of poam.associatedVulnerabilities) {
+          addVulnerabilityToCategory(assocVulnId, pendingApprovalVulnIdsByCategory);
+        }
+      }
+    }
+
+    for (const poam of expiredPoams) {
+      addVulnerabilityToCategory(poam.vulnerabilityId, expiredVulnIdsByCategory);
+      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+        for (const assocVulnId of poam.associatedVulnerabilities) {
+          addVulnerabilityToCategory(assocVulnId, expiredVulnIdsByCategory);
+        }
+      }
+    }
+
+    for (const poam of rejectedPoams) {
+      addVulnerabilityToCategory(poam.vulnerabilityId, rejectedVulnIdsByCategory);
+      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+        for (const assocVulnId of poam.associatedVulnerabilities) {
+          addVulnerabilityToCategory(assocVulnId, rejectedVulnIdsByCategory);
+        }
+      }
+    }
+
+    for (const poam of closedPoams) {
+      addVulnerabilityToCategory(poam.vulnerabilityId, closedVulnIdsByCategory);
+      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+        for (const assocVulnId of poam.associatedVulnerabilities) {
+          addVulnerabilityToCategory(assocVulnId, closedVulnIdsByCategory);
+        }
+      }
+    }
+
+    const categoryData = {
+      'CAT I': {
+        approvedPoams: 0,
+        submittedPoams: 0,
+        extensionPoams: 0,
+        falsePositivePoams: 0,
+        pendingApprovalPoams: 0,
+        expiredPoams: 0,
+        rejectedPoams: 0,
+        closedPoams: 0,
+        openFindings: 0
+      },
+      'CAT II': {
+        approvedPoams: 0,
+        submittedPoams: 0,
+        extensionPoams: 0,
+        falsePositivePoams: 0,
+        pendingApprovalPoams: 0,
+        expiredPoams: 0,
+        rejectedPoams: 0,
+        closedPoams: 0,
+        openFindings: 0
+      },
+      'CAT III': {
+        approvedPoams: 0,
+        submittedPoams: 0,
+        extensionPoams: 0,
+        falsePositivePoams: 0,
+        pendingApprovalPoams: 0,
+        expiredPoams: 0,
+        rejectedPoams: 0,
+        closedPoams: 0,
+        openFindings: 0
+      }
+    };
+
+    for (const finding of this.findingsData()) {
+      const category = severityToCategoryMap[finding.severity] || 'CAT III';
+
+      if (approvedVulnIdsByCategory[category].has(finding.groupId)) {
+        categoryData[category].approvedPoams++;
+      } else if (submittedVulnIdsByCategory[category].has(finding.groupId)) {
+        categoryData[category].submittedPoams++;
+      } else if (extensionVulnIdsByCategory[category].has(finding.groupId)) {
+        categoryData[category].extensionPoams++;
+      } else if (falsePositiveVulnIdsByCategory[category].has(finding.groupId)) {
+        categoryData[category].falsePositivePoams++;
+      } else if (pendingApprovalVulnIdsByCategory[category].has(finding.groupId)) {
+        categoryData[category].pendingApprovalPoams++;
+      } else if (expiredVulnIdsByCategory[category].has(finding.groupId)) {
+        categoryData[category].expiredPoams++;
+      } else if (rejectedVulnIdsByCategory[category].has(finding.groupId)) {
+        categoryData[category].rejectedPoams++;
+      } else if (closedVulnIdsByCategory[category].has(finding.groupId)) {
+        categoryData[category].closedPoams++;
+      } else {
+        categoryData[category].openFindings++;
+      }
+    }
+
+    this.catIPieChartData.set(this.createCategoryChartData('CAT I', categoryData['CAT I']));
+    this.catIIPieChartData.set(this.createCategoryChartData('CAT II', categoryData['CAT II']));
+    this.catIIIPieChartData.set(this.createCategoryChartData('CAT III', categoryData['CAT III']));
+  }
+
+  private createCategoryChartData(category: string, data: {
+    approvedPoams: number,
+    submittedPoams: number,
+    extensionPoams: number,
+    falsePositivePoams: number,
+    pendingApprovalPoams: number,
+    expiredPoams: number,
+    rejectedPoams: number,
+    closedPoams: number,
+    openFindings: number
+  }): any[] {
+    const chartData: any[] = [];
+
+    if (data.approvedPoams > 0) {
+      chartData.push({
+        name: 'Approved',
+        value: data.approvedPoams,
+        extra: {
+          category,
+          type: 'approved'
+        }
+      });
+    }
+
+    if (data.submittedPoams > 0) {
+      chartData.push({
+        name: 'Submitted',
+        value: data.submittedPoams,
+        extra: {
+          category,
+          type: 'submitted'
+        }
+      });
+    }
+
+    if (data.extensionPoams > 0) {
+      chartData.push({
+        name: 'Extension Requested',
+        value: data.extensionPoams,
+        extra: {
+          category,
+          type: 'extension'
+        }
+      });
+    }
+
+    if (data.falsePositivePoams > 0) {
+      chartData.push({
+        name: 'False-Positive',
+        value: data.falsePositivePoams,
+        extra: {
+          category,
+          type: 'falsePositive'
+        }
+      });
+    }
+
+    if (data.pendingApprovalPoams > 0) {
+      chartData.push({
+        name: 'Pending CAT-I Approval',
+        value: data.pendingApprovalPoams,
+        extra: {
+          category,
+          type: 'pendingApproval'
+        }
+      });
+    }
+
+    if (data.expiredPoams > 0) {
+      chartData.push({
+        name: 'Expired',
+        value: data.expiredPoams,
+        extra: {
+          category,
+          type: 'expired'
+        }
+      });
+    }
+
+    if (data.rejectedPoams > 0) {
+      chartData.push({
+        name: 'Rejected',
+        value: data.rejectedPoams,
+        extra: {
+          category,
+          type: 'rejected'
+        }
+      });
+    }
+
+    if (data.closedPoams > 0) {
+      chartData.push({
+        name: 'Closed',
+        value: data.closedPoams,
+        extra: {
+          category,
+          type: 'closed'
+        }
+      });
+    }
+
+    if (data.openFindings > 0) {
+      chartData.push({
+        name: 'Open Findings',
+        value: data.openFindings,
+        extra: {
+          category,
+          type: 'open'
+        }
+      });
+    }
+
+    if (chartData.length === 0) {
+      chartData.push({
+        name: 'No Data',
+        value: 1,
+        extra: {
+          category,
+          type: 'empty'
+        }
+      });
+    }
+
+    return chartData;
   }
 
   ngOnDestroy() {
