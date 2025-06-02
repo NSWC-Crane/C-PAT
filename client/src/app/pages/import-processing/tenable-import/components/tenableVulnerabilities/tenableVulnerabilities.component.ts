@@ -815,6 +815,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
+    this.isLoading = true;
     this.filteredAccordionItems = [...this.accordionItems];
     this.filterHistory = [];
     this.currentFilterHistoryIndex = -1;
@@ -845,6 +846,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           ])),
           catchError(error => {
             console.error('Error loading filter list data:', error);
+            this.isLoading = false;
             return EMPTY;
           })
         ).subscribe({
