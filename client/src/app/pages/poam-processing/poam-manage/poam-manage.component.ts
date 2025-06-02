@@ -231,6 +231,14 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
               operator: '=',
               type: 'vuln',
               isPredefined: true,
+              value: '0:30'
+            },
+            {
+              id: 'vulnPublished',
+              filterName: 'vulnPublished',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
               value: '30:all'
             }
           ]
