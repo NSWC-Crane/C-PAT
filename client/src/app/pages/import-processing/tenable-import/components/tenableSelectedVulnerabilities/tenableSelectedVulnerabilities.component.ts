@@ -121,6 +121,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   ) { }
 
   ngOnInit() {
+    this.isLoading = true;
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe(collectionId => {
         this.selectedCollection = collectionId;
