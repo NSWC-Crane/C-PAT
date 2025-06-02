@@ -21,8 +21,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
       <ngx-charts-advanced-pie-chart
         [scheme]="colorScheme()"
         [results]="sortedPieChartData()"
-        [gradient]="gradient"
-        arcWidth="0.65">
+        [gradient]="gradient">
       </ngx-charts-advanced-pie-chart>
     } @else {
       <div class="spinner-container">
