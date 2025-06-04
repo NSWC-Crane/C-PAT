@@ -8,12 +8,11 @@
 !##########################################################################
 */
 
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedService } from '../../../common/services/shared.service';
 import { Subscription } from 'rxjs';
 import { PoamLogService } from './poam-log.service';
-import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 
@@ -28,16 +27,16 @@ interface FSEntry {
   templateUrl: './poam-log.component.html',
   styleUrls: ['./poam-log.component.scss'],
   standalone: true,
-  imports: [CommonModule, DialogModule, TableModule],
+  imports: [DialogModule, TableModule],
 })
-export class PoamLogComponent implements OnInit, AfterViewInit {
+export class PoamLogComponent implements OnInit {
   customColumn = 'Timestamp';
   defaultColumns = ['User', 'Action'];
   allColumns = [this.customColumn, ...this.defaultColumns];
   dataSource: FSEntry[] = [];
   poamId: any;
   selectedCollection: any;
-  displayModal: boolean = false;
+  displayModal: boolean = true;
   private subscriptions = new Subscription();
 
   constructor(
@@ -61,10 +60,6 @@ export class PoamLogComponent implements OnInit, AfterViewInit {
         this.selectedCollection = collectionId;
       })
     );
-  }
-
-  ngAfterViewInit() {
-    this.openModal();
   }
 
   private fetchPoamLog(poamId: number) {
