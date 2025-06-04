@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -18,138 +18,148 @@
               <i class="pi pi-search"></i>
             </p-inputIcon>
             <input pInputText
-                   type="text"
-                   class="w-48"
-                   [(ngModel)]="filterValue"
-                   (input)="onGlobalFilter($event)"
-                   placeholder="Global Search" />
-          </p-iconField>
-          <p-button [rounded]="true"
-                    [text]="true"
-                    [raised]="true"
-                    severity="secondary"
-                    class="ml-2"
-                    icon="pi pi-filter-slash"
-                    (click)="clear()"
-                    pTooltip="Clear all filters">
-          </p-button>
+              type="text"
+              class="w-48"
+              [(ngModel)]="filterValue"
+              (input)="onGlobalFilter($event)"
+              placeholder="Global Search" />
+            </p-iconField>
+            <p-button [rounded]="true"
+              [text]="true"
+              [raised]="true"
+              severity="secondary"
+              class="ml-2"
+              icon="pi pi-filter-slash"
+              (click)="clear()"
+              pTooltip="Clear all filters">
+            </p-button>
+          </div>
+          <div class="right-buttons">
+            <p-button class="mr-2"
+              [rounded]="true"
+              [text]="true"
+              [raised]="true"
+              severity="secondary"
+              icon="pi pi-refresh"
+              (click)="resetColumnSelections()"
+            pTooltip="Reset column selections"></p-button>
+            <p-button icon="pi pi-plus"
+              [rounded]="true"
+              [text]="true"
+              [raised]="true"
+              severity="primary"
+              (click)="toggleAddColumnOverlay()">
+            </p-button>
+            <p-button icon="pi pi-external-link"
+              severity="secondary"
+              [rounded]="true"
+              [text]="true"
+              (onClick)="exportCSV()">
+            </p-button>
+            <p-multiSelect #ms
+              [options]="cols"
+              [(ngModel)]="selectedColumns"
+              optionLabel="header"
+              styleClass="custom-multiselect"
+              appendTo="body"
+              filterPlaceHolder="Add columns..."
+              [showToggleAll]="true">
+            </p-multiSelect>
+          </div>
         </div>
-        <div class="right-buttons">
-          <p-button class="mr-2"
-                    [rounded]="true"
-                    [text]="true"
-                    [raised]="true"
-                    severity="secondary"
-                    icon="pi pi-refresh"
-                    (click)="resetColumnSelections()"
-                    pTooltip="Reset column selections"></p-button>
-          <p-button icon="pi pi-plus"
-                    [rounded]="true"
-                    [text]="true"
-                    [raised]="true"
-                    severity="primary"
-                    (click)="toggleAddColumnOverlay()">
-          </p-button>
-          <p-button icon="pi pi-external-link"
-                    severity="secondary"
-                    [rounded]="true"
-                    [text]="true"
-                    (onClick)="exportCSV()">
-          </p-button>
-          <p-multiSelect #ms
-                         [options]="cols"
-                         [(ngModel)]="selectedColumns"
-                         optionLabel="header"
-                         styleClass="custom-multiselect"
-                         appendTo="body"
-                         filterPlaceHolder="Add columns..."
-                         [showToggleAll]="true">
-          </p-multiSelect>
+        <div class="scrollable-assets">
+          <p-tabs [(value)]="activeTab" scrollable>
+            <p-tablist>
+              @for (tab of teamTabs; track tab.teamId) {
+                <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>
+              }
+            </p-tablist>
+            <p-tabpanels>
+              @for (tab of teamTabs; track tab.teamId) {
+                <p-tabpanel [value]="tab.teamId">
+                  <p-table #dt
+                    [value]="tab.assets"
+                    [columns]="selectedColumns"
+                    [loading]="loading"
+                    [paginator]="true"
+                    [rows]="20"
+                    [totalRecords]="tab.assets.length"
+                    [showCurrentPageReport]="true"
+                    [rowsPerPageOptions]="[10,20,50]"
+                    [globalFilterFields]="['assetName', 'fqdn', 'ip', 'mac']"
+                    [filterDelay]="300"
+                    [rowHover]="true"
+                    dataKey="assetId"
+                    styleClass="p-datatable-sm p-datatable-gridlines-hidden">
+                    <ng-template pTemplate="header" let-columns>
+                      <tr>
+                        @for (col of columns; track col) {
+                          <th
+                            [pSortableColumn]="col.field"
+                            [ngStyle]="{'width': col.width}"
+                            pResizableColumn
+                            scope="col">
+                            {{col.header}}
+                          </th>
+                        }
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-asset let-columns="columns">
+                      <tr>
+                        @for (col of columns; track col) {
+                          <td>
+                            @switch (col.field) {
+                              @case ('sourceVulnIds') {
+                                @for (vulnId of asset.sourceVulnIds; track vulnId) {
+                                  <p-tag
+                                    [value]="vulnId"
+                                    [rounded]="true"
+                                    class="mb-1 mr-1">
+                                  </p-tag>
+                                }
+                              }
+                              @case ('labels') {
+                                @for (label of getAssetLabels(asset); track label) {
+                                  <p-tag
+                                    [rounded]="true"
+                                    [value]="label.name"
+                                    [style]="{'background': 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'color': '#' + label.color}"
+                                    class="mb-1 mr-1">
+                                  </p-tag>
+                                }
+                              }
+                              @default {
+                                {{asset[col.field]}}
+                              }
+                              @case ('teamAssigned') {
+                                @if (tab.teamId === 'all') {
+                                  <i class="pi"
+                                    [ngClass]="{'pi-check-circle': isAssetAssignedToTeam(asset), 'pi-times-circle': !isAssetAssignedToTeam(asset)}"
+                                    [ngStyle]="{'color': isAssetAssignedToTeam(asset) ? 'green' : 'maroon', 'font-size': '1.2rem'}"
+                                    [pTooltip]="isAssetAssignedToTeam(asset) ? 'Team association detected' : 'No team association detected'">
+                                  </i>
+                                }
+                              }
+                            }
+                          </td>
+                        }
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td [attr.colspan]="selectedColumns.length" style="text-align: center">
+                          No assets to display
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </p-tabpanel>
+              }
+            </p-tabpanels>
+          </p-tabs>
         </div>
-      </div>
-      <div class="scrollable-assets">
-        <p-tabs [(value)]="activeTab" scrollable>
-          <p-tablist>
-            @for (tab of teamTabs; track tab.teamId) {
-            <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>
-            }
-          </p-tablist>
-          <p-tabpanels>
-            @for (tab of teamTabs; track tab.teamId) {
-            <p-tabpanel [value]="tab.teamId">
-              <p-table #dt
-                       [value]="tab.assets"
-                       [columns]="selectedColumns"
-                       [loading]="loading"
-                       [paginator]="true"
-                       [rows]="20"
-                       [totalRecords]="tab.assets.length"
-                       [showCurrentPageReport]="true"
-                       [rowsPerPageOptions]="[10,20,50]"
-                       [globalFilterFields]="['assetName', 'fqdn', 'ip', 'mac']"
-                       [filterDelay]="300"
-                       [rowHover]="true"
-                       dataKey="assetId"
-                       [resizableColumns]="true"
-                       styleClass="p-datatable-sm p-datatable-gridlines-hidden">
-                <ng-template pTemplate="header" let-columns>
-                  <tr>
-                    <th *ngFor="let col of columns"
-                        [pSortableColumn]="col.field"
-                        [ngStyle]="{'width': col.width}"
-                        pResizableColumn
-                        scope="col">
-                      {{col.header}}
-                    </th>
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-asset let-columns="columns">
-                  <tr>
-                    <td *ngFor="let col of columns">
-                      <ng-container [ngSwitch]="col.field">
-                        <ng-container *ngSwitchCase="'sourceVulnIds'">
-                          <p-tag *ngFor="let vulnId of asset.sourceVulnIds"
-                                 [value]="vulnId"
-                                 [rounded]="true"
-                                 [style]="{'margin-right': '0.25rem'}">
-                          </p-tag>
-                        </ng-container>
-                        <ng-container *ngSwitchCase="'labels'">
-                          <p-tag *ngFor="let label of getAssetLabels(asset)"
-                                 [rounded]="true"
-                                 [value]="label.name"
-                                 [style]="{'background': 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.5rem', 'color': '#' + label.color}">
-                          </p-tag>
-                        </ng-container>
-                        <ng-container *ngSwitchDefault> {{asset[col.field]}} </ng-container>
-                        <ng-container *ngSwitchCase="'teamAssigned'">
-                          <ng-container *ngIf="tab.teamId === 'all'">
-                            <i class="pi"
-                               [ngClass]="{'pi-check-circle': isAssetAssignedToTeam(asset), 'pi-times-circle': !isAssetAssignedToTeam(asset)}"
-                               [ngStyle]="{'color': isAssetAssignedToTeam(asset) ? 'green' : 'maroon', 'font-size': '1.2rem'}"
-                               [pTooltip]="isAssetAssignedToTeam(asset) ? 'Team association detected' : 'No team association detected'">
-                            </i>
-                          </ng-container>
-                        </ng-container>
-                      </ng-container>
-                    </td>
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="emptymessage">
-                  <tr>
-                    <td [attr.colspan]="selectedColumns.length" style="text-align: center">
-                      No assets to display
-                    </td>
-                  </tr>
-                </ng-template>
-              </p-table>
-            </p-tabpanel>
-            }
-          </p-tabpanels>
-        </p-tabs>
       </div>
     </div>
   </div>
-</div>
 
-<p-toast position="center" key="error"></p-toast>
+  <p-toast position="center" key="error"></p-toast>
