@@ -39,6 +39,7 @@ export class TenableComponent {
   iavVulnerabilitiesCount: number = 0;
   taskOrderCount: number = 0;
   failedCredentialCount: number = 0;
+  seolCount: number = 0;
   activeTabIndex: number = 0;
   loadedTabs: Set<number> = new Set([0]);
   sidebarVisible: boolean = false;
