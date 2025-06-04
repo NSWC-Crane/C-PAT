@@ -19,7 +19,8 @@
         <p-tab value="2">Task Orders{{loadedTabs.has(2) ? ' (' + taskOrderCount + ')' : ''}}</p-tab>
         <p-tab value="3">Exploitable{{loadedTabs.has(3) ? ' (' + exploitableTotal + ')' : ''}}</p-tab>
         <p-tab value="4">Failed Credential{{loadedTabs.has(4) ? ' (' + failedCredentialCount + ')' : ''}}</p-tab>
-        <p-tab value="5">Solutions</p-tab>
+        <p-tab value="5">SEoL{{loadedTabs.has(5) ? ' (' + seolCount + ')' : ''}}</p-tab>
+        <p-tab value="6">Solutions</p-tab>
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel value="0">
@@ -61,6 +62,15 @@
         </p-tabpanel>
         <p-tabpanel value="5">
           @defer (when tabComponent.value() === '5') {
+          <cpat-tenable-vulnerabilities (totalRecordsChange)="seolCount = $event"
+                                        (sidebarToggle)="onSidebarToggle($event)"
+                                        [parentSidebarVisible]="sidebarVisible"
+                                        currentPreset="seol">
+          </cpat-tenable-vulnerabilities>
+          }
+        </p-tabpanel>
+        <p-tabpanel value="6">
+          @defer (when tabComponent.value() === '6') {
           <cpat-tenable-solutions></cpat-tenable-solutions>
           }
         </p-tabpanel>
