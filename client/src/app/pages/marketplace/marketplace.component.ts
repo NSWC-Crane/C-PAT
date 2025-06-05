@@ -15,7 +15,6 @@ import { MarketplaceService } from './marketplace.service';
 import { SubSink } from 'subsink';
 import { forkJoin } from 'rxjs';
 import { UsersService } from '../admin-processing/user-processing/users.service';
-import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -41,14 +40,13 @@ interface Theme {
   standalone: true,
   imports: [
     ButtonModule,
-    CommonModule,
     CardModule,
     ChipModule,
     ConfirmDialogModule,
     DividerModule,
     ToastModule,
-    ImageModule,
-  ],
+    ImageModule
+],
   providers: [DialogService, ConfirmationService, MessageService],
 })
 export class MarketplaceComponent implements OnInit, OnDestroy {

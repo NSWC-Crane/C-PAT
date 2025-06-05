@@ -24,7 +24,6 @@ import { Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
 import { AssetService } from '../assets.service';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
@@ -46,12 +45,11 @@ import { PayloadService } from '../../../common/services/setPayload.service';
     ConfirmDialogModule,
     DialogModule,
     Select,
-    CommonModule,
     FormsModule,
     InputTextModule,
     TableModule,
-    ToastModule,
-  ],
+    ToastModule
+],
   providers: [ConfirmationService, MessageService],
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {

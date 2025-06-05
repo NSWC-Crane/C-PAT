@@ -11,7 +11,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ImportService } from '../../../import.service';
-import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -26,7 +25,6 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./tenableFilters.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ButtonModule,
     DialogModule,
@@ -34,7 +32,7 @@ import { FormsModule } from '@angular/forms';
     TextareaModule,
     ToastModule,
     TooltipModule
-  ],
+],
   providers: [MessageService]
 })
 export class TenableFiltersComponent {

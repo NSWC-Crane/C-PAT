@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-import { CommonModule } from "@angular/common";
 import { Component, OnInit, Input, Output, EventEmitter, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MessageService } from "primeng/api";
@@ -22,13 +21,12 @@ import { ToastModule } from "primeng/toast";
   templateUrl: './poam-labels.component.html',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TableModule,
     ButtonModule,
     SelectModule,
     ToastModule
-  ],
+],
   providers: [MessageService]
 })
 export class PoamLabelsComponent implements OnInit {

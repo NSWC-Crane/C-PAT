@@ -5,6 +5,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
+    "esModuleInterop": true,
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
     "strict": false,
@@ -37,7 +38,6 @@
       "node_modules/@types"
     ],
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
     "types": [ "node" ]
   },
   "exclude": [ "node_modules", "**/node_modules/*" ],

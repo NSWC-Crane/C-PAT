@@ -9,7 +9,6 @@
 */
 
 import { Component, Input, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -30,7 +29,6 @@ import { addDays, format } from 'date-fns';
   standalone: true,
   imports: [
     ButtonModule,
-    CommonModule,
     FormsModule,
     TableModule,
     ProgressSpinnerModule,
@@ -38,8 +36,8 @@ import { addDays, format } from 'date-fns';
     InputIconModule,
     InputTextModule,
     TagModule,
-    TooltipModule,
-  ],
+    TooltipModule
+],
   providers: [MessageService],
 })
 export class PoamAssignedGridComponent {

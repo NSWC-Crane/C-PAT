@@ -22,7 +22,7 @@
         [rowHover]="true"
         dataKey="aaPackageId"
         editMode="row"
-      >
+        >
         <ng-template pTemplate="caption">
           <div class="flex items-center justify-between">
             <p-iconField iconPosition="left">
@@ -35,92 +35,96 @@
                 (input)="filterGlobal($event)"
                 placeholder="Search A&A Packages"
                 class="search-input"
-              />
-            </p-iconField>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-plus"
-              [rounded]="true"
-              [text]="true"
-              [raised]="true"
-              severity="primary"
-              pTooltip="Add A&A Package"
-              (click)="onAddNewClick()"
-            ></button>
-          </div>
-        </ng-template>
-        <ng-template pTemplate="header">
-          <tr>
-            <th scope="col" pSortableColumn="aaPackageId">A&A Package ID</th>
-            <th scope="col" pSortableColumn="aaPackageName">A&A Package Name</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-aaPackage let-editing="editing" let-ri="rowIndex">
-          <tr [pEditableRow]="aaPackage">
-            <td>{{aaPackage.aaPackageId}}</td>
-            <td>
-              <p-cellEditor>
-                <ng-template pTemplate="input">
-                  <input
-                    pInputText
-                    type="text"
-                    class="w-full"
-                    [(ngModel)]="aaPackage.aaPackage"
-                    maxlength="50"
-                  />
-                </ng-template>
-                <ng-template pTemplate="output"> {{aaPackage.aaPackage}} </ng-template>
-              </p-cellEditor>
-            </td>
-            <td>
-              <div class="flex items-center justify-center gap-2">
-                <button
-                  *ngIf="!editing"
-                  pButton
-                  pRipple
-                  type="button"
-                  pInitEditableRow
-                  icon="pi pi-pencil"
-                  (click)="onRowEditInit(aaPackage)"
-                  class="p-button-rounded p-button-text"
-                ></button>
-                <button
-                  *ngIf="editing"
-                  pButton
-                  pRipple
-                  type="button"
-                  pSaveEditableRow
-                  icon="pi pi-check"
-                  (click)="onRowEditSave(aaPackage)"
-                  class="p-button-rounded p-button-text p-button-success mr-2"
-                ></button>
-                <button
-                  *ngIf="editing"
-                  pButton
-                  pRipple
-                  type="button"
-                  pCancelEditableRow
-                  icon="pi pi-times"
-                  (click)="onRowEditCancel(aaPackage, ri)"
-                  class="p-button-rounded p-button-text p-button-danger"
-                ></button>
-                <button
-                  *ngIf="!editing"
-                  pButton
-                  pRipple
-                  type="button"
-                  icon="pi pi-trash"
-                  (click)="onRowDelete(aaPackage)"
-                  class="p-button-rounded p-button-text p-button-danger"
-                ></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+                />
+              </p-iconField>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                [rounded]="true"
+                [text]="true"
+                [raised]="true"
+                severity="primary"
+                pTooltip="Add A&A Package"
+                (click)="onAddNewClick()"
+              ></button>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th scope="col" pSortableColumn="aaPackageId">A&A Package ID</th>
+              <th scope="col" pSortableColumn="aaPackageName">A&A Package Name</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-aaPackage let-editing="editing" let-ri="rowIndex">
+            <tr [pEditableRow]="aaPackage">
+              <td>{{aaPackage.aaPackageId}}</td>
+              <td>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <input
+                      pInputText
+                      type="text"
+                      class="w-full"
+                      [(ngModel)]="aaPackage.aaPackage"
+                      maxlength="50"
+                      />
+                    </ng-template>
+                    <ng-template pTemplate="output"> {{aaPackage.aaPackage}} </ng-template>
+                  </p-cellEditor>
+                </td>
+                <td>
+                  <div class="flex items-center justify-center gap-2">
+                    @if (!editing) {
+                      <button
+                        pButton
+                        pRipple
+                        type="button"
+                        pInitEditableRow
+                        icon="pi pi-pencil"
+                        (click)="onRowEditInit(aaPackage)"
+                        class="p-button-rounded p-button-text"
+                      ></button>
+                    }
+                    @if (editing) {
+                      <button
+                        pButton
+                        pRipple
+                        type="button"
+                        pSaveEditableRow
+                        icon="pi pi-check"
+                        (click)="onRowEditSave(aaPackage)"
+                        class="p-button-rounded p-button-text p-button-success mr-2"
+                      ></button>
+                    }
+                    @if (editing) {
+                      <button
+                        pButton
+                        pRipple
+                        type="button"
+                        pCancelEditableRow
+                        icon="pi pi-times"
+                        (click)="onRowEditCancel(aaPackage, ri)"
+                        class="p-button-rounded p-button-text p-button-danger"
+                      ></button>
+                    }
+                    @if (!editing) {
+                      <button
+                        pButton
+                        pRipple
+                        type="button"
+                        icon="pi pi-trash"
+                        (click)="onRowDelete(aaPackage)"
+                        class="p-button-rounded p-button-text p-button-danger"
+                      ></button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-<p-toast></p-toast>
+    <p-toast></p-toast>

@@ -23,6 +23,7 @@ import {
   OnInit,
   Renderer2,
   ViewChild,
+  DOCUMENT
 } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
@@ -31,7 +32,6 @@ import { UsersService } from '../../pages/admin-processing/user-processing/users
 import { SubSink } from 'subsink';
 import { SharedService } from '../../common/services/shared.service';
 import { Subject, Subscription, filter, take, takeUntil } from 'rxjs';
-import { CommonModule, DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuModule } from 'primeng/menu';
 import { ButtonModule } from 'primeng/button';
@@ -53,12 +53,11 @@ import { PayloadService } from '../../common/services/setPayload.service';
     AppLayoutComponent,
     BadgeModule,
     ButtonModule,
-    CommonModule,
     AppFooterComponent,
     MenuModule,
     TagModule,
-    FormsModule,
-  ],
+    FormsModule
+],
   template: `
     <div class="landing">
       <cpat-classification></cpat-classification>

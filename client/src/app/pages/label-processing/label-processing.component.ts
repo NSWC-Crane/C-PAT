@@ -20,7 +20,6 @@ import { SharedService } from '../../common/services/shared.service';
 import { LabelService } from './label.service';
 import { Table, TableModule } from 'primeng/table';
 import { PayloadService } from '../../common/services/setPayload.service';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -39,7 +38,6 @@ import { Label } from '../../common/models/label.model';
   styleUrls: ['./label-processing.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ButtonModule,
     CardModule,
@@ -50,8 +48,8 @@ import { Label } from '../../common/models/label.model';
     IconFieldModule,
     TableModule,
     TooltipModule,
-    LabelComponent,
-  ],
+    LabelComponent
+],
   providers: [DialogService],
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {

@@ -14,7 +14,6 @@ import { addDays, differenceInCalendarDays } from 'date-fns';
 import { Select } from 'primeng/select';
 import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect'
 import { Subject } from 'rxjs';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { CardModule } from 'primeng/card';
@@ -51,14 +50,13 @@ interface SelectedOptions {
   imports: [
     ButtonModule,
     ChartModule,
-    CommonModule,
     FormsModule,
     CardModule,
     Select,
     TabsModule,
     MultiSelectModule,
-    NgxChartsModule,
-  ],
+    NgxChartsModule
+],
 })
 export class PoamMainchartComponent implements OnChanges, OnDestroy {
   @Input() poams!: any[];

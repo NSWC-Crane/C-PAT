@@ -13,7 +13,7 @@ import { SubSink } from 'subsink';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PoamService } from '../poams.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
-import { CommonModule, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Subscription, forkJoin } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { PoamApproveService } from './poam-approve.service';
@@ -44,7 +44,6 @@ export interface PoamApproval {
   styleUrls: ['./poam-approve.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ButtonModule,
     DatePicker,
@@ -52,8 +51,8 @@ export interface PoamApproval {
     DialogModule,
     Select,
     TextareaModule,
-    ToastModule,
-  ],
+    ToastModule
+],
   providers: [MessageService, DatePipe],
 })
 export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {

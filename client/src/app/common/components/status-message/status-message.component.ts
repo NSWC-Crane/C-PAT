@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -25,12 +24,11 @@ import { ProgressBarModule } from 'primeng/progressbar';
   imports: [
     ButtonModule,
     CardModule,
-    CommonModule,
     DialogModule,
     FormsModule,
     ProgressBarModule,
-    RouterLink,
-  ],
+    RouterLink
+],
 })
 export class StatusMessageComponent implements OnInit {
   @Input() statusCode: number;

@@ -9,7 +9,6 @@
 */
 
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { SplitButtonModule } from 'primeng/splitbutton';
@@ -25,7 +24,6 @@ import { PoamService } from '../../../poams.service';
   selector: 'cpat-poam-mitigation-generator',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ButtonModule,
     TextareaModule,
@@ -34,7 +32,7 @@ import { PoamService } from '../../../poams.service';
     DialogModule,
     ConfirmDialogModule,
     SplitButtonModule
-  ],
+],
   templateUrl: './poam-mitigation-generator.component.html'
 })
 export class PoamMitigationGeneratorComponent implements OnInit, OnChanges {

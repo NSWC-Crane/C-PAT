@@ -13,7 +13,6 @@ import { UsersService } from './user-processing/users.service';
 import { Router } from '@angular/router';
 import { TabsModule } from 'primeng/tabs';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
 import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plugin-mapping.component';
@@ -36,7 +35,6 @@ import { Subject, takeUntil } from 'rxjs';
     AssignedTeamProcessingComponent,
     ButtonModule,
     CollectionProcessingComponent,
-    CommonModule,
     FormsModule,
     NessusPluginMappingComponent,
     STIGManagerAdminComponent,
@@ -44,8 +42,8 @@ import { Subject, takeUntil } from 'rxjs';
     TenableAdminComponent,
     UserProcessingComponent,
     AssetDeltaComponent,
-    VRAMImportComponent,
-  ],
+    VRAMImportComponent
+],
 })
 export class AdminProcessingComponent implements OnInit {
   value: number = 0;

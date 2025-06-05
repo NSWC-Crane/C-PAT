@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -14,9 +14,9 @@
       <div class="filter-header">
         <div class="flex items-center">
           <p-select [options]="premadeFilterOptions" [(ngModel)]="selectedPremadeFilter"
-                    (onChange)="applyPremadeFilter($event)" placeholder="Select premade filter options..." [group]="true"
-                    [filter]="true" filterBy="label" [optionGroupLabel]="'label'" [optionGroupChildren]="'items'"
-                    appendTo="body" [style]="{'width':'calc(100% - 3rem)'}">
+            (onChange)="applyPremadeFilter($event)" placeholder="Select premade filter options..." [group]="true"
+            [filter]="true" filterBy="label" [optionGroupLabel]="'label'" [optionGroupChildren]="'items'"
+            appendTo="body" [style]="{'width':'calc(100% - 3rem)'}">
             <ng-template let-group pTemplate="group">
               <div class="flex items-center">
                 <i [class]="group.value === 'premade' ? 'pi pi-bookmark mr-2' : 'pi pi-save mr-2'"></i>
@@ -27,184 +27,213 @@
               <div class="flex w-full flex-col justify-between">
                 <div class="flex w-full flex-row justify-between">
                   <span>{{item.label}}</span>
-                  <i *ngIf="item.value.startsWith('saved_') && (this.user.userName === item.createdBy || this.accessLevel() >= 3)"
-                     class="pi pi-trash cursor-pointer text-red-500 p-1 rounded-circle transition-all duration-200"
-                     [ngClass]="{'opacity-50 hover:opacity-100': true}" (click)="deleteFilter($event, item.value)"
-                     (keyup.enter)="deleteFilter($event, item.value)" pTooltip="Delete filter"
-                     style="display: inline-flex; align-items: center; justify-content: center;"></i>
+                  @if (item.value.startsWith('saved_') && (this.user.userName === item.createdBy || this.accessLevel() >= 3)) {
+                    <i
+                      class="pi pi-trash rounded-circle cursor-pointer p-1 text-red-500 transition-all duration-200"
+                      [ngClass]="{'opacity-50 hover:opacity-100': true}" (click)="deleteFilter($event, item.value)"
+                      (keyup.enter)="deleteFilter($event, item.value)" pTooltip="Delete filter"
+                    style="display: inline-flex; align-items: center; justify-content: center;"></i>
+                  }
                 </div>
-                <small class="text-gray-500" *ngIf="item.subLabel">{{item.subLabel}}</small>
+                @if (item.subLabel) {
+                  <small class="text-gray-500">{{item.subLabel}}</small>
+                }
               </div>
             </ng-template>
           </p-select>
           <cpat-tenable-filters [collectionId]="selectedCollection" [activeFilters]="activeFilters"
-                                [tenableTool]="tenableTool" (filterSaved)="onFilterSaved()">
+            [tenableTool]="tenableTool" (filterSaved)="onFilterSaved()">
           </cpat-tenable-filters>
         </div>
         <div class="mt-3">
           <input type="text" pInputText [(ngModel)]="filterSearch" (input)="filterAccordionItems()"
-                 placeholder="Search filters..." class="w-full" />
+            placeholder="Search filters..." class="w-full" />
+          </div>
         </div>
-      </div>
-      <div class="filter-content">
-        <p-accordion [value]="['0']" [multiple]="true">
-          <p-accordion-panel *ngFor="let item of filteredAccordionItems" [value]="item.value"
-                             [disabled]="item.disabled ?? false">
-            <p-accordion-header>
-              <ng-template #toggleicon> </ng-template>
-              <div class="flex w-full items-center justify-between">
-                <span>{{item.header}}</span>
-                <p-button icon="pi pi-trash" class="clearFilterButton"
-                          (click)="clearIndividualFilter(item.identifier, $event)"
-                          (onKeyUp)="clearIndividualFilter(item.identifier, $event)"
-                          [styleClass]="isFilterActive(item.identifier) ? 'p-button-text p-button-rounded p-button-danger' : 'p-button-text p-button-rounded p-button-plain'"
-                          [disabled]="!isFilterActive(item.identifier)">
-                </p-button>
-              </div>
-            </p-accordion-header>
-            <p-accordion-content [ngSwitch]="item.content">
-              <div *ngSwitchCase="'dropdown'" class="p-0">
-                <p-select [options]="item.options" [(ngModel)]="tempFilters[item.identifier]"
+        <div class="filter-content">
+          <p-accordion [value]="['0']" [multiple]="true">
+            @for (item of filteredAccordionItems; track item) {
+              <p-accordion-panel [value]="item.value"
+                [disabled]="item.disabled ?? false">
+                <p-accordion-header>
+                  <ng-template #toggleicon> </ng-template>
+                  <div class="flex w-full items-center justify-between">
+                    <span>{{item.header}}</span>
+                    <p-button icon="pi pi-trash" class="clearFilterButton"
+                      (click)="clearIndividualFilter(item.identifier, $event)"
+                      (onKeyUp)="clearIndividualFilter(item.identifier, $event)"
+                      [styleClass]="isFilterActive(item.identifier) ? 'p-button-text p-button-rounded p-button-danger' : 'p-button-text p-button-rounded p-button-plain'"
+                      [disabled]="!isFilterActive(item.identifier)">
+                    </p-button>
+                  </div>
+                </p-accordion-header>
+                <p-accordion-content>
+                  @switch (item.content) {
+                    @case ('dropdown') {
+                      <div class="p-0">
+                        <p-select [options]="item.options" [(ngModel)]="tempFilters[item.identifier]"
                           (onChange)="onFilterChange($event, item.identifier)" placeholder="Select a filter option..."
                           styleClass="w-full" [style]="{'width':'100%'}" appendTo="body">
-                </p-select>
-              </div>
-              <div *ngSwitchCase="'dropdownAndTextarea'" class="p-0">
-                <p-select [options]="item.options" [(ngModel)]="tempFilters[item.identifier].operator"
+                        </p-select>
+                      </div>
+                    }
+                    @case ('dropdownAndTextarea') {
+                      <div class="p-0">
+                        <p-select [options]="item.options" [(ngModel)]="tempFilters[item.identifier].operator"
                           (onChange)="onFilterChange($event, item.identifier, false, true)" placeholder="Select Operator..."
                           styleClass="mb-2 w-full" [style]="{'width':'100%'}" appendTo="body">
-                </p-select>
-                <textarea pTextarea [(ngModel)]="tempFilters[item.identifier].value"
+                        </p-select>
+                        <textarea pTextarea [(ngModel)]="tempFilters[item.identifier].value"
                           (input)="onFilterChange($event, item.identifier, true)" [placeholder]="'Enter ' + item.header"
                           rows="3" class="w-full">
-                </textarea>
-              </div>
-              <div *ngSwitchCase="'dropdownAndInput'" class="p-0">
-                <p-select [options]="item.options" [(ngModel)]="tempFilters[item.identifier].operator"
+                        </textarea>
+                      </div>
+                    }
+                    @case ('dropdownAndInput') {
+                      <div class="p-0">
+                        <p-select [options]="item.options" [(ngModel)]="tempFilters[item.identifier].operator"
                           (onChange)="onFilterChange($event, item.identifier, false, true)" placeholder="Select Operator..."
                           styleClass="mb-2 w-full" [style]="{'width':'100%'}" appendTo="body">
-                </p-select>
-                <input pInputText [(ngModel)]="tempFilters[item.identifier].value"
-                       (input)="onFilterChange($event, item.identifier, true)" [placeholder]="item.placeholder ?? ''"
-                       [ngClass]="{'ng-invalid': tempFilters[item.identifier]?.isDirty && !tempFilters[item.identifier]?.isValid, 'ng-dirty': tempFilters[item.identifier]?.isDirty}"
-                       class="w-full" />
-              </div>
-              <div *ngSwitchCase="'input'" class="p-0">
-                <input pInputText [(ngModel)]="tempFilters[item.identifier].value"
-                       (input)="onFilterChange($event, item.identifier, true)" [placeholder]="item.placeholder ?? ''"
-                       [ngClass]="{'ng-invalid': tempFilters[item.identifier]?.isDirty && !tempFilters[item.identifier]?.isValid, 'ng-dirty': tempFilters[item.identifier]?.isDirty}"
-                       class="w-full" />
-              </div>
-              <div *ngSwitchCase="'multiSelect'" class="p-0">
-                <p-multiSelect [options]="item.options" [(ngModel)]="tempFilters[item.identifier]"
-                               (onChange)="onFilterChange($event, item.identifier)" [placeholder]="'Select ' + item.header"
-                               [showToggleAll]="false" styleClass="w-full" [style]="{'width':'100%'}" appendTo="body">
-                </p-multiSelect>
-              </div>
-              <div *ngSwitchCase="'rangeFilter'" class="p-0">
-                <p-select [options]="item.options" [(ngModel)]="tempFilters[item.identifier].value"
-                          (onChange)="onRangeChange($event, item.identifier)" placeholder="Select filter option..."
-                          styleClass="mb-2 w-full" [style]="{'width':'100%'}" appendTo="body">
-                </p-select>
-                <div *ngIf="tempFilters[item.identifier].value === 'customRange'" class="range-input">
-                  <span>Between</span>
-                  <p-inputNumber [(ngModel)]="tempFilters[item.identifier].min" [min]="getMinValue(item.identifier)"
-                                 [max]="getMaxValue(item.identifier)" [showButtons]="false"
-                                 (onInput)="onRangeValueChange(item.identifier)" [useGrouping]="false">
-                  </p-inputNumber>
-                  <span>and</span>
-                  <p-inputNumber [(ngModel)]="tempFilters[item.identifier].max" [min]="getMinValue(item.identifier)"
-                                 [max]="getMaxValue(item.identifier)" [showButtons]="false"
-                                 (onInput)="onRangeValueChange(item.identifier)" [useGrouping]="false">
-                  </p-inputNumber>
-                </div>
-              </div>
-              <div *ngSwitchDefault>{{item.content}}</div>
-            </p-accordion-content>
-          </p-accordion-panel>
-        </p-accordion>
-      </div>
-      <div class="filter-footer">
-        <div class="flex justify-between p-4">
-          <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()"
-                    (onKeyUp)="applyFilters()" styleClass="p-button-sm"></p-button>
-          <p-button label="Clear" [rounded]="true" icon="pi pi-filter-slash" (click)="clearFilters()"
-                    (onKeyUp)="clearFilters()" styleClass="p-button-sm p-button-outlined"></p-button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="vulnerabilities-content">
-    <div class="row col-span-12">
-      <div class="col">
-        <div class="p-fluid">
-          <div class="toolbar mb-4">
-            <div class="left-buttons">
-              <p-button [rounded]="true" [text]="true" [raised]="true" severity="primary" icon="pi pi-filter"
-                        (click)="toggleSidebar()" (onKeyUp)="toggleSidebar()"></p-button>
-              <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-undo"
-                        (click)="revertFilters()" (onKeyUp)="revertFilters()" [disabled]="currentFilterHistoryIndex <= 0"
-                        pTooltip="Revert to previous filters"></p-button>
-              <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash"
-                        (click)="clearFilters()" (onKeyUp)="clearFilters()" pTooltip="Reset default filters"></p-button>
-              <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-plus"
-                        *ngIf="this.tenableTool === 'sumid'" (click)="loadVulnList()" (onKeyUp)="loadVulnList()"
-                        pTooltip="Load Vulnerability List"></p-button>
-              <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-minus"
-                        *ngIf="this.tenableTool === 'listvuln'" (click)="loadVulnSummary()" (onKeyUp)="loadVulnSummary()"
-                        pTooltip="Load Vulnerability Summary"></p-button>
+                        </p-select>
+                        <input pInputText [(ngModel)]="tempFilters[item.identifier].value"
+                          (input)="onFilterChange($event, item.identifier, true)" [placeholder]="item.placeholder ?? ''"
+                          [ngClass]="{'ng-invalid': tempFilters[item.identifier]?.isDirty && !tempFilters[item.identifier]?.isValid, 'ng-dirty': tempFilters[item.identifier]?.isDirty}"
+                          class="w-full" />
+                        </div>
+                      }
+                      @case ('input') {
+                        <div class="p-0">
+                          <input pInputText [(ngModel)]="tempFilters[item.identifier].value"
+                            (input)="onFilterChange($event, item.identifier, true)" [placeholder]="item.placeholder ?? ''"
+                            [ngClass]="{'ng-invalid': tempFilters[item.identifier]?.isDirty && !tempFilters[item.identifier]?.isValid, 'ng-dirty': tempFilters[item.identifier]?.isDirty}"
+                            class="w-full" />
+                          </div>
+                        }
+                        @case ('multiSelect') {
+                          <div class="p-0">
+                            <p-multiSelect [options]="item.options" [(ngModel)]="tempFilters[item.identifier]"
+                              (onChange)="onFilterChange($event, item.identifier)" [placeholder]="'Select ' + item.header"
+                              [showToggleAll]="false" styleClass="w-full" [style]="{'width':'100%'}" appendTo="body">
+                            </p-multiSelect>
+                          </div>
+                        }
+                        @case ('rangeFilter') {
+                          <div class="p-0">
+                            <p-select [options]="item.options" [(ngModel)]="tempFilters[item.identifier].value"
+                              (onChange)="onRangeChange($event, item.identifier)" placeholder="Select filter option..."
+                              styleClass="mb-2 w-full" [style]="{'width':'100%'}" appendTo="body">
+                            </p-select>
+                            @if (tempFilters[item.identifier].value === 'customRange') {
+                              <div class="range-input">
+                                <span>Between</span>
+                                <p-inputNumber [(ngModel)]="tempFilters[item.identifier].min" [min]="getMinValue(item.identifier)"
+                                  [max]="getMaxValue(item.identifier)" [showButtons]="false"
+                                  (onInput)="onRangeValueChange(item.identifier)" [useGrouping]="false">
+                                </p-inputNumber>
+                                <span>and</span>
+                                <p-inputNumber [(ngModel)]="tempFilters[item.identifier].max" [min]="getMinValue(item.identifier)"
+                                  [max]="getMaxValue(item.identifier)" [showButtons]="false"
+                                  (onInput)="onRangeValueChange(item.identifier)" [useGrouping]="false">
+                                </p-inputNumber>
+                              </div>
+                            }
+                          </div>
+                        }
+                        @default {
+                          <div>{{item.content}}</div>
+                        }
+                      }
+                    </p-accordion-content>
+                  </p-accordion-panel>
+                }
+              </p-accordion>
             </div>
-            <div class="right-buttons">
-              <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary"
-                        icon="pi pi-refresh" (click)="resetColumnSelections()" (onKeyUp)="resetColumnSelections()"
-                        pTooltip="Reset column selections"></p-button>
-              <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary"
-                        (onKeyUp)="toggleAddColumnOverlay()" (click)="toggleAddColumnOverlay()">
-              </p-button>
-              <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header"
-                             styleClass="custom-multiselect" appendTo="body" filterPlaceHolder="Add columns..."
-                             [showToggleAll]="true">
-              </p-multiSelect>
-              <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true"
-                        (onClick)="dt.exportCSV()">
-              </p-button>
+            <div class="filter-footer">
+              <div class="flex justify-between p-4">
+                <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()"
+                (onKeyUp)="applyFilters()" styleClass="p-button-sm"></p-button>
+                <p-button label="Clear" [rounded]="true" icon="pi pi-filter-slash" (click)="clearFilters()"
+                (onKeyUp)="clearFilters()" styleClass="p-button-sm p-button-outlined"></p-button>
+              </div>
             </div>
           </div>
-          <div class="scrollable-vulnerabilities">
-            <p-table #dt [value]="allVulnerabilities" [columns]="selectedColumns" [paginator]="true" [rows]="rows"
-                     [totalRecords]="totalRecords" [lazy]="tenableTool !== 'sumid'"
-                     (onLazyLoad)="loadVulnerabilitiesLazy($event)" (onFilter)="onTableFilter($event)" [loading]="isLoading"
-                     [showCurrentPageReport]="true" [filterDelay]="300" [rowHover]="true" dataKey="pluginID"
-                     [resizableColumns]="true" [scrollable]="true" scrollHeight="calc(100vh - 25rem)"
-                     styleClass="p-datatable-sm p-datatable-gridlines-hidden">
-              <ng-template pTemplate="header" let-columns>
-                <tr>
-                  <th *ngFor="let col of columns" pResizableColumn scope="col">
-                    {{col.header}}
-                    <ng-container *ngIf="col.field === 'poam' && tenableTool === 'sumid'">
-                      <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false"
-                                      [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
-                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                          <p-multiSelect [ngModel]="value" [options]="col.filterOptions"
-                                         (onChange)="filter($event.value)" (onClear)="filter([])" placeholder="Select Status"
-                                         [showClear]="true" styleClass="w-full">
-                          </p-multiSelect>
-                        </ng-template>
-                      </p-columnFilter>
-                    </ng-container>
-                    <ng-container *ngIf="(col.field === 'navyComplyDate' || col.field === 'iav' ||  col.field === 'total' || col.field === 'hostTotal') && tenableTool === 'sumid'">
-                      <p-columnFilter [field]="col.field" [type]="col.filterType" [showOperator]="false"
-                                      [showMatchModes]="true" [showAddButton]="true" display="menu">
-                      </p-columnFilter>
-                    </ng-container>
-                    <ng-container *ngIf="!(col.field === 'poam' || col.field === 'iav' || col.field === 'navyComplyDate' || col.field === 'total' || col.field === 'hostTotal') && col.filterable">
-                      <p-columnFilter [field]="col.field" [showOperator]="false" [showMatchModes]="false"
-                                      [showAddButton]="false" [showButtons]="false" [showApplyButton]="false"
-                                      [showClearButton]="false" display="menu">
-                        <ng-template pTemplate="filter" let-field="field">
-                          <ng-container [ngSwitch]="field">
-                            <ng-container *ngSwitchCase="'pluginID'">
+        </div>
+
+        <div class="vulnerabilities-content">
+          <div class="row col-span-12">
+            <div class="col">
+              <div class="p-fluid">
+                <div class="toolbar mb-4">
+                  <div class="left-buttons">
+                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="primary" icon="pi pi-filter"
+                    (click)="toggleSidebar()" (onKeyUp)="toggleSidebar()"></p-button>
+                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-undo"
+                      (click)="revertFilters()" (onKeyUp)="revertFilters()" [disabled]="currentFilterHistoryIndex <= 0"
+                    pTooltip="Revert to previous filters"></p-button>
+                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash"
+                    (click)="clearFilters()" (onKeyUp)="clearFilters()" pTooltip="Reset default filters"></p-button>
+                    @if (this.tenableTool === 'sumid') {
+                      <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-plus"
+                        (click)="loadVulnList()" (onKeyUp)="loadVulnList()"
+                      pTooltip="Load Vulnerability List"></p-button>
+                    }
+                    @if (this.tenableTool === 'listvuln') {
+                      <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-minus"
+                        (click)="loadVulnSummary()" (onKeyUp)="loadVulnSummary()"
+                      pTooltip="Load Vulnerability Summary"></p-button>
+                    }
+                  </div>
+                  <div class="right-buttons">
+                    <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary"
+                      icon="pi pi-refresh" (click)="resetColumnSelections()" (onKeyUp)="resetColumnSelections()"
+                    pTooltip="Reset column selections"></p-button>
+                    <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary"
+                      (onKeyUp)="toggleAddColumnOverlay()" (click)="toggleAddColumnOverlay()">
+                    </p-button>
+                    <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header"
+                      styleClass="custom-multiselect" appendTo="body" filterPlaceHolder="Add columns..."
+                      [showToggleAll]="true">
+                    </p-multiSelect>
+                    <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true"
+                      (onClick)="dt.exportCSV()">
+                    </p-button>
+                  </div>
+                </div>
+                <div class="scrollable-vulnerabilities">
+                  <p-table #dt [value]="allVulnerabilities" [columns]="selectedColumns" [paginator]="true" [rows]="rows"
+                           [totalRecords]="totalRecords" [lazy]="tenableTool !== 'sumid'"
+                           (onLazyLoad)="loadVulnerabilitiesLazy($event)" (onFilter)="onTableFilter($event)" [loading]="isLoading"
+                           [showCurrentPageReport]="true" [filterDelay]="300" [rowHover]="true" dataKey="pluginID"
+                           [resizableColumns]="true" [scrollable]="true" scrollHeight="calc(100vh - 25rem)"
+                           styleClass="p-datatable-sm p-datatable-gridlines-hidden">
+                    <ng-template pTemplate="header" let-columns>
+                      <tr>
+                        @for (col of columns; track col) {
+                        <th pResizableColumn scope="col">
+                          {{col.header}}
+                          @if (col.field === 'poam' && tenableTool === 'sumid') {
+                          <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false"
+                                          [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                              <p-multiSelect [ngModel]="value" [options]="col.filterOptions"
+                                             (onChange)="filter($event.value)" (onClear)="filter([])" placeholder="Select Status"
+                                             [showClear]="true" styleClass="w-full">
+                              </p-multiSelect>
+                            </ng-template>
+                          </p-columnFilter>
+                          }
+                          @if ((col.field === 'navyComplyDate' || col.field === 'iav' ||  col.field === 'total' || col.field === 'hostTotal') && tenableTool === 'sumid') {
+                          <p-columnFilter [field]="col.field" [type]="col.filterType" [showOperator]="false"
+                                          [showMatchModes]="true" [showAddButton]="true" display="menu">
+                          </p-columnFilter>
+                          }
+                          @if (!(col.field === 'poam' || col.field === 'iav' || col.field === 'navyComplyDate' || col.field === 'total' || col.field === 'hostTotal') && col.filterable) {
+                          <p-columnFilter [field]="col.field" [showOperator]="false" [showMatchModes]="false"
+                                          [showAddButton]="false" [showButtons]="false" [showApplyButton]="false"
+                                          [showClearButton]="false" display="menu">
+                            <ng-template pTemplate="filter" let-field="field">
+                              @switch (field) {
+                              @case ('pluginID') {
                               <p-select [options]="pluginIDOptions" [(ngModel)]="tempFilters[field].operator"
                                         (onChange)="onFilterChange($event, field, false, true)" placeholder="Select Operator..."
                                         styleClass="mb-2 w-full" [style]="{'width':'100%'}">
@@ -213,8 +242,8 @@
                                         (input)="onFilterChange($event, field, true)" placeholder="Enter plugin ID..." rows="3"
                                         class="w-full">
                                       </textarea>
-                            </ng-container>
-                            <ng-container *ngSwitchCase="'pluginName'">
+                              }
+                              @case ('pluginName') {
                               <p-select [options]="pluginNameOptions" [(ngModel)]="tempFilters[field].operator"
                                         (onChange)="onFilterChange($event, field, false, true)" placeholder="Select Operator..."
                                         styleClass="mb-2 w-full" [style]="{'width':'100%'}">
@@ -223,26 +252,26 @@
                                         (input)="onFilterChange($event, field, true)" placeholder="Enter plugin name..."
                                         rows="3" class="mb-2 w-full">
                                       </textarea>
-                            </ng-container>
-                            <ng-container *ngSwitchCase="'family'">
+                              }
+                              @case ('family') {
                               <p-multiSelect [options]="familyOptions" [(ngModel)]="tempFilters[field]"
                                              (onChange)="onFilterChange($event, field)" placeholder="Select Plugin Family..."
                                              [showToggleAll]="false" styleClass="w-full" [style]="{'width':'100%'}">
                               </p-multiSelect>
-                            </ng-container>
-                            <ng-container *ngSwitchCase="'severity'">
+                              }
+                              @case ('severity') {
                               <p-multiSelect [options]="severityOptions" [(ngModel)]="tempFilters[field]"
                                              (onChange)="onFilterChange($event, field)" placeholder="Select Severity..."
                                              [showToggleAll]="false" styleClass="w-full" [style]="{'width':'100%'}">
                               </p-multiSelect>
-                            </ng-container>
-                            <ng-container *ngSwitchCase="'vprScore'">
+                              }
+                              @case ('vprScore') {
                               <p-select [options]="vprScoreOptions" [(ngModel)]="tempFilters[field].value"
                                         (onChange)="onRangeChange($event, field)" placeholder="Select filter option..."
                                         styleClass="mb-2 w-full" class="mb-2 w-full">
                               </p-select>
-                              <div *ngIf="tempFilters[field].value === 'customRange'"
-                                   class="range-input mt-2 flex items-center">
+                              @if (tempFilters[field].value === 'customRange') {
+                              <div class="range-input mt-2 flex items-center">
                                 <span class="mr-2">Between</span>
                                 <p-inputNumber [(ngModel)]="tempFilters[field].min" [min]="getMinValue(field)"
                                                [max]="getMaxValue(field)" [showButtons]="false" (onInput)="onRangeValueChange(field)"
@@ -254,205 +283,228 @@
                                                [useGrouping]="false">
                                 </p-inputNumber>
                               </div>
-                            </ng-container>
-                          </ng-container>
-                          <div class="mt-8 flex items-center justify-between">
-                            <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()"
-                                      (onKeyUp)="applyFilters()" styleClass="p-button-sm"></p-button>
-                            <p-button icon="pi pi-trash" class="clearFilterButton"
-                                      (click)="clearIndividualFilter(field, $event)"
-                                      (onKeyUp)="clearIndividualFilter(field, $event)"
-                                      styleClass="p-button-rounded p-button-text p-button-secondary"
-                                      [disabled]="!isFilterActive(field)">
-                            </p-button>
-                          </div>
-                        </ng-template>
-                      </p-columnFilter>
-                    </ng-container>
-                  </th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-vulnerability let-columns="columns">
-                <tr (click)="onRowClick(vulnerability, $event)" (keyup)="onRowClick(vulnerability, $event)"
-                    style="cursor: pointer">
-                  <td *ngFor="let col of columns">
-                    <ng-container [ngSwitch]="col.field">
-                      <ng-container *ngSwitchCase="'poam'">
-                        <i class="pi"
-                           [ngClass]="vulnerability.poam ? getPoamStatusIcon(vulnerability.poamStatus) : 'pi pi-plus-circle'"
-                           [ngStyle]="{
+                              }
+                              }
+                              }
+                              <div class="mt-8 flex items-center justify-between">
+                                <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()"
+                                          (onKeyUp)="applyFilters()" styleClass="p-button-sm"></p-button>
+                                <p-button icon="pi pi-trash" class="clearFilterButton"
+                                          (click)="clearIndividualFilter(field, $event)"
+                                          (onKeyUp)="clearIndividualFilter(field, $event)"
+                                          styleClass="p-button-rounded p-button-text p-button-secondary"
+                                          [disabled]="!isFilterActive(field)">
+                                </p-button>
+                              </div>
+                            </ng-template>
+                          </p-columnFilter>
+                          }
+                        </th>
+                        }
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-vulnerability let-columns="columns">
+                      <tr (click)="onRowClick(vulnerability, $event)" (keyup)="onRowClick(vulnerability, $event)"
+                          style="cursor: pointer">
+                        @for (col of columns; track col) {
+                        <td>
+                          @switch (col.field) {
+                          @case ('poam') {
+                          <i class="pi"
+                             [ngClass]="vulnerability.poam ? getPoamStatusIcon(vulnerability.poamStatus) : 'pi pi-plus-circle'"
+                             [ngStyle]="{
        'color': vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus) : 'maroon',
        'font-size': '1.5rem',
        'cursor': 'pointer'
      }" (click)="onPoamIconClick(vulnerability, $event)" (keyup.enter)="onPoamIconClick(vulnerability, $event)"
-                           [pTooltip]="getPoamStatusTooltip(vulnerability.poamStatus)" tooltipPosition="top">
-                        </i>
-                      </ng-container>
-                      <ng-container *ngSwitchCase="'pluginID'">
-                        <span (click)="onPluginIDClick(vulnerability, $event)"
-                              (onKeyUp)="onPluginIDClick(vulnerability, $event)" style="
+                             [pTooltip]="getPoamStatusTooltip(vulnerability.poamStatus)" tooltipPosition="top">
+                          </i>
+                          }
+                          @case ('pluginID') {
+                          <span (click)="onPluginIDClick(vulnerability, $event)"
+                                (onKeyUp)="onPluginIDClick(vulnerability, $event)" style="
                                     cursor: pointer;
                                     color: var(--p-primary-color);
                                     font-weight: bold;
                                     text-decoration: underline;
                                   ">
-                          {{vulnerability.pluginID}}
-                        </span>
-                      </ng-container>
-                      <ng-container *ngSwitchCase="'severity'">
-                        <p-tag [value]="vulnerability.severity.name"
-                               [severity]="getSeverityStyling(vulnerability.severity.name)" [rounded]="false">
-                        </p-tag>
-                      </ng-container>
-                      <ng-container *ngSwitchCase="'iav'">
-                        <span>{{ vulnerability.iav || '-' }}</span>
-                      </ng-container>
+                            {{vulnerability.pluginID}}
+                          </span>
+                          }
+                          @case ('severity') {
+                          <p-tag [value]="vulnerability.severity.name"
+                                 [severity]="getSeverityStyling(vulnerability.severity.name)" [rounded]="false">
+                          </p-tag>
+                          }
+                          @case ('iav') {
+                          <span>{{ vulnerability.iav || '-' }}</span>
+                          }
+                          @case ('navyComplyDate') {
+                          <span>
+                            {{
+                                  (vulnerability.navyComplyDate | date:'mediumDate') || '-'
+                            }}
+                          </span>
+                          }
+                          @default {
+                          <span>{{vulnerability[col.field]}}</span>
+                          }
+                          }
+                        </td>
+                        }
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="17" style="text-align: center">
+                          No vulnerabilities to display
+                        </td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="loadingbody" let-columns="columns">
+                      @for (_ of [].constructor(10); track $index) {
+                      <tr>
+                        @for (_ of [].constructor(selectedColumns?.length); track $index) {
+                        <td>
+                          <p-skeleton [style]="{width: '100%', height: '2rem'}"></p-skeleton>
+                        </td>
+                        }
+                      </tr>
+                      }
+                    </ng-template>
+                  </p-table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                      <ng-container *ngSwitchCase="'navyComplyDate'">
-                        <span>
-                          {{
-                          (vulnerability.navyComplyDate | date:'mediumDate') || '-'
-                          }}
-                        </span>
-                      </ng-container>
-                      <ng-container *ngSwitchDefault>
-                        <span>{{vulnerability[col.field]}}</span>
-                      </ng-container>
-                    </ng-container>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="17" style="text-align: center">
-                    No vulnerabilities to display
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="loadingbody" let-columns="columns">
-                <tr *ngFor="let _ of [].constructor(10)">
-                  <td *ngFor="let _ of [].constructor(selectedColumns?.length)">
-                    <p-skeleton [style]="{width: '100%', height: '2rem'}"></p-skeleton>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
-        </div>
+        <p-dialog class="pluginDialog" [(visible)]="displayDialog" [modal]="true" [style]="{'width': '50vw'}">
+          <ng-template pTemplate="content">
+            <div class="p-grid">
+              <div class="p-col-12"><b>Plugin ID:</b> {{selectedVulnerability.pluginID}}</div>
+              <div class="p-col-12"><b>Name:</b> {{selectedVulnerability.name}}</div>
+              <div class="p-col-12"><b>Severity:</b> {{selectedVulnerability.severity.name}}</div>
+              <div class="p-col-12"><b>VPR Score:</b> {{selectedVulnerability.vprScore}}</div>
+              <div class="p-col-12"><b>Protocol:</b> {{selectedVulnerability.protocol}}</div>
+              <div class="p-col-12"><b>Family:</b> {{selectedVulnerability.family}}</div>
+              <br />
+              <div class="p-col-12">
+                @if (parsedVprContext.length > 0) {
+                  <p-table [value]="parsedVprContext" styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th scope="col">Vulnerability Priority Rating (VPR) Key Drivers</th>
+                        <th scope="col"></th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-item>
+                      <tr>
+                        <td>{{ item.name }}:</td>
+                        <td>
+                          <span>
+                            @switch (item.type) {
+                              @case ('boolean') {
+                                <span>{{item.value ? 'Yes' : 'No'}}</span>
+                              }
+                              @default {
+                                <span>{{item.value}}</span>
+                              }
+                            }
+                          </span>
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                }
+              </div>
+              <div class="p-col-12">
+                <div class="description">
+                  <h6>Description</h6>
+                  <div class="p-col-12" [innerHTML]="formattedDescription"></div>
+                  <h6>Solution</h6>
+                  <div class="p-col-12">{{ pluginData.solution }}</div>
+                </div>
+                <div class="p-col-12"><b>CVSS v2 Severity:</b> {{ pluginData.riskFactor }}</div>
+                <div class="p-col-12">
+                  <b>Vulnerability Priority Rating:</b> {{ pluginData.vprScore }}
+                </div>
+                <div class="p-col-12"><b>CVSS Base Score:</b> {{ pluginData.baseScore }}</div>
+                <div class="p-col-12"><b>CVSS Temporal Score:</b> {{ pluginData.temporalScore }}</div>
+                <div class="p-col-12"><b>CVSS v3 Base Score:</b> {{ pluginData.cvssV3BaseScore }}</div>
+                <div class="p-col-12">
+                  <b>CVSS v3 Temporal Score:</b> {{ pluginData.cvssV3TemporalScore }}
+                </div>
+                <div class="p-col-12"><b>CVSS v3 Vector:</b> {{ pluginData.cvssV3Vector }}</div>
+                <div class="p-col-12"><b>CPE:</b> {{ pluginData.cpe }}</div>
+                <div class="p-col-12">
+                  <b>Vulnerability Publication Date: </b>{{
+                  pluginData.pluginPubDate * 1000 | date:'MMMM
+                  d, yyyy'
+                  }}
+                </div>
+                <div class="p-col-12">
+                  <b>Patch Publication Date: </b>{{
+                  pluginData.patchPubDate * 1000 | date:'MMMM d, yyyy'
+                  }}
+                </div>
+                <div class="p-col-12">
+                  <b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date:'MMMM d, yyyy' }}
+                </div>
+                <div class="p-col-12">
+                  <b>Plugin Last Modification Date:</b> {{
+                  pluginData.pluginModDate * 1000 | date:'MMMM d,
+                  yyyy'
+                  }}
+                </div>
+                <div class="p-col-12"><b>Source File:</b> {{ pluginData.sourceFile }}</div>
+                <div class="p-col-12"><b>Version:</b> {{ pluginData.version }}</div>
+              </div>
+              <br />
+              <div class="p-col-12">
+                <h6>IAV References</h6>
+                <ul>
+                  @for (ref of iavReferences; track ref) {
+                    <li>
+                      <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
+                    </li>
+                  }
+                </ul>
+                <h6>CVE References</h6>
+                <ul>
+                  @for (ref of cveReferences; track ref) {
+                    <li>
+                      <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
+                    </li>
+                  }
+                </ul>
+                @if (otherReferences.length > 0) {
+                  <h6>Cross-References</h6>
+                }
+                <ul>
+                  @for (ref of otherReferences; track ref) {
+                    <li>{{ref.type}}:{{ref.value}}</li>
+                  }
+                </ul>
+              </div>
+            </div>
+          </ng-template>
+        </p-dialog>
+        <p-toast position="center" key="error"></p-toast>
+        <p-toast position="center" key="deleteConfirmation">
+          <ng-template let-message pTemplate="message">
+            <div class="p-3">
+              <div class="text-center">
+                <i class="pi pi-exclamation-triangle" style="font-size: 3rem"></i>
+                <h4>{{message.summary}}</h4>
+                <p>{{message.detail}}</p>
+              </div>
+              <div class="mt-3 flex w-full justify-between">
+                <p-button (click)="messageService.clear('deleteConfirmation')" label="Cancel"
+                styleClass="p-button-secondary"></p-button>
+                <p-button (click)="confirmDeleteFilter(message.data)" label="Yes" styleClass="p-button-danger"></p-button>
+              </div>
+            </div>
+          </ng-template>
+        </p-toast>
       </div>
-    </div>
-  </div>
-
-  <p-dialog class="pluginDialog" [(visible)]="displayDialog" [modal]="true" [style]="{'width': '50vw'}">
-    <ng-template pTemplate="content">
-      <div class="p-grid">
-        <div class="p-col-12"><b>Plugin ID:</b> {{selectedVulnerability.pluginID}}</div>
-        <div class="p-col-12"><b>Name:</b> {{selectedVulnerability.name}}</div>
-        <div class="p-col-12"><b>Severity:</b> {{selectedVulnerability.severity.name}}</div>
-        <div class="p-col-12"><b>VPR Score:</b> {{selectedVulnerability.vprScore}}</div>
-        <div class="p-col-12"><b>Protocol:</b> {{selectedVulnerability.protocol}}</div>
-        <div class="p-col-12"><b>Family:</b> {{selectedVulnerability.family}}</div>
-        <br />
-        <div class="p-col-12">
-          <p-table *ngIf="parsedVprContext.length > 0" [value]="parsedVprContext" styleClass="p-datatable-sm">
-            <ng-template pTemplate="header">
-              <tr>
-                <th scope="col">Vulnerability Priority Rating (VPR) Key Drivers</th>
-                <th scope="col"></th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-item>
-              <tr>
-                <td>{{ item.name }}:</td>
-                <td>
-                  <span [ngSwitch]="item.type">
-                    <span *ngSwitchCase="'boolean'">{{item.value ? 'Yes' : 'No'}}</span>
-                    <span *ngSwitchDefault>{{item.value}}</span>
-                  </span>
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-        <div class="p-col-12">
-          <div class="description">
-            <h6>Description</h6>
-            <div class="p-col-12" [innerHTML]="formattedDescription"></div>
-            <h6>Solution</h6>
-            <div class="p-col-12">{{ pluginData.solution }}</div>
-          </div>
-          <div class="p-col-12"><b>CVSS v2 Severity:</b> {{ pluginData.riskFactor }}</div>
-          <div class="p-col-12">
-            <b>Vulnerability Priority Rating:</b> {{ pluginData.vprScore }}
-          </div>
-          <div class="p-col-12"><b>CVSS Base Score:</b> {{ pluginData.baseScore }}</div>
-          <div class="p-col-12"><b>CVSS Temporal Score:</b> {{ pluginData.temporalScore }}</div>
-          <div class="p-col-12"><b>CVSS v3 Base Score:</b> {{ pluginData.cvssV3BaseScore }}</div>
-          <div class="p-col-12">
-            <b>CVSS v3 Temporal Score:</b> {{ pluginData.cvssV3TemporalScore }}
-          </div>
-          <div class="p-col-12"><b>CVSS v3 Vector:</b> {{ pluginData.cvssV3Vector }}</div>
-          <div class="p-col-12"><b>CPE:</b> {{ pluginData.cpe }}</div>
-          <div class="p-col-12">
-            <b>Vulnerability Publication Date: </b>{{
-            pluginData.pluginPubDate * 1000 | date:'MMMM
-            d, yyyy'
-            }}
-          </div>
-          <div class="p-col-12">
-            <b>Patch Publication Date: </b>{{
-            pluginData.patchPubDate * 1000 | date:'MMMM d, yyyy'
-            }}
-          </div>
-          <div class="p-col-12">
-            <b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date:'MMMM d, yyyy' }}
-          </div>
-          <div class="p-col-12">
-            <b>Plugin Last Modification Date:</b> {{
-            pluginData.pluginModDate * 1000 | date:'MMMM d,
-            yyyy'
-            }}
-          </div>
-          <div class="p-col-12"><b>Source File:</b> {{ pluginData.sourceFile }}</div>
-          <div class="p-col-12"><b>Version:</b> {{ pluginData.version }}</div>
-        </div>
-        <br />
-        <div class="p-col-12">
-          <h6>IAV References</h6>
-          <ul>
-            <li *ngFor="let ref of iavReferences">
-              <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
-            </li>
-          </ul>
-          <h6>CVE References</h6>
-          <ul>
-            <li *ngFor="let ref of cveReferences">
-              <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
-            </li>
-          </ul>
-          <h6 *ngIf="otherReferences.length > 0">Cross-References</h6>
-          <ul>
-            <li *ngFor="let ref of otherReferences">{{ref.type}}:{{ref.value}}</li>
-          </ul>
-        </div>
-      </div>
-    </ng-template>
-  </p-dialog>
-  <p-toast position="center" key="error"></p-toast>
-  <p-toast position="center" key="deleteConfirmation">
-    <ng-template let-message pTemplate="message">
-      <div class="p-3">
-        <div class="text-center">
-          <i class="pi pi-exclamation-triangle" style="font-size: 3rem"></i>
-          <h4>{{message.summary}}</h4>
-          <p>{{message.detail}}</p>
-        </div>
-        <div class="mt-3 flex w-full justify-between">
-          <p-button (click)="messageService.clear('deleteConfirmation')" label="Cancel"
-                    styleClass="p-button-secondary"></p-button>
-          <p-button (click)="confirmDeleteFilter(message.data)" label="Yes" styleClass="p-button-danger"></p-button>
-        </div>
-      </div>
-    </ng-template>
-  </p-toast>
-</div>

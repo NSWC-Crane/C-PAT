@@ -12,7 +12,6 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Table, TableModule } from 'primeng/table';
 import { MessageService } from 'primeng/api';
 import { AAPackageService } from './aaPackage-processing.service';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastModule } from 'primeng/toast';
 import { ButtonModule } from 'primeng/button';
@@ -28,14 +27,13 @@ import { AAPackage } from '../../../common/models/aaPackage.model';
   standalone: true,
   imports: [
     ButtonModule,
-    CommonModule,
     FormsModule,
     IconFieldModule,
     InputIconModule,
     InputTextModule,
     TableModule,
-    ToastModule,
-  ],
+    ToastModule
+],
   providers: [MessageService],
 })
 export class AAPackageProcessingComponent implements OnInit {

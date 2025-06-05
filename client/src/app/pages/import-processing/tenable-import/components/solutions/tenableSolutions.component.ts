@@ -19,7 +19,6 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -35,7 +34,6 @@ interface ExportColumn {
   styleUrls: ['./tenableSolutions.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ButtonModule,
     DialogModule,
@@ -44,8 +42,8 @@ interface ExportColumn {
     InputIconModule,
     IconFieldModule,
     TooltipModule,
-    ToastModule,
-  ],
+    ToastModule
+],
   providers: [MessageService],
 })
 export class TenableSolutionsComponent implements OnInit, OnDestroy {
