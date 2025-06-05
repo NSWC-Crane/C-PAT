@@ -10,7 +10,7 @@
 
 <div class="notifications-popover">
   <div class="p-card-body">
-    <ng-container *ngIf="notifications.length > 0; else noNotifications">
+    @if (notifications.length > 0) {
       <p-listbox [options]="notifications" optionLabel="title" scrollHeight="40vh">
         <ng-template let-notification pTemplate="item">
           <div class="notification-content" (click)="onNotificationClick($event)">
@@ -19,25 +19,25 @@
                 <i [class]="notification.icon"></i>
               </div>
               <h5>{{ notification.title }}</h5>
-              <i
-                *ngIf="notification.notificationId"
-                class="dismiss-icon pi pi-times"
-                (click)="dismissNotification(notification)"
-                (onKeyUp)="dismissNotification(notification)"
-              ></i>
+              @if (notification.notificationId) {
+                <i
+                  class="dismiss-icon pi pi-times"
+                  (click)="dismissNotification(notification)"
+                  (onKeyUp)="dismissNotification(notification)"
+                ></i>
+              }
             </div>
             <p [innerHTML]="notification.formattedMessage"></p>
             <small>{{ notification.timestamp | date:'short' }}</small>
           </div>
         </ng-template>
       </p-listbox>
-    </ng-container>
-    <ng-template #noNotifications>
+    } @else {
       <div class="p-6 text-center">
         <i class="pi pi-inbox text-5xl mb-4" style="color: var(--p-text-color)"></i>
         <p>No notifications found.</p>
       </div>
-    </ng-template>
+    }
   </div>
   <div class="p-card-footer">
     <button

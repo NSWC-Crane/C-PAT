@@ -15,7 +15,6 @@ import { CollectionsService } from '../collection-processing/collections.service
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { ImportService } from '../../import-processing/import.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
@@ -35,7 +34,7 @@ interface TenableRepository {
   templateUrl: './tenable-admin.component.html',
   styleUrls: ['./tenable-admin.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
+  imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
   providers: [ConfirmationService, MessageService],
 })
 export class TenableAdminComponent implements OnInit {

@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-import { CommonModule } from "@angular/common";
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
@@ -26,14 +25,13 @@ import { ImportService } from "../../../../import-processing/import.service";
   templateUrl: './poam-associated-vulnerabilities.component.html',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TableModule,
     ButtonModule,
     TagModule,
     TooltipModule,
     AutoCompleteModule
-  ]
+]
 })
 export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges {
   @Input() poamId: any;

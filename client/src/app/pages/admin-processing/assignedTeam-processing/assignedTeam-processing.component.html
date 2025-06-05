@@ -21,7 +21,7 @@
         scrollHeight="flex"
         [rowHover]="true"
         dataKey="assignedTeamId"
-      >
+        >
         <ng-template pTemplate="caption">
           <div class="flex items-center justify-between">
             <p-iconField iconPosition="left">
@@ -34,132 +34,134 @@
                 (input)="filterGlobal($event)"
                 placeholder="Search Teams"
                 class="search-input"
-              />
-            </p-iconField>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-plus"
-              [rounded]="true"
-              [text]="true"
-              [raised]="true"
-              severity="primary"
-              pTooltip="Add a Team"
-              (click)="openNew()"
-            ></button>
-          </div>
-        </ng-template>
-        <ng-template pTemplate="header">
-          <tr>
-            <th scope="col" pSortableColumn="assignedTeamId">Assigned Team ID</th>
-            <th scope="col" pSortableColumn="assignedTeamName">Assigned Team Name</th>
-            <th scope="col" pSortableColumn="adTeam">AD Team</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-assignedTeam>
-          <tr (click)="editTeam(assignedTeam)" class="cursor-pointer hover:surface-200">
-            <td>{{assignedTeam.assignedTeamId}}</td>
-            <td>{{assignedTeam.assignedTeamName}}</td>
-            <td>
-              <div class="flex flex-wrap gap-2">
-                <p-tag *ngFor="let team of getAdTeamsArray(assignedTeam.adTeam)"
-                       [value]="team"
-                       [rounded]="true"
-                       [class.hidden]="!team">
-                </p-tag>
-              </div>
-            </td>
-            <td>
-              <div class="flex items-center justify-center gap-2">
-                <button pButton
-                        pRipple
-                        type="button"
-                        icon="pi pi-pencil"
-                        class="p-button-rounded p-button-text"
-                        (click)="$event.stopPropagation(); editTeam(assignedTeam)"></button>
-                <button pButton
-                        pRipple
-                        type="button"
-                        icon="pi pi-trash"
-                        class="p-button-rounded p-button-text p-button-danger"
-                        (click)="$event.stopPropagation(); onRowDelete(assignedTeam)"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+                />
+              </p-iconField>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                [rounded]="true"
+                [text]="true"
+                [raised]="true"
+                severity="primary"
+                pTooltip="Add a Team"
+                (click)="openNew()"
+              ></button>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th scope="col" pSortableColumn="assignedTeamId">Assigned Team ID</th>
+              <th scope="col" pSortableColumn="assignedTeamName">Assigned Team Name</th>
+              <th scope="col" pSortableColumn="adTeam">AD Team</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-assignedTeam>
+            <tr (click)="editTeam(assignedTeam)" class="cursor-pointer hover:surface-200">
+              <td>{{assignedTeam.assignedTeamId}}</td>
+              <td>{{assignedTeam.assignedTeamName}}</td>
+              <td>
+                <div class="flex flex-wrap gap-2">
+                  @for (team of getAdTeamsArray(assignedTeam.adTeam); track team) {
+                    <p-tag
+                      [value]="team"
+                      [rounded]="true"
+                      [class.hidden]="!team">
+                    </p-tag>
+                  }
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center justify-center gap-2">
+                  <button pButton
+                    pRipple
+                    type="button"
+                    icon="pi pi-pencil"
+                    class="p-button-rounded p-button-text"
+                  (click)="$event.stopPropagation(); editTeam(assignedTeam)"></button>
+                  <button pButton
+                    pRipple
+                    type="button"
+                    icon="pi pi-trash"
+                    class="p-button-rounded p-button-text p-button-danger"
+                  (click)="$event.stopPropagation(); onRowDelete(assignedTeam)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
     </div>
   </div>
-</div>
 
-<p-dialog [(visible)]="teamDialog" [style]="{'width': '850px'}" [modal]="true" styleClass="p-fluid">
-  <ng-template pTemplate="content">
-    <div class="mb-6">
-      <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
-      <input type="text"
-             pInputText
-             id="name"
-             [(ngModel)]="editingAssignedTeam!.assignedTeamName"
-             required
-             [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.assignedTeamName}"
-             maxlength="99"
-             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+  <p-dialog [(visible)]="teamDialog" [style]="{'width': '850px'}" [modal]="true" styleClass="p-fluid">
+    <ng-template pTemplate="content">
+      <div class="mb-6">
+        <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
+        <input type="text"
+          pInputText
+          id="name"
+          [(ngModel)]="editingAssignedTeam!.assignedTeamName"
+          required
+          [ngClass]="{'ng-invalid ng-dirty': !editingAssignedTeam?.assignedTeamName}"
+          maxlength="99"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
-      <label for="adTeam" class="mb-2 mt-4 block text-base font-medium">AD Team(s):</label>
-      <p-multiSelect id="adTeam"
-                     [(ngModel)]="selectedAdTeams"
-                     [options]="filteredTeams"
-                     [filter]="true"
-                     (onFilter)="filterTeams($event)"
-                     placeholder="Select AD Team(s)"
-                     [showToggleAll]="false"
-                     [showHeader]="true"
-                     [panelStyle]="{width:'100%'}"
-                     class="w-full">
-      </p-multiSelect>
-    </div>
-    <div class="space-y-2">
-      <label class="mb-2 block text-base font-medium">Team Permissions:</label>
-      <p-pickList [source]="availableCollections"
-                  [target]="assignedCollections"
-                  sourceHeader="Available Collections"
-                  targetHeader="Assigned Collections"
-                  [dragdrop]="true"
-                  [responsive]="true"
-                  [showSourceControls]="false"
-                  [showTargetControls]="false"
-                  [sourceStyle]="{'height':'300px'}"
-                  [targetStyle]="{'height':'300px'}"
-                  (onMoveToTarget)="onMoveToTarget($event)"
-                  (onMoveToSource)="onMoveToSource($event)"
-                  (onMoveAllToTarget)="onMoveToTarget($event)"
-                  (onMoveAllToSource)="onMoveToSource($event)"
-                  class="w-full">
-          <ng-template let-collection pTemplate="item"> {{collection.collectionName}} </ng-template>
-      </p-pickList>
-    </div>
-  </ng-template>
+          <label for="adTeam" class="mb-2 mt-4 block text-base font-medium">AD Team(s):</label>
+          <p-multiSelect id="adTeam"
+            [(ngModel)]="selectedAdTeams"
+            [options]="filteredTeams"
+            [filter]="true"
+            (onFilter)="filterTeams($event)"
+            placeholder="Select AD Team(s)"
+            [showToggleAll]="false"
+            [showHeader]="true"
+            [panelStyle]="{width:'100%'}"
+            class="w-full">
+          </p-multiSelect>
+        </div>
+        <div class="space-y-2">
+          <label class="mb-2 block text-base font-medium">Team Permissions:</label>
+          <p-pickList [source]="availableCollections"
+            [target]="assignedCollections"
+            sourceHeader="Available Collections"
+            targetHeader="Assigned Collections"
+            [dragdrop]="true"
+            [responsive]="true"
+            [showSourceControls]="false"
+            [showTargetControls]="false"
+            [sourceStyle]="{'height':'300px'}"
+            [targetStyle]="{'height':'300px'}"
+            (onMoveToTarget)="onMoveToTarget($event)"
+            (onMoveToSource)="onMoveToSource($event)"
+            (onMoveAllToTarget)="onMoveToTarget($event)"
+            (onMoveAllToSource)="onMoveToSource($event)"
+            class="w-full">
+            <ng-template let-collection pTemplate="item"> {{collection.collectionName}} </ng-template>
+          </p-pickList>
+        </div>
+      </ng-template>
 
-  <ng-template pTemplate="footer">
-    <button
-      pButton
-      pRipple
-      label="Cancel"
-      icon="pi pi-times"
-      class="p-button-text"
-      (click)="hideDialog()"
-    ></button>
-    <button
-      pButton
-      pRipple
-      label="Save"
-      icon="pi pi-check"
-      class="p-button-text"
-      (click)="saveTeam()"
-      [disabled]="!editingAssignedTeam?.assignedTeamName"
-    ></button>
-  </ng-template>
-</p-dialog>
+      <ng-template pTemplate="footer">
+        <button
+          pButton
+          pRipple
+          label="Cancel"
+          icon="pi pi-times"
+          class="p-button-text"
+          (click)="hideDialog()"
+        ></button>
+        <button
+          pButton
+          pRipple
+          label="Save"
+          icon="pi pi-check"
+          class="p-button-text"
+          (click)="saveTeam()"
+          [disabled]="!editingAssignedTeam?.assignedTeamName"
+        ></button>
+      </ng-template>
+    </p-dialog>
 
-<p-toast></p-toast>
+    <p-toast></p-toast>

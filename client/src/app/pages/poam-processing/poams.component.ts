@@ -14,7 +14,6 @@ import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
-import { CommonModule } from '@angular/common';
 import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.component';
 
 @Component({
@@ -22,7 +21,7 @@ import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.componen
   templateUrl: './poams.component.html',
   styleUrls: ['./poams.component.scss'],
   standalone: true,
-  imports: [CommonModule, PoamMainchartComponent],
+  imports: [PoamMainchartComponent],
 })
 export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   protected accessLevel: any;

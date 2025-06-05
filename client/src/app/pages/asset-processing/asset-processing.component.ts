@@ -22,7 +22,6 @@ import { DialogService } from 'primeng/dynamicdialog';
 import { Table, TableModule } from 'primeng/table';
 import { SharedService } from '../../common/services/shared.service';
 import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -61,7 +60,6 @@ interface AssetEntry {
     ButtonModule,
     CardModule,
     ChartModule,
-    CommonModule,
     DialogModule,
     Select,
     FormsModule,
@@ -72,8 +70,8 @@ interface AssetEntry {
     TableModule,
     TabsModule,
     TenableHostAssetsTableComponent,
-    TooltipModule,
-  ],
+    TooltipModule
+],
   providers: [DialogService],
 })
 export class AssetProcessingComponent implements OnInit, OnDestroy {

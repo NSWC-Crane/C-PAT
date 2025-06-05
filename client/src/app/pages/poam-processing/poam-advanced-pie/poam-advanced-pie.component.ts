@@ -10,7 +10,6 @@
 
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { Color, ScaleType } from '@swimlane/ngx-charts';
-import { CommonModule } from '@angular/common';
 import { Component, input, computed } from '@angular/core';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
@@ -63,7 +62,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 }
   `],
   standalone: true,
-  imports: [NgxChartsModule, CommonModule, ProgressSpinnerModule]
+  imports: [NgxChartsModule, ProgressSpinnerModule]
 })
 export class PoamAdvancedPieComponent {
   pieChartData = input.required<any[]>();
@@ -73,15 +72,15 @@ export class PoamAdvancedPieComponent {
   categories = ['CAT I', 'CAT II', 'CAT III'];
 
   private statusColorMap: { [key: string]: string } = {
-    'Submitted': 'rgba(54, 162, 235, .6)',
-    'Approved': 'rgba(75, 192, 192, .6)',
-    'Open Findings': 'rgba(201, 203, 207, .4)',
-    'Extension Requested': 'rgba(255, 205, 86, .6)',
-    'False-Positive': 'rgba(255, 99, 132, .6)',
-    'Pending CAT-I Approval': 'rgba(152, 102, 255, .6)',
-    'Expired': 'rgba(255, 159, 64, .6)',
-    'Rejected': 'rgba(255, 52, 75, 0.6)',
+    'Approved': 'rgba(75, 192, 115, 0.6)',
+    'Submitted': 'rgba(75, 192, 170, 0.55)',
+    'Pending CAT-I Approval': 'rgba(75, 180, 190, 0.5)',
+    'Extension Requested': 'rgba(255, 205, 86, .55)',
+    'Expired': 'rgba(255, 160, 65, .5)',
+    'Rejected': 'rgba(255, 55, 55, 0.45)',
     'Closed': 'rgba(25, 25, 25, .6)',
+    'False-Positive': 'rgba(70, 70, 70, .4)',
+    'Open Findings': 'rgba(230, 50, 50, 0.4)',
     'No Data': 'rgba(200, 200, 200, .6)'
   };
 

@@ -7,35 +7,43 @@
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 -->
-
-<div class="row col-span-12" *ngIf="poam">
+@if (poam) {
+<div class="row col-span-12">
   <p-card>
     <div class="status-container">
       <div class="row" style="display: flex; align-items: center; font-weight: 600">
-        <i *ngIf="poam.lastUpdated && poam.created"
-           class="pi pi-clock mr-4"
+        @if (poam.lastUpdated && poam.created) {
+        <i class="pi pi-clock mr-4"
            style="color: var(--p-primary-color); font-size: 1.5rem"
            pTooltip="Created: {{poam.created ? (poam.created | date:'yyyy-MM-dd') : ''}}, Last Updated: {{poam.lastUpdated ? (poam.lastUpdated | date:'yyyy-MM-dd') : ''}}"></i>
+        }
+        @if (poam.poamId !== 'ADDPOAM') {
         POAM ID: {{poam.poamId}}
-      <div class="team-badges-container ml-4">
-        <p-tag *ngFor="let team of poamAssignedTeams"
-               [value]="team.assignedTeamName"
-               [rounded]="true"
-               [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
-               [pTooltip]="team.complete === 'true' ? 'Team has fulfilled all POAM requirements' :
-            team.complete === 'partial' ? 'Team has partially fulfilled POAM requirements' :
-            team.complete === 'global' ? 'Global Finding - No Team Requirements' :
-            'Team has not fulfilled any POAM requirements'"
-               tooltipPosition="top"
-               styleClass="team-badge mb-1 mr-2">
-        </p-tag>
-      </div>
-        <div class="ml-2" *ngIf="poam.stigCheckData?.includes('requirement must be documented with the ISSO')">
+        } @else {
+        UNSAVED DRAFT
+        }
+        <div class="team-badges-container ml-4">
+          @for (team of poamAssignedTeams; track team.assignedTeamName) {
+          <p-tag [value]="team.assignedTeamName"
+                 [rounded]="true"
+                 [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
+                 [pTooltip]="team.complete === 'true' ? 'Team has fulfilled all POAM requirements' :
+        team.complete === 'partial' ? 'Team has partially fulfilled POAM requirements' :
+        team.complete === 'global' ? 'Global Finding - No Team Requirements' :
+        'Team has not fulfilled any POAM requirements'"
+                 tooltipPosition="top"
+                 styleClass="team-badge mb-1 mr-2">
+          </p-tag>
+          }
+        </div>
+        @if (poam.stigCheckData?.includes('requirement must be documented with the ISSO')) {
+        <div class="ml-2">
           <i class="pi pi-flag-fill"
              style="color: var(--p-primary-color); font-size: 1rem"
              pTooltip="STIG Check Data indicates the requirement must be documented with the ISSO."
              tooltipPosition="bottom"></i>
         </div>
+        }
       </div>
 
       <div class="button-group">
@@ -71,28 +79,37 @@
           </div>
         </div>
 
-        <div *ngIf="poam.stigCheckData?.length > 0" class="form-group">
+        @if (poam.stigCheckData?.length > 0) {
+        <div class="form-group">
           <div class="switch-container">
             <p-toggleswitch id="stigCheckData" name="stigCheckData" [(ngModel)]="showCheckData"></p-toggleswitch>
             <label for="stigCheckData">View STIG Manager Check Data</label>
           </div>
-          <div class="card showCheckData mt-6" *ngIf="showCheckData">
+          @if (showCheckData) {
+          <div class="card showCheckData mt-6">
             <pre>{{poam.stigCheckData}}</pre>
           </div>
+          }
         </div>
+        }
 
-        <div *ngIf="poam.tenablePluginData?.length > 0" class="form-group">
+        @if (poam.tenablePluginData?.length > 0) {
+        <div class="form-group">
           <div class="switch-container">
             <p-toggleswitch id="tenablePluginData" name="tenablePluginData" [(ngModel)]="showCheckData"></p-toggleswitch>
             <label for="tenablePluginData">View Tenable Plugin Data</label>
           </div>
-          <div class="card showCheckData mt-6" *ngIf="showCheckData">
+          @if (showCheckData) {
+          <div class="card showCheckData mt-6">
             <pre>{{tenablePluginData}}</pre>
           </div>
+          }
         </div>
+        }
 
         <!-- Created By -->
-        <div class="form-group" *ngIf="poam.submitterName">
+        @if (poam.submitterName) {
+        <div class="form-group">
           <label for="submitterName">Created By: </label>
           <input type="text"
                  pInputText
@@ -102,6 +119,7 @@
                  name="submitterName"
                  disabled />
         </div>
+        }
 
         <!-- Owned By -->
         <div class="form-group">
@@ -197,7 +215,8 @@
         </div>
 
         <!-- STIG Title -->
-        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
+        @if (poam.vulnerabilitySource === 'STIG') {
+        <div class="form-group">
           <label for="stigInput">
             <i class="pi pi-info-circle mr-2"
                style="color: var(--p-text-color)"
@@ -216,21 +235,26 @@
                           [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3">
           </p-autoComplete>
         </div>
+        }
 
         <!-- Source Identifying Control Vulnerability - ID # for Non STIGs-->
-        <div class="form-group" *ngIf="poam.vulnerabilitySource !== 'STIG'">
-          <label *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'"
-                 for="vulnerabilityId">
+        @if (poam.vulnerabilitySource !== 'STIG') {
+        <div class="form-group">
+          @if (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
+          <label for="vulnerabilityId">
             <i class="pi pi-info-circle mr-2"
                style="color: var(--p-text-color)"
                pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Plugin ID #:
           </label>
-          <label *ngIf="poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'"
-                 for="vulnerabilityId">
+          }
+
+          @if (poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
+          <label for="vulnerabilityId">
             <i class="pi pi-info-circle mr-2"
                style="color: var(--p-text-color)"
                pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source Identifying Control Vulnerability - ID #:
           </label>
+          }
           <input type="text"
                  pInputText
                  class="w-full"
@@ -241,9 +265,11 @@
                  placeholder="Vulnerability ID..."
                  [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
         </div>
+        }
 
         <!-- Source Identifying Control Vulnerability - ID # for STIG-->
-        <div class="form-group" *ngIf="poam.vulnerabilitySource === 'STIG'">
+        @if (poam.vulnerabilitySource === 'STIG') {
+        <div class="form-group">
           <label for="vulnerabilityId">
             <i class="pi pi-info-circle mr-2"
                style="color: var(--p-text-color)"
@@ -259,10 +285,11 @@
                  placeholder="Vulnerability ID..."
                  [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
         </div>
+        }
 
         <!-- IAVM # -->
-        <div class="form-group"
-             *ngIf="poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'">
+        @if (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
+        <div class="form-group">
           <label for="iavmNumber">IAVM #: </label>
           <p-inputgroup>
             <input type="text"
@@ -283,9 +310,11 @@
                     [disabled]="!poam.iavmNumber"></button>
           </p-inputgroup>
         </div>
+        }
 
         <!-- IAV Comply By Date -->
-        <div class="form-group" *ngIf="poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)">
+        @if (poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)) {
+        <div class="form-group">
           <label for="iavComplyByDate">IAV Comply By Date: </label>
           <p-datepicker [(ngModel)]="dates.iavComplyByDate"
                         dateFormat="yy-mm-dd"
@@ -296,6 +325,7 @@
                         [style]="{'width':'25rem'}"
                         [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-datepicker>
         </div>
+        }
 
         <!-- Raw Severity -->
         <div class="form-group">
@@ -338,7 +368,8 @@
         </div>
 
         <!-- Deadline With Extension -->
-        <div class="form-group" *ngIf="completionDateWithExtension">
+        @if (completionDateWithExtension) {
+        <div class="form-group">
           <label for="extensionDeadline">Deadline With Extension:</label>
           <input type="text"
                  pInputText
@@ -348,6 +379,7 @@
                  disabled
                  [style]="{'width':'25rem'}" />
         </div>
+        }
 
         <!-- Scheduled Completion Date -->
         <div class="form-group">
@@ -393,7 +425,9 @@
           <p-step [value]="7">Milestones</p-step>
           <p-step [value]="8">Labels</p-step>
           <p-step [value]="9">Associated Vulnerabilities</p-step>
-          <p-step [value]="10" *ngIf="poam.poamId !== 'ADDPOAM'">Attachments</p-step>
+          @if (poam.poamId !== 'ADDPOAM') {
+          <p-step [value]="10">Attachments</p-step>
+          }
         </p-step-list>
         <p-step-panels>
           <!-- Personnel -->
@@ -512,19 +546,21 @@
                            style="color: var(--p-text-color); flex-shrink: 0;"
                            pTooltip="Mitigations: Any currently implemented mitigations and/or compensating Controls that will reduce the risk. A planned mitigation or compensating Control cannot lower risk until implemented."></i>
                       </div>
-                      <cpat-poam-mitigation-generator *ngIf="aiEnabled && (poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) ||
-                   (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData)"
-                                                      class="w-full"
+                      @if (aiEnabled && (poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) ||
+                      (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData)) {
+                      <cpat-poam-mitigation-generator class="w-full"
                                                       [poam]="poam"
                                                       [team]="!poam.isGlobalFinding && activeTabIndex > 0 ? teamMitigations[activeTabIndex - 1] : null"
                                                       (mitigationGenerated)="onMitigationGenerated($event)">
                       </cpat-poam-mitigation-generator>
+                      }
                     </div>
                   </div>
 
                   <div class="team-mitigations-container">
-                    <p-progressBar *ngIf="mitigationSaving" mode="indeterminate" [style]="{'height': '4px'}"></p-progressBar>
-
+                    @if (mitigationSaving) {
+                    <p-progressBar mode="indeterminate" [style]="{'height': '4px'}"></p-progressBar>
+                    }
                     <p-tabs [(value)]="activeTabIndex" (onChange)="onTabChange($event)" scrollable>
                       <p-tablist>
                         <p-tab [value]="0">
@@ -532,11 +568,12 @@
                         </p-tab>
 
                         @for(teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
+                        @if(!poam.isGlobalFinding) {
                         <p-tab [value]="i + 1"
-                               [class]="teamMitigation.isActive ? '' : 'inactive-tab'"
-                               *ngIf="!poam.isGlobalFinding">
+                               [class]="teamMitigation.isActive ? '' : 'inactive-tab'">
                           <span [ngClass]="{'inactive-tab': !teamMitigation.isActive}">{{teamMitigation.assignedTeamName}}</span>
                         </p-tab>
+                        }
                         }
                       </p-tablist>
 
@@ -554,13 +591,15 @@
                         </p-tabpanel>
 
                         @for(teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
-                        <p-tabpanel [value]="i + 1" *ngIf="!poam.isGlobalFinding">
+                        @if (!poam.isGlobalFinding) {
+                        <p-tabpanel [value]="i + 1">
                           <div [ngClass]="{'opacity-70': !teamMitigation.isActive}">
-                            <div *ngIf="!teamMitigation.isActive" class="mb-2 rounded-md bg-yellow-600 p-2">
+                            @if (!teamMitigation.isActive) {
+                            <div class="mb-2 rounded-md bg-yellow-600 p-2">
                               <i class="pi pi-info-circle mr-2"></i>
                               This team is no longer assigned to this POAM. Mitigation content is preserved but cannot be edited.
                             </div>
-
+                            }
                             <textarea pTextarea
                                       class="w-full"
                                       [(ngModel)]="teamMitigation.mitigationText"
@@ -570,6 +609,7 @@
                                       [disabled]="!teamMitigation.isActive && accessLevel() < 3"></textarea>
                           </div>
                         </p-tabpanel>
+                        }
                         }
                       </p-tabpanels>
                     </p-tabs>
@@ -780,7 +820,8 @@
           </p-step-panel>
 
           <!-- Attachments -->
-          <p-step-panel [value]="10" *ngIf="poam.poamId !== 'ADDPOAM'">
+          @if (poam.poamId !== 'ADDPOAM') {
+          <p-step-panel [value]="10">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
@@ -795,6 +836,7 @@
               </div>
             </ng-template>
           </p-step-panel>
+          }
         </p-step-panels>
       </p-stepper>
     </p-footer>
@@ -823,7 +865,7 @@
     </p-footer>
   </p-card>
 </div>
-
+}
 <p-dialog [(visible)]="submitDialogVisible"
           [modal]="true"
           [style]="{width: '500px'}"
@@ -876,10 +918,11 @@
           [style]="{width: '80vw', height: '80vh'}"
           [maximizable]="true"
           [baseZIndex]="10000">
-  <cpat-poam-chat *ngIf="poam?.poamId && poam.poamId !== 'ADDPOAM'"
-                  [poamId]="poam.poamId"
+  @if (poam?.poamId && poam.poamId !== 'ADDPOAM') {
+  <cpat-poam-chat [poamId]="poam.poamId"
                   [userId]="user?.userId">
   </cpat-poam-chat>
+  }
 </p-dialog>
 
 <p-toast />

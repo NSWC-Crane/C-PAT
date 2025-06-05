@@ -19,7 +19,6 @@ import { SharedService } from '../../../common/services/shared.service';
 import { PoamService } from '../poams.service';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -41,7 +40,6 @@ import { EMASSOverwriteSelectionComponent } from '../../../common/utils/emasster
   styleUrls: ['./poam-grid.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ButtonModule,
     CardModule,
@@ -54,8 +52,8 @@ import { EMASSOverwriteSelectionComponent } from '../../../common/utils/emasster
     TableModule,
     TooltipModule,
     ToastModule,
-    TagModule,
-  ],
+    TagModule
+],
   providers: [MessageService, DialogService],
 })
 export class PoamGridComponent implements OnInit, OnDestroy {

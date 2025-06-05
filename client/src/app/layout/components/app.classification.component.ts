@@ -11,7 +11,6 @@
 import { Classification } from '../../common/models/classification.model';
 import { Component, OnInit } from '@angular/core';
 import { SharedService } from '../../common/services/shared.service';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { take } from 'rxjs';
 
@@ -19,16 +18,18 @@ import { take } from 'rxjs';
   selector: 'cpat-classification',
   standalone: true,
   template: `
-    <div *ngIf="isClassificationActive" class="layout-classification">
-      <div
-        class="layout-classification-content"
-        [style.background-color]="classification?.classificationColorCode"
-      >
-        <span class="layout-classification-text">{{ classification?.classificationText }}</span>
+    @if (isClassificationActive) {
+      <div class="layout-classification">
+        <div
+          class="layout-classification-content"
+          [style.background-color]="classification?.classificationColorCode"
+          >
+          <span class="layout-classification-text">{{ classification?.classificationText }}</span>
+        </div>
       </div>
-    </div>
-  `,
-  imports: [CommonModule, FormsModule],
+    }
+    `,
+  imports: [FormsModule],
 })
 export class AppClassificationComponent implements OnInit {
   classification: Classification | undefined;

@@ -11,59 +11,67 @@
 <div class="card overflow-hidden">
   <div class="mt-[-1.5rem] mr-[-1.5rem] flex justify-end">
     <button pButton
-            icon="pi pi-cog"
-            class="p-button-rounded p-button-text"
-            (click)="navigateToAppInfo()">
+      icon="pi pi-cog"
+      class="p-button-rounded p-button-text"
+      (click)="navigateToAppInfo()">
     </button>
   </div>
   <p-tabs [(value)]="value" scrollable>
-      <p-tablist>
-          <p-tab [value]="0">User Management</p-tab>
-          <p-tab [value]="1">Collection Management</p-tab>
-          <p-tab [value]="2">STIG Manager</p-tab>
-          <p-tab *ngIf="tenableEnabled" [value]="3">Tenable Import</p-tab>
-          <p-tab [value]="4">Asset Deltas</p-tab>
-          <p-tab [value]="5">VRAM IAV Import</p-tab>
-          <p-tab *ngIf="tenableEnabled" [value]="6">Nessus Plugin Mapping</p-tab>
-          <p-tab [value]="7">A&A Packages</p-tab>
-          <p-tab [value]="8">Assigned Teams</p-tab>
-      </p-tablist>
-      <p-tabpanels>
-          <p-tabpanel [value]="0">
-              <cpat-user-processing></cpat-user-processing>
-          </p-tabpanel>
+    <p-tablist>
+      <p-tab [value]="0">User Management</p-tab>
+      <p-tab [value]="1">Collection Management</p-tab>
+      <p-tab [value]="2">STIG Manager</p-tab>
+      @if (tenableEnabled) {
+        <p-tab [value]="3">Tenable Import</p-tab>
+      }
+      <p-tab [value]="4">Asset Deltas</p-tab>
+      <p-tab [value]="5">VRAM IAV Import</p-tab>
+      @if (tenableEnabled) {
+        <p-tab [value]="6">Nessus Plugin Mapping</p-tab>
+      }
+      <p-tab [value]="7">A&A Packages</p-tab>
+      <p-tab [value]="8">Assigned Teams</p-tab>
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel [value]="0">
+        <cpat-user-processing></cpat-user-processing>
+      </p-tabpanel>
 
-          <p-tabpanel [value]="1">
-              <cpat-collection-processing></cpat-collection-processing>
-          </p-tabpanel>
+      <p-tabpanel [value]="1">
+        <cpat-collection-processing></cpat-collection-processing>
+      </p-tabpanel>
 
-          <p-tabpanel [value]="2">
-              <cpat-stigmanager-admin></cpat-stigmanager-admin>
-          </p-tabpanel>
+      <p-tabpanel [value]="2">
+        <cpat-stigmanager-admin></cpat-stigmanager-admin>
+      </p-tabpanel>
 
-          <p-tabpanel *ngIf="tenableEnabled" [value]="3">
-              <cpat-tenable-admin></cpat-tenable-admin>
-          </p-tabpanel>
+      @if (tenableEnabled) {
+        <p-tabpanel [value]="3">
+          <cpat-tenable-admin></cpat-tenable-admin>
+        </p-tabpanel>
+      }
 
-          <p-tabpanel [value]="4">
-            <cpat-asset-delta [activated]="value === 4"></cpat-asset-delta>
-          </p-tabpanel>
+      <p-tabpanel [value]="4">
+        <cpat-asset-delta [activated]="value === 4"></cpat-asset-delta>
+      </p-tabpanel>
 
-          <p-tabpanel [value]="5">
-              <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()"></cpat-vram-import>
-          </p-tabpanel>
+      <p-tabpanel [value]="5">
+        <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()"></cpat-vram-import>
+      </p-tabpanel>
 
-          <p-tabpanel *ngIf="tenableEnabled" [value]="6">
-              <cpat-nessus-plugin-mapping [activated]="value === 6"></cpat-nessus-plugin-mapping>
-          </p-tabpanel>
+      @if (tenableEnabled) {
+        <p-tabpanel [value]="6">
+          <cpat-nessus-plugin-mapping [activated]="value === 6"></cpat-nessus-plugin-mapping>
+        </p-tabpanel>
+      }
 
-          <p-tabpanel [value]="7">
-              <cpat-aa-package-processing></cpat-aa-package-processing>
-          </p-tabpanel>
+      <p-tabpanel [value]="7">
+        <cpat-aa-package-processing></cpat-aa-package-processing>
+      </p-tabpanel>
 
-          <p-tabpanel [value]="8">
-              <cpat-assigned-team-processing></cpat-assigned-team-processing>
-          </p-tabpanel>
-      </p-tabpanels>
+      <p-tabpanel [value]="8">
+        <cpat-assigned-team-processing></cpat-assigned-team-processing>
+      </p-tabpanel>
+    </p-tabpanels>
   </p-tabs>
 </div>

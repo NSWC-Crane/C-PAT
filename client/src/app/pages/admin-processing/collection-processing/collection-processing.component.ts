@@ -20,7 +20,6 @@ import { SharedService } from '../../../common/services/shared.service';
 import { ImportService } from '../../import-processing/import.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { AAPackageService } from '../aaPackage-processing/aaPackage-processing.service';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
@@ -47,7 +46,6 @@ interface TreeNode<T> {
   imports: [
     AutoCompleteModule,
     ButtonModule,
-    CommonModule,
     DialogModule,
     FormsModule,
     IconFieldModule,
@@ -55,8 +53,8 @@ interface TreeNode<T> {
     InputTextModule,
     TextareaModule,
     ToastModule,
-    TreeTableModule,
-  ],
+    TreeTableModule
+],
   providers: [MessageService],
 })
 export class CollectionProcessingComponent implements OnInit, OnDestroy {

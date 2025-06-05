@@ -30,7 +30,9 @@ import { ProgressBarModule } from 'primeng/progressbar';
         [showValue]="true"
         [style]="{ height: '20px' }"
       ></p-progressBar>
-      <p *ngIf="message">{{ message + ' ' + countdownMessage }}</p>
+      @if (message) {
+      <p>{{ message + ' ' + countdownMessage }}</p>
+      }
     </p-dialog>
   `,
   standalone: true,

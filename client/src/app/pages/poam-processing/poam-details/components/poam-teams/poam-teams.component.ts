@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-import { CommonModule } from "@angular/common";
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MessageService } from "primeng/api";
@@ -24,13 +23,12 @@ import { PoamService } from "../../../poams.service";
   templateUrl: './poam-teams.component.html',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TableModule,
     ProgressBarModule,
     SelectModule,
     ButtonModule
-  ]
+]
 })
 export class PoamTeamsComponent {
   @Input() poam: any;

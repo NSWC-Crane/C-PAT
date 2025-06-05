@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-import { CommonModule } from "@angular/common";
 import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
@@ -27,15 +26,14 @@ import { STIGManagerPoamAssetsTableComponent } from '../../../../import-processi
   templateUrl: './poam-assets.component.html',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TableModule,
     ButtonModule,
     SelectModule,
     TooltipModule,
     STIGManagerPoamAssetsTableComponent,
-    TenableAssetsTableComponent,
-  ]
+    TenableAssetsTableComponent
+]
 })
 export class PoamAssetsComponent implements OnChanges {
   @Input() poam: any;

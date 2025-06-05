@@ -10,7 +10,6 @@
 
 import { Component } from '@angular/core';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -26,12 +25,11 @@ export interface EMassField {
   selector: 'emasster-field-selection-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     CardModule,
     PickListModule,
     ButtonModule
-  ],
+],
   template: `
       <div class="flex flex-col min-w-[800px]">
         <div class="text-xl font-semibold mb-6 text-center">

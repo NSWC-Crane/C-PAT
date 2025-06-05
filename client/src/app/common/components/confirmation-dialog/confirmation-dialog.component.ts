@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -29,7 +28,7 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
         height: 'auto',
         'max-height': '20vh',
       }"
-    >
+      >
       <p-header>
         <h3>{{ options.header }}</h3>
       </p-header>
@@ -38,16 +37,17 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
       </div>
       <p-footer>
         <div style="text-align:center; margin: 0 0.75rem;">
-          <button
-            pButton
-            type="button"
-            label="Cancel"
-            icon="pi pi-times"
-            style="margin-left: 10%;"
-            class="p-button-outlined p-button-warn"
-            (click)="cancel()"
-            *ngIf="options.cancelbutton === 'true'"
-          ></button>
+          @if (options.cancelbutton === 'true') {
+            <button
+              pButton
+              type="button"
+              label="Cancel"
+              icon="pi pi-times"
+              style="margin-left: 10%;"
+              class="p-button-outlined p-button-warn"
+              (click)="cancel()"
+            ></button>
+          }
           <button
             pButton
             type="button"
@@ -57,22 +57,23 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
             [class]="'p-button-outlined p-button-' + options.button.status"
             (click)="confirm()"
           ></button>
-          <button
-            *ngIf="options.convertButton"
-            pButton
-            type="button"
-            label="{{ options.convertButton.text }}"
-            icon="pi pi-refresh"
-            style="margin-left: 5%;"
-            class="p-button-outlined p-button-warn"
-            (click)="convert()"
-          ></button>
+          @if (options.convertButton) {
+            <button
+              pButton
+              type="button"
+              label="{{ options.convertButton.text }}"
+              icon="pi pi-refresh"
+              style="margin-left: 5%;"
+              class="p-button-outlined p-button-warn"
+              (click)="convert()"
+            ></button>
+          }
         </div>
       </p-footer>
     </p-dialog>
-  `,
+    `,
   standalone: true,
-  imports: [ButtonModule, CommonModule, DialogModule, FormsModule],
+  imports: [ButtonModule, DialogModule, FormsModule],
 })
 export class ConfirmationDialogComponent {
   @Input() options!: ConfirmationDialogOptions;

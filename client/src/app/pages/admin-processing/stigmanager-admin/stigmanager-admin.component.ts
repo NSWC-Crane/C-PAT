@@ -15,7 +15,6 @@ import { CollectionsService } from '../collection-processing/collections.service
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { SharedService } from '../../../common/services/shared.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -33,7 +32,7 @@ interface STIGManagerCollection {
   templateUrl: './stigmanager-admin.component.html',
   styleUrls: ['./stigmanager-admin.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
+  imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
   providers: [ConfirmationService, MessageService],
 })
 export class STIGManagerAdminComponent implements OnInit {

@@ -27,7 +27,6 @@ import {
   ConfirmationDialogComponent,
   ConfirmationDialogOptions,
 } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -41,7 +40,7 @@ import { ToastModule } from 'primeng/toast';
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, DialogModule, InputTextModule, ToastModule],
+  imports: [FormsModule, ButtonModule, DialogModule, InputTextModule, ToastModule],
   providers: [MessageService, DialogService],
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {

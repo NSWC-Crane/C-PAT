@@ -8,8 +8,9 @@
 !##########################################################################
 -->
 
-<cpat-poam-mainchart
-  *ngIf="poams"
-  canvasHeight="40rem"
-  [poams]="poams"
-></cpat-poam-mainchart>
+@if (poams) {
+  <cpat-poam-mainchart
+    canvasHeight="40rem"
+    [poams]="poams"
+  ></cpat-poam-mainchart>
+}

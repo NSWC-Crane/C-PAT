@@ -9,7 +9,7 @@
 */
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { Location } from '@angular/common';
 import { MenuItem } from 'primeng/api';
 import { Router, NavigationEnd, RouterModule, Event } from '@angular/router';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -19,7 +19,7 @@ import { Subject } from 'rxjs';
 @Component({
   selector: 'cpat-breadcrumb',
   standalone: true,
-  imports: [CommonModule, RouterModule, BreadcrumbModule],
+  imports: [RouterModule, BreadcrumbModule],
   template: `
     <p-breadcrumb [model]="items" [home]="home" styleClass="border-none surface-ground">
     </p-breadcrumb>
