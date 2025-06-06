@@ -1,22 +1,19 @@
 ## What's Changed
 
 ### New Features
-* feat: Manage POAMs Component Metrics (6e871ec)
-* feat: Re-assign POAM (02397c6)
-* feat: Tenable Tabbed View Additions (555185c)
+* feat: Add SEoL tab to Tenable Component (8d521f9)
+* feat: Add SEoL tab to Tenable Component (d2a7ca0)
 
 ### Bug Fixes
-* fix: Advanced pie chart animations (76ad9e1)
-* fix: closed date API validation error on re-opened POAMs (545cacc)
-* fix: POAM milestone submission requirements. (4c9994a)
-* fix: Save POAM prior to submission (f707dda)
-* fix: Connection deadlock on POAM Team Mitigation status update (c74152a)
+* fix: Smart table row insertion with paginator fix (db993eb)
+* fix: Update 'lastClaims' handling (b8d93d7)
+* fix: Error on transition from POAM Details -> POAM Log (4fed818)
 
 ### Other Changes
-* chore: deps update (61722df)
+* refactor: Update routing, default theme, and client deps (5fad59d)
+* chore: Update release workflow (a6075c0)
+* docs: Documentation update (88a5d3f)
+* chore: Authentication refactoring (0e3a2d1)
+* chore: Support Angular 20 #355 (fb37696)
+* style: Scroll bar update for 'Assets' tab within a POAM #358 (089cf18)
 
-### Breaking Changes
-* perf!: Requires STIG Manager 1.5.7. Remove unused projection from findings request (847affd)
-
-
-**Full Changelog**: https://github.com/NSWC-Crane/C-PAT/compare/1.2.0...1.2.1
