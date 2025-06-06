@@ -147,7 +147,7 @@ function requestLogger(req, res, next) {
                     ...requestStats.operationIds[operationId]
                 }
             }
-        }    
+        }
 
         if (config.log.mode === 'combined') {
             writeInfo(req.component || 'rest', 'transaction', {
@@ -304,7 +304,6 @@ function trackOperationStats(operationId, durationMs, res) {
         return currentAvg + (newValue - currentAvg) / counter
     }
 }
-
 
 module.exports = {
     requestLogger,

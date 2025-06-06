@@ -13,7 +13,7 @@ const logger = require('../utils/logger');
 const SmError = require('../utils/error');
 const config = require('../utils/config');
 
-const privilegeGetter = new Function("obj", "return obj?." + config.oauth.claims.privileges + " || [];");
+const privilegeGetter = new Function("obj", "return obj?." + config.oauth.claims.privilegesChain + " || [];");
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();

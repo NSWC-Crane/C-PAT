@@ -8,335 +8,281 @@
 !##########################################################################
 */
 
-const config = require("../utils/config");
-const logger = require("./logger");
-const jwksClient = require("jwks-rsa");
-const jwt = require("jsonwebtoken");
-const retry = require("async-retry");
-const _ = require("lodash");
-const User = require("../Services/usersService");
-const SmError = require("./error");
-const { differenceInMinutes } = require("date-fns");
-const https = require("https");
-const http = require("http");
+const config = require('./config');
+const logger = require('./logger');
+const jwt = require('jsonwebtoken');
+const retry = require('async-retry');
+const _ = require('lodash');
+const UserService = require(`../Services/usersService`);
+const SmError = require('./error');
+const state = require('./state');
+const JWKSCache = require('./jwksCache');
+const { differenceInMinutes } = require('date-fns');
 
-let jwksUri;
-let client;
+let jwksCache;
 
-class HttpAgentManager {
-    static agents = new Map();
+const privilegeGetter = new Function("obj", "return obj?." + config.oauth.claims.privilegesChain + " || [];")
 
-    static createAgent(isHttps) {
-        const agent = this.agents.get(isHttps);
-        if (agent) return agent;
+function decodeToken(tokenJWT) {
+    const tokenObj = jwt.decode(tokenJWT, { complete: true })
+    if (!tokenObj) {
+        throw new SmError.AuthorizeError("Token is not valid JWT")
+    }
+    return tokenObj
+}
 
-        const agentConfig = {
-            keepAlive: true,
-            keepAliveMsecs: 3000,
-            maxSockets: 25,
-            maxFreeSockets: 12,
-            timeout: 10000
-        };
-
-        const newAgent = isHttps ? new https.Agent(agentConfig) : new http.Agent(agentConfig);
-        this.agents.set(isHttps, newAgent);
-        return newAgent;
+function checkInsecureKid(tokenObj) {
+    if (!config.oauth.allowInsecureTokens && config.oauth.insecureKids?.includes(tokenObj.header.kid)) {
+        throw new SmError.InsecureTokenError(`Insecure kid found: ${tokenObj.header.kid}`)
     }
 }
 
-const privilegeGetter = new Function(
-  "obj",
-  "return obj?." + config.oauth.claims.privileges + " || [];"
-);
+async function getSigningKey(tokenObj, req) {
+    let signingKey = jwksCache.getKey(tokenObj.header.kid)
+    logger.writeDebug('auth', 'signingKey', { kid: tokenObj.header.kid, url: req.url })
 
-async function handleUserDataRefresh(userObject, currentUserData, decoded) {
-  const refreshFields = {};
-  const now = new Date();
+    if (signingKey === null) {
+        const result = await jwksCache.refreshCache(false)
+        if (result) {
+            signingKey = jwksCache.getKey(tokenObj.header.kid)
+        }
+        if (!result || !signingKey) {
+            signingKey = 'unknown'
+            jwksCache.setKey(tokenObj.header.kid, signingKey)
+            logger.writeWarn('auth', 'unknownKid', { kid: tokenObj.header.kid })
+        }
+    }
 
-  if (
-    !currentUserData?.lastAccess ||
-    differenceInMinutes(now, currentUserData?.lastAccess) >=
-      config.settings.lastAccessResolution
-  ) {
-    refreshFields.lastAccess = now;
-  }
+    if (signingKey === 'unknown') {
+        throw new SmError.SigningKeyNotFoundError(`Signing key unknown for kid: ${tokenObj.header.kid}`)
+    }
 
-  if (
-    !currentUserData?.lastClaims ||
-    decoded.jti !== currentUserData?.lastClaims?.jti
-  ) {
-    refreshFields.lastClaims = decoded;
-  }
+    return signingKey
+}
 
-  return refreshFields;
+function verifyToken(tokenJWT, signingKey) {
+    try {
+        jwt.verify(tokenJWT, signingKey)
+    } catch (e) {
+        throw new SmError.AuthorizeError(e.message)
+    }
+}
+
+const validateToken = async function (req, res, next) {
+    try {
+        const tokenJWT = getBearerToken(req)
+        if (tokenJWT) {
+            const tokenObj = decodeToken(tokenJWT)
+            checkInsecureKid(tokenObj)
+            const signingKey = await getSigningKey(tokenObj, req)
+            verifyToken(tokenJWT, signingKey)
+
+            req.access_token = tokenObj.payload
+            req.bearer = tokenJWT
+        }
+        next()
+    } catch (e) {
+        next(e)
+    }
+}
+
+async function handleUserDataRefresh(currentUserData, tokenPayload) {
+    const refreshFields = {}
+    const now = new Date()
+
+    if (!currentUserData?.lastAccess || differenceInMinutes(now, currentUserData?.lastAccess) >= config.settings.lastAccessResolution) {
+        refreshFields.lastAccess = now
+    }
+
+    if (!currentUserData?.lastClaims || tokenPayload[config.oauth.claims.assertion] !== currentUserData?.lastClaims?.[config.oauth.claims.assertion]) {
+        refreshFields.lastClaims = JSON.stringify(tokenPayload)
+    }
+
+    return refreshFields
 }
 
 async function handlePointsUpdate(userId, lastAccess, hasPoints) {
-  const now = new Date();
-  if (!config.client.features.marketplaceDisabled && hasPoints) {
-    if (differenceInMinutes(now, lastAccess) >= 720) {
-      await User.dailyPoints(userId);
-    } else if (differenceInMinutes(now, lastAccess) >= 60) {
-      await User.hourlyPoints(userId);
+    const now = new Date()
+    if (!config.client.features.marketplaceDisabled && hasPoints) {
+        if (differenceInMinutes(now, lastAccess) >= 720) {
+            await UserService.dailyPoints(userId)
+        } else if (differenceInMinutes(now, lastAccess) >= 60) {
+            await UserService.hourlyPoints(userId)
+        }
     }
-  }
 }
 
-const verifyRequest = async function (req, requiredScopes, securityDefinition) {
-  try {
-    const token = getBearerToken(req);
-    if (!token) {
-      throw new SmError.AuthorizeError("OIDC bearer token must be provided");
-    }
-    const options = {
-      algorithms: ["RS256"],
-      ignoreExpiration: false,
-    };
-    const decoded = await verifyAndDecodeToken(token, getKey, options);
-    req.access_token = decoded;
-    req.bearer = token;
-    req.userObject = {
-      email: decoded[config.oauth.claims.email] ?? "None Provided",
-      firstName: decoded[config.oauth.claims.firstname] ?? "",
-      lastName: decoded[config.oauth.claims.lastname] ?? "",
-      fullName: decoded[config.oauth.claims.fullname] ?? "",
-    };
+const setupUser = async function (req, res, next) {
+    try {
+        if (req.access_token) {
+            const tokenPayload = req.access_token
 
-    const usernamePrecedence = [
-      config.oauth.claims.username,
-      "preferred_username",
-      config.oauth.claims.servicename,
-      "azp",
-      "client_id",
-      "clientId",
-    ];
-    req.userObject.userName =
-      decoded[usernamePrecedence.find((element) => !!decoded[element])];
-    if (req.userObject.userName === undefined) {
-      throw new SmError.PrivilegeError(
-        "No token claim mappable to username found"
-      );
+            req.userObject = {
+                email: tokenPayload[config.oauth.claims.email] ?? "None Provided",
+                firstName: tokenPayload[config.oauth.claims.firstname] ?? "",
+                lastName: tokenPayload[config.oauth.claims.lastname] ?? "",
+                fullName: tokenPayload[config.oauth.claims.fullname] ?? "",
+            }
+
+            const usernamePrecedence = [
+                config.oauth.claims.username,
+                "preferred_username",
+                config.oauth.claims.servicename,
+                "azp",
+                "client_id",
+                "clientId",
+            ];
+            req.userObject.userName = tokenPayload[usernamePrecedence.find((element) => !!tokenPayload[element])]
+
+            if (req.userObject.userName === undefined) {
+                throw new SmError.AuthorizeError("No token claim mappable to username found");
+            }
+
+            req.userObject.displayName = tokenPayload[config.oauth.claims.name] ?? req.userObject.userName
+
+            req.userObject.isAdmin = privilegeGetter(tokenPayload).includes("admin")
+
+            const currentUserData = await UserService.getUserByUserName(req.userObject.userName)
+            if (currentUserData?.length > 1) req.userObject = currentUserData
+            req.userObject.userId = currentUserData?.userId || null
+
+            const refreshFields = await handleUserDataRefresh(currentUserData, tokenPayload)
+
+            if (req.userObject.userName && (refreshFields.lastAccess || refreshFields.lastClaims)) {
+                if (req.userObject.userId === null) {
+                    const userId = await UserService.setUserData(req.userObject, refreshFields, true)
+                    if (userId?.insertId && userId?.insertId != req.userObject.userId) {
+                        req.userObject.userId = userId?.insertId?.toString()
+                    }
+                } else {
+                    const userId = await UserService.setUserData(req.userObject, refreshFields, false)
+                    if (userId?.insertId && userId?.insertId != req.userObject.userId) {
+                        req.userObject.userId = userId?.insertId?.toString()
+                    }
+                    await handlePointsUpdate(
+                        req.userObject.userId,
+                        currentUserData?.lastAccess,
+                        currentUserData?.points
+                    )
+                }
+            }
+        }
+        next()
+    }
+    catch (e) {
+        next(e)
+    }
+}
+
+const validateOauthSecurity = function (req, requiredScopes) {
+    if (!req.access_token) {
+        throw new SmError.NoTokenError()
     }
 
-    req.userObject.displayName =
-      decoded[config.oauth.claims.name] ?? req.userObject.userName;
-    const grantedScopes =
-      typeof decoded[config.oauth.claims.scope] === "string"
-        ? decoded[config.oauth.claims.scope].split(" ")
-        : decoded[config.oauth.claims.scope];
-    const commonScopes = _.intersectionWith(
-      grantedScopes,
-      requiredScopes,
-      function (gs, rs) {
-        if (gs === rs) return gs;
-        let gsTokens = gs.split(":").filter((i) => i.length);
-        let rsTokens = rs.split(":").filter((i) => i.length);
+    const tokenPayload = req.access_token
+
+    const grantedScopes = typeof tokenPayload[config.oauth.claims.scope] === 'string' ?
+        tokenPayload[config.oauth.claims.scope].split(' ') :
+        tokenPayload[config.oauth.claims.scope]
+    const commonScopes = _.intersectionWith(grantedScopes, requiredScopes, function(gs, rs) {
+        if (gs === rs) return gs
+        let gsTokens = gs.split(":").filter(i => i.length)
+        let rsTokens = rs.split(":").filter(i => i.length)
         if (gsTokens.length === 0) {
-          return false;
-        } else {
-          return gsTokens.every((t, i) => rsTokens[i] === t);
+            return false
         }
-      }
-    );
+        else {
+            return gsTokens.every((t, i) => rsTokens[i] === t)
+        }
+    })
     if (commonScopes.length == 0) {
-      throw new SmError.PrivilegeError("Not in scope");
-    } else {
-      let isAdmin = privilegeGetter(decoded).includes("admin");
-      req.userObject.isAdmin = isAdmin;
-
-      const currentUserData = await User.getUserByUserName(
-        req.userObject.userName
-      );
-      if (currentUserData?.length > 1) req.userObject = currentUserData;
-      req.userObject.userId = currentUserData?.userId || null;
-
-      const refreshFields = await handleUserDataRefresh(
-        req.userObject,
-        currentUserData,
-        decoded
-      );
-
-      if (
-        req.userObject.userName &&
-        (refreshFields.lastAccess || refreshFields.lastClaims)
-      ) {
-        if (req.userObject.userId === null) {
-          const userId = await User.setUserData(
-            req.userObject,
-            refreshFields,
-            true
-          );
-          if (userId?.insertId && userId?.insertId != req.userObject.userId) {
-            req.userObject.userId = userId?.insertId?.toString();
-          }
-        } else {
-          const userId = await User.setUserData(
-            req.userObject,
-            refreshFields,
-            false
-          );
-          if (userId?.insertId && userId?.insertId != req.userObject.userId) {
-            req.userObject.userId = userId?.insertId?.toString();
-          }
-          await handlePointsUpdate(
-            req.userObject.userId,
-            currentUserData?.lastAccess,
-            currentUserData?.points
-          );
-        }
-      }
-
-      return true;
+        throw new SmError.OutOfScopeError()
     }
-  } catch (error) {
-    logger.writeError("auth", "verify", {
-      error: error.message,
-      stack: error.stack,
-    });
-    throw error;
-  }
-};
 
-const verifyAndDecodeToken = (token, getKey, options) => {
-  return new Promise((resolve, reject) => {
-    jwt.verify(token, getKey, options, (err, decoded) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(decoded);
-      }
-    });
-  });
-};
-
-const getBearerToken = (req) => {
-  if (!req.headers.authorization) return;
-  const headerParts = req.headers.authorization.split(" ");
-  if (headerParts[0].toLowerCase() === "bearer") return headerParts[1];
-};
-
-async function getKey(header, callback) {
-  async function fetchSigningKey() {
-    return await new Promise((resolve, reject) => {
-      client.getSigningKey(header.kid, (err, key) => {
-        if (err) {
-          reject(err);
-        } else {
-          const signingKey = key.publicKey || key.rsaPublicKey;
-          resolve(signingKey);
-        }
-      });
-    });
-  }
-
-  try {
-    const signingKey = await retry(fetchSigningKey, {
-      retries: 3,
-      factor: 1,
-      minTimeout: 1000,
-      maxTimeout: 1000,
-      onRetry: (error) => {
-        logger.writeError("oidc", "jwks", {
-          success: false,
-          kid: header.kid,
-          message: error.message,
-        });
-      },
-    });
-
-    logger.writeDebug("oidc", "jwks", {
-      success: true,
-      kid: header.kid,
-    });
-
-    callback(null, signingKey);
-  } catch (error) {
-    logger.writeError("oidc", "jwks", {
-      success: false,
-      kid: header.kid,
-      message: error.message,
-      final: true,
-    });
-    callback(error, null);
-  }
+    return true
 }
 
-let initAttempt = 0;
-async function initializeAuth(depStatus) {
-  const retries = 24;
-  const wellKnown = `${config.oauth.authority}/.well-known/openid-configuration`;
-  async function getJwks() {
-    logger.writeDebug("oidc", "discovery", {
-      metadataUri: wellKnown,
-      attempt: ++initAttempt,
-    });
-
-      const response = await fetch(wellKnown);
-      if (!response.ok) {
-          throw new Error(`Failed to fetch OpenID configuration: ${response.status} ${response.statusText}`);
-      }
-      const openidConfig = await response.json();
-
-      logger.writeDebug("oidc", "discovery", {
-          metadataUri: wellKnown,
-          metadata: openidConfig,
-      });
-
-      if (!openidConfig.jwks_uri) {
-          throw new Error("No jwks_uri property found");
-      }
-
-    jwksUri = openidConfig.jwks_uri;
-    const isHttps = jwksUri.toLowerCase().startsWith("https");
-    const requestAgent = HttpAgentManager.createAgent(isHttps);
-
-    client = jwksClient({
-      cache: true,
-      cacheMaxEntries: 10,
-      cacheMaxAge: 600000,
-      jwksUri: jwksUri,
-      timeout: 10000,
-      rateLimit: true,
-      jwksRequestsPerMinute: 45,
-      requestAgent,
-      handleSigningKeyError: async (err, cb) => {
-        logger.writeError("oidc", "jwks", {
-          error: err.message,
-          code: err.code,
-          stack: err.stack,
-        });
-        if (err.code === "ECONNRESET" || err.code === "ECONNREFUSED") {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          client.getSigningKey.cache.reset();
-        }
-        cb(err);
-      },
-    });
-  }
-
-  await retry(getJwks, {
-    retries,
-    factor: 1.5,
-    minTimeout: 2 * 1000,
-    maxTimeout: 10 * 1000,
-    onRetry: (error) => {
-      logger.writeError("oidc", "discovery", {
-        success: false,
-        metadataUri: wellKnown,
-        message: error.message,
-      });
-    },
-  });
-
-  logger.writeInfo("oidc", "discovery", {
-    success: true,
-    metadataUri: wellKnown,
-    jwksUri: jwksUri,
-  });
-  depStatus.auth = "up";
+const getBearerToken = req => {
+    if (!req.headers.authorization) return
+    const headerParts = req.headers.authorization.split(' ')
+    if (headerParts[0].toLowerCase() === 'bearer') return headerParts[1]
 }
 
-module.exports = {
-    verifyRequest,
-    initializeAuth
-};
+const containsInsecureKids = (kids) => {
+    return kids.some(kid => config.oauth.insecureKids?.includes(kid))
+}
+
+const setupJwks = async function (jwksUri) {
+    jwksCache = new JWKSCache({
+        jwksUri,
+        cacheMaxAge: (config.oauth.cacheMaxAge || 10) * 60 * 1000,
+    })
+    jwksCache.on('cacheUpdate', (cache) => {
+        logger.writeDebug('auth', 'jwksCacheEvent', { event: 'cacheUpdate', kids: jwksCache.getKidTypes() })
+    })
+    jwksCache.on('cacheStale', (cache) => {
+        logger.writeDebug('auth', 'jwksCacheEvent', { event: 'cacheStale', message: cache })
+        state.setOidcStatus(false)
+        jwksCache.once('cacheUpdate', (cache) => {
+            state.setOidcStatus(true)
+        })
+    })
+
+    const cacheResult = await jwksCache.refreshCache(false)
+    if (!cacheResult) throw new Error('refresh jwks cache failed')
+    const kids = jwksCache.getKids()
+    if (!config.oauth.allowInsecureTokens && containsInsecureKids(kids)) {
+        throw new Error('insecure_kid - JWKS contains insecure key IDs and CPAT_DEV_ALLOW_INSECURE_TOKENS is false')
+    }
+
+    logger.writeDebug('auth', 'discovery', { jwksUri, kids: jwksCache.getKidTypes() })
+}
+
+let initAttempt = 0
+async function initializeAuth() {
+    const retries = config.settings.dependencyRetries || 24
+    const metadataUri = `${config.oauth.authority}/.well-known/openid-configuration`
+    let jwksUri
+
+    async function getJwks(bail) {
+        logger.writeDebug('auth', 'discovery', { metadataUri, attempt: ++initAttempt })
+        const response = await fetch(metadataUri, { method: 'GET' })
+        const openidConfig = await response.json()
+        logger.writeDebug('auth', 'discovery', { metadataUri, metadata: openidConfig})
+
+        if (!openidConfig.jwks_uri) {
+            const message = "No jwks_uri property found in oidcConfig"
+            logger.writeError('auth', 'discovery', { success: false, metadataUri, message })
+            bail(new Error(message))
+            return
+        }
+        jwksUri = openidConfig.jwks_uri
+
+        try {
+            await setupJwks(jwksUri)
+        } catch (error) {
+            if (error.message.startsWith('insecure_kid -')) {
+                logger.writeError('auth', 'discovery', { success: false, metadataUri, message: error.message })
+                bail(error)
+                return
+            }
+            throw error
+        }
+    }
+
+    await retry(getJwks, {
+        retries,
+        factor: 1,
+        minTimeout: 5 * 1000,
+        maxTimeout: 5 * 1000,
+        onRetry: (error) => {
+            state.setStatus(false)
+            logger.writeError('auth', 'discovery', { success: false, metadataUri, message: error.message })
+        }
+    })
+
+    logger.writeInfo('auth', 'discovery', { success: true, metadataUri, jwksUri })
+    state.setOidcStatus(true)
+}
+
+module.exports = {validateToken, setupUser, validateOauthSecurity, initializeAuth, privilegeGetter}

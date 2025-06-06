@@ -76,7 +76,7 @@ exports.getAppInfo = async function () {
     ud.created,
     ud.lastAccess,
     coalesce(
-      JSON_EXTRACT(ud.lastClaims, "$.${config.oauth.claims.privilegesPath}"),
+      JSON_EXTRACT(ud.lastClaims, "$.${config.oauth.claims.privilegesChainSql}"),
       json_array()
     ) as privileges,
     json_object(

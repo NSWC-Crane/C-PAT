@@ -54,6 +54,21 @@ module.exports.deleteConfigurationItem = async function deleteConfigurationItem(
     }
 };
 
+module.exports.getDefinition = async function getDefinition(req, res, next) {
+    try {
+        let jsonpath = req.query.jsonpath
+        if (jsonpath) {
+            res.json(JSONPath(jsonpath, config.definition))
+        }
+        else {
+            res.json(config.definition)
+        }
+    }
+    catch (err) {
+        next(err)
+    }
+}
+
 module.exports.getAppInfo = async function getAppInfo(req, res, next) {
     try {
         let elevate = req.query.elevate
