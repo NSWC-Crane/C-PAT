@@ -68,9 +68,16 @@ export class AAPackageProcessingComponent implements OnInit {
   }
 
   onAddNewClick() {
-    this.aaPackages = [this.newAAPackage, ...this.aaPackages];
-    this.editingAAPackage = this.newAAPackage;
     this.newAAPackage = { aaPackageId: 0, aaPackage: '' };
+    this.aaPackages = [this.newAAPackage, ...this.aaPackages];
+
+    if (this.table) {
+      this.table.first = 0;
+    }
+
+    setTimeout(() => {
+      this.table.initRowEdit(this.aaPackages[0]);
+    });
   }
 
   onRowEditInit(aaPackage: AAPackage) {
