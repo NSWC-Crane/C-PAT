@@ -95,7 +95,7 @@ async function handleUserDataRefresh(currentUserData, tokenPayload) {
     }
 
     if (!currentUserData?.lastClaims || tokenPayload[config.oauth.claims.assertion] !== currentUserData?.lastClaims?.[config.oauth.claims.assertion]) {
-        refreshFields.lastClaims = JSON.stringify(tokenPayload)
+        refreshFields.lastClaims = tokenPayload
     }
 
     return refreshFields
