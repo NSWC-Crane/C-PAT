@@ -11,7 +11,7 @@
 <div class="stepper-content">
   @if (collectionType === 'C-PAT') {
     <div>
-      <p-table [value]="poamAssets" [paginator]="false">
+      <p-table [value]="poamAssets">
         <ng-template pTemplate="header">
           <tr>
             <th pSortableColumn="assetName" scope="col">Asset</th>
