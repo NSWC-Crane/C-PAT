@@ -320,14 +320,11 @@
           />
         </g>
       </svg>
-      <a routerLink="/poam-processing">
-        <button
-          pButton
-          type="button"
-          label="Refresh?"
-          class="tryRefresh p-button-outlined p-button-primary"
-        ></button>
-      </a>
+      <p-button variant="outlined"
+        label="Refresh?"
+        class="tryRefresh"
+        (click)="navigateToPoamProcessing()"
+      ></p-button>
     </div>
   </div>
 </p-card>

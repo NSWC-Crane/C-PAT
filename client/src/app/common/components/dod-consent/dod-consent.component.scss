@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
-.consent-button {
-  margin-top: 1rem;
+::ng-deep .p-dialog-header {
+  margin-top: 2rem;
+  margin-left: 2rem;
 }

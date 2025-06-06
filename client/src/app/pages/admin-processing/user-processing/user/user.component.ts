@@ -17,6 +17,7 @@ import {
     OnChanges,
     OnDestroy,
     ChangeDetectorRef,
+    ViewChild
 } from '@angular/core';
 import { SubSink } from 'subsink';
 import { UsersService } from '../users.service';
@@ -30,7 +31,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
 import { Select } from 'primeng/select';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { InputTextModule } from 'primeng/inputtext';
@@ -107,6 +108,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     @Input() users: any;
     @Input() payload: any;
     @Output() userChange = new EventEmitter<void>();
+    @ViewChild('teamTable') teamTable: Table;
+    @ViewChild('permissionsTable') permissionsTable: Table;
     accessLevelOptions = [
         { label: 'Viewer', value: 1 },
         { label: 'Submitter', value: 2 },
@@ -289,14 +292,18 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     onAddNewPermission() {
-        this.updateAvailableCollections();
-        const newPermission: Permission = {
-            userId: this.user.userId,
-            collectionId: null,
-            accessLevel: 1,
-            editing: true,
-        };
-        this.collectionPermissions.unshift(newPermission);
+      this.updateAvailableCollections();
+      const newPermission: Permission = {
+        userId: this.user.userId,
+        collectionId: null,
+        accessLevel: 1,
+        editing: true,
+      };
+      this.collectionPermissions.unshift(newPermission);
+
+      if (this.permissionsTable) {
+        this.permissionsTable.first = 0;
+      }
     }
 
     onEditPermission(permission: Permission) {
@@ -411,14 +418,18 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     onAddNewAssignedTeam() {
-        this.updateAvailableTeams();
-        const newAssignedTeam: AssignedTeam = {
-            userId: this.user.userId,
-            assignedTeamId: null,
-            accessLevel: 1,
-            editing: true,
-        };
-        this.userAssignedTeams.unshift(newAssignedTeam);
+      this.updateAvailableTeams();
+      const newAssignedTeam: AssignedTeam = {
+        userId: this.user.userId,
+        assignedTeamId: null,
+        accessLevel: 1,
+        editing: true,
+      };
+      this.userAssignedTeams.unshift(newAssignedTeam);
+
+      if (this.teamTable) {
+        this.teamTable.first = 0;
+      }
     }
 
     onEditAssignedTeam(assignedTeam: AssignedTeam) {

@@ -43,7 +43,7 @@
     "@tailwindcss/postcss": "^4.1.8",
     "@types/chart.js": "^4.0.1",
     "@types/jasmine": "^5.1.8",
-    "@types/node": "^22.15.29",
+    "@types/node": "^22.15.30",
     "autoprefixer": "^10.4.21",
     "jasmine-core": "^5.7.1",
     "karma": "^6.4.4",

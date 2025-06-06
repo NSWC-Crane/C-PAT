@@ -142,7 +142,8 @@
     <p-step-panels>
       <p-step-panel [value]="1">
         <ng-template #content let-activateCallback="activateCallback">
-          <p-table class="w-full"
+          <p-table #teamTable
+                   class="w-full"
                    [value]="userAssignedTeams"
                    [columns]="teamCols"
                    editMode="row"
@@ -236,7 +237,8 @@
 
       <p-step-panel [value]="2">
         <ng-template #content let-activateCallback="activateCallback">
-          <p-table class="w-full"
+          <p-table #permissionsTable
+                   class="w-full"
                    [value]="collectionPermissions"
                    [columns]="cols"
                    editMode="row"

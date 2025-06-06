@@ -8,34 +8,32 @@
 !##########################################################################
 */
 
-import { AfterViewInit, Component } from '@angular/core';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { ConsentDialogComponent } from './consent-dialog.component';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'cpat-consent',
   templateUrl: './dod-consent.component.html',
+  styleUrls: ['./dod-consent.component.scss'],
   standalone: true,
-  imports: [DialogModule, FormsModule],
-  providers: [DialogService],
+  imports: [DialogModule, FormsModule, ButtonModule]
 })
-export class DoDConsentComponent implements AfterViewInit {
-  modalWindow: DynamicDialogRef | undefined;
+export class DoDConsentComponent implements OnInit {
+  visible: boolean = false;
 
-  constructor(private dialogService: DialogService) {}
+  constructor(
+    private router: Router
+  ) { }
 
-  async ngAfterViewInit() {
-    this.modalWindow = this.dialogService.open(ConsentDialogComponent, {
-      header: 'DoD Consent',
-      width: '70%',
-    });
+  ngOnInit() {
+    this.visible = true;
   }
 
   consentOk() {
-    if (this.modalWindow) {
-      this.modalWindow.close();
-    }
+    this.visible = false;
+    this.router.navigate(['/poam-processing']);
   }
 }
