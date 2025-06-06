@@ -107,6 +107,8 @@ jobs:
 
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" C-PAT/C-PAT.json
 
+          sed -i "s/version: '[^']*'/version: '$NEW_VERSION'/" api/specification/C-PAT.yaml
+
           echo "Updated version to $NEW_VERSION in all files"
 
       - name: Generate changelog
@@ -162,7 +164,7 @@ jobs:
 
       - name: Commit and tag version
         run: |
-          git add api/package.json api/package-lock.json client/package.json client/package-lock.json docs/conf.py C-PAT/C-PAT.json CHANGELOG.md
+          git add api/package.json api/package-lock.json client/package.json client/package-lock.json docs/conf.py C-PAT/C-PAT.json api/specification/C-PAT.yaml CHANGELOG.md
           git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
           NEW_TAG_NAME="${{ steps.version.outputs.new_version }}"
           if git rev-parse "$NEW_TAG_NAME" >/dev/null 2>&1; then
