@@ -9,8 +9,10 @@
 | API rate limit per 15 minutes","API"
 "CPAT_API_PORT","| **Default** ``8086``
 | The TCP port on which the server will listen ","API"
-"CPAT_CLASSIFICATION","| **Default** ``U``
+"CPAT_CLASSIFICATION","| If CPAT_DOD_DEPLOYMENT is explicitly set to ``false``: **Default** ``NONE``, otherwise **Default** ``U``
 | Sets the classification banner, if any. Available values: ``NONE`` ``U`` ``FOUO`` ``CUI`` ``C`` ``S`` ``TS`` ``SCI`` ","API, Client"
+"CPAT_DOD_DEPLOYMENT","| **Default** ``true``
+| Configure whether application deployment is subject to DoD and Application Security and Development STIG rules. i.e. DoD consent banner.","API, Client"
 "CPAT_API_BASE","| **Default** ``api``
 | The base URL for Client requests to the API relative to the sever root at / ","Client"
 "CPAT_CLIENT_DIRECTORY","| **Default** ``../client/dist/browser``
@@ -53,7 +55,7 @@
 | Controls whether the logs will create one “combined” log entry for http requests that includes both the request and response information; or two separate log entries, one for the request and one for the response, that can be correlated via a generated Request GUID in each entry","API"
 "CPAT_JWT_EMAIL_CLAIM","| **Default** ``email``
 | The access token claim whose value is the user's email address","API, Client"
-"CPAT_JWT_FULL_NAME_CLAIM","| **Default** ``name``
+"CPAT_JWT_NAME_CLAIM","| **Default** ``name``
 | The access token claim whose value is the user's full name","API, Client"
 "CPAT_JWT_FIRST_NAME_CLAIM","| **Default** ``given_name``
 | The access token claim whose value is the user's first name","API, Client"
@@ -61,6 +63,8 @@
 | The access token claim whose value is the user's last name","API, Client"
 "CPAT_JWT_PRIVILEGES_CLAIM","| **Default** ``realm_access.roles``
 | The access token claim whose value is the user’s privileges ","API, Client"
+"CPAT_JWT_ASSERTION_CLAIM","| **Default** ``jti``
+| The access token claim whose value is the OIDC provider’s Assertion ID. Updates to this value trigger the API to update a User’s ``lastClaims`` property. The claim MUST NOT be nested and MUST be a valid ECMAScript identifier. ","API, Client"
 "CPAT_JWT_SCOPE_CLAIM","| **Default** ``scope``
 | The access token claim whose value is the user's scopes. Some OIDC Providers (Okta, Azure AD) use the claim ``scp`` to enumerate scopes","API, Client"
 "CPAT_JWT_SERVICENAME_CLAIM","| **Default** ``clientId``

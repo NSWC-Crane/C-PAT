@@ -9,20 +9,21 @@ C-PAT requires an OAuth2 JSON Web Token (JWT) that conforms to the OpenID Connec
 C-PAT has been tested to work with Keycloak and Okta as OIDC providers.  It is expected to work with other OIDC providers if they can be configured to provide a token that meets the requirements specified below. Please create an Issue with details on our GitHub project if you experience issues with other providers.
 
 .. note::
-  If you are using the RMF Tools demonstration Keycloak container, you may not need to change any settings or variables described in this section. 
+  If you are using the RMF Tools demonstration Keycloak container, you may not need to change any settings or variables described in this section.
 
 
 JSON Web Token (JWT) Requirements
 ----------------------------------
 
 The JWT produced by the Identity Provider should provide the claims specified below. Some of them may have different names in your configuration, and can be specified in the C-PAT environment variables if they differ from the default values:
-    
+
     * Username - ``CPAT_JWT_USERNAME_CLAIM`` - **default:** ``preferred_username``
-    * User Full Name - ``CPAT_JWT_FULL_NAME_CLAIM`` - (optional) **default:** ``name``
+    * User Full Name - ``CPAT_JWT_NAME_CLAIM`` - (optional) **default:** ``name``
     * User First Name - ``CPAT_JWT_FIRST_NAME_CLAIM`` - (optional) **default:** ``given_name``
     * User Last Name - ``CPAT_JWT_LAST_NAME_CLAIM`` - (optional) **default:** ``family_name``
     * User Email - ``CPAT_JWT_EMAIL_CLAIM`` - (optional) **default:** ``email``
     * User Privileges - ``CPAT_JWT_PRIVILEGES_CLAIM`` - **default:** ``realm_access.roles``
+    * Assertion ID - ``CPAT_JWT_ASSERTION_CLAIM`` - **default:** ``jti``
     * scope - OIDC standard. Use ``CPAT_EXTRA_SCOPES`` to specify additional scopes the client should request.
 
 .. note::
@@ -79,15 +80,15 @@ The JWT produced by the Identity Provider should provide the claims specified be
     }
 
 
-The fields highlighted in the sample token above control the access and information C-PAT requires to allow users to access the application.  The token your OIDC provider creates does not need to look exactly like this, but where it differs the relevant claims must be specified using C-PAT Environment Variables. 
+The fields highlighted in the sample token above control the access and information C-PAT requires to allow users to access the application.  The token your OIDC provider creates does not need to look exactly like this, but where it differs the relevant claims must be specified using C-PAT Environment Variables.
 
 
 Cross-Origin Resource Sharing (CORS)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If your deployment environment has your OIDC Provider and the C-PAT client in different origins (ie. domains), you will need to specify the Client origin in the Web Origins configuration options of your OIDC Provider. This will set the ``Access-Control-Allow-Origin`` header in the OIDC Provider's responses, and permit browsers to make subsequent requests to the OIDC provider.  
+If your deployment environment has your OIDC Provider and the C-PAT client in different origins (ie. domains), you will need to specify the Client origin in the Web Origins configuration options of your OIDC Provider. This will set the ``Access-Control-Allow-Origin`` header in the OIDC Provider's responses, and permit browsers to make subsequent requests to the OIDC provider.
 
-Alternatively, you could situate your OIDC Provider and the Client server behind a reverse proxy that is configured to present them both as coming from the same origin, avoiding the problem. 
+Alternatively, you could situate your OIDC Provider and the Client server behind a reverse proxy that is configured to present them both as coming from the same origin, avoiding the problem.
 
 
 .. _oidc-scopes:
@@ -95,14 +96,14 @@ Alternatively, you could situate your OIDC Provider and the Client server behind
 Scopes, and Privileges
 ---------------------------------
 
-The C-PAT API restricts endpoint access using the "scope" claims in the JWT. See the `API specification <https://github.com/NSWC-Crane/C-PAT/blob/main/api/specification/C-PAT.yaml>`_ for details. 
+The C-PAT API restricts endpoint access using the "scope" claims in the JWT. See the `API specification <https://github.com/NSWC-Crane/C-PAT/blob/main/api/specification/C-PAT.yaml>`_ for details.
 
-The guide provided below maps scopes to various Realm Roles that are then assigned to Users. 
-These Roles and Scopes can be provided to users in various ways, using Client Roles, Client Groups, defaults, etc. Please refer to the `Keycloak Documentation <https://www.keycloak.org/documentation>`_ for more information. 
+The guide provided below maps scopes to various Realm Roles that are then assigned to Users.
+These Roles and Scopes can be provided to users in various ways, using Client Roles, Client Groups, defaults, etc. Please refer to the `Keycloak Documentation <https://www.keycloak.org/documentation>`_ for more information.
 
-The **Roles** specified in the JWT map to Privileges in C-PAT that allow varying levels of access and abilities. See the :ref:`user-roles-privs` section of the Setup Guide for more information. 
+The **Roles** specified in the JWT map to Privileges in C-PAT that allow varying levels of access and abilities. See the :ref:`user-roles-privs` section of the Setup Guide for more information.
 
-The **Scopes** specified in the JWT control access to API endpoints as specified in the OpenAPI spec.  See the :ref:`C-PAT Client Scopes and Roles <oidc-scopes-table>` table below for a suggestion on how to allocate these scopes using OIDC roles, and more information. 
+The **Scopes** specified in the JWT control access to API endpoints as specified in the OpenAPI spec.  See the :ref:`C-PAT Client Scopes and Roles <oidc-scopes-table>` table below for a suggestion on how to allocate these scopes using OIDC roles, and more information.
 
 
 
@@ -115,9 +116,9 @@ The **Scopes** specified in the JWT control access to API endpoints as specified
 Authentication Example - RedHat Keycloak 19+
 -------------------------------------------------------
 
-The web client is an OpenID Connect (OIDC) OAuth2 Relying Party and the API is an OAuth2 Resource Server. User authentication is provided by an external Identity Provider (IdP). All API access is controlled by OAUth2 JSON Web Tokens (JWTs) issued by the IdP. User roles are extracted from token claims, endpoint access is controlled by token scope. 
+The web client is an OpenID Connect (OIDC) OAuth2 Relying Party and the API is an OAuth2 Resource Server. User authentication is provided by an external Identity Provider (IdP). All API access is controlled by OAUth2 JSON Web Tokens (JWTs) issued by the IdP. User roles are extracted from token claims, endpoint access is controlled by token scope.
 Keycloak is readily available, actively maintained by a major OSS vendor, supports Identity Brokering and User Federation, and is used by major DoD projects such as Air Force Iron Bank.
-Keycloak supports many External Identity Providers, but has only been tested using its own authentication. 
+Keycloak supports many External Identity Providers, but has only been tested using its own authentication.
 `More information about RedHat Keycloak. <https://www.keycloak.org/documentation>`_
 
 A sample Keycloak image configured for C-PAT, STIG Manager, and containing Demo users, can be found `on our Github page. <https://github.com/NSWC-Crane/C-PAT/tree/C-PAT-AUTH>`_
@@ -125,7 +126,7 @@ A sample Keycloak image configured for C-PAT, STIG Manager, and containing Demo 
 Keycloak Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The configuration offered below is just one way to create a Keycloak Realm that will authenticate Users for C-PAT. The following items in the Keycloak installation must be created and configured appropriately, and their values passed to C-PAT in the appropriate Environment Variable: 
+The configuration offered below is just one way to create a Keycloak Realm that will authenticate Users for C-PAT. The following items in the Keycloak installation must be created and configured appropriately, and their values passed to C-PAT in the appropriate Environment Variable:
 
 * Keycloak Realm - suggested value: RMFTools
 * Client ID - suggested value: c-pat
@@ -141,13 +142,13 @@ Keycloak settings for the "c-pat" realm:
 .. note::
   These roles can also be set up at the Client level, rather than the Realm level. Make adjustments accordingly.
 
-* Configure->Roles->Default Roles - Recommended: set "user" and "cpat_write" as default roles.   
-* Configure->Client Scopes - Create the following scopes, and assign them the specified roles in that scope's "Scope" tab: 
+* Configure->Roles->Default Roles - Recommended: set "user" and "cpat_write" as default roles.
+* Configure->Client Scopes - Create the following scopes, and assign them the specified roles in that scope's "Scope" tab:
 
 .. _oidc-scopes-table:
 
 
-  .. list-table:: C-PAT Client Scopes and Roles: 
+  .. list-table:: C-PAT Client Scopes and Roles:
    :widths: 20 70
    :header-rows: 1
    :class: tight-table
@@ -155,7 +156,7 @@ Keycloak settings for the "c-pat" realm:
    * - Client Scopes
      - Roles
    * - c-pat:read
-     - user   
+     - user
    * - c-pat:write
      - cpat_write
    * - c-pat:op
@@ -188,7 +189,7 @@ Configure C-PAT to use your Authentication provider
 
 Most commonly, C-PAT will require the below Environment Variable to be specified, unless their default values are appropriate.  Check the :ref:`Environment Variables` document for an exhaustive list of Environment Variables and their default values.
 
-.. list-table:: C-PAT OIDC Environmenment Variables: 
+.. list-table:: C-PAT OIDC Environmenment Variables:
  :widths: 20 25 55
  :header-rows: 1
  :class: tight-table
@@ -208,9 +209,12 @@ Most commonly, C-PAT will require the below Environment Variable to be specified
  * - ``CPAT_JWT_PRIVILEGES_CLAIM``
    - ``realm_access.roles``
    - The access token claim whose value is the user’s privileges.
+ * - ``CPAT_JWT_ASSERTION_CLAIM``
+   - ``jti``
+   - The access token claim whose value is the OIDC provider’s Assertion ID. Updates to this value trigger the API to update a User’s ``lastClaims`` property. The claim MUST NOT be nested and MUST be a valid ECMAScript identifier.
  * - ``CPAT_CLIENT_EXTRA_SCOPES``
-   - **No default** 
+   - **No default**
    - Scopes to request in addition to: ``c-pat:read`` ``c-pat:write`` ``c-pat:op`` ``openid``
 
-A sample Keycloak image, recommended only for testing purposes, is available on `Github. <https://github.com/NSWC-Crane/C-PAT/tree/C-PAT-AUTH>`_ Most of the default values for the above Environment variables will work with this image. 
+A sample Keycloak image, recommended only for testing purposes, is available on `Github. <https://github.com/NSWC-Crane/C-PAT/tree/C-PAT-AUTH>`_ Most of the default values for the above Environment variables will work with this image.
 
