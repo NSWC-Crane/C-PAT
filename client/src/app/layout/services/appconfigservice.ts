@@ -126,7 +126,7 @@ export class AppConfigService {
     return {
       preset: 'Aura',
       primary: 'noir',
-      surface: null,
+      surface: 'soho',
       darkTheme: true,
       menuActive: false,
       RTL: false,

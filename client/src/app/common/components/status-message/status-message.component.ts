@@ -10,7 +10,7 @@
 
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
@@ -26,15 +26,17 @@ import { ProgressBarModule } from 'primeng/progressbar';
     CardModule,
     DialogModule,
     FormsModule,
-    ProgressBarModule,
-    RouterLink
-],
+    ProgressBarModule
+  ],
 })
 export class StatusMessageComponent implements OnInit {
   @Input() statusCode: number;
   message: string = '';
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router
+  ) { }
 
   ngOnInit() {
     if (!this.statusCode) {
@@ -43,6 +45,10 @@ export class StatusMessageComponent implements OnInit {
       });
     }
     this.setMessage();
+  }
+
+  navigateToPoamProcessing() {
+    this.router.navigate(['/poam-processing']);
   }
 
   setMessage() {

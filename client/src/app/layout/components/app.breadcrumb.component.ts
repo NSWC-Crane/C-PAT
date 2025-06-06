@@ -43,7 +43,7 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
     private router: Router,
     private location: Location
   ) {
-    this.home = { icon: 'pi pi-home', routerLink: '/' };
+    this.home = { icon: 'pi pi-home', routerLink: '/poam-processing' };
   }
 
   ngOnInit() {
@@ -67,7 +67,7 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
   private updateBreadcrumbs() {
     const currentUrl = this.location.path();
 
-    if (currentUrl === '' || currentUrl === '/') {
+    if (currentUrl === '' || currentUrl === '/' || currentUrl === '/poam-processing') {
       this.items = [
         {
           label: 'POAM Processing',

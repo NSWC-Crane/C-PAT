@@ -55,7 +55,7 @@ import { UsersService } from '../../pages/admin-processing/user-processing/users
   template: `<div class="layout-topbar">
       <div class="layout-topbar-inner">
         <div class="layout-topbar-logo-container">
-          <a [routerLink]="['/']" class="layout-topbar-logo" aria-label="PrimeNG Logo">
+          <a [routerLink]="['/poam-processing']" class="layout-topbar-logo" aria-label="PrimeNG Logo">
             <svg
               width="170"
               height="50"

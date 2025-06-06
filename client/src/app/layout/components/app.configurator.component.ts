@@ -202,9 +202,9 @@ export class AppConfiguratorComponent implements OnInit {
         if (user?.defaultTheme) {
           const defaults = {
             preset: 'Aura',
-            primary: 'slate',
-            surface: 'slate',
-            darkTheme: false,
+            primary: 'noir',
+            surface: 'soho',
+            darkTheme: true,
             rtl: false,
           };
 

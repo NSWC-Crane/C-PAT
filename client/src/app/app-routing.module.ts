@@ -33,7 +33,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'poam-processing',
+        redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing',
         pathMatch: 'full',
       },
       {
@@ -110,7 +110,7 @@ export const routes: Routes = [
     component: StatusMessageComponent,
     data: { statusCode: 999 },
   },
-  { path: '**', redirectTo: 'consent' },
+  { path: '**', redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing' },
 ];
 @NgModule({
   imports: [RouterModule.forRoot(routes, routerOptions)],
