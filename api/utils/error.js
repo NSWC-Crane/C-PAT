@@ -60,16 +60,100 @@ class UnprocessableError extends SmError {
 class InternalError extends SmError {
   constructor(error) {
     super(error.message)
+    this.status = 500
     this.detail = { error }
   }
 }
 
+class OIDCProviderError extends SmError {
+  constructor(detail) {
+    super('OIDC Provider is unreachable, unable to validate token.')
+    this.status = 503
+    this.detail = detail
+  }
+}
+
+class SigningKeyNotFoundError extends SmError {
+  constructor(detail) {
+    super('Unknown signing key, unable to validate token.')
+    this.status = 401
+    this.detail = detail
+  }
+}
+
+class InsecureTokenError extends SmError {
+  constructor(detail) {
+    super('Insecure token presented and STIGMAN_DEV_ALLOW_INSECURE_TOKENS is false.')
+    this.status = 401
+    this.detail = detail
+  }
+}
+
+class NoTokenError extends SmError {
+  constructor(detail) {
+    super('Request requires an access token.')
+    this.status = 401
+    this.detail = detail
+  }
+}
+
+class OutOfScopeError extends SmError {
+  constructor(detail) {
+    super('Required scopes were not found in token.')
+    this.status = 403
+    this.detail = detail
+  }
+}
+
+class ElevationError extends SmError {
+  constructor(detail) {
+    super('Request requires parameter elevate=true.')
+    this.status = 403
+    this.detail = detail
+  }
+}
+
+class InvalidElevationError extends SmError {
+  constructor(detail) {
+    super('Invalid use of parameter elevate=true.')
+    this.status = 403
+    this.detail = detail
+  }
+}
+
+class UserUnavailableError extends SmError {
+  constructor(detail) {
+    super('User status is "unavailable".')
+    this.status = 403
+    this.detail = detail
+  }
+}
+
+class UserInconsistentError extends SmError {
+  constructor(detail) {
+    super('Setting collectionGrants or userGroups is inconsistent with status "unavailable".')
+    this.status = 422
+    this.detail = detail
+  }
+}
+
+
+
 module.exports = {
   SmError,
-  AuthorizeError,  
+  AuthorizeError,
   PrivilegeError,
   NotFoundError,
   ClientError,
   UnprocessableError,
-  InternalError 
+  OIDCProviderError,
+  SigningKeyNotFoundError,
+  NoTokenError,
+  OutOfScopeError,
+  ElevationError,
+  InvalidElevationError,
+  InternalError,
+  InsecureTokenError,
+  UserUnavailableError,
+  UserInconsistentError
 }

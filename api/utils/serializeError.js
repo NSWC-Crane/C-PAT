@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-
 'use strict';
 
 class NonError extends Error {
@@ -35,10 +34,10 @@ class NonError extends Error {
 }
 
 const commonProperties = [
-	{property: 'name', enumerable: false},
-	{property: 'message', enumerable: false},
-	{property: 'stack', enumerable: false},
-	{property: 'code', enumerable: true}
+	{ property: 'name', enumerable: false },
+	{ property: 'message', enumerable: false },
+	{ property: 'stack', enumerable: false },
+	{ property: 'code', enumerable: true }
 ];
 
 const isCalled = Symbol('.toJSON called');
@@ -101,7 +100,7 @@ const destroyCircular = ({
 		to[key] = '[Circular]';
 	}
 
-	for (const {property, enumerable} of commonProperties) {
+	for (const { property, enumerable } of commonProperties) {
 		if (typeof from[property] === 'string') {
 			Object.defineProperty(to, property, {
 				value: from[property],
@@ -116,7 +115,7 @@ const destroyCircular = ({
 };
 
 const serializeError = (value, options = {}) => {
-	const {maxDepth = Number.POSITIVE_INFINITY} = options;
+	const { maxDepth = Number.POSITIVE_INFINITY } = options;
 
 	if (typeof value === 'object' && value !== null) {
 		return destroyCircular({
@@ -128,9 +127,7 @@ const serializeError = (value, options = {}) => {
 		});
 	}
 
-	// People sometimes throw things besides Error objects…
 	if (typeof value === 'function') {
-		// `JSON.stringify()` discards functions. We do too, unless a function is thrown directly.
 		return `[Function: ${(value.name || 'anonymous')}]`;
 	}
 
@@ -138,14 +135,14 @@ const serializeError = (value, options = {}) => {
 };
 
 const deserializeError = (value, options = {}) => {
-	const {maxDepth = Number.POSITIVE_INFINITY} = options;
+	const { maxDepth = Number.POSITIVE_INFINITY } = options;
 
 	if (value instanceof Error) {
 		return value;
 	}
 
 	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-		const newError = new Error(); // eslint-disable-line unicorn/error-message
+		const newError = new Error();
 		destroyCircular({
 			from: value,
 			seen: [],

@@ -9,14 +9,17 @@
 */
 
 require('dotenv').config();
-const cpatPackage = require("../package.json")
+const cpatPackage = require("../package.json");
+
+const insecureKids = ['FJ86GcF3jTbNLOco4NvZkUCIUmfYCqoqtOQeMfbhNlE'];
 
 let config = {
     version: cpatPackage.version,
     settings: {
         setClassification: process.env.CPAT_CLASSIFICATION || "U",
         lastAccessResolution: 60,
-        responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || "none"
+        responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || "none",
+        dodDeployment: process.env.CPAT_DOD_DEPLOYMENT !== "false",
     },
     client: {
         authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
@@ -87,16 +90,20 @@ let config = {
     oauth: {
         clientId: process.env.CPAT_OIDC_CLIENT_ID || "c-pat",
         authority: process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/realms/RMFTools",
+        allowInsecureTokens: process.env.CPAT_DEV_ALLOW_INSECURE_TOKENS === "true",
+        insecureKids,
+        cacheMaxAge: Math.min(Math.max(process.env.CPAT_JWKS_CACHE_MAX_AGE, 1) || 10, 35791),
         claims: {
             scope: process.env.CPAT_JWT_SCOPE_CLAIM || "scope",
             username: process.env.CPAT_JWT_USERNAME_CLAIM || "preferred_username",
             servicename: process.env.CPAT_JWT_SERVICENAME_CLAIM || "clientId",
-            fullname: process.env.CPAT_JWT_FULL_NAME_CLAIM || process.env.CPAT_JWT_USERNAME_CLAIM || "name",
+            fullname: process.env.CPAT_JWT_NAME_CLAIM || process.env.CPAT_JWT_USERNAME_CLAIM || "name",
             firstname: process.env.CPAT_JWT_FIRST_NAME_CLAIM || "given_name",
             lastname: process.env.CPAT_JWT_LAST_NAME_CLAIM || "family_name",
-            privileges: formatChain(process.env.CPAT_JWT_PRIVILEGES_CLAIM || "realm_access.roles"),
-            privilegesPath: process.env.CPAT_JWT_PRIVILEGES_CLAIM || "realm_access.roles",
-            email: process.env.CPAT_JWT_EMAIL_CLAIM || "email"
+            privilegesSql: formatMySqlJsonPath(process.env.CPAT_JWT_PRIVILEGES_CLAIM || "realm_access.roles"),
+            privilegesChain: formatJsChain(process.env.CPAT_JWT_PRIVILEGES_CLAIM || "realm_access.roles"),
+            email: process.env.CPAT_JWT_EMAIL_CLAIM || "email",
+            assertion: process.env.CPAT_JWT_ASSERTION_CLAIM || "jti"
         }
     },
     ai: {
@@ -112,13 +119,17 @@ let config = {
     }
 }
 
-function formatChain(path) {
+function formatJsChain(path) {
     const components = path?.split('.')
     if (components?.length === 1) return path
     for (let x = 0; x < components.length; x++) {
         components[x] = `['${components[x]}']`
     }
     return components.join('?.')
+}
+
+function formatMySqlJsonPath(path) {
+    return path?.split('.').map(p => `"${p}"`).join('.')
 }
 
 module.exports = config
