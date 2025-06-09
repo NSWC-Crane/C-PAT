@@ -412,12 +412,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             : null;
 
           if (
-            this.poam.scheduledCompletionDate &&
+            this.dates.scheduledCompletionDate &&
             this.poam.extensionTimeAllowed > 0
           ) {
             this.completionDateWithExtension = format(
               addDays(
-                parseISO(this.poam.scheduledCompletionDate),
+                parseISO(this.dates.scheduledCompletionDate),
                 this.poam.extensionTimeAllowed
               ),
               "yyyy-MM-dd"
