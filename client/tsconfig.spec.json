@@ -20,7 +20,6 @@
     "src/polyfills.ts"
   ],
   "files": [
-    "src/test.ts",
-    "src/jasmine-global.d.ts"
+    "src/test.ts"
   ]
 }

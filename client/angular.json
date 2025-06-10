@@ -163,6 +163,7 @@
             "polyfills": [ "zone.js", "zone.js/testing" ],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
+            "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
               "src/assets"
@@ -185,6 +186,15 @@
               }
             ],
             "scripts": []
+          },
+          "configurations": {
+            "ci": {
+              "browsers": "ChromeHeadlessCI",
+              "watch": false,
+              "singleRun": true,
+              "sourceMap": false,
+              "codeCoverage": true
+            }
           }
         }
       }

@@ -56,7 +56,7 @@ export interface Milestone {
 })
 export class PoamMilestonesComponent implements OnInit {
   @ViewChild('dt') table: Table;
-  @Input() poam: any;
+  @Input() poam: any = { status: '' };
   @Input() accessLevel: number = 0;
   @Input() poamMilestones: Milestone[] = [];
   @Input() assignedTeamOptions: any[] = [];

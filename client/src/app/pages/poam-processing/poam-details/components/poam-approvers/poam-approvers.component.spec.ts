@@ -10,45 +10,32 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PoamApproversComponent } from './poam-approvers.component';
-import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
-import * as jasmine from 'jasmine-core';
 
 describe('PoamApproversComponent', () => {
   let component: PoamApproversComponent;
   let fixture: ComponentFixture<PoamApproversComponent>;
   let mockPoamService: any;
-  let messageService: MessageService;
 
   beforeEach(async () => {
     mockPoamService = {
-      addPoamApprover: jasmine.createSpy('addPoamApprover').and.returnValue(of({})),
-      getPoamApprovers: jasmine.createSpy('getPoamApprovers').and.returnValue(of([])),
-      deletePoamApprover: jasmine.createSpy('deletePoamApprover').and.returnValue(of({}))
+      getPoamApprovers: jasmine.createSpy('getPoamApprovers').and.returnValue(of([]))
     };
-
-    messageService = jasmine.createSpyObj('MessageService', ['add']);
 
     await TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule,
         PoamApproversComponent,
         FormsModule
-      ],
-      providers: [
-        { provide: MessageService, useValue: messageService }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PoamApproversComponent);
     component = fixture.componentInstance;
 
-    component.poam = {
-      poamId: '12345',
-      status: 'Draft'
-    };
+    component.poamId = '12345';
     component.accessLevel = 2;
     component.poamApprovers = [];
     component.collectionApprovers = [
@@ -64,143 +51,268 @@ describe('PoamApproversComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should get approver name correctly', () => {
-    const approverName = component.getApproverName(1);
-    expect(approverName).toBe('John Doe');
+  describe('ngOnInit', () => {
+    it('should initialize poamApprovers as empty array if not an array', () => {
+      component.poamApprovers = null as any;
+      component.ngOnInit();
+      expect(component.poamApprovers).toEqual([]);
+    });
 
-    const nonExistentApprover = component.getApproverName(999);
-    expect(nonExistentApprover).toBe('');
+    it('should keep existing poamApprovers if already an array', () => {
+      const existingApprovers = [{ userId: 1, approvalStatus: 'Approved' }];
+      component.poamApprovers = existingApprovers;
+      component.ngOnInit();
+      expect(component.poamApprovers).toBe(existingApprovers);
+    });
   });
 
-  it('should add a new approver', () => {
-    const approversChangedSpy = spyOn(component.approversChanged, 'emit');
-    component.addApprover();
-    expect(component.poamApprovers.length).toBe(1);
-    expect(component.poamApprovers[0].isNew).toBeTruthy();
-    expect(component.poamApprovers[0].approvalStatus).toBe('Not Reviewed');
-    expect(approversChangedSpy).toHaveBeenCalled();
+  describe('getApproverName', () => {
+    it('should return the full name of an existing approver', () => {
+      const approverName = component.getApproverName(1);
+      expect(approverName).toBe('John Doe');
+    });
+
+    it('should return empty string for non-existent approver', () => {
+      const approverName = component.getApproverName(999);
+      expect(approverName).toBe('');
+    });
   });
 
-  it('should handle approver change when userId is selected', async () => {
-    component.addApprover();
-    const approver = component.poamApprovers[0];
-    approver.userId = 1;
+  describe('addApprover', () => {
+    it('should add a new approver with default values', async () => {
+      const approversChangedSpy = spyOn(component.approversChanged, 'emit');
 
-    const confirmSpy = spyOn(component, 'confirmCreateApprover').and.callThrough();
-    const approversChangedSpy = spyOn(component.approversChanged, 'emit');
+      await component.addApprover();
 
-    await component.onApproverChange(approver, 0);
+      expect(component.poamApprovers.length).toBe(1);
+      expect(component.poamApprovers[0]).toEqual({
+        userId: null,
+        approvalStatus: 'Not Reviewed',
+        approvedDate: null,
+        comments: '',
+        isNew: true
+      });
+      expect(approversChangedSpy).toHaveBeenCalledWith(component.poamApprovers);
+    });
 
-    expect(confirmSpy).toHaveBeenCalledWith(approver);
-    expect(approversChangedSpy).toHaveBeenCalled();
+    it('should add new approver at the beginning of the array', async () => {
+      component.poamApprovers = [{ userId: 1, approvalStatus: 'Approved', approvedDate: null, comments: '', isNew: false }];
+
+      await component.addApprover();
+
+      expect(component.poamApprovers.length).toBe(2);
+      expect(component.poamApprovers[0].isNew).toBe(true);
+      expect(component.poamApprovers[1].userId).toBe(1);
+    });
   });
 
-  it('should handle approver change when userId is null', async () => {
-    component.addApprover();
-    const approver = component.poamApprovers[0];
-    approver.userId = null;
+  describe('onApproverChange', () => {
+    it('should update approver when valid userId is selected', async () => {
+      const approversChangedSpy = spyOn(component.approversChanged, 'emit');
+      const approver = {
+        userId: 1,
+        comments: 'Test comment'
+      };
 
-    const approversChangedSpy = spyOn(component.approversChanged, 'emit');
+      await component.onApproverChange(approver);
 
-    await component.onApproverChange(approver, 0);
+      expect(component.poamApprovers.length).toBe(1);
+      expect(component.poamApprovers[0]).toEqual({
+        userId: 1,
+        fullName: 'John Doe',
+        approvalStatus: 'Not Reviewed',
+        approvedDate: null,
+        comments: 'Test comment',
+        isNew: false
+      });
+      expect(approversChangedSpy).toHaveBeenCalledWith(component.poamApprovers);
+    });
 
-    expect(component.poamApprovers.length).toBe(0);
-    expect(approversChangedSpy).toHaveBeenCalled();
+    it('should update existing approver in place', async () => {
+      component.poamApprovers = [
+        { userId: 1, fullName: 'John Doe', approvalStatus: 'Approved', approvedDate: null, comments: 'Old comment', isNew: false }
+      ];
+
+      const approver = {
+        userId: 1,
+        comments: 'Updated comment'
+      };
+
+      await component.onApproverChange(approver);
+
+      expect(component.poamApprovers.length).toBe(1);
+      expect(component.poamApprovers[0].comments).toBe('Updated comment');
+      expect(component.poamApprovers[0].approvalStatus).toBe('Not Reviewed');
+    });
+
+    it('should handle approver with no comments', async () => {
+      const approver = {
+        userId: 2,
+        comments: undefined
+      };
+
+      await component.onApproverChange(approver);
+
+      expect(component.poamApprovers[0].comments).toBe('');
+    });
+
+    it('should not add approver if userId not found in collectionApprovers', async () => {
+      const approversChangedSpy = spyOn(component.approversChanged, 'emit');
+      const approver = {
+        userId: 999,
+        comments: 'Test'
+      };
+
+      await component.onApproverChange(approver);
+
+      expect(component.poamApprovers.length).toBe(0);
+      expect(approversChangedSpy).not.toHaveBeenCalled();
+    });
+
+    it('should filter out null userId approvers when adding new one', async () => {
+      component.poamApprovers = [
+        { userId: null, approvalStatus: 'Not Reviewed', isNew: true },
+        { userId: 2, fullName: 'Jane Smith', approvalStatus: 'Approved', isNew: false }
+      ];
+
+      const approver = {
+        userId: 1,
+        comments: 'Test'
+      };
+
+      await component.onApproverChange(approver);
+
+      expect(component.poamApprovers.length).toBe(2);
+      expect(component.poamApprovers.find(a => a.userId === null)).toBeUndefined();
+    });
   });
 
-  it('should delete an existing approver', async () => {
-    const approver = {
-      poamId: '12345',
-      userId: 1,
-      approvalStatus: 'Not Reviewed',
-      comments: ''
-    };
+  describe('deleteApprover', () => {
+    it('should delete approver at specified index', async () => {
+      const approversChangedSpy = spyOn(component.approversChanged, 'emit');
+      component.poamApprovers = [
+        { userId: 1, approvalStatus: 'Approved' },
+        { userId: 2, approvalStatus: 'Not Reviewed' },
+        { userId: 3, approvalStatus: 'Rejected' }
+      ];
 
-    component.poamApprovers = [approver];
+      await component.deleteApprover(1);
 
-    const confirmSpy = spyOn(component, 'confirmDeleteApprover').and.callThrough();
-    const approversChangedSpy = spyOn(component.approversChanged, 'emit');
+      expect(component.poamApprovers.length).toBe(2);
+      expect(component.poamApprovers[0].userId).toBe(1);
+      expect(component.poamApprovers[1].userId).toBe(3);
+      expect(approversChangedSpy).toHaveBeenCalledWith(component.poamApprovers);
+    });
 
-    await component.deleteApprover(approver, 0);
+    it('should handle deletion of last item', async () => {
+      component.poamApprovers = [{ userId: 1, approvalStatus: 'Approved' }];
 
-    expect(confirmSpy).toHaveBeenCalledWith(approver);
-    expect(approversChangedSpy).toHaveBeenCalled();
+      await component.deleteApprover(0);
+
+      expect(component.poamApprovers.length).toBe(0);
+    });
   });
 
-  it('should handle delete for a new approver', async () => {
-    component.addApprover();
-    const approver = component.poamApprovers[0];
+  describe('getPoamApprovers', () => {
+    it('should not fetch approvers if poamId is not set', () => {
+      component.poamId = null;
 
-    const approversChangedSpy = spyOn(component.approversChanged, 'emit');
+      component.getPoamApprovers();
 
-    await component.deleteApprover(approver, 0);
+      expect(mockPoamService.getPoamApprovers).not.toHaveBeenCalled();
+    });
 
-    expect(component.poamApprovers.length).toBe(0);
-    expect(approversChangedSpy).toHaveBeenCalled();
+    it('should not fetch approvers if poamId is ADDPOAM', () => {
+      component.poamId = 'ADDPOAM';
+
+      component.getPoamApprovers();
+
+      expect(mockPoamService.getPoamApprovers).not.toHaveBeenCalled();
+    });
+
+    it('should fetch approvers successfully', () => {
+      const mockApprovers = [
+        { userId: 1, approvalStatus: 'Approved', approvedDate: '2024-01-01', comments: 'Good' },
+        { userId: 2, approvalStatus: 'Not Reviewed', approvedDate: null, comments: '' }
+      ];
+      mockPoamService.getPoamApprovers.and.returnValue(of(mockApprovers));
+      const approversChangedSpy = spyOn(component.approversChanged, 'emit');
+
+      component.getPoamApprovers();
+
+      expect(mockPoamService.getPoamApprovers).toHaveBeenCalledWith('12345');
+      expect(component.poamApprovers).toEqual(mockApprovers);
+      expect(approversChangedSpy).toHaveBeenCalledWith(mockApprovers);
+    });
+
+    it('should handle error when fetching approvers', () => {
+      const consoleErrorSpy = spyOn(console, 'error');
+      const messageServiceSpy = spyOn(component['messageService'], 'add');
+      mockPoamService.getPoamApprovers.and.returnValue(
+        throwError(() => new Error('Test error'))
+      );
+
+      component.getPoamApprovers();
+
+      expect(mockPoamService.getPoamApprovers).toHaveBeenCalledWith('12345');
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(messageServiceSpy).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load approvers'
+      });
+    });
   });
 
-  it('should create an approver successfully', () => {
-    const newApprover = {
-      poamId: '12345',
-      userId: 1,
-      approvalStatus: 'Not Reviewed',
-      comments: '',
-      isNew: true
-    };
+  describe('Edge Cases', () => {
+    it('should handle empty collectionApprovers', async () => {
+      component.collectionApprovers = [];
+      const approver = { userId: 1, comments: 'Test' };
 
-    component.confirmCreateApprover(newApprover);
+      await component.onApproverChange(approver);
 
-    expect(mockPoamService.addPoamApprover).toHaveBeenCalled();
-    expect(mockPoamService.getPoamApprovers).toHaveBeenCalledWith('12345');
+      expect(component.poamApprovers.length).toBe(0);
+    });
+
+    it('should handle multiple rapid additions', async () => {
+      await component.addApprover();
+      await component.addApprover();
+      await component.addApprover();
+
+      expect(component.poamApprovers.length).toBe(3);
+      expect(component.poamApprovers.every(a => a.isNew)).toBe(true);
+    });
+
+    it('should maintain order when updating approvers', async () => {
+      component.poamApprovers = [
+        { userId: 2, fullName: 'Jane Smith', approvalStatus: 'Approved', isNew: false }
+      ];
+
+      const approver = { userId: 1, comments: 'New' };
+      await component.onApproverChange(approver);
+
+      expect(component.poamApprovers[0].userId).toBe(1);
+      expect(component.poamApprovers[1].userId).toBe(2);
+    });
   });
 
-  it('should handle error when creating an approver', () => {
-    mockPoamService.addPoamApprover.and.returnValue(
-      throwError(() => new Error('Test error'))
-    );
+  describe('Component Inputs and Outputs', () => {
+    it('should have correct default values', () => {
+      const newFixture = TestBed.createComponent(PoamApproversComponent);
+      const newComponent = newFixture.componentInstance;
 
-    const newApprover = {
-      poamId: '12345',
-      userId: 1,
-      approvalStatus: 'Not Reviewed',
-      comments: '',
-      isNew: true
-    };
+      expect(newComponent.accessLevel).toBe(0);
+      expect(newComponent.poamApprovers).toEqual([]);
+      expect(newComponent.collectionApprovers).toEqual([]);
+    });
 
-    component.confirmCreateApprover(newApprover);
+    it('should emit approversChanged event', (done) => {
+      component.approversChanged.subscribe((approvers) => {
+        expect(approvers).toEqual(component.poamApprovers);
+        done();
+      });
 
-    expect(messageService.add).toHaveBeenCalled();
-  });
-
-  it('should delete an approver successfully', () => {
-    const approver = {
-      poamId: '12345',
-      userId: 1,
-      approvalStatus: 'Not Reviewed',
-      comments: ''
-    };
-
-    component.poamApprovers = [approver];
-
-    component.confirmDeleteApprover(approver);
-
-    expect(mockPoamService.deletePoamApprover).toHaveBeenCalledWith('12345', 1);
-  });
-
-  it('should handle error when deleting an approver', () => {
-    mockPoamService.deletePoamApprover.and.returnValue(
-      throwError(() => new Error('Test error'))
-    );
-
-    const approver = {
-      poamId: '12345',
-      userId: 1,
-      approvalStatus: 'Not Reviewed',
-      comments: ''
-    };
-
-    component.confirmDeleteApprover(approver);
-
-    expect(messageService.add).toHaveBeenCalled();
+      component.addApprover();
+    });
   });
 });
