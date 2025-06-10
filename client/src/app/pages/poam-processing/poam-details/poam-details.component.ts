@@ -1004,18 +1004,39 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this._ensureUniqueTeamMitigations();
   }
 
-  verifySubmitPoam(showDialog: boolean = true): boolean {
-    this.savePoam(true);
-    this._ensureUniqueTeamMitigations();
-
-    const submissionValidation = this.poamValidationService.validateSubmissionRequirements(this.poam, this.teamMitigations, this.poamMilestones, this.dates);
-    if (!submissionValidation.valid) {
+  async verifySubmitPoam(showDialog: boolean = true): Promise<boolean> {
+    const milestonesInEditMode = this.poamMilestones.filter(m => m.editing || m.isNew);
+    if (milestonesInEditMode.length > 0) {
       this.messageService.add({
         severity: 'error',
         summary: 'Information',
-        detail: submissionValidation.message
+        detail: 'Please save or cancel all milestone edits before submitting the POAM.'
       });
       return false;
+    }
+
+    const saveSuccess = await this.savePoam(true);
+    if (!saveSuccess) {
+      return false;
+    }
+
+    this._ensureUniqueTeamMitigations();
+
+    const validations = [
+      this.poamValidationService.validateSubmissionRequirements(this.poam, this.teamMitigations, this.poamMilestones, this.dates),
+      this.poamValidationService.validateMilestoneDates(this.poam, this.poamMilestones),
+      this.poamValidationService.validateMilestoneCompleteness(this.poamMilestones)
+    ];
+
+    for (const validation of validations) {
+      if (!validation.valid) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Information',
+          detail: validation.message
+        });
+        return false;
+      }
     }
 
     if (showDialog) {
