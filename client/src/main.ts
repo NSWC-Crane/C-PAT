@@ -24,6 +24,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
+import { authErrorInterceptor } from './app/core/auth/interceptor/auth-error.interceptor';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 if (environment.production) {
@@ -65,7 +66,6 @@ function getScopeStr(configId: string) {
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: APP_BASE_HREF, useValue: "/" },
-    provideHttpClient(),
     provideAnimationsAsync(),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
     providePrimeNG({ theme: Noir, ripple: false, inputStyle: 'outlined' }),
@@ -125,7 +125,7 @@ bootstrapApplication(AppComponent, {
         }
       ]
     }, withAppInitializerAuthCheck()),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, authErrorInterceptor])),
     MessageService,
     ConfirmationService
   ]
