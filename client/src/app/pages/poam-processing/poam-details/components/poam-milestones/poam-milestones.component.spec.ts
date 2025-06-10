@@ -8,46 +8,24 @@
 !##########################################################################
 */
 
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PoamMilestonesComponent } from './poam-milestones.component';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { PoamMilestonesComponent, Milestone } from './poam-milestones.component';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import * as jasmine from 'jasmine-core';
-
-interface Milestone {
-  milestoneId: string;
-  milestoneComments: string | null;
-  milestoneDate: Date;
-  milestoneStatus: string;
-  assignedTeamId: number | null;
-  isNew?: boolean;
-  editing?: boolean;
-}
+import { Table } from 'primeng/table';
+import { addDays } from 'date-fns';
+import { DatePipe } from '@angular/common';
 
 describe('PoamMilestonesComponent', () => {
   let component: PoamMilestonesComponent;
   let fixture: ComponentFixture<PoamMilestonesComponent>;
-  let mockPoamService: any;
-  let messageService: MessageService;
   let confirmationService: ConfirmationService;
+  let messageService: MessageService;
+  let mockTable: jasmine.SpyObj<Table>;
 
   beforeEach(async () => {
-    mockPoamService = {
-      addPoamMilestone: jasmine.createSpy('addPoamMilestone').and.returnValue(of({ milestoneId: '123' })),
-      updatePoamMilestone: jasmine.createSpy('updatePoamMilestone').and.returnValue(of({})),
-      deletePoamMilestone: jasmine.createSpy('deletePoamMilestone').and.returnValue(of({}))
-    };
-
-    messageService = jasmine.createSpyObj('MessageService', ['add']);
-    confirmationService = jasmine.createSpyObj('ConfirmationService', ['confirm']);
-
-    (confirmationService.confirm as jasmine.Spy).and.callFake((options) => {
-      if (options.accept) options.accept();
-    });
+    mockTable = jasmine.createSpyObj('Table', ['initRowEdit', 'cancelRowEdit']);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -55,181 +33,481 @@ describe('PoamMilestonesComponent', () => {
         PoamMilestonesComponent,
         FormsModule
       ],
-      providers: [
-        { provide: MessageService, useValue: messageService },
-        { provide: ConfirmationService, useValue: confirmationService },
-        DatePipe
-      ]
+      providers: [ConfirmationService, MessageService, DatePipe]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PoamMilestonesComponent);
     component = fixture.componentInstance;
 
+    confirmationService = fixture.debugElement.injector.get(ConfirmationService);
+    messageService = fixture.debugElement.injector.get(MessageService);
+
     component.poam = {
-      poamId: '12345',
       status: 'Draft',
-      scheduledCompletionDate: '2023-12-31'
+      scheduledCompletionDate: addDays(new Date(), 60),
+      extensionTimeAllowed: 0
     };
-    component.accessLevel = 2;
+    component.accessLevel = 4;
     component.assignedTeamOptions = [
       { assignedTeamId: 1, assignedTeamName: 'Team A' },
       { assignedTeamId: 2, assignedTeamName: 'Team B' }
     ];
     component.poamMilestones = [];
 
-    component.editingMilestoneId = signal<string | null>(null);
+    spyOn(messageService, 'add');
 
     fixture.detectChanges();
+    component.table = mockTable;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should add a new milestone', () => {
-    const milestonesSpy = spyOn(component.milestonesChanged, 'emit');
-    component.onAddNewMilestone();
-    expect(component.poamMilestones.length).toBe(1);
-    expect(component.poamMilestones[0].isNew).toBeTruthy();
-    expect(milestonesSpy).toHaveBeenCalled();
+  describe('ngOnInit', () => {
+    it('should initialize empty array if poamMilestones is not an array', () => {
+      component.poamMilestones = null as any;
+      component.ngOnInit();
+      expect(component.poamMilestones).toEqual([]);
+    });
+
+    it('should keep existing milestones array', () => {
+      const milestones: Milestone[] = [
+        {
+          milestoneId: '1',
+          milestoneComments: 'Test',
+          milestoneDate: new Date(),
+          milestoneStatus: 'Pending',
+          assignedTeamId: 1
+        }
+      ];
+      component.poamMilestones = milestones;
+      component.ngOnInit();
+      expect(component.poamMilestones).toBe(milestones);
+    });
   });
 
-  it('should get team name correctly', () => {
-    const teamName = component.getTeamName(1);
-    expect(teamName).toBe('Team A');
+  describe('onAddNewMilestone', () => {
+    it('should add a new milestone with default values', fakeAsync(() => {
+      spyOn(component.milestonesChanged, 'emit');
+      component.poamMilestones = [];
 
-    const nonExistentTeam = component.getTeamName(999);
-    expect(nonExistentTeam).toBe('');
+      component.onAddNewMilestone();
+      tick();
+
+      expect(component.poamMilestones.length).toBe(1);
+      const newMilestone = component.poamMilestones[0];
+      expect(newMilestone.milestoneId).toContain('temp_');
+      expect(newMilestone.milestoneComments).toBeNull();
+      expect(newMilestone.milestoneStatus).toBe('Pending');
+      expect(newMilestone.assignedTeamId).toBeNull();
+      expect(newMilestone.isNew).toBe(true);
+      expect(newMilestone.editing).toBe(true);
+      expect(component.editingMilestoneId()).toBe(newMilestone.milestoneId);
+      expect(component.milestonesChanged.emit).toHaveBeenCalledWith(component.poamMilestones);
+    }));
+
+    it('should set default date 30 days from now', () => {
+      const expectedDate = addDays(new Date(), 30);
+      component.onAddNewMilestone();
+
+      const newMilestone = component.poamMilestones[0];
+      const milestoneDate = new Date(newMilestone.milestoneDate);
+
+      expect(milestoneDate.toDateString()).toBe(expectedDate.toDateString());
+    });
   });
 
-  it('should validate milestone fields correctly', () => {
-    const validMilestone: Milestone = {
-      milestoneComments: 'Test comments',
-      milestoneDate: new Date(),
-      milestoneStatus: 'Pending',
-      assignedTeamId: 1,
-      milestoneId: '123'
-    };
+  describe('onDateChange', () => {
+    it('should set dateModified flag for new milestones', () => {
+      const milestone: Milestone = {
+        milestoneId: 'temp_123',
+        milestoneComments: null,
+        milestoneDate: new Date(),
+        milestoneStatus: 'Pending',
+        assignedTeamId: null,
+        isNew: true
+      };
 
-    const validateMethodSpy = spyOn<any>(component, 'validateMilestoneFields').and.callThrough();
-    component['validateMilestoneFields'](validMilestone);
-    expect(validateMethodSpy).toHaveBeenCalled();
+      component.onDateChange(milestone);
+      expect(milestone.dateModified).toBe(true);
+    });
 
-    const invalidMilestone: Milestone = { ...validMilestone, milestoneComments: null };
-    component['validateMilestoneFields'](invalidMilestone);
-    expect(messageService.add).toHaveBeenCalled();
+    it('should not set dateModified flag for existing milestones', () => {
+      const milestone: Milestone = {
+        milestoneId: '123',
+        milestoneComments: 'Test',
+        milestoneDate: new Date(),
+        milestoneStatus: 'Pending',
+        assignedTeamId: 1,
+        isNew: false
+      };
+
+      component.onDateChange(milestone);
+      expect(milestone.dateModified).toBeUndefined();
+    });
   });
 
-  it('should handle row edit initialization correctly', () => {
-    const milestone: Milestone = {
-      milestoneId: '123',
-      milestoneComments: 'Test',
-      milestoneDate: new Date(),
-      milestoneStatus: 'Pending',
-      assignedTeamId: 1
-    };
+  describe('onRowEditInit', () => {
+    it('should initialize editing state', () => {
+      const milestone: Milestone = {
+        milestoneId: '123',
+        milestoneComments: 'Test',
+        milestoneDate: new Date(),
+        milestoneStatus: 'Pending',
+        assignedTeamId: 1
+      };
 
-    component.onRowEditInit(milestone);
-    expect(milestone.editing).toBeTruthy();
-    expect(component.editingMilestoneId()).toBe('123');
-    expect(component.clonedMilestones['123']).toEqual(milestone);
+      component.onRowEditInit(milestone);
+
+      expect(milestone.editing).toBe(true);
+      expect(component.editingMilestoneId()).toBe('123');
+      expect(component.clonedMilestones['123']).toEqual(milestone);
+    });
   });
 
-  it('should delete a milestone', () => {
-    const milestone: Milestone = {
-      milestoneId: '123',
-      milestoneComments: 'Test',
-      milestoneDate: new Date(),
-      milestoneStatus: 'Pending',
-      assignedTeamId: 1
-    };
+  describe('onRowEditSave', () => {
+    let milestone: Milestone;
 
-    component.poamMilestones = [milestone];
+    beforeEach(() => {
+      milestone = {
+        milestoneId: '123',
+        milestoneComments: 'Test milestone',
+        milestoneDate: new Date(),
+        milestoneStatus: 'Pending',
+        assignedTeamId: 1,
+        editing: true
+      };
+      component.clonedMilestones['123'] = { ...milestone };
+    });
 
-    const milestonesSpy = spyOn(component.milestonesChanged, 'emit');
+    it('should validate required fields and show error for missing comments', () => {
+      milestone.milestoneComments = null;
+      component.onRowEditSave(milestone);
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Information',
+        detail: 'Milestone Comments is a required field.'
+      });
+    });
 
-    component.deleteMilestone(milestone, 0);
-    expect(confirmationService.confirm).toHaveBeenCalled();
-    expect(mockPoamService.deletePoamMilestone).toHaveBeenCalledWith('12345', '123', false);
-    expect(milestonesSpy).toHaveBeenCalled();
+    it('should validate required fields and show error for missing date', () => {
+      milestone.milestoneDate = null as any;
+      component.onRowEditSave(milestone);
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Information',
+        detail: 'Milestone Date is a required field.'
+      });
+    });
+
+    it('should validate required fields and show error for missing status', () => {
+      milestone.milestoneStatus = '';
+      component.onRowEditSave(milestone);
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Information',
+        detail: 'Milestone Status is a required field.'
+      });
+    });
+
+    it('should validate required fields and show error for missing team', () => {
+      milestone.assignedTeamId = null;
+      component.onRowEditSave(milestone);
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Information',
+        detail: 'Milestone Team is a required field.'
+      });
+    });
+
+    it('should validate milestone date against scheduled completion date', () => {
+      component.poam.scheduledCompletionDate = new Date();
+      milestone.milestoneDate = addDays(new Date(), 10);
+      component.onRowEditSave(milestone);
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'warn',
+        summary: 'Information',
+        detail: 'The Milestone date provided exceeds the POAM scheduled completion date.'
+      });
+    });
+
+    it('should validate milestone date with extension time', () => {
+      component.poam.scheduledCompletionDate = new Date();
+      component.poam.extensionTimeAllowed = 5;
+      milestone.milestoneDate = addDays(new Date(), 10);
+      component.onRowEditSave(milestone);
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'warn',
+        summary: 'Information',
+        detail: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
+      });
+    });
+
+    it('should show confirmation dialog for new milestone with unmodified date', () => {
+      const confirmSpy = spyOn(confirmationService, 'confirm');
+      milestone.isNew = true;
+      milestone.dateModified = false;
+
+      component.onRowEditSave(milestone);
+
+      expect(confirmSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+        message: 'The milestone date has not been modified. Would you like to proceed?',
+        header: 'Confirm Milestone Date'
+      }));
+    });
+
+    it('should finalize edit when confirmation is accepted', () => {
+      spyOn(confirmationService, 'confirm').and.callFake((config: any) => {
+        config.accept();
+        return confirmationService;
+      });
+      spyOn(component.milestonesChanged, 'emit');
+      milestone.isNew = true;
+      milestone.dateModified = false;
+
+      component.onRowEditSave(milestone);
+
+      expect(milestone.editing).toBe(false);
+      expect(milestone.isNew).toBe(false);
+      expect(component.editingMilestoneId()).toBeNull();
+      expect(component.milestonesChanged.emit).toHaveBeenCalled();
+    });
+
+    describe('onRowEditSave', () => {
+      let milestone: Milestone;
+
+      beforeEach(() => {
+        milestone = {
+          milestoneId: '123',
+          milestoneComments: 'Test milestone',
+          milestoneDate: new Date(),
+          milestoneStatus: 'Pending',
+          assignedTeamId: 1,
+          editing: true
+        };
+        component.clonedMilestones['123'] = { ...milestone };
+      });
+
+      it('should validate required fields and show error for missing comments', () => {
+        milestone.milestoneComments = null;
+        component.onRowEditSave(milestone);
+        expect(messageService.add).toHaveBeenCalledWith({
+          severity: 'error',
+          summary: 'Information',
+          detail: 'Milestone Comments is a required field.'
+        });
+      });
+
+      it('should save milestone successfully', () => {
+        spyOn(component.milestonesChanged, 'emit');
+        component.onRowEditSave(milestone);
+
+        expect(milestone.editing).toBe(false);
+        expect(component.editingMilestoneId()).toBeNull();
+        expect(component.clonedMilestones['123']).toBeUndefined();
+        expect(mockTable.cancelRowEdit).toHaveBeenCalledWith(milestone);
+        expect(messageService.add).toHaveBeenCalledWith({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Milestone updated. Remember to save the POAM to persist changes.'
+        });
+        expect(component.milestonesChanged.emit).toHaveBeenCalledWith(component.poamMilestones);
+      });
+    });
   });
 
-  it('should handle milestone save failure', async () => {
-    const milestone: Milestone = {
-      milestoneId: '123',
-      milestoneComments: 'Test',
-      milestoneDate: new Date(),
-      milestoneStatus: 'Pending',
-      assignedTeamId: 1,
-      isNew: true
-    };
+  describe('onRowEditCancel', () => {
+    it('should remove new milestone on cancel', () => {
+      spyOn(component.milestonesChanged, 'emit');
+      const newMilestone: Milestone = {
+        milestoneId: 'temp_123',
+        milestoneComments: null,
+        milestoneDate: new Date(),
+        milestoneStatus: 'Pending',
+        assignedTeamId: null,
+        isNew: true,
+        editing: true
+      };
+      component.poamMilestones = [newMilestone];
 
-    mockPoamService.addPoamMilestone.and.returnValue(
-      throwError(() => new Error('Test error'))
-    );
+      component.onRowEditCancel(newMilestone, 0);
 
-    spyOn<any>(component, 'validateMilestoneFields').and.returnValue(true);
-    spyOn<any>(component, 'validateMilestoneDate').and.returnValue(true);
+      expect(component.poamMilestones.length).toBe(0);
+      expect(component.editingMilestoneId()).toBeNull();
+      expect(component.milestonesChanged.emit).toHaveBeenCalled();
+    });
 
-    await component.onRowEditSave(milestone);
-    expect(messageService.add).toHaveBeenCalled();
+    it('should restore original values for existing milestone', () => {
+      spyOn(component.milestonesChanged, 'emit');
+      const originalMilestone = {
+        milestoneId: '123',
+        milestoneComments: 'Original',
+        milestoneDate: new Date('2024-01-01'),
+        milestoneStatus: 'Pending',
+        assignedTeamId: 1
+      };
+
+      const editedMilestone = {
+        ...originalMilestone,
+        milestoneComments: 'Edited',
+        editing: true
+      };
+
+      component.clonedMilestones['123'] = originalMilestone;
+      component.poamMilestones = [editedMilestone];
+
+      component.onRowEditCancel(editedMilestone, 0);
+
+      expect(component.poamMilestones[0]).toEqual(originalMilestone);
+      expect(component.clonedMilestones['123']).toBeUndefined();
+      expect(component.editingMilestoneId()).toBeNull();
+      expect(component.milestonesChanged.emit).toHaveBeenCalled();
+    });
   });
 
-  it('should cancel row editing', () => {
-    const originalMilestone: Milestone = {
-      milestoneId: '123',
-      milestoneComments: 'Original',
-      milestoneDate: new Date(),
-      milestoneStatus: 'Pending',
-      assignedTeamId: 1
-    };
+  describe('deleteMilestone', () => {
+    it('should show confirmation dialog', () => {
+      const confirmSpy = spyOn(confirmationService, 'confirm');
+      const milestone: Milestone = {
+        milestoneId: '123',
+        milestoneComments: 'Test',
+        milestoneDate: new Date(),
+        milestoneStatus: 'Pending',
+        assignedTeamId: 1
+      };
+      component.poamMilestones = [milestone];
+      component.deleteMilestone(milestone, 0);
 
-    const editedMilestone: Milestone = {
-      ...originalMilestone,
-      milestoneComments: 'Edited',
-      editing: true
-    };
+      expect(confirmSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+        message: 'Are you sure you want to delete this milestone?',
+        header: 'Delete Confirmation'
+      }));
+    });
 
-    component.clonedMilestones['123'] = { ...originalMilestone };
-    component.poamMilestones = [editedMilestone];
+    it('should delete milestone when confirmed', () => {
+      spyOn(confirmationService, 'confirm').and.callFake((config: any) => {
+        config.accept();
+        return confirmationService;
+      });
+      spyOn(component.milestonesChanged, 'emit');
+      const milestone: Milestone = {
+        milestoneId: '123',
+        milestoneComments: 'Test',
+        milestoneDate: new Date(),
+        milestoneStatus: 'Pending',
+        assignedTeamId: 1
+      };
+      component.poamMilestones = [milestone];
 
-    component.onRowEditCancel(editedMilestone, 0);
+      component.deleteMilestone(milestone, 0);
 
-    expect(component.poamMilestones[0].milestoneComments).toBe('Original');
-    expect(component.poamMilestones[0].editing).toBeFalsy();
-    expect(component.editingMilestoneId()).toBeNull();
+      expect(component.poamMilestones.length).toBe(0);
+      expect(component.milestonesChanged.emit).toHaveBeenCalledWith([]);
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Milestone deleted. Remember to save the POAM to persist changes.'
+      });
+    });
+
+    it('should not delete milestone when rejected', () => {
+      spyOn(confirmationService, 'confirm').and.callFake((config: any) => {
+        if (config.reject) config.reject();
+        return confirmationService;
+      });
+      spyOn(component.milestonesChanged, 'emit');
+      const milestone: Milestone = {
+        milestoneId: '123',
+        milestoneComments: 'Test',
+        milestoneDate: new Date(),
+        milestoneStatus: 'Pending',
+        assignedTeamId: 1
+      };
+      component.poamMilestones = [milestone];
+
+      component.deleteMilestone(milestone, 0);
+
+      expect(component.poamMilestones.length).toBe(1);
+      expect(component.milestonesChanged.emit).not.toHaveBeenCalled();
+    });
   });
 
-  it('should handle date validation correctly', () => {
-    const validDate = new Date();
-    validDate.setDate(validDate.getDate() + 10);
+  describe('getTeamName', () => {
+    it('should return team name for valid team ID', () => {
+      const teamName = component.getTeamName(1);
+      expect(teamName).toBe('Team A');
+    });
 
-    const futureMilestone: Milestone = {
-      milestoneId: '123',
-      milestoneComments: 'Test',
-      milestoneDate: validDate,
-      milestoneStatus: 'Pending',
-      assignedTeamId: 1
-    };
+    it('should return empty string for invalid team ID', () => {
+      const teamName = component.getTeamName(999);
+      expect(teamName).toBe('');
+    });
 
-    component.poam = {
-      ...component.poam,
-      scheduledCompletionDate: new Date(validDate.getTime() + 86400000 * 15)
-    };
+    it('should return empty string for null team ID', () => {
+      const teamName = component.getTeamName(null as any);
+      expect(teamName).toBe('');
+    });
 
-    const result = component['validateMilestoneDate'](futureMilestone);
-    expect(result).toBeTruthy();
+    it('should return empty string when no team options', () => {
+      component.assignedTeamOptions = [];
+      const teamName = component.getTeamName(1);
+      expect(teamName).toBe('');
+    });
 
-    const exceededDate = new Date();
-    exceededDate.setDate(exceededDate.getDate() + 30);
+    it('should return empty string when team options is null', () => {
+      component.assignedTeamOptions = null as any;
+      const teamName = component.getTeamName(1);
+      expect(teamName).toBe('');
+    });
+  });
 
-    const exceededMilestone: Milestone = {
-      ...futureMilestone,
-      milestoneDate: exceededDate
-    };
+  describe('milestone date validation edge cases', () => {
+    it('should allow milestone date when no scheduled completion date', () => {
+      spyOn(component.milestonesChanged, 'emit');
+      component.poam.scheduledCompletionDate = null;
 
-    const exceededResult = component['validateMilestoneDate'](exceededMilestone);
-    expect(exceededResult).toBeFalsy();
-    expect(messageService.add).toHaveBeenCalled();
+      const milestone: Milestone = {
+        milestoneId: '123',
+        milestoneComments: 'Test',
+        milestoneDate: addDays(new Date(), 100),
+        milestoneStatus: 'Pending',
+        assignedTeamId: 1,
+        editing: true
+      };
+      component.clonedMilestones['123'] = { ...milestone };
+
+      component.onRowEditSave(milestone);
+
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Milestone updated. Remember to save the POAM to persist changes.'
+      });
+    });
+
+    it('should handle exact scheduled completion date', () => {
+      spyOn(component.milestonesChanged, 'emit');
+      const completionDate = new Date('2024-12-31');
+      component.poam.scheduledCompletionDate = completionDate;
+
+      const milestone: Milestone = {
+        milestoneId: '123',
+        milestoneComments: 'Test',
+        milestoneDate: completionDate,
+        milestoneStatus: 'Pending',
+        assignedTeamId: 1,
+        editing: true
+      };
+      component.clonedMilestones['123'] = { ...milestone };
+
+      component.onRowEditSave(milestone);
+
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Milestone updated. Remember to save the POAM to persist changes.'
+      });
+    });
   });
 });

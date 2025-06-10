@@ -14,7 +14,6 @@ import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
-import * as jasmine from 'jasmine-core';
 
 describe('PoamTeamsComponent', () => {
   let component: PoamTeamsComponent;
@@ -74,16 +73,19 @@ describe('PoamTeamsComponent', () => {
 
   it('should handle team selection', fakeAsync(() => {
     const teamsSpy = spyOn(component.teamsChanged, 'emit');
-    component.addAssignedTeam();
-    const newTeam = component.poamAssignedTeams[0];
-    newTeam.assignedTeamId = 1;
+    const newTeam = {
+      poamId: 12345,
+      assignedTeamId: 1,
+      assignedTeamName: 'Team A',
+      isNew: true
+    };
 
     component.poam.poamId = '12345';
     mockPoamService.getPoamAssignedTeams.and.returnValue(of([
       { assignedTeamId: 1, assignedTeamName: 'Team A' }
     ]));
 
-    component.onAssignedTeamChange(newTeam, 0);
+    component.confirmCreateAssignedTeam(newTeam);
     tick();
 
     expect(mockPoamService.postPoamAssignedTeam).toHaveBeenCalled();
@@ -130,7 +132,7 @@ describe('PoamTeamsComponent', () => {
     };
     component.poamAssignedTeams = [team];
 
-    component.deleteAssignedTeam(team, 0);
+    component.confirmDeleteAssignedTeam(team);
     tick();
 
     expect(mockPoamService.deletePoamAssignedTeam).toHaveBeenCalledWith(12345, 1);
@@ -167,7 +169,7 @@ describe('PoamTeamsComponent', () => {
       throwError(() => new Error('Test error'))
     );
 
-    component.deleteAssignedTeam(team, 0);
+    component.confirmDeleteAssignedTeam(team);
     tick();
 
     expect(mockPoamService.deletePoamAssignedTeam).toHaveBeenCalled();

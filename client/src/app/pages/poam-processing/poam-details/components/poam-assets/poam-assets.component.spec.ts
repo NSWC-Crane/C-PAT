@@ -15,7 +15,6 @@ import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { SimpleChange } from '@angular/core';
-import * as jasmine from 'jasmine-core';
 
 describe('PoamAssetsComponent', () => {
   let component: PoamAssetsComponent;
@@ -61,6 +60,8 @@ describe('PoamAssetsComponent', () => {
     component.poamAssignedTeams = [
       { assignedTeamId: 1, assignedTeamName: 'Team A' }
     ];
+    component.poamAssociatedVulnerabilities = [];
+    component.originCollectionId = null;
 
     fixture.detectChanges();
   });
@@ -69,220 +70,355 @@ describe('PoamAssetsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should add a new asset', () => {
-    const assetsSpy = spyOn(component.assetsChanged, 'emit');
-    const savePoamSpy = spyOn(component.savePoamRequest, 'emit');
+  describe('addAsset', () => {
+    it('should add a new asset to the beginning of the array', async () => {
+      const assetsSpy = spyOn(component.assetsChanged, 'emit');
+      component.poamAssets = [{ poamId: '12345', assetId: 1 }];
 
-    component.addAsset();
+      await component.addAsset();
 
-    expect(component.poamAssets.length).toBe(1);
-    expect(component.poamAssets[0].isNew).toBeTruthy();
-    expect(assetsSpy).toHaveBeenCalled();
-    expect(savePoamSpy).not.toHaveBeenCalled();
-  });
-
-  it('should request poam save when adding asset to new poam', async () => {
-    component.poam.poamId = 'ADDPOAM';
-    const savePoamSpy = spyOn(component.savePoamRequest, 'emit');
-
-    await component.addAsset();
-
-    expect(savePoamSpy).toHaveBeenCalledWith(true);
-  });
-
-  it('should get asset name correctly', () => {
-    const assetName = component.getAssetName(1);
-    expect(assetName).toBe('Asset A');
-
-    const nonExistentAsset = component.getAssetName(999);
-    expect(nonExistentAsset).toBe('Asset ID: 999');
-  });
-
-  it('should handle asset change when valid asset is selected', async () => {
-    const asset = { assetId: 1, isNew: true };
-    const createSpy = spyOn(component, 'confirmCreateAsset').and.resolveTo();
-    const assetsSpy = spyOn(component.assetsChanged, 'emit');
-
-    await component.onAssetChange(asset, 0);
-
-    expect(createSpy).toHaveBeenCalledWith(asset);
-    expect(asset.isNew).toBeFalsy();
-    expect(assetsSpy).toHaveBeenCalled();
-  });
-
-  it('should handle asset change when invalid asset is selected', async () => {
-    const asset = { assetId: null, isNew: true };
-    component.poamAssets = [asset];
-    const assetsSpy = spyOn(component.assetsChanged, 'emit');
-
-    await component.onAssetChange(asset, 0);
-
-    expect(component.poamAssets.length).toBe(0);
-    expect(assetsSpy).toHaveBeenCalled();
-  });
-
-  it('should delete existing asset', async () => {
-    const asset = { poamId: '12345', assetId: 1 };
-    component.poamAssets = [asset];
-
-    const deleteSpy = spyOn(component, 'confirmDeleteAsset').and.resolveTo();
-
-    await component.deleteAsset(asset, 0);
-
-    expect(deleteSpy).toHaveBeenCalledWith(asset);
-  });
-
-  it('should handle create asset success', async () => {
-    const asset = { assetId: 1 };
-    const fetchSpy = spyOn<any>(component, 'fetchAssets');
-
-    await component.confirmCreateAsset(asset);
-
-    expect(mockPoamService.postPoamAsset).toHaveBeenCalledWith({
-      poamId: +component.poam.poamId,
-      assetId: 1
-    });
-    expect(messageService.add).toHaveBeenCalled();
-    expect(fetchSpy).toHaveBeenCalled();
-  });
-
-  it('should handle create asset failure', async () => {
-    const asset = { assetId: 1 };
-    mockPoamService.postPoamAsset.and.returnValue(
-      throwError(() => new Error('Test error'))
-    );
-
-    await component.confirmCreateAsset(asset);
-
-    expect(messageService.add).toHaveBeenCalledWith({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to add asset.'
+      expect(component.poamAssets.length).toBe(2);
+      expect(component.poamAssets[0].isNew).toBeTruthy();
+      expect(component.poamAssets[0].assetId).toBeNull();
+      expect(assetsSpy).toHaveBeenCalledWith(component.poamAssets);
     });
   });
 
-  it('should handle delete asset for new POAM', async () => {
-    component.poam.poamId = 'ADDPOAM';
-    component.poamAssets = [
-      { assetId: 1 },
-      { assetId: 2 }
-    ];
-    const assetsSpy = spyOn(component.assetsChanged, 'emit');
-
-    await component.confirmDeleteAsset({ assetId: 1 });
-
-    expect(component.poamAssets.length).toBe(1);
-    expect(component.poamAssets[0].assetId).toBe(2);
-    expect(assetsSpy).toHaveBeenCalled();
-    expect(mockPoamService.deletePoamAsset).not.toHaveBeenCalled();
-  });
-
-  it('should handle delete asset success for existing POAM', async () => {
-    const asset = { poamId: '12345', assetId: 1 };
-    component.poamAssets = [asset, { poamId: '12345', assetId: 2 }];
-    const assetsSpy = spyOn(component.assetsChanged, 'emit');
-
-    await component.confirmDeleteAsset(asset);
-
-    expect(mockPoamService.deletePoamAsset).toHaveBeenCalledWith('12345', 1);
-    expect(messageService.add).toHaveBeenCalledWith({
-      severity: 'success',
-      summary: 'Success',
-      detail: 'Asset deleted successfully.'
+  describe('getAssetName', () => {
+    it('should return asset name when asset exists', () => {
+      const assetName = component.getAssetName(1);
+      expect(assetName).toBe('Asset A');
     });
-    expect(component.poamAssets.length).toBe(1);
-    expect(component.poamAssets[0].assetId).toBe(2);
-    expect(assetsSpy).toHaveBeenCalled();
-  });
 
-  it('should handle delete asset failure', async () => {
-    const asset = { poamId: '12345', assetId: 1 };
-    mockPoamService.deletePoamAsset.and.returnValue(
-      throwError(() => new Error('Test error'))
-    );
-
-    await component.confirmDeleteAsset(asset);
-
-    expect(messageService.add).toHaveBeenCalledWith({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to delete asset.'
+    it('should return fallback text when asset does not exist', () => {
+      const assetName = component.getAssetName(999);
+      expect(assetName).toBe('Asset ID: 999');
     });
   });
 
-  it('should detect when teams are removed', () => {
-    component.poamAssignedTeams = [
-      { assignedTeamId: 1, assignedTeamName: 'Team A' },
-      { assignedTeamId: 2, assignedTeamName: 'Team B' }
-    ];
+  describe('onAssetChange', () => {
+    it('should create asset when valid asset is selected', async () => {
+      const asset = { assetId: 1, isNew: true };
+      const createSpy = spyOn(component, 'confirmCreateAsset').and.resolveTo();
+      const assetsSpy = spyOn(component.assetsChanged, 'emit');
 
-    component.ngOnChanges({
-      poamAssignedTeams: new SimpleChange(null, component.poamAssignedTeams, true)
+      await component.onAssetChange(asset, 0);
+
+      expect(createSpy).toHaveBeenCalledWith(asset);
+      expect(asset.isNew).toBeFalsy();
+      expect(assetsSpy).toHaveBeenCalled();
     });
 
-    const refreshSpy = spyOn(component, 'refreshAssets');
+    it('should remove asset when no asset is selected', async () => {
+      const asset = { assetId: null, isNew: true };
+      component.poamAssets = [asset, { assetId: 2 }];
+      const assetsSpy = spyOn(component.assetsChanged, 'emit');
 
-    component.poamAssignedTeams = [
-      { assignedTeamId: 1, assignedTeamName: 'Team A' }
-    ];
+      await component.onAssetChange(asset, 0);
 
-    component.ngOnChanges({
-      poamAssignedTeams: new SimpleChange(
-        [
-          { assignedTeamId: 1, assignedTeamName: 'Team A' },
-          { assignedTeamId: 2, assignedTeamName: 'Team B' }
-        ],
-        component.poamAssignedTeams,
-        false
-      )
+      expect(component.poamAssets.length).toBe(1);
+      expect(component.poamAssets[0].assetId).toBe(2);
+      expect(assetsSpy).toHaveBeenCalled();
     });
-
-    expect(refreshSpy).toHaveBeenCalled();
   });
 
-  it('should detect when teams are added', () => {
-    component.poamAssignedTeams = [
-      { assignedTeamId: 1, assignedTeamName: 'Team A' }
-    ];
+  describe('deleteAsset', () => {
+    it('should call confirmDeleteAsset when asset has ID', async () => {
+      const asset = { poamId: '12345', assetId: 1 };
+      const deleteSpy = spyOn(component, 'confirmDeleteAsset').and.resolveTo();
 
-    component.ngOnChanges({
-      poamAssignedTeams: new SimpleChange(null, component.poamAssignedTeams, true)
+      await component.deleteAsset(asset, 0);
+
+      expect(deleteSpy).toHaveBeenCalledWith(asset);
     });
 
-    const refreshSpy = spyOn(component, 'refreshAssets');
+    it('should directly remove asset when asset has no ID', async () => {
+      const asset = { assetId: null, isNew: true };
+      component.poamAssets = [asset, { assetId: 2 }];
+      const assetsSpy = spyOn(component.assetsChanged, 'emit');
 
-    component.poamAssignedTeams = [
-      { assignedTeamId: 1, assignedTeamName: 'Team A' },
-      { assignedTeamId: 2, assignedTeamName: 'Team B' }
-    ];
+      await component.deleteAsset(asset, 1);
 
-    component.ngOnChanges({
-      poamAssignedTeams: new SimpleChange(
-        [{ assignedTeamId: 1, assignedTeamName: 'Team A' }],
-        component.poamAssignedTeams,
-        false
-      )
+      expect(component.poamAssets.length).toBe(1);
+      expect(component.poamAssets[0].assetId).toBe(null);
+      expect(assetsSpy).toHaveBeenCalledWith(component.poamAssets);
+    });
+  });
+
+  describe('confirmCreateAsset', () => {
+    it('should successfully create asset', async () => {
+      const asset = { assetId: 1 };
+      const fetchSpy = spyOn<any>(component, 'fetchAssets');
+
+      await component.confirmCreateAsset(asset);
+
+      expect(mockPoamService.postPoamAsset).toHaveBeenCalledWith({
+        poamId: +component.poam.poamId,
+        assetId: 1
+      });
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Asset added successfully.'
+      });
+      expect(fetchSpy).toHaveBeenCalled();
     });
 
-    expect(refreshSpy).not.toHaveBeenCalled();
+    it('should handle error when creating asset fails', async () => {
+      const asset = { assetId: 1 };
+      mockPoamService.postPoamAsset.and.returnValue(
+        throwError(() => new Error('Test error'))
+      );
+
+      await component.confirmCreateAsset(asset);
+
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to add asset.'
+      });
+    });
+
+    it('should not create asset when assetId is not provided', async () => {
+      const asset = { assetId: null };
+
+      await component.confirmCreateAsset(asset);
+
+      expect(mockPoamService.postPoamAsset).not.toHaveBeenCalled();
+    });
   });
 
-  it('should refresh assets for C-PAT collection type', () => {
-    component.collectionType = 'C-PAT';
-    const fetchSpy = spyOn<any>(component, 'fetchAssets');
+  describe('confirmDeleteAsset', () => {
+    it('should remove asset from array and emit change', async () => {
+      const asset = { poamId: '12345', assetId: 1 };
+      component.poamAssets = [
+        asset,
+        { poamId: '12345', assetId: 2 },
+        { poamId: '12345', assetId: 3 }
+      ];
+      const assetsSpy = spyOn(component.assetsChanged, 'emit');
 
-    component.refreshAssets();
+      await component.confirmDeleteAsset(asset);
 
-    expect(fetchSpy).toHaveBeenCalled();
+      expect(component.poamAssets.length).toBe(2);
+      expect(component.poamAssets.find(a => a.assetId === 1)).toBeUndefined();
+      expect(assetsSpy).toHaveBeenCalledWith(component.poamAssets);
+      expect(mockPoamService.deletePoamAsset).not.toHaveBeenCalled();
+    });
   });
 
-  it('should emit change event for external asset collections', () => {
-    component.collectionType = 'STIG Manager';
-    component.poamAssets = [{ assetId: 1 }];
-    const emitSpy = spyOn(component.assetsChanged, 'emit');
+  describe('fetchAssets', () => {
+    it('should fetch assets when poamId is valid', () => {
+      const mockAssets = [
+        { poamId: '12345', assetId: 1 },
+        { poamId: '12345', assetId: 2 }
+      ];
+      mockPoamService.getPoamAssets.and.returnValue(of(mockAssets));
+      const assetsSpy = spyOn(component.assetsChanged, 'emit');
 
-    component.refreshAssets();
+      component.fetchAssets();
 
-    expect(emitSpy).toHaveBeenCalledWith([{ assetId: 1 }]);
+      expect(mockPoamService.getPoamAssets).toHaveBeenCalledWith('12345');
+      expect(component.poamAssets).toEqual(mockAssets);
+      expect(assetsSpy).toHaveBeenCalledWith(mockAssets);
+    });
+
+    it('should not fetch assets when poamId is ADDPOAM', () => {
+      component.poam.poamId = 'ADDPOAM';
+
+      component.fetchAssets();
+
+      expect(mockPoamService.getPoamAssets).not.toHaveBeenCalled();
+    });
+
+    it('should not fetch assets when poamId is not set', () => {
+      component.poam.poamId = null;
+
+      component.fetchAssets();
+
+      expect(mockPoamService.getPoamAssets).not.toHaveBeenCalled();
+    });
+
+    it('should handle error when fetching assets fails', () => {
+      mockPoamService.getPoamAssets.and.returnValue(
+        throwError(() => new Error('Test error'))
+      );
+
+      component.fetchAssets();
+
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to fetch assets'
+      });
+    });
+  });
+
+  describe('refreshAssets', () => {
+    it('should fetch assets for C-PAT collection type', () => {
+      component.collectionType = 'C-PAT';
+      const fetchSpy = spyOn<any>(component, 'fetchAssets');
+
+      component.refreshAssets();
+
+      expect(fetchSpy).toHaveBeenCalled();
+    });
+
+    it('should emit current assets for STIG Manager collection type', () => {
+      component.collectionType = 'STIG Manager';
+      component.poamAssets = [{ assetId: 1 }, { assetId: 2 }];
+      const emitSpy = spyOn(component.assetsChanged, 'emit');
+
+      component.refreshAssets();
+
+      expect(emitSpy).toHaveBeenCalledWith([{ assetId: 1 }, { assetId: 2 }]);
+    });
+
+    it('should emit current assets for Tenable collection type', () => {
+      component.collectionType = 'Tenable';
+      component.poamAssets = [{ assetId: 3 }];
+      const emitSpy = spyOn(component.assetsChanged, 'emit');
+
+      component.refreshAssets();
+
+      expect(emitSpy).toHaveBeenCalledWith([{ assetId: 3 }]);
+    });
+  });
+
+  describe('ngOnChanges', () => {
+    it('should refresh assets when teams are removed', () => {
+      component.poamAssignedTeams = [
+        { assignedTeamId: 1, assignedTeamName: 'Team A' },
+        { assignedTeamId: 2, assignedTeamName: 'Team B' }
+      ];
+      component.ngOnChanges({
+        poamAssignedTeams: new SimpleChange(null, component.poamAssignedTeams, true)
+      });
+
+      const refreshSpy = spyOn(component, 'refreshAssets');
+
+      component.poamAssignedTeams = [
+        { assignedTeamId: 1, assignedTeamName: 'Team A' }
+      ];
+      component.ngOnChanges({
+        poamAssignedTeams: new SimpleChange(
+          [
+            { assignedTeamId: 1, assignedTeamName: 'Team A' },
+            { assignedTeamId: 2, assignedTeamName: 'Team B' }
+          ],
+          component.poamAssignedTeams,
+          false
+        )
+      });
+
+      expect(refreshSpy).toHaveBeenCalled();
+    });
+
+    it('should refresh assets when team count decreases', () => {
+      component.poamAssignedTeams = [
+        { assignedTeamId: 1, assignedTeamName: 'Team A' },
+        { assignedTeamId: 2, assignedTeamName: 'Team B' }
+      ];
+      component.ngOnChanges({
+        poamAssignedTeams: new SimpleChange(null, component.poamAssignedTeams, true)
+      });
+
+      const refreshSpy = spyOn(component, 'refreshAssets');
+
+      component.poamAssignedTeams = [
+        { assignedTeamId: 3, assignedTeamName: 'Team C' }
+      ];
+      component.ngOnChanges({
+        poamAssignedTeams: new SimpleChange(
+          [
+            { assignedTeamId: 1, assignedTeamName: 'Team A' },
+            { assignedTeamId: 2, assignedTeamName: 'Team B' }
+          ],
+          component.poamAssignedTeams,
+          false
+        )
+      });
+
+      expect(refreshSpy).toHaveBeenCalled();
+    });
+
+    it('should not refresh assets when teams are only added', () => {
+      component.poamAssignedTeams = [
+        { assignedTeamId: 1, assignedTeamName: 'Team A' }
+      ];
+      component.ngOnChanges({
+        poamAssignedTeams: new SimpleChange(null, component.poamAssignedTeams, true)
+      });
+
+      const refreshSpy = spyOn(component, 'refreshAssets');
+
+      component.poamAssignedTeams = [
+        { assignedTeamId: 1, assignedTeamName: 'Team A' },
+        { assignedTeamId: 2, assignedTeamName: 'Team B' }
+      ];
+      component.ngOnChanges({
+        poamAssignedTeams: new SimpleChange(
+          [{ assignedTeamId: 1, assignedTeamName: 'Team A' }],
+          component.poamAssignedTeams,
+          false
+        )
+      });
+
+      expect(refreshSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle changes when poamAssignedTeams is null', () => {
+      component.poamAssignedTeams = null as any;
+
+      expect(() => {
+        component.ngOnChanges({
+          poamAssignedTeams: new SimpleChange([], null, false)
+        });
+      }).not.toThrow();
+    });
+
+    it('should not process when poamAssignedTeams change is not present', () => {
+      const refreshSpy = spyOn(component, 'refreshAssets');
+
+      component.ngOnChanges({
+        someOtherProperty: new SimpleChange(null, 'value', false)
+      });
+
+      expect(refreshSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Edge Cases and Error Handling', () => {
+    it('should handle empty assetList', () => {
+      component.assetList = [];
+      const assetName = component.getAssetName(1);
+      expect(assetName).toBe('Asset ID: 1');
+    });
+
+    it('should handle concurrent operations gracefully', async () => {
+      const asset1 = { assetId: 1 };
+      const asset2 = { assetId: 2 };
+
+      const promise1 = component.confirmCreateAsset(asset1);
+      const promise2 = component.confirmCreateAsset(asset2);
+
+      await Promise.all([promise1, promise2]);
+
+      expect(mockPoamService.postPoamAsset).toHaveBeenCalledTimes(2);
+    });
+
+    it('should maintain data integrity when operations fail', async () => {
+      const initialAssets = [{ assetId: 1 }, { assetId: 2 }];
+      component.poamAssets = [...initialAssets];
+
+      mockPoamService.postPoamAsset.and.returnValue(
+        throwError(() => new Error('Network error'))
+      );
+
+      const newAsset = { assetId: 3 };
+      await component.confirmCreateAsset(newAsset);
+
+      expect(component.poamAssets).toEqual(initialAssets);
+    });
   });
 });
