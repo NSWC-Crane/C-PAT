@@ -285,12 +285,22 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   }
 
   formatTimestamp(timestamp: number | string | undefined): string {
-    if (!timestamp) return '';
+    if (!timestamp || timestamp === '-1') return undefined;
 
     try {
+      if (typeof timestamp === 'string' && timestamp.includes('/')) {
+        return timestamp;
+      }
+
       const date = new Date(Number(timestamp) * 1000);
 
-      if (isNaN(date.getTime())) return '';
+      if (isNaN(date.getTime())) {
+        const dateMs = new Date(Number(timestamp));
+        if (!isNaN(dateMs.getTime())) {
+          return format(dateMs, 'MM/dd/yyyy');
+        }
+        return '';
+      }
 
       return format(date, 'MM/dd/yyyy');
     } catch (error) {
@@ -498,7 +508,18 @@ showPluginDetails(plugin: any): Promise<void> {
               return;
             }
 
-            this.pluginDetailData = data.response.results[0];
+            const rawData = data.response.results[0];
+            this.pluginDetailData = {
+              ...rawData,
+              firstSeen: this.formatTimestamp(rawData.firstSeen),
+              lastSeen: this.formatTimestamp(rawData.lastSeen),
+              pluginPubDate: this.formatTimestamp(rawData.pluginPubDate),
+              pluginModDate: this.formatTimestamp(rawData.pluginModDate),
+              vulnPubDate: this.formatTimestamp(rawData.vulnPubDate),
+              patchPubDate: this.formatTimestamp(rawData.patchPubDate),
+              seolDate: this.formatTimestamp(rawData.seolDate),
+              acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime)
+            };
 
             if (this.pluginDetailData.xrefs) {
               this.parseReferences(this.pluginDetailData.xrefs);
