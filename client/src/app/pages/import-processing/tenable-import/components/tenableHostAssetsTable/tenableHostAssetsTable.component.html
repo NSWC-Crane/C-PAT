@@ -393,10 +393,12 @@
               <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN NAME</div>
               <div>{{pluginDetailData.pluginName}}</div>
             </div>
+        @if (pluginDetailData.pluginPubDate) {
             <div class="p-col-12 mb-2" style="display: flex;">
               <div style="width: 250px; color: var(--text-secondary-color)">PUBLISHED</div>
               <div>{{pluginDetailData.pluginPubDate}}</div>
             </div>
+        }
             <div class="p-col-12" style="display: flex;">
               <div style="width: 250px; color: var(--text-secondary-color)">SEVERITY</div>
               <div>
@@ -445,6 +447,12 @@
                 <div>{{pluginDetailData.lastSeen}}</div>
               </div>
             }
+        @if (pluginDetailData.seolDate) {
+        <div class="p-col-12" style="display: flex;">
+          <div style="width: 250px; color: var(--text-secondary-color)">SEoL DATE</div>
+          <div>{{pluginDetailData.seolDate}}</div>
+        </div>
+        }
             <div class="p-col-12 mb-2 mt-4"><h3>Host Information</h3></div>
             @if (pluginDetailData.ip) {
               <div class="p-col-12 mb-2" style="display: flex;">
