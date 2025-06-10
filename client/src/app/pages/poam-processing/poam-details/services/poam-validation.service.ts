@@ -10,6 +10,7 @@
 
 import { Injectable } from "@angular/core";
 import { PoamVariableMappingService } from "./poam-variable-mapping.service";
+import { addDays, isAfter } from 'date-fns';
 
 @Injectable({
   providedIn: 'root'
@@ -217,6 +218,75 @@ export class PoamValidationService {
       }
     }
 
+    return { valid: true };
+  }
+
+  validateMilestoneDates(poam: any, milestones: any[]): { valid: boolean, message?: string } {
+    if (!milestones || milestones.length === 0) {
+      return { valid: true };
+    }
+
+    if (!poam.scheduledCompletionDate) {
+      return { valid: true };
+    }
+
+    const scheduledCompletionDate = new Date(poam.scheduledCompletionDate);
+    const extensionTimeAllowed = poam.extensionTimeAllowed || 0;
+
+    for (const milestone of milestones) {
+      if (!milestone.milestoneDate) {
+        continue;
+      }
+      const milestoneDate = new Date(milestone.milestoneDate);
+
+      if (extensionTimeAllowed === 0) {
+        if (isAfter(milestoneDate, scheduledCompletionDate)) {
+          return {
+            valid: false,
+            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a date (${milestoneDate.toLocaleDateString()}) that exceeds the POAM scheduled completion date (${scheduledCompletionDate.toLocaleDateString()}).`
+          };
+        }
+      } else {
+        const maxAllowedDate = addDays(scheduledCompletionDate, extensionTimeAllowed);
+        if (isAfter(milestoneDate, maxAllowedDate)) {
+          return {
+            valid: false,
+            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a date (${milestoneDate.toLocaleDateString()}) that exceeds the POAM scheduled completion date and the allowed extension time (${maxAllowedDate.toLocaleDateString()}).`
+          };
+        }
+      }
+    }
+
+    return { valid: true };
+  }
+
+  validateMilestoneCompleteness(milestones: any[]): { valid: boolean, message?: string } {
+    for (const milestone of milestones) {
+      if (!milestone.milestoneComments || milestone.milestoneComments.trim() === '') {
+        return {
+          valid: false,
+          message: 'All milestones must have comments. Please complete all milestone fields.'
+        };
+      }
+      if (!milestone.milestoneDate) {
+        return {
+          valid: false,
+          message: 'All milestones must have a due date. Please complete all milestone fields.'
+        };
+      }
+      if (!milestone.milestoneStatus) {
+        return {
+          valid: false,
+          message: 'All milestones must have a status. Please complete all milestone fields.'
+        };
+      }
+      if (!milestone.assignedTeamId) {
+        return {
+          valid: false,
+          message: 'All milestones must be assigned to a team. Please complete all milestone fields.'
+        };
+      }
+    }
     return { valid: true };
   }
 }
