@@ -899,6 +899,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
               resolve(false);
             } else {
               this.poam.poamId = res.poamId;
+              this.poamId = res.poamId;
+              this.location.replaceState(`/poam-processing/poam-details/${res.poamId}`);
               this.updateLocalReferences(res.poamId);
 
               if (!saveState) {
