@@ -65,6 +65,8 @@
 | The access token claim whose value is the user’s privileges ","API, Client"
 "CPAT_JWT_ASSERTION_CLAIM","| **Default** ``jti``
 | The access token claim whose value is the OIDC provider’s Assertion ID. Updates to this value trigger the API to update a User’s ``lastClaims`` property. The claim MUST NOT be nested and MUST be a valid ECMAScript identifier. ","API, Client"
+"CPAT_JWT_AUDIENCE","| **No default**
+| Expected audience value for JWT validation. When set the JWT aud claim must match this value or validation will fail. Leave unset to skip audience validation. ","API, Client"
 "CPAT_JWT_SCOPE_CLAIM","| **Default** ``scope``
 | The access token claim whose value is the user's scopes. Some OIDC Providers (Okta, Azure AD) use the claim ``scp`` to enumerate scopes","API, Client"
 "CPAT_JWT_SERVICENAME_CLAIM","| **Default** ``clientId``

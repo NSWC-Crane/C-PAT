@@ -62,7 +62,8 @@ async function getSigningKey(tokenObj, req) {
 
 function verifyToken(tokenJWT, signingKey) {
     try {
-        jwt.verify(tokenJWT, signingKey)
+        const verifyOptions = config.oauth.audience ? { audience: config.oauth.audience } : undefined;
+        jwt.verify(tokenJWT, signingKey, verifyOptions);
     } catch (e) {
         throw new SmError.AuthorizeError(e.message)
     }
