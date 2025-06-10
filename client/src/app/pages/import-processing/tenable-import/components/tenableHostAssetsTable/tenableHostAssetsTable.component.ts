@@ -764,6 +764,11 @@ showPluginDetails(plugin: any): Promise<void> {
     this.hostFindingsTable.exportCSV();
   }
 
+  goBackToHostDialog() {
+    this.displayPluginDialog = false;
+    this.displayDialog = true;
+  }
+
   resetColumnSelections() {
     this.selectedColumns = this.cols.filter(col =>
       ['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes'].includes(
