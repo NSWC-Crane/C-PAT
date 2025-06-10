@@ -402,7 +402,7 @@ exports.postPoam = async function postPoam(req) {
         }
     }
 
-    req.body.ownerId || null;
+    req.body.ownerId = req.body.ownerId || null;
     req.body.submittedDate = req.body.submittedDate || null;
     req.body.scheduledCompletionDate = req.body.scheduledCompletionDate || null;
     req.body.closedDate = req.body.closedDate || null;
