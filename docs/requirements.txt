@@ -15,7 +15,7 @@ packaging==24.2
 Pygments==2.19.1
 pyparsing==3.2.1
 pytz==2025.1
-requests==2.32.3
+requests==2.32.4
 myst-parser==4.0.1
 snowballstemmer==2.2.0
 sphinx==7.4.7
