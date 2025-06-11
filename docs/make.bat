@@ -14,7 +14,7 @@ REM Build Docker image
 docker build -t %SPHINX_IMAGE_W_REQUIREMENTS% .
 
 REM Run Docker container and copy results
-docker run --rm -v "%cd%":/source %SPHINX_IMAGE_W_REQUIREMENTS% /bin/bash -c "cp -r /source/* /docs && make html && cp -r /docs/_build/html /source/_build/"
+docker run --rm -v "%cd%":/source %SPHINX_IMAGE_W_REQUIREMENTS% /bin/bash -c "cp -r /source/* /docs && make html && mkdir -p /source/_build && cp -r /docs/_build/html /source/_build/"
 
 REM Check if files were copied
 if exist _build\html (

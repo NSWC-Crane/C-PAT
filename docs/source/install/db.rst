@@ -44,6 +44,7 @@ Example commands to prepare MySQL for initial API execution:
   * Create API user account - ``CREATE USER 'cpat'@'%' IDENTIFIED BY 'new_password'``
   * Grant API user account all privileges on created database ``GRANT ALL ON cpat.* TO 'cpat'``
   * Set ``event_scheduler=ON`` in the MySQL configuration file (my.cnf or my.ini) to enable the event scheduler. This is required for the database to run scheduled tasks, such as updating POAM statuses to 'Expired'.
+
 .. note::
    Suggested DB configuration options:
     - ``sort_buffer_size`` - set to at least 2M (2097152), and perhaps up to 64M (Increasing the sort_buffer_size from the default of 256k may only be required if you have very large detail/comment text fields).
