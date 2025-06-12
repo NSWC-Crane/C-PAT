@@ -20,6 +20,7 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { Select } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 interface STIGManagerCollection {
   collectionId: number;
@@ -56,15 +57,21 @@ export class STIGManagerAdminComponent implements OnInit {
     forkJoin({
       stigmanCollections: this.sharedService.getCollectionsFromSTIGMAN().pipe(
         catchError(error => {
-          console.error('Error fetching STIG Manager collections:', error);
-          this.showPopup('Unable to connect to STIG Manager.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching STIG Manager collections: ${getErrorMessage(error)}`
+          });
           return EMPTY;
         })
       ),
       existingCollections: this.collectionsService.getCollectionBasicList().pipe(
         catchError(error => {
-          console.error('Error fetching existing collections:', error);
-          this.showPopup('Unable to fetch existing collections.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching existing collections: ${getErrorMessage(error)}`
+          });
           return EMPTY;
         })
       )
@@ -77,8 +84,11 @@ export class STIGManagerAdminComponent implements OnInit {
         this.filterCollections();
       },
       error: error => {
-        console.error('Error in fetching data:', error);
-        this.showPopup('An error occurred while fetching data.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error in fetching data: ${getErrorMessage(error)}`
+        });
       }
     });
   }
@@ -106,7 +116,13 @@ export class STIGManagerAdminComponent implements OnInit {
 
   importSTIGManagerCollection() {
     if (!this.selectedSTIGManagerCollection) {
-      this.showPopup('Please select a collection to import.');
+      this.confirmationService.confirm({
+        message: 'Please select a collection to import.',
+        header: 'Alert',
+        icon: 'pi pi-info-circle',
+        acceptLabel: 'OK',
+        rejectVisible: false
+      });
       return;
     }
 
@@ -138,11 +154,10 @@ export class STIGManagerAdminComponent implements OnInit {
             this.fetchDataAndCompare();
           },
           error: error => {
-            console.error('Error during bulk import', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Error during bulk import'
+              detail: `Error during bulk import: ${getErrorMessage(error)}`
             });
           }
         });
@@ -167,25 +182,14 @@ export class STIGManagerAdminComponent implements OnInit {
         });
       }),
       catchError(error => {
-        console.error(`Error importing collection "${collection.name}"`, error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Error importing collection "${collection.name}": ${error.message}`
+          detail: `Error importing collection "${collection.name}": ${getErrorMessage(error)}`
         });
         return EMPTY;
       })
     );
-  }
-
-  showPopup(message: string) {
-    this.confirmationService.confirm({
-      message: message,
-      header: 'Alert',
-      icon: 'pi pi-info-circle',
-      acceptLabel: 'OK',
-      rejectVisible: false
-    });
   }
 
   ngOnDestroy() {

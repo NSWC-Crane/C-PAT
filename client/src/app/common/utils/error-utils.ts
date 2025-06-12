@@ -1,4 +1,4 @@
-<!--
+/*
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -6,12 +6,14 @@
 ! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
--->
+*/
 
-@if (poams) {
-  <cpat-poam-mainchart
-    canvasHeight="40rem"
-    [poams]="poams"
-  ></cpat-poam-mainchart>
+export function getErrorMessage(error: any): string {
+  console.error('Error occurred:', error);
+
+  if (error?.error?.detail) {
+    return error.error.detail;
+  }
+
+  return error?.message || 'An unexpected error occurred';
 }
-  <p-toast />

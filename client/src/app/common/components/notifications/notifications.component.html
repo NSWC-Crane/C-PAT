@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -9,7 +9,7 @@
 -->
 
 <p-card>
-  <div class="flex flex-col md:flex-row md:justify-between mb-4">
+  <div class="mb-4 flex flex-col md:flex-row md:justify-between">
     <p-select
       [options]="sortOptions"
       [(ngModel)]="sortKey"
@@ -35,21 +35,21 @@
       [sortOrder]="sortOrder"
       [paginator]="true"
       [rows]="10"
-      styleClass="p-0 notification-table"
+      styleClass="notification-table p-0"
     >
       <ng-template pTemplate="body" let-notification>
         <tr>
           <td>
             <div class="mb-3">
               <div
-                class="notification-item flex flex-col md:flex-row items-start p-4 w-full rounded-lg"
+                class="notification-item flex w-full flex-col items-start rounded-lg p-4 md:flex-row"
                 [ngClass]="{'surface-hover': notification.read, 'surface-100': !notification.read}"
                 (click)="onNotificationClick($event)"
               >
                 <div class="flex-1">
                   <h4 class="mb-2">{{ notification.title }}</h4>
                   <p
-                    class="mt-0 mb-2 leading-normal"
+                    class="mb-2 mt-0 leading-normal"
                     [innerHTML]="notification.formattedMessage"
                   ></p>
                   <span class="flex items-center">
@@ -57,7 +57,7 @@
                     <small>{{ notification.timestamp | date:'short' }}</small>
                   </span>
                 </div>
-                <div class="flex md:ml-4 mt-4 md:mt-0">
+                <div class="mt-4 flex md:ml-4 md:mt-0">
                   <p-button
                     icon="pi pi-trash"
                     styleClass="p-button-outlined p-button-danger"
@@ -73,7 +73,7 @@
       <ng-template pTemplate="emptymessage">
         <tr>
           <td class="p-6 text-center">
-            <i class="pi pi-inbox text-5xl mb-4" style="color: var(--p-text-color)"></i>
+            <i class="pi pi-inbox mb-4 text-5xl" style="color: var(--p-text-color)"></i>
             <p>No notifications found.</p>
           </td>
         </tr>
@@ -98,3 +98,4 @@
     </p-button>
   </div>
 </p-card>
+<p-toast />

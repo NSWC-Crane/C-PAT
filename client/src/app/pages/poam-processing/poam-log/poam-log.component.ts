@@ -15,6 +15,9 @@ import { Subscription } from 'rxjs';
 import { PoamLogService } from './poam-log.service';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 interface FSEntry {
   Timestamp: string;
@@ -27,7 +30,8 @@ interface FSEntry {
   templateUrl: './poam-log.component.html',
   styleUrls: ['./poam-log.component.scss'],
   standalone: true,
-  imports: [DialogModule, TableModule],
+  imports: [DialogModule, TableModule, ToastModule],
+  providers: [MessageService],
 })
 export class PoamLogComponent implements OnInit {
   customColumn = 'Timestamp';
@@ -44,7 +48,8 @@ export class PoamLogComponent implements OnInit {
     private sharedService: SharedService,
     private route: ActivatedRoute,
     private poamLogService: PoamLogService,
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
+    private messageService: MessageService
   ) {}
 
   public ngOnInit() {
@@ -72,7 +77,13 @@ export class PoamLogComponent implements OnInit {
         }));
         this.changeDetectorRef.detectChanges();
       },
-      error: (error: any) => console.error('Error fetching POAM logs:', error),
+      error: (error: any) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `An error occurred: ${getErrorMessage(error)}`
+        });
+        }
     });
   }
 

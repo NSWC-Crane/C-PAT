@@ -19,6 +19,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { AAPackage } from '../../../common/models/aaPackage.model';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-aa-package-processing',
@@ -57,11 +58,11 @@ export class AAPackageProcessingComponent implements OnInit {
       next: (response) => {
         this.aaPackages = response || [];
       },
-      error: () => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load A&A Packages'
+          detail: `Failed to load A&A Packages: ${getErrorMessage(error)}`
         });
       }
     });
@@ -102,11 +103,11 @@ export class AAPackageProcessingComponent implements OnInit {
         });
         this.editingAAPackage = null;
       },
-      error: () => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to save A&A Package'
+          detail: `Failed to save A&A Package: ${getErrorMessage(error)}`
         });
       }
     });
@@ -131,11 +132,11 @@ export class AAPackageProcessingComponent implements OnInit {
           detail: 'A&A Package Deleted'
         });
       },
-      error: () => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to delete A&A Package'
+          detail: `Failed to delete A&A Package: ${getErrorMessage(error)}`
         });
       }
     });

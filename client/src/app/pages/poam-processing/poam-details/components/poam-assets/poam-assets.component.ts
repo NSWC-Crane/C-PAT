@@ -20,6 +20,8 @@ import { catchError, tap } from "rxjs/operators";
 import { firstValueFrom } from "rxjs";
 import { TenableAssetsTableComponent } from '../../../../import-processing/tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
 import { STIGManagerPoamAssetsTableComponent } from '../../../../import-processing/stigmanager-import/stigManagerPoamAssetsTable/stigManagerPoamAssetsTable.component';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'cpat-poam-assets',
@@ -31,6 +33,7 @@ import { STIGManagerPoamAssetsTableComponent } from '../../../../import-processi
     ButtonModule,
     SelectModule,
     TooltipModule,
+    ToastModule,
     STIGManagerPoamAssetsTableComponent,
     TenableAssetsTableComponent
 ]
@@ -118,18 +121,21 @@ export class PoamAssetsComponent implements OnChanges {
               this.fetchAssets();
             }),
             catchError(error => {
-              console.error('Error adding asset:', error);
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: 'Failed to add asset.'
+                detail: `Failed to add asset: ${getErrorMessage(error)}`
               });
               throw error;
             })
           )
         );
       } catch (error) {
-        console.error('Error in confirmCreateAsset:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error during asset creation: ${getErrorMessage(error)}`
+        });
       }
     }
   }
@@ -148,11 +154,10 @@ export class PoamAssetsComponent implements OnChanges {
         this.assetsChanged.emit(this.poamAssets);
       },
       error: (error) => {
-        console.error('Error fetching POAM assets:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to fetch assets'
+          detail: `Failed to fetch assets: ${getErrorMessage(error)}`
         });
       }
     });

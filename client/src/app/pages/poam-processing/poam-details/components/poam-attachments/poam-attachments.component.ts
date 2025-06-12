@@ -23,6 +23,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-attachments',
@@ -124,11 +125,10 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
         this.attachedFiles = attachments;
       },
       error: (error) => {
-        console.error('Error fetching attached files:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to fetch attached files'
+          detail: `Failed to fetch attached files: ${getErrorMessage(error)}`
         });
       }
     });
@@ -146,11 +146,10 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
           window.URL.revokeObjectURL(url);
         },
         error: (error) => {
-          console.error('Error downloading file:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to download file'
+            detail: `Failed to download file: ${getErrorMessage(error)}`
           });
         }
       });
@@ -168,11 +167,10 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
           this.loadAttachedFiles();
         },
         error: (error) => {
-          console.error('Error deleting file:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to delete file'
+            detail: `Failed to delete file: ${getErrorMessage(error)}`
           });
         }
       });
@@ -243,11 +241,10 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
             }
           },
           error: (error) => {
-            console.error('Error during file upload:', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'File upload failed: ' + (error.error?.message || 'Unknown error')
+              detail: `File upload failed: ${getErrorMessage(error)}`
             });
           },
           complete: () => {

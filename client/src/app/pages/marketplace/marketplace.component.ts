@@ -24,7 +24,7 @@ import { ButtonModule } from 'primeng/button';
 import { ImageModule } from 'primeng/image';
 import { AppConfigService } from '../../layout/services/appconfigservice';
 import { updateSurfacePalette } from '@primeng/themes';
-
+import { getErrorMessage } from '../../common/utils/error-utils';
 interface Theme {
   themeId: number;
   themeIdentifier: string;
@@ -249,7 +249,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to load user data: ${error.message}`,
+          detail: `Failed to load user data: ${getErrorMessage(error)}`
         });
       }
     });
@@ -264,7 +264,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to load user points: ${error.message}`,
+          detail: `Failed to load user points: ${getErrorMessage(error)}`
         });
       }
     });
@@ -286,7 +286,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to load themes: ${error.message}`,
+          detail: `Failed to load themes: ${getErrorMessage(error)}`
         });
       }
     });
@@ -324,7 +324,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
                 this.messageService.add({
                   severity: 'error',
                   summary: 'Error',
-                  detail: `Failed to purchase theme: ${error.message}`,
+                  detail: `Failed to purchase theme: ${getErrorMessage(error)}`
                 });
               }
             });
@@ -385,7 +385,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Failed to apply theme: ${error.message}`,
+            detail: `Failed to apply theme: ${getErrorMessage(error)}`
           });
         }
       });

@@ -58,7 +58,7 @@ import { PoamMitigationService } from './services/poam-mitigation.service';
 import { PoamCreationService } from './services/poam-creation.service';
 import { AssetTeamMappingService } from './services/asset-team-mapping.service';
 import { PoamValidationService } from './services/poam-validation.service';
-
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poamdetails',
@@ -331,7 +331,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           resolve(collectionInfo);
         },
         error: (error) => {
-          console.error('Error loading collection data:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error loading collection data: ${getErrorMessage(error)}`
+          });
           resolve(null);
         }
       });
@@ -357,11 +361,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         await this.createNewACASPoam();
         this.loadAssets();
       } catch (error) {
-        console.error("Failed to create ACAS POAM:", error);
         this.messageService.add({
           severity: "error",
           summary: "Error",
-          detail: "Failed to create ACAS POAM",
+          detail: `Failed to create ACAS POAM: ${getErrorMessage(error)}`
         });
       }
     } else if (isNewPoam && source === "STIG") {
@@ -369,11 +372,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         await this.createNewSTIGManagerPoam();
         this.loadAssets();
       } catch (error) {
-        console.error("Failed to create STIG Manager POAM:", error);
         this.messageService.add({
           severity: "error",
           summary: "Error",
-          detail: "Failed to create STIG Manager POAM",
+          detail: `Failed to create STIG Manager POAM: ${getErrorMessage(error)}`
         });
       }
     } else if (isNewPoam) {
@@ -381,11 +383,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         await this.createNewPoam();
         this.loadAssets();
       } catch (error) {
-        console.error("Failed to create POAM:", error);
         this.messageService.add({
           severity: "error",
           summary: "Error",
-          detail: "Failed to create POAM",
+          detail: `Failed to create POAM: ${getErrorMessage(error)}`
         });
       }
     } else {
@@ -477,7 +478,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
                 this.stigmanSTIGs = stigmanSTIGs;
               },
               error: (error) => {
-                console.error("Error loading STIGs:", error);
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Error loading STIGs: ${getErrorMessage(error)}`
+                });
               },
             });
           }
@@ -485,11 +490,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.loadAssets();
         },
         error: (error) => {
-          console.error("Error loading POAM data:", error);
           this.messageService.add({
             severity: "error",
             summary: "Error",
-            detail: "Failed to load POAM data",
+            detail: `Failed to load POAM data: ${getErrorMessage(error)}`
           });
         },
       });
@@ -502,7 +506,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.labelList = labels;
       },
       error: (error) => {
-        console.error('Error fetching labels:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching labels: ${getErrorMessage(error)}`
+        });
       }
     });
   }
@@ -531,11 +539,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.updateMilestoneTeamOptions();
       },
       error: (error) => {
-        console.error('Error loading assets:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load assets'
+          detail: `Failed to load assets: ${getErrorMessage(error)}`
         });
         this.loadingTeams.set(false);
       }
@@ -616,11 +623,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
 
     } catch (error) {
-      console.error('Error in createNewACASPoam:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to create new POAM'
+        detail: `Failed to create new POAM: ${getErrorMessage(error)}`
       });
     }
   }
@@ -655,11 +661,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
 
     } catch (error) {
-      console.error('Error in createNewSTIGManagerPoam:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to create new STIG Manager POAM'
+        detail: `Failed to create new STIG Manager POAM: ${getErrorMessage(error)}`
       });
     }
   }
@@ -693,11 +698,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
 
     } catch (error) {
-      console.error('Error in createNewPoam:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to create new POAM'
+        detail: `Failed to create new POAM: ${getErrorMessage(error)}`
       });
     }
   }
@@ -916,10 +920,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           error: (error) => {
             this.messageService.add({
               severity: 'error',
-              summary: 'Information',
-              detail: 'Unexpected error, please try again.'
+              summary: 'Error',
+              detail: `Unexpected error: ${getErrorMessage(error)}`
             });
-            console.error('Error saving POAM:', error);
             resolve(false);
           }
         });
@@ -938,11 +941,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             resolve(true);
           },
           error: (error) => {
-            console.error('Error updating POAM:', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Failed to update POAM'
+              detail: `Failed to update POAM: ${getErrorMessage(error)}`
             });
             resolve(false);
           }
@@ -1210,11 +1212,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       },
       error: (error) => {
-        console.error('Error loading team mitigations:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load team mitigations'
+          detail: `Failed to load team mitigations: ${getErrorMessage(error)}`
         });
         this._ensureUniqueTeamMitigations();
       }
@@ -1253,11 +1254,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.mitigationSaving = false;
-        console.error('Error saving team mitigation:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to save team mitigation'
+          detail: `Failed to save team mitigation: ${getErrorMessage(error)}`
         });
       }
     });
@@ -1313,8 +1313,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.aaPackages = response || [];
       },
       error: (error) => {
-        console.error('Error loading A&A Packages:', error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load A&A Packages.' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load A&A Packages: ${getErrorMessage(error)}`
+        });
         this.aaPackages = [];
       }
     });
@@ -1328,7 +1331,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   deletePoam() {
     if (!this.poam || !this.poam.poamId || this.poam.poamId === 'ADDPOAM') {
-      this.messageService.add({ severity: 'warn', summary: 'Cannot Delete', detail: 'POAM must be saved before it can be deleted.' });
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cannot Delete',
+        detail: 'POAM must be saved before it can be deleted.'
+      });
       return;
     }
 
@@ -1354,7 +1361,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: `Failed to delete POAM ${this.poam.poamId}: ${error.message}`
+              detail: `Failed to delete POAM ${this.poam.poamId}: : ${getErrorMessage(error)}`
             });
           }
         });

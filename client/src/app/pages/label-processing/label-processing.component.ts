@@ -31,6 +31,9 @@ import { LabelComponent } from './label/label.component';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { Label } from '../../common/models/label.model';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-label-processing',
@@ -47,10 +50,11 @@ import { Label } from '../../common/models/label.model';
     InputIconModule,
     IconFieldModule,
     TableModule,
+    ToastModule,
     TooltipModule,
     LabelComponent
 ],
-  providers: [DialogService],
+  providers: [DialogService, MessageService],
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;
@@ -81,7 +85,8 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
     private labelService: LabelService,
     private dialogService: DialogService,
     private setPayloadService: PayloadService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private messageService: MessageService
   ) {}
 
   onSubmit() {
@@ -129,7 +134,11 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
           this.labels = this.data;
         },
         error => {
-          console.error('Error fetching labels:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching labels: ${getErrorMessage(error)}`
+          });
         }
       );
   }

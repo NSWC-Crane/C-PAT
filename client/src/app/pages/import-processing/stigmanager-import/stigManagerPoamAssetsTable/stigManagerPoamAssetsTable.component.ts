@@ -26,6 +26,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { TagModule } from 'primeng/tag';
 import { TabsModule } from 'primeng/tabs';
 import { TooltipModule } from 'primeng/tooltip';
+import { getErrorMessage } from '../../../../common/utils/error-utils';
 
 interface ExportColumn {
   title: string;
@@ -107,9 +108,11 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       if (this.groupId) {
         this.loadData();
       } else {
-        this.showErrorMessage(
-          'No vulnerability ID provided. Please enter a vulnerability ID and re-open the assets tab.'
-        );
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No vulnerability ID provided. Please enter a vulnerability ID and re-open the assets tab.'
+        });
       }
     }
   }
@@ -138,10 +141,10 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       next: (response) => {
         this.assetDeltaList = response || [];
       },
-      error: () => this.messageService.add({
+      error: (error) => this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load Asset Delta List'
+        detail: `Failed to load Asset Delta List: ${getErrorMessage(error)}`
       })
     });
   }
@@ -190,8 +193,11 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
         this.loadAssetDetails(Array.from(assetMap.values()));
       },
       error: (error) => {
-        console.error('Error loading data:', error);
-        this.showErrorMessage('Failed to fetch data. Please try again later.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to fetch data: ${getErrorMessage(error)}`
+        });
         this.loading = false;
       }
     });
@@ -233,8 +239,11 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
           this.loading = false;
         },
         error: (error) => {
-          console.error('Failed to fetch asset details from STIGMAN:', error);
-          this.showErrorMessage('Failed to fetch asset details. Please try again later.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch data: ${getErrorMessage(error)}`
+          });
           this.affectedAssets = mappedAssets;
           this.loading = false;
         }
@@ -355,15 +364,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
           (deltaAsset.assignedTeam && deltaAsset.assignedTeam.assignedTeamId);
       }
       return false;
-    });
-  }
-
-  showErrorMessage(message: string) {
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: message,
-      sticky: true,
     });
   }
 

@@ -15,13 +15,17 @@ import { Router } from '@angular/router';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
 import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.component';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poams',
   templateUrl: './poams.component.html',
   styleUrls: ['./poams.component.scss'],
   standalone: true,
-  imports: [PoamMainchartComponent],
+  imports: [PoamMainchartComponent, ToastModule],
+  providers: [MessageService]
 })
 export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   protected accessLevel: any;
@@ -37,7 +41,8 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
     private collectionsService: CollectionsService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private setPayloadService: PayloadService
+    private setPayloadService: PayloadService,
+    private messageService: MessageService
   ) {}
 
   async ngOnInit() {
@@ -74,7 +79,11 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
           this.poams = poamData;
         },
         error: (error) => {
-          console.error('Error fetching POAM data:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching POAM data: ${getErrorMessage(error)}`
+          });
         }
       });
   }

@@ -31,7 +31,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { Collections } from '../../../common/models/collections.model';
 import { AAPackage } from '../../../common/models/aaPackage.model';
-
+import { getErrorMessage } from '../../../common/utils/error-utils';
 interface TreeNode<T> {
   data: T;
   children?: TreeNode<T>[];
@@ -154,11 +154,11 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.aaPackages = response || [];
       },
-      error: () => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load A&A Packages'
+          detail: `Failed to load A&A Packages: ${getErrorMessage(error)}`
         });
       }
     });
@@ -222,7 +222,11 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     };
 
     if (!exportCollection.collectionId) {
-      console.error('Export collection ID is undefined');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Unable to determine export collection, please try again.`
+      });
       return;
     }
 
@@ -239,11 +243,10 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         exportCollection
       ))),
       catchError(error => {
-        console.error('Export error:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Export Failed',
-          detail: error.message || 'Failed to process POAMs, please try again later.'
+          detail: `Failed to process POAMs: ${getErrorMessage(error)}`
         });
         return EMPTY;
       })
@@ -422,7 +425,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to ${this.dialogMode === 'add' ? 'add' : 'update'} collection: ${error.message}`,
+          detail: `Failed to ${this.dialogMode === 'add' ? 'add' : 'update'} collection: ${getErrorMessage(error)}`,
           life: 3000
         });
         return EMPTY;

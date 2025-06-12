@@ -91,7 +91,7 @@ bootstrapApplication(AppComponent, {
           renewUserInfoAfterTokenRenew: false,
           triggerAuthorizationResultEvent: true,
           startCheckSession: true,
-          postLoginRoute: '/poam-processing',
+          postLoginRoute: '/',
           unauthorizedRoute: '/403',
           forbiddenRoute: '/401',
           tokenRefreshInSeconds: 6,

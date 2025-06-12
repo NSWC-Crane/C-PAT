@@ -23,6 +23,7 @@ import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 import { UsersService } from '../user-processing/users.service';
 import { EMPTY, Observable, Subject, catchError, map, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { Table, TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
 import { ImportService } from '../../import-processing/import.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -33,6 +34,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-nessus-plugin-mapping',
@@ -50,6 +52,7 @@ import { InputIconModule } from 'primeng/inputicon';
     MessageModule,
     ProgressBarModule,
     TableModule,
+    ToastModule
   ],
   providers: [MessageService],
 })
@@ -83,11 +86,10 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
     this.userService.getCurrentUser().pipe(
       tap(user => this.user = user),
       catchError(error => {
-        console.error('Error fetching user data:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to fetch user data'
+          detail: `Failed to fetch user data: ${getErrorMessage(error)}`
         });
         return EMPTY;
       }),
@@ -162,11 +164,10 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
         this.totalRecords = data.length;
       }),
       catchError(error => {
-        console.error('Error fetching IAV Table Data:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: error.message || 'Failed to fetch IAV Table Data'
+          detail: `Failed to fetch IAV Table Data: ${getErrorMessage(error)}`
         });
         return EMPTY;
       }),
@@ -207,11 +208,10 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges {
 
     batchProcess$.subscribe({
       error: (error) => {
-        console.error('Error updating plugin IDs:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to update plugin IDs'
+          detail: `Failed to update plugin IDs: ${getErrorMessage(error)}`
         });
         this.isUpdating = false;
       },

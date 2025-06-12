@@ -30,7 +30,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TagModule } from 'primeng/tag';
 import { SharedService } from '../../../common/services/shared.service';
-
+import { getErrorMessage } from '../../../common/utils/error-utils';
 interface AssignedTeam {
   assignedTeamId: number;
   assignedTeamName: string;
@@ -99,10 +99,10 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   loadAssignedTeams() {
     this.assignedTeamService.getAssignedTeams().subscribe({
       next: (response) => this.assignedTeams = response || [],
-      error: () => this.messageService.add({
+      error: (error) => this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load Assigned Teams'
+        detail: `Failed to load Assigned Teams: ${getErrorMessage(error)}`
       })
     });
   }
@@ -113,10 +113,10 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         this.uniqueTeams = response;
         this.filteredTeams = [...this.uniqueTeams];
       },
-      error: () => this.messageService.add({
+      error: (error) => this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load Asset Delta Teams'
+        detail: `Failed to load Asset Delta Teams: ${getErrorMessage(error)}`
       })
     });
   }
@@ -134,10 +134,10 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         this.allCollections = response || [];
         this.availableCollections = [...this.allCollections];
       },
-      error: () => this.messageService.add({
+      error: (error) => this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load available collections'
+        detail: `Failed to load available collections: ${getErrorMessage(error)}`
       })
     });
   }
@@ -323,7 +323,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to save Assigned Team: ${error.message}`
+          detail: `Failed to save Assigned Team: ${getErrorMessage(error)}`
         });
         return EMPTY;
       })
@@ -357,7 +357,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to delete Assigned Team: ${error.message}`
+          detail: `Failed to delete Assigned Team: ${getErrorMessage(error)}`
         });
         return EMPTY;
       })
@@ -394,7 +394,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
     this.messageService.add({
       severity: 'error',
       summary: 'Error',
-      detail: `Failed to ${isRemoval ? 'remove' : 'add'} permission: ${error.message}`
+      detail: `Failed to ${isRemoval ? 'remove' : 'add'} permission: ${getErrorMessage(error)}`
     });
   }
 

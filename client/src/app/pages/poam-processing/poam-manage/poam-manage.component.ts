@@ -27,13 +27,16 @@ import {
 import { Router } from '@angular/router';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { CommonModule } from '@angular/common';
+import { MessageService } from 'primeng/api';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
+import { ToastModule } from 'primeng/toast';
 import { PoamAdvancedPieComponent } from '../poam-advanced-pie/poam-advanced-pie.component';
 import { PoamAssignedGridComponent } from '../poam-assigned-grid/poam-assigned-grid.component';
 import { PoamGridComponent } from '../poam-grid/poam-grid.component';
 import { PoamMainchartComponent } from '../poam-mainchart/poam-mainchart.component';
 import { Poam } from '../../../common/models/poam.model';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-manage',
@@ -45,11 +48,13 @@ import { Poam } from '../../../common/models/poam.model';
     CommonModule,
     CardModule,
     TabsModule,
+    ToastModule,
     PoamAdvancedPieComponent,
     PoamMainchartComponent,
     PoamAssignedGridComponent,
     PoamGridComponent
   ],
+  providers: [MessageService],
 })
 export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   catIPieChartData = signal<any[]>([]);
@@ -121,7 +126,8 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private setPayloadService: PayloadService,
-    private importService: ImportService
+    private importService: ImportService,
+    private messageService: MessageService
   ) { }
 
   async ngOnInit() {
@@ -159,7 +165,13 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
           this.fetchFindingsData(this.selectedCollection().originCollectionId, this.selectedCollection().collectionOrigin);
         }
       },
-      error: (error) => console.error('Error loading POAM data:', error)
+      error: (error) => {
+        this.messageService.add({
+          severity: "error",
+          summary: "Error",
+          detail: `Error loading POAM data: ${getErrorMessage(error)}`
+        });
+      }
     });
   }
 
@@ -178,7 +190,13 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
             this.calculateFindingStats();
             this.updateCategoryPieCharts();
           },
-          error: (error) => console.error('Error loading findings data:', error)
+          error: (error) => {
+            this.messageService.add({
+              severity: "error",
+              summary: "Error",
+              detail: `Error loading findings data: ${getErrorMessage(error)}`
+            });
+          }
         });
     } else if (collectionOrigin === 'Tenable') {
       const baseQuery = {
@@ -253,7 +271,11 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.importService.postTenableAnalysis(thirtyDaysQuery)
       ]).pipe(
         catchError(error => {
-          console.error('Error fetching Tenable findings:', error);
+          this.messageService.add({
+            severity: "error",
+            summary: "Error",
+            detail: `Error fetching Tenable findings: ${getErrorMessage(error)}`
+          });
           return of([
             { response: { results: [] } },
             { response: { results: [] } }
@@ -302,7 +324,13 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
           this.calculateFindingStats();
           this.updateCategoryPieCharts();
         },
-        error: (error) => console.error('Error processing Tenable findings data:', error)
+        error: (error) => {
+          this.messageService.add({
+            severity: "error",
+            summary: "Error",
+            detail: `Error processing Tenable findings data: ${getErrorMessage(error)}`
+          });
+        }
       });
     } else {
       this.affectedAssetCounts.set([]);

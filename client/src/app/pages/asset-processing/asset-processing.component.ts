@@ -36,6 +36,9 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Select } from 'primeng/select';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../common/utils/error-utils';
 
 interface Column {
   field: string;
@@ -69,10 +72,11 @@ interface AssetEntry {
     STIGManagerAssetsTableComponent,
     TableModule,
     TabsModule,
+    ToastModule,
     TenableHostAssetsTableComponent,
     TooltipModule
 ],
-  providers: [DialogService],
+  providers: [DialogService, MessageService],
 })
 export class AssetProcessingComponent implements OnInit, OnDestroy {
   @ViewChild('assetTable') assetTable!: Table;
@@ -107,7 +111,8 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
     private assetService: AssetService,
     private setPayloadService: PayloadService,
     private sharedService: SharedService,
-    private collectionsService: CollectionsService
+    private collectionsService: CollectionsService,
+    private messageService: MessageService
   ) {
     this.initializeChartOptions();
   }
@@ -129,7 +134,12 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
           this.originCollectionId = selectedCollectionData.originCollectionId;
         }
       },
-      error: () => {
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `An error occurred: ${getErrorMessage(error)}`
+        });
         this.collectionOrigin = '';
       },
     });
@@ -215,7 +225,11 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
         this.assets = this.data;
       },
       error => {
-        console.error('Failed to fetch assets by collection', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to fetch assets by collection: ${getErrorMessage(error)}`
+        });
       }
     );
   }

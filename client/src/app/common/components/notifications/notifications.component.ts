@@ -19,13 +19,17 @@ import { FormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
 import { CardModule } from 'primeng/card';
 import { TableModule } from 'primeng/table';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-notifications',
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CardModule, CommonModule, TableModule, Select, FormsModule],
+  imports: [ButtonModule, CardModule, CommonModule, TableModule, ToastModule, Select, FormsModule],
+  providers: [MessageService]
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
   notifications: any[] = [];
@@ -50,12 +54,13 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   constructor(
     private notificationService: NotificationService,
     private setPayloadService: PayloadService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private messageService: MessageService
   ) {}
 
   async ngOnInit() {
     await this.setPayload();
-    await this.fetchNotifications();
+    this.fetchNotifications();
   }
 
   async setPayload() {
@@ -89,8 +94,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
                 this.notifications = formattedNotifications;
                 this.filterNotifications();
             },
-            error: (error) => {
-                console.error('Failed to fetch notifications:', error);
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to fetch notifications: ${getErrorMessage(error)}`
+            });
             }
         });
     }
@@ -140,8 +149,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
                 }
                 this.fetchNotifications();
             },
-            error: (error) => {
-                console.error('Failed to delete notification:', error);
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to delete notification: ${getErrorMessage(error)}`
+            });
             }
         });
     }
@@ -156,8 +169,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
             next: () => {
                 this.fetchNotifications();
             },
-            error: (error) => {
-                console.error('Failed to dismiss all notifications:', error);
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to dismiss all notifications: ${getErrorMessage(error)}`
+            });
             }
         });
     }
@@ -175,8 +192,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
                 this.notifications = [{ title: 'You have no new notifications...', read: 1 }];
                 this.filteredNotifications = [{ title: 'You have no new notifications...', read: 1 }];
             },
-            error: (error) => {
-                console.error('Failed to delete all notifications:', error);
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to delete all notifications: ${getErrorMessage(error)}`
+            });
             }
         });
     }
@@ -198,7 +219,11 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     try {
       window.location.pathname = `/poam-processing/poam-details/${poamId}`;
     } catch (error) {
-      console.error('Error navigating to POAM:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error navigating to POAM: ${getErrorMessage(error)}`
+      });
     }
   }
 
