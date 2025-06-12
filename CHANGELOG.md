@@ -1,19 +1,20 @@
 ## What's Changed
 
 ### New Features
-* feat: Add SEoL tab to Tenable Component (8d521f9)
-* feat: Add SEoL tab to Tenable Component (d2a7ca0)
+* feat: Update client handling for JWT audience validation (dbbc3b8)
+* feat: Add optional JWT audience validation (ec2812c)
 
 ### Bug Fixes
-* fix: Smart table row insertion with paginator fix (db993eb)
-* fix: Update 'lastClaims' handling (b8d93d7)
-* fix: Error on transition from POAM Details -> POAM Log (4fed818)
+* fix: Saving duplicate POAMs fix (8510de8)
+* fix: variable typo (4a3e268)
+* fix: Tenable 'Host Assets' Date display fix (eda555d)
+* fix: POAM details component SCD w/ extension date fix (3f7578f)
 
 ### Other Changes
-* refactor: Update routing, default theme, and client deps (5fad59d)
-* chore: Update release workflow (a6075c0)
-* docs: Documentation update (88a5d3f)
-* chore: Authentication refactoring (0e3a2d1)
-* chore: Support Angular 20 #355 (fb37696)
-* style: Scroll bar update for 'Assets' tab within a POAM #358 (089cf18)
+* refactor: Error handling and error messages (79442aa)
+* chore: Documentation dependency updates (0d62ae2)
+* chore: bump requests from 2.32.3 to 2.32.4 (d9e0112)
+* chore(deps): bump requests from 2.32.3 to 2.32.4 in /docs (26cf3e5)
+* refactor: POAM submission validation improvements (8f87236)
+* chore: Testing and deps update (c9c84b0)
 

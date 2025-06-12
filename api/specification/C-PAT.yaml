@@ -15,7 +15,7 @@ info:
   contact:
     name: Christian Rodriguez
     email: christian.a.rodriguez8.ctr@us.navy.mil
-  version: '1.2.3'
+  version: '1.2.4'
 servers:
   - url: ''
 paths:
