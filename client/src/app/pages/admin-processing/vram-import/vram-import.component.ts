@@ -23,6 +23,7 @@ import { BadgeModule } from 'primeng/badge';
 import { VramPopupComponent } from '../../../common/components/vram-popup/vram-popup.component';
 import { ToastModule } from 'primeng/toast';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-vram-import',
@@ -61,11 +62,10 @@ export class VRAMImportComponent implements OnInit {
     this.userService.getCurrentUser().pipe(
       takeUntil(this.destroy$),
       catchError(error => {
-        console.error('Error fetching user data:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to fetch user data'
+          detail: `Failed to fetch user data: ${getErrorMessage(error)}`
         });
         return EMPTY;
       })
@@ -84,7 +84,11 @@ export class VRAMImportComponent implements OnInit {
         this.vramUpdatedDate = response?.value || 'N/A';
       },
       error: error => {
-        console.error('Error fetching VRAM updated date:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching VRAM updated date: ${getErrorMessage(error)}`
+        });
         this.vramUpdatedDate = 'Error';
       }
     });
@@ -105,7 +109,6 @@ export class VRAMImportComponent implements OnInit {
   customUploadHandler(event: any) {
     const file = event.files[0];
     if (!file) {
-      console.error('No file selected');
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -137,11 +140,10 @@ export class VRAMImportComponent implements OnInit {
         }
       },
       error: error => {
-        console.error('Error during file upload:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'File upload failed: ' + (error.error?.message || 'Unknown error')
+          detail: `File upload failed: ${getErrorMessage(error)}`
         });
       },
       complete: () => {

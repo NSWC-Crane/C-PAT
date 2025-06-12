@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -165,7 +165,7 @@
           </p-tabpanel>
 
           @if (accessLevel() >= 2) {
-            <p-tabpanel value="2" styleClass="flex-1 flex flex-col">
+            <p-tabpanel value="2" styleClass="flex flex-1 flex-col">
               <div class="flex-1 overflow-hidden" [ngClass]="{'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable'}">
                 <cpat-poam-assigned-grid [assignedData]="submittedPoams()"
                   [affectedAssetCounts]="affectedAssetCounts()"
@@ -176,7 +176,7 @@
           }
 
           @if (accessLevel() >= 1) {
-            <p-tabpanel value="3" styleClass="flex-1 flex flex-col">
+            <p-tabpanel value="3" styleClass="flex flex-1 flex-col">
               <div class="flex-1 overflow-hidden" [ngClass]="{'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable'}">
                 <cpat-poam-assigned-grid [assignedData]="teamPoams()"
                   [affectedAssetCounts]="affectedAssetCounts()"
@@ -187,7 +187,7 @@
           }
 
           @if (accessLevel() >= 3) {
-            <p-tabpanel value="4" styleClass="flex-1 flex flex-col">
+            <p-tabpanel value="4" styleClass="flex flex-1 flex-col">
               <div class="flex-1 overflow-hidden" [ngClass]="{'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable'}">
                 <cpat-poam-assigned-grid [assignedData]="poamsPendingApproval()"
                   [affectedAssetCounts]="affectedAssetCounts()"
@@ -206,3 +206,4 @@
   [allColumns]="['Last Updated', 'POAM ID', 'POAM Status', 'Adjusted Severity', 'Submitter', 'Submitted Date', 'Scheduled Completion Date', 'POAM']"
   (managePoam)="managePoam($event)">
 </cpat-poam-grid>
+<p-toast />

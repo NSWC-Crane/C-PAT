@@ -34,6 +34,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-label',
@@ -99,9 +100,12 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
           (data: any) => {
             this.labelchange.emit(data.labelId);
           },
-          (err: any) => {
-            this.invalidData('Unexpected error adding label');
-            console.error(err);
+          (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error adding label: ${getErrorMessage(error)}`
+            });
           }
         );
     } else {
@@ -175,7 +179,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Failed to delete label: ${error.message}`,
+            detail: `Failed to delete label: ${getErrorMessage(error)}`
           });
         },
       });

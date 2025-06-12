@@ -6,11 +6,15 @@ import { ButtonModule } from 'primeng/button';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { PoamChatService } from '../../services/poam-chat.service';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-chat',
   standalone: true,
-  imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule],
+  imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule, ToastModule],
+  providers: [MessageService],
   template: `<div class="flex flex-col h-full">
               <div class="flex items-center border-b border-surface-200 dark:border-surface-700">
               </div>
@@ -96,7 +100,8 @@ import { PoamChatService } from '../../services/poam-chat.service';
                   }
                 </div>
               </ng-template>
-            </p-popover>`
+            </p-popover>
+            <p-toast />`
 })
 export class PoamChatComponent implements OnInit {
   @Input() poamId!: number;
@@ -118,7 +123,10 @@ export class PoamChatComponent implements OnInit {
     '😤', '😮', '😱', '😨', '😰', '😯', '😦', '😧', '😢', '😥'
   ];
 
-  constructor(private poamChatService: PoamChatService) { }
+  constructor(
+    private poamChatService: PoamChatService,
+    private messageService: MessageService
+  ) { }
 
   ngOnInit() {
     if (this.poamId) {
@@ -137,8 +145,12 @@ export class PoamChatComponent implements OnInit {
           }
         });
       },
-      error: (err) => {
-        console.error('Error loading chat messages:', err);
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error loading chat messages: ${getErrorMessage(error)}`
+        });
       }
     });
   }
@@ -257,8 +269,12 @@ export class PoamChatComponent implements OnInit {
           }
         });
       },
-      error: (err) => {
-        console.error('Error sending message:', err);
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error sending message: ${getErrorMessage(error)}`
+        });
       }
     });
   }

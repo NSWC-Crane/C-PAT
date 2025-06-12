@@ -30,6 +30,8 @@ import { parseISO } from 'date-fns';
 import { forkJoin } from 'rxjs';
 import { DatePickerModule } from 'primeng/datepicker';
 import { Popover, PopoverModule } from 'primeng/popover';
+import { getErrorMessage } from '../../../../common/utils/error-utils';
+
 interface ExportColumn {
   title: string;
   dataKey: string;
@@ -183,7 +185,11 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     if (this.stigmanCollectionId) {
       this.loadBenchmarkIds();
     } else {
-      this.showErrorMessage('Unable to fetch STIG Manager data, please try again later.');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Unable to fetch STIG Manager data, please try again later.'
+      });
     }
   }
 
@@ -212,8 +218,11 @@ export class STIGManagerReviewsTableComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading STIG data:', error);
-        this.showErrorMessage('Failed to load benchmark IDs. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load benchmark IDs: ${getErrorMessage(error)}`
+        });
         this.isLoading = false;
       }
     });
@@ -260,8 +269,11 @@ export class STIGManagerReviewsTableComponent implements OnInit {
         this.filters = {};
       },
       error: (error) => {
-        console.error('Error loading reviews:', error);
-        this.showErrorMessage('Failed to fetch reviews. Please try again later.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to fetch reviews: ${getErrorMessage(error)}`
+        });
       },
       complete: () => {
         this.isLoading = false;
@@ -353,15 +365,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       dataKey: col.field,
     }));
     this.resetColumnSelections();
-  }
-
-  showErrorMessage(message: string) {
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: message,
-      sticky: true,
-    });
   }
 
   applyCurrentFilter() {

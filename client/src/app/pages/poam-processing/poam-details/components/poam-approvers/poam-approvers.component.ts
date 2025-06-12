@@ -17,6 +17,7 @@ import { SelectModule } from "primeng/select";
 import { TableModule } from "primeng/table";
 import { TextareaModule } from "primeng/textarea";
 import { ToastModule } from "primeng/toast";
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-approvers',
@@ -105,11 +106,10 @@ export class PoamApproversComponent implements OnInit {
         this.approversChanged.emit(this.poamApprovers);
       },
       error: (error: any) => {
-        console.error('Error fetching POAM approvers:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load approvers'
+          detail: `Failed to load approvers: ${getErrorMessage(error)}`
         });
       }
     });

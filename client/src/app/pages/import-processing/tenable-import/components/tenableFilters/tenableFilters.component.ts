@@ -18,6 +18,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
 import { FormsModule } from '@angular/forms';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-tenable-filters',
@@ -93,11 +94,10 @@ export class TenableFiltersComponent {
           this.filterSaved.emit();
         },
         error: (error) => {
-          console.error('Error saving filter:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Error saving filter. Please try again.'
+            detail: `Error saving filter: ${getErrorMessage(error)}`
           });
         }
       });

@@ -24,6 +24,9 @@ import { CollectionProcessingComponent } from './collection-processing/collectio
 import { UserProcessingComponent } from './user-processing/user-processing.component';
 import { ButtonModule } from 'primeng/button';
 import { Subject, takeUntil } from 'rxjs';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-admin-processing',
@@ -39,11 +42,13 @@ import { Subject, takeUntil } from 'rxjs';
     NessusPluginMappingComponent,
     STIGManagerAdminComponent,
     TabsModule,
+    ToastModule,
     TenableAdminComponent,
     UserProcessingComponent,
     AssetDeltaComponent,
     VRAMImportComponent
-],
+  ],
+  providers: [MessageService]
 })
 export class AdminProcessingComponent implements OnInit {
   value: number = 0;
@@ -52,7 +57,8 @@ export class AdminProcessingComponent implements OnInit {
   tenableEnabled = CPAT.Env.features.tenableEnabled;
   constructor(
     private userService: UsersService,
-    private router: Router
+    private router: Router,
+    private messageService: MessageService
   ) {}
 
   ngOnInit() {
@@ -67,7 +73,11 @@ export class AdminProcessingComponent implements OnInit {
         }
       },
       error: error => {
-        console.error('An error occurred:', error.message);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `An error occurred: ${getErrorMessage(error)}`
+        });
       }
     });
   }

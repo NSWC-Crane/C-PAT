@@ -32,6 +32,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { TagModule } from 'primeng/tag';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 interface Reference {
   type: string;
@@ -153,7 +154,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         }
       },
       error: (error) => {
-        console.error("Error fetching collection list:", error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching collection list: ${getErrorMessage(error)}`
+        });
         this.handleMissingTenable();
       },
     });
@@ -284,8 +289,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         this.getApplicableFindings(this.applicablePluginIDs);
       },
       error: (error) => {
-        console.error('Error fetching IAV mapped pluginIDs:', error);
-        this.showErrorMessage('Error fetching IAV mapped pluginIDs. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching IAV mapped pluginIDs: ${getErrorMessage(error)}`
+        });
       }
     });
   }
@@ -312,8 +320,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         this.getApplicableFindings(this.applicablePluginIDs);
       },
       error: (error) => {
-        console.error('Error fetching task order pluginIDs:', error);
-        this.showErrorMessage('Error fetching task order pluginIDs. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching task order pluginIDs: ${getErrorMessage(error)}`
+        });
       }
     });
   }
@@ -372,8 +383,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         );
       }),
       catchError(error => {
-        console.error('Error fetching Vulnerabilities:', error);
-        this.showErrorMessage('Error fetching Vulnerabilities. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching Vulnerabilities: ${getErrorMessage(error)}`
+        });
         return EMPTY;
       }),
       finalize(() => {
@@ -472,8 +486,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
           }
         },
         error: (error) => {
-          console.error('Error loading POAM associations:', error);
-          this.showErrorMessage('Error loading POAM data. Please try again.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error loading POAM data: ${getErrorMessage(error)}`
+          });
         }
       });
   }
@@ -605,8 +622,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
             resolve();
           },
           error: (error) => {
-            console.error('Error fetching plugin data:', error);
-            this.showErrorMessage('Error fetching plugin data. Please try again.');
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+            });
             reject(error);
           }
         });
@@ -660,8 +680,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         },
       });
     } catch (error) {
-      console.error('Error in onPoamIconClick:', error);
-      this.showErrorMessage('Error processing vulnerability data. Please try again.');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error processing vulnerability data: ${getErrorMessage(error)}`
+      });
     }
   }
 

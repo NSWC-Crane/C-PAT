@@ -17,81 +17,19 @@
     font-size: 1.1rem;
     font-weight: 600;
     text-align: center;
-    padding: 1rem 0;
+    padding: 1rem 0 1rem 0;
     color: var(--p-tabs-tab-color);
     transition: background var(--p-tabs-transition-duration), border-color var(--p-tabs-transition-duration), color var(--p-tabs-transition-duration), outline-color var(--p-tabs-transition-duration), box-shadow var(--p-tabs-transition-duration);
-
-    &:hover {
-      background: var(--p-tabs-tab-hover-background);
-      border-color: var(--p-tabs-tab-hover-border-color);
-      color: var(--p-tabs-tab-hover-color);
-    }
-  }
-}
-
-:host ::ng-deep {
-  .tenable-collection .p-datatable-table-container {
-    max-height: 67rem !important;
   }
 
-  .category-chart-card {
-    .p-card-body {
-      padding: 0 0 0 0 !important;
-    }
-    .p-card-header {
-      padding-bottom: 0 !important;
-    }
-  }
-
-  .severity-chart-card {
-    height: fit-content;
-    overflow: visible !important;
-    margin-bottom: 3rem;
-    position: relative;
-
-    .p-card-body {
-      padding: 0 0 0 0 !important;
-    }
-  }
-
-  .assigned-grid .p-card-body {
-    padding: 0 0.5rem 0.5rem 0;
-  }
-
-  .p-card .p-card-content {
-    padding-bottom: 0;
-  }
-
-  .ngx-poam-assigned-grid {
-    &.p-card .p-card-body {
-      padding: 0 !important;
-    }
-
-    cpat-poam-assigned-grid {
-      width: 100% !important;
-      display: block !important;
-
-      .p-datatable {
-        width: 100% !important;
-        padding: 0;
-
-        .p-datatable-wrapper {
-          border-left: 0 !important;
-          border-right: 0 !important;
-        }
-      }
-    }
+  .chart-title:hover {
+    background: var(--p-tabs-tab-hover-background);
+    border-color: var(--p-tabs-tab-hover-border-color);
+    color: var(--p-tabs-tab-hover-color);
   }
 }
 
 .poam-category-advanced-pie {
-  display: block;
-  height: 20rem;
-  min-height: 20rem;
-  max-height: 20rem;
-  width: 100%;
-  position: relative;
-
   ::ng-deep {
     .legend-item {
       transition: all 0.3s ease;
@@ -113,53 +51,66 @@
         }
       }
     }
+  }
+}
 
-    ngx-charts-advanced-pie-chart > div:first-child {
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      width: 100% !important;
+.poam-category-advanced-pie {
+  display: block;
+  height: 20rem;
+  min-height: 20rem;
+  max-height: 20rem;
+  width: 100%;
+  position: relative;
 
-      > .advanced-pie.chart {
-        flex: 0 0 55% !important;
-        width: 55% !important;
-        max-width: 55% !important;
-        min-width: 55% !important;
-        height: 100% !important;
+  ::ng-deep {
+    ngx-charts-advanced-pie-chart {
+      > div:first-child {
         display: flex !important;
-        justify-content: center !important;
+        flex-direction: row !important;
         align-items: center !important;
-        overflow: hidden !important;
+        width: 100% !important;
 
-        ngx-charts-chart {
-          width: 100% !important;
+        > .advanced-pie.chart {
+          flex: 0 0 55% !important;
+          width: 55% !important;
+          max-width: 55% !important;
+          min-width: 55% !important;
           height: 100% !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          overflow: hidden !important;
 
-          .ngx-charts-outer {
+          ngx-charts-chart {
             width: 100% !important;
             height: 100% !important;
 
-            svg.ngx-charts {
+            .ngx-charts-outer {
               width: 100% !important;
               height: 100% !important;
 
-              g.pie.chart {
-                transform: translate(50%, 50%) scale(3);
-                transform-origin: 0 0 !important;
+              svg.ngx-charts {
+                width: 100% !important;
+                height: 100% !important;
+
+                g.pie.chart {
+                  transform: translate(50%, 50%) scale(3);
+                  transform-origin: 0 0 !important;
+                }
               }
             }
           }
         }
-      }
 
-      > .advanced-pie-legend-wrapper {
-        flex: 0 0 45% !important;
-        width: 45% !important;
-        max-width: 45% !important;
-        min-width: 45% !important;
+        > .advanced-pie-legend-wrapper {
+          flex: 0 0 45% !important;
+          width: 45% !important;
+          max-width: 45% !important;
+          min-width: 45% !important;
 
-        ngx-charts-advanced-legend {
-          width: 100% !important;
+          ngx-charts-advanced-legend {
+            width: 100% !important;
+          }
         }
       }
     }
@@ -264,6 +215,70 @@
               flex-shrink: 0;
             }
           }
+        }
+      }
+    }
+  }
+}
+
+.poam-severity-advanced-pie {
+  padding-bottom: 5rem;
+  margin-top: -2rem;
+}
+
+:host ::ng-deep {
+  .tenable-collection {
+    ::ng-deep .p-datatable-table-container {
+      max-height: 67rem !important;
+    }
+  }
+
+  .category-chart-card .p-card-body {
+    padding-top: 0rem !important;
+    padding-bottom: 0rem !important;
+    padding-left: 0rem !important;
+  }
+
+  .category-chart-card .p-card-header {
+    padding-bottom: 0rem !important;
+  }
+
+  .severity-chart-card {
+    height: fit-content;
+    overflow: visible !important;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+
+  .severity-chart-card .p-card-body {
+    padding-top: 0rem !important;
+    padding-bottom: 0rem !important;
+  }
+
+  .assigned-grid .p-card-body {
+    padding: 0rem 0.5rem 0.5rem 0rem;
+  }
+
+  .p-card .p-card-content {
+    padding-bottom: 0;
+  }
+
+  .ngx-poam-assigned-grid {
+    &.p-card .p-card-body {
+      padding: 0 !important;
+    }
+
+    cpat-poam-assigned-grid {
+      width: 100% !important;
+      display: block !important;
+
+      .p-datatable {
+        width: 100% !important;
+        padding: 0;
+
+        .p-datatable-wrapper {
+          border-left: 0 !important;
+          border-right: 0 !important;
         }
       }
     }

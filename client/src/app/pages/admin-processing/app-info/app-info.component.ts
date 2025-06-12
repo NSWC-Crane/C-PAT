@@ -20,6 +20,9 @@ import { AppConfigService } from '../../../layout/services/appconfigservice';
 import { PanelModule } from 'primeng/panel';
 import { catchError, EMPTY } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 interface OperationInfo {
   totalRequests: number;
   totalDuration: number;
@@ -206,7 +209,8 @@ interface OperationError {
   templateUrl: './app-info.component.html',
   styleUrls: ['./app-info.component.scss'],
   standalone: true,
-  imports: [ButtonModule, ChartModule, CommonModule, TabsModule, CardModule, TableModule, FormsModule, PanelModule],
+  imports: [ButtonModule, ChartModule, CommonModule, TabsModule, ToastModule, CardModule, TableModule, FormsModule, PanelModule],
+  providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppInfoComponent implements OnInit {
@@ -239,7 +243,8 @@ export class AppInfoComponent implements OnInit {
 
   constructor(
     private adminProcessingService: AdminProcessingService,
-    private configService: AppConfigService
+    private configService: AppConfigService,
+    private messageService: MessageService
   ) { }
 
   themeEffect = effect(() => {
@@ -260,7 +265,11 @@ export class AppInfoComponent implements OnInit {
       this.processUsers();
       this.initChart();
     } catch (error) {
-      console.error('Failed to initialize app info:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Failed to initialize app info: ${getErrorMessage(error)}`
+      });
     }
   }
 
@@ -277,7 +286,11 @@ export class AppInfoComponent implements OnInit {
       this.adminProcessingService.getAppInfo()
         .pipe(
           catchError(error => {
-            console.error('Error fetching app info:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching app info: ${getErrorMessage(error)}`
+            });
             reject(error);
             return EMPTY;
           })

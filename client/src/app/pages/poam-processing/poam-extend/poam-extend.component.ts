@@ -34,6 +34,7 @@ import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { LabelService } from '../../label-processing/label.service';
 import { TooltipModule } from 'primeng/tooltip';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-extend',
@@ -436,11 +437,10 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         });
       },
       error: error => {
-        console.error(error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to update milestone'
+          detail: `Failed to update milestone: ${getErrorMessage(error)}`
         });
       },
     });
@@ -643,20 +643,19 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             }, 1000);
           }
         },
-        error: () => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
-            summary: 'Information',
-            detail: 'Unexpected error adding POAM Extension'
+            summary: 'Error',
+            detail: `Unexpected error adding POAM Extension: ${getErrorMessage(error)}`
           });
         }
       });
     } catch (error) {
-      console.error('Failed to update POAM extension:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to submit POAM extension. Please try again.',
+        detail: `Failed to submit POAM extension: ${getErrorMessage(error)}`
       });
     }
   }

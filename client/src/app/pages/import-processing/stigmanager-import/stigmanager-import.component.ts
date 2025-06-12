@@ -32,6 +32,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 interface STIGManagerFinding {
   groupId: string;
@@ -160,8 +161,11 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('An error occurred:', error);
-        this.showError('An error occurred while initializing the component.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `An error occurred while initializing the component: ${getErrorMessage(error)}`
+        });
       }
     });
   }
@@ -216,8 +220,11 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         this.loadBenchmarkSummaries(this.stigmanCollection.collectionId);
       },
       error: (error) => {
-        console.error('Error in validateStigManagerCollection:', error);
-        this.showError('Failed to validate STIG Manager collection. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to validate STIG Manager collection: ${getErrorMessage(error)}`
+        });
       }
     });
   }
@@ -234,8 +241,11 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         this.benchmarkSummaries = data;
       },
       error: (error) => {
-        console.error('Failed to fetch benchmark summaries:', error);
-        this.showError('Failed to fetch benchmark summaries. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to fetch benchmark summaries: ${getErrorMessage(error)}`
+        });
       },
       complete: () => {
         this.loadingTableInfo = false;
@@ -292,8 +302,11 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         this.filterFindings();
       },
       error: (error) => {
-        console.error('Failed to fetch affected assets from STIGMAN:', error);
-        this.showError('Failed to fetch affected assets. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to fetch affected assets: ${getErrorMessage(error)}`
+        });
       },
       complete: () => {
         this.loadingTableInfo = false;
@@ -322,8 +335,11 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
           this.updateExistingPoams();
         },
         error: (error) => {
-          console.error('Error retrieving existing POAMs:', error);
-          this.showError('Error retrieving existing POAMs. Please try again.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching existing POAMs: ${getErrorMessage(error)}`
+          });
         }
       });
   }
@@ -408,8 +424,11 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
           this.navigateToPoam(rowData, ruleDataString, descriptionString);
         },
         error: (error) => {
-          console.error('Error retrieving rule data from STIGMAN:', error);
-          this.showError('Error retrieving rule data. Please try again.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching rule data: ${getErrorMessage(error)}`
+          });
         }
       });
   }

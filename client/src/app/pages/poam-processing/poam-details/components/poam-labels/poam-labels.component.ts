@@ -15,6 +15,7 @@ import { ButtonModule } from "primeng/button";
 import { SelectModule } from "primeng/select";
 import { TableModule } from "primeng/table";
 import { ToastModule } from "primeng/toast";
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-labels',
@@ -86,11 +87,10 @@ export class PoamLabelsComponent implements OnInit {
         this.labelsChanged.emit(this.poamLabels);
       },
       error: (error: any) => {
-        console.error('Error fetching POAM labels:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load labels'
+          detail: `Failed to load labels: ${getErrorMessage(error)}`
         });
       }
     });

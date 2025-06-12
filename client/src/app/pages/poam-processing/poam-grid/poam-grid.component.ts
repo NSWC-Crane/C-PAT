@@ -33,6 +33,7 @@ import { TagModule } from 'primeng/tag';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { EMASSOverwriteSelectionComponent } from '../../../common/utils/emasster-overwrite-selection';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-grid',
@@ -242,7 +243,11 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         this.collectionOriginSignal.set(collection.collectionOrigin);
       }
     } catch (error) {
-      console.error('Error loading collection data:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error loading collection data: ${getErrorMessage(error)}`
+      });
     }
   }
 
@@ -331,11 +336,10 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         window.URL.revokeObjectURL(excelURL);
       });
     } catch (error) {
-      console.error('Error exporting POAMs:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Export Failed',
-        detail: 'Failed to export POAMs, please try again later.'
+        detail: `Failed to export POAMs: ${getErrorMessage(error)}`
       });
     }
   }
@@ -454,7 +458,11 @@ export class PoamGridComponent implements OnInit, OnDestroy {
                 }
               },
               error: (error) => {
-                console.error(`Error processing Tenable POAM ${poam.poamId}:`, error);
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Error processing Tenable POAM ${poam.poamId}: ${getErrorMessage(error)}`
+                });
                 processedPoams.push(poam);
                 completedPoams++;
                 if (completedPoams === targetPoams.length) {
@@ -465,7 +473,11 @@ export class PoamGridComponent implements OnInit, OnDestroy {
           });
         },
         error: (error) => {
-          console.error('Error fetching Tenable analysis:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching Tenable analysis: ${getErrorMessage(error)}`
+          });
           resolve(poams);
         }
       });
@@ -500,7 +512,11 @@ export class PoamGridComponent implements OnInit, OnDestroy {
                 processPoamWithFindings(poam, findings);
               },
               error: (error) => {
-                console.error(`Error fetching affected assets for STIG POAM ${poam.poamId}:`, error);
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Error fetching affected assets for POAM ${poam.poamId}: ${getErrorMessage(error)}`
+                });
                 processedStigPoams.push(poam);
                 checkCompletion();
               }
@@ -609,11 +625,10 @@ export class PoamGridComponent implements OnInit, OnDestroy {
           detail: 'eMASSter file has been updated with CPAT data.'
         });
       } catch (error) {
-        console.error('Error processing eMASSter file:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to process eMASSter file. Please try again.'
+          detail: `Failed to process eMASSter file: ${getErrorMessage(error)}`
         });
       }
 

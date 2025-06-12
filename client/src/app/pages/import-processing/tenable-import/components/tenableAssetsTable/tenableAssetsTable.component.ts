@@ -29,7 +29,7 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { Subscription, of, map, catchError, Observable } from 'rxjs';
-
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 interface Reference {
   type: string;
   value: string;
@@ -228,10 +228,10 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
       next: (response) => {
         this.assetDeltaList = response || [];
       },
-      error: () => this.messageService.add({
+      error: (error) => this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load Asset Delta List'
+        detail: `Failed to load Asset Delta List: ${getErrorMessage(error)}`
       })
     });
   }
@@ -288,7 +288,11 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     this.importService.postTenableAnalysis(analysisParams).subscribe({
       next: (data) => {
         if (!data?.response?.results) {
-          this.showErrorMessage('No assets found for these vulnerabilities');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No assets found for these vulnerabilities'
+          });
           this.isLoading = false;
           return;
         }
@@ -325,8 +329,11 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         this.matchAssetsWithTeams();
       },
       error: (error) => {
-        console.error('Error fetching affected assets:', error);
-        this.showErrorMessage('Error fetching affected assets. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching affected assets: ${getErrorMessage(error)}`
+        });
         this.isLoading = false;
       }
     });
@@ -392,7 +399,11 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         });
       }),
       catchError(error => {
-        console.error(`Error fetching assets for plugin ${pluginID}:`, error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching assets for plugin ${pluginID}: ${getErrorMessage(error)}`
+        });
         return of([]);
       })
     );
@@ -539,8 +550,11 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error fetching affected assets:', error);
-        this.showErrorMessage('Error fetching affected assets. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching affected assets: ${getErrorMessage(error)}`
+        });
         this.isLoading = false;
       }
     });
@@ -582,8 +596,11 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
                 this.displayDialog = true;
             },
             error: (error) => {
-                console.error('Error fetching plugin data:', error);
-                this.showErrorMessage('Error fetching plugin data. Please try again.');
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+              });
             }
         });
     }
@@ -626,15 +643,6 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   getIavUrl(iavNumber: string): string {
     return `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavNumber}`;
-  }
-
-  showErrorMessage(message: string) {
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: message,
-      sticky: true,
-    });
   }
 
   updateTableReferences() {

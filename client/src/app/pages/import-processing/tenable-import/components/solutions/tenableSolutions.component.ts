@@ -23,6 +23,8 @@ import { FormsModule } from '@angular/forms';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+
 interface ExportColumn {
   title: string;
   dataKey: string;
@@ -157,8 +159,11 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
         this.loadingSolutions = false;
       },
       error: (error: any) => {
-        console.error('Error fetching solutions:', error);
-        this.showPopup('Error fetching solutions. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching solution data: ${getErrorMessage(error)}`
+        });
         this.loadingSolutions = false;
       }
     });
@@ -217,8 +222,11 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
           this.loadingAffectedHosts = false;
         },
         error: (error: any) => {
-          console.error('Error fetching affected hosts:', error);
-          this.showPopup('Error fetching affected hosts. Please try again.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching affected hosts: ${getErrorMessage(error)}`
+          });
           this.loadingAffectedHosts = false;
         }
       });
@@ -270,20 +278,14 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
           this.loadingVulnDetails = false;
         },
         error: (error: any) => {
-          console.error('Error fetching solution vulnerability details:', error);
-          this.showPopup('Error fetching solution vulnerability details. Please try again.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching solution data: ${getErrorMessage(error)}`
+          });
           this.loadingVulnDetails = false;
         }
       });
-  }
-
-  showPopup(message: string) {
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Alert',
-      detail: message,
-      sticky: true,
-    });
   }
 
   resetData() {

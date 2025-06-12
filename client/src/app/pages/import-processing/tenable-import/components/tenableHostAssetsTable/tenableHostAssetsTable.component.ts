@@ -29,6 +29,7 @@ import { Subscription } from 'rxjs';
 import { format } from 'date-fns';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { Router } from '@angular/router';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 interface ExportColumn {
   title: string;
@@ -213,8 +214,11 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Error loading POAM associations:', error);
-          this.showErrorMessage('Error loading POAM data. Please try again.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error loading POAM data: ${getErrorMessage(error)}`
+          });
         }
       });
   }
@@ -277,8 +281,11 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error fetching host assets:', error);
-        this.showErrorMessage('Error fetching host assets. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching host assets: ${getErrorMessage(error)}`
+        });
         this.isLoading = false;
       }
     });
@@ -304,7 +311,11 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
 
       return format(date, 'MM/dd/yyyy');
     } catch (error) {
-      console.error('Error formatting timestamp:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error formatting timestamp: ${getErrorMessage(error)}`
+      });
       return '';
     }
   }
@@ -396,9 +407,12 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
             resolve();
           },
           error: (error) => {
-            console.error('Error fetching plugin data:', error);
             this.isLoading = false;
-            this.showErrorMessage('Error fetching plugin data. Please try again.');
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+            });
             reject(error);
           }
         });
@@ -534,9 +548,12 @@ showPluginDetails(plugin: any): Promise<void> {
             resolve();
           },
           error: (error) => {
-            console.error('Error fetching plugin details:', error);
             this.isLoadingPluginDetails = false;
-            this.showErrorMessage('Error fetching plugin details. Please try again.');
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+            });
             reject(error);
           }
         });
@@ -648,8 +665,11 @@ showPluginDetails(plugin: any): Promise<void> {
         },
       });
     } catch (error) {
-      console.error('Error in onPoamIconClick:', error);
-      this.showErrorMessage('Error processing vulnerability data. Please try again.');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error processing vulnerability data: ${getErrorMessage(error)}`
+      });
     }
   }
 
@@ -672,8 +692,11 @@ showPluginDetails(plugin: any): Promise<void> {
             resolve();
           },
           error: (error) => {
-            console.error('Error fetching plugin data:', error);
-            this.showErrorMessage('Error fetching plugin data. Please try again.');
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+            });
             reject(error);
           }
         });

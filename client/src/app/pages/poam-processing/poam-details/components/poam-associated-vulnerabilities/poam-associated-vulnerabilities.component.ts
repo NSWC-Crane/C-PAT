@@ -19,6 +19,8 @@ import { TooltipModule } from "primeng/tooltip";
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from "primeng/autocomplete";
 import { SharedService } from "../../../../../common/services/shared.service";
 import { ImportService } from "../../../../import-processing/import.service";
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'cpat-poam-associated-vulnerabilities',
@@ -29,6 +31,7 @@ import { ImportService } from "../../../../import-processing/import.service";
     TableModule,
     ButtonModule,
     TagModule,
+    ToastModule,
     TooltipModule,
     AutoCompleteModule
 ]
@@ -93,11 +96,10 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
             }, {});
           },
           error: (error) => {
-            console.error('Error retrieving vulnerability titles:', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: `Failed to retrieve vulnerability titles: ${error.message}`
+              detail: `Failed to retrieve vulnerability titles: ${getErrorMessage(error)}`
             });
           }
         });
@@ -150,11 +152,10 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
           }, {});
         },
         error: (error) => {
-          console.error('Error processing Tenable findings data:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Error processing Tenable findings data: ${error.message}`
+            detail: `Error processing Tenable findings data: ${getErrorMessage(error)}`
           });
         }
       });
@@ -287,11 +288,10 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
           this.vulnerabilitiesChanged.emit(updatedVulnerabilities);
         },
         error: (error) => {
-          console.error('Error retrieving existing POAMs:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Failed to add associated vulnerability: ${error.message}`
+            detail: `Failed to add associated vulnerability: ${getErrorMessage(error)}`
           });
         }
       });

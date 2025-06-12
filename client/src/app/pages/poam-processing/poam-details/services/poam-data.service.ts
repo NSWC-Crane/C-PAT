@@ -18,6 +18,7 @@ import { AAPackageService } from "../../../admin-processing/aaPackage-processing
 import { Observable, catchError, forkJoin, map, of } from "rxjs";
 import { SharedService } from "../../../../common/services/shared.service";
 import { ImportService } from "../../../import-processing/import.service";
+import { getErrorMessage } from '../../../../common/utils/error-utils';
 
 export interface AssetData {
   assetId?: any;
@@ -117,11 +118,10 @@ export class PoamDataService {
           return { externalAssets: Array.from(assetMap.values()) };
         }),
         catchError(error => {
-          console.error('Error loading STIG Manager assets:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to load STIG Manager assets'
+            detail: `Failed to load STIG Manager assets: ${getErrorMessage(error)}`
           });
           return of({ externalAssets: [] });
         })
@@ -218,11 +218,10 @@ export class PoamDataService {
           return { externalAssets: Array.from(assetMap.values()) };
         }),
         catchError(error => {
-          console.error('Error processing Tenable assets:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to load Tenable assets'
+            detail: `Failed to load Tenable assets: ${getErrorMessage(error)}`
           });
           return of({ externalAssets: [] });
         })
@@ -268,11 +267,10 @@ export class PoamDataService {
   getLabelData(collectionId: number): Observable<any[]> {
     return this.poamService.getLabels(collectionId).pipe(
       catchError(error => {
-        console.error('Error fetching labels:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load label options'
+          detail: `Failed to load label options: ${getErrorMessage(error)}`
         });
         return of([]);
       })
@@ -281,11 +279,11 @@ export class PoamDataService {
 
   loadAssetDeltaList(collectionId: number): Observable<any> {
     return this.assetDeltaService.getAssetDeltaListByCollection(collectionId).pipe(
-      catchError(() => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load Asset Delta List'
+          detail: `Failed to load Asset Delta List: ${getErrorMessage(error)}`
         });
         return of([]);
       })
@@ -294,11 +292,11 @@ export class PoamDataService {
 
   loadAAPackages(): Observable<any[]> {
     return this.aaPackageService.getAAPackages().pipe(
-      catchError(() => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load A&A Packages'
+          detail: `Failed to load A&A Packages: ${getErrorMessage(error)}`
         });
         return of([]);
       })
@@ -325,11 +323,10 @@ export class PoamDataService {
         });
       }),
       catchError(error => {
-        console.error('Error loading STIGs:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load STIG data'
+          detail: `Failed to load STIG data: ${getErrorMessage(error)}`
         });
         return of([]);
       })
@@ -382,12 +379,11 @@ export class PoamDataService {
         return collectionInfo;
       }),
       catchError(error => {
-        console.error('Error fetching collection data:', error);
         if (!background) {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to fetch collection data'
+            detail: `Failed to fetch collection data: ${getErrorMessage(error)}`
           });
         }
         return of({

@@ -36,6 +36,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
 import { SelectModule } from 'primeng/select';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 interface AssetDeltaResponse {
   assets: AssetData[];
@@ -224,11 +225,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     this.userService.getCurrentUser().pipe(
       takeUntil(this.destroy$),
       catchError(error => {
-        console.error('Error fetching user data:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to fetch user data'
+          detail: `Failed to fetch user data: ${getErrorMessage(error)}`
         });
         return EMPTY;
       })
@@ -265,10 +265,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
             });
           }
         },
-        error: () => this.messageService.add({
+        error: (error) => this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load available collections'
+          detail: `Failed to load available collections: ${getErrorMessage(error)}`
         })
       });
     });
@@ -380,10 +380,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
           this.onCollectionChange(initialCollection);
         }
       },
-      error: () => this.messageService.add({
+      error: (error) => this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load available collections'
+        detail: `Failed to load available collections: ${getErrorMessage(error)}`
       })
     });
   }
@@ -405,7 +405,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     const collectionId = this.selectedCollection();
 
     if (!file) {
-      console.error('No file selected');
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -440,11 +439,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         }
       },
       error: error => {
-        console.error('Error during file upload:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'File upload failed: ' + (error.error?.message || 'Unknown error')
+          detail: `File upload failed: : ${getErrorMessage(error)}`
         });
       }
     });
@@ -474,7 +472,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     ).subscribe({
       next: (response: AssetDeltaResponse) => {
         if (!response) {
-          console.error('Invalid response from getAssetDeltaListByCollection');
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -511,11 +508,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        console.error('Error loading asset list:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load asset list'
+          detail: `Failed to load asset list: ${getErrorMessage(error)}`
         });
         this.assets.set([]);
         this.assetDeltaUpdated.set(null);
@@ -533,7 +529,11 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
 
     return this.sharedService.getCollectionsFromSTIGMAN().pipe(
       catchError(error => {
-        console.error('Error fetching STIG Manager collections:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching STIG Manager collections: ${getErrorMessage(error)}`
+        });
         return EMPTY;
       }),
       switchMap(collections => {
@@ -544,7 +544,11 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         const assetRequests = collections.map(collection =>
           this.sharedService.getAssetsFromSTIGMAN(collection.collectionId).pipe(
             catchError(error => {
-              console.error(`Error fetching assets for collection ${collection.collectionId}:`, error);
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error fetching assets for collection ${collection.collectionId}: ${getErrorMessage(error)}`
+              });
               return of([]);
             })
           )
@@ -575,11 +579,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     const tenableCheck = this.checkTenableStatus(this.assets().map(a => a.key)).pipe(
       takeUntil(this.destroy$),
       catchError(error => {
-        console.error('Error checking Tenable status:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Tenable status check failed'
+          detail: `Tenable status check failed: ${getErrorMessage(error)}`
         });
         return of(null);
       })
@@ -588,11 +591,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     const stigManagerCheck = this.checkStigManagerStatus().pipe(
       takeUntil(this.destroy$),
       catchError(error => {
-        console.error('Error checking STIG Manager status:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'STIG Manager status check failed'
+          detail: `STIG Manager status check failed: ${getErrorMessage(error)}`
         });
         return of(null);
       })
@@ -647,7 +649,11 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         }
       },
       error: error => {
-        console.error('Error during status checks:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error during status checks: ${getErrorMessage(error)}`
+        });
         this.assets.update(assets => assets.map(asset => ({
           ...asset,
           loading: false
@@ -658,7 +664,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'All status checks failed'
+          detail: `Status checks failed: ${getErrorMessage(error)}`
         });
         this.cdr.detectChanges();
       }

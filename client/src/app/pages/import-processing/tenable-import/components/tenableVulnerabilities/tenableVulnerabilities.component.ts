@@ -55,6 +55,7 @@ import {
 } from '../../../../../common/models/tenable.model';
 import { parseISO } from 'date-fns/fp';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-tenable-vulnerabilities',
@@ -845,7 +846,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             this.loadPoamAssociations()
           ])),
           catchError(error => {
-            console.error('Error loading filter list data:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error loading filter list data: ${getErrorMessage(error)}`
+            });
             this.isLoading = false;
             return EMPTY;
           })
@@ -1108,8 +1113,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         return this.assetOptions;
       }),
       catchError(error => {
-        console.error('Error fetching tenable asset filter data:', error);
-        this.showErrorMessage('Error fetching tenable asset filter data. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching tenable asset filter data: ${getErrorMessage(error)}`
+        });
         return EMPTY;
       })
     );
@@ -1125,8 +1133,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         return this.auditFileOptions;
       }),
       catchError(error => {
-        console.error('Error fetching audit file data:', error);
-        this.showErrorMessage('Error fetching audit file data. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching audit file data: ${getErrorMessage(error)}`
+        });
         return EMPTY;
       })
     );
@@ -1142,8 +1153,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         return this.familyOptions;
       }),
       catchError(error => {
-        console.error('Error fetching plugin family data:', error);
-        this.showErrorMessage('Error fetching plugin family data. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching plugin family data: ${getErrorMessage(error)}`
+        });
         return EMPTY;
       })
     );
@@ -1159,8 +1173,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         return this.scanPolicyPluginOptions;
       }),
       catchError(error => {
-        console.error('Error fetching scan policy plugin data:', error);
-        this.showErrorMessage('Error fetching scan policy plugin data. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching scan policy plugin data: ${getErrorMessage(error)}`
+        });
         return EMPTY;
       })
     );
@@ -1176,8 +1193,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         return this.userOptions;
       }),
       catchError(error => {
-        console.error('Error fetching tenable user data:', error);
-        this.showErrorMessage('Error fetching tenable user data. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching tenable user data: ${getErrorMessage(error)}`
+        });
         return EMPTY;
       })
     );
@@ -1213,8 +1233,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     this.importService.postTenableAnalysis(analysisParams).pipe(
       catchError(error => {
-        console.error('Error fetching vulnerabilities:', error);
-        this.showErrorMessage('Error fetching all Vulnerabilities. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching all Vulnerabilities: ${getErrorMessage(error)}`
+        });
         return EMPTY;
       }),
       switchMap(data => {
@@ -1228,7 +1251,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         if (pluginIDs.length > 0) {
           return this.importService.getIAVInfoForPlugins(pluginIDs).pipe(
             catchError(error => {
-              console.error('Error fetching IAV info:', error);
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error fetching IAV info: ${getErrorMessage(error)}`
+              });
               return of([]);
             }),
             map(iavData => ({
@@ -1924,7 +1951,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               try {
                 this.mapSingleFilter(filter);
               } catch (error) {
-                console.error('Error applying saved filter:', error, filter);
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Error applying saved filter: ${getErrorMessage(error)}`
+                });
               }
             }
           });
@@ -2045,8 +2076,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.messageService.clear();
       },
       error: (error) => {
-        console.error('Error deleting filter:', error);
-        this.showErrorMessage('Error deleting filter. You may not have permission to delete this filter.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error deleting filter: ${getErrorMessage(error)}`
+        });
       }
     });
   }
@@ -2102,11 +2136,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           ];
         },
         error: (error) => {
-          console.error('Error loading saved filters:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Error loading saved filters. Please try again.'
+            detail: `Error loading saved filters: ${getErrorMessage(error)}`
           });
         }
       });
@@ -2179,8 +2212,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         },
       });
     } catch (error) {
-      console.error('Error in onPoamIconClick:', error);
-      this.showErrorMessage('Error processing vulnerability data. Please try again.');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error processing vulnerability data: ${getErrorMessage(error)}`
+      });
     }
   }
 
@@ -2295,8 +2331,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           resolve();
         },
         error: (error) => {
-          console.error('Error fetching plugin data:', error);
-          this.showErrorMessage('Error fetching plugin data. Please try again.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching plugin data.: ${getErrorMessage(error)}`
+          });
           reject(error);
         }
       });
@@ -2416,8 +2455,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         }
       }),
       catchError(error => {
-        console.error('Error loading POAM associations:', error);
-        this.showErrorMessage('Error loading POAM data. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error loading POAM data: ${getErrorMessage(error)}`
+        });
         return EMPTY;
       })
     );

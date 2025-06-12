@@ -33,6 +33,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { PayloadService } from '../../../common/services/setPayload.service';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-asset',
@@ -120,7 +121,11 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
   getAssetLabels() {
     if (!this.asset?.assetId) {
-      console.error('Asset or assetId is not available');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Asset or assetId is not available, please try again.'
+      });
       return;
     }
 
@@ -130,7 +135,11 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
           this.assetLabels = assetLabels || [];
         },
         error => {
-          console.error('Error fetching asset labels:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching asset labels: ${getErrorMessage(error)}`
+          });
         }
       );
   }
@@ -196,7 +205,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
                 this.messageService.add({
                   severity: 'error',
                   summary: 'Error',
-                  detail: `Failed to delete label: ${error.message}`,
+                  detail: `Failed to delete label: ${getErrorMessage(error)}`
                 });
               }
             );
@@ -228,7 +237,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Failed to add label: ${error.message}`,
+            detail: `Failed to add label: ${getErrorMessage(error)}`
           });
         }
       );
@@ -270,9 +279,13 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
         data => {
           this.assetchange.emit(data.assetId);
         },
-        err => {
+        error => {
           this.invalidData('unexpected error adding asset');
-          console.error(err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error adding asset: ${getErrorMessage(error)}`
+          });
         }
       );
     } else {
@@ -339,7 +352,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Failed to delete asset: ${error.message}`,
+            detail: `Failed to delete asset: ${getErrorMessage(error)}`
           });
         },
       });

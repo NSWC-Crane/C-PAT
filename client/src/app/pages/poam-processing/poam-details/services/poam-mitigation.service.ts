@@ -12,6 +12,7 @@ import { Injectable } from "@angular/core";
 import { MessageService } from "primeng/api";
 import { Observable, firstValueFrom, of } from "rxjs";
 import { PoamService } from "../../poams.service";
+import { getErrorMessage } from '../../../../common/utils/error-utils';
 
 @Injectable({
   providedIn: 'root'
@@ -168,11 +169,10 @@ export class PoamMitigationService {
       .then(() => {
       })
       .catch(error => {
-        console.error('Error saving team mitigations:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to save one or more team mitigations'
+          detail: `Failed to save one or more team mitigations: ${getErrorMessage(error)}`
         });
       });
   }

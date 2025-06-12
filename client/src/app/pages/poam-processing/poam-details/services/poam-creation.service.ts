@@ -20,7 +20,7 @@ import { CollectionsService } from "../../../admin-processing/collection-process
 import { AssignedTeamService } from "../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service";
 import { AssetService } from "../../../asset-processing/assets.service";
 import { PoamVariableMappingService } from "./poam-variable-mapping.service";
-
+import { getErrorMessage } from '../../../../common/utils/error-utils';
 interface UserCollectionPermission {
   userId: number;
   collectionId?: number;
@@ -90,11 +90,10 @@ export class PoamCreationService {
           }
         },
         error: (error) => {
-          console.error('Error fetching Vulnerabilities:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to fetch vulnerability data'
+            detail: `Failed to fetch vulnerability data: ${getErrorMessage(error)}`
           });
           reject(error);
         }
@@ -190,11 +189,10 @@ ${pluginData.description || ''}`,
 
       return results;
     } catch (error) {
-      console.error('Error in createNewACASPoam:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to create new POAM'
+        detail: `Failed to create new POAM: ${getErrorMessage(error)}`
       });
       throw error;
     }
@@ -302,11 +300,10 @@ ${pluginData.description || ''}`,
           });
         },
         error: (error) => {
-          console.error('Error loading data:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to load required data'
+            detail: `Failed to load required data: ${getErrorMessage(error)}`
           });
           reject(error);
         }
@@ -390,11 +387,10 @@ ${pluginData.description || ''}`,
           });
         },
         error: (error) => {
-          console.error('Error loading data:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to load required data'
+            detail: `Failed to load required data: ${getErrorMessage(error)}`
           });
           reject(error);
         }

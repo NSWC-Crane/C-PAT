@@ -24,7 +24,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { TagModule } from 'primeng/tag';
-
+import { getErrorMessage } from '../../../../common/utils/error-utils';
 interface ExportColumn {
   title: string;
   dataKey: string;
@@ -106,8 +106,11 @@ export class STIGManagerAssetsTableComponent implements OnInit {
         this.labels = labels || [];
       },
       error: (error) => {
-        console.error('Error loading data:', error);
-        this.showErrorMessage('Failed to fetch data. Please try again later.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to fetch data: ${getErrorMessage(error)}`
+        });
       },
       complete: () => {
         this.isLoading = false;

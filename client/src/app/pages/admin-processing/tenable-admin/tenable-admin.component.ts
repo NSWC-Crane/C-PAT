@@ -20,7 +20,7 @@ import { Select } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-
+import { getErrorMessage } from '../../../common/utils/error-utils';
 interface TenableRepository {
   id: string;
   name: string;
@@ -60,15 +60,21 @@ export class TenableAdminComponent implements OnInit {
       repositories: this.importService.getTenableRepositories().pipe(
         map((response: any) => response.response),
         catchError(error => {
-          console.error('Error fetching Tenable repositories:', error);
-          this.showPopup('Unable to connect to Tenable.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Unable to connect to Tenable: ${getErrorMessage(error)}`
+          });
           return EMPTY;
         })
       ),
       collections: this.collectionsService.getCollectionBasicList().pipe(
         catchError(error => {
-          console.error('Error fetching collections:', error);
-          this.showPopup('Unable to fetch existing collections.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Unable to fetch existing collections: ${getErrorMessage(error)}`
+          });
           return EMPTY;
         })
       )
@@ -81,8 +87,11 @@ export class TenableAdminComponent implements OnInit {
         this.filterRepositories();
       },
       error: error => {
-        console.error('Error in fetching data:', error);
-        this.showPopup('An error occurred while fetching data.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching data: ${getErrorMessage(error)}`
+        });
       }
     });
   }
@@ -141,11 +150,10 @@ export class TenableAdminComponent implements OnInit {
             this.fetchDataAndCompare();
           },
           error: error => {
-            console.error('Error during bulk import', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Error during bulk import'
+              detail: `Error during bulk import: ${getErrorMessage(error)}`
             });
           }
         });
@@ -170,11 +178,10 @@ export class TenableAdminComponent implements OnInit {
         });
       }),
       catchError(error => {
-        console.error(`Error importing repository "${repository.name}"`, error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Error importing repository "${repository.name}": ${error.message}`
+          detail: `Error importing repository "${repository.name}": ${getErrorMessage(error)}`
         });
         return EMPTY;
       })

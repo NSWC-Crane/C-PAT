@@ -17,6 +17,8 @@ import { SelectModule } from "primeng/select";
 import { TableModule } from "primeng/table";
 import { firstValueFrom } from "rxjs";
 import { PoamService } from "../../../poams.service";
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'cpat-poam-teams',
@@ -27,7 +29,8 @@ import { PoamService } from "../../../poams.service";
     TableModule,
     ProgressBarModule,
     SelectModule,
-    ButtonModule
+    ButtonModule,
+    ToastModule
 ]
 })
 export class PoamTeamsComponent {
@@ -129,7 +132,7 @@ export class PoamTeamsComponent {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to add team: ${error.message}`,
+          detail: `Failed to add team: ${getErrorMessage(error)}`
         });
       }
     } else if (this.poam.poamId === 'ADDPOAM' && newAssignedTeam.assignedTeamId) {
@@ -172,7 +175,7 @@ export class PoamTeamsComponent {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Failed to remove assigned team: ${error.message}`,
+            detail: `Failed to remove assigned team: ${getErrorMessage(error)}`
           });
         }
       });

@@ -28,6 +28,7 @@ import { DialogModule } from 'primeng/dialog';
 import { Select } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 
 export interface PoamApproval {
   poamId: number;
@@ -148,7 +149,11 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       },
       error: error => {
-        console.error('An error occurred:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `An error occurred: ${getErrorMessage(error)}`
+        });
       },
     });
   }
@@ -197,11 +202,10 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (error) => {
         this.messageService.add({
-          severity: 'warn',
-          summary: 'Information',
-          detail: 'Failed to update POAM Approval. Please validate data entry and try again.',
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to update POAM Approval: ${getErrorMessage(error)}`
         });
-        console.error('Failed to update POAM Approval:', error);
       }
     });
   }

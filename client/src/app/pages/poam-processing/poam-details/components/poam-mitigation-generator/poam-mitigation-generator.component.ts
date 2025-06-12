@@ -19,6 +19,8 @@ import { DialogModule } from 'primeng/dialog';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PoamService } from '../../../poams.service';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'cpat-poam-mitigation-generator',
@@ -31,7 +33,8 @@ import { PoamService } from '../../../poams.service';
     TooltipModule,
     DialogModule,
     ConfirmDialogModule,
-    SplitButtonModule
+    SplitButtonModule,
+    ToastModule
 ],
   templateUrl: './poam-mitigation-generator.component.html'
 })
@@ -131,11 +134,10 @@ export class PoamMitigationGeneratorComponent implements OnInit, OnChanges {
           this.isGenerating.set(false);
         },
         error: (error) => {
-          console.error('Error generating mitigation:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to generate mitigation content'
+            detail: `Failed to generate mitigation content: ${getErrorMessage(error)}`
           });
           this.isGenerating.set(false);
         }
