@@ -5,7 +5,7 @@ WORKDIR /app/client
 COPY client/package*.json ./
 RUN npm install --force
 COPY client/. .
-RUN npm run build
+RUN npm run build -- --base-href=/
 
 FROM ${BASE_IMAGE}
 WORKDIR /home/node
@@ -17,11 +17,13 @@ COPY --chown=node:node api/package*.json ./
 RUN npm ci
 
 COPY --chown=node:node api/. .
-
 COPY --chown=node:node --from=build /app/client/dist/browser ../client/dist/browser
 
 RUN mkdir docs
 COPY --chown=node:node ./docs/_build/html ../docs/_build/html
+
+COPY --chown=node:node docker-entrypoint.sh /home/node/
+RUN chmod +x /home/node/docker-entrypoint.sh
 
 USER root
 RUN \
@@ -31,4 +33,5 @@ RUN \
 USER node
 
 EXPOSE 8086
+ENTRYPOINT ["/home/node/docker-entrypoint.sh"]
 CMD ["node", "index.js"]

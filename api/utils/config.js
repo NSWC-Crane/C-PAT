@@ -24,6 +24,7 @@ let config = {
     client: {
         authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
         apiBase: process.env.CPAT_API_BASE || "api",
+        baseHref: process.env.CPAT_CLIENT_BASE_HREF || "/",
         disabled: process.env.CPAT_CLIENT_DISABLED === "true",
         directory: process.env.CPAT_CLIENT_DIRECTORY || '../client/dist/browser',
         extraScopes: process.env.CPAT_EXTRA_SCOPES,

@@ -55,7 +55,7 @@ import { TooltipModule } from 'primeng/tooltip';
           <div class="flex items-center gap-2">
             @if (docsDisabled === false) {
               <a
-                href="/docs"
+                [href]="baseHref + 'docs/'"
                 pTooltip="C-PAT Documentation"
                 tooltipPosition="top"
                 target="_blank"
@@ -66,7 +66,7 @@ import { TooltipModule } from 'primeng/tooltip';
             }
             @if (swaggerUiEnabled === true) {
               <a
-                href="/api-docs"
+                [href]="baseHref + 'api-docs/'"
                 pTooltip="API Documentation"
                 tooltipPosition="top"
                 target="_blank"
@@ -91,9 +91,11 @@ import { TooltipModule } from 'primeng/tooltip';
 export class AppFooterComponent {
   readonly docsDisabled: boolean;
   readonly swaggerUiEnabled: boolean;
+  readonly baseHref: string;
 
   constructor() {
     this.docsDisabled = CPAT.Env?.features?.docsDisabled ?? false;
     this.swaggerUiEnabled = CPAT.Env?.features?.swaggerUiEnabled ?? true;
+    this.baseHref = CPAT.Env.baseHref;
   }
 }
