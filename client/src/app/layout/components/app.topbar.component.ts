@@ -167,7 +167,7 @@ import { UsersService } from '../../pages/admin-processing/user-processing/users
                     </li>
                     <li>
                       @if (docsDisabled === false) {
-                        <a href="/docs"
+                        <a [href]="baseHref + 'docs/'"
                           pTooltip="C-PAT Documentation"
                           tooltipPosition="top"
                           class="topbar-item">
@@ -187,7 +187,7 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
   readonly docsDisabled: boolean;
   private destroy$ = new Subject<void>();
   readonly user$ = inject(AuthService).user$;
-
+  readonly baseHref: string;
   constructor(
     @Inject(DOCUMENT) private document: Document,
     private userService: UsersService,
@@ -197,6 +197,7 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
     private router: Router,
     private notificationService: NotificationService
   ) {
+    this.baseHref = CPAT.Env.baseHref;
     this.docsDisabled = CPAT.Env?.features?.docsDisabled ?? false;
     this.window = this.document.defaultView as Window;
 

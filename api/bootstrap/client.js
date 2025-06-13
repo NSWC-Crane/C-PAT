@@ -34,6 +34,7 @@ function getClientEnv(){
     const envJS = `
 const CPAT = {
   Env: {
+    baseHref: "${config.client.baseHref}",
     classification: "${config.settings.dodDeployment ? config.settings.setClassification : 'NONE'}",
     dod: ${config.settings.dodDeployment},
     version: "${config.version}",
