@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "build": "cd ../client && npm run build",
-    "offline-rebuild": "node build-client.js && node index.js"
+    "offline-rebuild": "cd ../client && npm run build && cd ../api && node index.js"
   },
   "author": "Christian Rodriguez",
   "license": "ISC",

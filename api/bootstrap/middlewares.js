@@ -70,7 +70,6 @@ function configureRateLimit(app) {
             max: parseInt(config.http.rateLimit),
         })
         app.use(limiter)
-        app.set('trust proxy', 1)
     }
 }
 

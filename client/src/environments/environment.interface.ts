@@ -10,5 +10,5 @@
 
 export interface Environment {
   production: boolean;
-  baseHref?: string;
+  basePath?: string;
 }

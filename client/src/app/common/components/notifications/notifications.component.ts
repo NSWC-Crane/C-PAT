@@ -108,14 +108,16 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   formatMessage(message: string): SafeHtml {
     const poamRegex = /POAM (\d+)/;
     const match = message.match(poamRegex);
+
     if (match) {
       const poamNumber = match[1];
       const formattedMessage = message.replace(
         poamRegex,
-        `<a href="${CPAT.Env.baseHref}poam-processing/poam-details/${poamNumber}" data-poam="${poamNumber}" class="poam-link">POAM ${poamNumber}</a>`
+        `<a href="#" data-poam="${poamNumber}" class="poam-link">POAM ${poamNumber}</a>`
       );
       return this.sanitizer.bypassSecurityTrustHtml(formattedMessage);
     }
+
     return message;
   }
 
@@ -215,7 +217,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   async navigateToPOAM(poamId: number) {
     try {
-      window.location.pathname = `${CPAT.Env.baseHref}poam-processing/poam-details/${poamId}`;
+      window.location.pathname = `/poam-processing/poam-details/${poamId}`;
     } catch (error) {
       this.messageService.add({
         severity: 'error',
