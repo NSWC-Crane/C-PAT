@@ -65,7 +65,12 @@ function getScopeStr(configId: string) {
 
 bootstrapApplication(AppComponent, {
   providers: [
-    { provide: APP_BASE_HREF, useValue: "/" },
+    {
+      provide: APP_BASE_HREF,
+      useFactory: () => {
+        return document.querySelector('base')?.getAttribute('href') || '/';
+      }
+    },
     provideAnimationsAsync(),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
     providePrimeNG({ theme: Noir, ripple: false, inputStyle: 'outlined' }),
@@ -79,14 +84,14 @@ bootstrapApplication(AppComponent, {
         {
           configId: 'cpat',
           authority: CPAT.Env.oauth.authority,
-          redirectUrl: window.location.origin,
-          postLogoutRedirectUri: window.location.origin,
+          redirectUrl: window.location.origin + (CPAT.Env.basePath || ''),
+          postLogoutRedirectUri: window.location.origin + (CPAT.Env.basePath || ''),
           clientId: CPAT.Env.oauth.clientId,
           scope: getScopeStr('cpat'),
           responseType: 'code',
           useRefreshToken: true,
           silentRenew: true,
-          silentRenewUrl: `${window.location.origin}/silent-renew.html`,
+          silentRenewUrl: `${window.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
           autoUserInfo: true,
           renewUserInfoAfterTokenRenew: false,
           triggerAuthorizationResultEvent: true,
@@ -103,14 +108,14 @@ bootstrapApplication(AppComponent, {
         {
           configId: 'stigman',
           authority: CPAT.Env.oauth.authority,
-          redirectUrl: window.location.origin,
-          postLogoutRedirectUri: window.location.origin,
+          redirectUrl: window.location.origin + (CPAT.Env.basePath || ''),
+          postLogoutRedirectUri: window.location.origin + (CPAT.Env.basePath || ''),
           clientId: CPAT.Env.stigman.clientId,
           scope: getScopeStr('stigman'),
           responseType: 'code',
           useRefreshToken: true,
           silentRenew: true,
-          silentRenewUrl: `${window.location.origin}/silent-renew.html`,
+          silentRenewUrl: `${window.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
           autoUserInfo: true,
           renewUserInfoAfterTokenRenew: false,
           triggerAuthorizationResultEvent: true,

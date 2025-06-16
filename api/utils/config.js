@@ -16,6 +16,7 @@ const insecureKids = ['FJ86GcF3jTbNLOco4NvZkUCIUmfYCqoqtOQeMfbhNlE'];
 let config = {
     version: cpatPackage.version,
     settings: {
+        basePath: process.env.CPAT_BASE_PATH || '',
         setClassification: process.env.CPAT_CLASSIFICATION || "U",
         lastAccessResolution: 60,
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || "none",

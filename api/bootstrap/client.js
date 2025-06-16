@@ -8,32 +8,35 @@
 !##########################################################################
 */
 
-const express = require('express')
-const path = require('path')
-const writer = require('../utils/writer')
-const logger = require('../utils/logger')
-const config = require('../utils/config')
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const writer = require('../utils/writer');
+const logger = require('../utils/logger');
+const config = require('../utils/config');
 
 function serveClient(app) {
     if (config.client.disabled) {
-        logger.writeDebug('serveClient', 'client', {message: 'client disabled'})
+        logger.writeDebug('serveClient', 'client', { message: 'client disabled' })
         return
     }
     try {
         serveClientEnv(app)
-        serveStaticFiles(app)
         setupAngularRoutes(app)
+        serveStaticFiles(app)
         logger.writeDebug('serveClient', 'client', { message: 'succeeded setting up client' })
     }
     catch (err) {
-        logger.writeError('serveClient', 'client', {message: err.message, stack: err.stack})
+        logger.writeError('serveClient', 'client', { message: err.message, stack: err.stack })
     }
 }
 
-function getClientEnv(){
+function getClientEnv() {
+    const basePath = config.settings.basePath || '';
     const envJS = `
 const CPAT = {
   Env: {
+    basePath: "${basePath}",
     classification: "${config.settings.dodDeployment ? config.settings.setClassification : 'NONE'}",
     dod: ${config.settings.dodDeployment},
     version: "${config.version}",
@@ -75,17 +78,17 @@ const CPAT = {
     return envJS
 }
 
-function serveClientEnv(app){
+function serveClientEnv(app) {
     const envJS = getClientEnv()
     app.get('/cpat/Env.js', function (req, res) {
         req.component = 'static'
         writer.writeWithContentType(res, { payload: envJS, contentType: "application/javascript" })
     })
 }
-
-function serveStaticFiles(app){
+function serveStaticFiles(app) {
     const staticPath = path.join(__dirname, "../", config.client.directory)
-    logger.writeDebug('serveStaticFiles', 'client', {client_static: staticPath})
+    logger.writeDebug('serveStaticFiles', 'client', { client_static: staticPath })
+
     const expressStatic = express.static(staticPath, {
         setHeaders: (res, path) => {
             if (path.endsWith('.js')) {
@@ -119,11 +122,33 @@ function setupAngularRoutes(app) {
         '/consent'
     ];
 
-    angularRoutes.forEach(route => {
-        app.get(route, (req, res) => {
-            res.sendFile(path.join(__dirname, '..', config.client.directory, 'index.html'));
+    const serveIndexWithBaseHref = (req, res) => {
+        const indexPath = path.join(__dirname, '..', config.client.directory, 'index.html');
+
+        fs.readFile(indexPath, 'utf8', (err, data) => {
+            if (err) {
+                res.status(500).send('Error loading application');
+                return;
+            }
+
+            const basePath = config.settings.basePath || '';
+            const baseHref = basePath ? (basePath.endsWith('/') ? basePath : basePath + '/') : '/';
+
+            const modifiedHtml = data.replace(
+                /<base\s+href="[^"]*">/i,
+                `<base href="${baseHref}">`
+            );
+
+            res.setHeader('Content-Type', 'text/html');
+            res.send(modifiedHtml);
         });
+    };
+
+    angularRoutes.forEach(route => {
+        app.get(route, serveIndexWithBaseHref);
     });
+
+    app.get('/', serveIndexWithBaseHref);
 }
 
 module.exports = {
