@@ -16,6 +16,7 @@ const insecureKids = ['FJ86GcF3jTbNLOco4NvZkUCIUmfYCqoqtOQeMfbhNlE'];
 let config = {
     version: cpatPackage.version,
     settings: {
+        basePath: process.env.CPAT_BASE_PATH || '',
         setClassification: process.env.CPAT_CLASSIFICATION || "U",
         lastAccessResolution: 60,
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || "none",
@@ -24,7 +25,6 @@ let config = {
     client: {
         authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || "http://localhost:8080/auth/realms/RMFTools",
         apiBase: process.env.CPAT_API_BASE || "api",
-        baseHref: process.env.CPAT_CLIENT_BASE_HREF || "/",
         disabled: process.env.CPAT_CLIENT_DISABLED === "true",
         directory: process.env.CPAT_CLIENT_DIRECTORY || '../client/dist/browser',
         extraScopes: process.env.CPAT_EXTRA_SCOPES,
