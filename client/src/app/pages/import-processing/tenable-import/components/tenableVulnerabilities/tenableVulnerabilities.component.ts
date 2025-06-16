@@ -1314,7 +1314,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           };
         });
 
-        this.totalRecords = this.allVulnerabilities.length;
+        this.totalRecords = vulnData.totalRecords ? vulnData.totalRecords : this.allVulnerabilities.length;
         this.totalRecordsChange.emit(this.totalRecords)
       }
     });
