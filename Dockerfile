@@ -1,5 +1,5 @@
 # Use the specified Keycloak version
-FROM quay.io/keycloak/keycloak:24.0.4
+FROM quay.io/keycloak/keycloak:26.2
 
 COPY import_realm.json /opt/keycloak/data/import/import_realm.json
 
