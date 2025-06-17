@@ -835,7 +835,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "70cc36d6-b1b2-4742-a049-714b4ad0ca2a",
+      "secret": "********",
       "redirectUris": [
         "/realms/stigman/account/*"
       ],
@@ -874,7 +874,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "796ebeb5-2f83-40a9-8390-3146e7cb269e",
+      "secret": "********",
       "redirectUris": [
         "/realms/stigman/account/*"
       ],
@@ -919,7 +919,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "9c242f67-7ef8-4cd0-a29c-4414165d66b6",
+      "secret": "********",
       "redirectUris": [],
       "webOrigins": [],
       "notBefore": 0,
@@ -954,7 +954,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "3b94a954-bede-4dd8-9ea6-ae57f03c8c51",
+      "secret": "********",
       "redirectUris": [],
       "webOrigins": [],
       "notBefore": 0,
@@ -1048,7 +1048,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "0dae8fbb-d487-4664-9990-11067b424d60",
+      "secret": "********",
       "redirectUris": [
         "*"
       ],
@@ -1098,7 +1098,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "92e25578-8420-4d9b-bdf4-aa597a88e4c3",
+      "secret": "********",
       "redirectUris": [
         "/admin/stigman/console/*"
       ],
@@ -1224,7 +1224,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "954fd71a-dad6-47ab-8035-060268f3d396",
+      "secret": "********",
       "redirectUris": [],
       "webOrigins": [],
       "notBefore": 0,
@@ -2188,12 +2188,10 @@
       },
       {
         "id": "cb6c17f0-c24f-42af-9a81-15a66cf1de8e",
-        "name": "rsa",
-        "providerId": "rsa",
+        "name": "rsa-generated",
+        "providerId": "rsa-generated",
         "subComponents": {},
         "config": {
-          "privateKey": [ "MIICXAIBAAKBgQCrVrCuTtArbgaZzL1hvh0xtL5mc7o0NqPVnYXkLvgcwiC3BjLGw1tGEGoJaXDuSaRllobm53JBhjx33UNv+5z/UMG4kytBWxheNVKnL6GgqlNabMaFfPLPCF8kAgKnsi79NMo+n6KnSY8YeUmec/p2vjO2NjsSAVcWEQMVhJ31LwIDAQABAoGAfmO8gVhyBxdqlxmIuglbz8bcjQbhXJLR2EoS8ngTXmN1bo2L90M0mUKSdc7qF10LgETBzqL8jYlQIbt+e6TH8fcEpKCjUlyq0Mf/vVbfZSNaVycY13nTzo27iPyWQHK5NLuJzn1xvxxrUeXI6A2WFpGEBLbHjwpx5WQG9A+2scECQQDvdn9NE75HPTVPxBqsEd2z10TKkl9CZxu10Qby3iQQmWLEJ9LNmy3acvKrE3gMiYNWb6xHPKiIqOR1as7L24aTAkEAtyvQOlCvr5kAjVqrEKXalj0Tzewjweuxc0pskvArTI2Oo070h65GpoIKLc9jf+UA69cRtquwP93aZKtW06U8dQJAF2Y44ks/mK5+eyDqik3koCI08qaC8HYq2wVl7G2QkJ6sbAaILtcvD92ToOvyGyeE0flvmDZxMYlvaZnaQ0lcSQJBAKZU6umJi3/xeEbkJqMfeLclD27XGEFoPeNrmdx0q10Azp4NfJAY+Z8KRyQCR2BEG+oNitBOZ+YXF9KCpH3cdmECQHEigJhYg+ykOvr1aiZUMFT72HU0jnmQe2FVekuG+LJUt2Tm7GtMjTFoGpf0JwrVuZN39fOYAlo+nTixgeW7X8Y=" ],
-          "certificate": [ "MIIBkTCB+wIGAWuJ5WIOMA0GCSqGSIb3DQEBCwUAMA8xDTALBgNVBAMMBGRlbW8wHhcNMTkwNjI0MTQyODU5WhcNMjkwNjI0MTQzMDM5WjAPMQ0wCwYDVQQDDARkZW1vMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrVrCuTtArbgaZzL1hvh0xtL5mc7o0NqPVnYXkLvgcwiC3BjLGw1tGEGoJaXDuSaRllobm53JBhjx33UNv+5z/UMG4kytBWxheNVKnL6GgqlNabMaFfPLPCF8kAgKnsi79NMo+n6KnSY8YeUmec/p2vjO2NjsSAVcWEQMVhJ31LwIDAQABMA0GCSqGSIb3DQEBCwUAA4GBAJCiHCl/okF0Qg5mDtn53EJjRS3+RFgcu2op4mNv2LXyUXi7JXPM1YmzipN/simV69tMr/FfcvmtBfOGT/f8hd6xFKYGpSXheZcupRhD89nbEe25U5POiIWQNIPwJdxzxG6mERLcHnxv4Ax3WyIReflvs8Uk/dnk1dV6S622lqYP" ],
           "priority": [ "100" ]
         }
       },
