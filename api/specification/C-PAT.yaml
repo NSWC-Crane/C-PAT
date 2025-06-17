@@ -215,6 +215,72 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  '/appConfig':
+    get:
+      summary: Return all App Configuration settings
+      operationId: getAppConfiguration
+      responses:
+        '200':
+          description: App Configuration array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/appConfiguration_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AppConfiguration
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/appConfiguration':
+    put:
+      summary: Update an App Configuration setting
+      operationId: putAppConfiguration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/appConfiguration_Object'
+      responses:
+        '200':
+          description: App Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/appConfiguration_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AppConfiguration
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   /assets/delta/teams:
     get:
       summary: Return a list of all AD Team names
@@ -6076,6 +6142,17 @@ components:
         aaPackage:
           type: string
 
+    appConfiguration_Object:
+      type: object
+      required:
+        - settingName
+        - settingValue
+      properties:
+        settingName:
+          type: string
+        settingValue:
+          type: string
+
     assignedTeam_Object:
       type: object
       required:
@@ -6508,6 +6585,7 @@ components:
         submittedDate:
           type: string
           format: date
+          nullable: true
         hqs:
           type: boolean
           nullable: true

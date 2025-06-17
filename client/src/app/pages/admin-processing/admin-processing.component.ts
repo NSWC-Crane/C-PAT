@@ -15,6 +15,7 @@ import { TabsModule } from 'primeng/tabs';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
 import { FormsModule } from '@angular/forms';
 import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
+import { AppConfigurationComponent } from './app-configuration/app-configuration.component';
 import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plugin-mapping.component';
 import { VRAMImportComponent } from './vram-import/vram-import.component';
 import { AssetDeltaComponent } from './asset-delta/asset-delta.component';
@@ -35,6 +36,7 @@ import { getErrorMessage } from '../../common/utils/error-utils';
   standalone: true,
   imports: [
     AAPackageProcessingComponent,
+    AppConfigurationComponent,
     AssignedTeamProcessingComponent,
     ButtonModule,
     CollectionProcessingComponent,

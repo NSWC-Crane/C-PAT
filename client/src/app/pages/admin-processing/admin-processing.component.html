@@ -22,15 +22,16 @@
       <p-tab [value]="1">Collection Management</p-tab>
       <p-tab [value]="2">STIG Manager</p-tab>
       @if (tenableEnabled) {
-        <p-tab [value]="3">Tenable Import</p-tab>
+      <p-tab [value]="3">Tenable Import</p-tab>
       }
       <p-tab [value]="4">Asset Deltas</p-tab>
       <p-tab [value]="5">VRAM IAV Import</p-tab>
       @if (tenableEnabled) {
-        <p-tab [value]="6">Nessus Plugin Mapping</p-tab>
+      <p-tab [value]="6">Nessus Plugin Mapping</p-tab>
       }
       <p-tab [value]="7">A&A Packages</p-tab>
       <p-tab [value]="8">Assigned Teams</p-tab>
+      <p-tab [value]="9">App Configuration</p-tab>
     </p-tablist>
     <p-tabpanels>
       <p-tabpanel [value]="0">
@@ -46,9 +47,9 @@
       </p-tabpanel>
 
       @if (tenableEnabled) {
-        <p-tabpanel [value]="3">
-          <cpat-tenable-admin></cpat-tenable-admin>
-        </p-tabpanel>
+      <p-tabpanel [value]="3">
+        <cpat-tenable-admin></cpat-tenable-admin>
+      </p-tabpanel>
       }
 
       <p-tabpanel [value]="4">
@@ -60,9 +61,9 @@
       </p-tabpanel>
 
       @if (tenableEnabled) {
-        <p-tabpanel [value]="6">
-          <cpat-nessus-plugin-mapping [activated]="value === 6"></cpat-nessus-plugin-mapping>
-        </p-tabpanel>
+      <p-tabpanel [value]="6">
+        <cpat-nessus-plugin-mapping [activated]="value === 6"></cpat-nessus-plugin-mapping>
+      </p-tabpanel>
       }
 
       <p-tabpanel [value]="7">
@@ -71,6 +72,10 @@
 
       <p-tabpanel [value]="8">
         <cpat-assigned-team-processing></cpat-assigned-team-processing>
+      </p-tabpanel>
+
+      <p-tabpanel [value]="9">
+        <cpat-app-configuration></cpat-app-configuration>
       </p-tabpanel>
     </p-tabpanels>
   </p-tabs>

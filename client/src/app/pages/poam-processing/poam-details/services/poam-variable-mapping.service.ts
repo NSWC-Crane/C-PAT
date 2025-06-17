@@ -10,6 +10,7 @@
 
 import { Injectable } from '@angular/core';
 import { format, add } from 'date-fns';
+import { AppConfiguration } from '../../../../common/models/appConfiguration.model';
 
 @Injectable({
   providedIn: 'root'
@@ -72,22 +73,32 @@ export class PoamVariableMappingService {
    * @param rawSeverity The raw severity value
    * @returns The calculated completion date in yyyy-MM-dd format
    */
-  calculateScheduledCompletionDate(rawSeverity: string): string {
+  calculateScheduledCompletionDate(rawSeverity: string, appConfigSettings: AppConfiguration[]): string {
+    const getConfigValue = (settingName: string, fallbackValue: number): number => {
+      if (appConfigSettings) {
+        const setting = appConfigSettings.find(config => config.settingName === settingName);
+        if (setting) {
+          return parseInt(setting.settingValue, 10);
+        }
+      }
+      return fallbackValue;
+    };
+
     let daysToAdd: number;
     switch (rawSeverity) {
       case 'CAT I - Critical':
       case 'CAT I - High':
-        daysToAdd = 30;
+        daysToAdd = getConfigValue('cat-i_scheduled_completion_max', 30);
         break;
       case 'CAT II - Medium':
-        daysToAdd = 180;
+        daysToAdd = getConfigValue('cat-ii_scheduled_completion_max', 180);
         break;
       case 'CAT III - Low':
       case 'CAT III - Informational':
-        daysToAdd = 365;
+        daysToAdd = getConfigValue('cat-iii_scheduled_completion_max', 365);
         break;
       default:
-        daysToAdd = 30;
+        daysToAdd = getConfigValue('default_milestone_due_date_max', 30);
     }
 
     const currentDate = new Date();

@@ -12,7 +12,7 @@ import { CommonModule, DatePipe, Location } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AccordionModule } from 'primeng/accordion';
-import { addDays, format, parseISO } from 'date-fns';
+import { addDays, format, parse } from 'date-fns';
 import { forkJoin } from 'rxjs';
 import { SubSink } from 'subsink';
 import { SharedService } from '../../../common/services/shared.service';
@@ -33,6 +33,7 @@ import { Select } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
+import { AppConfigurationService } from "../../admin-processing/app-configuration/app-configuration.service";
 import { PoamAttachmentsComponent } from './components/poam-attachments/poam-attachments.component';
 import { TagModule } from 'primeng/tag';
 import { StepperModule } from 'primeng/stepper';
@@ -59,6 +60,7 @@ import { PoamCreationService } from './services/poam-creation.service';
 import { AssetTeamMappingService } from './services/asset-team-mapping.service';
 import { PoamValidationService } from './services/poam-validation.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AppConfiguration } from '../../../common/models/appConfiguration.model';
 
 @Component({
   selector: 'cpat-poamdetails',
@@ -101,6 +103,7 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 })
 export class PoamDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('menu') menu!: Menu;
+  appConfigSettings: AppConfiguration[] = [];
   accessLevel = signal<number>(0);
   loadingTeams = signal<boolean>(false);
   aiEnabled: boolean = CPAT.Env.features.aiEnabled;
@@ -265,6 +268,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     return items;
   });
   constructor(
+    private appConfigurationService: AppConfigurationService,
     private assignedTeamService: AssignedTeamService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
@@ -282,7 +286,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     private mappingService: PoamVariableMappingService,
     private location: Location,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   async ngOnInit() {
     this.route.params.subscribe(async params => {
@@ -344,6 +348,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   async getData() {
+    this.loadAppConfiguration();
     this.loadAAPackages();
     this.loadAssetDeltaList();
     const isNewPoam = this.poamId === "ADDPOAM";
@@ -409,30 +414,26 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       ]).subscribe({
         next: ([poam, users, assignedTeamOptions]) => {
           this.poam = poam;
+
           this.dates.scheduledCompletionDate = poam.scheduledCompletionDate
-            ? poam.scheduledCompletionDate.split("T")[0]
+            ? parse(poam.scheduledCompletionDate.split("T")[0], 'yyyy-MM-dd', new Date())
             : null;
 
-          if (
-            this.dates.scheduledCompletionDate &&
-            this.poam.extensionTimeAllowed > 0
-          ) {
+          if (this.dates.scheduledCompletionDate && this.poam.extensionTimeAllowed > 0) {
             this.completionDateWithExtension = format(
-              addDays(
-                parseISO(this.dates.scheduledCompletionDate),
-                this.poam.extensionTimeAllowed
-              ),
+              addDays(this.dates.scheduledCompletionDate, this.poam.extensionTimeAllowed),
               "yyyy-MM-dd"
             );
           }
+
           this.dates.iavComplyByDate = poam.iavComplyByDate
-            ? poam.iavComplyByDate.split("T")[0]
+            ? parse(poam.iavComplyByDate.split("T")[0], 'yyyy-MM-dd', new Date())
             : null;
           this.dates.submittedDate = poam.submittedDate
-            ? poam.submittedDate.split("T")[0]
+            ? parse(poam.submittedDate.split("T")[0], 'yyyy-MM-dd', new Date())
             : null;
           this.dates.closedDate = poam.closedDate
-            ? poam.closedDate.split("T")[0]
+            ? parse(poam.closedDate.split("T")[0], 'yyyy-MM-dd', new Date())
             : null;
           this.assignedTeamOptions = assignedTeamOptions;
           this.collectionUsers = users;
@@ -441,13 +442,13 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.poamApprovers = (poam.approvers || []).map((approver: any) => ({
             ...approver,
             approvedDate: approver.approvedDate
-              ? approver.approvedDate.split("T")[0]
+              ? parse(approver.approvedDate.split("T")[0], 'yyyy-MM-dd', new Date())
               : null
           }));
           this.poamMilestones = (poam.milestones || []).map((milestone: any) => ({
             ...milestone,
             milestoneDate: milestone.milestoneDate
-              ? milestone.milestoneDate.split("T")[0]
+              ? parse(milestone.milestoneDate.split("T")[0], 'yyyy-MM-dd', new Date())
               : null,
             assignedTeamId: +milestone.assignedTeamId
           }));
@@ -616,7 +617,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.poamApprovers = (result.poamApprovers || []).map((approver: any) => ({
         ...approver,
         approvedDate: approver.approvedDate
-          ? approver.approvedDate.split("T")[0]
+          ? parse(approver.approvedDate.split("T")[0], 'yyyy-MM-dd', new Date())
           : null
       }));
       this.poam = result.poam;
@@ -654,7 +655,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.poamApprovers = (result.poamApprovers || []).map((approver: any) => ({
         ...approver,
         approvedDate: approver.approvedDate
-          ? approver.approvedDate.split("T")[0]
+          ? parse(approver.approvedDate.split("T")[0], 'yyyy-MM-dd', new Date())
           : null
       }));
       this.poam = result.poam;
@@ -691,7 +692,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.poamApprovers = (result.poamApprovers || []).map((approver: any) => ({
         ...approver,
         approvedDate: approver.approvedDate
-          ? approver.approvedDate.split("T")[0]
+          ? parse(approver.approvedDate.split("T")[0], 'yyyy-MM-dd', new Date())
           : null
       }));
       this.poam = result.poam;
@@ -805,10 +806,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       if (this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
         poamToSubmit.assignedTeams = this.poamAssignedTeams
-        .filter(team => team.assignedTeamId)
-        .map(team => ({
-          assignedTeamId: +team.assignedTeamId,
-          automated: team.automated || false
+          .filter(team => team.assignedTeamId)
+          .map(team => ({
+            assignedTeamId: +team.assignedTeamId,
+            automated: team.automated || false
           }));
       } else {
         poamToSubmit.assignedTeams = [];
@@ -827,16 +828,16 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       if (this.poamApprovers && this.poamApprovers.length > 0) {
         poamToSubmit.approvers = this.poamApprovers
-        .filter(approver => approver.userId)
-        .map(approver => ({
-          userId: approver.userId,
-          approvalStatus: approver.approvalStatus || 'Not Reviewed',
-          comments: approver.comments || '',
-          approvedDate: approver.approvedDate
-            ? (typeof approver.approvedDate === 'string'
-              ? approver.approvedDate
-              : format(approver.approvedDate, 'yyyy-MM-dd'))
-            : null,
+          .filter(approver => approver.userId)
+          .map(approver => ({
+            userId: approver.userId,
+            approvalStatus: approver.approvalStatus || 'Not Reviewed',
+            comments: approver.comments || '',
+            approvedDate: approver.approvedDate
+              ? (typeof approver.approvedDate === 'string'
+                ? approver.approvedDate
+                : format(approver.approvedDate, 'yyyy-MM-dd'))
+              : null,
           }));
       } else {
         poamToSubmit.approvers = [];
@@ -844,7 +845,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       if (this.poamLabels && this.poamLabels.length > 0) {
         poamToSubmit.labels = this.poamLabels
-        .filter(label => label.labelId)
+          .filter(label => label.labelId)
           .map(label => ({ labelId: label.labelId }));
       } else {
         poamToSubmit.labels = [];
@@ -881,11 +882,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       if (this.teamMitigations && this.teamMitigations.length > 0) {
         poamToSubmit.teamMitigations = this.teamMitigations
           .filter(mitigation => mitigation.assignedTeamId)
-        .map(mitigation => ({
-          assignedTeamId: mitigation.assignedTeamId,
-          mitigationText: mitigation.mitigationText || '',
-          isActive: mitigation.isActive !== undefined ? mitigation.isActive : true
-        }));
+          .map(mitigation => ({
+            assignedTeamId: mitigation.assignedTeamId,
+            mitigationText: mitigation.mitigationText || '',
+            isActive: mitigation.isActive !== undefined ? mitigation.isActive : true
+          }));
       } else {
         poamToSubmit.teamMitigations = [];
       }
@@ -978,7 +979,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     if (this.teamMitigations) {
       this.teamMitigations.forEach(mitigation => mitigation.poamId = poamId);
     }
-    }
+  }
 
   onStigSelected(event: any) {
     this.poam.vulnerabilityTitle = event.value.title;
@@ -1060,16 +1061,61 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate
       ? format(this.dates.scheduledCompletionDate, 'yyyy-MM-dd')
       : null;
+    this.dates.submittedDate = new Date();
     this.poam.submittedDate = this.dates.submittedDate
       ? format(this.dates.submittedDate, 'yyyy-MM-dd')
       : null;
     await this.savePoam();
-      this.submitDialogVisible = false;
-      this.router.navigate(['/poam-processing/poam-manage']);
-    }
+    this.submitDialogVisible = false;
+    this.router.navigate(['/poam-processing/poam-manage']);
+  }
 
   cancelSubmit() {
     this.submitDialogVisible = false;
+  }
+
+  validateScheduledCompletion() {
+    const getConfigValue = (settingName: string, fallbackValue: number): number => {
+      if (this.appConfigSettings) {
+        const setting = this.appConfigSettings.find(config => config.settingName === settingName);
+        if (setting) {
+          return parseInt(setting.settingValue, 10);
+        }
+      }
+      return fallbackValue;
+    };
+
+    let daysToAdd: number;
+    switch (this.poam.adjSeverity ? this.poam.adjSeverity : this.poam.rawSeverity) {
+      case 'CAT I - Critical':
+      case 'CAT I - High':
+        daysToAdd = getConfigValue('cat-i_scheduled_completion_max', 30);
+        break;
+      case 'CAT II - Medium':
+        daysToAdd = getConfigValue('cat-ii_scheduled_completion_max', 180);
+        break;
+      case 'CAT III - Low':
+      case 'CAT III - Informational':
+        daysToAdd = getConfigValue('cat-iii_scheduled_completion_max', 365);
+        break;
+      default:
+        daysToAdd = getConfigValue('default_milestone_due_date_max', 30);
+    }
+
+    const currentDate = new Date();
+    const maxAllowedDate = new Date(currentDate);
+    maxAllowedDate.setDate(currentDate.getDate() + daysToAdd);
+
+    if (this.dates.scheduledCompletionDate && this.dates.scheduledCompletionDate > maxAllowedDate) {
+      this.dates.scheduledCompletionDate = maxAllowedDate;
+      const formattedDate = maxAllowedDate.toLocaleDateString();
+
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Information',
+        detail: `The scheduled completion date for ${this.poam.adjSeverity ? this.poam.adjSeverity : this.poam.rawSeverity} POAMs must not exceed ${daysToAdd} days. The scheduled completion date has been reverted to ${formattedDate}`,
+      });
+    }
   }
 
   validateData(): boolean {
@@ -1279,7 +1325,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'info',
         summary: 'Global Finding Mode',
-          detail: 'Team-specific mitigations are now hidden. They will be preserved but not displayed.'
+        detail: 'Team-specific mitigations are now hidden. They will be preserved but not displayed.'
       });
     }
   }
@@ -1291,10 +1337,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   openIavLink(iavmNumber: string) {
-      window.open(
-        `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavmNumber}`,
-        '_blank'
-      );
+    window.open(
+      `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavmNumber}`,
+      '_blank'
+    );
   }
 
   searchStigTitles(event: any) {
@@ -1306,6 +1352,22 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.filteredStigmanSTIGs = this.stigmanSTIGs.filter((stig: any) =>
       stig?.title && stig.title.toLowerCase().includes(query)
     );
+  }
+
+  loadAppConfiguration() {
+    this.appConfigurationService.getAppConfiguration().subscribe({
+      next: (response) => {
+        this.appConfigSettings = response || [];
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load custom configuration settings: ${getErrorMessage(error)}`
+        });
+        this.appConfigSettings = [];
+      }
+    });
   }
 
   loadAAPackages() {

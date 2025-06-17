@@ -133,6 +133,7 @@
                     optionValue="userId"
                     class="w-full"
                     showClear
+                    [filter]="true"
                     [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-select>
         </div>
 
@@ -393,12 +394,16 @@
                         id="scheduledCompletionDate"
                         name="scheduledCompletionDate"
                         placeholder="Scheduled Completion Date..."
+                        (onSelect)="validateScheduledCompletion()"
+                        (onInput)="validateScheduledCompletion()"
+                        (onClose)="validateScheduledCompletion()"
                         [showIcon]="true"
                         [style]="{'width':'25rem'}"
                         [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-datepicker>
         </div>
 
         <!-- Submitted Date -->
+        @if (dates.submittedDate) {
         <div class="form-group">
           <label for="submittedDate">Submitted Date: </label>
           <p-datepicker [(ngModel)]="dates.submittedDate"
@@ -408,8 +413,9 @@
                         placeholder="Submitted Date..."
                         [showIcon]="true"
                         [style]="{'width':'25rem'}"
-                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-datepicker>
+                        disabled></p-datepicker>
         </div>
+        }
       </div>
     </div>
 
