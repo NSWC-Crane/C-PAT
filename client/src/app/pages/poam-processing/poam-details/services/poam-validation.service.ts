@@ -10,7 +10,7 @@
 
 import { Injectable } from "@angular/core";
 import { PoamVariableMappingService } from "./poam-variable-mapping.service";
-import { addDays, isAfter } from 'date-fns';
+import { addDays, isAfter, isBefore, format, parseISO } from 'date-fns';
 
 @Injectable({
   providedIn: 'root'
@@ -261,6 +261,8 @@ export class PoamValidationService {
   }
 
   validateMilestoneCompleteness(milestones: any[]): { valid: boolean, message?: string } {
+    const currentDate = new Date();
+
     for (const milestone of milestones) {
       if (!milestone.milestoneComments || milestone.milestoneComments.trim() === '') {
         return {
@@ -285,6 +287,16 @@ export class PoamValidationService {
           valid: false,
           message: 'All milestones must be assigned to a team. Please complete all milestone fields.'
         };
+      }
+
+      if (milestone.milestoneStatus === 'Pending' && milestone.milestoneDate) {
+        const milestoneDate = parseISO(milestone.milestoneDate);
+        if (isBefore(milestoneDate, currentDate)) {
+          return {
+            valid: false,
+            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a status of "Pending" but its due date (${format(milestoneDate, 'yyyy-MM-dd')}) is in the past. Please update either the status or the due date.`
+          };
+        }
       }
     }
     return { valid: true };
