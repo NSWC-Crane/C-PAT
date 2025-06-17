@@ -150,7 +150,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   vulnerabilitySources: string[] = [
     'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
-    'STIG'
+    'STIG',
+    'Other'
   ];
 
   statusOptions = [
