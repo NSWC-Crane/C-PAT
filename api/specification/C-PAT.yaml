@@ -5960,6 +5960,9 @@ components:
         originCollectionId:
           type: integer
           nullable: true
+        manualCreationAllowed:
+          type: boolean
+          default: true
 
     collectionBasicList:
       type: object
@@ -5990,6 +5993,9 @@ components:
         predisposingConditions:
           type: string
           nullable: true
+        manualCreationAllowed:
+          type: boolean
+          default: true
 
     collectionField:
       type: object

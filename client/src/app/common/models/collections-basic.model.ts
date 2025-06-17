@@ -17,4 +17,5 @@ export interface CollectionsBasicList {
   ccsafa?: string;
   aaPackage?: string;
   predisposingConditions?: string;
+  manualCreationAllowed?: boolean;
 }

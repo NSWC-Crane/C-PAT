@@ -38,7 +38,7 @@ C-PAT Collection Privileges
 Collection Management
 ---------------------
 
-Collection management provides C-PAT administrators with the ability to manually create new collections, alter existing collections, or export all of the POAMs contained within a collection into the eMASS excel format.
+Collection management provides C-PAT administrators with the ability to manually create new collections, alter existing collections, or export all of the POAMs contained within a collection into the eMASS excel format. Additionally, each collection has the ability to enable or disable manual POAM creation.
 
 .. warning::
    Manual creation of collections is not recommended when data ingestion from STIG Manager or Tenable is desired. Collections should be automatically imported via the STIG Manager or Tenable Import section within the Admin Portal to ensure the proper collection association.

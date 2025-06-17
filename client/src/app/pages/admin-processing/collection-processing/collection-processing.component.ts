@@ -32,6 +32,8 @@ import { TextareaModule } from 'primeng/textarea';
 import { Collections } from '../../../common/models/collections.model';
 import { AAPackage } from '../../../common/models/aaPackage.model';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { SelectModule } from 'primeng/select';
+
 interface TreeNode<T> {
   data: T;
   children?: TreeNode<T>[];
@@ -51,6 +53,7 @@ interface TreeNode<T> {
     IconFieldModule,
     InputIconModule,
     InputTextModule,
+    SelectModule,
     TextareaModule,
     ToastModule,
     TreeTableModule
@@ -75,6 +78,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     systemName: '',
     ccsafa: '',
     aaPackage: '',
+    manualCreationAllowed: true,
   };
   collectionToExport: string = 'Select Collection to Export...';
   data: any = [];
@@ -175,7 +179,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     const collectionData = this.data;
     const treeViewData: TreeNode<Collections>[] = collectionData.map(
       (collection: {
-        collectionId: number | any[];
+        collectionId: number;
         collectionName: any;
         description: any;
         systemType: any;
@@ -185,6 +189,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         predisposingConditions: any;
         collectionOrigin: any;
         originCollectionId: number;
+        manualCreationAllowed: boolean;
       }) => {
         const myChildren: never[] = [];
 
@@ -200,6 +205,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             'Predisposing Conditions': collection.predisposingConditions || '',
             'Collection Origin': collection.collectionOrigin || '',
             'Origin Collection ID': collection.originCollectionId ?? 0,
+            'Manual Creation Allowed': collection.manualCreationAllowed ?? true
           },
           children: myChildren,
         };
@@ -456,7 +462,8 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       systemName: '',
       ccsafa: '',
       aaPackage: '',
-      predisposingConditions: ''
+      predisposingConditions: '',
+      manualCreationAllowed: true
     };
     this.displayCollectionDialog = true;
   }
@@ -471,7 +478,8 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       systemName: rowData['System Name'],
       ccsafa: rowData['CC/S/A/FA'],
       aaPackage: rowData['A&A Package'],
-      predisposingConditions: rowData['Predisposing Conditions']
+      predisposingConditions: rowData['Predisposing Conditions'],
+      manualCreationAllowed: rowData['Manual Creation Allowed'] ?? true
     };
     this.displayCollectionDialog = true;
   }
