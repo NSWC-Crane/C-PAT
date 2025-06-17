@@ -246,7 +246,6 @@ describe('PoamApproversComponent', () => {
     });
 
     it('should handle error when fetching approvers', () => {
-      const consoleErrorSpy = spyOn(console, 'error');
       const messageServiceSpy = spyOn(component['messageService'], 'add');
       mockPoamService.getPoamApprovers.and.returnValue(
         throwError(() => new Error('Test error'))
@@ -255,11 +254,10 @@ describe('PoamApproversComponent', () => {
       component.getPoamApprovers();
 
       expect(mockPoamService.getPoamApprovers).toHaveBeenCalledWith('12345');
-      expect(consoleErrorSpy).toHaveBeenCalled();
       expect(messageServiceSpy).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load approvers'
+        detail: 'Failed to load approvers: Test error'
       });
     });
   });

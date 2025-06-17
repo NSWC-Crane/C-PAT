@@ -27,8 +27,7 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
     ButtonModule,
     SelectModule,
     ToastModule
-],
-  providers: [MessageService]
+]
 })
 export class PoamLabelsComponent implements OnInit {
   @Input() poamId: any;

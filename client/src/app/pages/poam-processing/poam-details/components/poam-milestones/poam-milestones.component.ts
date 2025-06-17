@@ -52,7 +52,7 @@ export interface Milestone {
     TextareaModule,
     TooltipModule
   ],
-  providers: [ConfirmationService, MessageService, DatePipe]
+  providers: [ConfirmationService, DatePipe]
 })
 export class PoamMilestonesComponent implements OnInit {
   @ViewChild('dt') table: Table;

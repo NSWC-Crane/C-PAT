@@ -1,11 +1,14 @@
 # Follow [Conventional Commits](https://www.conventionalcommits.org/) for generating changelogs automatically.
+# `build:` for build system changes
+# `chore:` for maintenance tasks
+# `ci:` for continuous integration changes
+# `docs:` for documentation changes
 # `feat:` for new features
 # `fix:` for bug fixes
-# `docs:` for documentation changes
-# `chore:` for maintenance tasks
-# `style:` for formatting/style changes
-# `refactor:` for code refactoring
 # `perf:` for performance improvements
+# `refactor:` for code refactoring
+# `revert:` for reverting changes
+# `style:` for formatting/style changes
 # `test:` for adding or updating tests
 
 name: Release New Version

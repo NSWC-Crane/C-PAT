@@ -11,7 +11,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PoamAssetsComponent } from './poam-assets.component';
 import { MessageService } from 'primeng/api';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { SimpleChange } from '@angular/core';
@@ -20,7 +20,7 @@ describe('PoamAssetsComponent', () => {
   let component: PoamAssetsComponent;
   let fixture: ComponentFixture<PoamAssetsComponent>;
   let mockPoamService: any;
-  let messageService: jasmine.SpyObj<MessageService>;
+  let mockMessageService: jasmine.SpyObj<MessageService>;
 
   beforeEach(async () => {
     mockPoamService = {
@@ -29,7 +29,13 @@ describe('PoamAssetsComponent', () => {
       getPoamAssets: jasmine.createSpy('getPoamAssets').and.returnValue(of([]))
     };
 
-    messageService = jasmine.createSpyObj('MessageService', ['add']);
+    mockMessageService = {
+      add: jasmine.createSpy('add'),
+      addAll: jasmine.createSpy('addAll'),
+      clear: jasmine.createSpy('clear'),
+      messageObserver: new Subject().asObservable(),
+      clearObserver: new Subject().asObservable()
+    } as jasmine.SpyObj<MessageService>;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -38,10 +44,9 @@ describe('PoamAssetsComponent', () => {
         FormsModule
       ],
       providers: [
-        { provide: MessageService, useValue: messageService }
+        { provide: MessageService, useValue: mockMessageService }
       ]
     }).compileComponents();
-
     fixture = TestBed.createComponent(PoamAssetsComponent);
     component = fixture.componentInstance;
 
@@ -156,7 +161,7 @@ describe('PoamAssetsComponent', () => {
         poamId: +component.poam.poamId,
         assetId: 1
       });
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'success',
         summary: 'Success',
         detail: 'Asset added successfully.'
@@ -172,10 +177,10 @@ describe('PoamAssetsComponent', () => {
 
       await component.confirmCreateAsset(asset);
 
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to add asset.'
+        detail: 'Failed to add asset: Test error'
       });
     });
 
@@ -246,10 +251,10 @@ describe('PoamAssetsComponent', () => {
 
       component.fetchAssets();
 
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to fetch assets'
+        detail: 'Failed to fetch assets: Test error'
       });
     });
   });
