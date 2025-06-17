@@ -8,9 +8,24 @@
 !##########################################################################
 */
 
-.form {
-  max-height: calc(100vh - 20rem);
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 19rem);
+  min-height: 600px;
+}
+
+.form-content {
+  flex: 1;
   overflow-y: auto;
+  padding-bottom: 1rem;
+}
+
+.form-footer {
+  flex-shrink: 0;
+  padding: 1rem;
+  z-index: 10;
+  margin-top: auto;
 }
 
 .points-container {
