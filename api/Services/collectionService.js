@@ -32,14 +32,15 @@ exports.getCollections = async function getCollections(elevate, req) {
                     collections: []
                 }
                 let sql2 = `SELECT * FROM ${config.database.schema}.collection;`
-                    let [row2] = await connection.query(sql2)
-                    const size = Object.keys(row2).length
-                    for (let counter = 0; counter < size; counter++) {
-                        user.collections.push({
-                            ...row2[counter]
-                        });
-                    }
-                    return user.collections;
+                let [row2] = await connection.query(sql2)
+                const size = Object.keys(row2).length
+                for (let counter = 0; counter < size; counter++) {
+                    user.collections.push({
+                        ...row2[counter],
+                        manualCreationAllowed: row2[counter].manualCreationAllowed != null ? Boolean(row2[counter].manualCreationAllowed) : null
+                    });
+                }
+                return user.collections;
             } else {
                 let collectionSql = `
                 SELECT c.*
@@ -59,6 +60,7 @@ exports.getCollections = async function getCollections(elevate, req) {
                     aaPackage: collection.aaPackage,
                     predisposingConditions: collection.predisposingConditions,
                     created: collection.created,
+                    manualCreationAllowed: collection.manualCreationAllowed != null ? Boolean(collection.manualCreationAllowed) : null
                 }));
             }
         });
@@ -71,9 +73,12 @@ exports.getCollections = async function getCollections(elevate, req) {
 exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
     try {
         return await withConnection(async (connection) => {
-            const sql = `SELECT collectionId, collectionName, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions FROM ${config.database.schema}.collection`;
+            const sql = `SELECT collectionId, collectionName, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions, manualCreationAllowed FROM ${config.database.schema}.collection`;
             const [rows] = await connection.query(sql);
-            return rows;
+            return rows.map(row => ({
+                ...row,
+                manualCreationAllowed: row.manualCreationAllowed != null ? Boolean(row.manualCreationAllowed) : null
+            }));
         });
     } catch (error) {
         return { error: error.message };
@@ -98,16 +103,20 @@ exports.postCollection = async function postCollection(req, res, next) {
     if (!req.body.ccsafa) req.body.ccsafa = "";
     if (!req.body.aaPackage) req.body.aaPackage = "";
     if (!req.body.predisposingConditions) req.body.predisposingConditions = "";
+    if (req.body.manualCreationAllowed === undefined) req.body.manualCreationAllowed = true;
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `INSERT INTO ${config.database.schema}.collection (collectionName, description, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) `
-            await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.collectionOrigin, req.body.originCollectionId, req.body.systemType, req.body.systemName, req.body.ccsafa, req.body.aaPackage, req.body.predisposingConditions])
+            let sql_query = `INSERT INTO ${config.database.schema}.collection (collectionName, description, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions, manualCreationAllowed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) `
+            await connection.query(sql_query, [req.body.collectionName, req.body.description, req.body.collectionOrigin, req.body.originCollectionId, req.body.systemType, req.body.systemName, req.body.ccsafa, req.body.aaPackage, req.body.predisposingConditions, req.body.manualCreationAllowed])
             let sql = `SELECT * FROM ${config.database.schema}.collection WHERE collectionId = LAST_INSERT_ID();`
             let [rowCollection] = await connection.query(sql)
 
-            const collection = rowCollection[0]
-            return (collection)
+            const collection = {
+                ...rowCollection[0],
+                manualCreationAllowed: rowCollection[0].manualCreationAllowed != null ? Boolean(rowCollection[0].manualCreationAllowed) : null
+            }
+            return collection;
         });
     } catch (error) {
         return { error: error.message };
@@ -130,10 +139,11 @@ exports.putCollection = async function putCollection(req, res, next) {
     if (!req.body.ccsafa) req.body.ccsafa = "";
     if (!req.body.aaPackage) req.body.aaPackage = "";
     if (!req.body.predisposingConditions) req.body.predisposingConditions = "";
+    if (req.body.manualCreationAllowed === undefined) req.body.manualCreationAllowed = true;
 
     try {
         return await withConnection(async (connection) => {
-            let sql_query = `UPDATE ${config.database.schema}.collection SET collectionName = ?, description = ?, systemType = ?, systemName = ?, ccsafa = ?, aaPackage = ?, predisposingConditions = ? WHERE collectionId = ?`;
+            let sql_query = `UPDATE ${config.database.schema}.collection SET collectionName = ?, description = ?, systemType = ?, systemName = ?, ccsafa = ?, aaPackage = ?, predisposingConditions = ?, manualCreationAllowed = ? WHERE collectionId = ?`;
             await connection.query(sql_query, [
                 req.body.collectionName,
                 req.body.description,
@@ -142,6 +152,7 @@ exports.putCollection = async function putCollection(req, res, next) {
                 req.body.ccsafa,
                 req.body.aaPackage,
                 req.body.predisposingConditions,
+                req.body.manualCreationAllowed,
                 req.body.collectionId
             ]);
 
@@ -154,6 +165,7 @@ exports.putCollection = async function putCollection(req, res, next) {
             message.ccsafa = req.body.ccsafa;
             message.aaPackage = req.body.aaPackage;
             message.predisposingConditions = req.body.predisposingConditions;
+            message.manualCreationAllowed = req.body.manualCreationAllowed != null ? Boolean(req.body.manualCreationAllowed) : null
             return message;
         });
     }

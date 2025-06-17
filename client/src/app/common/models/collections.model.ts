@@ -19,4 +19,5 @@ export interface Collections {
   created?: string;
   collectionOrigin?: string;
   originCollectionId?: number;
+  manualCreationAllowed?: boolean;
 }

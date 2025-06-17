@@ -354,6 +354,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   collections: any[] = [];
   collectionType: string = 'C-PAT';
   collectionName: string = '';
+  manualCreationAllowed: boolean = true;
   selectedCollection: any = null;
   isSlimMenu: boolean = true;
   confirmPopupVisible: boolean = false;
@@ -417,6 +418,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
             );
           this.collectionType = selectedCollectionData?.collectionOrigin || 'C-PAT';
           this.collectionName = selectedCollectionData?.collectionName || '';
+          this.manualCreationAllowed = selectedCollectionData?.manualCreationAllowed ?? true;
             }
         this.setMenuItems();
       },
@@ -570,7 +572,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         label: 'Manual POAM Entry',
         icon: 'pi pi-file-plus',
         command: () => this.showConfirmPopup(),
-          visible: this.accessLevel >= 2,
+        visible: this.accessLevel >= 2 && this.manualCreationAllowed,
       },
       {
         label: 'Asset Processing',
