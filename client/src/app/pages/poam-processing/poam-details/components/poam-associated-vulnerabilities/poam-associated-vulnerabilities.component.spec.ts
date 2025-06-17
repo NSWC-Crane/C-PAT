@@ -14,7 +14,7 @@ import { MessageService } from 'primeng/api';
 import { PoamService } from '../../../poams.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { ImportService } from '../../../../import-processing/import.service';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { AutoCompleteCompleteEvent } from 'primeng/autocomplete';
@@ -31,7 +31,13 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     mockPoamService = jasmine.createSpyObj('PoamService', ['getVulnerabilityIdsWithPoamByCollection']);
     mockSharedService = jasmine.createSpyObj('SharedService', ['getFindingsMetricsAndRulesFromSTIGMAN']);
     mockImportService = jasmine.createSpyObj('ImportService', ['postTenableAnalysis']);
-    mockMessageService = jasmine.createSpyObj('MessageService', ['add']);
+    mockMessageService = {
+      add: jasmine.createSpy('add'),
+      addAll: jasmine.createSpy('addAll'),
+      clear: jasmine.createSpy('clear'),
+      messageObserver: new Subject().asObservable(),
+      clearObserver: new Subject().asObservable()
+    } as jasmine.SpyObj<MessageService>;
 
     mockPoamService.getVulnerabilityIdsWithPoamByCollection.and.returnValue(of([]));
     mockSharedService.getFindingsMetricsAndRulesFromSTIGMAN.and.returnValue(of([]));

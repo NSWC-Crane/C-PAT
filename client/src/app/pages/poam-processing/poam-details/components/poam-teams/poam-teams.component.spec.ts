@@ -11,7 +11,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { PoamTeamsComponent } from './poam-teams.component';
 import { MessageService } from 'primeng/api';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 
@@ -19,7 +19,7 @@ describe('PoamTeamsComponent', () => {
   let component: PoamTeamsComponent;
   let fixture: ComponentFixture<PoamTeamsComponent>;
   let mockPoamService: any;
-  let messageService: jasmine.SpyObj<MessageService>;
+  let mockMessageService: jasmine.SpyObj<MessageService>;
 
   beforeEach(async () => {
     mockPoamService = {
@@ -28,7 +28,13 @@ describe('PoamTeamsComponent', () => {
       deletePoamAssignedTeam: jasmine.createSpy('deletePoamAssignedTeam').and.returnValue(of({}))
     };
 
-    messageService = jasmine.createSpyObj('MessageService', ['add']);
+    mockMessageService = {
+      add: jasmine.createSpy('add'),
+      addAll: jasmine.createSpy('addAll'),
+      clear: jasmine.createSpy('clear'),
+      messageObserver: new Subject().asObservable(),
+      clearObserver: new Subject().asObservable()
+    } as jasmine.SpyObj<MessageService>;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -37,7 +43,7 @@ describe('PoamTeamsComponent', () => {
         FormsModule
       ],
       providers: [
-        { provide: MessageService, useValue: messageService }
+        { provide: MessageService, useValue: mockMessageService }
       ]
     }).compileComponents();
 
@@ -91,7 +97,7 @@ describe('PoamTeamsComponent', () => {
     expect(mockPoamService.postPoamAssignedTeam).toHaveBeenCalled();
     expect(mockPoamService.getPoamAssignedTeams).toHaveBeenCalled();
     expect(teamsSpy).toHaveBeenCalled();
-    expect(messageService.add).toHaveBeenCalled();
+    expect(mockMessageService.add).toHaveBeenCalled();
   }));
 
   it('should handle team selection for new POAM', async () => {
@@ -107,7 +113,7 @@ describe('PoamTeamsComponent', () => {
     expect(mockPoamService.postPoamAssignedTeam).not.toHaveBeenCalled();
     expect(mockPoamService.getPoamAssignedTeams).not.toHaveBeenCalled();
     expect(teamsSpy).toHaveBeenCalled();
-    expect(messageService.add).toHaveBeenCalled();
+    expect(mockMessageService.add).toHaveBeenCalled();
     expect(newTeam.assignedTeamName).toBe('Team A');
   });
 
@@ -137,7 +143,7 @@ describe('PoamTeamsComponent', () => {
 
     expect(mockPoamService.deletePoamAssignedTeam).toHaveBeenCalledWith(12345, 1);
     expect(teamsSpy).toHaveBeenCalled();
-    expect(messageService.add).toHaveBeenCalled();
+    expect(mockMessageService.add).toHaveBeenCalled();
   }));
 
   it('should delete a new team', async () => {
@@ -173,7 +179,7 @@ describe('PoamTeamsComponent', () => {
     tick();
 
     expect(mockPoamService.deletePoamAssignedTeam).toHaveBeenCalled();
-    expect(messageService.add).toHaveBeenCalledWith({
+    expect(mockMessageService.add).toHaveBeenCalledWith({
       severity: 'error',
       summary: 'Error',
       detail: 'Failed to remove assigned team: Test error'

@@ -10,7 +10,7 @@
 
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { PoamLabelsComponent } from './poam-labels.component';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { PoamService } from '../../../poams.service';
@@ -26,7 +26,13 @@ describe('PoamLabelsComponent', () => {
     mockPoamService = jasmine.createSpyObj('PoamService',
       ['getPoamLabelsByPoam', 'postPoamLabel', 'deletePoamLabel']
     );
-    mockMessageService = jasmine.createSpyObj('MessageService', ['add']);
+    mockMessageService = {
+      add: jasmine.createSpy('add'),
+      addAll: jasmine.createSpy('addAll'),
+      clear: jasmine.createSpy('clear'),
+      messageObserver: new Subject().asObservable(),
+      clearObserver: new Subject().asObservable()
+    } as jasmine.SpyObj<MessageService>;
 
     TestBed.configureTestingModule({
       imports: [
@@ -134,18 +140,14 @@ describe('PoamLabelsComponent', () => {
     it('getPoamLabels should handle API errors gracefully', fakeAsync(() => {
       const errorResponse = new Error('Test API error');
       mockPoamService.getPoamLabelsByPoam.and.returnValue(throwError(() => errorResponse));
-      const consoleErrorSpy = spyOn(console, 'error');
-      // Spy on the component's internal messageService property, as it's not injected.
-      const messageServiceSpy = spyOn(component['messageService'], 'add');
 
       component.getPoamLabels();
       tick();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching POAM labels:', errorResponse);
-      expect(messageServiceSpy).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to load labels'
+        detail: 'Failed to load labels: Test API error'
       });
     }));
 

@@ -16,16 +16,25 @@ import { FormsModule } from '@angular/forms';
 import { Table } from 'primeng/table';
 import { addDays } from 'date-fns';
 import { DatePipe } from '@angular/common';
+import { Subject } from 'rxjs';
 
 describe('PoamMilestonesComponent', () => {
   let component: PoamMilestonesComponent;
   let fixture: ComponentFixture<PoamMilestonesComponent>;
   let confirmationService: ConfirmationService;
-  let messageService: MessageService;
+  let mockMessageService: jasmine.SpyObj<MessageService>;
   let mockTable: jasmine.SpyObj<Table>;
 
   beforeEach(async () => {
     mockTable = jasmine.createSpyObj('Table', ['initRowEdit', 'cancelRowEdit']);
+
+    mockMessageService = {
+      add: jasmine.createSpy('add'),
+      addAll: jasmine.createSpy('addAll'),
+      clear: jasmine.createSpy('clear'),
+      messageObserver: new Subject().asObservable(),
+      clearObserver: new Subject().asObservable()
+    } as jasmine.SpyObj<MessageService>;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -33,14 +42,17 @@ describe('PoamMilestonesComponent', () => {
         PoamMilestonesComponent,
         FormsModule
       ],
-      providers: [ConfirmationService, MessageService, DatePipe]
+      providers: [
+        { provide: MessageService, useValue: mockMessageService },
+        ConfirmationService,
+        DatePipe
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PoamMilestonesComponent);
     component = fixture.componentInstance;
 
     confirmationService = fixture.debugElement.injector.get(ConfirmationService);
-    messageService = fixture.debugElement.injector.get(MessageService);
 
     component.poam = {
       status: 'Draft',
@@ -54,10 +66,14 @@ describe('PoamMilestonesComponent', () => {
     ];
     component.poamMilestones = [];
 
-    spyOn(messageService, 'add');
-
     fixture.detectChanges();
     component.table = mockTable;
+  });
+
+  beforeEach(() => {
+    if (mockMessageService) {
+      mockMessageService.add.calls.reset();
+    }
   });
 
   it('should create', () => {
@@ -184,7 +200,7 @@ describe('PoamMilestonesComponent', () => {
     it('should validate required fields and show error for missing comments', () => {
       milestone.milestoneComments = null;
       component.onRowEditSave(milestone);
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Information',
         detail: 'Milestone Comments is a required field.'
@@ -194,7 +210,7 @@ describe('PoamMilestonesComponent', () => {
     it('should validate required fields and show error for missing date', () => {
       milestone.milestoneDate = null as any;
       component.onRowEditSave(milestone);
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Information',
         detail: 'Milestone Date is a required field.'
@@ -204,7 +220,7 @@ describe('PoamMilestonesComponent', () => {
     it('should validate required fields and show error for missing status', () => {
       milestone.milestoneStatus = '';
       component.onRowEditSave(milestone);
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Information',
         detail: 'Milestone Status is a required field.'
@@ -214,7 +230,7 @@ describe('PoamMilestonesComponent', () => {
     it('should validate required fields and show error for missing team', () => {
       milestone.assignedTeamId = null;
       component.onRowEditSave(milestone);
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Information',
         detail: 'Milestone Team is a required field.'
@@ -225,7 +241,7 @@ describe('PoamMilestonesComponent', () => {
       component.poam.scheduledCompletionDate = new Date();
       milestone.milestoneDate = addDays(new Date(), 10);
       component.onRowEditSave(milestone);
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'warn',
         summary: 'Information',
         detail: 'The Milestone date provided exceeds the POAM scheduled completion date.'
@@ -237,7 +253,7 @@ describe('PoamMilestonesComponent', () => {
       component.poam.extensionTimeAllowed = 5;
       milestone.milestoneDate = addDays(new Date(), 10);
       component.onRowEditSave(milestone);
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'warn',
         summary: 'Information',
         detail: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
@@ -292,7 +308,7 @@ describe('PoamMilestonesComponent', () => {
       it('should validate required fields and show error for missing comments', () => {
         milestone.milestoneComments = null;
         component.onRowEditSave(milestone);
-        expect(messageService.add).toHaveBeenCalledWith({
+        expect(mockMessageService.add).toHaveBeenCalledWith({
           severity: 'error',
           summary: 'Information',
           detail: 'Milestone Comments is a required field.'
@@ -307,7 +323,7 @@ describe('PoamMilestonesComponent', () => {
         expect(component.editingMilestoneId()).toBeNull();
         expect(component.clonedMilestones['123']).toBeUndefined();
         expect(mockTable.cancelRowEdit).toHaveBeenCalledWith(milestone);
-        expect(messageService.add).toHaveBeenCalledWith({
+        expect(mockMessageService.add).toHaveBeenCalledWith({
           severity: 'success',
           summary: 'Success',
           detail: 'Milestone updated. Remember to save the POAM to persist changes.'
@@ -404,7 +420,7 @@ describe('PoamMilestonesComponent', () => {
 
       expect(component.poamMilestones.length).toBe(0);
       expect(component.milestonesChanged.emit).toHaveBeenCalledWith([]);
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'success',
         summary: 'Success',
         detail: 'Milestone deleted. Remember to save the POAM to persist changes.'
@@ -479,7 +495,7 @@ describe('PoamMilestonesComponent', () => {
 
       component.onRowEditSave(milestone);
 
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'success',
         summary: 'Success',
         detail: 'Milestone updated. Remember to save the POAM to persist changes.'
@@ -503,7 +519,7 @@ describe('PoamMilestonesComponent', () => {
 
       component.onRowEditSave(milestone);
 
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'success',
         summary: 'Success',
         detail: 'Milestone updated. Remember to save the POAM to persist changes.'
