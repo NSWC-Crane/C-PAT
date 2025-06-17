@@ -10,7 +10,7 @@
 
 import { Injectable } from "@angular/core";
 import { PoamVariableMappingService } from "./poam-variable-mapping.service";
-import { addDays, isAfter, isBefore, format, parseISO } from 'date-fns';
+import { addDays, isAfter, isBefore, format, parse } from 'date-fns';
 
 @Injectable({
   providedIn: 'root'
@@ -230,7 +230,7 @@ export class PoamValidationService {
       return { valid: true };
     }
 
-    const scheduledCompletionDate = new Date(poam.scheduledCompletionDate);
+    const scheduledCompletionDate = parse(poam.scheduledCompletionDate.split("T")[0], 'yyyy-MM-dd', new Date());
     const extensionTimeAllowed = poam.extensionTimeAllowed || 0;
 
     for (const milestone of milestones) {
@@ -243,7 +243,7 @@ export class PoamValidationService {
         if (isAfter(milestoneDate, scheduledCompletionDate)) {
           return {
             valid: false,
-            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a date (${milestoneDate.toLocaleDateString()}) that exceeds the POAM scheduled completion date (${scheduledCompletionDate.toLocaleDateString()}).`
+            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a date (${format(milestoneDate, 'yyyy-MM-dd')}) that exceeds the POAM scheduled completion date (${format(scheduledCompletionDate, 'yyyy-MM-dd')}).`
           };
         }
       } else {
@@ -251,7 +251,7 @@ export class PoamValidationService {
         if (isAfter(milestoneDate, maxAllowedDate)) {
           return {
             valid: false,
-            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a date (${milestoneDate.toLocaleDateString()}) that exceeds the POAM scheduled completion date and the allowed extension time (${maxAllowedDate.toLocaleDateString()}).`
+            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a date (${format(milestoneDate, 'yyyy-MM-dd')}) that exceeds the POAM scheduled completion date and the allowed extension time (${format(maxAllowedDate, 'yyyy-MM-dd')}).`
           };
         }
       }
@@ -290,11 +290,10 @@ export class PoamValidationService {
       }
 
       if (milestone.milestoneStatus === 'Pending' && milestone.milestoneDate) {
-        const milestoneDate = parseISO(milestone.milestoneDate);
-        if (isBefore(milestoneDate, currentDate)) {
+        if (isBefore(milestone.milestoneDate, currentDate)) {
           return {
             valid: false,
-            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a status of "Pending" but its due date (${format(milestoneDate, 'yyyy-MM-dd')}) is in the past. Please update either the status or the due date.`
+            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a status of "Pending" but its due date (${format(milestone.milestoneDate, 'yyyy-MM-dd')}) is in the past. Please update either the status or the due date.`
           };
         }
       }

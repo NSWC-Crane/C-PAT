@@ -176,8 +176,13 @@ A&A Packages
 C-PAT provides the ability for administrators to set A&A package options for their organization. In addition to populating the list of options when setting an A&A package for a particular collection, the A&A packages entered in the Set A&A Packages component will populate a drop down list of options in POAMs for instances when a POAM entry may require deviation from the pre-populated A&A Package.
 
 
-
 Assigned Teams
 --------------
 
 The Set Assigned Teams component allows administrators to create a team structure that fits their organization. Teams can be assigned collections of responsiblity. Subsequently, when assigning user permissions, a team can be selected with an appropriate access level for a user. In essence, a user will be given acess to each collection the team is assigned at the access level selected without having to manually assign each individual collection. This structure allows for a more granular approach to permissions and access control within C-PAT. In addition to Team Name and Team Permissions, assigned Teams also contains an AD Team field. The Asset Delta[Active Directory?] field is used to establish a link between a C-PAT team and a team name as provided in the AD Team list. This corelation allows for automatic team assignments to POAMs if an affected asset name matches with an AD row entry.
+
+
+App Configuration
+-----------------
+
+The app configuration component allows administrators to set application-wide options that will be applied to all users and collections within C-PAT. This includes setting basline parameters for the application, such as the maximum scheduled completion time for each severity level.

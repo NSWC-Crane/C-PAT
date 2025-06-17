@@ -10,16 +10,15 @@
 
 const MigrationHandler = require('./lib/MigrationHandler')
 const upMigration = [
-    `CREATE TABLE IF NOT EXISTS customizableconfig (
+    `CREATE TABLE IF NOT EXISTS appconfiguration (
   settingName VARCHAR(255) NOT NULL,
   settingValue VARCHAR(50) NOT NULL,
   PRIMARY KEY (settingName, settingValue),
   KEY idx_settingName (settingName)
 );`,
-    `INSERT INTO customizableconfig (settingName, settingValue) VALUES ('cat-i_scheduled_completion_days', '30');`,
-    `INSERT INTO customizableconfig (settingName, settingValue) VALUES ('cat-ii_scheduled_completion_days', '180');`,
-    `INSERT INTO customizableconfig (settingName, settingValue) VALUES ('cat-iii_scheduled_completion_days', '365');`,
-    `INSERT INTO customizableconfig (settingName, settingValue) VALUES ('default_milestone_due_date_days', '30');`,
+    `INSERT INTO appconfiguration (settingName, settingValue) VALUES ('cat-i_scheduled_completion_max', '30');`,
+    `INSERT INTO appconfiguration (settingName, settingValue) VALUES ('cat-ii_scheduled_completion_max', '180');`,
+    `INSERT INTO appconfiguration (settingName, settingValue) VALUES ('cat-iii_scheduled_completion_max', '365');`,
     `ALTER TABLE collection
      ADD COLUMN \`manualCreationAllowed\` TINYINT(1) NOT NULL DEFAULT '1' AFTER \`originCollectionId\`;`
 ]

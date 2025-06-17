@@ -11,16 +11,19 @@
 import { Injectable } from "@angular/core";
 import { MessageService } from "primeng/api";
 import { firstValueFrom, forkJoin } from "rxjs";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { jsonToPlainText } from "json-to-plain-text";
 import { Permission } from "../../../../common/models/permission.model";
 import { ImportService } from "../../../import-processing/import.service";
 import { SharedService } from "../../../../common/services/shared.service";
+import { AppConfigurationService } from "../../../admin-processing/app-configuration/app-configuration.service";
 import { CollectionsService } from "../../../admin-processing/collection-processing/collections.service";
 import { AssignedTeamService } from "../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service";
 import { AssetService } from "../../../asset-processing/assets.service";
 import { PoamVariableMappingService } from "./poam-variable-mapping.service";
 import { getErrorMessage } from '../../../../common/utils/error-utils';
+import { AppConfiguration } from "../../../../common/models/appConfiguration.model";
+
 interface UserCollectionPermission {
   userId: number;
   collectionId?: number;
@@ -35,15 +38,34 @@ interface UserCollectionPermission {
   providedIn: 'root'
 })
 export class PoamCreationService {
+  appConfigSettings: AppConfiguration[] = [];
+
   constructor(
     private importService: ImportService,
     private sharedService: SharedService,
+    private appConfigurationService: AppConfigurationService,
     private collectionsService: CollectionsService,
     private assignedTeamService: AssignedTeamService,
     private assetService: AssetService,
     private mappingService: PoamVariableMappingService,
     private messageService: MessageService
   ) { }
+
+  loadAppConfiguration() {
+    this.appConfigurationService.getAppConfiguration().subscribe({
+      next: (response) => {
+        this.appConfigSettings = response || [];
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load custom configuration settings: ${getErrorMessage(error)}`
+        });
+        this.appConfigSettings = [];
+      }
+    });
+  }
 
   loadVulnerability(pluginId: string): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -120,6 +142,7 @@ export class PoamCreationService {
   }
 
   async createNewACASPoam(stateData: any, collectionInfo: any, userId: number): Promise<any> {
+    this.loadAppConfiguration();
     try {
       const pluginData = stateData.pluginData;
       const tenableVulnResponse = await this.loadVulnerability(pluginData.id);
@@ -131,7 +154,6 @@ export class PoamCreationService {
         this.assignedTeamService.getAssignedTeams()
       ]));
 
-      const currentDate = new Date();
       const poam: any = {
         poamId: 'ADDPOAM',
         collectionId: collectionInfo.collectionId,
@@ -142,7 +164,7 @@ export class PoamCreationService {
         iavComplyByDate: stateData.iavComplyByDate
           ? format(new Date(stateData.iavComplyByDate), 'yyyy-MM-dd')
           : null,
-        submittedDate: format(currentDate, 'yyyy-MM-dd'),
+        submittedDate: null,
         vulnerabilityId: pluginData.id || '',
         vulnerabilityTitle: pluginData.name || '',
         description: `Title:
@@ -158,14 +180,14 @@ ${pluginData.description || ''}`,
         isGlobalFinding: false
       };
 
-      poam.scheduledCompletionDate = this.mappingService.calculateScheduledCompletionDate(poam.rawSeverity);
+      poam.scheduledCompletionDate = this.mappingService.calculateScheduledCompletionDate(poam.rawSeverity, this.appConfigSettings);
 
       const results = {
         poam,
         dates: {
-          scheduledCompletionDate: new Date(poam.scheduledCompletionDate),
-          iavComplyByDate: poam.iavComplyByDate ? new Date(poam.iavComplyByDate) : null,
-          submittedDate: new Date(poam.submittedDate)
+          scheduledCompletionDate: parse(poam.scheduledCompletionDate, 'yyyy-MM-dd', new Date()),
+          iavComplyByDate: poam.iavComplyByDate ? parse(poam.iavComplyByDate, 'yyyy-MM-dd', new Date()) : null,
+          submittedDate: null
         },
         tenableVulnResponse,
         tenablePluginData: this.parsePluginData(poam.tenablePluginData),
@@ -199,13 +221,13 @@ ${pluginData.description || ''}`,
   }
 
   async createNewSTIGManagerPoam(stateData: any, collectionInfo: any, userId: number): Promise<any> {
+    this.loadAppConfiguration();
     return new Promise((resolve, reject) => {
       forkJoin([
         this.collectionsService.getCollectionPermissions(collectionInfo.collectionId),
         this.assignedTeamService.getAssignedTeams()
       ]).subscribe({
         next: ([users, assignedTeamOptions]) => {
-          const currentDate = new Date();
           const poam: any = {
             poamId: 'ADDPOAM',
             collectionId: collectionInfo.collectionId,
@@ -218,19 +240,19 @@ ${pluginData.description || ''}`,
             adjSeverity: stateData.severity || '',
             submitterId: userId,
             status: 'Draft',
-            submittedDate: format(currentDate, 'yyyy-MM-dd'),
+            submittedDate: null,
             hqs: false,
             isGlobalFinding: false
           };
 
           poam.residualRisk = this.mappingService.mapToEmassValues(stateData.severity);
           poam.likelihood = this.mappingService.mapToEmassValues(stateData.severity);
-          poam.scheduledCompletionDate = this.mappingService.calculateScheduledCompletionDate(poam.rawSeverity);
+          poam.scheduledCompletionDate = this.mappingService.calculateScheduledCompletionDate(poam.rawSeverity, this.appConfigSettings);
 
           const dates = {
-            scheduledCompletionDate: new Date(poam.scheduledCompletionDate),
+            scheduledCompletionDate: parse(poam.scheduledCompletionDate, 'yyyy-MM-dd', new Date()),
             iavComplyByDate: null,
-            submittedDate: new Date(poam.submittedDate)
+            submittedDate: null
           };
 
           const collectionApprovers = Array.isArray(users)
@@ -312,6 +334,7 @@ ${pluginData.description || ''}`,
   }
 
   async createNewPoam(collectionInfo: any, userId: number): Promise<any> {
+    this.loadAppConfiguration();
     return new Promise((resolve, reject) => {
       forkJoin([
         this.collectionsService.getCollectionPermissions(collectionInfo.collectionId),
@@ -319,8 +342,7 @@ ${pluginData.description || ''}`,
         this.assignedTeamService.getAssignedTeams()
       ]).subscribe({
         next: ([users, collectionAssets, assignedTeamOptions]) => {
-          const currentDate = new Date();
-          const dateIn30Days = new Date(currentDate);
+          const dateIn30Days = new Date();
           dateIn30Days.setDate(dateIn30Days.getDate() + 30);
 
           const poam = {
@@ -334,16 +356,16 @@ ${pluginData.description || ''}`,
             rawSeverity: '',
             submitterId: userId,
             status: 'Draft',
-            submittedDate: format(currentDate, 'yyyy-MM-dd'),
+            submittedDate: null,
             scheduledCompletionDate: format(dateIn30Days, 'yyyy-MM-dd'),
             hqs: false,
             isGlobalFinding: false
           };
 
           const dates = {
-            scheduledCompletionDate: new Date(poam.scheduledCompletionDate),
+            scheduledCompletionDate: parse(poam.scheduledCompletionDate, 'yyyy-MM-dd', new Date()),
             iavComplyByDate: null,
-            submittedDate: new Date(poam.submittedDate)
+            submittedDate: null
           };
 
           const collectionApprovers = Array.isArray(users)
