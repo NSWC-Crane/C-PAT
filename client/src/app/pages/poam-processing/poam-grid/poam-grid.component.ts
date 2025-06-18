@@ -70,8 +70,17 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   }
 
   private affectedAssetCountsSignal = signal<{ vulnerabilityId: string, assetCount: number }[]>([]);
+  private _assetCountsLoaded = signal<boolean>(false);
+  private _hasReceivedData = false;
+
   @Input() set affectedAssetCounts(value: { vulnerabilityId: string, assetCount: number }[]) {
     this.affectedAssetCountsSignal.set(value || []);
+    if ((value && value.length > 0) || this._hasReceivedData) {
+      this._assetCountsLoaded.set(true);
+      if (value && value.length > 0) {
+        this._hasReceivedData = true;
+      }
+    }
   }
   get affectedAssetCounts(): { vulnerabilityId: string, assetCount: number }[] {
     return this.affectedAssetCountsSignal();
@@ -80,6 +89,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   private preparedData = computed(() => {
     const poams = this.poamsDataSignal();
     const assetCounts = this.affectedAssetCountsSignal();
+    const assetCountsLoaded = this._assetCountsLoaded();
     const assetCountMap = new Map<string, number>();
 
     if (assetCounts && assetCounts.length > 0) {
@@ -90,7 +100,8 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
     return poams.map(poam => {
       const primaryCount = assetCountMap.get(poam.vulnerabilityId);
-      const isAssetsLoading = primaryCount === undefined;
+      const isAssetsLoading = !assetCountsLoaded;
+      const isAssetsMissing = assetCountsLoaded && primaryCount === undefined;
 
       let hasAssociatedVulnerabilities = false;
       let associatedVulnerabilitiesTooltip = "Associated Vulnerabilities:";
@@ -112,8 +123,9 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         poamId: poam.poamId,
         status: poam.status,
         vulnerabilityId: poam.vulnerabilityId,
-        affectedAssets: isAssetsLoading ? 0 : Number(primaryCount || 0),
+        affectedAssets: (isAssetsLoading || isAssetsMissing) ? 0 : Number(primaryCount || 0),
         isAffectedAssetsLoading: isAssetsLoading,
+        isAffectedAssetsMissing: isAssetsMissing,
         hasAssociatedVulnerabilities,
         associatedVulnerabilitiesTooltip,
         iavmNumber: poam.iavmNumber,
