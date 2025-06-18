@@ -49,8 +49,17 @@ export class PoamAssignedGridComponent {
   }
 
   private _affectedAssetCounts = signal<{ vulnerabilityId: string, assetCount: number }[]>([]);
+  private _assetCountsLoaded = signal<boolean>(false);
+  private _hasReceivedData = false;
+
   @Input() set affectedAssetCounts(value: { vulnerabilityId: string, assetCount: number }[]) {
     this._affectedAssetCounts.set(value || []);
+    if ((value && value.length > 0) || this._hasReceivedData) {
+      this._assetCountsLoaded.set(true);
+      if (value && value.length > 0) {
+        this._hasReceivedData = true;
+      }
+    }
   }
 
   globalFilter = signal<string>('');
@@ -70,6 +79,7 @@ export class PoamAssignedGridComponent {
   private transformedData = computed(() => {
     const data = this._assignedData();
     const assetCounts = this._affectedAssetCounts();
+    const assetCountsLoaded = this._assetCountsLoaded();
     const assetCountMap = new Map<string, number>();
 
     if (assetCounts && assetCounts.length > 0) {
@@ -85,7 +95,9 @@ export class PoamAssignedGridComponent {
       }
       const formattedDate = format(adjustedDate, 'yyyy-MM-dd');
       const primaryCount = assetCountMap.get(item.vulnerabilityId);
-      const isAssetsLoading = primaryCount === undefined;
+
+      const isAssetsLoading = !assetCountsLoaded;
+      const isAssetsMissing = assetCountsLoaded && primaryCount === undefined;
 
       let hasAssociatedVulnerabilities = false;
       let associatedVulnerabilitiesTooltip = "Associated Vulnerabilities:";
@@ -105,8 +117,9 @@ export class PoamAssignedGridComponent {
       return {
         poamId: item.poamId,
         vulnerabilityId: item.vulnerabilityId,
-        affectedAssets: isAssetsLoading ? 0 : Number(primaryCount || 0),
+        affectedAssets: (isAssetsLoading || isAssetsMissing) ? 0 : Number(primaryCount || 0),
         isAffectedAssetsLoading: isAssetsLoading,
+        isAffectedAssetsMissing: isAssetsMissing,
         hasAssociatedVulnerabilities,
         associatedVulnerabilitiesTooltip,
         scheduledCompletionDate: formattedDate,
