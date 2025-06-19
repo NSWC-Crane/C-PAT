@@ -10,17 +10,17 @@
 
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { TextareaModule } from 'primeng/textarea';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { TooltipModule } from 'primeng/tooltip';
-import { DialogModule } from 'primeng/dialog';
-import { MenuItem, MessageService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { PoamService } from '../../../poams.service';
-import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { PoamService } from '../../../poams.service';
 
 @Component({
   selector: 'cpat-poam-mitigation-generator',

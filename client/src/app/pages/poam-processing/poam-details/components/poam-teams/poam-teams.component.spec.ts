@@ -9,11 +9,11 @@
 */
 
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { PoamTeamsComponent } from './poam-teams.component';
+import { FormsModule } from '@angular/forms';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { Subject, of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
+import { PoamTeamsComponent } from './poam-teams.component';
 
 describe('PoamTeamsComponent', () => {
   let component: PoamTeamsComponent;

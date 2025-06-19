@@ -8,35 +8,35 @@
 !##########################################################################
 */
 
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ViewChild, effect, signal } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { HttpResponse } from '@angular/common/http';
-import { AssetDeltaService } from './asset-delta.service';
-import { CollectionsService } from '../collection-processing/collections.service';
-import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
-import { UsersService } from '../user-processing/users.service';
-import { EMPTY, Observable, Subject, catchError, finalize, forkJoin, map, of, switchMap, takeUntil } from 'rxjs';
-import { FileUpload, FileUploadModule } from 'primeng/fileupload';
-import { FloatLabel } from "primeng/floatlabel"
 import { CommonModule } from '@angular/common';
+import { HttpResponse } from '@angular/common/http';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ViewChild, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { BadgeModule } from 'primeng/badge';
-import { ToastModule } from 'primeng/toast';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { ImportService } from '../../import-processing/import.service';
-import { SharedService } from '../../../common/services/shared.service';
-import { TableModule } from 'primeng/table';
-import { InputTextModule } from 'primeng/inputtext';
+import { ChartModule } from 'primeng/chart';
+import { DialogModule } from 'primeng/dialog';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { FloatLabel } from "primeng/floatlabel";
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
-import { DialogModule } from 'primeng/dialog';
-import { TooltipModule } from 'primeng/tooltip';
-import { ChartModule } from 'primeng/chart';
-import { AppConfigService } from '../../../layout/services/appconfigservice';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { EMPTY, Observable, Subject, catchError, finalize, forkJoin, map, of, switchMap, takeUntil } from 'rxjs';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AppConfigService } from '../../../layout/services/appconfigservice';
+import { ImportService } from '../../import-processing/import.service';
+import { CollectionsService } from '../collection-processing/collections.service';
+import { UsersService } from '../user-processing/users.service';
+import { AssetDeltaService } from './asset-delta.service';
 
 interface AssetDeltaResponse {
   assets: AssetData[];

@@ -8,41 +8,41 @@
 !##########################################################################
 */
 
-import { AuthService } from '../../core/auth/services/auth.service';
-import { NavigationEnd, Router } from '@angular/router';
 import {
-  afterNextRender,
-  booleanAttribute,
-  Component,
-  computed,
-  ElementRef,
-  inject,
-  Inject,
-  Input,
-  OnDestroy,
-  OnInit,
-  Renderer2,
-  ViewChild,
-  DOCUMENT
+    Component,
+    DOCUMENT,
+    ElementRef,
+    Inject,
+    Input,
+    OnDestroy,
+    OnInit,
+    Renderer2,
+    ViewChild,
+    afterNextRender,
+    booleanAttribute,
+    computed,
+    inject
 } from '@angular/core';
-import { MenuItem } from 'primeng/api';
-import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
-import { NotificationService } from '../../common/components/notifications/notifications.service';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
-import { SubSink } from 'subsink';
-import { SharedService } from '../../common/services/shared.service';
-import { Subject, Subscription, filter, take, takeUntil } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { MenuModule } from 'primeng/menu';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
+import { NavigationEnd, Router } from '@angular/router';
+import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
-import { AppConfigService } from '../services/appconfigservice';
-import { AppTopBarComponent } from './app.topbar.component';
-import { AppLayoutComponent } from './app.layout.component';
-import { AppFooterComponent } from './app.footer.component';
-import { AppClassificationComponent } from './app.classification.component';
+import { ButtonModule } from 'primeng/button';
+import { MenuModule } from 'primeng/menu';
+import { TagModule } from 'primeng/tag';
+import { Subject, Subscription, filter, take, takeUntil } from 'rxjs';
+import { SubSink } from 'subsink';
+import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { PayloadService } from '../../common/services/setPayload.service';
+import { SharedService } from '../../common/services/shared.service';
+import { AuthService } from '../../core/auth/services/auth.service';
+import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
+import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { AppConfigService } from '../services/appconfigservice';
+import { AppClassificationComponent } from './app.classification.component';
+import { AppFooterComponent } from './app.footer.component';
+import { AppLayoutComponent } from './app.layout.component';
+import { AppTopBarComponent } from './app.topbar.component';
 
 @Component({
   selector: 'cpat-navigation',

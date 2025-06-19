@@ -8,13 +8,13 @@
 !##########################################################################
 */
 
-import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TabsModule } from 'primeng/tabs';
+import { Component, ViewChild } from '@angular/core';
 import { CardModule } from 'primeng/card';
-import { TenableVulnerabilitiesComponent } from './components/tenableVulnerabilities/tenableVulnerabilities.component';
-import { TenableSelectedVulnerabilitiesComponent } from './components/tenableSelectedVulnerabilities/tenableSelectedVulnerabilities.component';
+import { TabsModule } from 'primeng/tabs';
 import { TenableSolutionsComponent } from './components/solutions/tenableSolutions.component';
+import { TenableSelectedVulnerabilitiesComponent } from './components/tenableSelectedVulnerabilities/tenableSelectedVulnerabilities.component';
+import { TenableVulnerabilitiesComponent } from './components/tenableVulnerabilities/tenableVulnerabilities.component';
 
 @Component({
   selector: 'cpat-tenable',

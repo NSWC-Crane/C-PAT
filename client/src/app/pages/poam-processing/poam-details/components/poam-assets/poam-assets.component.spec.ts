@@ -8,13 +8,13 @@
 !##########################################################################
 */
 
+import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PoamAssetsComponent } from './poam-assets.component';
+import { FormsModule } from '@angular/forms';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { Subject, of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
-import { SimpleChange } from '@angular/core';
+import { PoamAssetsComponent } from './poam-assets.component';
 
 describe('PoamAssetsComponent', () => {
   let component: PoamAssetsComponent;

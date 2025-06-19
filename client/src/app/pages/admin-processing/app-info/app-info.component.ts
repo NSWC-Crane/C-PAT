@@ -8,21 +8,21 @@
 !##########################################################################
 */
 
-import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectionStrategy, effect, signal } from '@angular/core';
-import { AdminProcessingService } from '../admin-processing.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { ChartModule } from 'primeng/chart';
+import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
-import { ChartModule } from 'primeng/chart';
-import { AppConfigService } from '../../../layout/services/appconfigservice';
-import { PanelModule } from 'primeng/panel';
-import { catchError, EMPTY } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { EMPTY, catchError } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AppConfigService } from '../../../layout/services/appconfigservice';
+import { AdminProcessingService } from '../admin-processing.service';
 interface OperationInfo {
   totalRequests: number;
   totalDuration: number;

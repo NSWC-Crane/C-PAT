@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { Permission } from './permission.model';
 import { AssignedTeams } from './assignedTeams.model';
+import { Permission } from './permission.model';
 
 export interface Users {
   userId: number;

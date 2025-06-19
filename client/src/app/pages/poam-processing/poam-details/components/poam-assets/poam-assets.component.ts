@@ -8,20 +8,20 @@
 !##########################################################################
 */
 
-import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges } from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { ButtonModule } from "primeng/button";
 import { MessageService } from "primeng/api";
-import { TableModule } from "primeng/table";
+import { ButtonModule } from "primeng/button";
 import { SelectModule } from "primeng/select";
-import { TooltipModule } from "primeng/tooltip";
-import { PoamService } from "../../../poams.service";
-import { catchError, tap } from "rxjs/operators";
-import { firstValueFrom } from "rxjs";
-import { TenableAssetsTableComponent } from '../../../../import-processing/tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
-import { STIGManagerPoamAssetsTableComponent } from '../../../../import-processing/stigmanager-import/stigManagerPoamAssetsTable/stigManagerPoamAssetsTable.component';
-import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { TableModule } from "primeng/table";
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from "primeng/tooltip";
+import { firstValueFrom } from "rxjs";
+import { catchError, tap } from "rxjs/operators";
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { STIGManagerPoamAssetsTableComponent } from '../../../../import-processing/stigmanager-import/stigManagerPoamAssetsTable/stigManagerPoamAssetsTable.component';
+import { TenableAssetsTableComponent } from '../../../../import-processing/tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
+import { PoamService } from "../../../poams.service";
 
 @Component({
   selector: 'cpat-poam-assets',

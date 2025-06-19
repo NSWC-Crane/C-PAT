@@ -8,9 +8,8 @@
 !##########################################################################
 */
 
-import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { Color, ScaleType } from '@swimlane/ngx-charts';
-import { Component, input, computed } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
+import { Color, NgxChartsModule, ScaleType } from '@swimlane/ngx-charts';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({

@@ -8,9 +8,8 @@
 !##########################################################################
 */
 
-import { AppConfigService } from '../services/appconfigservice';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, computed, inject, PLATFORM_ID, OnInit } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { $t, updatePreset, updateSurfacePalette } from '@primeng/themes';
 import Aura from '@primeng/themes/aura';
@@ -23,8 +22,9 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectButton } from 'primeng/selectbutton';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { switchMap, take } from 'rxjs';
+import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { AppConfigService } from '../services/appconfigservice';
 
 const presets = {
   Aura,

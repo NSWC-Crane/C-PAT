@@ -8,35 +8,35 @@
 !##########################################################################
 */
 
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
-import { SubSink } from 'subsink';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { SharedService } from '../../../common/services/shared.service';
-import { ImportService } from '../../import-processing/import.service';
-import {
-  Observable,
-  catchError,
-  combineLatest,
-  filter,
-  forkJoin,
-  of,
-  switchMap,
-  take,
-  tap,
-} from 'rxjs';
-import { Router } from '@angular/router';
-import { PayloadService } from '../../../common/services/setPayload.service';
 import { CommonModule } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { ToastModule } from 'primeng/toast';
+import {
+    Observable,
+    catchError,
+    combineLatest,
+    filter,
+    forkJoin,
+    of,
+    switchMap,
+    take,
+    tap,
+} from 'rxjs';
+import { SubSink } from 'subsink';
+import { Poam } from '../../../common/models/poam.model';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { SharedService } from '../../../common/services/shared.service';
+import { getErrorMessage } from '../../../common/utils/error-utils';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { ImportService } from '../../import-processing/import.service';
 import { PoamAdvancedPieComponent } from '../poam-advanced-pie/poam-advanced-pie.component';
 import { PoamAssignedGridComponent } from '../poam-assigned-grid/poam-assigned-grid.component';
 import { PoamGridComponent } from '../poam-grid/poam-grid.component';
 import { PoamMainchartComponent } from '../poam-mainchart/poam-mainchart.component';
-import { Poam } from '../../../common/models/poam.model';
-import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-manage',

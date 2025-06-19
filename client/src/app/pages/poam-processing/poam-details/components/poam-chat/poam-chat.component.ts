@@ -1,14 +1,14 @@
-import { Component, Input, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PopoverModule } from 'primeng/popover';
-import { InputTextModule } from 'primeng/inputtext';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
-import { PoamChatService } from '../../services/poam-chat.service';
-import { MessageService } from 'primeng/api';
+import { InputTextModule } from 'primeng/inputtext';
+import { PopoverModule } from 'primeng/popover';
 import { ToastModule } from 'primeng/toast';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { PoamChatService } from '../../services/poam-chat.service';
 
 @Component({
   selector: 'cpat-poam-chat',

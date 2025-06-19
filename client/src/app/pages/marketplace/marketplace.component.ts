@@ -9,22 +9,22 @@
 */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { updateSurfacePalette } from '@primeng/themes';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { MarketplaceService } from './marketplace.service';
-import { SubSink } from 'subsink';
-import { forkJoin } from 'rxjs';
-import { UsersService } from '../admin-processing/user-processing/users.service';
+import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DividerModule } from 'primeng/divider';
-import { ToastModule } from 'primeng/toast';
-import { ButtonModule } from 'primeng/button';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ImageModule } from 'primeng/image';
-import { AppConfigService } from '../../layout/services/appconfigservice';
-import { updateSurfacePalette } from '@primeng/themes';
+import { ToastModule } from 'primeng/toast';
+import { forkJoin } from 'rxjs';
+import { SubSink } from 'subsink';
 import { getErrorMessage } from '../../common/utils/error-utils';
+import { AppConfigService } from '../../layout/services/appconfigservice';
+import { UsersService } from '../admin-processing/user-processing/users.service';
+import { MarketplaceService } from './marketplace.service';
 interface Theme {
   themeId: number;
   themeIdentifier: string;

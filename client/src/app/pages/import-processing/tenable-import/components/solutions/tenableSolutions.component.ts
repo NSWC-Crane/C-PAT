@@ -9,21 +9,21 @@
 */
 
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
-import { ImportService } from '../../../import.service';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
 import { SharedService } from '../../../../../common/services/shared.service';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { TooltipModule } from 'primeng/tooltip';
-import { DialogModule } from 'primeng/dialog';
-import { FormsModule } from '@angular/forms';
-import { InputIconModule } from 'primeng/inputicon';
-import { IconFieldModule } from 'primeng/iconfield';
-import { ToastModule } from 'primeng/toast';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { ImportService } from '../../../import.service';
 
 interface ExportColumn {
   title: string;

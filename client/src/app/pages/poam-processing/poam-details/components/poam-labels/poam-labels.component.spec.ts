@@ -9,12 +9,12 @@
 */
 
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { PoamLabelsComponent } from './poam-labels.component';
-import { Subject, of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
-import { PoamService } from '../../../poams.service';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
+import { Subject, of, throwError } from 'rxjs';
+import { PoamService } from '../../../poams.service';
+import { PoamLabelsComponent } from './poam-labels.component';
 
 describe('PoamLabelsComponent', () => {
   let component: PoamLabelsComponent;

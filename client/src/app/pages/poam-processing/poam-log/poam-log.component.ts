@@ -10,14 +10,14 @@
 
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SharedService } from '../../../common/services/shared.service';
-import { Subscription } from 'rxjs';
-import { PoamLogService } from './poam-log.service';
+import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
-import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { Subscription } from 'rxjs';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { PoamLogService } from './poam-log.service';
 
 interface FSEntry {
   Timestamp: string;

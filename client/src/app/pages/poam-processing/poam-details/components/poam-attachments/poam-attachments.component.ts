@@ -8,22 +8,22 @@
 !##########################################################################
 */
 
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { HttpResponse } from '@angular/common/http';
-import { PoamAttachmentService } from '../../services/poam-attachments.service';
-import { Subscription } from 'rxjs';
-import { FileUpload, FileUploadModule } from 'primeng/fileupload';
-import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { CommonModule, DatePipe } from '@angular/common';
+import { HttpResponse } from '@angular/common/http';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { Subscription } from 'rxjs';
+import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { PoamAttachmentService } from '../../services/poam-attachments.service';
 
 @Component({
   selector: 'cpat-poam-attachments',

@@ -9,32 +9,32 @@
 */
 
 import {
-  Component,
-  OnInit,
-  Input,
-  EventEmitter,
-  Output,
-  OnDestroy,
-  SimpleChanges,
-  OnChanges,
+    Component,
+    EventEmitter,
+    Input,
+    OnChanges,
+    OnDestroy,
+    OnInit,
+    Output,
+    SimpleChanges,
 } from '@angular/core';
-import { LabelService } from '../label.service';
-import { Observable, Subscription } from 'rxjs';
-import { SubSink } from 'subsink';
-import { SharedService } from '../../../common/services/shared.service';
-import { DialogService } from 'primeng/dynamicdialog';
-import {
-  ConfirmationDialogComponent,
-  ConfirmationDialogOptions,
-} from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { DialogService } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { MessageService } from 'primeng/api';
-import { PayloadService } from '../../../common/services/setPayload.service';
 import { ToastModule } from 'primeng/toast';
+import { Observable, Subscription } from 'rxjs';
+import { SubSink } from 'subsink';
+import {
+    ConfirmationDialogComponent,
+    ConfirmationDialogOptions,
+} from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { LabelService } from '../label.service';
 
 @Component({
   selector: 'cpat-label',

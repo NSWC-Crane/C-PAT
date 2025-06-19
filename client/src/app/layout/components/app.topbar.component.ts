@@ -8,34 +8,34 @@
 !##########################################################################
 */
 
-import { AppConfigService } from '../services/appconfigservice';
 import { CommonModule } from '@angular/common';
 import {
-  afterNextRender,
-  booleanAttribute,
-  Component,
-  computed,
-  ElementRef,
-  inject,
-  Inject,
-  Input,
-  OnDestroy,
-  OnInit,
-  Renderer2,
-  DOCUMENT
+    Component,
+    DOCUMENT,
+    ElementRef,
+    Inject,
+    Input,
+    OnDestroy,
+    OnInit,
+    Renderer2,
+    afterNextRender,
+    booleanAttribute,
+    computed,
+    inject
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { StyleClass } from 'primeng/styleclass';
-import { AppSearchComponent } from '../../common/components/search/app.search.component';
-import { AppConfiguratorComponent } from '../components/app.configurator.component';
-import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, filter, map, merge, of, switchMap, take, takeUntil } from 'rxjs';
-import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { Popover } from 'primeng/popover';
+import { StyleClass } from 'primeng/styleclass';
 import { TooltipModule } from 'primeng/tooltip';
+import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, filter, map, merge, of, switchMap, take, takeUntil } from 'rxjs';
 import { NotificationsPanelComponent } from '../../common/components/notifications/notifications-popover/notifications-popover.component';
+import { NotificationService } from '../../common/components/notifications/notifications.service';
+import { AppSearchComponent } from '../../common/components/search/app.search.component';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { AppConfiguratorComponent } from '../components/app.configurator.component';
+import { AppConfigService } from '../services/appconfigservice';
 
 
 @Component({

@@ -12,8 +12,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Collections } from '../../../common/models/collections.model';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
+import { Collections } from '../../../common/models/collections.model';
 
 @Injectable({
   providedIn: 'root',

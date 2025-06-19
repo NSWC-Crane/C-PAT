@@ -9,20 +9,20 @@
 */
 
 import { Injectable } from "@angular/core";
-import { MessageService } from "primeng/api";
-import { firstValueFrom, forkJoin } from "rxjs";
 import { format, parse } from "date-fns";
 import { jsonToPlainText } from "json-to-plain-text";
-import { Permission } from "../../../../common/models/permission.model";
-import { ImportService } from "../../../import-processing/import.service";
-import { SharedService } from "../../../../common/services/shared.service";
-import { AppConfigurationService } from "../../../admin-processing/app-configuration/app-configuration.service";
-import { CollectionsService } from "../../../admin-processing/collection-processing/collections.service";
-import { AssignedTeamService } from "../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service";
-import { AssetService } from "../../../asset-processing/assets.service";
-import { PoamVariableMappingService } from "./poam-variable-mapping.service";
-import { getErrorMessage } from '../../../../common/utils/error-utils';
+import { MessageService } from "primeng/api";
+import { firstValueFrom, forkJoin } from "rxjs";
 import { AppConfiguration } from "../../../../common/models/appConfiguration.model";
+import { Permission } from "../../../../common/models/permission.model";
+import { SharedService } from "../../../../common/services/shared.service";
+import { getErrorMessage } from '../../../../common/utils/error-utils';
+import { AppConfigurationService } from "../../../admin-processing/app-configuration/app-configuration.service";
+import { AssignedTeamService } from "../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service";
+import { CollectionsService } from "../../../admin-processing/collection-processing/collections.service";
+import { AssetService } from "../../../asset-processing/assets.service";
+import { ImportService } from "../../../import-processing/import.service";
+import { PoamVariableMappingService } from "./poam-variable-mapping.service";
 
 interface UserCollectionPermission {
   userId: number;

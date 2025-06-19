@@ -8,17 +8,17 @@
 !##########################################################################
 */
 
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { ImportService } from '../../../import.service';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { TextareaModule } from 'primeng/textarea';
-import { FormsModule } from '@angular/forms';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { ImportService } from '../../../import.service';
 
 @Component({
   selector: 'cpat-tenable-filters',

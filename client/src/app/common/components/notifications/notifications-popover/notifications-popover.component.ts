@@ -8,17 +8,17 @@
 !##########################################################################
 */
 
+import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { NotificationService } from '../notifications.service';
-import { PayloadService } from '../../../../common/services/setPayload.service';
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { ListboxModule } from 'primeng/listbox';
 import { Popover } from 'primeng/popover';
 import { Subscription, map } from 'rxjs';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ListboxModule } from 'primeng/listbox';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
+import { PayloadService } from '../../../../common/services/setPayload.service';
+import { NotificationService } from '../notifications.service';
 
 @Component({
   selector: 'cpat-notifications-popover',

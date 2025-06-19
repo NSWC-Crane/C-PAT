@@ -8,11 +8,11 @@
 !##########################################################################
 */
 
-import { Classification } from '../../common/models/classification.model';
 import { Component, OnInit } from '@angular/core';
-import { SharedService } from '../../common/services/shared.service';
 import { FormsModule } from '@angular/forms';
 import { take } from 'rxjs';
+import { Classification } from '../../common/models/classification.model';
+import { SharedService } from '../../common/services/shared.service';
 
 @Component({
   selector: 'cpat-classification',

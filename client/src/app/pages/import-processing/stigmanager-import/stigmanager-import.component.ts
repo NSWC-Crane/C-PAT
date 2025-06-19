@@ -8,31 +8,31 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { SharedService } from '../../../common/services/shared.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { UsersService } from '../../admin-processing/user-processing/users.service';
-import { MessageService } from 'primeng/api';
-import { PoamService } from '../../poam-processing/poams.service';
 import { CommonModule } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
-import { InputIconModule } from 'primeng/inputicon';
-import { IconFieldModule } from 'primeng/iconfield';
-import { ToastModule } from 'primeng/toast';
-import { TabsModule } from 'primeng/tabs';
-import { SkeletonModule } from 'primeng/skeleton';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { Table, TableModule } from 'primeng/table';
-import { TooltipModule } from 'primeng/tooltip';
-import { TagModule } from 'primeng/tag';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { SkeletonModule } from 'primeng/skeleton';
+import { Table, TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
+import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { Subscription } from 'rxjs';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { UsersService } from '../../admin-processing/user-processing/users.service';
+import { PoamService } from '../../poam-processing/poams.service';
+import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
 
 interface STIGManagerFinding {
   groupId: string;

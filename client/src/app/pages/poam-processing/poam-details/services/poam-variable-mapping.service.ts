@@ -9,7 +9,7 @@
 */
 
 import { Injectable } from '@angular/core';
-import { format, add } from 'date-fns';
+import { add, format } from 'date-fns';
 import { AppConfiguration } from '../../../../common/models/appConfiguration.model';
 
 @Injectable({

@@ -8,38 +8,38 @@
 !##########################################################################
 */
 
+import { CommonModule } from '@angular/common';
 import {
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  OnChanges,
-  OnDestroy,
-  ChangeDetectorRef,
-  ViewChild
+    ChangeDetectorRef,
+    Component,
+    EventEmitter,
+    Input,
+    OnChanges,
+    OnDestroy,
+    OnInit,
+    Output,
+    ViewChild
 } from '@angular/core';
-import { SubSink } from 'subsink';
-import { UsersService } from '../users.service';
-import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
+import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ToastModule } from 'primeng/toast';
-import { Select } from 'primeng/select';
-import { Table, TableModule } from 'primeng/table';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { AutoCompleteModule } from 'primeng/autocomplete';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToggleSwitch } from 'primeng/toggleswitch';
-import { AssignedTeamService } from '../../assignedTeam-processing/assignedTeam-processing.service';
+import { Select } from 'primeng/select';
 import { StepperModule } from 'primeng/stepper';
+import { Table, TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
+import { SubSink } from 'subsink';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
+import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
+import { AssignedTeamService } from '../../assignedTeam-processing/assignedTeam-processing.service';
+import { UsersService } from '../users.service';
 
 interface Permission {
   userId: number;

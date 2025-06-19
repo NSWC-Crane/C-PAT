@@ -9,15 +9,15 @@
 */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PoamAssociatedVulnerabilitiesComponent } from './poam-associated-vulnerabilities.component';
+import { FormsModule } from '@angular/forms';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
-import { PoamService } from '../../../poams.service';
+import { AutoCompleteCompleteEvent } from 'primeng/autocomplete';
+import { Subject, of, throwError } from 'rxjs';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { ImportService } from '../../../../import-processing/import.service';
-import { Subject, of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
-import { AutoCompleteCompleteEvent } from 'primeng/autocomplete';
+import { PoamService } from '../../../poams.service';
+import { PoamAssociatedVulnerabilitiesComponent } from './poam-associated-vulnerabilities.component';
 
 describe('PoamAssociatedVulnerabilitiesComponent', () => {
   let component: PoamAssociatedVulnerabilitiesComponent;

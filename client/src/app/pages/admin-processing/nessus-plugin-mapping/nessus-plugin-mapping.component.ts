@@ -8,33 +8,33 @@
 !##########################################################################
 */
 
-import {
-  Component,
-  ElementRef,
-  Input,
-  OnChanges,
-  OnInit,
-  Renderer2,
-  SimpleChanges,
-  ViewChild,
-} from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
-import { UsersService } from '../user-processing/users.service';
-import { EMPTY, Observable, Subject, catchError, map, switchMap, takeUntil, tap, timer } from 'rxjs';
-import { Table, TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
-import { ImportService } from '../../import-processing/import.service';
 import { CommonModule } from '@angular/common';
+import {
+    Component,
+    ElementRef,
+    Input,
+    OnChanges,
+    OnInit,
+    Renderer2,
+    SimpleChanges,
+    ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
-import { ButtonModule } from 'primeng/button';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
+import { Table, TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { EMPTY, Observable, Subject, catchError, map, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { ImportService } from '../../import-processing/import.service';
+import { UsersService } from '../user-processing/users.service';
+import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 
 @Component({
   selector: 'cpat-nessus-plugin-mapping',

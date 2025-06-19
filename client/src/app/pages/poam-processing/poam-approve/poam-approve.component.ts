@@ -8,27 +8,26 @@
 !##########################################################################
 */
 
-import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { SubSink } from 'subsink';
-import { ActivatedRoute, Router } from '@angular/router';
-import { PoamService } from '../poams.service';
-import { PayloadService } from '../../../common/services/setPayload.service';
 import { DatePipe } from '@angular/common';
-import { Subscription, forkJoin } from 'rxjs';
-import { SharedService } from '../../../common/services/shared.service';
-import { PoamApproveService } from './poam-approve.service';
-import { parseISO, format } from 'date-fns';
-import { ChangeDetectorRef } from '@angular/core';
-import { MessageService } from 'primeng/api';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { format, parseISO } from 'date-fns';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { DatePicker } from 'primeng/datepicker';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { Select } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
+import { Subscription, forkJoin } from 'rxjs';
+import { SubSink } from 'subsink';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { PoamService } from '../poams.service';
+import { PoamApproveService } from './poam-approve.service';
 
 export interface PoamApproval {
   poamId: number;

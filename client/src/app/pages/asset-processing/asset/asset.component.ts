@@ -9,31 +9,31 @@
 */
 
 import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  Output,
-  SimpleChanges,
+    Component,
+    EventEmitter,
+    Input,
+    OnChanges,
+    OnDestroy,
+    OnInit,
+    Output,
+    SimpleChanges,
 } from '@angular/core';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { Subscription } from 'rxjs';
-import { SubSink } from 'subsink';
-import { SharedService } from '../../../common/services/shared.service';
-import { AssetService } from '../assets.service';
 import { FormsModule } from '@angular/forms';
-import { Select } from 'primeng/select';
-import { TableModule } from 'primeng/table';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { Subscription } from 'rxjs';
+import { SubSink } from 'subsink';
 import { PayloadService } from '../../../common/services/setPayload.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AssetService } from '../assets.service';
 
 @Component({
   selector: 'cpat-asset',

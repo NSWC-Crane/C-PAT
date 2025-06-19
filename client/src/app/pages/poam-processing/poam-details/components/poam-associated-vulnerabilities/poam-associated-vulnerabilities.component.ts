@@ -8,19 +8,19 @@
 !##########################################################################
 */
 
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { MessageService } from "primeng/api";
+import { AutoCompleteCompleteEvent, AutoCompleteModule } from "primeng/autocomplete";
 import { ButtonModule } from "primeng/button";
 import { TableModule } from "primeng/table";
-import { MessageService } from "primeng/api";
-import { PoamService } from "../../../poams.service";
 import { TagModule } from 'primeng/tag';
-import { TooltipModule } from "primeng/tooltip";
-import { AutoCompleteCompleteEvent, AutoCompleteModule } from "primeng/autocomplete";
-import { SharedService } from "../../../../../common/services/shared.service";
-import { ImportService } from "../../../../import-processing/import.service";
-import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from "primeng/tooltip";
+import { SharedService } from "../../../../../common/services/shared.service";
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { ImportService } from "../../../../import-processing/import.service";
+import { PoamService } from "../../../poams.service";
 
 @Component({
   selector: 'cpat-poam-associated-vulnerabilities',

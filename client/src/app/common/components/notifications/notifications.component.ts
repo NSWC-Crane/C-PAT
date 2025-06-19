@@ -8,20 +8,20 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NotificationService } from './notifications.service';
-import { PayloadService } from '../../../common/services/setPayload.service';
-import { Subscription, map } from 'rxjs';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Select } from 'primeng/select';
-import { CardModule } from 'primeng/card';
-import { TableModule } from 'primeng/table';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { Select } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { Subscription, map } from 'rxjs';
+import { PayloadService } from '../../../common/services/setPayload.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { NotificationService } from './notifications.service';
 
 @Component({
   selector: 'cpat-notifications',

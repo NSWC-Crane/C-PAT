@@ -9,18 +9,18 @@
 */
 
 import { Component, OnInit } from '@angular/core';
-import { EMPTY, forkJoin, Observable, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { CollectionsService } from '../collection-processing/collections.service';
-import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
-import { SharedService } from '../../../common/services/shared.service';
-import { ConfirmationService, MessageService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { Select } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
+import { EMPTY, Observable, Subject, forkJoin } from 'rxjs';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { CollectionsService } from '../collection-processing/collections.service';
 
 interface STIGManagerCollection {
   collectionId: number;

@@ -9,31 +9,31 @@
 */
 
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { DialogService } from 'primeng/dynamicdialog';
-import { Observable, Subscription } from 'rxjs';
-import { SubSink } from 'subsink';
-import {
-  ConfirmationDialogComponent,
-  ConfirmationDialogOptions,
-} from '../../common/components/confirmation-dialog/confirmation-dialog.component';
-import { SharedService } from '../../common/services/shared.service';
-import { LabelService } from './label.service';
-import { Table, TableModule } from 'primeng/table';
-import { PayloadService } from '../../common/services/setPayload.service';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
-import { Select } from 'primeng/select';
-import { InputTextModule } from 'primeng/inputtext';
-import { TooltipModule } from 'primeng/tooltip';
-import { LabelComponent } from './label/label.component';
-import { InputIconModule } from 'primeng/inputicon';
+import { DialogService } from 'primeng/dynamicdialog';
 import { IconFieldModule } from 'primeng/iconfield';
-import { Label } from '../../common/models/label.model';
-import { MessageService } from 'primeng/api';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { Observable, Subscription } from 'rxjs';
+import { SubSink } from 'subsink';
+import {
+    ConfirmationDialogComponent,
+    ConfirmationDialogOptions,
+} from '../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { Label } from '../../common/models/label.model';
+import { PayloadService } from '../../common/services/setPayload.service';
+import { SharedService } from '../../common/services/shared.service';
 import { getErrorMessage } from '../../common/utils/error-utils';
+import { LabelService } from './label.service';
+import { LabelComponent } from './label/label.component';
 
 @Component({
   selector: 'cpat-label-processing',

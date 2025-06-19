@@ -9,18 +9,18 @@
 */
 
 import { Component, OnInit } from '@angular/core';
-import { EMPTY, forkJoin, Observable, Subject } from 'rxjs';
-import { catchError, map, takeUntil, tap } from 'rxjs/operators';
-import { CollectionsService } from '../collection-processing/collections.service';
-import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
-import { ImportService } from '../../import-processing/import.service';
-import { ConfirmationService, MessageService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
-import { Select } from 'primeng/select';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { Select } from 'primeng/select';
+import { ToastModule } from 'primeng/toast';
+import { EMPTY, Observable, Subject, forkJoin } from 'rxjs';
+import { catchError, map, takeUntil, tap } from 'rxjs/operators';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { ImportService } from '../../import-processing/import.service';
+import { CollectionsService } from '../collection-processing/collections.service';
 interface TenableRepository {
   id: string;
   name: string;

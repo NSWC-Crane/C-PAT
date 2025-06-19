@@ -9,13 +9,13 @@
 */
 
 import { Routes } from '@angular/router';
+import { AuthGuard } from '../../core/auth/guards/auth.guard';
 import { PoamApproveComponent } from './poam-approve/poam-approve.component';
 import { PoamDetailsComponent } from './poam-details/poam-details.component';
 import { PoamExtendComponent } from './poam-extend/poam-extend.component';
 import { PoamLogComponent } from './poam-log/poam-log.component';
 import { PoamManageComponent } from './poam-manage/poam-manage.component';
 import { PoamsComponent } from './poams.component';
-import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
 export const poamProcessingRoutes: Routes = [
   { path: '', component: PoamsComponent },

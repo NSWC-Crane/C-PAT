@@ -9,9 +9,9 @@
 */
 
 import { Routes } from '@angular/router';
+import { AuthGuard } from '../../core/auth/guards/auth.guard';
 import { STIGManagerImportComponent } from './stigmanager-import/stigmanager-import.component';
 import { TenableComponent } from './tenable-import/tenable.component';
-import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
 export const importProcessingRoutes: Routes = [
   {

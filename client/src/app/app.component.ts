@@ -8,13 +8,13 @@
 !##########################################################################
 */
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { SharedService } from './common/services/shared.service';
-import { Classification } from './common/models/classification.model';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { PayloadService } from './common/services/setPayload.service';
-import { AuthService } from './core/auth/services/auth.service';
 import { Subscription } from 'rxjs';
+import { Classification } from './common/models/classification.model';
+import { PayloadService } from './common/services/setPayload.service';
+import { SharedService } from './common/services/shared.service';
+import { AuthService } from './core/auth/services/auth.service';
 
 @Component({
   selector: 'cpat-app',

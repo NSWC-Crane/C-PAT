@@ -15,10 +15,10 @@ import { ButtonModule } from "primeng/button";
 import { ProgressBarModule } from "primeng/progressbar";
 import { SelectModule } from "primeng/select";
 import { TableModule } from "primeng/table";
-import { firstValueFrom } from "rxjs";
-import { PoamService } from "../../../poams.service";
-import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ToastModule } from 'primeng/toast';
+import { firstValueFrom } from "rxjs";
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { PoamService } from "../../../poams.service";
 
 @Component({
   selector: 'cpat-poam-teams',

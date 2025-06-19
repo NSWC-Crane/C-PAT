@@ -9,8 +9,8 @@
 */
 
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
 
 @Component({

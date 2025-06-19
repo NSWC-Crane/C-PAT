@@ -8,31 +8,30 @@
 !##########################################################################
 */
 
+import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { ImportService } from '../../../import.service';
-import { Table, TableModule } from 'primeng/table';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Select } from 'primeng/select';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
-import { PoamService } from '../../../../poam-processing/poams.service';
 import { Router } from '@angular/router';
 import { format, parseISO, startOfDay } from 'date-fns';
-import { SharedService } from '../../../../../common/services/shared.service';
-import { EMPTY, Subscription, catchError, finalize, map, switchMap } from 'rxjs';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
-import { FilterMetadata } from 'primeng/api';
-import { TooltipModule } from 'primeng/tooltip';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ToastModule } from 'primeng/toast';
-import { DialogModule } from 'primeng/dialog';
+import { FilterMetadata, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputIconModule } from 'primeng/inputicon';
+import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Select } from 'primeng/select';
+import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { EMPTY, Subscription, catchError, finalize, map, switchMap } from 'rxjs';
+import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { PoamService } from '../../../../poam-processing/poams.service';
+import { ImportService } from '../../../import.service';
 
 interface Reference {
   type: string;

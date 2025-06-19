@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-import { AppConfigService } from '../services/appconfigservice';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -17,20 +16,21 @@ import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
 import { DropdownModule } from 'primeng/dropdown';
-import { TooltipModule } from 'primeng/tooltip';
-import { Subject, combineLatest, filter, forkJoin, switchMap, take, takeUntil } from 'rxjs';
-import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
-import { AuthService } from '../../core/auth/services/auth.service';
-import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { MenuModule } from 'primeng/menu';
 import { RippleModule } from 'primeng/ripple';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
-import { SharedService } from '../../common/services/shared.service';
 import { Tag } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { Subject, combineLatest, filter, forkJoin, switchMap, take, takeUntil } from 'rxjs';
 import { StatusMessageComponent } from '../../common/components/status-message/status-message.component';
+import { SharedService } from '../../common/services/shared.service';
+import { AuthService } from '../../core/auth/services/auth.service';
+import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
+import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { AppConfigService } from '../services/appconfigservice';
 import { AppBreadcrumbComponent } from './app.breadcrumb.component';
 
 @Component({

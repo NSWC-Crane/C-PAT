@@ -8,24 +8,23 @@
 !##########################################################################
 */
 
+import { APP_BASE_HREF } from '@angular/common';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { enableProdMode, importProvidersFrom } from '@angular/core';
-import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/app.component';
-import { environment } from './environments/environment';
+import { FormsModule } from '@angular/forms';
+import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
-import { routes } from './app/app-routing.module';
-import { providePrimeNG } from 'primeng/config';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
-import { APP_BASE_HREF } from '@angular/common';
-import Noir from './app/app-theme';
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
-import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
-import { authErrorInterceptor } from './app/core/auth/interceptor/auth-error.interceptor';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { providePrimeNG } from 'primeng/config';
+import { routes } from './app/app-routing.module';
+import Noir from './app/app-theme';
+import { AppComponent } from './app/app.component';
+import { authErrorInterceptor } from './app/core/auth/interceptor/auth-error.interceptor';
+import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
+import { environment } from './environments/environment';
 
 if (environment.production) {
   enableProdMode();

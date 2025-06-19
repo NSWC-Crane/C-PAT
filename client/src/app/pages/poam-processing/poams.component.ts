@@ -9,15 +9,15 @@
 */
 
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { SubSink } from 'subsink';
-import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
-import { PayloadService } from '../../common/services/setPayload.service';
-import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
-import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.component';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { Subscription } from 'rxjs';
+import { SubSink } from 'subsink';
+import { PayloadService } from '../../common/services/setPayload.service';
 import { getErrorMessage } from '../../common/utils/error-utils';
+import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
+import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.component';
 
 @Component({
   selector: 'cpat-poams',

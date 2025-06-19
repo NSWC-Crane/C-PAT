@@ -11,9 +11,9 @@
 import { format } from 'date-fns';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../pages/import-processing/import.service';
-import { SharedService } from '../services/shared.service';
 import { PoamService } from '../../pages/poam-processing/poams.service';
 import { Poam } from '../models/poam.model';
+import { SharedService } from '../services/shared.service';
 
 type CellValueMapper = (value: any, poam: Poam, columnKey: string) => any;
 

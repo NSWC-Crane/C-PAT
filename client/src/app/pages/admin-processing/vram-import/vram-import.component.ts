@@ -8,22 +8,22 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { HttpResponse } from '@angular/common/http';
-import { VRAMImportService } from './vram-import.service';
-import { UsersService } from '../user-processing/users.service';
-import { EMPTY, Subject, catchError, takeUntil } from 'rxjs';
-import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { CommonModule } from '@angular/common';
+import { HttpResponse } from '@angular/common/http';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { BadgeModule } from 'primeng/badge';
-import { VramPopupComponent } from '../../../common/components/vram-popup/vram-popup.component';
-import { ToastModule } from 'primeng/toast';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { ToastModule } from 'primeng/toast';
+import { EMPTY, Subject, catchError, takeUntil } from 'rxjs';
+import { VramPopupComponent } from '../../../common/components/vram-popup/vram-popup.component';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { UsersService } from '../user-processing/users.service';
+import { VRAMImportService } from './vram-import.service';
 
 @Component({
   selector: 'cpat-vram-import',

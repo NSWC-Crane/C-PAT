@@ -8,25 +8,25 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UsersService } from './users.service';
-import { Subscription, forkJoin } from 'rxjs';
-import { ConfirmationService, TreeNode } from 'primeng/api';
-import { SubSink } from 'subsink';
-import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { TreeTable, TreeTableModule } from 'primeng/treetable';
-import { Router } from '@angular/router';
-import { PayloadService } from '../../../common/services/setPayload.service';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { ConfirmationService, TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { UserComponent } from './user/user.component';
-import { Select } from 'primeng/select';
-import { TableModule } from 'primeng/table';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { TreeTable, TreeTableModule } from 'primeng/treetable';
+import { Subscription, forkJoin } from 'rxjs';
+import { SubSink } from 'subsink';
+import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { UserComponent } from './user/user.component';
+import { UsersService } from './users.service';
 
 @Component({
   selector: 'cpat-user-processing',

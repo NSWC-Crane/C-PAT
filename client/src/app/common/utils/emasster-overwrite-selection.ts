@@ -9,10 +9,10 @@
 */
 
 import { Component } from '@angular/core';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PickListModule } from 'primeng/picklist';
 
 export interface EMassField {

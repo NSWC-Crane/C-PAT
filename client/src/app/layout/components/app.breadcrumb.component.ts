@@ -8,13 +8,13 @@
 !##########################################################################
 */
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Location } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Event, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
-import { Router, NavigationEnd, RouterModule, Event } from '@angular/router';
-import { filter, takeUntil } from 'rxjs/operators';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'cpat-breadcrumb',

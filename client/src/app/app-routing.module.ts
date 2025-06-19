@@ -10,17 +10,17 @@
 
 import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
-import { NotificationsComponent } from './common/components/notifications/notifications.component';
-import { AuthGuard } from './core/auth/guards/auth.guard';
-import { StatusMessageComponent } from './common/components/status-message/status-message.component';
-import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
-import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
-import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
-import { importProcessingRoutes } from './pages/import-processing/import-processing-routing.module';
 import { consentRoute } from './common/components/dod-consent/dod-consent.routing';
-import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
-import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
+import { NotificationsComponent } from './common/components/notifications/notifications.component';
+import { StatusMessageComponent } from './common/components/status-message/status-message.component';
+import { AuthGuard } from './core/auth/guards/auth.guard';
 import { AppNavigationComponent } from './layout/components/app.navigation.component';
+import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
+import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
+import { importProcessingRoutes } from './pages/import-processing/import-processing-routing.module';
+import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
+import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
+import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
 
 const routerOptions: ExtraOptions = {
   anchorScrolling: 'enabled',

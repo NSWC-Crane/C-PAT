@@ -9,36 +9,36 @@
 */
 
 import {
-  Component,
-  OnDestroy,
-  OnInit,
-  ViewChild,
+    Component,
+    OnDestroy,
+    OnInit,
+    ViewChild,
 } from '@angular/core';
-import { AssetService } from './assets.service';
-import { forkJoin, Subscription } from 'rxjs';
-import { SubSink } from 'subsink';
-import { PayloadService } from '../../common/services/setPayload.service';
-import { DialogService } from 'primeng/dynamicdialog';
-import { Table, TableModule } from 'primeng/table';
-import { SharedService } from '../../common/services/shared.service';
-import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
+import { DialogModule } from 'primeng/dialog';
+import { DialogService } from 'primeng/dynamicdialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { Table, TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { Subscription, forkJoin } from 'rxjs';
+import { SubSink } from 'subsink';
+import { PayloadService } from '../../common/services/setPayload.service';
+import { SharedService } from '../../common/services/shared.service';
+import { getErrorMessage } from '../../common/utils/error-utils';
+import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
 import { STIGManagerAssetsTableComponent } from '../import-processing/stigmanager-import/stigManagerAssetsTable/stigManagerAssetsTable.component';
 import { TenableHostAssetsTableComponent } from '../import-processing/tenable-import/components/tenableHostAssetsTable/tenableHostAssetsTable.component';
-import { TabsModule } from 'primeng/tabs';
-import { DialogModule } from 'primeng/dialog';
 import { AssetComponent } from './asset/asset.component';
-import { InputTextModule } from 'primeng/inputtext';
-import { TooltipModule } from 'primeng/tooltip';
-import { Select } from 'primeng/select';
-import { InputIconModule } from 'primeng/inputicon';
-import { IconFieldModule } from 'primeng/iconfield';
-import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
-import { getErrorMessage } from '../../common/utils/error-utils';
+import { AssetService } from './assets.service';
 
 interface Column {
   field: string;

@@ -8,15 +8,15 @@
 !##########################################################################
 */
 
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { PoamMilestonesComponent, Milestone } from './poam-milestones.component';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
-import { Table } from 'primeng/table';
-import { addDays } from 'date-fns';
 import { DatePipe } from '@angular/common';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { addDays } from 'date-fns';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { Table } from 'primeng/table';
 import { Subject } from 'rxjs';
+import { Milestone, PoamMilestonesComponent } from './poam-milestones.component';
 
 describe('PoamMilestonesComponent', () => {
   let component: PoamMilestonesComponent;

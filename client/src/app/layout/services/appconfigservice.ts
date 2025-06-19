@@ -8,9 +8,9 @@
 !##########################################################################
 */
 
-import { AppState } from '../domain/appstate';
 import { isPlatformBrowser } from '@angular/common';
-import { computed, effect, inject, Injectable, PLATFORM_ID, signal, Signal, WritableSignal, DOCUMENT } from '@angular/core';
+import { DOCUMENT, Injectable, PLATFORM_ID, Signal, WritableSignal, computed, effect, inject, signal } from '@angular/core';
+import { AppState } from '../domain/appstate';
 
 @Injectable({
   providedIn: 'root',

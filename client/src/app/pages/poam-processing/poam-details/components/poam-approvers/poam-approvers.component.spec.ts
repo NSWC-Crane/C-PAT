@@ -9,10 +9,10 @@
 */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PoamApproversComponent } from './poam-approvers.component';
-import { of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { of, throwError } from 'rxjs';
+import { PoamApproversComponent } from './poam-approvers.component';
 
 describe('PoamApproversComponent', () => {
   let component: PoamApproversComponent;

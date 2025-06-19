@@ -16,11 +16,11 @@ import {
     RouterStateSnapshot,
     UrlTree,
 } from '@angular/router';
-import { AuthService } from '../services/auth.service';
 import { Observable, of } from 'rxjs';
 import { catchError, filter, map, switchMap, take } from 'rxjs/operators';
-import { PoamService } from '../../../pages/poam-processing/poams.service';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
+import { PoamService } from '../../../pages/poam-processing/poams.service';
+import { AuthService } from '../services/auth.service';
 
 @Injectable({
     providedIn: 'root',

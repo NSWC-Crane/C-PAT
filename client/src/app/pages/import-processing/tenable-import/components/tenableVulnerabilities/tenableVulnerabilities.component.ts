@@ -8,54 +8,54 @@
 !##########################################################################
 */
 
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, signal, Input, Output, EventEmitter } from '@angular/core';
-import { ImportService } from '../../../import.service';
-import { PoamService } from '../../../../poam-processing/poams.service';
-import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Popover } from 'primeng/popover';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
-import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
-import { EMPTY, Observable, Subscription, catchError, finalize, forkJoin, map, of, switchMap, tap } from 'rxjs';
-import { SharedService } from '../../../../../common/services/shared.service';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { parseISO } from 'date-fns/fp';
+import { AccordionModule } from 'primeng/accordion';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
+import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TabsModule } from 'primeng/tabs';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Popover } from 'primeng/popover';
 import { Select } from 'primeng/select';
-import { CardModule } from 'primeng/card';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { AccordionModule } from 'primeng/accordion';
-import { TooltipModule } from 'primeng/tooltip';
-import { TextareaModule } from 'primeng/textarea';
-import { TenableFiltersComponent } from '../../components/tenableFilters/tenableFilters.component';
+import { SkeletonModule } from 'primeng/skeleton';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { EMPTY, Observable, Subscription, catchError, finalize, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import {
-  AssetsFilter,
-  FilterConfig,
-  TenableFilter,
-  Reference,
-  IdAndName,
-  CustomFilter,
-  AccordionItem,
-  IAVInfo,
-  TempFilters,
-  ExportColumn,
-  PoamAssociation,
-  PremadeFilterOption,
-  FilterValue,
-  FilterHandler
+    AccordionItem,
+    AssetsFilter,
+    CustomFilter,
+    ExportColumn,
+    FilterConfig,
+    FilterHandler,
+    FilterValue,
+    IAVInfo,
+    IdAndName,
+    PoamAssociation,
+    PremadeFilterOption,
+    Reference,
+    TempFilters,
+    TenableFilter
 } from '../../../../../common/models/tenable.model';
-import { parseISO } from 'date-fns/fp';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
+import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { PoamService } from '../../../../poam-processing/poams.service';
+import { ImportService } from '../../../import.service';
+import { TenableFiltersComponent } from '../../components/tenableFilters/tenableFilters.component';
 
 @Component({
   selector: 'cpat-tenable-vulnerabilities',

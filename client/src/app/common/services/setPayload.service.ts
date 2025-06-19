@@ -9,10 +9,10 @@
 */
 
 import { Injectable } from '@angular/core';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { BehaviorSubject, map } from 'rxjs';
-import { Users } from '../../common/models/users.model';
 import { Permission } from '../../common/models/permission.model';
+import { Users } from '../../common/models/users.model';
+import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 
 interface Payload extends Users {
   collections: Permission[];
