@@ -10,91 +10,91 @@
 
 <p-toast />
 <div class="card overflow-auto">
-    <div class="mb-6 flex flex-col">
-        <b>VRAM IAV Data Updated:</b>
-        <span class="mt-2">{{ vramUpdatedDate }}</span>
-    </div>
+  <div class="mb-6 flex flex-col">
+    <b>VRAM IAV Data Updated:</b>
+    <span class="mt-2">{{ vramUpdatedDate }}</span>
+  </div>
 
-    <cpat-vram-popup class="mb-6"></cpat-vram-popup>
+  <cpat-vram-popup class="mb-6"></cpat-vram-popup>
 
-    <p-fileUpload
-        #fileUpload
-        class="pb-[8rem]"
-        name="file"
-        [url]="uploadUrl"
-        [multiple]="false"
-        accept=".xls,.xlsx,.xlsm"
-        [maxFileSize]="10485760"
-        (onUpload)="onUpload()"
-        (onSelect)="onSelect($event)"
-        [customUpload]="true"
-        (uploadHandler)="customUploadHandler($event)"
-    >
-        <ng-template pTemplate="header" let-files let-chooseCallback="chooseCallback" let-clearCallback="clearCallback" let-uploadCallback="uploadCallback">
-            <div class="flex w-full flex-wrap items-center justify-between gap-2">
-                <div class="flex gap-2">
-                    <p-button (onClick)="choose($event, chooseCallback)" icon="pi pi-file" [rounded]="true" [outlined]="true" pTooltip="Select File" tooltipPosition="bottom" />
-                    <p-button
-                        (onClick)="uploadEvent(uploadCallback)"
-                        icon="pi pi-cloud-upload"
-                        [rounded]="true"
-                        [outlined]="true"
-                        severity="success"
-                        [disabled]="!files || files.length === 0"
-                        pTooltip="Upload Selected File"
-                        tooltipPosition="bottom"
-                        [ngClass]="{ 'focus-attention': files?.length > 0 }"
-                    />
-                    <p-button (onClick)="clearCallback()" icon="pi pi-times" [rounded]="true" [outlined]="true" severity="danger" [disabled]="!files || files.length === 0" pTooltip="Clear Selection" tooltipPosition="bottom" />
-                </div>
-                <p-progressBar [value]="totalSizePercent" [showValue]="false" class="h-4 w-full md:ml-auto md:w-80" [ngClass]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">
-                    <span class="whitespace-nowrap">{{ totalSize }}B / 10Mb</span>
-                </p-progressBar>
-            </div>
-        </ng-template>
-        <ng-template pTemplate="content" let-files let-uploadedFiles="uploadedFiles" let-removeFileCallback="removeFileCallback" let-removeUploadedFileCallback="removeUploadedFileCallback">
-            @if (files?.length > 0) {
+  <p-fileUpload
+    #fileUpload
+    class="pb-[8rem]"
+    name="file"
+    [url]="uploadUrl"
+    [multiple]="false"
+    accept=".xls,.xlsx,.xlsm"
+    [maxFileSize]="10485760"
+    (onUpload)="onUpload()"
+    (onSelect)="onSelect($event)"
+    [customUpload]="true"
+    (uploadHandler)="customUploadHandler($event)"
+  >
+    <ng-template pTemplate="header" let-files let-chooseCallback="chooseCallback" let-clearCallback="clearCallback" let-uploadCallback="uploadCallback">
+      <div class="flex w-full flex-wrap items-center justify-between gap-2">
+        <div class="flex gap-2">
+          <p-button (onClick)="choose($event, chooseCallback)" icon="pi pi-file" [rounded]="true" [outlined]="true" pTooltip="Select File" tooltipPosition="bottom" />
+          <p-button
+            (onClick)="uploadEvent(uploadCallback)"
+            icon="pi pi-cloud-upload"
+            [rounded]="true"
+            [outlined]="true"
+            severity="success"
+            [disabled]="!files || files.length === 0"
+            pTooltip="Upload Selected File"
+            tooltipPosition="bottom"
+            [ngClass]="{ 'focus-attention': files?.length > 0 }"
+          />
+          <p-button (onClick)="clearCallback()" icon="pi pi-times" [rounded]="true" [outlined]="true" severity="danger" [disabled]="!files || files.length === 0" pTooltip="Clear Selection" tooltipPosition="bottom" />
+        </div>
+        <p-progressBar [value]="totalSizePercent" [showValue]="false" class="h-4 w-full md:ml-auto md:w-80" [ngClass]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">
+          <span class="whitespace-nowrap">{{ totalSize }}B / 10Mb</span>
+        </p-progressBar>
+      </div>
+    </ng-template>
+    <ng-template pTemplate="content" let-files let-uploadedFiles="uploadedFiles" let-removeFileCallback="removeFileCallback" let-removeUploadedFileCallback="removeUploadedFileCallback">
+      @if (files?.length > 0) {
+        <div>
+          <h5>Pending</h5>
+          <div class="flex flex-wrap gap-8 p-0 sm:p-8">
+            @for (file of files; track file; let i = $index) {
+              <div class="m-0 flex flex-col items-center gap-4 rounded border border-gray-200 px-12 dark:border-gray-700">
                 <div>
-                    <h5>Pending</h5>
-                    <div class="flex flex-wrap gap-8 p-0 sm:p-8">
-                        @for (file of files; track file; let i = $index) {
-                            <div class="m-0 flex flex-col items-center gap-4 rounded border border-gray-200 px-12 dark:border-gray-700">
-                                <div>
-                                    <i class="pi pi-file text-4xl"></i>
-                                </div>
-                                <span class="font-semibold">{{ file.name }}</span>
-                                <div>{{ formatSize(file.size) }}</div>
-                                <p-badge value="Pending" severity="warn" />
-                                <p-button icon="pi pi-times" (onClick)="onRemoveFile($event, file, removeFileCallback)" [outlined]="true" [rounded]="true" severity="danger" />
-                            </div>
-                        }
-                    </div>
+                  <i class="pi pi-file text-4xl"></i>
                 </div>
+                <span class="font-semibold">{{ file.name }}</span>
+                <div>{{ formatSize(file.size) }}</div>
+                <p-badge value="Pending" severity="warn" />
+                <p-button icon="pi pi-times" (onClick)="onRemoveFile($event, file, removeFileCallback)" [outlined]="true" [rounded]="true" severity="danger" />
+              </div>
             }
-            @if (uploadedFiles?.length > 0) {
+          </div>
+        </div>
+      }
+      @if (uploadedFiles?.length > 0) {
+        <div>
+          <h5>Completed</h5>
+          <div class="flex flex-wrap gap-8 p-0 sm:p-8">
+            @for (file of uploadedFiles; track file; let i = $index) {
+              <div class="m-0 flex flex-col items-center gap-4 rounded border border-gray-200 px-12 dark:border-gray-700">
                 <div>
-                    <h5>Completed</h5>
-                    <div class="flex flex-wrap gap-8 p-0 sm:p-8">
-                        @for (file of uploadedFiles; track file; let i = $index) {
-                            <div class="m-0 flex flex-col items-center gap-4 rounded border border-gray-200 px-12 dark:border-gray-700">
-                                <div>
-                                    <i class="pi pi-file text-4xl"></i>
-                                </div>
-                                <span class="font-semibold">{{ file.name }}</span>
-                                <div>{{ formatSize(file.size) }}</div>
-                                <p-badge value="Completed" class="mt-4" severity="success" />
-                                <p-button icon="pi pi-times" (onClick)="removeUploadedFileCallback(i)" [outlined]="true" [rounded]="true" severity="danger" />
-                            </div>
-                        }
-                    </div>
+                  <i class="pi pi-file text-4xl"></i>
                 </div>
+                <span class="font-semibold">{{ file.name }}</span>
+                <div>{{ formatSize(file.size) }}</div>
+                <p-badge value="Completed" class="mt-4" severity="success" />
+                <p-button icon="pi pi-times" (onClick)="removeUploadedFileCallback(i)" [outlined]="true" [rounded]="true" severity="danger" />
+              </div>
             }
-        </ng-template>
-        <ng-template pTemplate="empty">
-            <div class="flex h-64 flex-col items-center justify-center">
-                <i class="pi pi-cloud-upload rounded-full border-2 border-gray-400 p-8 text-8xl text-gray-400 dark:border-gray-500 dark:text-gray-500"></i>
-                <p class="mb-0 mt-6 text-gray-600 dark:text-gray-400">Drag and drop files here to upload.</p>
-            </div>
-        </ng-template>
-    </p-fileUpload>
+          </div>
+        </div>
+      }
+    </ng-template>
+    <ng-template pTemplate="empty">
+      <div class="flex h-64 flex-col items-center justify-center">
+        <i class="pi pi-cloud-upload rounded-full border-2 border-gray-400 p-8 text-8xl text-gray-400 dark:border-gray-500 dark:text-gray-500"></i>
+        <p class="mb-0 mt-6 text-gray-600 dark:text-gray-400">Drag and drop files here to upload.</p>
+      </div>
+    </ng-template>
+  </p-fileUpload>
 </div>

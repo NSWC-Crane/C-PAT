@@ -9,37 +9,38 @@
 */
 
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class PoamAttachmentService {
-    private cpatApiBase = CPAT.Env.apiBase;
+  private http = inject(HttpClient);
 
-    constructor(private http: HttpClient) {}
+  private cpatApiBase = CPAT.Env.apiBase;
 
-    getAttachmentsByPoamId(poamId: number): Observable<any[]> {
-        return this.http.get<any[]>(`${this.cpatApiBase}/poamAttachments/poam/${poamId}`);
-    }
+  getAttachmentsByPoamId(poamId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.cpatApiBase}/poamAttachments/poam/${poamId}`);
+  }
 
-    uploadAttachment(file: File, poamId: number): Observable<any> {
-        const formData = new FormData();
-        formData.append('file', file, file.name);
-        formData.append('poamId', poamId.toString());
+  uploadAttachment(file: File, poamId: number): Observable<any> {
+    const formData = new FormData();
 
-        return this.http.post(`${this.cpatApiBase}/poamAttachment`, formData, {
-            reportProgress: true,
-            observe: 'events'
-        });
-    }
+    formData.append('file', file, file.name);
+    formData.append('poamId', poamId.toString());
 
-    downloadAttachment(poamId: number, attachmentId: number): Observable<Blob> {
-        return this.http.get(`${this.cpatApiBase}/poamAttachment/poam/${poamId}/attachment/${attachmentId}`, { responseType: 'blob' });
-    }
+    return this.http.post(`${this.cpatApiBase}/poamAttachment`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
 
-    deleteAttachment(poamId: number, attachmentId: number): Observable<any> {
-        return this.http.delete(`${this.cpatApiBase}/poamAttachment/poam/${poamId}/${attachmentId}`);
-    }
+  downloadAttachment(poamId: number, attachmentId: number): Observable<Blob> {
+    return this.http.get(`${this.cpatApiBase}/poamAttachment/poam/${poamId}/attachment/${attachmentId}`, { responseType: 'blob' });
+  }
+
+  deleteAttachment(poamId: number, attachmentId: number): Observable<any> {
+    return this.http.delete(`${this.cpatApiBase}/poamAttachment/poam/${poamId}/${attachmentId}`);
+  }
 }

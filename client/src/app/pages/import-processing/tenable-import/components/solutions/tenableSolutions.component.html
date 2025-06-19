@@ -9,299 +9,299 @@
 -->
 
 <div class="row col-span-12">
-    <div class="col">
-        <div class="p-fluid">
-            <div class="toolbar mb-4">
-                <div class="flex items-center justify-between">
-                    <p-iconField iconPosition="left">
-                        <p-inputIcon>
-                            <i class="pi pi-search"></i>
-                        </p-inputIcon>
-                        <input pInputText id="search" class="w-48" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search Solutions" />
-                    </p-iconField>
-                    <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()" pTooltip="Clear all filters"></p-button>
-                </div>
-                <div class="right-buttons">
-                    <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="dt.exportCSV()"> </p-button>
-                </div>
-            </div>
-            <div class="scrollable-solutions">
-                <p-table
-                    #dt
-                    [value]="solutions"
-                    [columns]="cols"
-                    [paginator]="true"
-                    [rows]="15"
-                    [loading]="loadingSolutions"
-                    [showCurrentPageReport]="true"
-                    [globalFilterFields]="['solution', 'scorePctg', 'hostTotal', 'total', 'vprScore', 'cvssV3BaseScore']"
-                    [filterDelay]="300"
-                    [rowHover]="true"
-                    dataKey="solution"
-                    [scrollable]="true"
-                    scrollHeight="calc(100vh - 25rem)"
-                    styleClass="p-datatable-sm p-datatable-gridlines-hidden"
-                >
-                    <ng-template pTemplate="header">
-                        <tr>
-                            <th scope="col">
-                                <div class="flex items-center">
-                                    Solution
-                                    <p-columnFilter type="text" field="solution" [showOperator]="false" display="menu" />
-                                </div>
-                            </th>
-                            <th scope="col">
-                                <div class="flex items-center">
-                                    Risk Reduction
-                                    <p-columnFilter type="text" field="scorePctg" [showOperator]="false" display="menu" />
-                                </div>
-                            </th>
-                            <th scope="col">
-                                <div class="flex items-center">
-                                    Hosts Affected
-                                    <p-columnFilter type="numeric" field="hostTotal" [showOperator]="false" display="menu" />
-                                </div>
-                            </th>
-                            <th scope="col">
-                                <div class="flex items-center">
-                                    Vulnerabilities
-                                    <p-columnFilter type="numeric" field="total" [showOperator]="false" display="menu" />
-                                </div>
-                            </th>
-                            <th scope="col">
-                                <div class="flex items-center">
-                                    VPR
-                                    <p-columnFilter type="numeric" field="vprScore" [showOperator]="false" display="menu" />
-                                </div>
-                            </th>
-                            <th scope="col">
-                                <div class="flex items-center">
-                                    CVSS v3 Base Score
-                                    <p-columnFilter type="numeric" field="cvssV3BaseScore" [showOperator]="false" display="menu" />
-                                </div>
-                            </th>
-                        </tr>
-                    </ng-template>
-                    <ng-template pTemplate="body" let-solutions>
-                        <tr (click)="getAffectedHosts(solutions)" (onKeyUp)="getAffectedHosts(solutions)" style="cursor: pointer">
-                            <td [innerHTML]="solutions.solution"></td>
-                            <td>{{ solutions.scorePctg }}</td>
-                            <td>{{ solutions.hostTotal }}</td>
-                            <td>{{ solutions.total }}</td>
-                            <td>{{ solutions.vprScore }}</td>
-                            <td>{{ solutions.cvssV3BaseScore }}</td>
-                        </tr>
-                    </ng-template>
-                    <ng-template pTemplate="emptymessage">
-                        <tr>
-                            <td colspan="6" style="text-align: center">No solutions to display</td>
-                        </tr>
-                    </ng-template>
-                </p-table>
-            </div>
+  <div class="col">
+    <div class="p-fluid">
+      <div class="toolbar mb-4">
+        <div class="flex items-center justify-between">
+          <p-iconField iconPosition="left">
+            <p-inputIcon>
+              <i class="pi pi-search"></i>
+            </p-inputIcon>
+            <input pInputText id="search" class="w-48" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search Solutions" />
+          </p-iconField>
+          <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()" pTooltip="Clear all filters"></p-button>
         </div>
+        <div class="right-buttons">
+          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="dt.exportCSV()"> </p-button>
+        </div>
+      </div>
+      <div class="scrollable-solutions">
+        <p-table
+          #dt
+          [value]="solutions"
+          [columns]="cols"
+          [paginator]="true"
+          [rows]="15"
+          [loading]="loadingSolutions"
+          [showCurrentPageReport]="true"
+          [globalFilterFields]="['solution', 'scorePctg', 'hostTotal', 'total', 'vprScore', 'cvssV3BaseScore']"
+          [filterDelay]="300"
+          [rowHover]="true"
+          dataKey="solution"
+          [scrollable]="true"
+          scrollHeight="calc(100vh - 25rem)"
+          styleClass="p-datatable-sm p-datatable-gridlines-hidden"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th scope="col">
+                <div class="flex items-center">
+                  Solution
+                  <p-columnFilter type="text" field="solution" [showOperator]="false" display="menu" />
+                </div>
+              </th>
+              <th scope="col">
+                <div class="flex items-center">
+                  Risk Reduction
+                  <p-columnFilter type="text" field="scorePctg" [showOperator]="false" display="menu" />
+                </div>
+              </th>
+              <th scope="col">
+                <div class="flex items-center">
+                  Hosts Affected
+                  <p-columnFilter type="numeric" field="hostTotal" [showOperator]="false" display="menu" />
+                </div>
+              </th>
+              <th scope="col">
+                <div class="flex items-center">
+                  Vulnerabilities
+                  <p-columnFilter type="numeric" field="total" [showOperator]="false" display="menu" />
+                </div>
+              </th>
+              <th scope="col">
+                <div class="flex items-center">
+                  VPR
+                  <p-columnFilter type="numeric" field="vprScore" [showOperator]="false" display="menu" />
+                </div>
+              </th>
+              <th scope="col">
+                <div class="flex items-center">
+                  CVSS v3 Base Score
+                  <p-columnFilter type="numeric" field="cvssV3BaseScore" [showOperator]="false" display="menu" />
+                </div>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-solutions>
+            <tr (click)="getAffectedHosts(solutions)" (onKeyUp)="getAffectedHosts(solutions)" style="cursor: pointer">
+              <td [innerHTML]="solutions.solution"></td>
+              <td>{{ solutions.scorePctg }}</td>
+              <td>{{ solutions.hostTotal }}</td>
+              <td>{{ solutions.total }}</td>
+              <td>{{ solutions.vprScore }}</td>
+              <td>{{ solutions.cvssV3BaseScore }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" style="text-align: center">No solutions to display</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
     </div>
+  </div>
 </div>
 
 <p-dialog header="Apply the security patch in accordance with the vendor advisory." class="solutionDialog" [(visible)]="displayDialog" [modal]="true" (onHide)="resetData()" [style]="{ width: '80vw' }">
-    <ng-template pTemplate="content">
+  <ng-template pTemplate="content">
+    <div class="grid grid-cols-12 gap-4">
+      <div class="col-span-4" style="background-color: rgba(255, 255, 255, 0.03); border-radius: 15px; padding: 1.5rem 1rem 1rem">
         <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-4" style="background-color: rgba(255, 255, 255, 0.03); border-radius: 15px; padding: 1.5rem 1rem 1rem">
-                <div class="grid grid-cols-12 gap-4">
-                    <div class="col-span-6">
-                        <i class="solutions-icon-desktop"></i>
-                        <div>
-                            <h5>{{ solutions[0].hostTotal }}</h5>
-                        </div>
-                        <div style="width: 100%; opacity: 0.85"><span>HOSTS AFFECTED</span></div>
-                    </div>
-
-                    <div class="col-span-6">
-                        <i class="solutions-icon-vulnerabilities"></i>
-                        <div>
-                            <h5>{{ solutions[0].total }}</h5>
-                        </div>
-                        <div style="width: 100%; opacity: 0.85"><span>VULNERABILITIES</span></div>
-                    </div>
-                </div>
-                <br />
-                <div class="grid grid-cols-12 gap-4">
-                    <div class="col-span-6">
-                        <i class="solutions-icon-sheild-vpr-high"></i>
-                        <div>
-                            <h5>{{ solutions[0].vprScore }}</h5>
-                        </div>
-                        <div style="width: 100%; opacity: 0.85">
-                            <span>VULNERABILITY PRIORITY RATING (VPR)</span>
-                        </div>
-                    </div>
-
-                    <div class="col-span-6">
-                        <i class="solutions-icon-vulnerabilities"></i>
-                        <div>
-                            <h5>{{ solutions[0].cvssV3BaseScore }}</h5>
-                        </div>
-                        <div style="width: 100%; opacity: 0.85"><span>CVSS V3</span></div>
-                    </div>
-                </div>
-                @if (solutionVulnDetails.length > 0) {
-                    <div style="margin: 1rem 0 0.75rem">
-                        <span>
-                            <b>Vulnerabilities Included ({{ solutionVulnDetails.length }})</b>
-                        </span>
-                    </div>
-                }
-                <div class="solutions-plugin vulnerabilities" style="visibility: visible">
-                    <div class="p-fluid">
-                        <div class="scrollable-solutionVulnDetails">
-                            <p-table
-                                #vulnDetailsTable
-                                [value]="solutionVulnDetails"
-                                [paginator]="true"
-                                [rows]="10"
-                                [loading]="loadingVulnDetails"
-                                [showCurrentPageReport]="true"
-                                [globalFilterFields]="['pluginID', 'vprScore', 'cvssV3BaseScore', 'hostTotal']"
-                                [filterDelay]="0"
-                                [rowHover]="true"
-                                dataKey="pluginID"
-                            >
-                                <ng-template pTemplate="header">
-                                    <tr>
-                                        <th scope="col" style="max-width: 6vw">
-                                            <div class="flex items-center">
-                                                Plugin
-                                                <p-columnFilter type="text" field="pluginID" [showOperator]="false" display="menu" />
-                                            </div>
-                                        </th>
-                                        <th scope="col" style="max-width: 10vw">
-                                            <div class="flex items-center">
-                                                VPR
-                                                <p-columnFilter type="text" field="vprScore" [showOperator]="false" display="menu" />
-                                            </div>
-                                        </th>
-                                        <th scope="col" style="max-width: 12vw">
-                                            <div class="flex items-center">
-                                                CVSS V3
-                                                <p-columnFilter type="text" field="cvssV3BaseScore" [showOperator]="false" display="menu" />
-                                            </div>
-                                        </th>
-                                        <th scope="col" style="max-width: 10vw">
-                                            <div class="flex items-center">
-                                                Host Total
-                                                <p-columnFilter type="text" field="hostTotal" [showOperator]="false" display="menu" />
-                                            </div>
-                                        </th>
-                                    </tr>
-                                </ng-template>
-                                <ng-template pTemplate="body" let-solutionVulnDetails>
-                                    <tr style="cursor: pointer">
-                                        <td style="max-width: 6vw">{{ solutionVulnDetails.pluginID }}</td>
-                                        <td style="max-width: 10vw; word-wrap: break-word">
-                                            {{ solutionVulnDetails.vprScore }}
-                                        </td>
-                                        <td style="max-width: 10vw; word-wrap: break-word">
-                                            {{ solutionVulnDetails.cvssV3BaseScore }}
-                                        </td>
-                                        <td style="max-width: 12vw; word-wrap: break-word">
-                                            {{ solutionVulnDetails.hostTotal }}
-                                        </td>
-                                    </tr>
-                                </ng-template>
-                                <ng-template pTemplate="emptymessage">
-                                    <tr>
-                                        <td colspan="4" style="text-align: center">No vulnerability details to display</td>
-                                    </tr>
-                                </ng-template>
-                            </p-table>
-                        </div>
-                    </div>
-                </div>
+          <div class="col-span-6">
+            <i class="solutions-icon-desktop"></i>
+            <div>
+              <h5>{{ solutions[0].hostTotal }}</h5>
             </div>
+            <div style="width: 100%; opacity: 0.85"><span>HOSTS AFFECTED</span></div>
+          </div>
 
-            <div class="col-span-8">
-                <div class="p-fluid">
-                    <div class="toolbar" style="display: flex; align-items: center">
-                        <p-iconField iconPosition="left">
-                            <p-inputIcon>
-                                <i class="pi pi-search"></i>
-                            </p-inputIcon>
-                            <input pInputText id="search" [(ngModel)]="dialogFilterValue" (input)="onDialogFilter($event)" placeholder="Search Assets" style="width: 300px" />
-                        </p-iconField>
-                        <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-auto" icon="pi pi-filter-slash" (click)="clearDialog()" (onKeyUp)="clearDialog()" pTooltip="Clear all filters"> </p-button>
-                    </div>
-                    <div class="scrollable-affectedHosts">
-                        <p-table
-                            #dialogTable
-                            [value]="affectedHosts"
-                            [paginator]="true"
-                            [rows]="10"
-                            [loading]="loadingAffectedHosts"
-                            [showCurrentPageReport]="true"
-                            [globalFilterFields]="['ip', 'netbiosName', 'dnsName', 'osCPE', 'repository']"
-                            [filterDelay]="0"
-                            [rowHover]="true"
-                            dataKey="ip"
-                            styleClass="p-datatable-striped"
-                        >
-                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th scope="col" style="max-width: 6vw">
-                                        <div class="flex items-center">
-                                            IP Address
-                                            <p-columnFilter type="text" field="ip" [showOperator]="false" display="menu" />
-                                        </div>
-                                    </th>
-                                    <th scope="col" style="max-width: 10vw">
-                                        <div class="flex items-center">
-                                            NetBIOS
-                                            <p-columnFilter type="text" field="netbiosName" [showOperator]="false" display="menu" />
-                                        </div>
-                                    </th>
-                                    <th scope="col" style="max-width: 12vw">
-                                        <div class="flex items-center">
-                                            DNS
-                                            <p-columnFilter type="text" field="dnsName" [showOperator]="false" display="menu" />
-                                        </div>
-                                    </th>
-                                    <th scope="col" style="max-width: 10vw">
-                                        <div class="flex items-center">
-                                            OS CPE
-                                            <p-columnFilter type="text" field="osCPE" [showOperator]="false" display="menu" />
-                                        </div>
-                                    </th>
-                                    <th scope="col" style="max-width: 10vw">
-                                        <div class="flex items-center">
-                                            Repository
-                                            <p-columnFilter type="text" field="repository" [showOperator]="false" display="menu" />
-                                        </div>
-                                    </th>
-                                </tr>
-                            </ng-template>
-                            <ng-template pTemplate="body" let-affectedHosts>
-                                <tr style="cursor: pointer">
-                                    <td style="max-width: 6vw">{{ affectedHosts.ip }}</td>
-                                    <td style="max-width: 10vw; word-wrap: break-word">
-                                        {{ affectedHosts.netbiosName }}
-                                    </td>
-                                    <td style="max-width: 12vw; word-wrap: break-word">{{ affectedHosts.dnsName }}</td>
-                                    <td style="max-width: 10vw; word-wrap: break-word">{{ affectedHosts.osCPE }}</td>
-                                    <td style="max-width: 10vw; word-wrap: break-word">
-                                        {{ affectedHosts.repository.name }}
-                                    </td>
-                                </tr>
-                            </ng-template>
-                            <ng-template pTemplate="emptymessage">
-                                <tr>
-                                    <td colspan="4" style="text-align: center">No affected host(s) to display</td>
-                                </tr>
-                            </ng-template>
-                        </p-table>
-                    </div>
-                </div>
+          <div class="col-span-6">
+            <i class="solutions-icon-vulnerabilities"></i>
+            <div>
+              <h5>{{ solutions[0].total }}</h5>
             </div>
+            <div style="width: 100%; opacity: 0.85"><span>VULNERABILITIES</span></div>
+          </div>
         </div>
-    </ng-template>
+        <br />
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-6">
+            <i class="solutions-icon-sheild-vpr-high"></i>
+            <div>
+              <h5>{{ solutions[0].vprScore }}</h5>
+            </div>
+            <div style="width: 100%; opacity: 0.85">
+              <span>VULNERABILITY PRIORITY RATING (VPR)</span>
+            </div>
+          </div>
+
+          <div class="col-span-6">
+            <i class="solutions-icon-vulnerabilities"></i>
+            <div>
+              <h5>{{ solutions[0].cvssV3BaseScore }}</h5>
+            </div>
+            <div style="width: 100%; opacity: 0.85"><span>CVSS V3</span></div>
+          </div>
+        </div>
+        @if (solutionVulnDetails.length > 0) {
+          <div style="margin: 1rem 0 0.75rem">
+            <span>
+              <b>Vulnerabilities Included ({{ solutionVulnDetails.length }})</b>
+            </span>
+          </div>
+        }
+        <div class="solutions-plugin vulnerabilities" style="visibility: visible">
+          <div class="p-fluid">
+            <div class="scrollable-solutionVulnDetails">
+              <p-table
+                #vulnDetailsTable
+                [value]="solutionVulnDetails"
+                [paginator]="true"
+                [rows]="10"
+                [loading]="loadingVulnDetails"
+                [showCurrentPageReport]="true"
+                [globalFilterFields]="['pluginID', 'vprScore', 'cvssV3BaseScore', 'hostTotal']"
+                [filterDelay]="0"
+                [rowHover]="true"
+                dataKey="pluginID"
+              >
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th scope="col" style="max-width: 6vw">
+                      <div class="flex items-center">
+                        Plugin
+                        <p-columnFilter type="text" field="pluginID" [showOperator]="false" display="menu" />
+                      </div>
+                    </th>
+                    <th scope="col" style="max-width: 10vw">
+                      <div class="flex items-center">
+                        VPR
+                        <p-columnFilter type="text" field="vprScore" [showOperator]="false" display="menu" />
+                      </div>
+                    </th>
+                    <th scope="col" style="max-width: 12vw">
+                      <div class="flex items-center">
+                        CVSS V3
+                        <p-columnFilter type="text" field="cvssV3BaseScore" [showOperator]="false" display="menu" />
+                      </div>
+                    </th>
+                    <th scope="col" style="max-width: 10vw">
+                      <div class="flex items-center">
+                        Host Total
+                        <p-columnFilter type="text" field="hostTotal" [showOperator]="false" display="menu" />
+                      </div>
+                    </th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-solutionVulnDetails>
+                  <tr style="cursor: pointer">
+                    <td style="max-width: 6vw">{{ solutionVulnDetails.pluginID }}</td>
+                    <td style="max-width: 10vw; word-wrap: break-word">
+                      {{ solutionVulnDetails.vprScore }}
+                    </td>
+                    <td style="max-width: 10vw; word-wrap: break-word">
+                      {{ solutionVulnDetails.cvssV3BaseScore }}
+                    </td>
+                    <td style="max-width: 12vw; word-wrap: break-word">
+                      {{ solutionVulnDetails.hostTotal }}
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="4" style="text-align: center">No vulnerability details to display</td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-span-8">
+        <div class="p-fluid">
+          <div class="toolbar" style="display: flex; align-items: center">
+            <p-iconField iconPosition="left">
+              <p-inputIcon>
+                <i class="pi pi-search"></i>
+              </p-inputIcon>
+              <input pInputText id="search" [(ngModel)]="dialogFilterValue" (input)="onDialogFilter($event)" placeholder="Search Assets" style="width: 300px" />
+            </p-iconField>
+            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-auto" icon="pi pi-filter-slash" (click)="clearDialog()" (onKeyUp)="clearDialog()" pTooltip="Clear all filters"> </p-button>
+          </div>
+          <div class="scrollable-affectedHosts">
+            <p-table
+              #dialogTable
+              [value]="affectedHosts"
+              [paginator]="true"
+              [rows]="10"
+              [loading]="loadingAffectedHosts"
+              [showCurrentPageReport]="true"
+              [globalFilterFields]="['ip', 'netbiosName', 'dnsName', 'osCPE', 'repository']"
+              [filterDelay]="0"
+              [rowHover]="true"
+              dataKey="ip"
+              styleClass="p-datatable-striped"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  <th scope="col" style="max-width: 6vw">
+                    <div class="flex items-center">
+                      IP Address
+                      <p-columnFilter type="text" field="ip" [showOperator]="false" display="menu" />
+                    </div>
+                  </th>
+                  <th scope="col" style="max-width: 10vw">
+                    <div class="flex items-center">
+                      NetBIOS
+                      <p-columnFilter type="text" field="netbiosName" [showOperator]="false" display="menu" />
+                    </div>
+                  </th>
+                  <th scope="col" style="max-width: 12vw">
+                    <div class="flex items-center">
+                      DNS
+                      <p-columnFilter type="text" field="dnsName" [showOperator]="false" display="menu" />
+                    </div>
+                  </th>
+                  <th scope="col" style="max-width: 10vw">
+                    <div class="flex items-center">
+                      OS CPE
+                      <p-columnFilter type="text" field="osCPE" [showOperator]="false" display="menu" />
+                    </div>
+                  </th>
+                  <th scope="col" style="max-width: 10vw">
+                    <div class="flex items-center">
+                      Repository
+                      <p-columnFilter type="text" field="repository" [showOperator]="false" display="menu" />
+                    </div>
+                  </th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-affectedHosts>
+                <tr style="cursor: pointer">
+                  <td style="max-width: 6vw">{{ affectedHosts.ip }}</td>
+                  <td style="max-width: 10vw; word-wrap: break-word">
+                    {{ affectedHosts.netbiosName }}
+                  </td>
+                  <td style="max-width: 12vw; word-wrap: break-word">{{ affectedHosts.dnsName }}</td>
+                  <td style="max-width: 10vw; word-wrap: break-word">{{ affectedHosts.osCPE }}</td>
+                  <td style="max-width: 10vw; word-wrap: break-word">
+                    {{ affectedHosts.repository.name }}
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="4" style="text-align: center">No affected host(s) to display</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
 </p-dialog>
 
 <p-toast position="center" key="error"></p-toast>

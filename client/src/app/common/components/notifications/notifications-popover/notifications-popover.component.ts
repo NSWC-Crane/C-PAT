@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -21,140 +21,146 @@ import { PayloadService } from '../../../../common/services/setPayload.service';
 import { NotificationService } from '../notifications.service';
 
 @Component({
-    selector: 'cpat-notifications-popover',
-    templateUrl: './notifications-popover.component.html',
-    styleUrls: ['./notifications-popover.component.scss'],
-    standalone: true,
-    imports: [ButtonModule, CommonModule, FormsModule, ListboxModule]
+  selector: 'cpat-notifications-popover',
+  templateUrl: './notifications-popover.component.html',
+  styleUrls: ['./notifications-popover.component.scss'],
+  standalone: true,
+  imports: [ButtonModule, CommonModule, FormsModule, ListboxModule]
 })
 export class NotificationsPanelComponent implements OnInit, OnDestroy {
-    @Input() overlayPanel: Popover;
-    notifications: any[] = [];
-    public isLoggedIn = false;
-    protected accessLevel: any;
-    user: any;
-    payload: any;
-    poam: any;
-    private payloadSubscription: Subscription[] = [];
+  private notificationService = inject(NotificationService);
+  private setPayloadService = inject(PayloadService);
+  private router = inject(Router);
+  private sanitizer = inject(DomSanitizer);
 
-    constructor(
-        private notificationService: NotificationService,
-        private setPayloadService: PayloadService,
-        private router: Router,
-        private sanitizer: DomSanitizer
-    ) {}
+  @Input() overlayPanel: Popover;
+  notifications: any[] = [];
+  public isLoggedIn = false;
+  protected accessLevel: any;
+  user: any;
+  payload: any;
+  poam: any;
+  private payloadSubscription: Subscription[] = [];
 
-    async ngOnInit() {
-        this.setPayload();
-    }
+  async ngOnInit() {
+    this.setPayload();
+  }
 
-    async setPayload() {
-        this.setPayloadService.setPayload();
-        this.payloadSubscription.push(
-            this.setPayloadService.user$.subscribe((user) => {
-                this.user = user;
-            }),
-            this.setPayloadService.payload$.subscribe((payload) => {
-                this.payload = payload;
-            }),
-            this.setPayloadService.accessLevel$.subscribe((level) => {
-                this.accessLevel = level;
-                if (this.accessLevel > 0) {
-                    this.fetchNotifications();
-                }
-            })
-        );
-    }
+  async setPayload() {
+    this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe((user) => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe((payload) => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe((level) => {
+        this.accessLevel = level;
 
-    closeOverlay() {
-        if (this.overlayPanel) {
-            this.overlayPanel.hide();
+        if (this.accessLevel > 0) {
+          this.fetchNotifications();
         }
-    }
+      })
+    );
+  }
 
-    fetchNotifications() {
-        this.notificationService
-            .getUnreadNotifications()
-            .pipe(
-                map((notifications) =>
-                    notifications.map((notification) => ({
-                        ...notification,
-                        formattedMessage: this.formatMessage(notification.message)
-                    }))
-                )
-            )
-            .subscribe({
-                next: (notifications) => {
-                    this.notifications = notifications;
-                },
-                error: (error) => {
-                    console.error('Failed to fetch notifications:', error);
-                }
-            });
+  closeOverlay() {
+    if (this.overlayPanel) {
+      this.overlayPanel.hide();
     }
+  }
 
-    formatMessage(message: string): SafeHtml {
-        const poamRegex = /POAM (\d+)/;
-        const match = message.match(poamRegex);
-        if (match) {
-            const poamNumber = match[1];
-            const formattedMessage = message.replace(poamRegex, `<a href="${CPAT.Env.basePath}poam-processing/poam-details/${poamNumber}" data-poam="${poamNumber}" class="poam-link">POAM ${poamNumber}</a>`);
-            return this.sanitizer.bypassSecurityTrustHtml(formattedMessage);
+  fetchNotifications() {
+    this.notificationService
+      .getUnreadNotifications()
+      .pipe(
+        map((notifications) =>
+          notifications.map((notification) => ({
+            ...notification,
+            formattedMessage: this.formatMessage(notification.message)
+          }))
+        )
+      )
+      .subscribe({
+        next: (notifications) => {
+          this.notifications = notifications;
+        },
+        error: (error) => {
+          console.error('Failed to fetch notifications:', error);
         }
-        return message;
+      });
+  }
+
+  formatMessage(message: string): SafeHtml {
+    const poamRegex = /POAM (\d+)/;
+    const match = message.match(poamRegex);
+
+    if (match) {
+      const poamNumber = match[1];
+      const formattedMessage = message.replace(poamRegex, `<a href="${CPAT.Env.basePath}poam-processing/poam-details/${poamNumber}" data-poam="${poamNumber}" class="poam-link">POAM ${poamNumber}</a>`);
+
+      return this.sanitizer.bypassSecurityTrustHtml(formattedMessage);
     }
 
-    dismissNotification(notification: any) {
-        this.notificationService.dismissNotification(notification.notificationId).subscribe({
-            next: () => {
-                const index = this.notifications.indexOf(notification);
-                if (index !== -1) {
-                    this.notifications.splice(index, 1);
-                }
-            },
-            error: (error) => {
-                console.error('Failed to dismiss notification:', error);
-            }
-        });
-    }
+    return message;
+  }
 
-    dismissAllNotifications() {
-        this.notificationService.dismissAllNotifications().subscribe({
-            next: () => {
-                this.notifications = [];
-            },
-            error: (error) => {
-                console.error('Failed to dismiss all notifications:', error);
-            }
-        });
-    }
+  dismissNotification(notification: any) {
+    this.notificationService.dismissNotification(notification.notificationId).subscribe({
+      next: () => {
+        const index = this.notifications.indexOf(notification);
 
-    viewAllNotifications() {
-        this.router.navigateByUrl('/notifications');
-        this.closeOverlay();
-    }
-
-    async navigateToPOAM(poamId: number) {
-        try {
-            window.location.pathname = `${CPAT.Env.basePath}poam-processing/poam-details/${poamId}`;
-        } catch (error) {
-            console.error('Error navigating to POAM:', error);
+        if (index !== -1) {
+          this.notifications.splice(index, 1);
         }
-        this.closeOverlay();
+      },
+      error: (error) => {
+        console.error('Failed to dismiss notification:', error);
+      }
+    });
+  }
+
+  dismissAllNotifications() {
+    this.notificationService.dismissAllNotifications().subscribe({
+      next: () => {
+        this.notifications = [];
+      },
+      error: (error) => {
+        console.error('Failed to dismiss all notifications:', error);
+      }
+    });
+  }
+
+  viewAllNotifications() {
+    this.router.navigateByUrl('/notifications');
+    this.closeOverlay();
+  }
+
+  async navigateToPOAM(poamId: number) {
+    try {
+      window.location.pathname = `${CPAT.Env.basePath}poam-processing/poam-details/${poamId}`;
+    } catch (error) {
+      console.error('Error navigating to POAM:', error);
     }
 
-    onNotificationClick(event: MouseEvent) {
-        const target = event.target as HTMLElement;
-        if (target.classList.contains('poam-link')) {
-            event.preventDefault();
-            const poamId = target.getAttribute('data-poam');
-            if (poamId) {
-                this.navigateToPOAM(+poamId);
-            }
-        }
-    }
+    this.closeOverlay();
+  }
 
-    ngOnDestroy(): void {
-        this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
+  onNotificationClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    if (target.classList.contains('poam-link')) {
+      event.preventDefault();
+      const poamId = target.getAttribute('data-poam');
+
+      if (poamId) {
+        this.navigateToPOAM(+poamId);
+      }
     }
+  }
+
+  ngOnDestroy(): void {
+    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
+  }
 }

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { format, parse } from 'date-fns';
 import { jsonToPlainText } from 'json-to-plain-text';
 import { MessageService } from 'primeng/api';
@@ -25,379 +25,383 @@ import { ImportService } from '../../../import-processing/import.service';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';
 
 interface UserCollectionPermission {
-    userId: number;
-    collectionId?: number;
-    accessLevel: number;
-    firstName?: string;
-    lastName?: string;
-    fullName?: string;
-    email?: string;
+  userId: number;
+  collectionId?: number;
+  accessLevel: number;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  email?: string;
 }
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class PoamCreationService {
-    appConfigSettings: AppConfiguration[] = [];
+  private importService = inject(ImportService);
+  private sharedService = inject(SharedService);
+  private appConfigurationService = inject(AppConfigurationService);
+  private collectionsService = inject(CollectionsService);
+  private assignedTeamService = inject(AssignedTeamService);
+  private assetService = inject(AssetService);
+  private mappingService = inject(PoamVariableMappingService);
+  private messageService = inject(MessageService);
 
-    constructor(
-        private importService: ImportService,
-        private sharedService: SharedService,
-        private appConfigurationService: AppConfigurationService,
-        private collectionsService: CollectionsService,
-        private assignedTeamService: AssignedTeamService,
-        private assetService: AssetService,
-        private mappingService: PoamVariableMappingService,
-        private messageService: MessageService
-    ) {}
+  appConfigSettings: AppConfiguration[] = [];
 
-    loadAppConfiguration() {
-        this.appConfigurationService.getAppConfiguration().subscribe({
-            next: (response) => {
-                this.appConfigSettings = response || [];
-            },
-            error: (error) => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: `Failed to load custom configuration settings: ${getErrorMessage(error)}`
-                });
-                this.appConfigSettings = [];
-            }
+  loadAppConfiguration() {
+    this.appConfigurationService.getAppConfiguration().subscribe({
+      next: (response) => {
+        this.appConfigSettings = response || [];
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load custom configuration settings: ${getErrorMessage(error)}`
         });
-    }
+        this.appConfigSettings = [];
+      }
+    });
+  }
 
-    loadVulnerability(pluginId: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            const analysisParams = {
-                query: {
-                    description: '',
-                    context: '',
-                    status: -1,
-                    createdTime: 0,
-                    modifiedTime: 0,
-                    groups: [],
-                    type: 'vuln',
-                    tool: 'sumid',
-                    sourceType: 'cumulative',
-                    startOffset: 0,
-                    endOffset: 50,
-                    filters: [
-                        {
-                            id: 'pluginID',
-                            filterName: 'pluginID',
-                            operator: '=',
-                            type: 'vuln',
-                            isPredefined: true,
-                            value: pluginId
-                        }
-                    ],
-                    sortColumn: 'severity',
-                    sortDirection: 'desc',
-                    vulnTool: 'sumid'
-                },
-                sourceType: 'cumulative',
-                sortField: 'severity',
-                sortOrder: 'desc',
-                columns: [],
-                type: 'vuln'
-            };
-
-            this.importService.postTenableAnalysis(analysisParams).subscribe({
-                next: (data) => {
-                    if (!data.error_msg) {
-                        resolve(data.response.results[0]);
-                    } else {
-                        reject(new Error('Error in vulnerability data'));
-                    }
-                },
-                error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: `Failed to fetch vulnerability data: ${getErrorMessage(error)}`
-                    });
-                    reject(error);
-                }
-            });
-        });
-    }
-
-    parsePluginData(pluginData: string): string {
-        try {
-            let dataObject: any;
-
-            if (typeof pluginData === 'string') {
-                dataObject = JSON.parse(pluginData);
-            } else if (typeof pluginData === 'object') {
-                dataObject = pluginData;
-            } else {
-                throw new Error('Invalid plugin data format');
+  loadVulnerability(pluginId: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const analysisParams = {
+        query: {
+          description: '',
+          context: '',
+          status: -1,
+          createdTime: 0,
+          modifiedTime: 0,
+          groups: [],
+          type: 'vuln',
+          tool: 'sumid',
+          sourceType: 'cumulative',
+          startOffset: 0,
+          endOffset: 50,
+          filters: [
+            {
+              id: 'pluginID',
+              filterName: 'pluginID',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: pluginId
             }
+          ],
+          sortColumn: 'severity',
+          sortDirection: 'desc',
+          vulnTool: 'sumid'
+        },
+        sourceType: 'cumulative',
+        sortField: 'severity',
+        sortOrder: 'desc',
+        columns: [],
+        type: 'vuln'
+      };
 
-            return jsonToPlainText(dataObject, {});
-        } catch (error) {
-            return pluginData;
+      this.importService.postTenableAnalysis(analysisParams).subscribe({
+        next: (data) => {
+          if (!data.error_msg) {
+            resolve(data.response.results[0]);
+          } else {
+            reject(new Error('Error in vulnerability data'));
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch vulnerability data: ${getErrorMessage(error)}`
+          });
+          reject(error);
         }
+      });
+    });
+  }
+
+  parsePluginData(pluginData: string): string {
+    try {
+      let dataObject: any;
+
+      if (typeof pluginData === 'string') {
+        dataObject = JSON.parse(pluginData);
+      } else if (typeof pluginData === 'object') {
+        dataObject = pluginData;
+      } else {
+        throw new Error('Invalid plugin data format');
+      }
+
+      return jsonToPlainText(dataObject, {});
+    } catch (error) {
+      console.log('Error parsing plugin data:', error);
+
+      return pluginData;
     }
+  }
 
-    async createNewACASPoam(stateData: any, collectionInfo: any, userId: number): Promise<any> {
-        this.loadAppConfiguration();
-        try {
-            const pluginData = stateData.pluginData;
-            const tenableVulnResponse = await this.loadVulnerability(pluginData.id);
+  async createNewACASPoam(stateData: any, collectionInfo: any, userId: number): Promise<any> {
+    this.loadAppConfiguration();
 
-            const mappedSeverity = this.mappingService.mapTenableSeverity(tenableVulnResponse?.severity?.id);
+    try {
+      const pluginData = stateData.pluginData;
+      const tenableVulnResponse = await this.loadVulnerability(pluginData.id);
 
-            const [users, assignedTeamOptions] = await firstValueFrom(forkJoin([this.collectionsService.getCollectionPermissions(collectionInfo.collectionId), this.assignedTeamService.getAssignedTeams()]));
+      const mappedSeverity = this.mappingService.mapTenableSeverity(tenableVulnResponse?.severity?.id);
 
-            const poam: any = {
-                poamId: 'ADDPOAM',
-                collectionId: collectionInfo.collectionId,
-                vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
-                aaPackage: collectionInfo.collectionAAPackage || '',
-                predisposingConditions: collectionInfo.collectionPredisposingConditions || '',
-                iavmNumber: stateData.iavNumber || '',
-                iavComplyByDate: stateData.iavComplyByDate ? format(new Date(stateData.iavComplyByDate), 'yyyy-MM-dd') : null,
-                submittedDate: null,
-                vulnerabilityId: pluginData.id || '',
-                vulnerabilityTitle: pluginData.name || '',
-                description: `Title:
+      const [users, assignedTeamOptions] = await firstValueFrom(forkJoin([this.collectionsService.getCollectionPermissions(collectionInfo.collectionId), this.assignedTeamService.getAssignedTeams()]));
+
+      const poam: any = {
+        poamId: 'ADDPOAM',
+        collectionId: collectionInfo.collectionId,
+        vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
+        aaPackage: collectionInfo.collectionAAPackage || '',
+        predisposingConditions: collectionInfo.collectionPredisposingConditions || '',
+        iavmNumber: stateData.iavNumber || '',
+        iavComplyByDate: stateData.iavComplyByDate ? format(new Date(stateData.iavComplyByDate), 'yyyy-MM-dd') : null,
+        submittedDate: null,
+        vulnerabilityId: pluginData.id || '',
+        vulnerabilityTitle: pluginData.name || '',
+        description: `Title:
 ${pluginData.name || ''}
 Description:
 ${pluginData.description || ''}`,
-                rawSeverity: mappedSeverity,
-                adjSeverity: mappedSeverity,
-                submitterId: userId,
-                status: 'Draft',
-                tenablePluginData: pluginData ? JSON.stringify(pluginData) : '',
-                hqs: false,
-                isGlobalFinding: false
-            };
+        rawSeverity: mappedSeverity,
+        adjSeverity: mappedSeverity,
+        submitterId: userId,
+        status: 'Draft',
+        tenablePluginData: pluginData ? JSON.stringify(pluginData) : '',
+        hqs: false,
+        isGlobalFinding: false
+      };
 
-            poam.scheduledCompletionDate = this.mappingService.calculateScheduledCompletionDate(poam.rawSeverity, this.appConfigSettings);
+      poam.scheduledCompletionDate = this.mappingService.calculateScheduledCompletionDate(poam.rawSeverity, this.appConfigSettings);
 
-            const results = {
+      const results = {
+        poam,
+        dates: {
+          scheduledCompletionDate: parse(poam.scheduledCompletionDate, 'yyyy-MM-dd', new Date()),
+          iavComplyByDate: poam.iavComplyByDate ? parse(poam.iavComplyByDate, 'yyyy-MM-dd', new Date()) : null,
+          submittedDate: null
+        },
+        tenableVulnResponse,
+        tenablePluginData: this.parsePluginData(poam.tenablePluginData),
+        assignedTeamOptions,
+        collectionUsers: users,
+        collectionApprovers: Array.isArray(users) ? users.filter((user: Permission) => user.accessLevel >= 3) : [],
+        poamApprovers: Array.isArray(users)
+          ? users
+              .filter((user: Permission) => user.accessLevel >= 3)
+              .map((approver: any) => ({
+                userId: approver.userId,
+                approvalStatus: 'Not Reviewed',
+                comments: '',
+                approvedDate: null,
+                isNew: false
+              }))
+          : []
+      };
+
+      poam.residualRisk = this.mappingService.mapToEmassValues(poam.rawSeverity);
+      poam.likelihood = this.mappingService.mapToEmassValues(poam.rawSeverity);
+
+      return results;
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Failed to create new POAM: ${getErrorMessage(error)}`
+      });
+      throw error;
+    }
+  }
+
+  async createNewSTIGManagerPoam(stateData: any, collectionInfo: any, userId: number): Promise<any> {
+    this.loadAppConfiguration();
+
+    return new Promise((resolve, reject) => {
+      forkJoin([this.collectionsService.getCollectionPermissions(collectionInfo.collectionId), this.assignedTeamService.getAssignedTeams()]).subscribe({
+        next: ([users, assignedTeamOptions]) => {
+          const poam: any = {
+            poamId: 'ADDPOAM',
+            collectionId: collectionInfo.collectionId,
+            vulnerabilitySource: stateData.vulnerabilitySource || '',
+            aaPackage: collectionInfo.collectionAAPackage || '',
+            predisposingConditions: collectionInfo.collectionPredisposingConditions || '',
+            vulnerabilityId: stateData.vulnerabilityId || '',
+            description: stateData.description || '',
+            rawSeverity: stateData.severity || '',
+            adjSeverity: stateData.severity || '',
+            submitterId: userId,
+            status: 'Draft',
+            submittedDate: null,
+            hqs: false,
+            isGlobalFinding: false
+          };
+
+          poam.residualRisk = this.mappingService.mapToEmassValues(stateData.severity);
+          poam.likelihood = this.mappingService.mapToEmassValues(stateData.severity);
+          poam.scheduledCompletionDate = this.mappingService.calculateScheduledCompletionDate(poam.rawSeverity, this.appConfigSettings);
+
+          const dates = {
+            scheduledCompletionDate: parse(poam.scheduledCompletionDate, 'yyyy-MM-dd', new Date()),
+            iavComplyByDate: null,
+            submittedDate: null
+          };
+
+          const collectionApprovers = Array.isArray(users) ? users.filter((user: Permission) => user.accessLevel >= 3) : [];
+
+          const poamApprovers = Array.isArray(collectionApprovers)
+            ? collectionApprovers.map((approver: UserCollectionPermission) => ({
+                userId: approver.userId,
+                approvalStatus: 'Not Reviewed',
+                comments: '',
+                approvedDate: null,
+                isNew: false
+              }))
+            : [];
+
+          this.sharedService.getSTIGsFromSTIGMAN().subscribe({
+            next: (data) => {
+              const stigmanSTIGs = data.map((stig: any) => ({
+                title: stig.title,
+                benchmarkId: stig.benchmarkId,
+                lastRevisionStr: stig.lastRevisionStr,
+                lastRevisionDate: stig.lastRevisionDate
+              }));
+
+              poam.vulnerabilitySource = stateData.vulnerabilitySource;
+              poam.vulnerabilityId = stateData.vulnerabilityId;
+              poam.rawSeverity = stateData.severity;
+              poam.stigCheckData = stateData.ruleData;
+              poam.stigBenchmarkId = stateData.benchmarkId;
+
+              const selectedStig = stigmanSTIGs.find((stig: any) => stig.benchmarkId === poam.stigBenchmarkId);
+
+              let selectedStigObject = null;
+
+              if (selectedStig) {
+                selectedStigObject = selectedStig;
+
+                const [version, release] = selectedStig.lastRevisionStr?.match(/\d+/g) || [];
+                const formattedRevision = version && release ? `Version ${version}, Release: ${release}` : selectedStig.lastRevisionStr;
+
+                poam.vulnerabilityTitle = `${selectedStig.title} :: ${formattedRevision} Benchmark Date: ${selectedStig.lastRevisionDate}`;
+                poam.vulnerabilityName = selectedStig.title;
+              } else {
+                poam.vulnerabilityName = poam.stigBenchmarkId;
+              }
+
+              resolve({
                 poam,
-                dates: {
-                    scheduledCompletionDate: parse(poam.scheduledCompletionDate, 'yyyy-MM-dd', new Date()),
-                    iavComplyByDate: poam.iavComplyByDate ? parse(poam.iavComplyByDate, 'yyyy-MM-dd', new Date()) : null,
-                    submittedDate: null
-                },
-                tenableVulnResponse,
-                tenablePluginData: this.parsePluginData(poam.tenablePluginData),
+                dates,
+                stigmanSTIGs,
+                selectedStigObject,
                 assignedTeamOptions,
                 collectionUsers: users,
-                collectionApprovers: Array.isArray(users) ? users.filter((user: Permission) => user.accessLevel >= 3) : [],
-                poamApprovers: Array.isArray(users)
-                    ? users
-                          .filter((user: Permission) => user.accessLevel >= 3)
-                          .map((approver: any) => ({
-                              userId: approver.userId,
-                              approvalStatus: 'Not Reviewed',
-                              comments: '',
-                              approvedDate: null,
-                              isNew: false
-                          }))
-                    : []
-            };
-
-            poam.residualRisk = this.mappingService.mapToEmassValues(poam.rawSeverity);
-            poam.likelihood = this.mappingService.mapToEmassValues(poam.rawSeverity);
-
-            return results;
-        } catch (error) {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Failed to create new POAM: ${getErrorMessage(error)}`
-            });
-            throw error;
+                collectionApprovers,
+                poamApprovers
+              });
+            },
+            error: (error) => {
+              console.error('Error loading STIGs:', error);
+              reject(error);
+            }
+          });
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load required data: ${getErrorMessage(error)}`
+          });
+          reject(error);
         }
-    }
+      });
+    });
+  }
 
-    async createNewSTIGManagerPoam(stateData: any, collectionInfo: any, userId: number): Promise<any> {
-        this.loadAppConfiguration();
-        return new Promise((resolve, reject) => {
-            forkJoin([this.collectionsService.getCollectionPermissions(collectionInfo.collectionId), this.assignedTeamService.getAssignedTeams()]).subscribe({
-                next: ([users, assignedTeamOptions]) => {
-                    const poam: any = {
-                        poamId: 'ADDPOAM',
-                        collectionId: collectionInfo.collectionId,
-                        vulnerabilitySource: stateData.vulnerabilitySource || '',
-                        aaPackage: collectionInfo.collectionAAPackage || '',
-                        predisposingConditions: collectionInfo.collectionPredisposingConditions || '',
-                        vulnerabilityId: stateData.vulnerabilityId || '',
-                        description: stateData.description || '',
-                        rawSeverity: stateData.severity || '',
-                        adjSeverity: stateData.severity || '',
-                        submitterId: userId,
-                        status: 'Draft',
-                        submittedDate: null,
-                        hqs: false,
-                        isGlobalFinding: false
-                    };
+  async createNewPoam(collectionInfo: any, userId: number): Promise<any> {
+    this.loadAppConfiguration();
 
-                    poam.residualRisk = this.mappingService.mapToEmassValues(stateData.severity);
-                    poam.likelihood = this.mappingService.mapToEmassValues(stateData.severity);
-                    poam.scheduledCompletionDate = this.mappingService.calculateScheduledCompletionDate(poam.rawSeverity, this.appConfigSettings);
+    return new Promise((resolve, reject) => {
+      forkJoin([this.collectionsService.getCollectionPermissions(collectionInfo.collectionId), this.assetService.getAssetsByCollection(collectionInfo.collectionId), this.assignedTeamService.getAssignedTeams()]).subscribe({
+        next: ([users, collectionAssets, assignedTeamOptions]) => {
+          const dateIn30Days = new Date();
 
-                    const dates = {
-                        scheduledCompletionDate: parse(poam.scheduledCompletionDate, 'yyyy-MM-dd', new Date()),
-                        iavComplyByDate: null,
-                        submittedDate: null
-                    };
+          dateIn30Days.setDate(dateIn30Days.getDate() + 30);
 
-                    const collectionApprovers = Array.isArray(users) ? users.filter((user: Permission) => user.accessLevel >= 3) : [];
+          const poam = {
+            poamId: 'ADDPOAM',
+            collectionId: collectionInfo.collectionId,
+            vulnerabilitySource: '',
+            aaPackage: collectionInfo.collectionAAPackage || '',
+            predisposingConditions: collectionInfo.collectionPredisposingConditions || '',
+            vulnerabilityId: '',
+            description: '',
+            rawSeverity: '',
+            submitterId: userId,
+            status: 'Draft',
+            submittedDate: null,
+            scheduledCompletionDate: format(dateIn30Days, 'yyyy-MM-dd'),
+            hqs: false,
+            isGlobalFinding: false
+          };
 
-                    const poamApprovers = Array.isArray(collectionApprovers)
-                        ? collectionApprovers.map((approver: UserCollectionPermission) => ({
-                              userId: approver.userId,
-                              approvalStatus: 'Not Reviewed',
-                              comments: '',
-                              approvedDate: null,
-                              isNew: false
-                          }))
-                        : [];
+          const dates = {
+            scheduledCompletionDate: parse(poam.scheduledCompletionDate, 'yyyy-MM-dd', new Date()),
+            iavComplyByDate: null,
+            submittedDate: null
+          };
 
-                    this.sharedService.getSTIGsFromSTIGMAN().subscribe({
-                        next: (data) => {
-                            const stigmanSTIGs = data.map((stig: any) => ({
-                                title: stig.title,
-                                benchmarkId: stig.benchmarkId,
-                                lastRevisionStr: stig.lastRevisionStr,
-                                lastRevisionDate: stig.lastRevisionDate
-                            }));
+          const collectionApprovers = Array.isArray(users) ? users.filter((user: Permission) => user.accessLevel >= 3) : [];
 
-                            poam.vulnerabilitySource = stateData.vulnerabilitySource;
-                            poam.vulnerabilityId = stateData.vulnerabilityId;
-                            poam.rawSeverity = stateData.severity;
-                            poam.stigCheckData = stateData.ruleData;
-                            poam.stigBenchmarkId = stateData.benchmarkId;
+          const poamApprovers = Array.isArray(collectionApprovers)
+            ? collectionApprovers.map((approver: UserCollectionPermission) => ({
+                userId: approver.userId,
+                approvalStatus: 'Not Reviewed',
+                comments: '',
+                approvedDate: null,
+                isNew: false
+              }))
+            : [];
 
-                            const selectedStig = stigmanSTIGs.find((stig: any) => stig.benchmarkId === poam.stigBenchmarkId);
+          this.sharedService.getSTIGsFromSTIGMAN().subscribe({
+            next: (data) => {
+              const stigmanSTIGs = data.map((stig: any) => ({
+                title: stig.title,
+                benchmarkId: stig.benchmarkId,
+                lastRevisionStr: stig.lastRevisionStr,
+                lastRevisionDate: stig.lastRevisionDate
+              }));
 
-                            let selectedStigObject = null;
-
-                            if (selectedStig) {
-                                selectedStigObject = selectedStig;
-
-                                const [version, release] = selectedStig.lastRevisionStr?.match(/\d+/g) || [];
-                                const formattedRevision = version && release ? `Version ${version}, Release: ${release}` : selectedStig.lastRevisionStr;
-
-                                poam.vulnerabilityTitle = `${selectedStig.title} :: ${formattedRevision} Benchmark Date: ${selectedStig.lastRevisionDate}`;
-                                poam.vulnerabilityName = selectedStig.title;
-                            } else {
-                                poam.vulnerabilityName = poam.stigBenchmarkId;
-                            }
-
-                            resolve({
-                                poam,
-                                dates,
-                                stigmanSTIGs,
-                                selectedStigObject,
-                                assignedTeamOptions,
-                                collectionUsers: users,
-                                collectionApprovers,
-                                poamApprovers
-                            });
-                        },
-                        error: (error) => {
-                            console.error('Error loading STIGs:', error);
-                            reject(error);
-                        }
-                    });
-                },
-                error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: `Failed to load required data: ${getErrorMessage(error)}`
-                    });
-                    reject(error);
-                }
-            });
-        });
-    }
-
-    async createNewPoam(collectionInfo: any, userId: number): Promise<any> {
-        this.loadAppConfiguration();
-        return new Promise((resolve, reject) => {
-            forkJoin([this.collectionsService.getCollectionPermissions(collectionInfo.collectionId), this.assetService.getAssetsByCollection(collectionInfo.collectionId), this.assignedTeamService.getAssignedTeams()]).subscribe({
-                next: ([users, collectionAssets, assignedTeamOptions]) => {
-                    const dateIn30Days = new Date();
-                    dateIn30Days.setDate(dateIn30Days.getDate() + 30);
-
-                    const poam = {
-                        poamId: 'ADDPOAM',
-                        collectionId: collectionInfo.collectionId,
-                        vulnerabilitySource: '',
-                        aaPackage: collectionInfo.collectionAAPackage || '',
-                        predisposingConditions: collectionInfo.collectionPredisposingConditions || '',
-                        vulnerabilityId: '',
-                        description: '',
-                        rawSeverity: '',
-                        submitterId: userId,
-                        status: 'Draft',
-                        submittedDate: null,
-                        scheduledCompletionDate: format(dateIn30Days, 'yyyy-MM-dd'),
-                        hqs: false,
-                        isGlobalFinding: false
-                    };
-
-                    const dates = {
-                        scheduledCompletionDate: parse(poam.scheduledCompletionDate, 'yyyy-MM-dd', new Date()),
-                        iavComplyByDate: null,
-                        submittedDate: null
-                    };
-
-                    const collectionApprovers = Array.isArray(users) ? users.filter((user: Permission) => user.accessLevel >= 3) : [];
-
-                    const poamApprovers = Array.isArray(collectionApprovers)
-                        ? collectionApprovers.map((approver: UserCollectionPermission) => ({
-                              userId: approver.userId,
-                              approvalStatus: 'Not Reviewed',
-                              comments: '',
-                              approvedDate: null,
-                              isNew: false
-                          }))
-                        : [];
-
-                    this.sharedService.getSTIGsFromSTIGMAN().subscribe({
-                        next: (data) => {
-                            const stigmanSTIGs = data.map((stig: any) => ({
-                                title: stig.title,
-                                benchmarkId: stig.benchmarkId,
-                                lastRevisionStr: stig.lastRevisionStr,
-                                lastRevisionDate: stig.lastRevisionDate
-                            }));
-
-                            resolve({
-                                poam,
-                                dates,
-                                stigmanSTIGs,
-                                assets: collectionAssets,
-                                assignedTeamOptions,
-                                collectionUsers: users,
-                                collectionApprovers,
-                                poamApprovers
-                            });
-                        },
-                        error: (error) => {
-                            console.error('Error loading STIGs:', error);
-                            reject(error);
-                        }
-                    });
-                },
-                error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: `Failed to load required data: ${getErrorMessage(error)}`
-                    });
-                    reject(error);
-                }
-            });
-        });
-    }
+              resolve({
+                poam,
+                dates,
+                stigmanSTIGs,
+                assets: collectionAssets,
+                assignedTeamOptions,
+                collectionUsers: users,
+                collectionApprovers,
+                poamApprovers
+              });
+            },
+            error: (error) => {
+              console.error('Error loading STIGs:', error);
+              reject(error);
+            }
+          });
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load required data: ${getErrorMessage(error)}`
+          });
+          reject(error);
+        }
+      });
+    });
+  }
 }

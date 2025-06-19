@@ -8,30 +8,30 @@
 !##########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 
 @Component({
-    selector: 'cpat-consent',
-    templateUrl: './dod-consent.component.html',
-    styleUrls: ['./dod-consent.component.scss'],
-    standalone: true,
-    imports: [DialogModule, FormsModule, ButtonModule]
+  selector: 'cpat-consent',
+  templateUrl: './dod-consent.component.html',
+  styleUrls: ['./dod-consent.component.scss'],
+  standalone: true,
+  imports: [DialogModule, FormsModule, ButtonModule]
 })
 export class DoDConsentComponent implements OnInit {
-    visible: boolean = false;
+  private router = inject(Router);
 
-    constructor(private router: Router) {}
+  visible: boolean = false;
 
-    ngOnInit() {
-        this.visible = true;
-    }
+  ngOnInit() {
+    this.visible = true;
+  }
 
-    consentOk() {
-        this.visible = false;
-        this.router.navigate(['/poam-processing']);
-    }
+  consentOk() {
+    this.visible = false;
+    this.router.navigate(['/poam-processing']);
+  }
 }

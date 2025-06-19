@@ -9,54 +9,54 @@
 -->
 
 @if (loading) {
-    <div class="justify-content-center align-items-center p-4">
-        <p-progressBar mode="indeterminate" [style]="{ height: '6px', 'margin-bottom': '1rem' }" />
-        <span>Analyzing assets and assigning teams...</span>
-    </div>
+  <div class="justify-content-center align-items-center p-4">
+    <p-progressBar mode="indeterminate" [style]="{ height: '6px', 'margin-bottom': '1rem' }" />
+    <span>Analyzing assets and assigning teams...</span>
+  </div>
 }
 
 @if (!loading) {
-    <div class="table-container">
-        <p-table [value]="poamAssignedTeams" styleClass="p-datatable-striped full-width-table" [scrollable]="true" scrollHeight="flex">
-            <ng-template pTemplate="header">
-                <tr>
-                    <th pSortableColumn="assignedTeamName" scope="col" style="width: 90%">Teams Assigned</th>
-                    <th scope="col" style="width: 10%; text-align: center">
-                        <button pButton icon="pi pi-plus" (click)="addAssignedTeam()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
-                    </th>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-assignedTeam let-rowIndex="rowIndex">
-                <tr>
-                    <td style="width: 90%">
-                        @if (!assignedTeam.isNew) {
-                            <span>{{ assignedTeam.assignedTeamName }}</span>
-                        }
-                        @if (assignedTeam.isNew) {
-                            <p-select
-                                [options]="assignedTeamOptions"
-                                [(ngModel)]="assignedTeam.assignedTeamId"
-                                optionLabel="assignedTeamName"
-                                optionValue="assignedTeamId"
-                                [style]="{ width: '100%' }"
-                                (onChange)="onAssignedTeamChange(assignedTeam, rowIndex)"
-                                appendTo="body"
-                                [disabled]="accessLevel < 2"
-                            >
-                            </p-select>
-                        }
-                    </td>
-                    <td style="width: 10%; text-align: center">
-                        <button pButton icon="pi pi-trash" (click)="deleteAssignedTeam(assignedTeam, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
-                    </td>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-                <tr>
-                    <td colspan="2" style="text-align: center">No Data to Display</td>
-                </tr>
-            </ng-template>
-        </p-table>
-    </div>
+  <div class="table-container">
+    <p-table [value]="poamAssignedTeams" styleClass="p-datatable-striped full-width-table" [scrollable]="true" scrollHeight="flex">
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="assignedTeamName" scope="col" style="width: 90%">Teams Assigned</th>
+          <th scope="col" style="width: 10%; text-align: center">
+            <button pButton icon="pi pi-plus" (click)="addAssignedTeam()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-assignedTeam let-rowIndex="rowIndex">
+        <tr>
+          <td style="width: 90%">
+            @if (!assignedTeam.isNew) {
+              <span>{{ assignedTeam.assignedTeamName }}</span>
+            }
+            @if (assignedTeam.isNew) {
+              <p-select
+                [options]="assignedTeamOptions"
+                [(ngModel)]="assignedTeam.assignedTeamId"
+                optionLabel="assignedTeamName"
+                optionValue="assignedTeamId"
+                [style]="{ width: '100%' }"
+                (onChange)="onAssignedTeamChange(assignedTeam, rowIndex)"
+                appendTo="body"
+                [disabled]="accessLevel < 2"
+              >
+              </p-select>
+            }
+          </td>
+          <td style="width: 10%; text-align: center">
+            <button pButton icon="pi pi-trash" (click)="deleteAssignedTeam(assignedTeam, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="2" style="text-align: center">No Data to Display</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
 }
 <p-toast />

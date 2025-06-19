@@ -9,23 +9,23 @@
 -->
 
 <form (ngSubmit)="onSubmit()" #form="ngForm">
-    <div class="field mb-4">
-        <label for="labelname" class="p-col-fixed" style="width: 10rem">Label Name:</label>
-        <input pInputText type="text" id="labelname" name="labelname" [(ngModel)]="label.labelName" placeholder="Label Name" class="mt-2 w-full" required />
+  <div class="field mb-4">
+    <label for="labelname" class="p-col-fixed" style="width: 10rem">Label Name:</label>
+    <input pInputText type="text" id="labelname" name="labelname" [(ngModel)]="label.labelName" placeholder="Label Name" class="mt-2 w-full" required />
+  </div>
+  <div class="field mb-4">
+    <label for="description" class="p-col-fixed" style="width: 10rem">Description:</label>
+    <input pInputText type="text" id="description" name="description" [(ngModel)]="label.description" placeholder="Description" class="mt-2 w-full" />
+  </div>
+  <div class="formgroup-inline">
+    <div class="mt-8 flex w-full items-center justify-between">
+      <div class="flex gap-6">
+        <button pButton type="submit" [outlined]="true" label="Submit" [disabled]="!form.valid"></button>
+        <button pButton type="button" [outlined]="true" label="Cancel" class="p-button-secondary" (click)="resetData()"></button>
+      </div>
+      <button pButton type="button" [outlined]="true" label="Delete Label" class="p-button-danger" (click)="deleteLabel(label)" [disabled]="accessLevel < 2"></button>
     </div>
-    <div class="field mb-4">
-        <label for="description" class="p-col-fixed" style="width: 10rem">Description:</label>
-        <input pInputText type="text" id="description" name="description" [(ngModel)]="label.description" placeholder="Description" class="mt-2 w-full" />
-    </div>
-    <div class="formgroup-inline">
-        <div class="mt-8 flex w-full items-center justify-between">
-            <div class="flex gap-6">
-                <button pButton type="submit" [outlined]="true" label="Submit" [disabled]="!form.valid"></button>
-                <button pButton type="button" [outlined]="true" label="Cancel" class="p-button-secondary" (click)="resetData()"></button>
-            </div>
-            <button pButton type="button" [outlined]="true" label="Delete Label" class="p-button-danger" (click)="deleteLabel(label)" [disabled]="accessLevel < 2"></button>
-        </div>
-    </div>
+  </div>
 </form>
 
 <p-toast />

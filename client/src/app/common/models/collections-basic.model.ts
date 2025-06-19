@@ -8,14 +8,14 @@
 !##########################################################################
 */
 export interface CollectionsBasicList {
-    collectionId: number;
-    collectionName: string;
-    collectionOrigin?: string;
-    originCollectionId?: number;
-    systemType?: string;
-    systemName?: string;
-    ccsafa?: string;
-    aaPackage?: string;
-    predisposingConditions?: string;
-    manualCreationAllowed?: boolean;
+  collectionId: number;
+  collectionName: string;
+  collectionOrigin?: string;
+  originCollectionId?: number;
+  systemType?: string;
+  systemName?: string;
+  ccsafa?: string;
+  aaPackage?: string;
+  predisposingConditions?: string;
+  manualCreationAllowed?: boolean;
 }

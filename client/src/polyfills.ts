@@ -11,13 +11,13 @@
 import 'zone.js';
 
 if (typeof SVGElement.prototype.contains === 'undefined') {
-    SVGElement.prototype.contains = HTMLDivElement.prototype.contains;
+  SVGElement.prototype.contains = HTMLDivElement.prototype.contains;
 }
 
 if (!('ResizeObserver' in window)) {
-    import('resize-observer-polyfill');
+  import('resize-observer-polyfill');
 }
 
 if (!('scrollBehavior' in document.documentElement.style)) {
-    import('scroll-behavior-polyfill');
+  import('scroll-behavior-polyfill');
 }

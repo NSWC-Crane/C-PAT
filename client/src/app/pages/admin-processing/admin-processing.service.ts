@@ -9,28 +9,31 @@
 */
 
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AdminProcessingService {
-    private cpatApiBase = CPAT.Env.apiBase;
+  private http = inject(HttpClient);
 
-    constructor(private http: HttpClient) {}
+  private cpatApiBase = CPAT.Env.apiBase;
 
-    private handleError(error: any) {
-        let errorMessage = 'An unknown error occurred!';
-        if (error.error instanceof ErrorEvent) {
-            errorMessage = `Error: ${error.error.message}`;
-        } else {
-            errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-        }
-        console.error(errorMessage);
-        return throwError(() => new Error(errorMessage));
+  private handleError(error: any) {
+    let errorMessage = 'An unknown error occurred!';
+
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
 
-    getAppInfo(): Observable<any> {
-        return this.http.get(`${this.cpatApiBase}/op/appinfo?elevate=true`).pipe(catchError(this.handleError));
-    }
+    console.error(errorMessage);
+
+    return throwError(() => new Error(errorMessage));
+  }
+
+  getAppInfo(): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/op/appinfo?elevate=true`).pipe(catchError(this.handleError));
+  }
 }

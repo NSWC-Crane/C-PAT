@@ -18,36 +18,36 @@ import { PoamManageComponent } from './poam-manage/poam-manage.component';
 import { PoamsComponent } from './poams.component';
 
 export const poamProcessingRoutes: Routes = [
-    { path: '', component: PoamsComponent },
-    {
-        path: 'poam-approve/:poamId',
-        canActivate: [AuthGuard],
-        data: { guardType: 'poam' },
-        component: PoamApproveComponent
-    },
-    {
-        path: 'poam-details/:poamId',
-        canActivate: [AuthGuard],
-        data: { guardType: 'poam' },
-        component: PoamDetailsComponent
-    },
+  { path: '', component: PoamsComponent },
+  {
+    path: 'poam-approve/:poamId',
+    canActivate: [AuthGuard],
+    data: { guardType: 'poam' },
+    component: PoamApproveComponent
+  },
+  {
+    path: 'poam-details/:poamId',
+    canActivate: [AuthGuard],
+    data: { guardType: 'poam' },
+    component: PoamDetailsComponent
+  },
 
-    {
-        path: 'poam-extend/:poamId',
-        canActivate: [AuthGuard],
-        data: { guardType: 'poam' },
-        component: PoamExtendComponent
-    },
-    {
-        path: 'poam-log/:poamId',
-        canActivate: [AuthGuard],
-        data: { guardType: 'poam' },
-        component: PoamLogComponent
-    },
-    {
-        path: 'poam-manage',
-        canActivate: [AuthGuard],
-        component: PoamManageComponent
-    },
-    { path: '**', redirectTo: '' }
+  {
+    path: 'poam-extend/:poamId',
+    canActivate: [AuthGuard],
+    data: { guardType: 'poam' },
+    component: PoamExtendComponent
+  },
+  {
+    path: 'poam-log/:poamId',
+    canActivate: [AuthGuard],
+    data: { guardType: 'poam' },
+    component: PoamLogComponent
+  },
+  {
+    path: 'poam-manage',
+    canActivate: [AuthGuard],
+    component: PoamManageComponent
+  },
+  { path: '**', redirectTo: '' }
 ];

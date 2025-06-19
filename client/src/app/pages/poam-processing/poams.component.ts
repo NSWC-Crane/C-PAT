@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -20,79 +20,78 @@ import { CollectionsService } from '../admin-processing/collection-processing/co
 import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.component';
 
 @Component({
-    selector: 'cpat-poams',
-    templateUrl: './poams.component.html',
-    styleUrls: ['./poams.component.scss'],
-    standalone: true,
-    imports: [PoamMainchartComponent, ToastModule],
-    providers: [MessageService]
+  selector: 'cpat-poams',
+  templateUrl: './poams.component.html',
+  styleUrls: ['./poams.component.scss'],
+  standalone: true,
+  imports: [PoamMainchartComponent, ToastModule],
+  providers: [MessageService]
 })
 export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
-    protected accessLevel: any;
-    private subs = new SubSink();
-    public isLoggedIn = false;
-    poams: any;
-    user: any;
-    payload: any;
-    selectedCollection: any;
-    private payloadSubscription: Subscription[] = [];
+  private collectionsService = inject(CollectionsService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private setPayloadService = inject(PayloadService);
+  private messageService = inject(MessageService);
 
-    constructor(
-        private collectionsService: CollectionsService,
-        private router: Router,
-        private cdr: ChangeDetectorRef,
-        private setPayloadService: PayloadService,
-        private messageService: MessageService
-    ) {}
+  protected accessLevel: any;
+  private subs = new SubSink();
+  public isLoggedIn = false;
+  poams: any;
+  user: any;
+  payload: any;
+  selectedCollection: any;
+  private payloadSubscription: Subscription[] = [];
 
-    async ngOnInit() {
-        this.setPayload();
-    }
+  async ngOnInit() {
+    this.setPayload();
+  }
 
-    ngAfterViewInit(): void {
-        this.cdr.detectChanges();
-    }
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
 
-    async setPayload() {
-        this.setPayloadService.setPayload();
-        this.payloadSubscription.push(
-            this.setPayloadService.user$.subscribe((user) => {
-                this.user = user;
-            }),
-            this.setPayloadService.payload$.subscribe((payload) => {
-                this.payload = payload;
-            }),
-            this.setPayloadService.accessLevel$.subscribe((level) => {
-                this.accessLevel = level;
-                if (this.accessLevel > 0) {
-                    this.selectedCollection = this.user.lastCollectionAccessedId;
-                    this.getPoamData();
-                }
-            })
-        );
-    }
+  async setPayload() {
+    this.setPayloadService.setPayload();
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe((user) => {
+        this.user = user;
+      }),
+      this.setPayloadService.payload$.subscribe((payload) => {
+        this.payload = payload;
+      }),
+      this.setPayloadService.accessLevel$.subscribe((level) => {
+        this.accessLevel = level;
 
-    getPoamData() {
-        this.collectionsService.getPoamsByCollection(this.selectedCollection).subscribe({
-            next: (poamData: any) => {
-                this.poams = poamData;
-            },
-            error: (error) => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: `Error fetching POAM data: ${getErrorMessage(error)}`
-                });
-            }
+        if (this.accessLevel > 0) {
+          this.selectedCollection = this.user.lastCollectionAccessedId;
+          this.getPoamData();
+        }
+      })
+    );
+  }
+
+  getPoamData() {
+    this.collectionsService.getPoamsByCollection(this.selectedCollection).subscribe({
+      next: (poamData: any) => {
+        this.poams = poamData;
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching POAM data: ${getErrorMessage(error)}`
         });
-    }
+      }
+    });
+  }
 
-    addPoam() {
-        this.router.navigateByUrl('/poam-processing/poam-details/ADDPOAM');
-    }
+  addPoam() {
+    this.router.navigateByUrl('/poam-processing/poam-details/ADDPOAM');
+  }
 
-    ngOnDestroy(): void {
-        this.subs.unsubscribe();
-        this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
-    }
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
+  }
 }

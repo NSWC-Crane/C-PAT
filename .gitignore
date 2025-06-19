@@ -179,3 +179,4 @@ cython_debug/
 /api/tls/ca.pem
 /api/tls/server-cert.pem
 /api/tls/server-key.pem
+/client/.eslintcache

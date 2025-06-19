@@ -23,97 +23,97 @@ import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
 import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
 
 const routerOptions: ExtraOptions = {
-    anchorScrolling: 'enabled'
+  anchorScrolling: 'enabled'
 };
 
 export const routes: Routes = [
-    {
+  {
+    path: '',
+    component: AppNavigationComponent,
+    children: [
+      {
         path: '',
-        component: AppNavigationComponent,
-        children: [
-            {
-                path: '',
-                redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing',
-                pathMatch: 'full'
-            },
-            {
-                path: 'admin-processing',
-                canActivate: [AuthGuard],
-                data: { guardType: 'admin' },
-                children: adminProcessingRoutes
-            },
-            {
-                path: 'app-info',
-                canActivate: [AuthGuard],
-                data: { guardType: 'admin' },
-                children: adminProcessingRoutes
-            },
-            {
-                path: 'asset-processing',
-                canActivate: [AuthGuard],
-                children: assetProcessingRoutes
-            },
-            {
-                path: 'consent',
-                canActivate: [AuthGuard],
-                children: consentRoute
-            },
-            {
-                path: 'import-processing',
-                canActivate: [AuthGuard],
-                children: importProcessingRoutes
-            },
-            {
-                path: 'label-processing',
-                canActivate: [AuthGuard],
-                children: labelProcessingRoutes
-            },
-            {
-                path: 'notifications',
-                canActivate: [AuthGuard],
-                component: NotificationsComponent
-            },
-            {
-                path: 'poam-processing',
-                canActivate: [AuthGuard],
-                children: poamProcessingRoutes
-            },
-            {
-                path: 'marketplace',
-                canActivate: [AuthGuard],
-                children: marketplaceRoutes
-            }
-        ]
-    },
-    {
-        path: '401',
-        component: StatusMessageComponent,
-        data: { statusCode: 401 }
-    },
-    {
-        path: '403',
-        component: StatusMessageComponent,
-        data: { statusCode: 403 }
-    },
-    {
-        path: '404',
-        component: StatusMessageComponent,
-        data: { statusCode: 404 }
-    },
-    {
-        path: '418',
-        component: StatusMessageComponent,
-        data: { statusCode: 418 }
-    },
-    {
-        path: 'not-activated',
-        component: StatusMessageComponent,
-        data: { statusCode: 999 }
-    },
-    { path: '**', redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing' }
+        redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing',
+        pathMatch: 'full'
+      },
+      {
+        path: 'admin-processing',
+        canActivate: [AuthGuard],
+        data: { guardType: 'admin' },
+        children: adminProcessingRoutes
+      },
+      {
+        path: 'app-info',
+        canActivate: [AuthGuard],
+        data: { guardType: 'admin' },
+        children: adminProcessingRoutes
+      },
+      {
+        path: 'asset-processing',
+        canActivate: [AuthGuard],
+        children: assetProcessingRoutes
+      },
+      {
+        path: 'consent',
+        canActivate: [AuthGuard],
+        children: consentRoute
+      },
+      {
+        path: 'import-processing',
+        canActivate: [AuthGuard],
+        children: importProcessingRoutes
+      },
+      {
+        path: 'label-processing',
+        canActivate: [AuthGuard],
+        children: labelProcessingRoutes
+      },
+      {
+        path: 'notifications',
+        canActivate: [AuthGuard],
+        component: NotificationsComponent
+      },
+      {
+        path: 'poam-processing',
+        canActivate: [AuthGuard],
+        children: poamProcessingRoutes
+      },
+      {
+        path: 'marketplace',
+        canActivate: [AuthGuard],
+        children: marketplaceRoutes
+      }
+    ]
+  },
+  {
+    path: '401',
+    component: StatusMessageComponent,
+    data: { statusCode: 401 }
+  },
+  {
+    path: '403',
+    component: StatusMessageComponent,
+    data: { statusCode: 403 }
+  },
+  {
+    path: '404',
+    component: StatusMessageComponent,
+    data: { statusCode: 404 }
+  },
+  {
+    path: '418',
+    component: StatusMessageComponent,
+    data: { statusCode: 418 }
+  },
+  {
+    path: 'not-activated',
+    component: StatusMessageComponent,
+    data: { statusCode: 999 }
+  },
+  { path: '**', redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing' }
 ];
 @NgModule({
-    imports: [RouterModule.forRoot(routes, routerOptions)],
-    exports: [RouterModule]
+  imports: [RouterModule.forRoot(routes, routerOptions)],
+  exports: [RouterModule]
 })
 export class AppRoutingModule {}

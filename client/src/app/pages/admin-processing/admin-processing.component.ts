@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -30,71 +30,71 @@ import { UsersService } from './user-processing/users.service';
 import { VRAMImportComponent } from './vram-import/vram-import.component';
 
 @Component({
-    selector: 'cpat-admin-processing',
-    templateUrl: './admin-processing.component.html',
-    styleUrls: ['./admin-processing.component.scss'],
-    standalone: true,
-    imports: [
-        AAPackageProcessingComponent,
-        AppConfigurationComponent,
-        AssignedTeamProcessingComponent,
-        ButtonModule,
-        CollectionProcessingComponent,
-        FormsModule,
-        NessusPluginMappingComponent,
-        STIGManagerAdminComponent,
-        TabsModule,
-        ToastModule,
-        TenableAdminComponent,
-        UserProcessingComponent,
-        AssetDeltaComponent,
-        VRAMImportComponent
-    ],
-    providers: [MessageService]
+  selector: 'cpat-admin-processing',
+  templateUrl: './admin-processing.component.html',
+  styleUrls: ['./admin-processing.component.scss'],
+  standalone: true,
+  imports: [
+    AAPackageProcessingComponent,
+    AppConfigurationComponent,
+    AssignedTeamProcessingComponent,
+    ButtonModule,
+    CollectionProcessingComponent,
+    FormsModule,
+    NessusPluginMappingComponent,
+    STIGManagerAdminComponent,
+    TabsModule,
+    ToastModule,
+    TenableAdminComponent,
+    UserProcessingComponent,
+    AssetDeltaComponent,
+    VRAMImportComponent
+  ],
+  providers: [MessageService]
 })
-export class AdminProcessingComponent implements OnInit {
-    value: number = 0;
-    user: any;
-    private destroy$ = new Subject<void>();
-    tenableEnabled = CPAT.Env.features.tenableEnabled;
-    constructor(
-        private userService: UsersService,
-        private router: Router,
-        private messageService: MessageService
-    ) {}
+export class AdminProcessingComponent implements OnInit, OnDestroy {
+  private userService = inject(UsersService);
+  private router = inject(Router);
+  private messageService = inject(MessageService);
 
-    ngOnInit() {
-        this.user = null;
-        this.userService
-            .getCurrentUser()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (response: any) => {
-                    this.user = response;
-                    if (!this.user.isAdmin) {
-                        this.router.navigate(['/403']);
-                    }
-                },
-                error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: `An error occurred: ${getErrorMessage(error)}`
-                    });
-                }
-            });
-    }
+  value: number = 0;
+  user: any;
+  private destroy$ = new Subject<void>();
+  tenableEnabled = CPAT.Env.features.tenableEnabled;
 
-    navigateToAppInfo() {
-        this.router.navigate(['/admin-processing/app-info']);
-    }
+  ngOnInit() {
+    this.user = null;
+    this.userService
+      .getCurrentUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          this.user = response;
 
-    switchToPluginMapping() {
-        this.value = 6;
-    }
+          if (!this.user.isAdmin) {
+            this.router.navigate(['/403']);
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `An error occurred: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
 
-    ngOnDestroy() {
-        this.destroy$.next();
-        this.destroy$.complete();
-    }
+  navigateToAppInfo() {
+    this.router.navigate(['/admin-processing/app-info']);
+  }
+
+  switchToPluginMapping() {
+    this.value = 6;
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

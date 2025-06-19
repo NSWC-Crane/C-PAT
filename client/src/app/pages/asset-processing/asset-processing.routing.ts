@@ -12,8 +12,8 @@ import { Routes } from '@angular/router';
 import { AssetProcessingComponent } from './asset-processing.component';
 
 export const assetProcessingRoutes: Routes = [
-    {
-        path: '',
-        component: AssetProcessingComponent
-    }
+  {
+    path: '',
+    component: AssetProcessingComponent
+  }
 ];

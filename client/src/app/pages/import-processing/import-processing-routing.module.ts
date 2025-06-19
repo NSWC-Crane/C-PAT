@@ -14,14 +14,14 @@ import { STIGManagerImportComponent } from './stigmanager-import/stigmanager-imp
 import { TenableComponent } from './tenable-import/tenable.component';
 
 export const importProcessingRoutes: Routes = [
-    {
-        path: 'stigmanager-import',
-        canActivate: [AuthGuard],
-        component: STIGManagerImportComponent
-    },
-    {
-        path: 'tenable-import',
-        canActivate: [AuthGuard],
-        component: TenableComponent
-    }
+  {
+    path: 'stigmanager-import',
+    canActivate: [AuthGuard],
+    component: STIGManagerImportComponent
+  },
+  {
+    path: 'tenable-import',
+    canActivate: [AuthGuard],
+    component: TenableComponent
+  }
 ];

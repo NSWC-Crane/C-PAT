@@ -9,38 +9,40 @@
 */
 
 import { HttpClient, HttpErrorResponse, HttpEvent } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class VRAMImportService {
-    private cpatApiBase = CPAT.Env.apiBase;
+  private http = inject(HttpClient);
 
-    constructor(private http: HttpClient) {}
+  private cpatApiBase = CPAT.Env.apiBase;
 
-    private handleError(error: HttpErrorResponse) {
-        if (error.error instanceof ErrorEvent) {
-            console.error('An error occurred:', error.error.message);
-        } else {
-            console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
-        }
-        return throwError(() => new Error('Something bad happened; please try again later.'));
+  private handleError(error: HttpErrorResponse) {
+    if (error.error instanceof ErrorEvent) {
+      console.error('An error occurred:', error.error.message);
+    } else {
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
 
-    upload(file: File): Observable<HttpEvent<any>> {
-        const formData = new FormData();
-        formData.append('file', file, file.name);
+    return throwError(() => new Error('Something bad happened; please try again later.'));
+  }
 
-        return this.http.post(`${this.cpatApiBase}/import/vram`, formData, {
-            reportProgress: true,
-            observe: 'events'
-        });
-    }
+  upload(file: File): Observable<HttpEvent<any>> {
+    const formData = new FormData();
 
-    getVramDataUpdatedDate(): Observable<any> {
-        return this.http.get(`${this.cpatApiBase}/iav/vramUpdatedDate`).pipe(catchError(this.handleError));
-    }
+    formData.append('file', file, file.name);
+
+    return this.http.post(`${this.cpatApiBase}/import/vram`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
+
+  getVramDataUpdatedDate(): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/iav/vramUpdatedDate`).pipe(catchError(this.handleError));
+  }
 }

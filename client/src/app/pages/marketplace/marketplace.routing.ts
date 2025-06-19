@@ -12,8 +12,8 @@ import { Routes } from '@angular/router';
 import { MarketplaceComponent } from './marketplace.component';
 
 export const marketplaceRoutes: Routes = [
-    {
-        path: '',
-        component: MarketplaceComponent
-    }
+  {
+    path: '',
+    component: MarketplaceComponent
+  }
 ];

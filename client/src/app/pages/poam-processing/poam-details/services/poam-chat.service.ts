@@ -9,49 +9,51 @@
 */
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class PoamChatService {
-    private cpatApiBase = CPAT.Env.apiBase;
+  private http = inject(HttpClient);
 
-    constructor(private http: HttpClient) {}
+  private cpatApiBase = CPAT.Env.apiBase;
 
-    private handleError(error: HttpErrorResponse) {
-        if (error.error instanceof ErrorEvent) {
-            console.error('An error occurred:', error.error.message);
-        } else {
-            console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
-        }
-        return throwError(() => new Error('Something bad happened; please try again later.'));
+  private handleError(error: HttpErrorResponse) {
+    if (error.error instanceof ErrorEvent) {
+      console.error('An error occurred:', error.error.message);
+    } else {
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
 
-    getMessagesByPoamId(poamId: number): Observable<any> {
-        return this.http.get(`${this.cpatApiBase}/poam/${poamId}/chat`).pipe(catchError(this.handleError));
-    }
+    return throwError(() => new Error('Something bad happened; please try again later.'));
+  }
 
-    createMessage(poamId: number, message: string): Observable<any> {
-        const payload = { text: message };
-        return this.http.post<any>(`${this.cpatApiBase}/poam/${poamId}/chat`, payload).pipe(catchError(this.handleError));
-    }
+  getMessagesByPoamId(poamId: number): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/poam/${poamId}/chat`).pipe(catchError(this.handleError));
+  }
 
-    deleteMessage(messageId: number): Observable<any> {
-        return this.http.delete<any>(`${this.cpatApiBase}/poam/chat/${messageId}`).pipe(catchError(this.handleError));
-    }
+  createMessage(poamId: number, message: string): Observable<any> {
+    const payload = { text: message };
 
-    formatMessagesForUI(userId: number, messages: any[]): any {
-        if (!messages || !messages.length) return [];
+    return this.http.post<any>(`${this.cpatApiBase}/poam/${poamId}/chat`, payload).pipe(catchError(this.handleError));
+  }
 
-        return messages.map((message) => ({
-            text: message.text,
-            ownerId: message.userId,
-            createdAt: new Date(message.createdAt).getTime(),
-            messageId: message.messageId,
-            isCurrentUser: message.userId === userId
-        }));
-    }
+  deleteMessage(messageId: number): Observable<any> {
+    return this.http.delete<any>(`${this.cpatApiBase}/poam/chat/${messageId}`).pipe(catchError(this.handleError));
+  }
+
+  formatMessagesForUI(userId: number, messages: any[]): any {
+    if (!messages || !messages.length) return [];
+
+    return messages.map((message) => ({
+      text: message.text,
+      ownerId: message.userId,
+      createdAt: new Date(message.createdAt).getTime(),
+      messageId: message.messageId,
+      isCurrentUser: message.userId === userId
+    }));
+  }
 }

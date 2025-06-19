@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -21,82 +21,81 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../import.service';
 
 @Component({
-    selector: 'cpat-tenable-filters',
-    templateUrl: './tenableFilters.component.html',
-    styleUrls: ['./tenableFilters.component.scss'],
-    standalone: true,
-    imports: [FormsModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, ToastModule, TooltipModule],
-    providers: [MessageService]
+  selector: 'cpat-tenable-filters',
+  templateUrl: './tenableFilters.component.html',
+  styleUrls: ['./tenableFilters.component.scss'],
+  standalone: true,
+  imports: [FormsModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, ToastModule, TooltipModule],
+  providers: [MessageService]
 })
 export class TenableFiltersComponent {
-    @Input() collectionId: number = 0;
-    @Input() activeFilters: any[] = [];
-    @Input() tenableTool: string = '';
+  private importService = inject(ImportService);
+  private messageService = inject(MessageService);
 
-    @Output() filterSaved = new EventEmitter<void>();
+  @Input() collectionId: number = 0;
+  @Input() activeFilters: any[] = [];
+  @Input() tenableTool: string = '';
 
-    saveFilterDialog: boolean = false;
-    newFilterName: string = '';
-    currentFilter: string = '';
+  @Output() filterSaved = new EventEmitter<void>();
 
-    constructor(
-        private importService: ImportService,
-        private messageService: MessageService
-    ) {}
+  saveFilterDialog: boolean = false;
+  newFilterName: string = '';
+  currentFilter: string = '';
 
-    showSaveFilterDialog() {
-        const filterToSave = {
-            tool: this.tenableTool,
-            sourceType: 'cumulative',
-            type: 'vuln',
-            filters: this.activeFilters,
-            tenableTool: this.tenableTool
-        };
+  showSaveFilterDialog() {
+    const filterToSave = {
+      tool: this.tenableTool,
+      sourceType: 'cumulative',
+      type: 'vuln',
+      filters: this.activeFilters,
+      tenableTool: this.tenableTool
+    };
 
-        this.currentFilter = JSON.stringify(filterToSave, null, 2);
-        this.newFilterName = '';
-        this.saveFilterDialog = true;
+    this.currentFilter = JSON.stringify(filterToSave, null, 2);
+    this.newFilterName = '';
+    this.saveFilterDialog = true;
+  }
+
+  saveCustomFilter() {
+    if (!this.newFilterName?.trim()) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Filter name is required'
+      });
+
+      return;
     }
 
-    saveCustomFilter() {
-        if (!this.newFilterName?.trim()) {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Filter name is required'
-            });
-            return;
-        }
+    const filterData = {
+      collectionId: this.collectionId,
+      filterName: this.newFilterName,
+      filter: this.currentFilter
+    };
 
-        const filterData = {
-            collectionId: this.collectionId,
-            filterName: this.newFilterName,
-            filter: this.currentFilter
-        };
-
-        this.importService.addTenableFilter(this.collectionId, filterData).subscribe({
-            next: () => {
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Success',
-                    detail: 'Filter saved successfully'
-                });
-                this.saveFilterDialog = false;
-                this.filterSaved.emit();
-            },
-            error: (error) => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: `Error saving filter: ${getErrorMessage(error)}`
-                });
-            }
+    this.importService.addTenableFilter(this.collectionId, filterData).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Filter saved successfully'
         });
-    }
-
-    cancelSaveFilter() {
         this.saveFilterDialog = false;
-        this.newFilterName = '';
-        this.currentFilter = '';
-    }
+        this.filterSaved.emit();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error saving filter: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  cancelSaveFilter() {
+    this.saveFilterDialog = false;
+    this.newFilterName = '';
+    this.currentFilter = '';
+  }
 }

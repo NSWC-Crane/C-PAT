@@ -9,90 +9,90 @@
 -->
 
 <p-table [value]="filteredData()" [scrollable]="true" scrollHeight="64rem" sortMode="multiple" styleClass="h-full" selectionMode="single">
-    <ng-template pTemplate="caption">
-        <p-iconField iconPosition="left" class="ml-auto">
-            <p-inputIcon>
-                <i class="pi pi-search"></i>
-            </p-inputIcon>
-            <input id="poamAssignedGridSearch" name="poamAssignedGridSearch" pInputText type="text" [ngModel]="globalFilter()" (input)="onFilterChange($event)" placeholder="Search..." />
-        </p-iconField>
-    </ng-template>
-    <ng-template pTemplate="header">
-        <tr>
-            @for (col of assignedColumns(); track col) {
-                <th [pSortableColumn]="getColumnKey(col)" scope="col" [pTooltip]="col === 'Scheduled Completion' ? 'Date shown includes extension time if applicable' : null" tooltipPosition="top">
-                    {{ col }}
-                </th>
+  <ng-template pTemplate="caption">
+    <p-iconField iconPosition="left" class="ml-auto">
+      <p-inputIcon>
+        <i class="pi pi-search"></i>
+      </p-inputIcon>
+      <input id="poamAssignedGridSearch" name="poamAssignedGridSearch" pInputText type="text" [ngModel]="globalFilter()" (input)="onFilterChange($event)" placeholder="Search..." />
+    </p-iconField>
+  </ng-template>
+  <ng-template pTemplate="header">
+    <tr>
+      @for (col of assignedColumns(); track col) {
+        <th [pSortableColumn]="getColumnKey(col)" scope="col" [pTooltip]="col === 'Scheduled Completion' ? 'Date shown includes extension time if applicable' : null" tooltipPosition="top">
+          {{ col }}
+        </th>
+      }
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-row>
+    <tr>
+      @for (col of assignedColumns(); track col) {
+        <td>
+          @switch (col) {
+            @case ('POAM ID') {
+              <a href="javascript:void(0)" (click)="managePoam(row)" class="text-primary cursor-pointer font-semibold hover:font-bold" pTooltip="Navigate to this POAM" tooltipPosition="top">
+                {{ row[getColumnKey(col)] }}
+              </a>
             }
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-row>
-        <tr>
-            @for (col of assignedColumns(); track col) {
-                <td>
-                    @switch (col) {
-                        @case ('POAM ID') {
-                            <a href="javascript:void(0)" (click)="managePoam(row)" class="text-primary cursor-pointer font-semibold hover:font-bold" pTooltip="Navigate to this POAM" tooltipPosition="top">
-                                {{ row[getColumnKey(col)] }}
-                            </a>
-                        }
-                        @case ('Affected Assets') {
-                            @if (row.isAffectedAssetsLoading) {
-                                <p-progressSpinner [style]="{ width: '20px', height: '20px' }" strokeWidth="4" pTooltip="Loading affected assets for Vulnerability ID: {{ row.vulnerabilityId }}" tooltipPosition="top"> </p-progressSpinner>
-                            } @else if (row.isAffectedAssetsMissing) {
-                                <div class="align-items-center flex">
-                                    <i class="pi pi-exclamation-triangle mr-2 text-yellow-500" pTooltip="Review for closure. No affected assets found for Vulnerability ID: {{ row.vulnerabilityId }}" tooltipPosition="top"></i>
-                                </div>
-                            } @else {
-                                <div class="align-items-center flex">
-                                    <span>{{ row[getColumnKey(col)] }}</span>
-                                    @if (row.hasAssociatedVulnerabilities) {
-                                        <i class="pi pi-info-circle ml-2 mt-1 cursor-pointer" style="color: var(--primary-color)" pTooltip="{{ row.associatedVulnerabilitiesTooltip }}" tooltipPosition="top"> </i>
-                                    }
-                                </div>
-                            }
-                        }
-                        @case ('Assigned Team') {
-                            <div class="flex flex-wrap gap-2">
-                                @for (team of row[getColumnKey(col)]; track team) {
-                                    <p-tag
-                                        [value]="team.name"
-                                        [rounded]="true"
-                                        [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
-                                        [pTooltip]="
-                                            team.complete === 'true'
-                                                ? 'Team has fulfilled all POAM requirements'
-                                                : team.complete === 'partial'
-                                                  ? 'Team has partially fulfilled POAM requirements'
-                                                  : team.complete === 'global'
-                                                    ? 'Global Finding - No Team Requirements'
-                                                    : 'Team has not fulfilled any POAM requirements'
-                                        "
-                                        tooltipPosition="top"
-                                        [class.hidden]="!team.name"
-                                    >
-                                    </p-tag>
-                                }
-                            </div>
-                        }
-                        @case ('Labels') {
-                            <div class="flex flex-wrap gap-2">
-                                @for (label of row[getColumnKey(col)]; track label) {
-                                    <p-tag [value]="label" [rounded]="true" [class.hidden]="!label"> </p-tag>
-                                }
-                            </div>
-                        }
-                        @default {
-                            {{ row[getColumnKey(col)] }}
-                        }
-                    }
-                </td>
+            @case ('Affected Assets') {
+              @if (row.isAffectedAssetsLoading) {
+                <p-progressSpinner [style]="{ width: '20px', height: '20px' }" strokeWidth="4" pTooltip="Loading affected assets for Vulnerability ID: {{ row.vulnerabilityId }}" tooltipPosition="top"> </p-progressSpinner>
+              } @else if (row.isAffectedAssetsMissing) {
+                <div class="align-items-center flex">
+                  <i class="pi pi-exclamation-triangle mr-2 text-yellow-500" pTooltip="Review for closure. No affected assets found for Vulnerability ID: {{ row.vulnerabilityId }}" tooltipPosition="top"></i>
+                </div>
+              } @else {
+                <div class="align-items-center flex">
+                  <span>{{ row[getColumnKey(col)] }}</span>
+                  @if (row.hasAssociatedVulnerabilities) {
+                    <i class="pi pi-info-circle ml-2 mt-1 cursor-pointer" style="color: var(--primary-color)" pTooltip="{{ row.associatedVulnerabilitiesTooltip }}" tooltipPosition="top"> </i>
+                  }
+                </div>
+              }
             }
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-        <tr>
-            <td [attr.colspan]="assignedColumns().length" style="text-align: center">No POAMs found.</td>
-        </tr>
-    </ng-template>
+            @case ('Assigned Team') {
+              <div class="flex flex-wrap gap-2">
+                @for (team of row[getColumnKey(col)]; track team) {
+                  <p-tag
+                    [value]="team.name"
+                    [rounded]="true"
+                    [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
+                    [pTooltip]="
+                      team.complete === 'true'
+                        ? 'Team has fulfilled all POAM requirements'
+                        : team.complete === 'partial'
+                          ? 'Team has partially fulfilled POAM requirements'
+                          : team.complete === 'global'
+                            ? 'Global Finding - No Team Requirements'
+                            : 'Team has not fulfilled any POAM requirements'
+                    "
+                    tooltipPosition="top"
+                    [class.hidden]="!team.name"
+                  >
+                  </p-tag>
+                }
+              </div>
+            }
+            @case ('Labels') {
+              <div class="flex flex-wrap gap-2">
+                @for (label of row[getColumnKey(col)]; track label) {
+                  <p-tag [value]="label" [rounded]="true" [class.hidden]="!label"> </p-tag>
+                }
+              </div>
+            }
+            @default {
+              {{ row[getColumnKey(col)] }}
+            }
+          }
+        </td>
+      }
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td [attr.colspan]="assignedColumns().length" style="text-align: center">No POAMs found.</td>
+    </tr>
+  </ng-template>
 </p-table>

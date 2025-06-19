@@ -8,145 +8,141 @@
 !##########################################################################
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Observable, firstValueFrom, of } from 'rxjs';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { PoamService } from '../../poams.service';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class PoamMitigationService {
-    constructor(
-        private poamService: PoamService,
-        private messageService: MessageService
-    ) {}
+  private poamService = inject(PoamService);
+  private messageService = inject(MessageService);
 
-    loadTeamMitigations(poamId: any): Observable<any[]> {
-        if (!poamId || poamId === 'ADDPOAM') {
-            return of([]);
-        }
-
-        return this.poamService.getPoamTeamMitigations(poamId);
+  loadTeamMitigations(poamId: any): Observable<any[]> {
+    if (!poamId || poamId === 'ADDPOAM') {
+      return of([]);
     }
 
-    syncTeamMitigations(poam: any, poamAssignedTeams: any[], teamMitigations: any[]): void {
-        if (!poamAssignedTeams || poamAssignedTeams.length === 0) {
-            return;
-        }
+    return this.poamService.getPoamTeamMitigations(poamId);
+  }
 
-        poamAssignedTeams.forEach((team) => {
-            const existingMitigation = teamMitigations.find((m) => m.assignedTeamId === team.assignedTeamId);
+  syncTeamMitigations(poam: any, poamAssignedTeams: any[], teamMitigations: any[]): void {
+    if (!poamAssignedTeams || poamAssignedTeams.length === 0) {
+      return;
+    }
 
-            if (!existingMitigation) {
-                this.poamService
-                    .postPoamTeamMitigation({
-                        poamId: poam.poamId,
-                        assignedTeamId: team.assignedTeamId,
-                        mitigationText: '',
-                        isActive: true
-                    })
-                    .subscribe({
-                        next: (response) => {
-                            teamMitigations.push({
-                                mitigationId: response.mitigationId,
-                                assignedTeamId: team.assignedTeamId,
-                                assignedTeamName: team.assignedTeamName,
-                                mitigationText: '',
-                                isActive: true
-                            });
+    poamAssignedTeams.forEach((team) => {
+      const existingMitigation = teamMitigations.find((m) => m.assignedTeamId === team.assignedTeamId);
 
-                            teamMitigations.sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName));
-                        },
-                        error: (error) => {
-                            console.error('Error adding team mitigation:', error);
-                        }
-                    });
-            } else if (!existingMitigation.isActive) {
-                this.poamService.updatePoamTeamMitigationStatus(poam.poamId, team.assignedTeamId, true).subscribe({
-                    next: () => {
-                        existingMitigation.isActive = true;
-                    },
-                    error: (error) => {
-                        console.error('Error updating team mitigation status:', error);
-                    }
-                });
+      if (!existingMitigation) {
+        this.poamService
+          .postPoamTeamMitigation({
+            poamId: poam.poamId,
+            assignedTeamId: team.assignedTeamId,
+            mitigationText: '',
+            isActive: true
+          })
+          .subscribe({
+            next: (response) => {
+              teamMitigations.push({
+                mitigationId: response.mitigationId,
+                assignedTeamId: team.assignedTeamId,
+                assignedTeamName: team.assignedTeamName,
+                mitigationText: '',
+                isActive: true
+              });
+
+              teamMitigations.sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName));
+            },
+            error: (error) => {
+              console.error('Error adding team mitigation:', error);
             }
+          });
+      } else if (!existingMitigation.isActive) {
+        this.poamService.updatePoamTeamMitigationStatus(poam.poamId, team.assignedTeamId, true).subscribe({
+          next: () => {
+            existingMitigation.isActive = true;
+          },
+          error: (error) => {
+            console.error('Error updating team mitigation status:', error);
+          }
         });
+      }
+    });
 
-        teamMitigations.forEach((mitigation) => {
-            const teamIsAssigned = poamAssignedTeams.some((team) => team.assignedTeamId === mitigation.assignedTeamId);
+    teamMitigations.forEach((mitigation) => {
+      const teamIsAssigned = poamAssignedTeams.some((team) => team.assignedTeamId === mitigation.assignedTeamId);
 
-            if (!teamIsAssigned && mitigation.isActive) {
-                this.poamService.updatePoamTeamMitigationStatus(poam.poamId, mitigation.assignedTeamId, false).subscribe({
-                    next: () => {
-                        mitigation.isActive = false;
-                    },
-                    error: (error) => {
-                        console.error('Error updating team mitigation status:', error);
-                    }
-                });
-            }
+      if (!teamIsAssigned && mitigation.isActive) {
+        this.poamService.updatePoamTeamMitigationStatus(poam.poamId, mitigation.assignedTeamId, false).subscribe({
+          next: () => {
+            mitigation.isActive = false;
+          },
+          error: (error) => {
+            console.error('Error updating team mitigation status:', error);
+          }
         });
+      }
+    });
+  }
+
+  async initializeTeamMitigations(poam: any, poamAssignedTeams: any[], teamMitigations: any[]): Promise<any[]> {
+    if (poam.poamId === 'ADDPOAM') {
+      return teamMitigations;
     }
 
-    async initializeTeamMitigations(poam: any, poamAssignedTeams: any[], teamMitigations: any[]): Promise<any[]> {
-        if (poam.poamId === 'ADDPOAM') {
-            return teamMitigations;
+    if (poamAssignedTeams && poamAssignedTeams.length > 0) {
+      const newTeams = poamAssignedTeams.filter((team) => !teamMitigations.some((m) => m.assignedTeamId === team.assignedTeamId));
+
+      for (const team of newTeams) {
+        try {
+          const response = await firstValueFrom(
+            this.poamService.postPoamTeamMitigation({
+              poamId: poam.poamId,
+              assignedTeamId: team.assignedTeamId,
+              mitigationText: '',
+              isActive: true
+            })
+          );
+
+          teamMitigations.push({
+            mitigationId: response.mitigationId,
+            assignedTeamId: team.assignedTeamId,
+            assignedTeamName: team.assignedTeamName,
+            mitigationText: '',
+            isActive: true
+          });
+        } catch (error) {
+          console.error('Error creating team mitigation:', error);
         }
+      }
 
-        if (poamAssignedTeams && poamAssignedTeams.length > 0) {
-            const newTeams = poamAssignedTeams.filter((team) => {
-                return !teamMitigations.some((m) => m.assignedTeamId === team.assignedTeamId);
-            });
-
-            for (const team of newTeams) {
-                try {
-                    const response = await firstValueFrom(
-                        this.poamService.postPoamTeamMitigation({
-                            poamId: poam.poamId,
-                            assignedTeamId: team.assignedTeamId,
-                            mitigationText: '',
-                            isActive: true
-                        })
-                    );
-
-                    teamMitigations.push({
-                        mitigationId: response.mitigationId,
-                        assignedTeamId: team.assignedTeamId,
-                        assignedTeamName: team.assignedTeamName,
-                        mitigationText: '',
-                        isActive: true
-                    });
-                } catch (error) {
-                    console.error('Error creating team mitigation:', error);
-                }
-            }
-
-            return teamMitigations.sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName)).filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId));
-        }
-
-        return teamMitigations;
+      return teamMitigations.sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName)).filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId));
     }
 
-    saveTeamMitigation(poam: any, teamMitigation: any): Observable<any> {
-        return this.poamService.updatePoamTeamMitigation(poam.poamId, teamMitigation.assignedTeamId, teamMitigation.mitigationText);
-    }
+    return teamMitigations;
+  }
 
-    saveAllTeamMitigations(poam: any, teamMitigations: any[]): void {
-        const activeTeamMitigations = teamMitigations.filter((tm) => tm.isActive);
+  saveTeamMitigation(poam: any, teamMitigation: any): Observable<any> {
+    return this.poamService.updatePoamTeamMitigation(poam.poamId, teamMitigation.assignedTeamId, teamMitigation.mitigationText);
+  }
 
-        const savePromises = activeTeamMitigations.map((teamMitigation) => this.poamService.updatePoamTeamMitigation(poam.poamId, teamMitigation.assignedTeamId, teamMitigation.mitigationText).toPromise());
+  saveAllTeamMitigations(poam: any, teamMitigations: any[]): void {
+    const activeTeamMitigations = teamMitigations.filter((tm) => tm.isActive);
 
-        Promise.all(savePromises)
-            .then(() => {})
-            .catch((error) => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: `Failed to save one or more team mitigations: ${getErrorMessage(error)}`
-                });
-            });
-    }
+    const savePromises = activeTeamMitigations.map((teamMitigation) => this.poamService.updatePoamTeamMitigation(poam.poamId, teamMitigation.assignedTeamId, teamMitigation.mitigationText).toPromise());
+
+    Promise.all(savePromises)
+      .then(() => {})
+      .catch((error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to save one or more team mitigations: ${getErrorMessage(error)}`
+        });
+      });
+  }
 }

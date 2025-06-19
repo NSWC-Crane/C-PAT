@@ -9,36 +9,37 @@
 */
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class PoamExtensionService {
-    private cpatApiBase = CPAT.Env.apiBase;
+  private http = inject(HttpClient);
 
-    constructor(private http: HttpClient) {}
+  private cpatApiBase = CPAT.Env.apiBase;
 
-    private handleError(error: HttpErrorResponse) {
-        if (error.error instanceof ErrorEvent) {
-            console.error('An error occurred:', error.error.message);
-        } else {
-            console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
-        }
-        return throwError(() => new Error('Something bad happened; please try again later.'));
+  private handleError(error: HttpErrorResponse) {
+    if (error.error instanceof ErrorEvent) {
+      console.error('An error occurred:', error.error.message);
+    } else {
+      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
 
-    getPoamExtension(poamId: number): Observable<any> {
-        return this.http.get<any>(`${this.cpatApiBase}/poamExtension/${poamId}`).pipe(catchError(this.handleError));
-    }
+    return throwError(() => new Error('Something bad happened; please try again later.'));
+  }
 
-    putPoamExtension(extensionData: any): Observable<any> {
-        return this.http.put<any>(`${this.cpatApiBase}/poamExtension`, extensionData).pipe(catchError(this.handleError));
-    }
+  getPoamExtension(poamId: number): Observable<any> {
+    return this.http.get<any>(`${this.cpatApiBase}/poamExtension/${poamId}`).pipe(catchError(this.handleError));
+  }
 
-    deletePoamExtension(poamId: number): Observable<any> {
-        return this.http.delete<any>(`${this.cpatApiBase}/poamExtension/${poamId}`).pipe(catchError(this.handleError));
-    }
+  putPoamExtension(extensionData: any): Observable<any> {
+    return this.http.put<any>(`${this.cpatApiBase}/poamExtension`, extensionData).pipe(catchError(this.handleError));
+  }
+
+  deletePoamExtension(poamId: number): Observable<any> {
+    return this.http.delete<any>(`${this.cpatApiBase}/poamExtension/${poamId}`).pipe(catchError(this.handleError));
+  }
 }

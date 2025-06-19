@@ -9,6 +9,6 @@
 */
 
 export interface Environment {
-    production: boolean;
-    basePath?: string;
+  production: boolean;
+  basePath?: string;
 }

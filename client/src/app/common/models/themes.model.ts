@@ -9,9 +9,9 @@
 */
 
 export interface Theme {
-    themeId: number;
-    themeIdentifier: string;
-    themeName: string;
-    themeDescription: string;
-    cost: number;
+  themeId: number;
+  themeIdentifier: string;
+  themeName: string;
+  themeDescription: string;
+  cost: number;
 }

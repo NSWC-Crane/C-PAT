@@ -9,7 +9,7 @@
 */
 
 import { Location } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Event, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -17,128 +17,131 @@ import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
 @Component({
-    selector: 'cpat-breadcrumb',
-    standalone: true,
-    imports: [RouterModule, BreadcrumbModule],
-    template: ` <p-breadcrumb [model]="items" [home]="home" styleClass="border-none surface-ground"> </p-breadcrumb> `,
-    styles: [
-        `
-            :host ::ng-deep .p-breadcrumb {
-                background: transparent;
-                border: none;
-                margin-top: 0.15rem;
-            }
-        `
-    ]
+  selector: 'cpat-breadcrumb',
+  standalone: true,
+  imports: [RouterModule, BreadcrumbModule],
+  template: ` <p-breadcrumb [model]="items" [home]="home" styleClass="border-none surface-ground"> </p-breadcrumb> `,
+  styles: [
+    `
+      :host ::ng-deep .p-breadcrumb {
+        background: transparent;
+        border: none;
+        margin-top: 0.15rem;
+      }
+    `
+  ]
 })
 export class AppBreadcrumbComponent implements OnInit, OnDestroy {
-    private destroy$ = new Subject<void>();
-    items: MenuItem[] = [];
-    home: MenuItem;
+  private router = inject(Router);
+  private location = inject(Location);
 
-    constructor(
-        private router: Router,
-        private location: Location
-    ) {
-        this.home = { icon: 'pi pi-home', routerLink: '/poam-processing' };
-    }
+  private destroy$ = new Subject<void>();
+  items: MenuItem[] = [];
+  home: MenuItem;
 
-    ngOnInit() {
-        this.router.events
-            .pipe(
-                filter((event: Event): event is NavigationEnd => event instanceof NavigationEnd),
-                takeUntil(this.destroy$)
-            )
-            .subscribe(() => {
-                this.updateBreadcrumbs();
-            });
+  constructor() {
+    this.home = { icon: 'pi pi-home', routerLink: '/poam-processing' };
+  }
 
+  ngOnInit() {
+    this.router.events
+      .pipe(
+        filter((event: Event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
         this.updateBreadcrumbs();
-    }
+      });
 
-    ngOnDestroy() {
-        this.destroy$.next();
-        this.destroy$.complete();
-    }
+    this.updateBreadcrumbs();
+  }
 
-    private updateBreadcrumbs() {
-        const currentUrl = this.location.path();
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
-        if (currentUrl === '' || currentUrl === '/' || currentUrl === '/poam-processing') {
-            this.items = [
-                {
-                    label: 'POAM Processing',
-                    routerLink: '/poam-processing'
-                }
-            ];
-            return;
+  private updateBreadcrumbs() {
+    const currentUrl = this.location.path();
+
+    if (currentUrl === '' || currentUrl === '/' || currentUrl === '/poam-processing') {
+      this.items = [
+        {
+          label: 'POAM Processing',
+          routerLink: '/poam-processing'
         }
+      ];
 
-        const urlSegments = currentUrl.split('/').filter((segment) => segment);
-
-        const breadcrumbs: MenuItem[] = [];
-        let currentPath = '';
-
-        for (let i = 0; i < urlSegments.length; i++) {
-            const segment = urlSegments[i];
-            currentPath += `/${segment}`;
-
-            const isParameter = !isNaN(Number(segment));
-
-            if (isParameter) {
-                breadcrumbs.push({
-                    label: `POAM ${segment}`,
-                    routerLink: currentPath
-                });
-            } else {
-                const label = this.createLabel(segment!);
-                breadcrumbs.push({
-                    label: label,
-                    routerLink: currentPath
-                });
-            }
-        }
-
-        this.items = breadcrumbs;
+      return;
     }
 
-    private createLabel(path: string): string {
-        switch (path) {
-            case 'poam-processing':
-                return 'POAM Processing';
-            case 'poam-approve':
-                return 'Approve POAM';
-            case 'poam-details':
-                return 'POAM Details';
-            case 'poam-extend':
-                return 'Extend POAM';
-            case 'poam-log':
-                return 'POAM Log';
-            case 'poam-manage':
-                return 'Manage POAMs';
-            case 'stigmanager-admin':
-                return 'STIG Manager Admin';
-            case 'stigmanager-import':
-                return 'STIG Manager';
-            case 'tenable-import':
-                return 'Tenable';
-            case 'user-processing':
-                return 'User Processing';
-            case 'collection-processing':
-                return 'Collection Processing';
-            case 'admin-processing':
-                return 'Admin Processing';
-            case 'import-processing':
-                return 'Import Processing';
-            case 'asset-processing':
-                return 'Asset Processing';
-            case 'label-processing':
-                return 'Label Processing';
-            default:
-                return path
-                    .split('-')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
-        }
+    const urlSegments = currentUrl.split('/').filter((segment) => segment);
+
+    const breadcrumbs: MenuItem[] = [];
+    let currentPath = '';
+
+    for (let i = 0; i < urlSegments.length; i++) {
+      const segment = urlSegments[i];
+
+      currentPath += `/${segment}`;
+
+      const isParameter = !isNaN(Number(segment));
+
+      if (isParameter) {
+        breadcrumbs.push({
+          label: `POAM ${segment}`,
+          routerLink: currentPath
+        });
+      } else {
+        const label = this.createLabel(segment!);
+
+        breadcrumbs.push({
+          label: label,
+          routerLink: currentPath
+        });
+      }
     }
+
+    this.items = breadcrumbs;
+  }
+
+  private createLabel(path: string): string {
+    switch (path) {
+      case 'poam-processing':
+        return 'POAM Processing';
+      case 'poam-approve':
+        return 'Approve POAM';
+      case 'poam-details':
+        return 'POAM Details';
+      case 'poam-extend':
+        return 'Extend POAM';
+      case 'poam-log':
+        return 'POAM Log';
+      case 'poam-manage':
+        return 'Manage POAMs';
+      case 'stigmanager-admin':
+        return 'STIG Manager Admin';
+      case 'stigmanager-import':
+        return 'STIG Manager';
+      case 'tenable-import':
+        return 'Tenable';
+      case 'user-processing':
+        return 'User Processing';
+      case 'collection-processing':
+        return 'Collection Processing';
+      case 'admin-processing':
+        return 'Admin Processing';
+      case 'import-processing':
+        return 'Import Processing';
+      case 'asset-processing':
+        return 'Asset Processing';
+      case 'label-processing':
+        return 'Label Processing';
+      default:
+        return path
+          .split('-')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+    }
+  }
 }
