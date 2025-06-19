@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -22,11 +22,9 @@ async function withConnection(callback) {
     }
 }
 
-
-
 exports.getAllNotifications = async function getAllNotifications(userId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `SELECT * FROM ${config.database.schema}.notification WHERE userId = ? ORDER BY timestamp DESC`;
             const [rows] = await connection.query(sql, [userId]);
             return rows;
@@ -38,7 +36,7 @@ exports.getAllNotifications = async function getAllNotifications(userId) {
 
 exports.getUnreadNotifications = async function getUnreadNotifications(userId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `SELECT * FROM ${config.database.schema}.notification WHERE notification.read = 0 AND userId = ? ORDER BY timestamp DESC`;
             const [rows] = await connection.query(sql, [userId]);
             return rows;
@@ -50,7 +48,7 @@ exports.getUnreadNotifications = async function getUnreadNotifications(userId) {
 
 exports.getUnreadNotificationCount = async function getUnreadNotificationCount(userId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `SELECT COUNT(userId) AS NotificationCount FROM ${config.database.schema}.notification WHERE notification.read = 0 AND userId = ?`;
             const [rows] = await connection.query(sql, [userId]);
             const notificationCount = rows[0].NotificationCount.toString();
@@ -63,7 +61,7 @@ exports.getUnreadNotificationCount = async function getUnreadNotificationCount(u
 
 exports.dismissNotification = async function dismissNotification(userId, notificationId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const userIdQuery = `SELECT userId FROM ${config.database.schema}.notification WHERE notificationId = ?`;
             const [userId] = await connection.query(userIdQuery, [notificationId]);
 
@@ -82,7 +80,7 @@ exports.dismissNotification = async function dismissNotification(userId, notific
 
 exports.dismissAllNotifications = async function dismissAllNotifications(userId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `UPDATE ${config.database.schema}.notification SET notification.read = 1 WHERE userId = ?`;
             const [result] = await connection.query(sql, [userId]);
             return result.affectedRows > 0;
@@ -94,7 +92,7 @@ exports.dismissAllNotifications = async function dismissAllNotifications(userId)
 
 exports.deleteNotification = async function deleteNotification(userId, notificationId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `DELETE FROM ${config.database.schema}.notification WHERE notificationId = ? AND userId = ?`;
             const [result] = await connection.query(sql, [notificationId, userId]);
             return result.affectedRows > 0;
@@ -106,7 +104,7 @@ exports.deleteNotification = async function deleteNotification(userId, notificat
 
 exports.deleteAllNotifications = async function deleteAllNotifications(userId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `DELETE FROM ${config.database.schema}.notification WHERE userId = ?`;
             const [result] = await connection.query(sql, [userId]);
             return result.affectedRows > 0;

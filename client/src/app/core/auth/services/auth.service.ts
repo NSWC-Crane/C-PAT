@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
@@ -20,24 +20,24 @@ interface AuthState {
 }
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class AuthService {
+  private oidcSecurityService = inject(OidcSecurityService);
+  private usersService = inject(UsersService);
+
   private currentUser = new BehaviorSubject<any>(null);
   private accessLevel = new BehaviorSubject<number>(0);
   private authState = new BehaviorSubject<AuthState>({
     isAuthenticatedStigman: false,
-    isAuthenticatedCpat: false,
+    isAuthenticatedCpat: false
   });
 
   accessLevel$ = this.accessLevel.asObservable();
   user$ = this.currentUser.asObservable();
   authState$ = this.authState.asObservable();
 
-  constructor(
-    private oidcSecurityService: OidcSecurityService,
-    private usersService: UsersService
-  ) {
+  constructor() {
     this.initializeAuth();
   }
 
@@ -45,34 +45,42 @@ export class AuthService {
     if (this.shouldSkipAuth()) {
       return;
     }
-    this.oidcSecurityService.checkAuthMultiple().pipe(
-      tap(authResults => this.updateAuthState(authResults)),
-      switchMap(authResults => {
-        const isAuthenticatedCpat = authResults?.find(auth => auth.configId === 'cpat')?.isAuthenticated ?? false;
-        if (isAuthenticatedCpat) {
-          return this.getUserData('cpat').pipe(
-            tap(userData => {
-              this.currentUser.next(userData);
-              this.accessLevel.next(this.calculateAccessLevel(userData));
-            })
-          );
-        }
-        return of(null);
-      }),
-      catchError(error => {
-        console.error('Auth initialization error:', error);
-        this.authState.next({
-          isAuthenticatedStigman: false,
-          isAuthenticatedCpat: false,
-        });
-        return of(null);
-      })
-    ).subscribe();
+
+    this.oidcSecurityService
+      .checkAuthMultiple()
+      .pipe(
+        tap((authResults) => this.updateAuthState(authResults)),
+        switchMap((authResults) => {
+          const isAuthenticatedCpat = authResults?.find((auth) => auth.configId === 'cpat')?.isAuthenticated ?? false;
+
+          if (isAuthenticatedCpat) {
+            return this.getUserData('cpat').pipe(
+              tap((userData) => {
+                this.currentUser.next(userData);
+                this.accessLevel.next(this.calculateAccessLevel(userData));
+              })
+            );
+          }
+
+          return of(null);
+        }),
+        catchError((error) => {
+          console.error('Auth initialization error:', error);
+          this.authState.next({
+            isAuthenticatedStigman: false,
+            isAuthenticatedCpat: false
+          });
+
+          return of(null);
+        })
+      )
+      .subscribe();
   }
 
   private updateAuthState(authResults: any): void {
-    const isAuthenticatedStigman = authResults?.find(auth => auth.configId === 'stigman')?.isAuthenticated ?? false;
-    const isAuthenticatedCpat = authResults?.find(auth => auth.configId === 'cpat')?.isAuthenticated ?? false;
+    const isAuthenticatedStigman = authResults?.find((auth) => auth.configId === 'stigman')?.isAuthenticated ?? false;
+    const isAuthenticatedCpat = authResults?.find((auth) => auth.configId === 'cpat')?.isAuthenticated ?? false;
+
     this.authState.next({ isAuthenticatedStigman, isAuthenticatedCpat });
   }
 
@@ -91,18 +99,16 @@ export class AuthService {
   }
 
   private calculateAccessLevel(userData: any): number {
-    return userData?.permissions?.reduce(
-      (max: number, p: { accessLevel: number }) => Math.max(max, p.accessLevel),
-      0
-    ) || 0;
+    return userData?.permissions?.reduce((max: number, p: { accessLevel: number }) => Math.max(max, p.accessLevel), 0) || 0;
   }
 
   getAccessToken(configId: string): Observable<string> {
     return this.oidcSecurityService.getAccessToken(configId).pipe(
-      map(token => {
+      map((token) => {
         if (!token) {
           throw new Error(`Access token not available for config: ${configId}`);
         }
+
         return token;
       })
     );
@@ -113,13 +119,7 @@ export class AuthService {
   }
 
   getUserData(configId: string): Observable<any> {
-    return this.oidcSecurityService.getUserData(configId).pipe(
-      switchMap(oidcUserData =>
-        this.usersService.getCurrentUser().pipe(
-          map(currentUser => ({ ...oidcUserData, ...currentUser }))
-        )
-      )
-    );
+    return this.oidcSecurityService.getUserData(configId).pipe(switchMap((oidcUserData) => this.usersService.getCurrentUser().pipe(map((currentUser) => ({ ...oidcUserData, ...currentUser })))));
   }
 
   login(configId: string): void {
@@ -132,14 +132,15 @@ export class AuthService {
       tap(() => {
         this.authState.next({
           isAuthenticatedStigman: false,
-          isAuthenticatedCpat: false,
+          isAuthenticatedCpat: false
         });
         this.currentUser.next(null);
         this.accessLevel.next(0);
       }),
       map(() => undefined),
-      catchError(error => {
+      catchError((error) => {
         console.error('Logout error:', error);
+
         return of(undefined);
       })
     );
@@ -152,11 +153,11 @@ export class AuthService {
 
     const errorPaths = ['/401', '/403', '/404', '/not-activated'];
     const currentPath = window.location.pathname;
-    return errorPaths.some(path => currentPath.includes(path));
+
+    return errorPaths.some((path) => currentPath.includes(path));
   }
 
   clearValidationFailure(): void {
     sessionStorage.removeItem('audience-validation-failed');
   }
-
 }

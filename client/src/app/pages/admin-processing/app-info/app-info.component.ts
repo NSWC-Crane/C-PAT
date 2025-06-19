@@ -8,21 +8,21 @@
 !##########################################################################
 */
 
-import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectionStrategy, effect, signal } from '@angular/core';
-import { AdminProcessingService } from '../admin-processing.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { ChartModule } from 'primeng/chart';
+import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
-import { ChartModule } from 'primeng/chart';
-import { AppConfigService } from '../../../layout/services/appconfigservice';
-import { PanelModule } from 'primeng/panel';
-import { catchError, EMPTY } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { EMPTY, catchError } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AppConfigService } from '../../../layout/services/appconfigservice';
+import { AdminProcessingService } from '../admin-processing.service';
 interface OperationInfo {
   totalRequests: number;
   totalDuration: number;
@@ -79,10 +79,12 @@ interface AppInfoData {
   nodejs: {
     version: string;
     uptime: number;
-    cpus: [{
-      model: string;
-      speed: number;
-    }];
+    cpus: [
+      {
+        model: string;
+        speed: number;
+      }
+    ];
     os: {
       platform: string;
       arch: string;
@@ -214,6 +216,10 @@ interface OperationError {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppInfoComponent implements OnInit {
+  private adminProcessingService = inject(AdminProcessingService);
+  private configService = inject(AppConfigService);
+  private messageService = inject(MessageService);
+
   appInfo = signal<AppInfoData | null>(null);
   operationRows = signal<OperationRow[]>([]);
   tableRows = signal<TableRow[]>([]);
@@ -234,18 +240,12 @@ export class AppInfoComponent implements OnInit {
   selectedOperation = signal<OperationRow | null>(null);
   selectedUser = signal<UserInfo | null>(null);
   userRows = signal<UserInfo[]>([]);
-  userPrivilegeOverall = signal<{ name: string; count: number; }[]>([]);
-  userPrivilege30Days = signal<{ name: string; count: number; }[]>([]);
-  userPrivilege90Days = signal<{ name: string; count: number; }[]>([]);
+  userPrivilegeOverall = signal<{ name: string; count: number }[]>([]);
+  userPrivilege30Days = signal<{ name: string; count: number }[]>([]);
+  userPrivilege90Days = signal<{ name: string; count: number }[]>([]);
   isPanelsCollapsed = signal<boolean>(true);
 
   platformId = inject(PLATFORM_ID);
-
-  constructor(
-    private adminProcessingService: AdminProcessingService,
-    private configService: AppConfigService,
-    private messageService: MessageService
-  ) { }
 
   themeEffect = effect(() => {
     if (this.configService.transitionComplete()) {
@@ -283,15 +283,17 @@ export class AppInfoComponent implements OnInit {
 
   getAppInfo(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.adminProcessingService.getAppInfo()
+      this.adminProcessingService
+        .getAppInfo()
         .pipe(
-          catchError(error => {
+          catchError((error) => {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
               detail: `Error fetching app info: ${getErrorMessage(error)}`
             });
             reject(error);
+
             return EMPTY;
           })
         )
@@ -310,26 +312,25 @@ export class AppInfoComponent implements OnInit {
   private processOperations() {
     if (!this.appInfo()) return;
 
-    const rows = Object.entries(this.appInfo()!.requests.operationIds).map(
-      ([name, data]) => ({
-        name,
-        totalRequests: data.totalRequests,
-        errorCount: Object.keys(data.errors).length,
-        totalDuration: data.totalDuration,
-        minDuration: data.minDuration,
-        maxDuration: data.maxDuration,
-        averageRetries: data.averageRetries,
-        elevatedRequests: data.elevatedRequests,
-        maxDurationUpdates: data.maxDurationUpdates,
-        maxResLength: data.maxResLength,
-        minResLength: data.minResLength,
-        retried: data.retried,
-        totalResLength: data.totalResLength,
-        clients: data.clients,
-        users: data.users,
-        errors: data.errors
-      })
-    );
+    const rows = Object.entries(this.appInfo()!.requests.operationIds).map(([name, data]) => ({
+      name,
+      totalRequests: data.totalRequests,
+      errorCount: Object.keys(data.errors).length,
+      totalDuration: data.totalDuration,
+      minDuration: data.minDuration,
+      maxDuration: data.maxDuration,
+      averageRetries: data.averageRetries,
+      elevatedRequests: data.elevatedRequests,
+      maxDurationUpdates: data.maxDurationUpdates,
+      maxResLength: data.maxResLength,
+      minResLength: data.minResLength,
+      retried: data.retried,
+      totalResLength: data.totalResLength,
+      clients: data.clients,
+      users: data.users,
+      errors: data.errors
+    }));
+
     this.operationRows.set(rows);
   }
 
@@ -340,6 +341,7 @@ export class AppInfoComponent implements OnInit {
       name,
       value
     }));
+
     this.variableRows.set(rows);
   }
 
@@ -350,6 +352,7 @@ export class AppInfoComponent implements OnInit {
       name,
       value
     }));
+
     this.statusRows.set(rows);
   }
 
@@ -358,20 +361,26 @@ export class AppInfoComponent implements OnInit {
       this.isPanelsCollapsed.set(false);
       const operation = this.appInfo()!.requests.operationIds[event.data.name];
 
-      this.selectedOperationClients.set(Object.entries(operation.clients || {}).map(([name, count]) => ({
-        name,
-        count: count as number
-      })));
+      this.selectedOperationClients.set(
+        Object.entries(operation.clients || {}).map(([name, count]) => ({
+          name,
+          count: count as number
+        }))
+      );
 
-      this.selectedOperationUsers.set(Object.entries(operation.users || {}).map(([userId, count]) => ({
-        name: this.getUsernameById(userId),
-        count: count as number
-      })));
+      this.selectedOperationUsers.set(
+        Object.entries(operation.users || {}).map(([userId, count]) => ({
+          name: this.getUsernameById(userId),
+          count: count as number
+        }))
+      );
 
-      this.selectedOperationErrors.set(Object.entries(operation.errors || {}).map(([name, count]) => ({
-        name,
-        count: count as number
-      })));
+      this.selectedOperationErrors.set(
+        Object.entries(operation.errors || {}).map(([name, count]) => ({
+          name,
+          count: count as number
+        }))
+      );
     }
   }
 
@@ -379,6 +388,7 @@ export class AppInfoComponent implements OnInit {
     if (userId === 'unknown') return 'unknown';
     if (!this.appInfo()) return `User ID: ${userId}`;
     const user = this.appInfo()!.users.userInfo[userId];
+
     return user ? user.username : `User ID: ${userId}`;
   }
 
@@ -387,6 +397,7 @@ export class AppInfoComponent implements OnInit {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
@@ -398,6 +409,7 @@ export class AppInfoComponent implements OnInit {
     const remainingSeconds = Math.floor(seconds % 60);
 
     const parts = [];
+
     if (days > 0) parts.push(`${days}d`);
     if (hours > 0) parts.push(`${hours}h`);
     if (minutes > 0) parts.push(`${minutes}m`);
@@ -416,6 +428,7 @@ export class AppInfoComponent implements OnInit {
       privileges: data.privileges,
       roles: data.roles
     }));
+
     this.userRows.set(rows);
 
     this.userPrivilegeOverall.set(
@@ -443,16 +456,15 @@ export class AppInfoComponent implements OnInit {
   private processMySQLTables() {
     if (!this.appInfo()) return;
 
-    const rows = Object.entries(this.appInfo()!.mysql.tables).map(
-      ([name, data]) => ({
-        name,
-        rowCount: data.rowCount,
-        dataLength: data.dataLength,
-        indexLength: data.indexLength,
-        createTime: data.createTime,
-        updateTime: data.updateTime
-      })
-    );
+    const rows = Object.entries(this.appInfo()!.mysql.tables).map(([name, data]) => ({
+      name,
+      rowCount: data.rowCount,
+      dataLength: data.dataLength,
+      indexLength: data.indexLength,
+      createTime: data.createTime,
+      updateTime: data.updateTime
+    }));
+
     this.mysqlTableRows.set(rows);
   }
 
@@ -464,11 +476,11 @@ export class AppInfoComponent implements OnInit {
   private processEnvironmentVariables() {
     if (!this.appInfo()) return;
 
-    const rows = Object.entries(this.appInfo()!.nodejs.environment)
-      .map(([name, value]) => ({
-        name,
-        value: name.includes('PASSWORD') ? '***' : value
-      }));
+    const rows = Object.entries(this.appInfo()!.nodejs.environment).map(([name, value]) => ({
+      name,
+      value: name.includes('PASSWORD') ? '***' : value
+    }));
+
     this.environmentRows.set(rows);
   }
 
@@ -488,26 +500,26 @@ export class AppInfoComponent implements OnInit {
     const primary600 = documentStyle.getPropertyValue('--p-primary-600');
 
     this.operationsChartData.set({
-      labels: top10Operations.map(op => op.name),
+      labels: top10Operations.map((op) => op.name),
       datasets: [
         {
           type: 'bar',
           label: 'Avg Duration (ms)',
-          data: top10Operations.map(op => Math.round(op.totalDuration / op.totalRequests)),
+          data: top10Operations.map((op) => Math.round(op.totalDuration / op.totalRequests)),
           backgroundColor: primary300,
           hoverBackgroundColor: primary500
         },
         {
           type: 'bar',
           label: 'Min Duration (ms)',
-          data: top10Operations.map(op => op.minDuration),
+          data: top10Operations.map((op) => op.minDuration),
           backgroundColor: primary200,
-          hoverBackgroundColor: primary400,
+          hoverBackgroundColor: primary400
         },
         {
           type: 'bar',
           label: 'Max Duration (ms)',
-          data: top10Operations.map(op => op.maxDuration),
+          data: top10Operations.map((op) => op.maxDuration),
           backgroundColor: primary400,
           hoverBackgroundColor: primary600,
           borderRadius: {
@@ -520,24 +532,15 @@ export class AppInfoComponent implements OnInit {
     });
 
     const memoryData = this.appInfo()?.nodejs?.memory;
+
     this.memoryChartData.set({
       labels: ['RSS', 'Heap Total', 'Heap Used', 'External', 'Array Buffers'],
-      datasets: [{
-        data: [
-          memoryData?.rss,
-          memoryData?.heapTotal,
-          memoryData?.heapUsed,
-          memoryData?.external,
-          memoryData?.arrayBuffers
-        ].map(bytes => bytes / (1024 * 1024)),
-        backgroundColor: [
-          `${primary500}cc`,
-          `${primary400}cc`,
-          `${primary300}cc`,
-          `${primary200}cc`,
-          `${primary100}cc`,
-        ]
-      }]
+      datasets: [
+        {
+          data: [memoryData?.rss, memoryData?.heapTotal, memoryData?.heapUsed, memoryData?.external, memoryData?.arrayBuffers].map((bytes) => bytes / (1024 * 1024)),
+          backgroundColor: [`${primary500}cc`, `${primary400}cc`, `${primary300}cc`, `${primary200}cc`, `${primary100}cc`]
+        }
+      ]
     });
 
     this.memoryChartOptions.set({
@@ -561,12 +564,12 @@ export class AppInfoComponent implements OnInit {
     });
 
     this.requestsChartData.set({
-      labels: top10Operations.map(op => op.name),
+      labels: top10Operations.map((op) => op.name),
       datasets: [
         {
           type: 'bar',
           label: 'Total Requests',
-          data: top10Operations.map(op => op.totalRequests),
+          data: top10Operations.map((op) => op.totalRequests),
           backgroundColor: primary400,
           hoverBackgroundColor: primary600,
           borderRadius: {
@@ -580,7 +583,7 @@ export class AppInfoComponent implements OnInit {
   }
 
   toggleAllPanels(_event: any) {
-    this.isPanelsCollapsed.update(value => !value);
+    this.isPanelsCollapsed.update((value) => !value);
   }
 
   setChartOptions() {

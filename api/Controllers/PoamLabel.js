@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-const poamLabelService = require('../Services/poamLabelService')
+const poamLabelService = require('../Services/poamLabelService');
 
 module.exports.getPoamLabels = async function getPoamLabels(req, res, next) {
     try {
@@ -22,7 +22,7 @@ module.exports.getPoamLabels = async function getPoamLabels(req, res, next) {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res, next) {
     try {
@@ -35,7 +35,7 @@ module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(re
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(req, res, next) {
     try {
@@ -49,7 +49,7 @@ module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(req, res
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.getPoamLabelByLabel = async function getPoamLabelByLabel(req, res, next) {
     try {
@@ -63,7 +63,7 @@ module.exports.getPoamLabelByLabel = async function getPoamLabelByLabel(req, res
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.getPoamLabel = async function getPoamLabel(req, res, next) {
     try {
@@ -77,7 +77,7 @@ module.exports.getPoamLabel = async function getPoamLabel(req, res, next) {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.postPoamLabel = async function postPoamLabel(req, res, next) {
     try {
@@ -90,7 +90,7 @@ module.exports.postPoamLabel = async function postPoamLabel(req, res, next) {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
     try {
@@ -103,4 +103,4 @@ module.exports.deletePoamLabel = async function deletePoamLabel(req, res, next) 
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};

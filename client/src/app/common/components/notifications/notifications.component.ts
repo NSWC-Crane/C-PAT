@@ -8,20 +8,20 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NotificationService } from './notifications.service';
-import { PayloadService } from '../../../common/services/setPayload.service';
-import { Subscription, map } from 'rxjs';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Select } from 'primeng/select';
-import { CardModule } from 'primeng/card';
-import { TableModule } from 'primeng/table';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { Select } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { Subscription, map } from 'rxjs';
+import { PayloadService } from '../../../common/services/setPayload.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { NotificationService } from './notifications.service';
 
 @Component({
   selector: 'cpat-notifications',
@@ -32,6 +32,11 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
   providers: [MessageService]
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
+  private notificationService = inject(NotificationService);
+  private setPayloadService = inject(PayloadService);
+  private sanitizer = inject(DomSanitizer);
+  private messageService = inject(MessageService);
+
   notifications: any[] = [];
   filteredNotifications: any[] = [];
   filterStatus: string = 'Unread';
@@ -47,16 +52,9 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   sortOptions = [
     { label: 'Newest First', value: '!timestamp' },
     { label: 'Oldest First', value: 'timestamp' },
-    { label: 'Title', value: 'title' },
+    { label: 'Title', value: 'title' }
   ];
   sortKey: string = '!timestamp';
-
-  constructor(
-    private notificationService: NotificationService,
-    private setPayloadService: PayloadService,
-    private sanitizer: DomSanitizer,
-    private messageService: MessageService
-  ) {}
 
   async ngOnInit() {
     await this.setPayload();
@@ -66,14 +64,15 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   async setPayload() {
     this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
+
         if (this.accessLevel > 0) {
           this.fetchNotifications();
         }
@@ -81,53 +80,51 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     );
   }
 
-    fetchNotifications() {
-        this.notificationService.getAllNotifications().pipe(
-            map(notifications =>
-                notifications.map(notification => ({
-                    ...notification,
-                    formattedMessage: this.formatMessage(notification.message),
-                }))
-            )
-        ).subscribe({
-            next: (formattedNotifications) => {
-                this.notifications = formattedNotifications;
-                this.filterNotifications();
-            },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Failed to fetch notifications: ${getErrorMessage(error)}`
-            });
-            }
-        });
-    }
-
+  fetchNotifications() {
+    this.notificationService
+      .getAllNotifications()
+      .pipe(
+        map((notifications) =>
+          notifications.map((notification) => ({
+            ...notification,
+            formattedMessage: this.formatMessage(notification.message)
+          }))
+        )
+      )
+      .subscribe({
+        next: (formattedNotifications) => {
+          this.notifications = formattedNotifications;
+          this.filterNotifications();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch notifications: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
 
   formatMessage(message: string): SafeHtml {
     const poamRegex = /POAM (\d+)/;
     const match = message.match(poamRegex);
+
     if (match) {
       const poamNumber = match[1];
-      const formattedMessage = message.replace(
-        poamRegex,
-        `<a href="${CPAT.Env.basePath}poam-processing/poam-details/${poamNumber}" data-poam="${poamNumber}" class="poam-link">POAM ${poamNumber}</a>`
-      );
+      const formattedMessage = message.replace(poamRegex, `<a href="${CPAT.Env.basePath}poam-processing/poam-details/${poamNumber}" data-poam="${poamNumber}" class="poam-link">POAM ${poamNumber}</a>`);
+
       return this.sanitizer.bypassSecurityTrustHtml(formattedMessage);
     }
+
     return message;
   }
 
   filterNotifications() {
     if (this.filterStatus === 'Read') {
-      this.filteredNotifications = this.notifications.filter(
-        notification => notification.read === 1
-      );
+      this.filteredNotifications = this.notifications.filter((notification) => notification.read === 1);
     } else if (this.filterStatus === 'Unread') {
-      this.filteredNotifications = this.notifications.filter(
-        notification => notification.read === 0
-      );
+      this.filteredNotifications = this.notifications.filter((notification) => notification.read === 0);
     } else {
       this.filteredNotifications = [...this.notifications];
     }
@@ -138,68 +135,70 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.filterNotifications();
   }
 
-    deleteNotification(notification: any) {
-        this.notificationService.deleteNotification(notification.notificationId).subscribe({
-            next: () => {
-                const index = this.notifications.indexOf(notification);
-                if (index !== -1) {
-                    this.notifications.splice(index, 1);
-                }
-                this.fetchNotifications();
-            },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Failed to delete notification: ${getErrorMessage(error)}`
-            });
-            }
-        });
-    }
+  deleteNotification(notification: any) {
+    this.notificationService.deleteNotification(notification.notificationId).subscribe({
+      next: () => {
+        const index = this.notifications.indexOf(notification);
 
-    dismissAllNotifications() {
-        if (!this.user?.userId) {
-            console.error('User ID is not available');
-            return;
+        if (index !== -1) {
+          this.notifications.splice(index, 1);
         }
 
-        this.notificationService.dismissAllNotifications().subscribe({
-            next: () => {
-                this.fetchNotifications();
-            },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Failed to dismiss all notifications: ${getErrorMessage(error)}`
-            });
-            }
+        this.fetchNotifications();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to delete notification: ${getErrorMessage(error)}`
         });
+      }
+    });
+  }
+
+  dismissAllNotifications() {
+    if (!this.user?.userId) {
+      console.error('User ID is not available');
+
+      return;
     }
 
-
-    deleteAllNotifications() {
-        if (!this.user?.userId) {
-            console.error('User ID is not available');
-            return;
-        }
-
-        this.notificationService.deleteAllNotifications().subscribe({
-            next: () => {
-                this.fetchNotifications();
-                this.notifications = [{ title: 'You have no new notifications...', read: 1 }];
-                this.filteredNotifications = [{ title: 'You have no new notifications...', read: 1 }];
-            },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Failed to delete all notifications: ${getErrorMessage(error)}`
-            });
-            }
+    this.notificationService.dismissAllNotifications().subscribe({
+      next: () => {
+        this.fetchNotifications();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to dismiss all notifications: ${getErrorMessage(error)}`
         });
+      }
+    });
+  }
+
+  deleteAllNotifications() {
+    if (!this.user?.userId) {
+      console.error('User ID is not available');
+
+      return;
     }
 
+    this.notificationService.deleteAllNotifications().subscribe({
+      next: () => {
+        this.fetchNotifications();
+        this.notifications = [{ title: 'You have no new notifications...', read: 1 }];
+        this.filteredNotifications = [{ title: 'You have no new notifications...', read: 1 }];
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to delete all notifications: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
 
   onSortChange(event: any) {
     const value = event.value;
@@ -227,9 +226,11 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   onNotificationClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
+
     if (target.classList.contains('poam-link')) {
       event.preventDefault();
       const poamId = target.getAttribute('data-poam');
+
       if (poamId) {
         this.navigateToPOAM(+poamId);
       }
@@ -237,6 +238,6 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }

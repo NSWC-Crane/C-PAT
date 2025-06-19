@@ -8,26 +8,20 @@
 !##########################################################################
 */
 
-import { Component, OnInit, Input, Output, EventEmitter, inject } from "@angular/core";
-import { FormsModule } from "@angular/forms";
-import { MessageService } from "primeng/api";
-import { ButtonModule } from "primeng/button";
-import { SelectModule } from "primeng/select";
-import { TableModule } from "primeng/table";
-import { ToastModule } from "primeng/toast";
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-labels',
   templateUrl: './poam-labels.component.html',
   standalone: true,
-  imports: [
-    FormsModule,
-    TableModule,
-    ButtonModule,
-    SelectModule,
-    ToastModule
-]
+  imports: [FormsModule, TableModule, ButtonModule, SelectModule, ToastModule]
 })
 export class PoamLabelsComponent implements OnInit {
   @Input() poamId: any;
@@ -48,8 +42,9 @@ export class PoamLabelsComponent implements OnInit {
   async addLabel() {
     const newLabel = {
       labelId: null,
-      isNew: true,
+      isNew: true
     };
+
     this.poamLabels = [newLabel, ...this.poamLabels];
     this.labelsChanged.emit(this.poamLabels);
   }
@@ -61,11 +56,13 @@ export class PoamLabelsComponent implements OnInit {
       selectedLabel.isNew = false;
 
       const index = this.poamLabels.findIndex((existingLabel) => existingLabel.labelId === label.labelId);
+
       if (index !== -1) {
         this.poamLabels[index] = selectedLabel;
       } else {
         this.poamLabels = [selectedLabel, ...this.poamLabels];
       }
+
       this.labelsChanged.emit(this.poamLabels);
     }
   }

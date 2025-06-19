@@ -8,11 +8,11 @@
 !##########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'cpat-consent',
@@ -22,11 +22,9 @@ import { ButtonModule } from 'primeng/button';
   imports: [DialogModule, FormsModule, ButtonModule]
 })
 export class DoDConsentComponent implements OnInit {
-  visible: boolean = false;
+  private router = inject(Router);
 
-  constructor(
-    private router: Router
-  ) { }
+  visible: boolean = false;
 
   ngOnInit() {
     this.visible = true;

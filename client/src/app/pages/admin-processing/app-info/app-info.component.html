@@ -12,19 +12,14 @@
   <div class="grid">
     <div class="col-12">
       <p-card>
-        <div class="m-[-1rem] flex" style="position: relative;">
-          <button pButton
-            icon="pi pi-times"
-            class="p-button-rounded p-button-text"
-            (click)="goBack()"
-            style="position: absolute; top: 0; right: 0;">
-          </button>
+        <div class="m-[-1rem] flex" style="position: relative">
+          <button pButton icon="pi pi-times" class="p-button-rounded p-button-text" (click)="goBack()" style="position: absolute; top: 0; right: 0"></button>
         </div>
         <div class="mb-3 mt-8 flex flex-wrap gap-3">
           <div><strong>App Version:</strong> {{ appInfo()?.version }}</div>
           <div><strong>MySQL Version:</strong> {{ appInfo()?.mysql.version }}</div>
           <div><strong>Node.js Version:</strong> {{ appInfo()?.nodejs.version }}</div>
-          <div><strong>Last Updated:</strong> {{ appInfo()?.date | date:'medium' }}</div>
+          <div><strong>Last Updated:</strong> {{ appInfo()?.date | date: 'medium' }}</div>
           <div><strong>Uptime:</strong> {{ formatUptime(appInfo()?.nodejs.uptime) }}</div>
         </div>
         <div class="mb-2 flex flex-wrap gap-3">
@@ -103,15 +98,17 @@
           <p-tabpanels>
             <p-tabpanel value="0">
               <div class="overflow-x-auto">
-                <p-table [value]="operationRows()"
+                <p-table
+                  [value]="operationRows()"
                   [scrollable]="true"
-                  [tableStyle]="{'min-width': '50rem'}"
+                  [tableStyle]="{ 'min-width': '50rem' }"
                   [rows]="10"
                   [paginator]="true"
                   (onRowSelect)="onOperationSelect($event)"
                   selectionMode="single"
                   [selection]="selectedOperation()"
-                  (selectionChange)="selectedOperation.set($event)">
+                  (selectionChange)="selectedOperation.set($event)"
+                >
                   <ng-template pTemplate="header">
                     <tr>
                       <th>Operation</th>
@@ -150,18 +147,8 @@
               </div>
               <div class="mt-4 flex flex-col gap-4 md:flex-row">
                 <div class="flex-1">
-                  <p-panel header="Client Requests"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="selectedOperationClients()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
+                  <p-panel header="Client Requests" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                    <p-table [value]="selectedOperationClients()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
                           <th>Client</th>
@@ -183,18 +170,8 @@
                   </p-panel>
                 </div>
                 <div class="flex-1">
-                  <p-panel header="User Requests"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="selectedOperationUsers()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
+                  <p-panel header="User Requests" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                    <p-table [value]="selectedOperationUsers()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
                           <th>User</th>
@@ -216,18 +193,8 @@
                   </p-panel>
                 </div>
                 <div class="flex-1">
-                  <p-panel header="Errors"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="selectedOperationErrors()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
+                  <p-panel header="Errors" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                    <p-table [value]="selectedOperationErrors()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
                           <th>Error</th>
@@ -252,8 +219,7 @@
             </p-tabpanel>
             <p-tabpanel value="1">
               <div class="overflow-x-auto">
-                <p-table [value]="mysqlTableRows()" [scrollable]="true" [tableStyle]="{'min-width': '50rem'}"
-                  [rows]="10" [paginator]="true" selectionMode="single">
+                <p-table [value]="mysqlTableRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
                   <ng-template pTemplate="header">
                     <tr>
                       <th>Table Name</th>
@@ -270,8 +236,8 @@
                       <td>{{ table.rowCount }}</td>
                       <td>{{ formatBytes(table.dataLength) }}</td>
                       <td>{{ formatBytes(table.indexLength) }}</td>
-                      <td>{{ table.createTime | date:'short' }}</td>
-                      <td>{{ table.updateTime | date:'short' }}</td>
+                      <td>{{ table.createTime | date: 'short' }}</td>
+                      <td>{{ table.updateTime | date: 'short' }}</td>
                     </tr>
                   </ng-template>
                 </p-table>
@@ -279,8 +245,7 @@
             </p-tabpanel>
             <p-tabpanel value="2">
               <div class="overflow-x-auto">
-                <p-table [value]="cpuRows()" [scrollable]="true" [tableStyle]="{'min-width': '50rem'}"
-                  [rows]="10" [paginator]="true" selectionMode="single">
+                <p-table [value]="cpuRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
                   <ng-template pTemplate="header">
                     <tr>
                       <th>CPU #</th>
@@ -300,8 +265,7 @@
             </p-tabpanel>
             <p-tabpanel value="3">
               <div class="overflow-x-auto">
-                <p-table [value]="environmentRows()" [scrollable]="true" [tableStyle]="{'min-width': '50rem'}"
-                  [rows]="10" [paginator]="true" selectionMode="single">
+                <p-table [value]="environmentRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
                   <ng-template pTemplate="header">
                     <tr>
                       <th>Variable</th>
@@ -319,14 +283,7 @@
             </p-tabpanel>
             <p-tabpanel value="4">
               <div class="overflow-x-auto">
-                <p-table [value]="userRows()"
-                  [scrollable]="true"
-                  [tableStyle]="{'min-width': '50rem'}"
-                  [rows]="10"
-                  [paginator]="true"
-                  selectionMode="single"
-                  [selection]="selectedUser()"
-                  (selectionChange)="selectedUser.set($event)">
+                <p-table [value]="userRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single" [selection]="selectedUser()" (selectionChange)="selectedUser.set($event)">
                   <ng-template pTemplate="header">
                     <tr>
                       <th>Username</th>
@@ -342,8 +299,8 @@
                   <ng-template pTemplate="body" let-user>
                     <tr [pSelectableRow]="user">
                       <td>{{ user.username }}</td>
-                      <td>{{ user.created | date:'short' }}</td>
-                      <td>{{ user.lastAccess | date:'short' }}</td>
+                      <td>{{ user.created | date: 'short' }}</td>
+                      <td>{{ user.lastAccess | date: 'short' }}</td>
                       <td>{{ user.privileges.join(', ') || 'None' }}</td>
                       <td>{{ user.roles['Viewer'] }}</td>
                       <td>{{ user.roles['Approver'] }}</td>
@@ -355,18 +312,8 @@
               </div>
               <div class="mt-4 flex flex-col gap-4 md:flex-row">
                 <div class="flex-1">
-                  <p-panel header="Overall Privileges"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="userPrivilegeOverall()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
+                  <p-panel header="Overall Privileges" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                    <p-table [value]="userPrivilegeOverall()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
                           <th>Privilege</th>
@@ -383,18 +330,8 @@
                   </p-panel>
                 </div>
                 <div class="flex-1">
-                  <p-panel header="Active in Last 30 Days"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="userPrivilege30Days()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
+                  <p-panel header="Active in Last 30 Days" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                    <p-table [value]="userPrivilege30Days()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
                           <th>Privilege</th>
@@ -411,18 +348,8 @@
                   </p-panel>
                 </div>
                 <div class="flex-1">
-                  <p-panel header="Active in Last 90 Days"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="userPrivilege90Days()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
+                  <p-panel header="Active in Last 90 Days" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                    <p-table [value]="userPrivilege90Days()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
                           <th>Privilege</th>
@@ -452,12 +379,7 @@
               <h3 class="text-lg font-semibold">MySQL Variables</h3>
             </div>
             <div class="overflow-x-auto">
-              <p-table [value]="variableRows()"
-                [scrollable]="true"
-                scrollHeight="400px"
-                styleClass="w-full"
-                size="small"
-                selectionMode="single">
+              <p-table [value]="variableRows()" [scrollable]="true" scrollHeight="400px" styleClass="w-full" size="small" selectionMode="single">
                 <ng-template pTemplate="header">
                   <tr>
                     <th class="font-semibold">Variable</th>
@@ -480,12 +402,7 @@
               <h3 class="text-lg font-semibold">MySQL Status</h3>
             </div>
             <div class="overflow-x-auto">
-              <p-table [value]="statusRows()"
-                [scrollable]="true"
-                scrollHeight="400px"
-                styleClass="w-full"
-                size="small"
-                selectionMode="single">
+              <p-table [value]="statusRows()" [scrollable]="true" scrollHeight="400px" styleClass="w-full" size="small" selectionMode="single">
                 <ng-template pTemplate="header">
                   <tr>
                     <th class="font-semibold">Status</th>

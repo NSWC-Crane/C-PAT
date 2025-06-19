@@ -30,7 +30,7 @@ import { Component, Input } from '@angular/core';
         </div>
       </div>
     </p-card>
-  `,
+  `
 })
 export class StatusCardComponent {
   @Input() title!: string;

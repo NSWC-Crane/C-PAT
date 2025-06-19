@@ -8,22 +8,22 @@
 !##########################################################################
 */
 
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { Table, TableModule } from 'primeng/table';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
-import { SharedService } from 'src/app/common/services/shared.service';
-import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { Component, Input, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
-import { TextareaModule } from 'primeng/textarea';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputIconModule } from 'primeng/inputicon';
+import { CardModule } from 'primeng/card';
 import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
+import { forkJoin } from 'rxjs';
+import { SharedService } from 'src/app/common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 interface ExportColumn {
   title: string;
@@ -42,22 +42,12 @@ interface Label {
   templateUrl: './stigManagerAssetsTable.component.html',
   styleUrls: ['./stigManagerAssetsTable.component.scss'],
   standalone: true,
-  imports: [
-    ButtonModule,
-    CardModule,
-    CommonModule,
-    FormsModule,
-    InputTextModule,
-    InputIconModule,
-    IconFieldModule,
-    TextareaModule,
-    MultiSelectModule,
-    TableModule,
-    ToastModule,
-    TagModule,
-  ],
+  imports: [ButtonModule, CardModule, CommonModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, TableModule, ToastModule, TagModule]
 })
 export class STIGManagerAssetsTableComponent implements OnInit {
+  private messageService = inject(MessageService);
+  private sharedService = inject(SharedService);
+
   @Input() stigmanCollectionId!: number;
   @ViewChild('dt') table!: Table;
   @ViewChild('ms') multiSelect!: MultiSelect;
@@ -71,13 +61,9 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   totalRecords: number = 0;
   filterValue: string = '';
 
-  constructor(
-    private messageService: MessageService,
-    private sharedService: SharedService
-  ) {}
-
   ngOnInit() {
     this.initColumnsAndFilters();
+
     if (this.stigmanCollectionId) {
       this.loadData();
     } else {
@@ -94,12 +80,13 @@ export class STIGManagerAssetsTableComponent implements OnInit {
       next: ({ assets, labels }) => {
         if (!assets || assets.length === 0) {
           this.showErrorMessage('No assets found.');
+
           return;
         }
 
-        this.assets = assets.map(asset => ({
+        this.assets = assets.map((asset) => ({
           ...asset,
-          collectionName: asset.collection.name,
+          collectionName: asset.collection.name
         }));
         this.totalRecords = this.assets.length;
 
@@ -128,23 +115,19 @@ export class STIGManagerAssetsTableComponent implements OnInit {
         field: 'collectionName',
         header: 'Collection Name',
         width: '200px',
-        filterable: true,
+        filterable: true
       },
-      { field: 'labels', header: 'Labels', width: '200px', filterable: true },
+      { field: 'labels', header: 'Labels', width: '200px', filterable: true }
     ];
-    this.exportColumns = this.cols.map(col => ({
+    this.exportColumns = this.cols.map((col) => ({
       title: col.header,
-      dataKey: col.field,
+      dataKey: col.field
     }));
     this.resetColumnSelections();
   }
 
   getAssetLabels(asset: any): Label[] {
-    return (
-      asset.labelIds
-        ?.map((labelId: number) => this.labels.find(label => label.labelId === labelId))
-        .filter(Boolean) || []
-    );
+    return asset.labelIds?.map((labelId: number) => this.labels.find((label) => label.labelId === labelId)).filter(Boolean) || [];
   }
 
   showErrorMessage(message: string) {
@@ -152,7 +135,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
       severity: 'error',
       summary: 'Error',
       detail: message,
-      sticky: true,
+      sticky: true
     });
   }
 

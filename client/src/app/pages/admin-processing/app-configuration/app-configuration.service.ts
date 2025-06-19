@@ -9,32 +9,29 @@
 */
 
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class AppConfigurationService {
-  private cpatApiBase = CPAT.Env.apiBase;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) { }
+  private cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: any) {
     console.error('An error occurred:', error);
+
     return throwError(() => error);
   }
 
   getAppConfiguration(): Observable<any> {
-    return this.http
-      .get<any>(`${this.cpatApiBase}/appConfig`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<any>(`${this.cpatApiBase}/appConfig`).pipe(catchError(this.handleError));
   }
 
   putAppConfiguration(appConfiguration: any): Observable<any> {
-    return this.http
-      .put<any>(`${this.cpatApiBase}/appConfiguration`, appConfiguration)
-      .pipe(catchError(this.handleError));
+    return this.http.put<any>(`${this.cpatApiBase}/appConfiguration`, appConfiguration).pipe(catchError(this.handleError));
   }
 }

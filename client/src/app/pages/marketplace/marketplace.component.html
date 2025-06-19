@@ -11,9 +11,7 @@
 <div class="grid grid-cols-12 gap-4">
   <div class="col-span-12">
     <p-card class="pointsBalance">
-      <ng-template pTemplate="header">
-        User Points Balance: <p-chip [label]="userPoints + ' Points'" styleClass="mr-2"></p-chip>
-      </ng-template>
+      <ng-template pTemplate="header"> User Points Balance: <p-chip [label]="userPoints + ' Points'" styleClass="mr-2"></p-chip> </ng-template>
     </p-card>
   </div>
 
@@ -26,24 +24,35 @@
           <div class="theme-card">
             <p-card [header]="theme.themeName">
               <ng-template pTemplate="header">
-                <p-image
-                  [src]="themeImageUrls[theme.themeId]"
-                  [alt]="theme.themeName"
-                  [preview]="true"
-                  appendTo="body"
-                  />
+                <p-image [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" [preview]="true" appendTo="body" />
+              </ng-template>
+              <p>{{ theme.themeDescription }}</p>
+              <p-chip [label]="theme.cost + ' Points'" styleClass="p-mr-2"></p-chip>
+              <ng-template pTemplate="footer">
+                <button pButton pRipple type="button" label="Purchase" class="p-button-outlined" (click)="purchaseTheme(theme)"></button>
+              </ng-template>
+            </p-card>
+          </div>
+        }
+      </div>
+    </p-card>
+  </div>
+
+  @if (purchasedThemes.length > 0) {
+    <div class="col-span-12">
+      <p-card header="Purchased Themes" styleClass="mb-0 pb-0">
+        <p-divider type="solid" styleClass="mt-0 pt-0" />
+        <p></p>
+        <div class="p-grid">
+          @for (theme of purchasedThemes; track theme) {
+            <div class="theme-card">
+              <p-card [header]="theme.themeName">
+                <ng-template pTemplate="header">
+                  <p-image [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" [preview]="true" appendTo="body" />
                 </ng-template>
                 <p>{{ theme.themeDescription }}</p>
-                <p-chip [label]="theme.cost + ' Points'" styleClass="p-mr-2"></p-chip>
                 <ng-template pTemplate="footer">
-                  <button
-                    pButton
-                    pRipple
-                    type="button"
-                    label="Purchase"
-                    class="p-button-outlined"
-                    (click)="purchaseTheme(theme)"
-                  ></button>
+                  <button pButton pRipple type="button" label="Enable Theme" class="p-button-outlined" (click)="setTheme(theme.themeIdentifier)"></button>
                 </ng-template>
               </p-card>
             </div>
@@ -51,43 +60,8 @@
         </div>
       </p-card>
     </div>
+  }
+</div>
 
-    @if (purchasedThemes.length > 0) {
-      <div class="col-span-12">
-        <p-card header="Purchased Themes" styleClass="mb-0 pb-0">
-          <p-divider type="solid" styleClass="mt-0 pt-0" />
-          <p></p>
-          <div class="p-grid">
-            @for (theme of purchasedThemes; track theme) {
-              <div class="theme-card">
-                <p-card [header]="theme.themeName">
-                  <ng-template pTemplate="header">
-                    <p-image
-                      [src]="themeImageUrls[theme.themeId]"
-                      [alt]="theme.themeName"
-                      [preview]="true"
-                      appendTo="body"
-                      />
-                    </ng-template>
-                    <p>{{ theme.themeDescription }}</p>
-                    <ng-template pTemplate="footer">
-                      <button
-                        pButton
-                        pRipple
-                        type="button"
-                        label="Enable Theme"
-                        class="p-button-outlined"
-                        (click)="setTheme(theme.themeIdentifier)"
-                      ></button>
-                    </ng-template>
-                  </p-card>
-                </div>
-              }
-            </div>
-          </p-card>
-        </div>
-      }
-    </div>
-
-    <p-confirmDialog [style]="{width: '50vw'}"></p-confirmDialog>
-    <p-toast></p-toast>
+<p-confirmDialog [style]="{ width: '50vw' }"></p-confirmDialog>
+<p-toast></p-toast>

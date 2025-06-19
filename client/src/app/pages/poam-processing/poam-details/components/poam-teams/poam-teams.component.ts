@@ -8,48 +8,41 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, Output } from "@angular/core";
-import { FormsModule } from "@angular/forms";
-import { MessageService } from "primeng/api";
-import { ButtonModule } from "primeng/button";
-import { ProgressBarModule } from "primeng/progressbar";
-import { SelectModule } from "primeng/select";
-import { TableModule } from "primeng/table";
-import { firstValueFrom } from "rxjs";
-import { PoamService } from "../../../poams.service";
-import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { firstValueFrom } from 'rxjs';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { PoamService } from '../../../poams.service';
 
 @Component({
   selector: 'cpat-poam-teams',
   templateUrl: './poam-teams.component.html',
   standalone: true,
-  imports: [
-    FormsModule,
-    TableModule,
-    ProgressBarModule,
-    SelectModule,
-    ButtonModule,
-    ToastModule
-]
+  imports: [FormsModule, TableModule, ProgressBarModule, SelectModule, ButtonModule, ToastModule]
 })
 export class PoamTeamsComponent {
+  private messageService = inject(MessageService);
+
   @Input() poam: any;
   @Input() accessLevel: number;
   @Input() poamAssignedTeams: any[] = [];
   @Input() assignedTeamOptions: any[] = [];
   @Input() loading: boolean = false;
   @Input() poamService!: PoamService;
-  @Output() teamsChanged = new EventEmitter<{ teams: any[], action: string, team?: any }>();
-
-  constructor(private messageService: MessageService) { }
+  @Output() teamsChanged = new EventEmitter<{ teams: any[]; action: string; team?: any }>();
 
   async addAssignedTeam() {
     const newAssignedTeam = {
       poamId: this.poam.poamId === 'ADDPOAM' ? 0 : +this.poam.poamId,
       assignedTeamId: null,
       assignedTeamName: '',
-      isNew: true,
+      isNew: true
     };
 
     this.poamAssignedTeams = [newAssignedTeam, ...this.poamAssignedTeams];
@@ -58,9 +51,8 @@ export class PoamTeamsComponent {
 
   async onAssignedTeamChange(assignedTeam: any, rowIndex: number) {
     if (assignedTeam.assignedTeamId) {
-      const selectedTeam = this.assignedTeamOptions.find(
-        (team: any) => team.assignedTeamId === assignedTeam.assignedTeamId
-      );
+      const selectedTeam = this.assignedTeamOptions.find((team: any) => team.assignedTeamId === assignedTeam.assignedTeamId);
+
       assignedTeam.assignedTeamName = selectedTeam ? selectedTeam.assignedTeamName : '';
 
       assignedTeam.isNew = false;
@@ -94,27 +86,23 @@ export class PoamTeamsComponent {
 
   async confirmCreateAssignedTeam(newAssignedTeam: any) {
     let assignedTeamName = newAssignedTeam.assignedTeamName;
+
     if (!assignedTeamName) {
-      const matchingTeam = this.assignedTeamOptions.find(
-        (team: any) => team.assignedTeamId === newAssignedTeam.assignedTeamId
-      );
+      const matchingTeam = this.assignedTeamOptions.find((team: any) => team.assignedTeamId === newAssignedTeam.assignedTeamId);
+
       assignedTeamName = matchingTeam ? matchingTeam.assignedTeamName : 'Team';
     }
 
     if (this.poam.poamId !== 'ADDPOAM' && newAssignedTeam.assignedTeamId) {
       const poamAssignedTeam = {
         poamId: +this.poam.poamId,
-        assignedTeamId: +newAssignedTeam.assignedTeamId,
+        assignedTeamId: +newAssignedTeam.assignedTeamId
       };
 
       try {
-        await firstValueFrom(
-          this.poamService.postPoamAssignedTeam(poamAssignedTeam)
-        );
+        await firstValueFrom(this.poamService.postPoamAssignedTeam(poamAssignedTeam));
 
-        const updatedTeams = await firstValueFrom(
-          this.poamService.getPoamAssignedTeams(this.poam.poamId)
-        );
+        const updatedTeams = await firstValueFrom(this.poamService.getPoamAssignedTeams(this.poam.poamId));
 
         this.poamAssignedTeams = updatedTeams;
         this.teamsChanged.emit({
@@ -126,7 +114,7 @@ export class PoamTeamsComponent {
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
-          detail: `${assignedTeamName} was successfully added to the assigned teams list`,
+          detail: `${assignedTeamName} was successfully added to the assigned teams list`
         });
       } catch (error: any) {
         this.messageService.add({
@@ -140,13 +128,13 @@ export class PoamTeamsComponent {
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
-        detail: `${assignedTeamName} was successfully added to the assigned teams list`,
+        detail: `${assignedTeamName} was successfully added to the assigned teams list`
       });
     } else {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to create entry. Invalid input.',
+        detail: 'Failed to create entry. Invalid input.'
       });
     }
   }
@@ -155,20 +143,15 @@ export class PoamTeamsComponent {
     let assignedTeamName = assignedTeamData.assignedTeamName || '';
 
     if (this.poam.poamId !== 'ADDPOAM' && assignedTeamData.assignedTeamId) {
-      this.poamService.deletePoamAssignedTeam(
-        +this.poam.poamId,
-        +assignedTeamData.assignedTeamId
-      ).subscribe({
+      this.poamService.deletePoamAssignedTeam(+this.poam.poamId, +assignedTeamData.assignedTeamId).subscribe({
         next: () => {
-          this.poamAssignedTeams = this.poamAssignedTeams.filter(
-            (a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId
-          );
+          this.poamAssignedTeams = this.poamAssignedTeams.filter((a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId);
           this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'deleted', team: assignedTeamData });
 
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: `${assignedTeamName} was removed as an assigned team`,
+            detail: `${assignedTeamName} was removed as an assigned team`
           });
         },
         error: (error: Error) => {
@@ -180,21 +163,19 @@ export class PoamTeamsComponent {
         }
       });
     } else if (this.poam.poamId === 'ADDPOAM' && assignedTeamData.assignedTeamId) {
-      this.poamAssignedTeams = this.poamAssignedTeams.filter(
-        (a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId
-      );
+      this.poamAssignedTeams = this.poamAssignedTeams.filter((a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId);
       this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'deleted', team: assignedTeamData });
 
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
-        detail: `${assignedTeamName} was removed as an assigned team`,
+        detail: `${assignedTeamName} was removed as an assigned team`
       });
     } else {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to delete entry. Invalid input.',
+        detail: 'Failed to delete entry. Invalid input.'
       });
     }
   }

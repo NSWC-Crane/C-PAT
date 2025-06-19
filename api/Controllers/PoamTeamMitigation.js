@@ -15,7 +15,7 @@ exports.getPoamTeamMitigations = async function getPoamTeamMitigations(req, res,
         const result = await poamTeamMitigationService.getPoamTeamMitigations();
         return res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while retrieving POAM team mitigations" });
+        return res.status(500).json({ error: 'An error occurred while retrieving POAM team mitigations' });
     }
 };
 
@@ -24,7 +24,7 @@ exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsBy
         const result = await poamTeamMitigationService.getPoamTeamMitigationsByPoamId(req.params.poamId);
         return res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while retrieving POAM team mitigations by poamId" });
+        return res.status(500).json({ error: 'An error occurred while retrieving POAM team mitigations by poamId' });
     }
 };
 
@@ -33,7 +33,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
         const teamMitigation = await poamTeamMitigationService.postPoamTeamMitigation(req, res, next);
         return res.status(201).json(teamMitigation);
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while entering the POAM team mitigation" });
+        return res.status(500).json({ error: 'An error occurred while entering the POAM team mitigation' });
     }
 };
 
@@ -42,7 +42,7 @@ exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, 
         const teamMitigation = await poamTeamMitigationService.updatePoamTeamMitigation(req, res, next);
         return res.status(200).json(teamMitigation);
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while updating the POAM team mitigation" });
+        return res.status(500).json({ error: 'An error occurred while updating the POAM team mitigation' });
     }
 };
 
@@ -51,7 +51,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
         const teamMitigation = await poamTeamMitigationService.updatePoamTeamMitigationStatus(req, res, next);
         return res.status(200).json(teamMitigation);
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while updating the POAM team mitigation status" });
+        return res.status(500).json({ error: 'An error occurred while updating the POAM team mitigation status' });
     }
 };
 
@@ -60,6 +60,6 @@ exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req, 
         await poamTeamMitigationService.deletePoamTeamMitigation(req, res, next);
         return res.status(204).send();
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while deleting the POAM team mitigation" });
+        return res.status(500).json({ error: 'An error occurred while deleting the POAM team mitigation' });
     }
 };

@@ -8,24 +8,23 @@
 !##########################################################################
 */
 
+import { APP_BASE_HREF } from '@angular/common';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { enableProdMode, importProvidersFrom } from '@angular/core';
-import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/app.component';
-import { environment } from './environments/environment';
+import { FormsModule } from '@angular/forms';
+import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
-import { routes } from './app/app-routing.module';
-import { providePrimeNG } from 'primeng/config';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
-import { APP_BASE_HREF } from '@angular/common';
-import Noir from './app/app-theme';
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
-import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
-import { authErrorInterceptor } from './app/core/auth/interceptor/auth-error.interceptor';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { providePrimeNG } from 'primeng/config';
+import { routes } from './app/app-routing.module';
+import Noir from './app/app-theme';
+import { AppComponent } from './app/app.component';
+import { authErrorInterceptor } from './app/core/auth/interceptor/auth-error.interceptor';
+import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
+import { environment } from './environments/environment';
 
 if (environment.production) {
   enableProdMode();
@@ -37,12 +36,7 @@ function getScopeStr(configId: string) {
   let scopes: string[] = [];
 
   if (configId === 'cpat') {
-    scopes = [
-      `${cpatScopePrefix}c-pat:read`,
-      `${cpatScopePrefix}c-pat:write`,
-      `${cpatScopePrefix}c-pat:op`,
-      'openid'
-    ];
+    scopes = [`${cpatScopePrefix}c-pat:read`, `${cpatScopePrefix}c-pat:write`, `${cpatScopePrefix}c-pat:op`, 'openid'];
   } else if (configId === 'stigman') {
     scopes = [
       `${stigmanScopePrefix}stig-manager:stig`,
@@ -60,6 +54,7 @@ function getScopeStr(configId: string) {
   } else if (CPAT.Env.stigman.extraScopes && configId === 'stigman') {
     scopes.push(...CPAT.Env.stigman.extraScopes.split(' '));
   }
+
   return scopes.join(' ');
 }
 
@@ -67,71 +62,68 @@ bootstrapApplication(AppComponent, {
   providers: [
     {
       provide: APP_BASE_HREF,
-      useFactory: () => {
-        return document.querySelector('base')?.getAttribute('href') || '/';
-      }
+      useFactory: () => document.querySelector('base')?.getAttribute('href') || '/'
     },
     provideAnimationsAsync(),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
     providePrimeNG({ theme: Noir, ripple: false, inputStyle: 'outlined' }),
-    importProvidersFrom(
-      BrowserModule,
-      BrowserAnimationsModule,
-      FormsModule
+    importProvidersFrom(BrowserModule, BrowserAnimationsModule, FormsModule),
+    provideAuth(
+      {
+        config: [
+          {
+            configId: 'cpat',
+            authority: CPAT.Env.oauth.authority,
+            redirectUrl: window.location.origin + (CPAT.Env.basePath || ''),
+            postLogoutRedirectUri: window.location.origin + (CPAT.Env.basePath || ''),
+            clientId: CPAT.Env.oauth.clientId,
+            scope: getScopeStr('cpat'),
+            responseType: 'code',
+            useRefreshToken: true,
+            silentRenew: true,
+            silentRenewUrl: `${window.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
+            autoUserInfo: true,
+            renewUserInfoAfterTokenRenew: false,
+            triggerAuthorizationResultEvent: true,
+            startCheckSession: true,
+            postLoginRoute: '/',
+            unauthorizedRoute: '/403',
+            forbiddenRoute: '/401',
+            tokenRefreshInSeconds: 6,
+            refreshTokenRetryInSeconds: 6,
+            ignoreNonceAfterRefresh: true,
+            maxIdTokenIatOffsetAllowedInSeconds: 600,
+            disableRefreshIdTokenAuthTimeValidation: true
+          },
+          {
+            configId: 'stigman',
+            authority: CPAT.Env.oauth.authority,
+            redirectUrl: window.location.origin + (CPAT.Env.basePath || ''),
+            postLogoutRedirectUri: window.location.origin + (CPAT.Env.basePath || ''),
+            clientId: CPAT.Env.stigman.clientId,
+            scope: getScopeStr('stigman'),
+            responseType: 'code',
+            useRefreshToken: true,
+            silentRenew: true,
+            silentRenewUrl: `${window.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
+            autoUserInfo: true,
+            renewUserInfoAfterTokenRenew: false,
+            triggerAuthorizationResultEvent: true,
+            startCheckSession: true,
+            unauthorizedRoute: '/403',
+            forbiddenRoute: '/401',
+            tokenRefreshInSeconds: 6,
+            refreshTokenRetryInSeconds: 6,
+            ignoreNonceAfterRefresh: true,
+            maxIdTokenIatOffsetAllowedInSeconds: 600,
+            disableRefreshIdTokenAuthTimeValidation: true
+          }
+        ]
+      },
+      withAppInitializerAuthCheck()
     ),
-    provideAuth({
-      config: [
-        {
-          configId: 'cpat',
-          authority: CPAT.Env.oauth.authority,
-          redirectUrl: window.location.origin + (CPAT.Env.basePath || ''),
-          postLogoutRedirectUri: window.location.origin + (CPAT.Env.basePath || ''),
-          clientId: CPAT.Env.oauth.clientId,
-          scope: getScopeStr('cpat'),
-          responseType: 'code',
-          useRefreshToken: true,
-          silentRenew: true,
-          silentRenewUrl: `${window.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
-          autoUserInfo: true,
-          renewUserInfoAfterTokenRenew: false,
-          triggerAuthorizationResultEvent: true,
-          startCheckSession: true,
-          postLoginRoute: '/',
-          unauthorizedRoute: '/403',
-          forbiddenRoute: '/401',
-          tokenRefreshInSeconds: 6,
-          refreshTokenRetryInSeconds: 6,
-          ignoreNonceAfterRefresh: true,
-          maxIdTokenIatOffsetAllowedInSeconds: 600,
-          disableRefreshIdTokenAuthTimeValidation: true
-        },
-        {
-          configId: 'stigman',
-          authority: CPAT.Env.oauth.authority,
-          redirectUrl: window.location.origin + (CPAT.Env.basePath || ''),
-          postLogoutRedirectUri: window.location.origin + (CPAT.Env.basePath || ''),
-          clientId: CPAT.Env.stigman.clientId,
-          scope: getScopeStr('stigman'),
-          responseType: 'code',
-          useRefreshToken: true,
-          silentRenew: true,
-          silentRenewUrl: `${window.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
-          autoUserInfo: true,
-          renewUserInfoAfterTokenRenew: false,
-          triggerAuthorizationResultEvent: true,
-          startCheckSession: true,
-          unauthorizedRoute: '/403',
-          forbiddenRoute: '/401',
-          tokenRefreshInSeconds: 6,
-          refreshTokenRetryInSeconds: 6,
-          ignoreNonceAfterRefresh: true,
-          maxIdTokenIatOffsetAllowedInSeconds: 600,
-          disableRefreshIdTokenAuthTimeValidation: true
-        }
-      ]
-    }, withAppInitializerAuthCheck()),
     provideHttpClient(withInterceptors([authInterceptor, authErrorInterceptor])),
     MessageService,
     ConfirmationService
   ]
-}).catch(err => console.error(err));
+}).catch((err) => console.error(err));

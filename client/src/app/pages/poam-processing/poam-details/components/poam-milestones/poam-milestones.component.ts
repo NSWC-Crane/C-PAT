@@ -8,19 +8,19 @@
 !##########################################################################
 */
 
-import { CommonModule, DatePipe } from "@angular/common";
-import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ChangeDetectorRef, signal } from "@angular/core";
-import { FormsModule } from "@angular/forms";
-import { ConfirmationService, MessageService } from "primeng/api";
-import { ButtonModule } from "primeng/button";
-import { ConfirmDialogModule } from "primeng/confirmdialog";
-import { DatePicker } from "primeng/datepicker";
-import { DialogModule } from "primeng/dialog";
-import { SelectModule } from "primeng/select";
-import { Table, TableModule } from "primeng/table";
-import { ToastModule } from "primeng/toast";
+import { CommonModule, DatePipe } from '@angular/common';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild, signal, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { addDays, isAfter } from 'date-fns';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DatePicker } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
+import { SelectModule } from 'primeng/select';
+import { Table, TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 
 export interface Milestone {
@@ -39,22 +39,14 @@ export interface Milestone {
   templateUrl: './poam-milestones.component.html',
   styleUrls: ['./poam-milestones.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    DatePicker,
-    TableModule,
-    ToastModule,
-    DialogModule,
-    ConfirmDialogModule,
-    SelectModule,
-    TextareaModule,
-    TooltipModule
-  ],
+  imports: [CommonModule, FormsModule, ButtonModule, DatePicker, TableModule, ToastModule, DialogModule, ConfirmDialogModule, SelectModule, TextareaModule, TooltipModule],
   providers: [ConfirmationService, DatePipe]
 })
 export class PoamMilestonesComponent implements OnInit {
+  private confirmationService = inject(ConfirmationService);
+  private messageService = inject(MessageService);
+  private cdr = inject(ChangeDetectorRef);
+
   @ViewChild('dt') table: Table;
   @Input() poam: any = { status: '' };
   @Input() accessLevel: number = 0;
@@ -68,14 +60,8 @@ export class PoamMilestonesComponent implements OnInit {
 
   milestoneStatusOptions = [
     { label: 'Pending', value: 'Pending' },
-    { label: 'Complete', value: 'Complete' },
+    { label: 'Complete', value: 'Complete' }
   ];
-
-  constructor(
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService,
-    private cdr: ChangeDetectorRef
-  ) { }
 
   ngOnInit() {
     if (!Array.isArray(this.poamMilestones)) {
@@ -103,7 +89,7 @@ export class PoamMilestonesComponent implements OnInit {
       assignedTeamId: null,
       isNew: true,
       editing: true,
-      dateModified: false,
+      dateModified: false
     };
 
     this.poamMilestones = [newMilestone, ...this.poamMilestones];
@@ -147,9 +133,9 @@ export class PoamMilestonesComponent implements OnInit {
         accept: () => {
           this.finalizeRowEdit(milestone);
         },
-        reject: () => {
-        }
+        reject: () => {}
       });
+
       return;
     }
 
@@ -186,6 +172,7 @@ export class PoamMilestonesComponent implements OnInit {
       this.poamMilestones[index] = this.clonedMilestones[milestone.milestoneId];
       delete this.clonedMilestones[milestone.milestoneId];
     }
+
     milestone.editing = false;
     this.editingMilestoneId.set(null);
     this.milestonesChanged.emit(this.poamMilestones);
@@ -212,7 +199,8 @@ export class PoamMilestonesComponent implements OnInit {
 
   getTeamName(teamId: number): string {
     if (!teamId || !this.assignedTeamOptions?.length) return '';
-    const team = this.assignedTeamOptions.find(t => t.assignedTeamId === teamId);
+    const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === teamId);
+
     return team ? team.assignedTeamName : '';
   }
 
@@ -221,7 +209,7 @@ export class PoamMilestonesComponent implements OnInit {
       { field: 'milestoneComments', message: 'Milestone Comments is a required field.' },
       { field: 'milestoneDate', message: 'Milestone Date is a required field.' },
       { field: 'milestoneStatus', message: 'Milestone Status is a required field.' },
-      { field: 'assignedTeamId', message: 'Milestone Team is a required field.' },
+      { field: 'assignedTeamId', message: 'Milestone Team is a required field.' }
     ];
 
     for (const { field, message } of requiredFields) {
@@ -229,8 +217,9 @@ export class PoamMilestonesComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Information',
-          detail: message,
+          detail: message
         });
+
         return false;
       }
     }
@@ -252,19 +241,21 @@ export class PoamMilestonesComponent implements OnInit {
         this.messageService.add({
           severity: 'warn',
           summary: 'Information',
-          detail: 'The Milestone date provided exceeds the POAM scheduled completion date.',
+          detail: 'The Milestone date provided exceeds the POAM scheduled completion date.'
         });
+
         return false;
       }
     } else {
       const maxAllowedDate = addDays(scheduledCompletionDate, extensionTimeAllowed);
+
       if (isAfter(milestoneDate, maxAllowedDate)) {
         this.messageService.add({
           severity: 'warn',
           summary: 'Information',
-          detail:
-            'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.',
+          detail: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
         });
+
         return false;
       }
     }

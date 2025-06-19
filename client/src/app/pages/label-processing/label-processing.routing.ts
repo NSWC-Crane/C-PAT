@@ -14,6 +14,6 @@ import { LabelProcessingComponent } from './label-processing.component';
 export const labelProcessingRoutes: Routes = [
   {
     path: '',
-    component: LabelProcessingComponent,
-  },
+    component: LabelProcessingComponent
+  }
 ];

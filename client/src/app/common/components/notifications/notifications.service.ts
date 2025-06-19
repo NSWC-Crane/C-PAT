@@ -9,17 +9,17 @@
 */
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class NotificationService {
-  private cpatApiBase = CPAT.Env.apiBase;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) { }
+  private cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -27,48 +27,35 @@ export class NotificationService {
     } else {
       console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
+
     return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
   getAllNotifications(): Observable<any[]> {
-    return this.http
-      .get<any[]>(`${this.cpatApiBase}/notifications/all`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<any[]>(`${this.cpatApiBase}/notifications/all`).pipe(catchError(this.handleError));
   }
 
   getUnreadNotifications(): Observable<any[]> {
-    return this.http
-      .get<any[]>(`${this.cpatApiBase}/notifications/unread`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<any[]>(`${this.cpatApiBase}/notifications/unread`).pipe(catchError(this.handleError));
   }
 
   getUnreadNotificationCount(): Observable<any[]> {
-    return this.http
-      .get<any[]>(`${this.cpatApiBase}/notifications/unread/count`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<any[]>(`${this.cpatApiBase}/notifications/unread/count`).pipe(catchError(this.handleError));
   }
 
   dismissNotification(notificationId: number): Observable<any> {
-    return this.http
-      .put<any>(`${this.cpatApiBase}/notifications/dismiss/${notificationId}`, null)
-      .pipe(catchError(this.handleError));
+    return this.http.put<any>(`${this.cpatApiBase}/notifications/dismiss/${notificationId}`, null).pipe(catchError(this.handleError));
   }
 
   dismissAllNotifications(): Observable<any> {
-    return this.http
-      .put<any>(`${this.cpatApiBase}/notifications/all/dismiss`, null)
-      .pipe(catchError(this.handleError));
+    return this.http.put<any>(`${this.cpatApiBase}/notifications/all/dismiss`, null).pipe(catchError(this.handleError));
   }
 
   deleteNotification(notificationId: number): Observable<any> {
-    return this.http
-      .delete<any>(`${this.cpatApiBase}/notifications/delete/${notificationId}`)
-      .pipe(catchError(this.handleError));
+    return this.http.delete<any>(`${this.cpatApiBase}/notifications/delete/${notificationId}`).pipe(catchError(this.handleError));
   }
 
   deleteAllNotifications(): Observable<any> {
-    return this.http
-      .delete<any>(`${this.cpatApiBase}/notifications/all/delete`)
-      .pipe(catchError(this.handleError));
+    return this.http.delete<any>(`${this.cpatApiBase}/notifications/all/delete`).pipe(catchError(this.handleError));
   }
 }

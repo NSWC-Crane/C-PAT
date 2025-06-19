@@ -9,12 +9,12 @@
 */
 
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { PoamLabelsComponent } from './poam-labels.component';
-import { Subject, of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
-import { PoamService } from '../../../poams.service';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
+import { Subject, of, throwError } from 'rxjs';
+import { PoamService } from '../../../poams.service';
+import { PoamLabelsComponent } from './poam-labels.component';
 
 describe('PoamLabelsComponent', () => {
   let component: PoamLabelsComponent;
@@ -23,9 +23,7 @@ describe('PoamLabelsComponent', () => {
   let mockMessageService: jasmine.SpyObj<MessageService>;
 
   beforeEach(fakeAsync(() => {
-    mockPoamService = jasmine.createSpyObj('PoamService',
-      ['getPoamLabelsByPoam', 'postPoamLabel', 'deletePoamLabel']
-    );
+    mockPoamService = jasmine.createSpyObj('PoamService', ['getPoamLabelsByPoam', 'postPoamLabel', 'deletePoamLabel']);
     mockMessageService = {
       add: jasmine.createSpy('add'),
       addAll: jasmine.createSpy('addAll'),
@@ -35,11 +33,7 @@ describe('PoamLabelsComponent', () => {
     } as jasmine.SpyObj<MessageService>;
 
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        PoamLabelsComponent,
-        FormsModule
-      ],
+      imports: [NoopAnimationsModule, PoamLabelsComponent, FormsModule],
       providers: [
         { provide: PoamService, useValue: mockPoamService },
         { provide: MessageService, useValue: mockMessageService }
@@ -70,7 +64,6 @@ describe('PoamLabelsComponent', () => {
 
   describe('Initialization', () => {
     it('should initialize poamLabels as an empty array if it is null or undefined', () => {
-
       component.poamLabels = null as any;
       component.ngOnInit();
       expect(component.poamLabels).toEqual([]);
@@ -80,6 +73,7 @@ describe('PoamLabelsComponent', () => {
   describe('UI Interaction and Event Handling', () => {
     it('addLabel should add a new, blank label row to the top', fakeAsync(() => {
       const labelsSpy = spyOn(component.labelsChanged, 'emit');
+
       component.poamLabels = [{ labelId: 1, labelName: 'Existing' }];
 
       component.addLabel();
@@ -97,12 +91,12 @@ describe('PoamLabelsComponent', () => {
       component.poamLabels = [{ labelId: 1, labelName: 'Priority', isNew: false }];
 
       const duplicateLabel = { labelId: 1 };
+
       await component.onLabelChange(duplicateLabel);
 
       expect(component.poamLabels.length).toBe(1);
       expect(component.poamLabels[0].labelId).toBe(1);
     });
-
 
     it('deleteLabel should remove a label by its index', fakeAsync(() => {
       component.poamLabels = [
@@ -127,6 +121,7 @@ describe('PoamLabelsComponent', () => {
         { labelId: 1, labelName: 'Priority' },
         { labelId: 2, labelName: 'Security' }
       ];
+
       mockPoamService.getPoamLabelsByPoam.and.returnValue(of(mockLabels));
       const labelsSpy = spyOn(component.labelsChanged, 'emit');
 
@@ -139,6 +134,7 @@ describe('PoamLabelsComponent', () => {
 
     it('getPoamLabels should handle API errors gracefully', fakeAsync(() => {
       const errorResponse = new Error('Test API error');
+
       mockPoamService.getPoamLabelsByPoam.and.returnValue(throwError(() => errorResponse));
 
       component.getPoamLabels();

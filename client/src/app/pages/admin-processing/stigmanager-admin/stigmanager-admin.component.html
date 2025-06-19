@@ -19,7 +19,7 @@
     [showClear]="true"
     styleClass="stigmanCollectionSelect"
     appendTo="body"
-    [style]="{'width':'100%'}"
+    [style]="{ width: '100%' }"
   >
   </p-select>
 </div>
@@ -31,7 +31,7 @@
     (click)="importSTIGManagerCollection()"
     (onKeyUp)="importSTIGManagerCollection()"
     [disabled]="!selectedSTIGManagerCollection"
-    [style]="{'width':'100%', 'margin-bottom': '10px'}"
+    [style]="{ width: '100%', 'margin-bottom': '10px' }"
     [outlined]="true"
   >
   </p-button>
@@ -44,7 +44,7 @@
     (click)="importAllRemainingCollections()"
     (onKeyUp)="importAllRemainingCollections()"
     [disabled]="filteredCollections.length === 0"
-    [style]="{'width':'100%'}"
+    [style]="{ width: '100%' }"
     [outlined]="true"
   >
   </p-button>

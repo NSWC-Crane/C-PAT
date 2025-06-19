@@ -15,7 +15,7 @@ module.exports.uploadPoamFile = async (req, res, next) => {
     const file = req.files[0];
     const userId = req.body.userId;
 
-    importService.excelFilter(req, file, async (err) => {
+    importService.excelFilter(req, file, async err => {
         if (err) {
             res.status(400).json({
                 message: err.message,
@@ -23,10 +23,10 @@ module.exports.uploadPoamFile = async (req, res, next) => {
         } else {
             try {
                 await importService.processPoamFile(file, userId);
-                res.status(201).json({ message: "Uploaded the file successfully" });
+                res.status(201).json({ message: 'Uploaded the file successfully' });
             } catch (error) {
                 res.status(500).json({
-                    message: "Could not process the file",
+                    message: 'Could not process the file',
                     error: error.message,
                 });
             }
@@ -38,10 +38,10 @@ module.exports.importVRAMExcel = async (req, res, next) => {
     const file = req.files[0];
 
     if (!file) {
-        return res.status(400).json({ message: "No file uploaded" });
+        return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    importService.excelFilter(req, file, async (err) => {
+    importService.excelFilter(req, file, async err => {
         if (err) {
             return res.status(400).json({
                 message: err.message,
@@ -52,7 +52,7 @@ module.exports.importVRAMExcel = async (req, res, next) => {
                 res.status(201).json(result);
             } catch (error) {
                 res.status(500).json({
-                    message: "Could not process the file",
+                    message: 'Could not process the file',
                     error: error.message,
                 });
                 throw new SmError.UnprocessableError('Error processing VRAM file.');
@@ -66,14 +66,14 @@ module.exports.importAssetListFile = async (req, res, next) => {
     const collectionId = parseInt(req.params.collectionId, 10);
 
     if (!file) {
-        return res.status(400).json({ message: "No file uploaded" });
+        return res.status(400).json({ message: 'No file uploaded' });
     }
 
     if (isNaN(collectionId)) {
-        return res.status(400).json({ message: "Collection ID must be a valid number" });
+        return res.status(400).json({ message: 'Collection ID must be a valid number' });
     }
 
-    importService.excelAndCsvFilter(req, file, async (err) => {
+    importService.excelAndCsvFilter(req, file, async err => {
         if (err) {
             return res.status(400).json({
                 message: err.message,
@@ -84,7 +84,7 @@ module.exports.importAssetListFile = async (req, res, next) => {
                 res.status(201).json(result);
             } catch (error) {
                 res.status(500).json({
-                    message: "Could not process the file",
+                    message: 'Could not process the file',
                     error: error.message,
                 });
             }

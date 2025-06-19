@@ -8,35 +8,25 @@
 !##########################################################################
 */
 
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
-import { SubSink } from 'subsink';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { SharedService } from '../../../common/services/shared.service';
-import { ImportService } from '../../import-processing/import.service';
-import {
-  Observable,
-  catchError,
-  combineLatest,
-  filter,
-  forkJoin,
-  of,
-  switchMap,
-  take,
-  tap,
-} from 'rxjs';
-import { Router } from '@angular/router';
-import { PayloadService } from '../../../common/services/setPayload.service';
 import { CommonModule } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { ToastModule } from 'primeng/toast';
+import { Observable, catchError, combineLatest, filter, forkJoin, of, switchMap, take, tap } from 'rxjs';
+import { SubSink } from 'subsink';
+import { Poam } from '../../../common/models/poam.model';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { SharedService } from '../../../common/services/shared.service';
+import { getErrorMessage } from '../../../common/utils/error-utils';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { ImportService } from '../../import-processing/import.service';
 import { PoamAdvancedPieComponent } from '../poam-advanced-pie/poam-advanced-pie.component';
 import { PoamAssignedGridComponent } from '../poam-assigned-grid/poam-assigned-grid.component';
 import { PoamGridComponent } from '../poam-grid/poam-grid.component';
 import { PoamMainchartComponent } from '../poam-mainchart/poam-mainchart.component';
-import { Poam } from '../../../common/models/poam.model';
-import { getErrorMessage } from '../../../common/utils/error-utils';
 
 @Component({
   selector: 'cpat-poam-manage',
@@ -44,19 +34,18 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
   styleUrls: ['./poam-manage.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    CardModule,
-    TabsModule,
-    ToastModule,
-    PoamAdvancedPieComponent,
-    PoamMainchartComponent,
-    PoamAssignedGridComponent,
-    PoamGridComponent
-  ],
-  providers: [MessageService],
+  imports: [CommonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamMainchartComponent, PoamAssignedGridComponent, PoamGridComponent],
+  providers: [MessageService]
 })
 export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
+  private collectionsService = inject(CollectionsService);
+  private sharedService = inject(SharedService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private setPayloadService = inject(PayloadService);
+  private importService = inject(ImportService);
+  private messageService = inject(MessageService);
+
   catIPieChartData = signal<any[]>([]);
   catIIPieChartData = signal<any[]>([]);
   catIIIPieChartData = signal<any[]>([]);
@@ -77,63 +66,36 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   submittedPoams = signal<any[]>([]);
   poamsPendingApproval = signal<any[]>([]);
   teamPoams = signal<any[]>([]);
-  affectedAssetCounts = signal<{ vulnerabilityId: string, assetCount: number }[]>([]);
+  affectedAssetCounts = signal<{ vulnerabilityId: string; assetCount: number }[]>([]);
   user = signal<any>(null);
   payload = signal<any>(null);
   accessLevel = signal<number>(0);
   private subs = new SubSink();
 
   private readonly CLOSED_STATUSES = new Set(['Closed', 'Draft', 'False-Positive']);
-  private readonly PENDING_STATUSES = new Set([
-    'Submitted',
-    'Extension Requested',
-    'Pending CAT-I Approval'
-  ]);
+  private readonly PENDING_STATUSES = new Set(['Submitted', 'Extension Requested', 'Pending CAT-I Approval']);
+  private readonly userTeamIds = computed(() => new Set(this.user()?.assignedTeams?.map((team: any) => team.assignedTeamId)));
 
-  findingsByCategory = signal<{ [key: string]: { total: number, withPoam: number, percentage: number } }>({
+  findingsByCategory = signal<{ [key: string]: { total: number; withPoam: number; percentage: number } }>({
     'CAT I': { total: 0, withPoam: 0, percentage: 0 },
     'CAT II': { total: 0, withPoam: 0, percentage: 0 },
     'CAT III': { total: 0, withPoam: 0, percentage: 0 }
   });
 
-  catITotal = computed(() => {
-    return this.catIPieChartData().reduce((sum, item) => sum + item.value, 0);
-  });
+  catITotal = computed(() => this.catIPieChartData().reduce((sum, item) => sum + item.value, 0));
 
-  catIITotal = computed(() => {
-    return this.catIIPieChartData().reduce((sum, item) => sum + item.value, 0);
-  });
+  catIITotal = computed(() => this.catIIPieChartData().reduce((sum, item) => sum + item.value, 0));
 
-  catIIITotal = computed(() => {
-    return this.catIIIPieChartData().reduce((sum, item) => sum + item.value, 0);
-  });
+  catIIITotal = computed(() => this.catIIIPieChartData().reduce((sum, item) => sum + item.value, 0));
 
-  catITotal30Days = computed(() => {
-    return this.catIPieChartData30Days().reduce((sum, item) => sum + item.value, 0);
-  });
+  catITotal30Days = computed(() => this.catIPieChartData30Days().reduce((sum, item) => sum + item.value, 0));
 
-  catIITotal30Days = computed(() => {
-    return this.catIIPieChartData30Days().reduce((sum, item) => sum + item.value, 0);
-  });
+  catIITotal30Days = computed(() => this.catIIPieChartData30Days().reduce((sum, item) => sum + item.value, 0));
 
-  catIIITotal30Days = computed(() => {
-    return this.catIIIPieChartData30Days().reduce((sum, item) => sum + item.value, 0);
-  });
-
-  constructor(
-    private collectionsService: CollectionsService,
-    private sharedService: SharedService,
-    private router: Router,
-    private cdr: ChangeDetectorRef,
-    private setPayloadService: PayloadService,
-    private importService: ImportService,
-    private messageService: MessageService
-  ) { }
+  catIIITotal30Days = computed(() => this.catIIIPieChartData30Days().reduce((sum, item) => sum + item.value, 0));
 
   async ngOnInit() {
-    this.subs.sink = this.sharedService.selectedCollection.pipe(
-      tap(collectionId => this.selectedCollectionId.set(collectionId))
-    ).subscribe();
+    this.subs.sink = this.sharedService.selectedCollection.pipe(tap((collectionId) => this.selectedCollectionId.set(collectionId))).subscribe();
 
     await this.setPayload();
   }
@@ -141,63 +103,60 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   private async setPayload() {
     this.setPayloadService.setPayload();
 
-    this.subs.sink = combineLatest([
-      this.setPayloadService.user$,
-      this.setPayloadService.payload$,
-      this.setPayloadService.accessLevel$
-    ]).pipe(
-      filter(([user, payload, level]) => !!user && !!payload && level > 0),
-      take(1),
-      tap(([user, payload, level]) => {
-        this.user.set(user);
-        this.payload.set(payload);
-        this.accessLevel.set(level);
-      }),
-      switchMap(([, payload]) => this.getPoamData(payload.lastCollectionAccessedId))
-    ).subscribe({
-      next: ([poams, basicListData]: any) => {
-        this.poams.set(poams);
-        this.selectedCollection.set(basicListData.find(
-          (collection: any) => collection.collectionId === this.selectedCollectionId()
-        ));
-        this.updateGridData();
-        if (this.selectedCollection()) {
-          this.fetchFindingsData(this.selectedCollection().originCollectionId, this.selectedCollection().collectionOrigin);
+    this.subs.sink = combineLatest([this.setPayloadService.user$, this.setPayloadService.payload$, this.setPayloadService.accessLevel$])
+      .pipe(
+        filter(([user, payload, level]) => !!user && !!payload && level > 0),
+        take(1),
+        tap(([user, payload, level]) => {
+          this.user.set(user);
+          this.payload.set(payload);
+          this.accessLevel.set(level);
+        }),
+        switchMap(([, payload]) => this.getPoamData(payload.lastCollectionAccessedId))
+      )
+      .subscribe({
+        next: ([poams, basicListData]: any) => {
+          this.poams.set(poams);
+          this.selectedCollection.set(basicListData.find((collection: any) => collection.collectionId === this.selectedCollectionId()));
+          this.updateGridData();
+
+          if (this.selectedCollection()) {
+            this.fetchFindingsData(this.selectedCollection().originCollectionId, this.selectedCollection().collectionOrigin);
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error loading POAM data: ${getErrorMessage(error)}`
+          });
         }
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: "error",
-          summary: "Error",
-          detail: `Error loading POAM data: ${getErrorMessage(error)}`
-        });
-      }
-    });
+      });
   }
 
   private fetchFindingsData(collectionId: number, collectionOrigin: string): void {
     if (collectionOrigin === 'STIG Manager') {
-      this.subs.sink = this.sharedService.getFindingsMetricsFromSTIGMAN(collectionId)
-        .subscribe({
-          next: (data) => {
-            this.findingsData.set(data);
+      this.subs.sink = this.sharedService.getFindingsMetricsFromSTIGMAN(collectionId).subscribe({
+        next: (data) => {
+          this.findingsData.set(data);
 
-            const assetCounts = data.map((finding: any) => ({
-              vulnerabilityId: finding.groupId,
-              assetCount: finding.assetCount || 0
-            }));
-            this.affectedAssetCounts.set(assetCounts);
-            this.calculateFindingStats();
-            this.updateCategoryPieCharts();
-          },
-          error: (error) => {
-            this.messageService.add({
-              severity: "error",
-              summary: "Error",
-              detail: `Error loading findings data: ${getErrorMessage(error)}`
-            });
-          }
-        });
+          const assetCounts = data.map((finding: any) => ({
+            vulnerabilityId: finding.groupId,
+            assetCount: finding.assetCount || 0
+          }));
+
+          this.affectedAssetCounts.set(assetCounts);
+          this.calculateFindingStats();
+          this.updateCategoryPieCharts();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error loading findings data: ${getErrorMessage(error)}`
+          });
+        }
+      });
     } else if (collectionOrigin === 'Tenable') {
       const baseQuery = {
         description: '',
@@ -211,24 +170,26 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
         sourceType: 'cumulative',
         startOffset: 0,
         endOffset: 10000,
-        vulnTool: 'sumid',
+        vulnTool: 'sumid'
       };
 
       const allFindingsQuery = {
         query: {
           ...baseQuery,
-          filters: [{
-            id: 'repository',
-            filterName: 'repository',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: [{ id: collectionId.toString() }]
-          }]
+          filters: [
+            {
+              id: 'repository',
+              filterName: 'repository',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: [{ id: collectionId.toString() }]
+            }
+          ]
         },
         sourceType: 'cumulative',
         columns: [],
-        type: 'vuln',
+        type: 'vuln'
       };
 
       const thirtyDaysQuery = {
@@ -263,75 +224,75 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         sourceType: 'cumulative',
         columns: [],
-        type: 'vuln',
+        type: 'vuln'
       };
 
-      this.subs.sink = forkJoin([
-        this.importService.postTenableAnalysis(allFindingsQuery),
-        this.importService.postTenableAnalysis(thirtyDaysQuery)
-      ]).pipe(
-        catchError(error => {
-          this.messageService.add({
-            severity: "error",
-            summary: "Error",
-            detail: `Error fetching Tenable findings: ${getErrorMessage(error)}`
-          });
-          return of([
-            { response: { results: [] } },
-            { response: { results: [] } }
-          ]);
-        })
-      ).subscribe({
-        next: ([allData, thirtyDaysData]) => {
-          const processFindings = (data: any) => {
-            if (data.error_msg) {
-              console.error('Error in Tenable response:', data.error_msg);
-              return [];
-            }
+      this.subs.sink = forkJoin([this.importService.postTenableAnalysis(allFindingsQuery), this.importService.postTenableAnalysis(thirtyDaysQuery)])
+        .pipe(
+          catchError((error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching Tenable findings: ${getErrorMessage(error)}`
+            });
 
-            return data.response.results.map((vuln: any) => ({
-              groupId: vuln.pluginID,
-              severity: this.mapTenableSeverityToCategory(vuln.severity?.name || ''),
-              pluginName: vuln.name || '',
-              family: vuln.family?.name || ''
+            return of([{ response: { results: [] } }, { response: { results: [] } }]);
+          })
+        )
+        .subscribe({
+          next: ([allData, thirtyDaysData]) => {
+            const processFindings = (data: any) => {
+              if (data.error_msg) {
+                console.error('Error in Tenable response:', data.error_msg);
+
+                return [];
+              }
+
+              return data.response.results.map((vuln: any) => ({
+                groupId: vuln.pluginID,
+                severity: this.mapTenableSeverityToCategory(vuln.severity?.name || ''),
+                pluginName: vuln.name || '',
+                family: vuln.family?.name || ''
+              }));
+            };
+
+            const assetCounts = allData.response.results.map((vuln: any) => ({
+              vulnerabilityId: vuln.pluginID?.toString() || '',
+              assetCount: vuln.hostTotal || 0
             }));
-          };
 
-          const assetCounts = allData.response.results.map((vuln: any) => ({
-            vulnerabilityId: vuln.pluginID?.toString() || '',
-            assetCount: vuln.hostTotal || 0
-          }));
-          this.affectedAssetCounts.set(assetCounts);
+            this.affectedAssetCounts.set(assetCounts);
 
-          const allFindings = processFindings(allData);
-          const thirtyDaysFindings = processFindings(thirtyDaysData);
+            const allFindings = processFindings(allData);
+            const thirtyDaysFindings = processFindings(thirtyDaysData);
 
-          this.findingsData.set(allFindings);
-          this.findingsData30Days.set(thirtyDaysFindings);
+            this.findingsData.set(allFindings);
+            this.findingsData30Days.set(thirtyDaysFindings);
 
-          this.calculateFindingStats();
-          this.updateCategoryPieCharts();
+            this.calculateFindingStats();
+            this.updateCategoryPieCharts();
 
-          const originalFindings = this.findingsData();
-          this.findingsData.set(thirtyDaysFindings);
-          this.calculateFindingStats();
+            const originalFindings = this.findingsData();
 
-          this.catIPieChartData30Days.set(this.catIPieChartData());
-          this.catIIPieChartData30Days.set(this.catIIPieChartData());
-          this.catIIIPieChartData30Days.set(this.catIIIPieChartData());
+            this.findingsData.set(thirtyDaysFindings);
+            this.calculateFindingStats();
 
-          this.findingsData.set(originalFindings);
-          this.calculateFindingStats();
-          this.updateCategoryPieCharts();
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: "error",
-            summary: "Error",
-            detail: `Error processing Tenable findings data: ${getErrorMessage(error)}`
-          });
-        }
-      });
+            this.catIPieChartData30Days.set(this.catIPieChartData());
+            this.catIIPieChartData30Days.set(this.catIIPieChartData());
+            this.catIIIPieChartData30Days.set(this.catIIIPieChartData());
+
+            this.findingsData.set(originalFindings);
+            this.calculateFindingStats();
+            this.updateCategoryPieCharts();
+          },
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error processing Tenable findings data: ${getErrorMessage(error)}`
+            });
+          }
+        });
     } else {
       this.affectedAssetCounts.set([]);
       this.calculateFindingStats();
@@ -347,23 +308,19 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     const severityToCategoryMap: { [key: string]: string } = {
-      'critical': 'CAT I',
-      'high': 'CAT I',
-      'medium': 'CAT II',
-      'low': 'CAT III',
-      'informational': 'CAT III'
+      critical: 'CAT I',
+      high: 'CAT I',
+      medium: 'CAT II',
+      low: 'CAT III',
+      informational: 'CAT III'
     };
 
     for (const finding of this.findingsData()) {
       const category = severityToCategoryMap[finding.severity] || 'CAT III';
+
       stats[category].total++;
 
-      const matchingPoams = this.poams().filter(poam =>
-        poam.status !== 'Draft' && (
-          poam.vulnerabilityId === finding.groupId ||
-          (poam.associatedVulnerabilities && poam.associatedVulnerabilities.includes(finding.groupId))
-        )
-      );
+      const matchingPoams = this.poams().filter((poam) => poam.status !== 'Draft' && (poam.vulnerabilityId === finding.groupId || (poam.associatedVulnerabilities && poam.associatedVulnerabilities.includes(finding.groupId))));
 
       if (matchingPoams.length > 0) {
         stats[category].withPoam++;
@@ -375,6 +332,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
         stats[category].percentage = (stats[category].withPoam / stats[category].total) * 100;
       }
     }
+
     this.findingsByCategory.set(stats);
     this.updateCategoryPieCharts();
   }
@@ -395,14 +353,12 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getPoamData(collectionId: number): Observable<[any[], any[]]> {
-    return forkJoin([
-      this.collectionsService.getPoamsByCollection(collectionId),
-      this.collectionsService.getCollectionBasicList()
-    ]);
+    return forkJoin([this.collectionsService.getPoamsByCollection(collectionId), this.collectionsService.getCollectionBasicList()]);
   }
 
   managePoam(row: any) {
     const poamId = row.data.poamId;
+
     this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
   }
 
@@ -410,62 +366,47 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  private readonly userTeamIds = computed(() => {
-    return new Set(
-      this.user()?.assignedTeams?.map((team: any) => team.assignedTeamId)
-    );
-  });
-
   updateGridData() {
     this.allPoams.set(this.poams());
-    const needingAttention = this.poams().filter(poam => {
+    const needingAttention = this.poams().filter((poam) => {
       if (!poam.scheduledCompletionDate) return false;
       const completionDate = new Date(poam.scheduledCompletionDate);
       const thresholdDate = new Date();
 
       thresholdDate.setDate(thresholdDate.getDate() + 30);
-      return (
-        !isNaN(completionDate.getTime()) &&
-        completionDate <= thresholdDate &&
-        !this.CLOSED_STATUSES.has(poam.status)
-      );
+
+      return !isNaN(completionDate.getTime()) && completionDate <= thresholdDate && !this.CLOSED_STATUSES.has(poam.status);
     });
+
     this.poamsNeedingAttention.set(needingAttention);
-    const submitted = this.poams().filter(poam =>
-      poam.status !== 'Closed' &&
-      poam.submitterId === this.user()?.userId ||
-      poam.ownerId === this.user()?.userId
-    );
+    const submitted = this.poams().filter((poam) => (poam.status !== 'Closed' && poam.submitterId === this.user()?.userId) || poam.ownerId === this.user()?.userId);
+
     this.submittedPoams.set(submitted);
-    const pendingApproval = this.poams().filter(poam =>
-      this.PENDING_STATUSES.has(poam.status)
-    );
+    const pendingApproval = this.poams().filter((poam) => this.PENDING_STATUSES.has(poam.status));
+
     this.poamsPendingApproval.set(pendingApproval);
-    const teamPoams = this.poams().filter(poam =>
-      poam.assignedTeams?.some((poamTeam: any) =>
-        this.userTeamIds().has(poamTeam.assignedTeamId)
-      )
-    );
+    const teamPoams = this.poams().filter((poam) => poam.assignedTeams?.some((poamTeam: any) => this.userTeamIds().has(poamTeam.assignedTeamId)));
+
     this.teamPoams.set(teamPoams);
   }
 
   updateCategoryPieCharts() {
     const severityToCategoryMap: { [key: string]: string } = {
-      'critical': 'CAT I',
-      'high': 'CAT I',
-      'medium': 'CAT II',
-      'low': 'CAT III',
-      'informational': 'CAT III'
+      critical: 'CAT I',
+      high: 'CAT I',
+      medium: 'CAT II',
+      low: 'CAT III',
+      informational: 'CAT III'
     };
 
-    const approvedPoams = this.poams().filter(poam => poam.status === 'Approved');
-    const submittedPoams = this.poams().filter(poam => poam.status === 'Submitted');
-    const extensionRequestedPoams = this.poams().filter(poam => poam.status === 'Extension Requested');
-    const falsePositivePoams = this.poams().filter(poam => poam.status === 'False-Positive');
-    const pendingApprovalPoams = this.poams().filter(poam => poam.status === 'Pending CAT-I Approval');
-    const expiredPoams = this.poams().filter(poam => poam.status === 'Expired');
-    const rejectedPoams = this.poams().filter(poam => poam.status === 'Rejected');
-    const closedPoams = this.poams().filter(poam => poam.status === 'Closed');
+    const approvedPoams = this.poams().filter((poam) => poam.status === 'Approved');
+    const submittedPoams = this.poams().filter((poam) => poam.status === 'Submitted');
+    const extensionRequestedPoams = this.poams().filter((poam) => poam.status === 'Extension Requested');
+    const falsePositivePoams = this.poams().filter((poam) => poam.status === 'False-Positive');
+    const pendingApprovalPoams = this.poams().filter((poam) => poam.status === 'Pending CAT-I Approval');
+    const expiredPoams = this.poams().filter((poam) => poam.status === 'Expired');
+    const rejectedPoams = this.poams().filter((poam) => poam.status === 'Rejected');
+    const closedPoams = this.poams().filter((poam) => poam.status === 'Closed');
 
     if (this.findingsData().length === 0) {
       const fallbackCategoryData = {
@@ -506,48 +447,58 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const categorizePOAM = (poam: any): string => {
         const severity = poam.rawSeverity?.toLowerCase() || 'low';
+
         if (severity === 'critical' || severity === 'high' || severity === 'cat i - high' || severity === 'cat i - critical') return 'CAT I';
         if (severity === 'medium' || severity === 'cat ii - medium') return 'CAT II';
+
         return 'CAT III';
       };
 
       for (const poam of approvedPoams) {
         const category = categorizePOAM(poam);
+
         fallbackCategoryData[category].approvedPoams++;
       }
 
       for (const poam of submittedPoams) {
         const category = categorizePOAM(poam);
+
         fallbackCategoryData[category].submittedPoams++;
       }
 
       for (const poam of extensionRequestedPoams) {
         const category = categorizePOAM(poam);
+
         fallbackCategoryData[category].extensionPoams++;
       }
 
       for (const poam of falsePositivePoams) {
         const category = categorizePOAM(poam);
+
         fallbackCategoryData[category].falsePositivePoams++;
       }
 
       for (const poam of pendingApprovalPoams) {
         const category = categorizePOAM(poam);
+
         fallbackCategoryData[category].pendingApprovalPoams++;
       }
 
       for (const poam of expiredPoams) {
         const category = categorizePOAM(poam);
+
         fallbackCategoryData[category].expiredPoams++;
       }
 
       for (const poam of rejectedPoams) {
         const category = categorizePOAM(poam);
+
         fallbackCategoryData[category].rejectedPoams++;
       }
 
       for (const poam of closedPoams) {
         const category = categorizePOAM(poam);
+
         fallbackCategoryData[category].closedPoams++;
       }
 
@@ -606,22 +557,19 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
       'CAT III': new Set<string>()
     };
 
-    const addVulnerabilityToCategory = (
-      vulnId: string,
-      categoryMap: { [key: string]: Set<string> }
-    ) => {
-      const matchingFinding = this.findingsData().find(finding =>
-        finding.groupId === vulnId
-      );
+    const addVulnerabilityToCategory = (vulnId: string, categoryMap: { [key: string]: Set<string> }) => {
+      const matchingFinding = this.findingsData().find((finding) => finding.groupId === vulnId);
 
       if (matchingFinding) {
         const category = severityToCategoryMap[matchingFinding.severity] || 'CAT III';
+
         categoryMap[category].add(vulnId);
       }
     };
 
     for (const poam of approvedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, approvedVulnIdsByCategory);
+
       if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, approvedVulnIdsByCategory);
@@ -631,6 +579,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const poam of submittedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, submittedVulnIdsByCategory);
+
       if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, submittedVulnIdsByCategory);
@@ -640,6 +589,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const poam of extensionRequestedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, extensionVulnIdsByCategory);
+
       if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, extensionVulnIdsByCategory);
@@ -649,6 +599,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const poam of falsePositivePoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, falsePositiveVulnIdsByCategory);
+
       if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, falsePositiveVulnIdsByCategory);
@@ -658,6 +609,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const poam of pendingApprovalPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, pendingApprovalVulnIdsByCategory);
+
       if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, pendingApprovalVulnIdsByCategory);
@@ -667,6 +619,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const poam of expiredPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, expiredVulnIdsByCategory);
+
       if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, expiredVulnIdsByCategory);
@@ -676,6 +629,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const poam of rejectedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, rejectedVulnIdsByCategory);
+
       if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, rejectedVulnIdsByCategory);
@@ -685,6 +639,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const poam of closedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, closedVulnIdsByCategory);
+
       if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, closedVulnIdsByCategory);
@@ -757,17 +712,20 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.catIIIPieChartData.set(this.createCategoryChartData('CAT III', categoryData['CAT III']));
   }
 
-  private createCategoryChartData(category: string, data: {
-    approvedPoams: number,
-    submittedPoams: number,
-    extensionPoams: number,
-    falsePositivePoams: number,
-    pendingApprovalPoams: number,
-    expiredPoams: number,
-    rejectedPoams: number,
-    closedPoams: number,
-    openFindings: number
-  }): any[] {
+  private createCategoryChartData(
+    category: string,
+    data: {
+      approvedPoams: number;
+      submittedPoams: number;
+      extensionPoams: number;
+      falsePositivePoams: number;
+      pendingApprovalPoams: number;
+      expiredPoams: number;
+      rejectedPoams: number;
+      closedPoams: number;
+      openFindings: number;
+    }
+  ): any[] {
     const chartData: any[] = [];
 
     if (data.approvedPoams > 0) {

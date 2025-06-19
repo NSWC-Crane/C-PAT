@@ -10,11 +10,7 @@
 
 <div class="card overflow-hidden">
   <div class="mt-[-1.5rem] mr-[-1.5rem] flex justify-end">
-    <button pButton
-      icon="pi pi-cog"
-      class="p-button-rounded p-button-text"
-      (click)="navigateToAppInfo()">
-    </button>
+    <button pButton icon="pi pi-cog" class="p-button-rounded p-button-text" (click)="navigateToAppInfo()"></button>
   </div>
   <p-tabs [(value)]="value" scrollable>
     <p-tablist>
@@ -22,12 +18,12 @@
       <p-tab [value]="1">Collection Management</p-tab>
       <p-tab [value]="2">STIG Manager</p-tab>
       @if (tenableEnabled) {
-      <p-tab [value]="3">Tenable Import</p-tab>
+        <p-tab [value]="3">Tenable Import</p-tab>
       }
       <p-tab [value]="4">Asset Deltas</p-tab>
       <p-tab [value]="5">VRAM IAV Import</p-tab>
       @if (tenableEnabled) {
-      <p-tab [value]="6">Nessus Plugin Mapping</p-tab>
+        <p-tab [value]="6">Nessus Plugin Mapping</p-tab>
       }
       <p-tab [value]="7">A&A Packages</p-tab>
       <p-tab [value]="8">Assigned Teams</p-tab>
@@ -47,9 +43,9 @@
       </p-tabpanel>
 
       @if (tenableEnabled) {
-      <p-tabpanel [value]="3">
-        <cpat-tenable-admin></cpat-tenable-admin>
-      </p-tabpanel>
+        <p-tabpanel [value]="3">
+          <cpat-tenable-admin></cpat-tenable-admin>
+        </p-tabpanel>
       }
 
       <p-tabpanel [value]="4">
@@ -61,9 +57,9 @@
       </p-tabpanel>
 
       @if (tenableEnabled) {
-      <p-tabpanel [value]="6">
-        <cpat-nessus-plugin-mapping [activated]="value === 6"></cpat-nessus-plugin-mapping>
-      </p-tabpanel>
+        <p-tabpanel [value]="6">
+          <cpat-nessus-plugin-mapping [activated]="value === 6"></cpat-nessus-plugin-mapping>
+        </p-tabpanel>
       }
 
       <p-tabpanel [value]="7">

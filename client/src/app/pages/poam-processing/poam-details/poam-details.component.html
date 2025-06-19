@@ -8,926 +8,793 @@
 !##########################################################################
 -->
 @if (poam) {
-<div class="row col-span-12">
-  <p-card>
-    <div class="status-container">
-      <div class="row" style="display: flex; align-items: center; font-weight: 600">
-        @if (poam.lastUpdated && poam.created) {
-        <i class="pi pi-clock mr-4"
-           style="color: var(--p-primary-color); font-size: 1.5rem"
-           pTooltip="Created: {{poam.created ? (poam.created | date:'yyyy-MM-dd') : ''}}, Last Updated: {{poam.lastUpdated ? (poam.lastUpdated | date:'yyyy-MM-dd') : ''}}"></i>
-        }
-        @if (poam.poamId !== 'ADDPOAM') {
-        POAM ID: {{poam.poamId}}
-        } @else {
-        UNSAVED DRAFT
-        }
-        <div class="team-badges-container ml-4">
-          @for (team of poamAssignedTeams; track team.assignedTeamName) {
-          <p-tag [value]="team.assignedTeamName"
-                 [rounded]="true"
-                 [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
-                 [pTooltip]="team.complete === 'true' ? 'Team has fulfilled all POAM requirements' :
-        team.complete === 'partial' ? 'Team has partially fulfilled POAM requirements' :
-        team.complete === 'global' ? 'Global Finding - No Team Requirements' :
-        'Team has not fulfilled any POAM requirements'"
-                 tooltipPosition="top"
-                 styleClass="team-badge mb-1 mr-2">
-          </p-tag>
+  <div class="row col-span-12">
+    <p-card>
+      <div class="status-container">
+        <div class="row" style="display: flex; align-items: center; font-weight: 600">
+          @if (poam.lastUpdated && poam.created) {
+            <i
+              class="pi pi-clock mr-4"
+              style="color: var(--p-primary-color); font-size: 1.5rem"
+              pTooltip="Created: {{ poam.created ? (poam.created | date: 'yyyy-MM-dd') : '' }}, Last Updated: {{ poam.lastUpdated ? (poam.lastUpdated | date: 'yyyy-MM-dd') : '' }}"
+            ></i>
           }
-        </div>
-        @if (poam.stigCheckData?.includes('requirement must be documented with the ISSO')) {
-        <div class="ml-2">
-          <i class="pi pi-flag-fill"
-             style="color: var(--p-primary-color); font-size: 1rem"
-             pTooltip="STIG Check Data indicates the requirement must be documented with the ISSO."
-             tooltipPosition="bottom"></i>
-        </div>
-        }
-      </div>
-
-      <div class="button-group">
-        <p-menu #menu
-                [popup]="true"
-                [model]="menuItems()"
-                [styleClass]="'poam-control-menu'"
-                (onHide)="menu.hide()"
-                (mouseleave)="menu.hide()"
-                appendTo="body">
-        </p-menu>
-        <p-button #menuButton
-                  size="large"
-                  [rounded]="true"
-                  [text]="true"
-                  severity="secondary"
-                  icon="pi pi-ellipsis-v"
-                  (mouseenter)="menu.toggle($event)">
-        </p-button>
-      </div>
-    </div>
-
-    <div class="card-body">
-      <div class="form-container">
-        <div class="form-group">
-          <div class="switch-container">
-            <p-toggleSwitch id="globalFinding"
-                            name="globalFinding"
-                            [(ngModel)]="poam.isGlobalFinding"
-                            (onChange)="onGlobalFindingToggle()"
-                            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-toggleSwitch>
-            <label class="ml-2" for="globalFinding">Global Finding</label>
-          </div>
-        </div>
-
-        @if (poam.stigCheckData?.length > 0) {
-        <div class="form-group">
-          <div class="switch-container">
-            <p-toggleswitch id="stigCheckData" name="stigCheckData" [(ngModel)]="showCheckData"></p-toggleswitch>
-            <label for="stigCheckData">View STIG Manager Check Data</label>
-          </div>
-          @if (showCheckData) {
-          <div class="card showCheckData mt-6">
-            <pre>{{poam.stigCheckData}}</pre>
-          </div>
-          }
-        </div>
-        }
-
-        @if (poam.tenablePluginData?.length > 0) {
-        <div class="form-group">
-          <div class="switch-container">
-            <p-toggleswitch id="tenablePluginData" name="tenablePluginData" [(ngModel)]="showCheckData"></p-toggleswitch>
-            <label for="tenablePluginData">View Tenable Plugin Data</label>
-          </div>
-          @if (showCheckData) {
-          <div class="card showCheckData mt-6">
-            <pre>{{tenablePluginData}}</pre>
-          </div>
-          }
-        </div>
-        }
-
-        <!-- Created By -->
-        @if (poam.submitterName) {
-        <div class="form-group">
-          <label for="submitterName">Created By: </label>
-          <input type="text"
-                 pInputText
-                 class="w-full"
-                 [(ngModel)]="poam.submitterName"
-                 id="submitterName"
-                 name="submitterName"
-                 disabled />
-        </div>
-        }
-
-        <!-- Owned By -->
-        <div class="form-group">
-          <label for="ownerId">Owned By: </label>
-          <p-select [options]="collectionUsers"
-                    [(ngModel)]="poam.ownerId"
-                    id="ownerId"
-                    name="ownerId"
-                    placeholder="POAM Owned By..."
-                    optionLabel="fullName"
-                    optionValue="userId"
-                    class="w-full"
-                    showClear
-                    [filter]="true"
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-select>
-        </div>
-
-        <!-- Status -->
-        <div class="status form-group">
-          <label for="status">POAM Status: </label>
-          <p-select [options]="filteredStatusOptions"
-                    [(ngModel)]="poam.status"
-                    id="status"
-                    name="status"
-                    [placeholder]="poam.status ? poam.status : 'POAM Status...'"
-                    [style]="{'width':'100%'}"
-                    [disabled]="accessLevel() < 2">
-          </p-select>
-        </div>
-
-        <!-- Description -->
-        <div class="form-group">
-          <label for="description">
-            <i class="pi pi-info-circle mr-2"
-               style="color: var(--p-text-color)"
-               pTooltip="Control Vulnerability Description: Describes the vulnerability identified during assessment. This is pulled directly from the assessment procedure entry or technical assessment method (e.g., STIG test case) where applicable. Otherwise it must be manually entered in the NC status for the vulnerability."></i>Description:
-          </label>
-          <textarea pTextarea
-                    class="w-full"
-                    [rows]="8"
-                    [(ngModel)]="poam.description"
-                    id="description"
-                    name="description"
-                    [maxlength]="10000"
-                    placeholder="Description..."
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></textarea>
-        </div>
-
-        <!-- AA Package -->
-        <div class="form-group">
-          <label for="aaPackage">A&A Package: </label>
-          <p-select [(ngModel)]="poam.aaPackage"
-                    [options]="aaPackages"
-                    optionLabel="aaPackage"
-                    optionValue="aaPackage"
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"
-                    placeholder="Select A&A Package"
-                    id="aaPackage"
-                    name="aaPackage"
-                    styleClass="w-full">
-          </p-select>
-        </div>
-
-        <!-- Source -->
-        <div class="form-group">
-          <label for="vulnerabilitySource">
-            <i class="pi pi-info-circle mr-2"
-               style="color: var(--p-text-color)"
-               pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."></i>
-            Source Identifying Control Vulnerability:
-          </label>
-          <p-select [(ngModel)]="poam.vulnerabilitySource"
-                    [options]="vulnerabilitySources"
-                    placeholder="Select Vulnerability Source"
-                    id="vulnerabilitySource"
-                    name="vulnerabilitySource"
-                    [style]="{'width':'100%'}"
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3">
-          </p-select>
-        </div>
-
-        <!-- Task Order # -->
-        <div class="form-group">
-          <label for="taskOrderNumber">Task Order #: </label>
-          <input type="text"
-                 pInputText
-                 class="w-full"
-                 [(ngModel)]="poam.taskOrderNumber"
-                 [maxlength]="25"
-                 id="taskOrderNumber"
-                 name="taskOrderNumber"
-                 placeholder="Task Order #..."
-                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
-        </div>
-
-        <!-- STIG Title -->
-        @if (poam.vulnerabilitySource === 'STIG') {
-        <div class="form-group">
-          <label for="stigInput">
-            <i class="pi pi-info-circle mr-2"
-               style="color: var(--p-text-color)"
-               pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."></i>STIG Title:
-          </label>
-          <p-autoComplete [(ngModel)]="poam.vulnerabilityTitle"
-                          [suggestions]="filteredStigmanSTIGs"
-                          (completeMethod)="searchStigTitles($event)"
-                          (onSelect)="onStigSelected($event)"
-                          id="stigInput"
-                          name="stigInput"
-                          placeholder="Select STIG..."
-                          [dropdown]="true"
-                          field="title"
-                          [style]="{'width':'100%'}"
-                          [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3">
-          </p-autoComplete>
-        </div>
-        }
-
-        <!-- Source Identifying Control Vulnerability - ID # for Non STIGs-->
-        @if (poam.vulnerabilitySource !== 'STIG') {
-        <div class="form-group">
-          @if (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
-          <label for="vulnerabilityId">
-            <i class="pi pi-info-circle mr-2"
-               style="color: var(--p-text-color)"
-               pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Plugin ID #:
-          </label>
-          }
-
-          @if (poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
-          <label for="vulnerabilityId">
-            <i class="pi pi-info-circle mr-2"
-               style="color: var(--p-text-color)"
-               pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source Identifying Control Vulnerability - ID #:
-          </label>
-          }
-          <input type="text"
-                 pInputText
-                 class="w-full"
-                 [(ngModel)]="poam.vulnerabilityId"
-                 [maxlength]="255"
-                 id="vulnerabilityId"
-                 name="vulnerabilityId"
-                 placeholder="Vulnerability ID..."
-                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
-        </div>
-        }
-
-        <!-- Source Identifying Control Vulnerability - ID # for STIG-->
-        @if (poam.vulnerabilitySource === 'STIG') {
-        <div class="form-group">
-          <label for="vulnerabilityId">
-            <i class="pi pi-info-circle mr-2"
-               style="color: var(--p-text-color)"
-               pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source Identifying Control Vulnerability - ID #:
-          </label>
-          <input type="text"
-                 pInputText
-                 class="w-full"
-                 [(ngModel)]="poam.vulnerabilityId"
-                 [maxlength]="255"
-                 id="vulnerabilityId"
-                 name="vulnerabilityId"
-                 placeholder="Vulnerability ID..."
-                 [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
-        </div>
-        }
-
-        <!-- IAVM # -->
-        @if (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
-        <div class="form-group">
-          <label for="iavmNumber">IAVM #: </label>
-          <p-inputgroup>
-            <input type="text"
-                   pInputText
-                   class="w-full"
-                   [(ngModel)]="poam.iavmNumber"
-                   [maxlength]="25"
-                   id="iavmNumber"
-                   name="iavmNumber"
-                   placeholder="IAVM #..."
-                   [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3" />
-            <button type="button"
-                    pButton
-                    icon="pi pi-external-link"
-                    (click)="openIavLink(poam.iavmNumber)"
-                    pTooltip="View IAV Release Details"
-                    tooltipPosition="top"
-                    [disabled]="!poam.iavmNumber"></button>
-          </p-inputgroup>
-        </div>
-        }
-
-        <!-- IAV Comply By Date -->
-        @if (poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)) {
-        <div class="form-group">
-          <label for="iavComplyByDate">IAV Comply By Date: </label>
-          <p-datepicker [(ngModel)]="dates.iavComplyByDate"
-                        dateFormat="yy-mm-dd"
-                        id="iavComplyByDate"
-                        name="iavComplyByDate"
-                        placeholder="IAV Comply By Date..."
-                        [showIcon]="true"
-                        [style]="{'width':'25rem'}"
-                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-datepicker>
-        </div>
-        }
-
-        <!-- Raw Severity -->
-        <div class="form-group">
-          <label for="rawSeverity">
-            <i class="pi pi-info-circle mr-2"
-               style="color: var(--p-text-color)"
-               pTooltip="Raw Severity: The initial or starting severity of the vulnerability prior to implementing mitigations and/or compensating Controls."></i>Raw Severity Value:
-          </label>
-          <p-select [options]="severityOptions"
-                    [(ngModel)]="poam.rawSeverity"
-                    id="rawSeverity"
-                    name="rawSeverity"
-                    placeholder="Raw Severity..."
-                    optionLabel="label"
-                    optionValue="value"
-                    [style]="{'width':'25rem'}"
-                    (onChange)="onAdjSeverityChange()"
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-select>
-        </div>
-
-        <!-- Adj Severity -->
-        <div class="form-group">
-          <label for="adjSeverity">
-            <i class="pi pi-info-circle mr-2"
-               style="color: var(--p-text-color)"
-               pTooltip="Resulting Residual Risk after Proposed Mitigations: The risk level expected after any proposed mitigations are implemented. Proposed mitigations should be appropriately documented as POA&M milestones"></i>
-            Adjusted Severity Value:
-          </label>
-          <p-select [options]="severityOptions"
-                    [(ngModel)]="poam.adjSeverity"
-                    id="adjSeverity"
-                    name="adjSeverity"
-                    placeholder="Adjusted Severity..."
-                    optionLabel="label"
-                    optionValue="value"
-                    [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"
-                    [style]="{'width':'25rem'}"
-                    (onChange)="onAdjSeverityChange()">
-          </p-select>
-        </div>
-
-        <!-- Deadline With Extension -->
-        @if (completionDateWithExtension) {
-        <div class="form-group">
-          <label for="extensionDeadline">Deadline With Extension:</label>
-          <input type="text"
-                 pInputText
-                 [value]="completionDateWithExtension"
-                 id="extensionDeadline"
-                 name="extensionDeadline"
-                 disabled
-                 [style]="{'width':'25rem'}" />
-        </div>
-        }
-
-        <!-- Scheduled Completion Date -->
-        <div class="form-group">
-          <label for="scheduledCompletionDate">
-            <i class="pi pi-info-circle mr-2"
-               style="color: var(--p-text-color)"
-               pTooltip="Scheduled Completion Date: Target completion date for resolving the vulnerability. This target completion date can stretch beyond the potential 3-year authorization window and must accurately reflect the resolution timetable. Please note that the initial date entered may not be changed. When a vulnerability severity value is resolved, the agency should note the actual completion date."></i>Scheduled Completion Date:
-          </label>
-          <p-datepicker [(ngModel)]="dates.scheduledCompletionDate"
-                        dateFormat="yy-mm-dd"
-                        id="scheduledCompletionDate"
-                        name="scheduledCompletionDate"
-                        placeholder="Scheduled Completion Date..."
-                        (onSelect)="validateScheduledCompletion()"
-                        (onInput)="validateScheduledCompletion()"
-                        (onClose)="validateScheduledCompletion()"
-                        [showIcon]="true"
-                        [style]="{'width':'25rem'}"
-                        [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></p-datepicker>
-        </div>
-
-        <!-- Submitted Date -->
-        @if (dates.submittedDate) {
-        <div class="form-group">
-          <label for="submittedDate">Submitted Date: </label>
-          <p-datepicker [(ngModel)]="dates.submittedDate"
-                        dateFormat="yy-mm-dd"
-                        id="submittedDate"
-                        name="submittedDate"
-                        placeholder="Submitted Date..."
-                        [showIcon]="true"
-                        [style]="{'width':'25rem'}"
-                        disabled></p-datepicker>
-        </div>
-        }
-      </div>
-    </div>
-
-    <p-footer>
-      <p-stepper [value]="1" styleClass="'responsive-stepper'">
-        <p-step-list>
-          <p-step [value]="1">Personnel</p-step>
-          <p-step [value]="2">Assets</p-step>
-          <p-step [value]="3">Predisposing Conditions</p-step>
-          <p-step [value]="4">Mitigations</p-step>
-          <p-step [value]="5">Required Resources</p-step>
-          <p-step [value]="6">Risk & Impact</p-step>
-          <p-step [value]="7">Milestones</p-step>
-          <p-step [value]="8">Labels</p-step>
-          <p-step [value]="9">Associated Vulnerabilities</p-step>
           @if (poam.poamId !== 'ADDPOAM') {
-          <p-step [value]="10">Attachments</p-step>
+            POAM ID: {{ poam.poamId }}
+          } @else {
+            UNSAVED DRAFT
           }
-        </p-step-list>
-        <p-step-panels>
-          <!-- Personnel -->
-          <p-step-panel [value]="1">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content">
-                  <p-accordion [value]="['0', '1']" [multiple]="true">
-                    <p-accordion-panel value="0">
-                      <p-accordion-header>Teams Assigned</p-accordion-header>
-                      <p-accordion-content>
-                        <cpat-poam-teams [poam]="poam"
-                                         [accessLevel]="accessLevel()"
-                                         [poamAssignedTeams]="poamAssignedTeams"
-                                         [assignedTeamOptions]="assignedTeamOptions"
-                                         [loading]="loadingTeams()"
-                                         [poamService]="poamService"
-                                         (teamsChanged)="handleTeamsChanged($event)">
-                        </cpat-poam-teams>
-                      </p-accordion-content>
-                    </p-accordion-panel>
-                    <p-accordion-panel value="1">
-                      <p-accordion-header>Approvers</p-accordion-header>
-                      <p-accordion-content>
-                        <cpat-poam-approvers [poamId]="poam.poamId"
-                                             [accessLevel]="accessLevel()"
-                                             [poamApprovers]="poamApprovers"
-                                             [collectionApprovers]="collectionApprovers"
-                                             [poamService]="poamService"
-                                             (approversChanged)="handleApproversChanged($event)">
-                        </cpat-poam-approvers>
-                      </p-accordion-content>
-                    </p-accordion-panel>
-                  </p-accordion>
-                </div>
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            class="ml-auto"
-                            (onClick)="activateCallback(2)"></p-button>
-                </div>
+          <div class="team-badges-container ml-4">
+            @for (team of poamAssignedTeams; track team.assignedTeamName) {
+              <p-tag
+                [value]="team.assignedTeamName"
+                [rounded]="true"
+                [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
+                [pTooltip]="
+                  team.complete === 'true'
+                    ? 'Team has fulfilled all POAM requirements'
+                    : team.complete === 'partial'
+                      ? 'Team has partially fulfilled POAM requirements'
+                      : team.complete === 'global'
+                        ? 'Global Finding - No Team Requirements'
+                        : 'Team has not fulfilled any POAM requirements'
+                "
+                tooltipPosition="top"
+                styleClass="team-badge mb-1 mr-2"
+              >
+              </p-tag>
+            }
+          </div>
+          @if (poam.stigCheckData?.includes('requirement must be documented with the ISSO')) {
+            <div class="ml-2">
+              <i class="pi pi-flag-fill" style="color: var(--p-primary-color); font-size: 1rem" pTooltip="STIG Check Data indicates the requirement must be documented with the ISSO." tooltipPosition="bottom"></i>
+            </div>
+          }
+        </div>
+
+        <div class="button-group">
+          <p-menu #menu [popup]="true" [model]="menuItems()" [styleClass]="'poam-control-menu'" (onHide)="menu.hide()" (mouseleave)="menu.hide()" appendTo="body"> </p-menu>
+          <p-button #menuButton size="large" [rounded]="true" [text]="true" severity="secondary" icon="pi pi-ellipsis-v" (mouseenter)="menu.toggle($event)"> </p-button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="form-container">
+          <div class="form-group">
+            <div class="switch-container">
+              <p-toggleSwitch
+                id="globalFinding"
+                name="globalFinding"
+                [(ngModel)]="poam.isGlobalFinding"
+                (onChange)="onGlobalFindingToggle()"
+                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              ></p-toggleSwitch>
+              <label class="ml-2" for="globalFinding">Global Finding</label>
+            </div>
+          </div>
+
+          @if (poam.stigCheckData?.length > 0) {
+            <div class="form-group">
+              <div class="switch-container">
+                <p-toggleswitch id="stigCheckData" name="stigCheckData" [(ngModel)]="showCheckData"></p-toggleswitch>
+                <label for="stigCheckData">View STIG Manager Check Data</label>
               </div>
-            </ng-template>
-          </p-step-panel>
-
-          <!-- Assets -->
-          <p-step-panel [value]="2">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <cpat-poam-assets [poam]="poam"
-                                  [accessLevel]="accessLevel()"
-                                  [collectionType]="collectionType"
-                                  [poamAssets]="poamAssets"
-                                  [assetList]="assetList"
-                                  [originCollectionId]="originCollectionId"
-                                  [poamService]="poamService"
-                                  [poamAssignedTeams]="poamAssignedTeams"
-                                  [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities"
-                                  (assetsChanged)="handleAssetsChanged($event)">
-                </cpat-poam-assets>
-
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(1)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            (onClick)="activateCallback(3)"></p-button>
+              @if (showCheckData) {
+                <div class="card showCheckData mt-6">
+                  <pre>{{ poam.stigCheckData }}</pre>
                 </div>
+              }
+            </div>
+          }
+
+          @if (poam.tenablePluginData?.length > 0) {
+            <div class="form-group">
+              <div class="switch-container">
+                <p-toggleswitch id="tenablePluginData" name="tenablePluginData" [(ngModel)]="showCheckData"></p-toggleswitch>
+                <label for="tenablePluginData">View Tenable Plugin Data</label>
               </div>
-            </ng-template>
-          </p-step-panel>
-
-          <!-- Predisposing Conditions -->
-          <p-step-panel [value]="3">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content">
-                  <i class="pi pi-info-circle mb-4"
-                     style="color: var(--p-text-color)"
-                     pTooltip="Predisposing Conditions: A condition existing within an organization, a mission or business process, enterprise architecture, information system, or environment of operation, which affects (i.e., increases or decreases) the likelihood that threat events, once initiated, result in adverse impacts."></i>
-                  <textarea pTextarea
-                            class="w-full"
-                            [(ngModel)]="poam.predisposingConditions"
-                            id="predisposingConditions"
-                            name="predisposingConditions"
-                            [rows]="16"
-                            [maxlength]="2000"
-                            placeholder="Predisposing conditions..."
-                            [disabled]="(poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted') && accessLevel() < 3"></textarea>
+              @if (showCheckData) {
+                <div class="card showCheckData mt-6">
+                  <pre>{{ tenablePluginData }}</pre>
                 </div>
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(2)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            (onClick)="activateCallback(4)"></p-button>
-                </div>
-              </div>
-            </ng-template>
-          </p-step-panel>
+              }
+            </div>
+          }
 
-          <!-- Mitigations -->
-          <p-step-panel [value]="4">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content !pt-0">
-                  <div class="info-container mb-3">
-                    <div class="align-items-center justify-content-between mb-2 flex">
-                      <div class="align-items-center flex">
-                        <i class="pi pi-info-circle mt-3"
-                           style="color: var(--p-text-color); flex-shrink: 0;"
-                           pTooltip="Mitigations: Any currently implemented mitigations and/or compensating Controls that will reduce the risk. A planned mitigation or compensating Control cannot lower risk until implemented."></i>
-                      </div>
-                      @if (aiEnabled && (poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) ||
-                      (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData)) {
-                      <cpat-poam-mitigation-generator class="w-full"
-                                                      [poam]="poam"
-                                                      [team]="!poam.isGlobalFinding && activeTabIndex > 0 ? teamMitigations[activeTabIndex - 1] : null"
-                                                      (mitigationGenerated)="onMitigationGenerated($event)">
-                      </cpat-poam-mitigation-generator>
-                      }
-                    </div>
+          <!-- Created By -->
+          @if (poam.submitterName) {
+            <div class="form-group">
+              <label for="submitterName">Created By: </label>
+              <input type="text" pInputText class="w-full" [(ngModel)]="poam.submitterName" id="submitterName" name="submitterName" disabled />
+            </div>
+          }
+
+          <!-- Owned By -->
+          <div class="form-group">
+            <label for="ownerId">Owned By: </label>
+            <p-select
+              [options]="collectionUsers"
+              [(ngModel)]="poam.ownerId"
+              id="ownerId"
+              name="ownerId"
+              placeholder="POAM Owned By..."
+              optionLabel="fullName"
+              optionValue="userId"
+              class="w-full"
+              showClear
+              [filter]="true"
+              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+            ></p-select>
+          </div>
+
+          <!-- Status -->
+          <div class="status form-group">
+            <label for="status">POAM Status: </label>
+            <p-select [options]="filteredStatusOptions" [(ngModel)]="poam.status" id="status" name="status" [placeholder]="poam.status ? poam.status : 'POAM Status...'" [style]="{ width: '100%' }" [disabled]="accessLevel() < 2"> </p-select>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="description">
+              <i
+                class="pi pi-info-circle mr-2"
+                style="color: var(--p-text-color)"
+                pTooltip="Control Vulnerability Description: Describes the vulnerability identified during assessment. This is pulled directly from the assessment procedure entry or technical assessment method (e.g., STIG test case) where applicable. Otherwise it must be manually entered in the NC status for the vulnerability."
+              ></i
+              >Description:
+            </label>
+            <textarea
+              pTextarea
+              class="w-full"
+              [rows]="8"
+              [(ngModel)]="poam.description"
+              id="description"
+              name="description"
+              [maxlength]="10000"
+              placeholder="Description..."
+              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+            ></textarea>
+          </div>
+
+          <!-- AA Package -->
+          <div class="form-group">
+            <label for="aaPackage">A&A Package: </label>
+            <p-select
+              [(ngModel)]="poam.aaPackage"
+              [options]="aaPackages"
+              optionLabel="aaPackage"
+              optionValue="aaPackage"
+              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              placeholder="Select A&A Package"
+              id="aaPackage"
+              name="aaPackage"
+              styleClass="w-full"
+            >
+            </p-select>
+          </div>
+
+          <!-- Source -->
+          <div class="form-group">
+            <label for="vulnerabilitySource">
+              <i
+                class="pi pi-info-circle mr-2"
+                style="color: var(--p-text-color)"
+                pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."
+              ></i>
+              Source Identifying Control Vulnerability:
+            </label>
+            <p-select
+              [(ngModel)]="poam.vulnerabilitySource"
+              [options]="vulnerabilitySources"
+              placeholder="Select Vulnerability Source"
+              id="vulnerabilitySource"
+              name="vulnerabilitySource"
+              [style]="{ width: '100%' }"
+              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+            >
+            </p-select>
+          </div>
+
+          <!-- Task Order # -->
+          <div class="form-group">
+            <label for="taskOrderNumber">Task Order #: </label>
+            <input
+              type="text"
+              pInputText
+              class="w-full"
+              [(ngModel)]="poam.taskOrderNumber"
+              [maxlength]="25"
+              id="taskOrderNumber"
+              name="taskOrderNumber"
+              placeholder="Task Order #..."
+              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+            />
+          </div>
+
+          <!-- STIG Title -->
+          @if (poam.vulnerabilitySource === 'STIG') {
+            <div class="form-group">
+              <label for="stigInput">
+                <i
+                  class="pi pi-info-circle mr-2"
+                  style="color: var(--p-text-color)"
+                  pTooltip="Source Identifying Control Vulnerability: Identifies the source of the vulnerability (e.g., program review, test and evaluation program findings, IG DoD audit, and GAO audit)."
+                ></i
+                >STIG Title:
+              </label>
+              <p-autoComplete
+                [(ngModel)]="poam.vulnerabilityTitle"
+                [suggestions]="filteredStigmanSTIGs"
+                (completeMethod)="searchStigTitles($event)"
+                (onSelect)="onStigSelected($event)"
+                id="stigInput"
+                name="stigInput"
+                placeholder="Select STIG..."
+                [dropdown]="true"
+                field="title"
+                [style]="{ width: '100%' }"
+                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              >
+              </p-autoComplete>
+            </div>
+          }
+
+          <!-- Source Identifying Control Vulnerability - ID # for Non STIGs-->
+          @if (poam.vulnerabilitySource !== 'STIG') {
+            <div class="form-group">
+              @if (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
+                <label for="vulnerabilityId">
+                  <i class="pi pi-info-circle mr-2" style="color: var(--p-text-color)" pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Plugin ID #:
+                </label>
+              }
+
+              @if (poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
+                <label for="vulnerabilityId">
+                  <i class="pi pi-info-circle mr-2" style="color: var(--p-text-color)" pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source
+                  Identifying Control Vulnerability - ID #:
+                </label>
+              }
+              <input
+                type="text"
+                pInputText
+                class="w-full"
+                [(ngModel)]="poam.vulnerabilityId"
+                [maxlength]="255"
+                id="vulnerabilityId"
+                name="vulnerabilityId"
+                placeholder="Vulnerability ID..."
+                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              />
+            </div>
+          }
+
+          <!-- Source Identifying Control Vulnerability - ID # for STIG-->
+          @if (poam.vulnerabilitySource === 'STIG') {
+            <div class="form-group">
+              <label for="vulnerabilityId">
+                <i class="pi pi-info-circle mr-2" style="color: var(--p-text-color)" pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source
+                Identifying Control Vulnerability - ID #:
+              </label>
+              <input
+                type="text"
+                pInputText
+                class="w-full"
+                [(ngModel)]="poam.vulnerabilityId"
+                [maxlength]="255"
+                id="vulnerabilityId"
+                name="vulnerabilityId"
+                placeholder="Vulnerability ID..."
+                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              />
+            </div>
+          }
+
+          <!-- IAVM # -->
+          @if (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
+            <div class="form-group">
+              <label for="iavmNumber">IAVM #: </label>
+              <p-inputgroup>
+                <input
+                  type="text"
+                  pInputText
+                  class="w-full"
+                  [(ngModel)]="poam.iavmNumber"
+                  [maxlength]="25"
+                  id="iavmNumber"
+                  name="iavmNumber"
+                  placeholder="IAVM #..."
+                  [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+                />
+                <button type="button" pButton icon="pi pi-external-link" (click)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber"></button>
+              </p-inputgroup>
+            </div>
+          }
+
+          <!-- IAV Comply By Date -->
+          @if (poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)) {
+            <div class="form-group">
+              <label for="iavComplyByDate">IAV Comply By Date: </label>
+              <p-datepicker
+                [(ngModel)]="dates.iavComplyByDate"
+                dateFormat="yy-mm-dd"
+                id="iavComplyByDate"
+                name="iavComplyByDate"
+                placeholder="IAV Comply By Date..."
+                [showIcon]="true"
+                [style]="{ width: '25rem' }"
+                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              ></p-datepicker>
+            </div>
+          }
+
+          <!-- Raw Severity -->
+          <div class="form-group">
+            <label for="rawSeverity">
+              <i class="pi pi-info-circle mr-2" style="color: var(--p-text-color)" pTooltip="Raw Severity: The initial or starting severity of the vulnerability prior to implementing mitigations and/or compensating Controls."></i>Raw Severity Value:
+            </label>
+            <p-select
+              [options]="severityOptions"
+              [(ngModel)]="poam.rawSeverity"
+              id="rawSeverity"
+              name="rawSeverity"
+              placeholder="Raw Severity..."
+              optionLabel="label"
+              optionValue="value"
+              [style]="{ width: '25rem' }"
+              (onChange)="onAdjSeverityChange()"
+              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+            ></p-select>
+          </div>
+
+          <!-- Adj Severity -->
+          <div class="form-group">
+            <label for="adjSeverity">
+              <i
+                class="pi pi-info-circle mr-2"
+                style="color: var(--p-text-color)"
+                pTooltip="Resulting Residual Risk after Proposed Mitigations: The risk level expected after any proposed mitigations are implemented. Proposed mitigations should be appropriately documented as POA&M milestones"
+              ></i>
+              Adjusted Severity Value:
+            </label>
+            <p-select
+              [options]="severityOptions"
+              [(ngModel)]="poam.adjSeverity"
+              id="adjSeverity"
+              name="adjSeverity"
+              placeholder="Adjusted Severity..."
+              optionLabel="label"
+              optionValue="value"
+              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              [style]="{ width: '25rem' }"
+              (onChange)="onAdjSeverityChange()"
+            >
+            </p-select>
+          </div>
+
+          <!-- Deadline With Extension -->
+          @if (completionDateWithExtension) {
+            <div class="form-group">
+              <label for="extensionDeadline">Deadline With Extension:</label>
+              <input type="text" pInputText [value]="completionDateWithExtension" id="extensionDeadline" name="extensionDeadline" disabled [style]="{ width: '25rem' }" />
+            </div>
+          }
+
+          <!-- Scheduled Completion Date -->
+          <div class="form-group">
+            <label for="scheduledCompletionDate">
+              <i
+                class="pi pi-info-circle mr-2"
+                style="color: var(--p-text-color)"
+                pTooltip="Scheduled Completion Date: Target completion date for resolving the vulnerability. This target completion date can stretch beyond the potential 3-year authorization window and must accurately reflect the resolution timetable. Please note that the initial date entered may not be changed. When a vulnerability severity value is resolved, the agency should note the actual completion date."
+              ></i
+              >Scheduled Completion Date:
+            </label>
+            <p-datepicker
+              [(ngModel)]="dates.scheduledCompletionDate"
+              dateFormat="yy-mm-dd"
+              id="scheduledCompletionDate"
+              name="scheduledCompletionDate"
+              placeholder="Scheduled Completion Date..."
+              (onSelect)="validateScheduledCompletion()"
+              (onInput)="validateScheduledCompletion()"
+              (onClose)="validateScheduledCompletion()"
+              [showIcon]="true"
+              [style]="{ width: '25rem' }"
+              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+            ></p-datepicker>
+          </div>
+
+          <!-- Submitted Date -->
+          @if (dates.submittedDate) {
+            <div class="form-group">
+              <label for="submittedDate">Submitted Date: </label>
+              <p-datepicker [(ngModel)]="dates.submittedDate" dateFormat="yy-mm-dd" id="submittedDate" name="submittedDate" placeholder="Submitted Date..." [showIcon]="true" [style]="{ width: '25rem' }" disabled></p-datepicker>
+            </div>
+          }
+        </div>
+      </div>
+
+      <p-footer>
+        <p-stepper [value]="1" styleClass="'responsive-stepper'">
+          <p-step-list>
+            <p-step [value]="1">Personnel</p-step>
+            <p-step [value]="2">Assets</p-step>
+            <p-step [value]="3">Predisposing Conditions</p-step>
+            <p-step [value]="4">Mitigations</p-step>
+            <p-step [value]="5">Required Resources</p-step>
+            <p-step [value]="6">Risk & Impact</p-step>
+            <p-step [value]="7">Milestones</p-step>
+            <p-step [value]="8">Labels</p-step>
+            <p-step [value]="9">Associated Vulnerabilities</p-step>
+            @if (poam.poamId !== 'ADDPOAM') {
+              <p-step [value]="10">Attachments</p-step>
+            }
+          </p-step-list>
+          <p-step-panels>
+            <!-- Personnel -->
+            <p-step-panel [value]="1">
+              <ng-template #content let-activateCallback="activateCallback">
+                <div class="stepper-content-wrapper">
+                  <div class="stepper-content">
+                    <p-accordion [value]="['0', '1']" [multiple]="true">
+                      <p-accordion-panel value="0">
+                        <p-accordion-header>Teams Assigned</p-accordion-header>
+                        <p-accordion-content>
+                          <cpat-poam-teams
+                            [poam]="poam"
+                            [accessLevel]="accessLevel()"
+                            [poamAssignedTeams]="poamAssignedTeams"
+                            [assignedTeamOptions]="assignedTeamOptions"
+                            [loading]="loadingTeams()"
+                            [poamService]="poamService"
+                            (teamsChanged)="handleTeamsChanged($event)"
+                          >
+                          </cpat-poam-teams>
+                        </p-accordion-content>
+                      </p-accordion-panel>
+                      <p-accordion-panel value="1">
+                        <p-accordion-header>Approvers</p-accordion-header>
+                        <p-accordion-content>
+                          <cpat-poam-approvers
+                            [poamId]="poam.poamId"
+                            [accessLevel]="accessLevel()"
+                            [poamApprovers]="poamApprovers"
+                            [collectionApprovers]="collectionApprovers"
+                            [poamService]="poamService"
+                            (approversChanged)="handleApproversChanged($event)"
+                          >
+                          </cpat-poam-approvers>
+                        </p-accordion-content>
+                      </p-accordion-panel>
+                    </p-accordion>
                   </div>
+                  <div class="stepper-buttons">
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" class="ml-auto" (onClick)="activateCallback(2)"></p-button>
+                  </div>
+                </div>
+              </ng-template>
+            </p-step-panel>
 
-                  <div class="team-mitigations-container">
-                    @if (mitigationSaving) {
-                    <p-progressBar mode="indeterminate" [style]="{'height': '4px'}"></p-progressBar>
-                    }
-                    <p-tabs [(value)]="activeTabIndex" (onChange)="onTabChange($event)" scrollable>
-                      <p-tablist>
-                        <p-tab [value]="0">
-                          <span>{{ poam.isGlobalFinding ? 'Global Finding' : 'Global Mitigations' }}</span>
-                        </p-tab>
+            <!-- Assets -->
+            <p-step-panel [value]="2">
+              <ng-template #content let-activateCallback="activateCallback">
+                <div class="stepper-content-wrapper">
+                  <cpat-poam-assets
+                    [poam]="poam"
+                    [accessLevel]="accessLevel()"
+                    [collectionType]="collectionType"
+                    [poamAssets]="poamAssets"
+                    [assetList]="assetList"
+                    [originCollectionId]="originCollectionId"
+                    [poamService]="poamService"
+                    [poamAssignedTeams]="poamAssignedTeams"
+                    [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities"
+                    (assetsChanged)="handleAssetsChanged($event)"
+                  >
+                  </cpat-poam-assets>
 
-                        @for(teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
-                        @if(!poam.isGlobalFinding) {
-                        <p-tab [value]="i + 1"
-                               [class]="teamMitigation.isActive ? '' : 'inactive-tab'">
-                          <span [ngClass]="{'inactive-tab': !teamMitigation.isActive}">{{teamMitigation.assignedTeamName}}</span>
-                        </p-tab>
+                  <div class="stepper-buttons">
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(1)"></p-button>
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(3)"></p-button>
+                  </div>
+                </div>
+              </ng-template>
+            </p-step-panel>
+
+            <!-- Predisposing Conditions -->
+            <p-step-panel [value]="3">
+              <ng-template #content let-activateCallback="activateCallback">
+                <div class="stepper-content-wrapper">
+                  <div class="stepper-content">
+                    <i
+                      class="pi pi-info-circle mb-4"
+                      style="color: var(--p-text-color)"
+                      pTooltip="Predisposing Conditions: A condition existing within an organization, a mission or business process, enterprise architecture, information system, or environment of operation, which affects (i.e., increases or decreases) the likelihood that threat events, once initiated, result in adverse impacts."
+                    ></i>
+                    <textarea
+                      pTextarea
+                      class="w-full"
+                      [(ngModel)]="poam.predisposingConditions"
+                      id="predisposingConditions"
+                      name="predisposingConditions"
+                      [rows]="16"
+                      [maxlength]="2000"
+                      placeholder="Predisposing conditions..."
+                      [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+                    ></textarea>
+                  </div>
+                  <div class="stepper-buttons">
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(2)"></p-button>
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(4)"></p-button>
+                  </div>
+                </div>
+              </ng-template>
+            </p-step-panel>
+
+            <!-- Mitigations -->
+            <p-step-panel [value]="4">
+              <ng-template #content let-activateCallback="activateCallback">
+                <div class="stepper-content-wrapper">
+                  <div class="stepper-content !pt-0">
+                    <div class="info-container mb-3">
+                      <div class="align-items-center justify-content-between mb-2 flex">
+                        <div class="align-items-center flex">
+                          <i
+                            class="pi pi-info-circle mt-3"
+                            style="color: var(--p-text-color); flex-shrink: 0"
+                            pTooltip="Mitigations: Any currently implemented mitigations and/or compensating Controls that will reduce the risk. A planned mitigation or compensating Control cannot lower risk until implemented."
+                          ></i>
+                        </div>
+                        @if ((aiEnabled && poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) || (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData)) {
+                          <cpat-poam-mitigation-generator class="w-full" [poam]="poam" [team]="!poam.isGlobalFinding && activeTabIndex > 0 ? teamMitigations[activeTabIndex - 1] : null" (mitigationGenerated)="onMitigationGenerated($event)">
+                          </cpat-poam-mitigation-generator>
                         }
-                        }
-                      </p-tablist>
+                      </div>
+                    </div>
 
-                      <p-tabpanels>
-                        <p-tabpanel [value]="0">
-                          <textarea pTextarea
+                    <div class="team-mitigations-container">
+                      @if (mitigationSaving) {
+                        <p-progressBar mode="indeterminate" [style]="{ height: '4px' }"></p-progressBar>
+                      }
+                      <p-tabs [(value)]="activeTabIndex" (onChange)="onTabChange($event)" scrollable>
+                        <p-tablist>
+                          <p-tab [value]="0">
+                            <span>{{ poam.isGlobalFinding ? 'Global Finding' : 'Global Mitigations' }}</span>
+                          </p-tab>
+
+                          @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
+                            @if (!poam.isGlobalFinding) {
+                              <p-tab [value]="i + 1" [class]="teamMitigation.isActive ? '' : 'inactive-tab'">
+                                <span [ngClass]="{ 'inactive-tab': !teamMitigation.isActive }">{{ teamMitigation.assignedTeamName }}</span>
+                              </p-tab>
+                            }
+                          }
+                        </p-tablist>
+
+                        <p-tabpanels>
+                          <p-tabpanel [value]="0">
+                            <textarea pTextarea class="w-full" [(ngModel)]="poam.mitigations" id="mitigations" name="mitigations" [rows]="16" [maxlength]="10000" placeholder="Overall POAM Mitigations..." [disabled]="accessLevel() < 2"></textarea>
+                          </p-tabpanel>
+
+                          @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
+                            @if (!poam.isGlobalFinding) {
+                              <p-tabpanel [value]="i + 1">
+                                <div [ngClass]="{ 'opacity-70': !teamMitigation.isActive }">
+                                  @if (!teamMitigation.isActive) {
+                                    <div class="mb-2 rounded-md bg-yellow-600 p-2">
+                                      <i class="pi pi-info-circle mr-2"></i>
+                                      This team is no longer assigned to this POAM. Mitigation content is preserved but cannot be edited.
+                                    </div>
+                                  }
+                                  <textarea
+                                    pTextarea
                                     class="w-full"
-                                    [(ngModel)]="poam.mitigations"
-                                    id="mitigations"
-                                    name="mitigations"
+                                    [(ngModel)]="teamMitigation.mitigationText"
                                     [rows]="16"
                                     [maxlength]="10000"
-                                    placeholder="Overall POAM Mitigations..."
-                                    [disabled]="accessLevel() < 2"></textarea>
-                        </p-tabpanel>
-
-                        @for(teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
-                        @if (!poam.isGlobalFinding) {
-                        <p-tabpanel [value]="i + 1">
-                          <div [ngClass]="{'opacity-70': !teamMitigation.isActive}">
-                            @if (!teamMitigation.isActive) {
-                            <div class="mb-2 rounded-md bg-yellow-600 p-2">
-                              <i class="pi pi-info-circle mr-2"></i>
-                              This team is no longer assigned to this POAM. Mitigation content is preserved but cannot be edited.
-                            </div>
+                                    placeholder="Team-specific mitigations..."
+                                    [disabled]="!teamMitigation.isActive && accessLevel() < 3"
+                                  ></textarea>
+                                </div>
+                              </p-tabpanel>
                             }
-                            <textarea pTextarea
-                                      class="w-full"
-                                      [(ngModel)]="teamMitigation.mitigationText"
-                                      [rows]="16"
-                                      [maxlength]="10000"
-                                      placeholder="Team-specific mitigations..."
-                                      [disabled]="!teamMitigation.isActive && accessLevel() < 3"></textarea>
-                          </div>
-                        </p-tabpanel>
-                        }
-                        }
-                      </p-tabpanels>
-                    </p-tabs>
+                          }
+                        </p-tabpanels>
+                      </p-tabs>
+                    </div>
+                  </div>
+                  <div class="stepper-buttons">
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(3)"></p-button>
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(5)"></p-button>
                   </div>
                 </div>
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(3)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            (onClick)="activateCallback(5)"></p-button>
-                </div>
-              </div>
-            </ng-template>
-          </p-step-panel>
+              </ng-template>
+            </p-step-panel>
 
-          <!-- Required Resources -->
-          <p-step-panel [value]="5">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content">
-                  <i class="pi pi-info-circle mb-4"
-                     style="color: var(--p-text-color)"
-                     pTooltip="Resources Required: Estimated funding or manpower resources required to resolve the security vulnerability (i.e., full-time equivalent)."></i>
-                  <textarea pTextarea
-                            class="w-full"
-                            [(ngModel)]="poam.requiredResources"
-                            id="requiredResources"
-                            name="requiredResources"
-                            [rows]="16"
-                            [maxlength]="10000"
-                            placeholder="Required Resources..."
-                            [disabled]="accessLevel() < 2"></textarea>
-                </div>
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(4)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            (onClick)="activateCallback(6)"></p-button>
-                </div>
-              </div>
-            </ng-template>
-          </p-step-panel>
-
-          <!-- Risk & Impact -->
-          <p-step-panel [value]="6">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content">
-                  <div class="form-group">
-                    <label for="localImpact">Local Impact:</label>
-                    <p-select [options]="ratingOptions"
-                              [(ngModel)]="poam.localImpact"
-                              id="localImpact"
-                              name="localImpact"
-                              placeholder="Local Impact..."
-                              optionLabel="label"
-                              optionValue="value"
-                              [style]="{'width':'100%'}">
-                    </p-select>
+            <!-- Required Resources -->
+            <p-step-panel [value]="5">
+              <ng-template #content let-activateCallback="activateCallback">
+                <div class="stepper-content-wrapper">
+                  <div class="stepper-content">
+                    <i class="pi pi-info-circle mb-4" style="color: var(--p-text-color)" pTooltip="Resources Required: Estimated funding or manpower resources required to resolve the security vulnerability (i.e., full-time equivalent)."></i>
+                    <textarea pTextarea class="w-full" [(ngModel)]="poam.requiredResources" id="requiredResources" name="requiredResources" [rows]="16" [maxlength]="10000" placeholder="Required Resources..." [disabled]="accessLevel() < 2"></textarea>
                   </div>
-
-                  <div class="form-group">
-                    <label for="impactDescription">
-                      <i class="pi pi-info-circle mr-4"
-                         style="color: var(--p-text-color)"
-                         pTooltip="Impact Description: Describe the identified impact. This field will export to the eMASS Comments Section prefaced with 'Local Impact'."></i>Impact Description:
-                    </label>
-                    <textarea pTextarea
-                              class="w-full"
-                              [(ngModel)]="poam.impactDescription"
-                              id="impactDescription"
-                              name="impactDescription"
-                              [rows]="16"
-                              [maxlength]="2000"
-                              placeholder="Impact Description..."
-                              [disabled]="accessLevel() < 2"></textarea>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="residualRisk">
-                      <i class="pi pi-info-circle mr-2"
-                         style="color: var(--p-text-color)"
-                         pTooltip="Residual Risk is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Residual Risk is determined by the Raw Severity."></i>Residual Risk:
-                    </label>
-                    <p-select [options]="ratingOptions"
-                              [ngModel]="this.poam.residualRisk"
-                              id="residualRisk"
-                              name="residualRisk"
-                              placeholder="Residual Risk..."
-                              optionLabel="label"
-                              optionValue="value"
-                              [style]="{'width':'100%'}"
-                              [disabled]="true">
-                    </p-select>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="likelihood">
-                      <i class="pi pi-info-circle mr-2"
-                         style="color: var(--p-text-color)"
-                         pTooltip="Likelihood is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Likelihood is determined by the Raw Severity."></i>Likelihood:
-                    </label>
-                    <p-select [options]="ratingOptions"
-                              [ngModel]="this.poam.likelihood"
-                              id="likelihood"
-                              name="likelihood"
-                              placeholder="Likelihood..."
-                              optionLabel="label"
-                              optionValue="value"
-                              [style]="{'width':'100%'}"
-                              [disabled]="true">
-                    </p-select>
+                  <div class="stepper-buttons">
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(4)"></p-button>
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(6)"></p-button>
                   </div>
                 </div>
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(5)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            (onClick)="activateCallback(7)"></p-button>
-                </div>
-              </div>
-            </ng-template>
-          </p-step-panel>
+              </ng-template>
+            </p-step-panel>
 
-          <!-- Milestones -->
-          <p-step-panel [value]="7">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content">
-                  <cpat-poam-milestones [poam]="poam"
-                                        [accessLevel]="accessLevel()"
-                                        [poamMilestones]="poamMilestones"
-                                        [assignedTeamOptions]="milestoneTeamOptions"
-                                        (milestonesChanged)="handleMilestonesChanged($event)">
-                  </cpat-poam-milestones>
-                </div>
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(6)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            (onClick)="activateCallback(8)"></p-button>
-                </div>
-              </div>
-            </ng-template>
-          </p-step-panel>
+            <!-- Risk & Impact -->
+            <p-step-panel [value]="6">
+              <ng-template #content let-activateCallback="activateCallback">
+                <div class="stepper-content-wrapper">
+                  <div class="stepper-content">
+                    <div class="form-group">
+                      <label for="localImpact">Local Impact:</label>
+                      <p-select [options]="ratingOptions" [(ngModel)]="poam.localImpact" id="localImpact" name="localImpact" placeholder="Local Impact..." optionLabel="label" optionValue="value" [style]="{ width: '100%' }"> </p-select>
+                    </div>
 
-          <!-- Labels -->
-          <p-step-panel [value]="8">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content">
-                  <cpat-poam-labels [poamId]="poam.poamId"
-                                    [accessLevel]="accessLevel()"
-                                    [poamLabels]="poamLabels"
-                                    [labelList]="labelList"
-                                    [poamService]="poamService"
-                                    (labelsChanged)="handleLabelsChanged($event)">
-                  </cpat-poam-labels>
-                </div>
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(7)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            (onClick)="activateCallback(9)"></p-button>
-                </div>
-              </div>
-            </ng-template>
-          </p-step-panel>
+                    <div class="form-group">
+                      <label for="impactDescription">
+                        <i class="pi pi-info-circle mr-4" style="color: var(--p-text-color)" pTooltip="Impact Description: Describe the identified impact. This field will export to the eMASS Comments Section prefaced with 'Local Impact'."></i>Impact
+                        Description:
+                      </label>
+                      <textarea
+                        pTextarea
+                        class="w-full"
+                        [(ngModel)]="poam.impactDescription"
+                        id="impactDescription"
+                        name="impactDescription"
+                        [rows]="16"
+                        [maxlength]="2000"
+                        placeholder="Impact Description..."
+                        [disabled]="accessLevel() < 2"
+                      ></textarea>
+                    </div>
 
-          <!-- Associated Vulnerabilities -->
-          <p-step-panel [value]="9">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content">
-                  <cpat-poam-associated-vulnerabilities [poamId]="poam.poamId"
-                                                        [accessLevel]="accessLevel()"
-                                                        [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities"
-                                                        [currentCollection]="collectionData"
-                                                        (vulnerabilitiesChanged)="handleAssociatedVulnerabilitiesChanged($event)">
-                  </cpat-poam-associated-vulnerabilities>
-                </div>
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(8)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            (onClick)="activateCallback(10)"></p-button>
-                </div>
-              </div>
-            </ng-template>
-          </p-step-panel>
+                    <div class="form-group">
+                      <label for="residualRisk">
+                        <i
+                          class="pi pi-info-circle mr-2"
+                          style="color: var(--p-text-color)"
+                          pTooltip="Residual Risk is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Residual Risk is determined by the Raw Severity."
+                        ></i
+                        >Residual Risk:
+                      </label>
+                      <p-select [options]="ratingOptions" [ngModel]="this.poam.residualRisk" id="residualRisk" name="residualRisk" placeholder="Residual Risk..." optionLabel="label" optionValue="value" [style]="{ width: '100%' }" [disabled]="true">
+                      </p-select>
+                    </div>
 
-          <!-- Attachments -->
-          @if (poam.poamId !== 'ADDPOAM') {
-          <p-step-panel [value]="10">
-            <ng-template #content let-activateCallback="activateCallback">
-              <div class="stepper-content-wrapper">
-                <div class="stepper-content">
-                  <cpat-poam-attachments [poamId]="poam.poamId">
-                  </cpat-poam-attachments>
+                    <div class="form-group">
+                      <label for="likelihood">
+                        <i
+                          class="pi pi-info-circle mr-2"
+                          style="color: var(--p-text-color)"
+                          pTooltip="Likelihood is automatically determined by the Adjusted Severity Value. If the Adjusted Severity Value is not present, the Likelihood is determined by the Raw Severity."
+                        ></i
+                        >Likelihood:
+                      </label>
+                      <p-select [options]="ratingOptions" [ngModel]="this.poam.likelihood" id="likelihood" name="likelihood" placeholder="Likelihood..." optionLabel="label" optionValue="value" [style]="{ width: '100%' }" [disabled]="true">
+                      </p-select>
+                    </div>
+                  </div>
+                  <div class="stepper-buttons">
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(5)"></p-button>
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(7)"></p-button>
+                  </div>
                 </div>
-                <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            (onClick)="activateCallback(9)"></p-button>
-                </div>
-              </div>
-            </ng-template>
-          </p-step-panel>
-          }
-        </p-step-panels>
-      </p-stepper>
-    </p-footer>
+              </ng-template>
+            </p-step-panel>
 
-    <!-- Buttons -->
-    <p-footer>
-      <button pButton
-              type="button"
-              label="Save"
-              class="p-button-outlined p-button-primary"
-              [disabled]="accessLevel() < 2"
-              (click)="savePoam()"
-              style="margin-left: 20px; margin-top: 20px"></button>
-      <button pButton
-              type="button"
-              label="Submit"
-              class="p-button-outlined p-button-success"
-              (click)="verifySubmitPoam()"
-              style="margin-left: 20px"></button>
-      <button pButton
-              type="button"
-              label="Cancel"
-              class="p-button-outlined p-button-secondary"
-              (click)="cancelPoam()"
-              style="margin-left: 20px"></button>
-    </p-footer>
-  </p-card>
-</div>
+            <!-- Milestones -->
+            <p-step-panel [value]="7">
+              <ng-template #content let-activateCallback="activateCallback">
+                <div class="stepper-content-wrapper">
+                  <div class="stepper-content">
+                    <cpat-poam-milestones [poam]="poam" [accessLevel]="accessLevel()" [poamMilestones]="poamMilestones" [assignedTeamOptions]="milestoneTeamOptions" (milestonesChanged)="handleMilestonesChanged($event)"> </cpat-poam-milestones>
+                  </div>
+                  <div class="stepper-buttons">
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(6)"></p-button>
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(8)"></p-button>
+                  </div>
+                </div>
+              </ng-template>
+            </p-step-panel>
+
+            <!-- Labels -->
+            <p-step-panel [value]="8">
+              <ng-template #content let-activateCallback="activateCallback">
+                <div class="stepper-content-wrapper">
+                  <div class="stepper-content">
+                    <cpat-poam-labels [poamId]="poam.poamId" [accessLevel]="accessLevel()" [poamLabels]="poamLabels" [labelList]="labelList" [poamService]="poamService" (labelsChanged)="handleLabelsChanged($event)"> </cpat-poam-labels>
+                  </div>
+                  <div class="stepper-buttons">
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(7)"></p-button>
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(9)"></p-button>
+                  </div>
+                </div>
+              </ng-template>
+            </p-step-panel>
+
+            <!-- Associated Vulnerabilities -->
+            <p-step-panel [value]="9">
+              <ng-template #content let-activateCallback="activateCallback">
+                <div class="stepper-content-wrapper">
+                  <div class="stepper-content">
+                    <cpat-poam-associated-vulnerabilities
+                      [poamId]="poam.poamId"
+                      [accessLevel]="accessLevel()"
+                      [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities"
+                      [currentCollection]="collectionData"
+                      (vulnerabilitiesChanged)="handleAssociatedVulnerabilitiesChanged($event)"
+                    >
+                    </cpat-poam-associated-vulnerabilities>
+                  </div>
+                  <div class="stepper-buttons">
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(8)"></p-button>
+                    <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(10)"></p-button>
+                  </div>
+                </div>
+              </ng-template>
+            </p-step-panel>
+
+            <!-- Attachments -->
+            @if (poam.poamId !== 'ADDPOAM') {
+              <p-step-panel [value]="10">
+                <ng-template #content let-activateCallback="activateCallback">
+                  <div class="stepper-content-wrapper">
+                    <div class="stepper-content">
+                      <cpat-poam-attachments [poamId]="poam.poamId"> </cpat-poam-attachments>
+                    </div>
+                    <div class="stepper-buttons">
+                      <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(9)"></p-button>
+                    </div>
+                  </div>
+                </ng-template>
+              </p-step-panel>
+            }
+          </p-step-panels>
+        </p-stepper>
+      </p-footer>
+
+      <!-- Buttons -->
+      <p-footer>
+        <button pButton type="button" label="Save" class="p-button-outlined p-button-primary" [disabled]="accessLevel() < 2" (click)="savePoam()" style="margin-left: 20px; margin-top: 20px"></button>
+        <button pButton type="button" label="Submit" class="p-button-outlined p-button-success" (click)="verifySubmitPoam()" style="margin-left: 20px"></button>
+        <button pButton type="button" label="Cancel" class="p-button-outlined p-button-secondary" (click)="cancelPoam()" style="margin-left: 20px"></button>
+      </p-footer>
+    </p-card>
+  </div>
 }
-<p-dialog [(visible)]="submitDialogVisible"
-          [modal]="true"
-          [style]="{width: '500px'}"
-          [baseZIndex]="10000">
+<p-dialog [(visible)]="submitDialogVisible" [modal]="true" [style]="{ width: '500px' }" [baseZIndex]="10000">
   <div class="confirm-popup">
     <div class="icon-container">
       <i class="pi pi-exclamation-triangle"></i>
     </div>
     <h3>Confirm Submission</h3>
-    <p>
-      Submitting a POAM will alter the POAM status to Submitted and notify approvers that a POAM is
-      ready for review. Would you like to proceed?
-    </p>
+    <p>Submitting a POAM will alter the POAM status to Submitted and notify approvers that a POAM is ready for review. Would you like to proceed?</p>
   </div>
   <ng-template pTemplate="footer" let-dialog>
     <div style="display: flex; justify-content: space-between; width: 100%">
-      <p-button [text]="true"
-                [raised]="true"
-                (click)="cancelSubmit()"
-                (onKeyUp)="cancelSubmit()"
-                label="Cancel"
-                severity="danger"></p-button>
-      <p-button [text]="true"
-                [raised]="true"
-                (click)="confirmSubmit()"
-                (onKeyUp)="confirmSubmit()"
-                label="Submit"></p-button>
+      <p-button [text]="true" [raised]="true" (click)="cancelSubmit()" (onKeyUp)="cancelSubmit()" label="Cancel" severity="danger"></p-button>
+      <p-button [text]="true" [raised]="true" (click)="confirmSubmit()" (onKeyUp)="confirmSubmit()" label="Submit"></p-button>
     </div>
   </ng-template>
 </p-dialog>
 
-<p-dialog header="{{errorHeader}}"
-          [(visible)]="errorDialogVisible"
-          [modal]="true"
-          [style]="{width: '300px'}"
-          [baseZIndex]="10000">
-  <p>{{errorMessage}}</p>
+<p-dialog header="{{ errorHeader }}" [(visible)]="errorDialogVisible" [modal]="true" [style]="{ width: '300px' }" [baseZIndex]="10000">
+  <p>{{ errorMessage }}</p>
   <ng-template pTemplate="footer">
-    <p-button icon="pi pi-check"
-              (click)="hideErrorDialog()"
-              (onKeyUp)="hideErrorDialog()"
-              label="OK"
-              styleClass="p-button-text"></p-button>
+    <p-button icon="pi pi-check" (click)="hideErrorDialog()" (onKeyUp)="hideErrorDialog()" label="OK" styleClass="p-button-text"></p-button>
   </ng-template>
 </p-dialog>
 
-<p-dialog class="poam-chat"
-          [(visible)]="showPoamNotes"
-          [modal]="true"
-          [style]="{width: '80vw', height: '80vh'}"
-          [maximizable]="true"
-          [baseZIndex]="10000">
+<p-dialog class="poam-chat" [(visible)]="showPoamNotes" [modal]="true" [style]="{ width: '80vw', height: '80vh' }" [maximizable]="true" [baseZIndex]="10000">
   @if (poam?.poamId && poam.poamId !== 'ADDPOAM') {
-  <cpat-poam-chat [poamId]="poam.poamId"
-                  [userId]="user?.userId">
-  </cpat-poam-chat>
+    <cpat-poam-chat [poamId]="poam.poamId" [userId]="user?.userId"> </cpat-poam-chat>
   }
 </p-dialog>
 

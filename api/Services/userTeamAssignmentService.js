@@ -28,28 +28,28 @@ exports.getTeamAssignments = async function getTeamAssignments(req, res, next) {
             status: 400,
             errors: {
                 assignedTeamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        const assignedTeams = await withConnection(async (connection) => {
+        const assignedTeams = await withConnection(async connection => {
             let sql = `SELECT T1.*, T2.fullName, T2.userName, T2.email FROM ${config.database.schema}.userassignedteams T1
                        INNER JOIN ${config.database.schema}.user T2 ON t1.userId = t2.userId WHERE assignedTeamId = ?;`;
 
             let [rowAssignedTeams] = await connection.query(sql, [req.params.assignedTeamId]);
             return rowAssignedTeams.map(assignedTeam => ({
-                ...assignedTeam
+                ...assignedTeam,
             }));
         });
 
         return assignedTeams;
     } catch (error) {
         return {
-            error: error.message
+            error: error.message,
         };
     }
-}
+};
 
 exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, req) {
     if (!req.body.userId) {
@@ -57,7 +57,7 @@ exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, 
             status: 400,
             errors: {
                 userId: 'is required',
-            }
+            },
         });
     }
 
@@ -66,7 +66,7 @@ exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, 
             status: 400,
             errors: {
                 oldAssignedTeamId: 'is required',
-            }
+            },
         });
     }
 
@@ -75,12 +75,12 @@ exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, 
             status: 400,
             errors: {
                 accessLevel: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql_query = `INSERT INTO ${config.database.schema}.userassignedteams (accessLevel, userId, assignedTeamId) VALUES (?, ?, ?);`;
                 await connection.query(sql_query, [req.body.accessLevel, req.body.userId, req.body.assignedTeamId]);
@@ -91,21 +91,20 @@ exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, 
                     accessLevel: req.body.accessLevel,
                 };
                 return message;
-
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
-            return await withConnection(async (connection) => {
+            return await withConnection(async connection => {
                 let fetchSql = `SELECT * FROM ${config.database.schema}.userassignedteams WHERE userId = ? AND assignedTeamId = ?`;
                 const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.userId, req.body.assignedTeamId]);
                 return existingAssignedTeam[0];
             });
         } else {
             return {
-                error: error.message
+                error: error.message,
             };
         }
     }
@@ -117,7 +116,7 @@ exports.putTeamAssignment = async function putTeamAssignment(userId, elevate, re
             status: 400,
             errors: {
                 userId: 'is required',
-            }
+            },
         });
     }
 
@@ -126,7 +125,7 @@ exports.putTeamAssignment = async function putTeamAssignment(userId, elevate, re
             status: 400,
             errors: {
                 assignedTeamId: 'is required',
-            }
+            },
         });
     }
 
@@ -135,15 +134,20 @@ exports.putTeamAssignment = async function putTeamAssignment(userId, elevate, re
             status: 400,
             errors: {
                 accessLevel: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql_query = `UPDATE ${config.database.schema}.userassignedteams SET assignedTeamId = ?, accessLevel = ? WHERE userId = ? AND assignedTeamId = ?;`;
-                await connection.query(sql_query, [req.body.newAssignedTeamId, req.body.accessLevel, req.body.userId, req.body.oldAssignedTeamId]);
+                await connection.query(sql_query, [
+                    req.body.newAssignedTeamId,
+                    req.body.accessLevel,
+                    req.body.userId,
+                    req.body.oldAssignedTeamId,
+                ]);
 
                 const message = {
                     userId: req.body.userId,
@@ -157,7 +161,7 @@ exports.putTeamAssignment = async function putTeamAssignment(userId, elevate, re
         });
     } catch (error) {
         return {
-            error: error.message
+            error: error.message,
         };
     }
 };
@@ -168,7 +172,7 @@ exports.deleteTeamAssignment = async function deleteTeamAssignment(userId, eleva
             status: 400,
             errors: {
                 userId: 'is required',
-            }
+            },
         });
     }
 
@@ -177,18 +181,18 @@ exports.deleteTeamAssignment = async function deleteTeamAssignment(userId, eleva
             status: 400,
             errors: {
                 assignedTeamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql = `DELETE FROM  ${config.database.schema}.userassignedteams WHERE userId = ? AND assignedTeamId = ?`;
                 await connection.query(sql, [req.params.userId, req.params.assignedTeamId]);
 
                 return {
-                    assignedTeams: []
+                    assignedTeams: [],
                 };
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
@@ -196,7 +200,7 @@ exports.deleteTeamAssignment = async function deleteTeamAssignment(userId, eleva
         });
     } catch (error) {
         return {
-            error: error.message
+            error: error.message,
         };
     }
 };

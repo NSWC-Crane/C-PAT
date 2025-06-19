@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -24,13 +24,13 @@ async function withConnection(callback) {
 
 exports.getAAPackages = async function getAAPackages(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT * FROM ${config.database.schema}.aapackages;`;
             let [rowAAPackage] = await connection.query(sql);
 
             const aaPackages = rowAAPackage.map(row => ({
                 aaPackageId: row.aaPackageId,
-                aaPackage: row.aaPackage
+                aaPackage: row.aaPackage,
             }));
 
             return aaPackages;
@@ -38,7 +38,7 @@ exports.getAAPackages = async function getAAPackages(req, res, next) {
     } catch (error) {
         next(error);
     }
-}
+};
 
 exports.getAAPackage = async function getAAPackage(req, res, next) {
     if (!req.params.aaPackageId) {
@@ -46,12 +46,12 @@ exports.getAAPackage = async function getAAPackage(req, res, next) {
             status: 400,
             errors: {
                 aaPackageId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT * FROM ${config.database.schema}.aapackages WHERE aaPackageId = ?`;
             let [rowAAPackage] = await connection.query(sql, [req.params.aaPackageId]);
 
@@ -62,7 +62,7 @@ exports.getAAPackage = async function getAAPackage(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.postAAPackage = async function postAAPackage(req, res, next) {
     if (!req.body.aaPackage) {
@@ -70,12 +70,12 @@ exports.postAAPackage = async function postAAPackage(req, res, next) {
             status: 400,
             errors: {
                 aaPackage: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.aapackages (aapackage) VALUES (?)`;
             await connection.query(sql_query, [req.body.aaPackage]);
 
@@ -84,14 +84,14 @@ exports.postAAPackage = async function postAAPackage(req, res, next) {
 
             const AAPackage = {
                 aaPackageId: rowAAPackage[0].aaPackageId,
-                aaPackage: rowAAPackage[0].aaPackage
+                aaPackage: rowAAPackage[0].aaPackage,
             };
             return AAPackage;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.putAAPackage = async function putAAPackage(req, res, next) {
     if (!req.body.aaPackageId) {
@@ -99,32 +99,32 @@ exports.putAAPackage = async function putAAPackage(req, res, next) {
             status: 400,
             errors: {
                 aaPackageId: 'is required',
-            }
+            },
         });
     } else if (!req.body.aaPackage) {
         return next({
             status: 400,
             errors: {
                 aaPackage: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `UPDATE ${config.database.schema}.aapackages SET aaPackage = ? WHERE aaPackageId = ?`;
             await connection.query(sql_query, [req.body.aaPackage, req.body.aaPackageId]);
 
             const AAPackage = {
                 aaPackageId: req.body.aaPackageId,
-                aaPackage: req.body.aaPackage
+                aaPackage: req.body.aaPackage,
             };
             return AAPackage;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.deleteAAPackage = async function deleteAAPackage(req, res, next) {
     if (!req.params.aaPackageId) {
@@ -132,12 +132,12 @@ exports.deleteAAPackage = async function deleteAAPackage(req, res, next) {
             status: 400,
             errors: {
                 aaPackageId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `DELETE FROM ${config.database.schema}.aapackages WHERE aaPackageId = ?`;
             await connection.query(sql, [req.params.aaPackageId]);
 
@@ -146,4 +146,4 @@ exports.deleteAAPackage = async function deleteAAPackage(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};

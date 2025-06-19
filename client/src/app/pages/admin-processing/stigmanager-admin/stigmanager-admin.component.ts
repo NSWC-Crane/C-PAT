@@ -8,19 +8,19 @@
 !##########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
-import { EMPTY, forkJoin, Observable, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { CollectionsService } from '../collection-processing/collections.service';
-import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
-import { SharedService } from '../../../common/services/shared.service';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { Select } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
+import { EMPTY, Observable, Subject, forkJoin } from 'rxjs';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { CollectionsService } from '../collection-processing/collections.service';
 
 interface STIGManagerCollection {
   collectionId: number;
@@ -34,20 +34,19 @@ interface STIGManagerCollection {
   styleUrls: ['./stigmanager-admin.component.scss'],
   standalone: true,
   imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService, MessageService]
 })
-export class STIGManagerAdminComponent implements OnInit {
+export class STIGManagerAdminComponent implements OnInit, OnDestroy {
+  private collectionsService = inject(CollectionsService);
+  private sharedService = inject(SharedService);
+  private confirmationService = inject(ConfirmationService);
+  private messageService = inject(MessageService);
+
   stigmanCollections: STIGManagerCollection[] = [];
   filteredCollections: STIGManagerCollection[] = [];
   selectedSTIGManagerCollection: STIGManagerCollection | null = null;
   existingCollections: CollectionsBasicList[] = [];
   private destroy$ = new Subject<void>();
-  constructor(
-    private collectionsService: CollectionsService,
-    private sharedService: SharedService,
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService
-  ) {}
 
   ngOnInit() {
     this.fetchDataAndCompare();
@@ -56,50 +55,49 @@ export class STIGManagerAdminComponent implements OnInit {
   fetchDataAndCompare() {
     forkJoin({
       stigmanCollections: this.sharedService.getCollectionsFromSTIGMAN().pipe(
-        catchError(error => {
+        catchError((error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Error fetching STIG Manager collections: ${getErrorMessage(error)}`
           });
+
           return EMPTY;
         })
       ),
       existingCollections: this.collectionsService.getCollectionBasicList().pipe(
-        catchError(error => {
+        catchError((error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Error fetching existing collections: ${getErrorMessage(error)}`
           });
+
           return EMPTY;
         })
       )
-    }).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: ({ stigmanCollections, existingCollections }) => {
-        this.stigmanCollections = stigmanCollections;
-        this.existingCollections = existingCollections;
-        this.filterCollections();
-      },
-      error: error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error in fetching data: ${getErrorMessage(error)}`
-        });
-      }
-    });
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ stigmanCollections, existingCollections }) => {
+          this.stigmanCollections = stigmanCollections;
+          this.existingCollections = existingCollections;
+          this.filterCollections();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error in fetching data: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   filterCollections() {
-    const existingNames = new Set(
-      this.existingCollections.map(c => c.collectionName.toLowerCase())
-    );
-    this.filteredCollections = this.stigmanCollections.filter(
-      collection => !existingNames.has(collection.name.toLowerCase())
-    );
+    const existingNames = new Set(this.existingCollections.map((c) => c.collectionName.toLowerCase()));
+
+    this.filteredCollections = this.stigmanCollections.filter((collection) => !existingNames.has(collection.name.toLowerCase()));
 
     if (this.filteredCollections.length === 0) {
       this.messageService.add({
@@ -123,16 +121,16 @@ export class STIGManagerAdminComponent implements OnInit {
         acceptLabel: 'OK',
         rejectVisible: false
       });
+
       return;
     }
 
-    this.importCollection(this.selectedSTIGManagerCollection).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      complete: () => this.fetchDataAndCompare()
-    });
+    this.importCollection(this.selectedSTIGManagerCollection)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        complete: () => this.fetchDataAndCompare()
+      });
   }
-
 
   importAllRemainingCollections() {
     this.confirmationService.confirm({
@@ -140,27 +138,25 @@ export class STIGManagerAdminComponent implements OnInit {
       header: 'Confirm Bulk Import',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        forkJoin(
-          this.filteredCollections.map(collection => this.importCollection(collection))
-        ).pipe(
-          takeUntil(this.destroy$)
-        ).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: 'All collections imported successfully'
-            });
-            this.fetchDataAndCompare();
-          },
-          error: error => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Error during bulk import: ${getErrorMessage(error)}`
-            });
-          }
-        });
+        forkJoin(this.filteredCollections.map((collection) => this.importCollection(collection)))
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'All collections imported successfully'
+              });
+              this.fetchDataAndCompare();
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error during bulk import: ${getErrorMessage(error)}`
+              });
+            }
+          });
       }
     });
   }
@@ -181,12 +177,13 @@ export class STIGManagerAdminComponent implements OnInit {
           detail: `Collection "${collection.name}" imported successfully`
         });
       }),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error importing collection "${collection.name}": ${getErrorMessage(error)}`
         });
+
         return EMPTY;
       })
     );

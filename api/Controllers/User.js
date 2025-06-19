@@ -26,7 +26,7 @@ module.exports.getCurrentUser = async function getCurrentUser(req, res, next) {
         const user = await userService.getCurrentUser(req);
         res.status(200).json(user);
     } catch (error) {
-        if (error.message === "User not found") {
+        if (error.message === 'User not found') {
             res.status(404).json({ error: 'User not found' });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
@@ -40,7 +40,7 @@ module.exports.getUserByUserID = async function getUserByUserID(req, res, next) 
         const user = await userService.getUserByUserID(req, elevate);
         res.status(200).json(user);
     } catch (error) {
-        if (error.message === "User not found") {
+        if (error.message === 'User not found') {
             res.status(200).json(user);
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
@@ -55,7 +55,7 @@ module.exports.updateUser = async function updateUser(req, res, next) {
         const updatedUser = await userService.updateUser(userId, elevate, req);
         res.status(200).json(updatedUser);
     } catch (error) {
-        if (error.message === "User update failed") {
+        if (error.message === 'User update failed') {
             res.status(400).json({ error: 'Bad Request', detail: error.message });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
@@ -114,19 +114,19 @@ module.exports.disableUser = async function disableUser(req, res, next) {
 
         res.status(200).json({
             success: true,
-            message: result.message
+            message: result.message,
         });
     } catch (error) {
         if (error instanceof SmError.PrivilegeError) {
             res.status(400).json({
                 success: false,
-                error: error.message
+                error: error.message,
             });
         } else {
             res.status(500).json({
                 success: false,
                 error: 'Internal Server Error',
-                detail: error.message
+                detail: error.message,
             });
         }
     }

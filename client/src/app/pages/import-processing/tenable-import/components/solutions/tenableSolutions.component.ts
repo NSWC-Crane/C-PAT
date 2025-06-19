@@ -8,22 +8,22 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
-import { ImportService } from '../../../import.service';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
 import { SharedService } from '../../../../../common/services/shared.service';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { TooltipModule } from 'primeng/tooltip';
-import { DialogModule } from 'primeng/dialog';
-import { FormsModule } from '@angular/forms';
-import { InputIconModule } from 'primeng/inputicon';
-import { IconFieldModule } from 'primeng/iconfield';
-import { ToastModule } from 'primeng/toast';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { ImportService } from '../../../import.service';
 
 interface ExportColumn {
   title: string;
@@ -35,20 +35,15 @@ interface ExportColumn {
   templateUrl: './tenableSolutions.component.html',
   styleUrls: ['./tenableSolutions.component.scss'],
   standalone: true,
-  imports: [
-    FormsModule,
-    ButtonModule,
-    DialogModule,
-    TableModule,
-    InputTextModule,
-    InputIconModule,
-    IconFieldModule,
-    TooltipModule,
-    ToastModule
-],
-  providers: [MessageService],
+  imports: [FormsModule, ButtonModule, DialogModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule, ToastModule],
+  providers: [MessageService]
 })
 export class TenableSolutionsComponent implements OnInit, OnDestroy {
+  private importService = inject(ImportService);
+  private collectionsService = inject(CollectionsService);
+  private sharedService = inject(SharedService);
+  private messageService = inject(MessageService);
+
   solutions: any[] = [];
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -67,13 +62,6 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
   @ViewChild('vulnDetailsTable') vulnDetailsTable!: Table;
   private subscriptions = new Subscription();
 
-  constructor(
-    private importService: ImportService,
-    private collectionsService: CollectionsService,
-    private sharedService: SharedService,
-    private messageService: MessageService
-  ) {}
-
   ngOnInit() {
     this.cols = [
       { field: 'solution', header: 'Solution' },
@@ -81,24 +69,23 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
       { field: 'hostTotal', header: 'Hosts Affected' },
       { field: 'total', header: 'Vulnerabilities' },
       { field: 'vprScore', header: 'VPR' },
-      { field: 'cvssV3BaseScore', header: 'CVSS v3 Base Score' },
+      { field: 'cvssV3BaseScore', header: 'CVSS v3 Base Score' }
     ];
-    this.exportColumns = this.cols.map(col => ({
+    this.exportColumns = this.cols.map((col) => ({
       title: col.header,
-      dataKey: col.field,
+      dataKey: col.field
     }));
 
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
       })
     );
 
     this.collectionsService.getCollectionBasicList().subscribe({
-      next: data => {
-        const selectedCollectionData = data.find(
-          (collection: any) => collection.collectionId === this.selectedCollection
-        );
+      next: (data) => {
+        const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
+
         if (selectedCollectionData) {
           this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
           this.getSolutions();
@@ -108,7 +95,7 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.tenableRepoId = '';
-      },
+      }
     });
   }
 
@@ -129,19 +116,19 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
             isPredefined: true,
             value: [
               {
-                id: this.tenableRepoId,
-              },
-            ],
-          },
+                id: this.tenableRepoId
+              }
+            ]
+          }
         ],
         sortColumn: 'scorePctg',
-        sortDirection: 'desc',
+        sortDirection: 'desc'
       },
       sourceType: 'cumulative',
       sortField: 'scorePctg',
       sortDir: 'desc',
       type: 'vuln',
-      pagination: 'false',
+      pagination: 'false'
     };
 
     this.loadingSolutions = true;
@@ -154,7 +141,7 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
           total: solution.total,
           vprScore: solution.vprScore,
           cvssV3BaseScore: solution.cvssV3BaseScore,
-          ...solution,
+          ...solution
         }));
         this.loadingSolutions = false;
       },
@@ -191,45 +178,44 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
             isPredefined: true,
             value: [
               {
-                id: this.tenableRepoId,
-              },
-            ],
-          },
+                id: this.tenableRepoId
+              }
+            ]
+          }
         ],
         sortColumn: 'scorePctg',
-        sortDirection: 'desc',
+        sortDirection: 'desc'
       },
       sourceType: 'cumulative',
       sortField: 'scorePctg',
       sortDir: 'desc',
       type: 'vuln',
-      pagination: 'true',
+      pagination: 'true'
     };
 
     this.loadingAffectedHosts = true;
-    this.importService.postTenableSolutionAssets(solutionParams, solutionId)
-      .subscribe({
-        next: (data: any) => {
-          this.affectedHosts = data.response.results.map((affectedHost: any) => ({
-            ip: affectedHost.ip,
-            netbiosName: affectedHost.netbiosName,
-            dnsName: affectedHost.dnsName,
-            osCPE: affectedHost.osCPE,
-            vprScore: affectedHost.vprScore,
-            repository: affectedHost.repository.name,
-            ...affectedHost,
-          }));
-          this.loadingAffectedHosts = false;
-        },
-        error: (error: any) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching affected hosts: ${getErrorMessage(error)}`
-          });
-          this.loadingAffectedHosts = false;
-        }
-      });
+    this.importService.postTenableSolutionAssets(solutionParams, solutionId).subscribe({
+      next: (data: any) => {
+        this.affectedHosts = data.response.results.map((affectedHost: any) => ({
+          ip: affectedHost.ip,
+          netbiosName: affectedHost.netbiosName,
+          dnsName: affectedHost.dnsName,
+          osCPE: affectedHost.osCPE,
+          vprScore: affectedHost.vprScore,
+          repository: affectedHost.repository.name,
+          ...affectedHost
+        }));
+        this.loadingAffectedHosts = false;
+      },
+      error: (error: any) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching affected hosts: ${getErrorMessage(error)}`
+        });
+        this.loadingAffectedHosts = false;
+      }
+    });
   }
 
   getVulnDetails(solutionId: any) {
@@ -249,43 +235,42 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
             isPredefined: true,
             value: [
               {
-                id: this.tenableRepoId,
-              },
-            ],
-          },
+                id: this.tenableRepoId
+              }
+            ]
+          }
         ],
         sortColumn: 'scorePctg',
-        sortDirection: 'desc',
+        sortDirection: 'desc'
       },
       sourceType: 'cumulative',
       sortField: 'scorePctg',
       sortDir: 'desc',
       type: 'vuln',
-      pagination: 'false',
+      pagination: 'false'
     };
 
     this.loadingVulnDetails = true;
-    this.importService.postTenableSolutionVuln(solutionVulnParams, solutionId)
-      .subscribe({
-        next: (data: any) => {
-          this.solutionVulnDetails = data.response.map((vuln: any) => ({
-            pluginID: vuln.pluginID,
-            vprScore: vuln.vprScore,
-            cvssV3BaseScore: vuln.cvssV3BaseScore,
-            hostTotal: vuln.hostTotal,
-            ...vuln,
-          }));
-          this.loadingVulnDetails = false;
-        },
-        error: (error: any) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching solution data: ${getErrorMessage(error)}`
-          });
-          this.loadingVulnDetails = false;
-        }
-      });
+    this.importService.postTenableSolutionVuln(solutionVulnParams, solutionId).subscribe({
+      next: (data: any) => {
+        this.solutionVulnDetails = data.response.map((vuln: any) => ({
+          pluginID: vuln.pluginID,
+          vprScore: vuln.vprScore,
+          cvssV3BaseScore: vuln.cvssV3BaseScore,
+          hostTotal: vuln.hostTotal,
+          ...vuln
+        }));
+        this.loadingVulnDetails = false;
+      },
+      error: (error: any) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching solution data: ${getErrorMessage(error)}`
+        });
+        this.loadingVulnDetails = false;
+      }
+    });
   }
 
   resetData() {

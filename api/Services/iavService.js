@@ -27,7 +27,7 @@ async function withConnection(callback) {
 
 exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT value FROM ${config.database.schema}.config WHERE config.key = 'vramUpdate';`;
             let [vramUpdate] = await connection.query(sql);
             const vramUpdateDate = vramUpdate[0];
@@ -40,7 +40,7 @@ exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(req, res,
 
 exports.getIAVTableData = async function getIAVTableData(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
     SELECT i.*, GROUP_CONCAT(ip.pluginID) as pluginID
     FROM ${config.database.schema}.iav i
@@ -50,13 +50,16 @@ exports.getIAVTableData = async function getIAVTableData(req, res, next) {
             let [tableData] = await connection.query(sql);
             let nessusPluginsMapped = null;
             if (tableData.length > 0) {
-                const [nessusPluginsUpdated] = await connection.query(`SELECT \`value\` FROM ${config.database.schema}.config WHERE \`key\` = ?`, ['nessusPluginsMapped']);
+                const [nessusPluginsUpdated] = await connection.query(
+                    `SELECT \`value\` FROM ${config.database.schema}.config WHERE \`key\` = ?`,
+                    ['nessusPluginsMapped']
+                );
                 nessusPluginsMapped = nessusPluginsUpdated.length > 0 ? nessusPluginsUpdated[0].value : null;
             }
 
             return {
                 tableData,
-                nessusPluginsMapped
+                nessusPluginsMapped,
             };
         });
     } catch (error) {
@@ -64,10 +67,10 @@ exports.getIAVTableData = async function getIAVTableData(req, res, next) {
     }
 };
 
-const validateIAV = (iav) => /^\d{4}-[A-Z]-\d{4}$/.test(iav);
+const validateIAV = iav => /^\d{4}-[A-Z]-\d{4}$/.test(iav);
 exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let updatedCount = 0;
             let ignoredCount = 0;
             await connection.beginTransaction();
@@ -114,7 +117,7 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
                     message: 'PluginIDs mapped and updated successfully',
                     nessusPluginsMapped: formattedDate,
                     updatedCount,
-                    ignoredCount
+                    ignoredCount,
                 };
             } catch (error) {
                 await connection.rollback();
@@ -137,7 +140,7 @@ function validatePluginID(pluginID) {
 
 exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT DISTINCT pluginID FROM ${config.database.schema}.iav_plugin`;
             let [pluginIDs] = await connection.query(sql);
 
@@ -153,24 +156,22 @@ exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) {
 
 exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
     try {
-
         if (!Array.isArray(pluginIDs) || pluginIDs.length === 0) {
             logger.writeWarn('No valid plugin IDs provided');
             return [];
         }
 
-        const validPluginIDs = pluginIDs
-            .filter(id => {
-                const num = Number(id);
-                return !isNaN(num) && num > 0 && Number.isInteger(num);
-            });
+        const validPluginIDs = pluginIDs.filter(id => {
+            const num = Number(id);
+            return !isNaN(num) && num > 0 && Number.isInteger(num);
+        });
 
         if (validPluginIDs.length === 0) {
             logger.writeWarn('No valid plugin IDs provided');
             return [];
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `
                 SELECT ip.pluginID, i.iav, i.navyComplyDate, i.supersededBy
                 FROM ${config.database.schema}.iav_plugin ip
@@ -179,10 +180,12 @@ exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
                 ORDER BY ip.pluginID, i.navyComplyDate DESC
             `;
             const [results] = await connection.query(sql, [validPluginIDs]);
-            const latestResults = validPluginIDs.map(pluginID => {
-                const entries = results.filter(r => r.pluginID === pluginID);
-                return entries.length > 0 ? entries[0] : null;
-            }).filter(Boolean);
+            const latestResults = validPluginIDs
+                .map(pluginID => {
+                    const entries = results.filter(r => r.pluginID === pluginID);
+                    return entries.length > 0 ? entries[0] : null;
+                })
+                .filter(Boolean);
             return latestResults;
         });
     } catch (error) {

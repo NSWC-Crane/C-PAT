@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { Injectable } from "@angular/core";
-import { MessageService } from "primeng/api";
+import { Injectable, inject } from '@angular/core';
+import { MessageService } from 'primeng/api';
 
 export interface AssetData {
   assetName: string;
@@ -22,63 +22,49 @@ export interface AssetData {
   providedIn: 'root'
 })
 export class AssetTeamMappingService {
-  constructor(
-    private messageService: MessageService
-  ) { }
+  private messageService = inject(MessageService);
 
   getAssetName(assetId: number, assetList: any[]): string {
     const asset = assetList.find((asset: any) => asset.assetId === assetId);
+
     return asset ? asset.assetName : `Asset ID: ${assetId}`;
   }
 
-  compareAssetsAndAssignTeams(
-    poam: any,
-    assetDeltaList: any,
-    collectionType: string,
-    poamAssets: any[] = [],
-    externalAssets: AssetData[] = [],
-    assetList: any[] = [],
-    poamAssignedTeams: any[] = []
-  ): any[] {
+  compareAssetsAndAssignTeams(poam: any, assetDeltaList: any, collectionType: string, poamAssets: any[] = [], externalAssets: AssetData[] = [], assetList: any[] = [], poamAssignedTeams: any[] = []): any[] {
     if (!assetDeltaList?.assets) return poamAssignedTeams;
     if (collectionType === 'C-PAT' && (!poamAssets || poamAssets.length === 0)) return poamAssignedTeams;
-    if ((collectionType === 'STIG Manager' || collectionType === 'Tenable') &&
-      (!externalAssets || externalAssets.length === 0)) return poamAssignedTeams;
+    if ((collectionType === 'STIG Manager' || collectionType === 'Tenable') && (!externalAssets || externalAssets.length === 0)) return poamAssignedTeams;
 
     const newTeamsToAdd = new Set<any>();
-    const assetsToCheck = collectionType === 'C-PAT' ?
-      poamAssets.map(asset => ({
-        assetName: this.getAssetName(asset.assetId, assetList),
-        source: 'CPAT' as const
-      })) :
-      externalAssets;
+    const assetsToCheck =
+      collectionType === 'C-PAT'
+        ? poamAssets.map((asset) => ({
+            assetName: this.getAssetName(asset.assetId, assetList),
+            source: 'CPAT' as const
+          }))
+        : externalAssets;
     const teamsWithAssets = new Set<number>();
 
-    assetsToCheck.forEach(asset => {
-      assetDeltaList.assets.forEach(deltaAsset => {
+    assetsToCheck.forEach((asset) => {
+      assetDeltaList.assets.forEach((deltaAsset) => {
         const assetName = asset.assetName?.toLowerCase() || '';
         const deltaKey = deltaAsset.key.toLowerCase();
 
         let assetMatchesRule = false;
 
-        if ((asset.source === 'STIG Manager' || asset.source === 'Tenable') &&
-          (assetName.includes(deltaKey) ||
-            asset.dnsName?.toLowerCase().includes(deltaKey) ||
-            asset.fqdn?.toLowerCase().includes(deltaKey))) {
+        if ((asset.source === 'STIG Manager' || asset.source === 'Tenable') && (assetName.includes(deltaKey) || asset.dnsName?.toLowerCase().includes(deltaKey) || asset.fqdn?.toLowerCase().includes(deltaKey))) {
           assetMatchesRule = true;
-        }
-        else if (asset.source === 'CPAT' && assetName === deltaKey) {
+        } else if (asset.source === 'CPAT' && assetName === deltaKey) {
           assetMatchesRule = true;
         }
 
         if (assetMatchesRule) {
           if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
-            deltaAsset.assignedTeams.forEach(team => {
+            deltaAsset.assignedTeams.forEach((team) => {
               newTeamsToAdd.add(team);
               teamsWithAssets.add(team.assignedTeamId);
             });
-          }
-          else if (deltaAsset.assignedTeam) {
+          } else if (deltaAsset.assignedTeam) {
             newTeamsToAdd.add(deltaAsset.assignedTeam);
             teamsWithAssets.add(deltaAsset.assignedTeam.assignedTeamId);
           }
@@ -89,9 +75,7 @@ export class AssetTeamMappingService {
     let updatedTeams = [...poamAssignedTeams];
 
     for (const team of newTeamsToAdd) {
-      const teamAlreadyAssigned = updatedTeams.some(
-        assignedTeam => assignedTeam.assignedTeamId === team.assignedTeamId
-      );
+      const teamAlreadyAssigned = updatedTeams.some((assignedTeam) => assignedTeam.assignedTeamId === team.assignedTeamId);
 
       if (!teamAlreadyAssigned) {
         updatedTeams.push({
@@ -111,14 +95,10 @@ export class AssetTeamMappingService {
     }
 
     if (poam.poamId !== 'ADDPOAM') {
-      const teamsToRemove = updatedTeams.filter(team =>
-        team.automated && !teamsWithAssets.has(team.assignedTeamId)
-      );
+      const teamsToRemove = updatedTeams.filter((team) => team.automated && !teamsWithAssets.has(team.assignedTeamId));
 
       for (const team of teamsToRemove) {
-        updatedTeams = updatedTeams.filter(
-          assignedTeam => assignedTeam.assignedTeamId !== team.assignedTeamId
-        );
+        updatedTeams = updatedTeams.filter((assignedTeam) => assignedTeam.assignedTeamId !== team.assignedTeamId);
 
         this.messageService.add({
           severity: 'info',

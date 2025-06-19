@@ -8,25 +8,18 @@
 !##########################################################################
 */
 
-import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TabsModule } from 'primeng/tabs';
+import { Component, ViewChild } from '@angular/core';
 import { CardModule } from 'primeng/card';
-import { TenableVulnerabilitiesComponent } from './components/tenableVulnerabilities/tenableVulnerabilities.component';
-import { TenableSelectedVulnerabilitiesComponent } from './components/tenableSelectedVulnerabilities/tenableSelectedVulnerabilities.component';
+import { TabsModule } from 'primeng/tabs';
 import { TenableSolutionsComponent } from './components/solutions/tenableSolutions.component';
+import { TenableSelectedVulnerabilitiesComponent } from './components/tenableSelectedVulnerabilities/tenableSelectedVulnerabilities.component';
+import { TenableVulnerabilitiesComponent } from './components/tenableVulnerabilities/tenableVulnerabilities.component';
 
 @Component({
   selector: 'cpat-tenable',
   standalone: true,
-  imports: [
-    CommonModule,
-    TabsModule,
-    CardModule,
-    TenableVulnerabilitiesComponent,
-    TenableSelectedVulnerabilitiesComponent,
-    TenableSolutionsComponent
-  ],
+  imports: [CommonModule, TabsModule, CardModule, TenableVulnerabilitiesComponent, TenableSelectedVulnerabilitiesComponent, TenableSolutionsComponent],
   templateUrl: './tenable.component.html',
   styleUrls: ['./tenable.component.scss']
 })
@@ -46,9 +39,11 @@ export class TenableComponent {
 
   onTabChange(index: unknown): void {
     this.activeTabIndex = Number(index);
+
     if (!this.loadedTabs.has(this.activeTabIndex)) {
       this.loadedTabs.add(this.activeTabIndex);
     }
+
     this.sidebarVisible = false;
   }
 

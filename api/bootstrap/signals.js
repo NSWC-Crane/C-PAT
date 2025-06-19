@@ -8,18 +8,18 @@
 !##########################################################################
 */
 
-const state = require('../utils/state')
-const logger = require('../utils/logger')
+const state = require('../utils/state');
+const logger = require('../utils/logger');
 
 module.exports.setupSignalHandlers = () => {
-  const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+    const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
 
-  const signalHandler = (signal) => {
-    logger.writeInfo('signals','signal', {signal})
-    state.setState('stop')
-  }
+    const signalHandler = signal => {
+        logger.writeInfo('signals', 'signal', { signal });
+        state.setState('stop');
+    };
 
-  for (const signal of signals) {
-    process.on(signal, signalHandler)
-  }
-}
+    for (const signal of signals) {
+        process.on(signal, signalHandler);
+    }
+};

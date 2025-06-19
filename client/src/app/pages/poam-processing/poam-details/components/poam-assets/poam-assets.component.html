@@ -16,11 +16,7 @@
           <tr>
             <th pSortableColumn="assetName" scope="col">Asset</th>
             <th scope="col" style="width: 8rem">
-              <button pButton
-                icon="pi pi-plus"
-                (click)="addAsset()"
-                class="p-button-rounded p-button-text"
-              [disabled]="accessLevel < 2"></button>
+              <button pButton icon="pi pi-plus" (click)="addAsset()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
             </th>
           </tr>
         </ng-template>
@@ -28,26 +24,14 @@
           <tr>
             <td>
               @if (!asset.isNew) {
-                <span>{{getAssetName(asset.assetId)}}</span>
+                <span>{{ getAssetName(asset.assetId) }}</span>
               }
               @if (asset.isNew) {
-                <p-select
-                  [options]="assetList"
-                  [(ngModel)]="asset.assetId"
-                  optionLabel="assetName"
-                  optionValue="assetId"
-                  [style]="{'width':'100%'}"
-                  (onChange)="onAssetChange(asset, rowIndex)"
-                  appendTo="body"
-                [disabled]="accessLevel < 2"></p-select>
+                <p-select [options]="assetList" [(ngModel)]="asset.assetId" optionLabel="assetName" optionValue="assetId" [style]="{ width: '100%' }" (onChange)="onAssetChange(asset, rowIndex)" appendTo="body" [disabled]="accessLevel < 2"></p-select>
               }
             </td>
             <td>
-              <button pButton
-                icon="pi pi-trash"
-                (click)="deleteAsset(asset, rowIndex)"
-                class="p-button-rounded p-button-text p-button-danger"
-              [disabled]="accessLevel < 2"></button>
+              <button pButton icon="pi pi-trash" (click)="deleteAsset(asset, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
             </td>
           </tr>
         </ng-template>
@@ -62,19 +46,13 @@
 
   @if (collectionType === 'STIG Manager') {
     <div class="stepper-content">
-      <cpat-stigmanager-poam-assets-table [stigmanCollectionId]="originCollectionId"
-        [groupId]="poam.vulnerabilityId"
-        [associatedVulnerabilities]="poamAssociatedVulnerabilities">
-      </cpat-stigmanager-poam-assets-table>
+      <cpat-stigmanager-poam-assets-table [stigmanCollectionId]="originCollectionId" [groupId]="poam.vulnerabilityId" [associatedVulnerabilities]="poamAssociatedVulnerabilities"> </cpat-stigmanager-poam-assets-table>
     </div>
   }
 
   @if (collectionType === 'Tenable') {
     <div class="stepper-content">
-      <cpat-tenable-assets-table [pluginID]="poam.vulnerabilityId"
-        [tenableRepoId]="originCollectionId"
-        [associatedVulnerabilities]="poamAssociatedVulnerabilities">
-      </cpat-tenable-assets-table>
+      <cpat-tenable-assets-table [pluginID]="poam.vulnerabilityId" [tenableRepoId]="originCollectionId" [associatedVulnerabilities]="poamAssociatedVulnerabilities"> </cpat-tenable-assets-table>
     </div>
   }
 </div>

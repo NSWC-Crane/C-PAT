@@ -8,13 +8,13 @@
 !##########################################################################
 */
 
+import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PoamAssetsComponent } from './poam-assets.component';
+import { FormsModule } from '@angular/forms';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { Subject, of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
-import { SimpleChange } from '@angular/core';
+import { PoamAssetsComponent } from './poam-assets.component';
 
 describe('PoamAssetsComponent', () => {
   let component: PoamAssetsComponent;
@@ -38,14 +38,8 @@ describe('PoamAssetsComponent', () => {
     } as jasmine.SpyObj<MessageService>;
 
     await TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        PoamAssetsComponent,
-        FormsModule
-      ],
-      providers: [
-        { provide: MessageService, useValue: mockMessageService }
-      ]
+      imports: [NoopAnimationsModule, PoamAssetsComponent, FormsModule],
+      providers: [{ provide: MessageService, useValue: mockMessageService }]
     }).compileComponents();
     fixture = TestBed.createComponent(PoamAssetsComponent);
     component = fixture.componentInstance;
@@ -62,9 +56,7 @@ describe('PoamAssetsComponent', () => {
       { assetId: 1, assetName: 'Asset A' },
       { assetId: 2, assetName: 'Asset B' }
     ];
-    component.poamAssignedTeams = [
-      { assignedTeamId: 1, assignedTeamName: 'Team A' }
-    ];
+    component.poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
     component.poamAssociatedVulnerabilities = [];
     component.originCollectionId = null;
 
@@ -78,6 +70,7 @@ describe('PoamAssetsComponent', () => {
   describe('addAsset', () => {
     it('should add a new asset to the beginning of the array', async () => {
       const assetsSpy = spyOn(component.assetsChanged, 'emit');
+
       component.poamAssets = [{ poamId: '12345', assetId: 1 }];
 
       await component.addAsset();
@@ -92,11 +85,13 @@ describe('PoamAssetsComponent', () => {
   describe('getAssetName', () => {
     it('should return asset name when asset exists', () => {
       const assetName = component.getAssetName(1);
+
       expect(assetName).toBe('Asset A');
     });
 
     it('should return fallback text when asset does not exist', () => {
       const assetName = component.getAssetName(999);
+
       expect(assetName).toBe('Asset ID: 999');
     });
   });
@@ -116,6 +111,7 @@ describe('PoamAssetsComponent', () => {
 
     it('should remove asset when no asset is selected', async () => {
       const asset = { assetId: null, isNew: true };
+
       component.poamAssets = [asset, { assetId: 2 }];
       const assetsSpy = spyOn(component.assetsChanged, 'emit');
 
@@ -139,6 +135,7 @@ describe('PoamAssetsComponent', () => {
 
     it('should directly remove asset when asset has no ID', async () => {
       const asset = { assetId: null, isNew: true };
+
       component.poamAssets = [asset, { assetId: 2 }];
       const assetsSpy = spyOn(component.assetsChanged, 'emit');
 
@@ -171,9 +168,8 @@ describe('PoamAssetsComponent', () => {
 
     it('should handle error when creating asset fails', async () => {
       const asset = { assetId: 1 };
-      mockPoamService.postPoamAsset.and.returnValue(
-        throwError(() => new Error('Test error'))
-      );
+
+      mockPoamService.postPoamAsset.and.returnValue(throwError(() => new Error('Test error')));
 
       await component.confirmCreateAsset(asset);
 
@@ -196,17 +192,14 @@ describe('PoamAssetsComponent', () => {
   describe('confirmDeleteAsset', () => {
     it('should remove asset from array and emit change', async () => {
       const asset = { poamId: '12345', assetId: 1 };
-      component.poamAssets = [
-        asset,
-        { poamId: '12345', assetId: 2 },
-        { poamId: '12345', assetId: 3 }
-      ];
+
+      component.poamAssets = [asset, { poamId: '12345', assetId: 2 }, { poamId: '12345', assetId: 3 }];
       const assetsSpy = spyOn(component.assetsChanged, 'emit');
 
       await component.confirmDeleteAsset(asset);
 
       expect(component.poamAssets.length).toBe(2);
-      expect(component.poamAssets.find(a => a.assetId === 1)).toBeUndefined();
+      expect(component.poamAssets.find((a) => a.assetId === 1)).toBeUndefined();
       expect(assetsSpy).toHaveBeenCalledWith(component.poamAssets);
       expect(mockPoamService.deletePoamAsset).not.toHaveBeenCalled();
     });
@@ -218,6 +211,7 @@ describe('PoamAssetsComponent', () => {
         { poamId: '12345', assetId: 1 },
         { poamId: '12345', assetId: 2 }
       ];
+
       mockPoamService.getPoamAssets.and.returnValue(of(mockAssets));
       const assetsSpy = spyOn(component.assetsChanged, 'emit');
 
@@ -245,9 +239,7 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should handle error when fetching assets fails', () => {
-      mockPoamService.getPoamAssets.and.returnValue(
-        throwError(() => new Error('Test error'))
-      );
+      mockPoamService.getPoamAssets.and.returnValue(throwError(() => new Error('Test error')));
 
       component.fetchAssets();
 
@@ -302,9 +294,7 @@ describe('PoamAssetsComponent', () => {
 
       const refreshSpy = spyOn(component, 'refreshAssets');
 
-      component.poamAssignedTeams = [
-        { assignedTeamId: 1, assignedTeamName: 'Team A' }
-      ];
+      component.poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       component.ngOnChanges({
         poamAssignedTeams: new SimpleChange(
           [
@@ -330,9 +320,7 @@ describe('PoamAssetsComponent', () => {
 
       const refreshSpy = spyOn(component, 'refreshAssets');
 
-      component.poamAssignedTeams = [
-        { assignedTeamId: 3, assignedTeamName: 'Team C' }
-      ];
+      component.poamAssignedTeams = [{ assignedTeamId: 3, assignedTeamName: 'Team C' }];
       component.ngOnChanges({
         poamAssignedTeams: new SimpleChange(
           [
@@ -348,9 +336,7 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should not refresh assets when teams are only added', () => {
-      component.poamAssignedTeams = [
-        { assignedTeamId: 1, assignedTeamName: 'Team A' }
-      ];
+      component.poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       component.ngOnChanges({
         poamAssignedTeams: new SimpleChange(null, component.poamAssignedTeams, true)
       });
@@ -362,11 +348,7 @@ describe('PoamAssetsComponent', () => {
         { assignedTeamId: 2, assignedTeamName: 'Team B' }
       ];
       component.ngOnChanges({
-        poamAssignedTeams: new SimpleChange(
-          [{ assignedTeamId: 1, assignedTeamName: 'Team A' }],
-          component.poamAssignedTeams,
-          false
-        )
+        poamAssignedTeams: new SimpleChange([{ assignedTeamId: 1, assignedTeamName: 'Team A' }], component.poamAssignedTeams, false)
       });
 
       expect(refreshSpy).not.toHaveBeenCalled();
@@ -397,6 +379,7 @@ describe('PoamAssetsComponent', () => {
     it('should handle empty assetList', () => {
       component.assetList = [];
       const assetName = component.getAssetName(1);
+
       expect(assetName).toBe('Asset ID: 1');
     });
 
@@ -414,13 +397,13 @@ describe('PoamAssetsComponent', () => {
 
     it('should maintain data integrity when operations fail', async () => {
       const initialAssets = [{ assetId: 1 }, { assetId: 2 }];
+
       component.poamAssets = [...initialAssets];
 
-      mockPoamService.postPoamAsset.and.returnValue(
-        throwError(() => new Error('Network error'))
-      );
+      mockPoamService.postPoamAsset.and.returnValue(throwError(() => new Error('Network error')));
 
       const newAsset = { assetId: 3 };
+
       await component.confirmCreateAsset(newAsset);
 
       expect(component.poamAssets).toEqual(initialAssets);

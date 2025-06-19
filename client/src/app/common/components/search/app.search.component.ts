@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AutoComplete } from 'primeng/autocomplete';
@@ -47,16 +47,18 @@ interface SearchItem {
       :host ::ng-deep .p-autocomplete-panel {
         max-width: 100%;
       }
-    `,
-  ],
+    `
+  ]
 })
 export class AppSearchComponent {
+  private router = inject(Router);
+
   public filteredItems: SearchItem[] = [];
   public query: string = '';
   public placeholder: string = 'Search...';
   private searchItems: SearchItem[] = [];
 
-  constructor(private router: Router) {
+  constructor() {
     this.initializeSearchItems();
   }
 
@@ -68,7 +70,7 @@ export class AppSearchComponent {
       { title: 'Import Processing', path: '/import-processing' },
       { title: 'Label Processing', path: '/label-processing' },
       { title: 'Manage POAMs', path: '/poam-processing/poam-manage' },
-      { title: 'Notifications', path: '/notifications' },
+      { title: 'Notifications', path: '/notifications' }
     ];
 
     if (!CPAT.Env.features.marketplaceDisabled) {
@@ -77,13 +79,12 @@ export class AppSearchComponent {
   }
 
   search(event: { query: string }) {
-    this.filteredItems = this.searchItems.filter(item =>
-      item.title.toLowerCase().includes(event.query.toLowerCase())
-    );
+    this.filteredItems = this.searchItems.filter((item) => item.title.toLowerCase().includes(event.query.toLowerCase()));
   }
 
   navigateTo(event: { value: SearchItem }) {
     const item = event.value;
+
     if (item && item.path) {
       this.router.navigate([item.path]);
       this.query = '';

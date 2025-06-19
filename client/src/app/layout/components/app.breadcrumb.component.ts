@@ -8,22 +8,19 @@
 !##########################################################################
 */
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Location } from '@angular/common';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Event, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
-import { Router, NavigationEnd, RouterModule, Event } from '@angular/router';
-import { filter, takeUntil } from 'rxjs/operators';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'cpat-breadcrumb',
   standalone: true,
   imports: [RouterModule, BreadcrumbModule],
-  template: `
-    <p-breadcrumb [model]="items" [home]="home" styleClass="border-none surface-ground">
-    </p-breadcrumb>
-  `,
+  template: ` <p-breadcrumb [model]="items" [home]="home" styleClass="border-none surface-ground"> </p-breadcrumb> `,
   styles: [
     `
       :host ::ng-deep .p-breadcrumb {
@@ -31,18 +28,18 @@ import { Subject } from 'rxjs';
         border: none;
         margin-top: 0.15rem;
       }
-    `,
-  ],
+    `
+  ]
 })
 export class AppBreadcrumbComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private location = inject(Location);
+
   private destroy$ = new Subject<void>();
   items: MenuItem[] = [];
   home: MenuItem;
 
-  constructor(
-    private router: Router,
-    private location: Location
-  ) {
+  constructor() {
     this.home = { icon: 'pi pi-home', routerLink: '/poam-processing' };
   }
 
@@ -71,19 +68,21 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
       this.items = [
         {
           label: 'POAM Processing',
-          routerLink: '/poam-processing',
-        },
+          routerLink: '/poam-processing'
+        }
       ];
+
       return;
     }
 
-    const urlSegments = currentUrl.split('/').filter(segment => segment);
+    const urlSegments = currentUrl.split('/').filter((segment) => segment);
 
     const breadcrumbs: MenuItem[] = [];
     let currentPath = '';
 
     for (let i = 0; i < urlSegments.length; i++) {
       const segment = urlSegments[i];
+
       currentPath += `/${segment}`;
 
       const isParameter = !isNaN(Number(segment));
@@ -91,13 +90,14 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
       if (isParameter) {
         breadcrumbs.push({
           label: `POAM ${segment}`,
-          routerLink: currentPath,
+          routerLink: currentPath
         });
       } else {
         const label = this.createLabel(segment!);
+
         breadcrumbs.push({
           label: label,
-          routerLink: currentPath,
+          routerLink: currentPath
         });
       }
     }
@@ -140,7 +140,7 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
       default:
         return path
           .split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ');
     }
   }

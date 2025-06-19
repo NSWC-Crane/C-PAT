@@ -8,12 +8,12 @@
 !##########################################################################
 */
 
-import { AppState } from '../domain/appstate';
 import { isPlatformBrowser } from '@angular/common';
-import { computed, effect, inject, Injectable, PLATFORM_ID, signal, Signal, WritableSignal, DOCUMENT } from '@angular/core';
+import { DOCUMENT, Injectable, PLATFORM_ID, Signal, WritableSignal, computed, effect, inject, signal } from '@angular/core';
+import { AppState } from '../domain/appstate';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class AppConfigService {
   private readonly STORAGE_KEY = 'appConfigState';
@@ -25,9 +25,7 @@ export class AppConfigService {
   document = inject(DOCUMENT);
   platformId = inject(PLATFORM_ID);
 
-  theme: Signal<'dark' | 'light'> = computed(() =>
-    (this.appState()?.darkTheme ? 'dark' : 'light')
-  );
+  theme: Signal<'dark' | 'light'> = computed(() => (this.appState()?.darkTheme ? 'dark' : 'light'));
 
   transitionComplete: WritableSignal<boolean> = signal<boolean>(false);
 
@@ -38,10 +36,13 @@ export class AppConfigService {
 
     effect(() => {
       const state = this.appState();
+
       if (!this.initialized || !state) {
         this.initialized = true;
+
         return;
       }
+
       this.saveAppState(state);
       this.handleDarkModeTransition(state);
     });
@@ -63,7 +64,7 @@ export class AppConfigService {
       startViewTransition(callback: () => void): {
         ready: Promise<void>;
         finished: Promise<void>;
-      }
+      };
     };
 
     if ('startViewTransition' in doc) {
@@ -71,9 +72,7 @@ export class AppConfigService {
         this.toggleDarkMode(state);
       });
 
-      transition.ready
-        .then(() => this.onTransitionEnd())
-        .catch(() => this.onTransitionEnd());
+      transition.ready.then(() => this.onTransitionEnd()).catch(() => this.onTransitionEnd());
     }
   }
 
@@ -95,14 +94,14 @@ export class AppConfigService {
   hideMenu(): void {
     this.appState.update((state) => ({
       ...state,
-      menuActive: false,
+      menuActive: false
     }));
   }
 
   showMenu(): void {
     this.appState.update((state) => ({
       ...state,
-      menuActive: true,
+      menuActive: true
     }));
   }
 
@@ -129,7 +128,7 @@ export class AppConfigService {
       surface: 'soho',
       darkTheme: true,
       menuActive: false,
-      RTL: false,
+      RTL: false
     };
   }
 
@@ -137,14 +136,17 @@ export class AppConfigService {
     if (isPlatformBrowser(this.platformId)) {
       try {
         const storedState = localStorage.getItem(this.STORAGE_KEY);
+
         if (storedState) {
           const parsedState = JSON.parse(storedState) as Partial<AppState>;
+
           return { ...this.getDefaultState(), ...parsedState };
         }
       } catch (error) {
         console.error('Error loading app state from storage:', error);
       }
     }
+
     return this.getDefaultState();
   }
 

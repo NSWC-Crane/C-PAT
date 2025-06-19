@@ -9,12 +9,12 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
-	const connection = await dbUtils.pool.getConnection();
+    const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
@@ -24,7 +24,7 @@ async function withConnection(callback) {
 
 exports.getPoamAssets = async function getPoamAssets(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.assetId, t2.assetName, t1.poamId
                 FROM ${config.database.schema}.poamassets t1
@@ -41,7 +41,7 @@ exports.getPoamAssets = async function getPoamAssets(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, next) {
     if (!req.params.poamId) {
@@ -49,12 +49,12 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
             status: 400,
             errors: {
                 poamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.poamId
                 FROM ${config.database.schema}.poamassets t1
@@ -72,7 +72,7 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req, res, next) {
     if (!req.params.collectionId) {
@@ -80,11 +80,11 @@ exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT DISTINCT pa.assetId, a.assetName, pa.poamId
                 FROM ${config.database.schema}.poamassets pa
@@ -102,7 +102,7 @@ exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res, next) {
     if (!req.params.poamId) {
@@ -110,12 +110,12 @@ exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, re
             status: 400,
             errors: {
                 poamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `DELETE FROM ${config.database.schema}.poamassets WHERE poamId = ?`;
             await connection.query(sql, [req.params.poamId]);
             return { poamAsset: [] };
@@ -123,7 +123,7 @@ exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, re
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res, next) {
     if (!req.params.assetId) {
@@ -131,12 +131,12 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res,
             status: 400,
             errors: {
                 assetId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.assetId, t2.assetName, t1.poamId
                 FROM ${config.database.schema}.poamassets t1
@@ -154,7 +154,7 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res,
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     if (!req.params.assetId) {
@@ -162,7 +162,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
             status: 400,
             errors: {
                 assetId: 'is required',
-            }
+            },
         });
     }
 
@@ -171,12 +171,12 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName
                 FROM ${config.database.schema}.assetlabels t1
@@ -192,7 +192,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.postPoamAsset = async function postPoamAsset(req, res, next) {
     if (!req.body.assetId || !req.body.poamId) {
@@ -201,12 +201,12 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
             errors: {
                 assetId: 'is required',
                 poamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.poamassets (assetId, poamId) VALUES (?, ?)`;
             await connection.query(sql_query, [req.body.assetId, req.body.poamId]);
 
@@ -220,25 +220,24 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
 
             let assetNameQuery = `SELECT assetName FROM ${config.database.schema}.asset WHERE assetId = ?`;
             let [[assetNameResult]] = await connection.query(assetNameQuery, [req.body.assetId]);
-            let assetName = "Unknown Asset";
+            let assetName = 'Unknown Asset';
             if (assetNameResult) {
                 assetName = assetNameResult.assetName;
             }
-                let action = `${assetName} was added to the Asset List.`;
-                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
+            let action = `${assetName} was added to the Asset List.`;
+            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
             return poamAsset;
         });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
-            return await withConnection(async (connection) => {
+            return await withConnection(async connection => {
                 let fetchSql = `SELECT * FROM ${config.database.schema}.poamassets WHERE assetId = ? AND poamId = ?`;
                 const [existingAsset] = await connection.query(fetchSql, [req.body.assetId, req.body.poamId]);
                 return existingAsset[0];
             });
-        }
-        else {
+        } else {
             return { error: error.message };
         }
     }
@@ -251,23 +250,23 @@ exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
             errors: {
                 assetId: 'is required',
                 poamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `DELETE FROM ${config.database.schema}.poamassets WHERE assetId = ? AND poamId = ?`;
             await connection.query(sql, [req.params.assetId, req.params.poamId]);
 
-                let assetNameQuery = `SELECT assetName FROM ${config.database.schema}.asset WHERE assetId = ?`;
-                let [[assetNameResult]] = await connection.query(assetNameQuery, [req.params.assetId]);
-                let assetName = "Unknown Asset";
-                if (assetNameResult) {
-                    assetName = assetNameResult.assetName;
-                }
-                    let action = `${assetName} was removed from the Asset List.`;
-                    let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            let assetNameQuery = `SELECT assetName FROM ${config.database.schema}.asset WHERE assetId = ?`;
+            let [[assetNameResult]] = await connection.query(assetNameQuery, [req.params.assetId]);
+            let assetName = 'Unknown Asset';
+            if (assetNameResult) {
+                assetName = assetNameResult.assetName;
+            }
+            let action = `${assetName} was removed from the Asset List.`;
+            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
             await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
 
             return { poamAsset: [] };

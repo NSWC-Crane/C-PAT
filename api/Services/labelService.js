@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -28,12 +28,12 @@ exports.getLabels = async function getLabels(req, res, next) {
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT * FROM ${config.database.schema}.label WHERE collectionId = ? ORDER BY labelName;`;
             let [rowLabels] = await connection.query(sql, [req.params.collectionId]);
 
@@ -49,7 +49,7 @@ exports.getLabels = async function getLabels(req, res, next) {
     } catch (error) {
         next(error);
     }
-}
+};
 
 exports.getLabel = async function getLabel(req, res, next) {
     if (!req.params.labelId) {
@@ -57,19 +57,19 @@ exports.getLabel = async function getLabel(req, res, next) {
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     } else if (!req.params.collectionId) {
         return next({
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT * FROM ${config.database.schema}.label WHERE labelId = ? AND collectionId = ?`;
             let [rowLabel] = await connection.query(sql, [req.params.labelId, req.params.collectionId]);
 
@@ -80,7 +80,7 @@ exports.getLabel = async function getLabel(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.postLabel = async function postLabel(req, res, next) {
     if (!req.params.collectionId) {
@@ -88,19 +88,19 @@ exports.postLabel = async function postLabel(req, res, next) {
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     } else if (!req.body.labelName) {
         return next({
             status: 400,
             errors: {
                 labelName: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.label (labelName, description, collectionId) VALUES (?, ?, ?)`;
             await connection.query(sql_query, [req.body.labelName, req.body.description, req.params.collectionId]);
 
@@ -111,14 +111,14 @@ exports.postLabel = async function postLabel(req, res, next) {
                 labelId: rowLabel[0].labelId,
                 labelName: rowLabel[0].labelName,
                 description: rowLabel[0].description,
-                collectionId: rowLabel[0].collectionId
+                collectionId: rowLabel[0].collectionId,
             };
             return message;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.putLabel = async function putLabel(req, res, next) {
     if (!req.params.collectionId) {
@@ -126,28 +126,28 @@ exports.putLabel = async function putLabel(req, res, next) {
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     } else if (!req.body.labelId) {
         return next({
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     } else if (!req.body.labelName) {
         return next({
             status: 400,
             errors: {
                 labelName: 'is required',
-            }
+            },
         });
     } else if (!req.body.description) {
-        req.body.description = "";
+        req.body.description = '';
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `UPDATE ${config.database.schema}.label SET labelName = ?, description = ? WHERE labelId = ? AND collectionId = ?`;
             await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.labelId, req.params.collectionId]);
 
@@ -155,14 +155,14 @@ exports.putLabel = async function putLabel(req, res, next) {
                 labelId: req.body.labelId,
                 collectionId: req.params.collectionId,
                 labelName: req.body.labelName,
-                description: req.body.description
+                description: req.body.description,
             };
             return message;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.deleteLabel = async function deleteLabel(req, res, next) {
     if (!req.params.labelId) {
@@ -170,19 +170,19 @@ exports.deleteLabel = async function deleteLabel(req, res, next) {
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     } else if (!req.params.collectionId) {
         return next({
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `DELETE FROM ${config.database.schema}.label WHERE labelId = ? AND collectionId = ?`;
             await connection.query(sql, [req.params.labelId, req.params.collectionId]);
 
@@ -191,4 +191,4 @@ exports.deleteLabel = async function deleteLabel(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};

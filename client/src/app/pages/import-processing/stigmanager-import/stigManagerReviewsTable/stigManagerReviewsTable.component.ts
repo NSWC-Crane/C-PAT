@@ -8,28 +8,28 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { MessageService, TreeNode } from 'primeng/api';
-import { Table, TableModule } from 'primeng/table';
-import { TreeTable, TreeTableModule } from 'primeng/treetable';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
-import { SelectModule } from 'primeng/select';
-import { SharedService } from 'src/app/common/services/shared.service';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
-import { TooltipModule } from 'primeng/tooltip';
-import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
-import { TextareaModule } from 'primeng/textarea';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputIconModule } from 'primeng/inputicon';
-import { IconFieldModule } from 'primeng/iconfield';
-import { TagModule } from 'primeng/tag';
 import { parseISO } from 'date-fns';
-import { forkJoin } from 'rxjs';
+import { MessageService, TreeNode } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { DatePickerModule } from 'primeng/datepicker';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { Popover, PopoverModule } from 'primeng/popover';
+import { SelectModule } from 'primeng/select';
+import { Table, TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { TreeTable, TreeTableModule } from 'primeng/treetable';
+import { forkJoin } from 'rxjs';
+import { SharedService } from 'src/app/common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 
 interface ExportColumn {
@@ -82,9 +82,12 @@ interface Label {
     TagModule,
     TooltipModule,
     PopoverModule
-  ],
+  ]
 })
 export class STIGManagerReviewsTableComponent implements OnInit {
+  private messageService = inject(MessageService);
+  private sharedService = inject(SharedService);
+
   @Output() reviewsCountChange = new EventEmitter<number>();
   @Input() stigmanCollectionId!: number;
   @ViewChild('dt') table!: Table;
@@ -112,42 +115,42 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   resultOptions: { label: string; value: string }[] = [];
   filters: { [key: string]: any } = {};
   originalTreeNodes: TreeNode[] = [];
-  dateFilterMode: { [key: string]: string } = { 'evaluatedDate': 'equals' };
+  dateFilterMode: { [key: string]: string } = { evaluatedDate: 'equals' };
   dateFilterValues: { [key: string]: Date } = {};
   versionFilterMode: { [key: string]: string } = { 'resultEngine.version': 'equals' };
   versionFilterValues: { [key: string]: string } = {};
 
   resultMapping: ValueMapping = {
-    'all': 'All',
-    'notchecked': 'Not checked',
-    'notapplicable': 'Not Applicable',
-    'pass': 'Not a Finding',
-    'fail': 'Open',
-    'unknown': 'Unknown',
-    'error': 'Error',
-    'notselected': 'Not selected',
-    'informational': 'Informational',
-    'fixed': 'Fixed'
+    all: 'All',
+    notchecked: 'Not checked',
+    notapplicable: 'Not Applicable',
+    pass: 'Not a Finding',
+    fail: 'Open',
+    unknown: 'Unknown',
+    error: 'Error',
+    notselected: 'Not selected',
+    informational: 'Informational',
+    fixed: 'Fixed'
   };
 
   severityMapping: ValueMapping = {
-    'low': 'CAT III - Low',
-    'medium': 'CAT II - Medium',
-    'high': 'CAT I - High'
+    low: 'CAT III - Low',
+    medium: 'CAT II - Medium',
+    high: 'CAT I - High'
   };
 
   statusMapping: ValueMapping = {
-    'saved': 'Saved',
-    'submitted': 'Submitted',
-    'rejected': 'Rejected',
-    'accepted': 'Accepted'
+    saved: 'Saved',
+    submitted: 'Submitted',
+    rejected: 'Rejected',
+    accepted: 'Accepted'
   };
 
   statusIcons = {
-    'Accepted': 'pi-star',
-    'Rejected': 'pi-times-circle',
-    'Saved': 'pi-bookmark-fill',
-    'Submitted': 'pi-reply'
+    Accepted: 'pi-star',
+    Rejected: 'pi-times-circle',
+    Saved: 'pi-bookmark-fill',
+    Submitted: 'pi-reply'
   };
 
   dateFilterOptions: FilterOption[] = [
@@ -171,11 +174,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     { label: 'Version is greater than', value: 'gt' },
     { label: 'Version is greater than or equal to', value: 'gte' }
   ];
-
-  constructor(
-    private messageService: MessageService,
-    private sharedService: SharedService
-  ) {}
 
   ngOnInit() {
     this.initColumnsAndFilters();
@@ -202,6 +200,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
   onResultFilterChange(value: string) {
     this.result = value;
+
     if (this.selectedBenchmarkId) {
       this.filterPopover.hide();
       this.loadReviews();
@@ -212,9 +211,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     this.isLoading = true;
     this.sharedService.getCollectionSTIGSummaryFromSTIGMAN(this.stigmanCollectionId).subscribe({
       next: (data: any[]) => {
-        this.benchmarkOptions = [...new Set(data.map(stig => stig.benchmarkId))]
-          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
-          .map(id => ({ label: id, value: id }));
+        this.benchmarkOptions = [...new Set(data.map((stig) => stig.benchmarkId))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map((id) => ({ label: id, value: id }));
         this.isLoading = false;
       },
       error: (error) => {
@@ -247,7 +244,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
     }).subscribe({
       next: ({ reviews, labels }) => {
-        const processedReviews = (reviews ?? []).map(review => ({
+        const processedReviews = (reviews ?? []).map((review) => ({
           ...review,
           displayResult: this.resultMapping[review.result] || review.result,
           evaluatedDate: review.ts ? parseISO(review.ts) : '',
@@ -290,9 +287,11 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
     for (const review of reviews) {
       const assetName = review.assetName || 'Unknown Asset';
+
       if (!assetGroups.has(assetName)) {
         assetGroups.set(assetName, []);
       }
+
       assetGroups.get(assetName)!.push(review);
     }
 
@@ -308,7 +307,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
           isParentRow: true,
           childCount: otherReviews.length
         },
-        children: otherReviews.map(review => ({
+        children: otherReviews.map((review) => ({
           data: { ...review, isParentRow: false },
           leaf: true
         })),
@@ -321,16 +320,16 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     return treeNodes;
   }
 
-  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+  getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (severity) {
       case 'CAT I - High':
-        return "danger";
+        return 'danger';
       case 'CAT II - Medium':
-        return "warn";
+        return 'warn';
       case 'CAT III - Low':
-        return "info";
+        return 'info';
       default:
-        return "info";
+        return 'info';
     }
   }
 
@@ -339,11 +338,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       return [];
     }
 
-    return (
-      reviewData.assetLabelIds
-        ?.map((labelId: number) => this.labels.find(label => label.labelId === labelId))
-        .filter(Boolean) || []
-    );
+    return reviewData.assetLabelIds?.map((labelId: number) => this.labels.find((label) => label.labelId === labelId)).filter(Boolean) || [];
   }
 
   initColumnsAndFilters() {
@@ -358,11 +353,11 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       { field: 'evaluatedDate', header: 'Evaluated', filterable: true },
       { field: 'resultEngine.product', header: 'Product', filterable: true },
       { field: 'resultEngine.version', header: 'Version', filterable: true },
-      { field: 'username', header: 'Reviewer', filterable: true },
+      { field: 'username', header: 'Reviewer', filterable: true }
     ];
-    this.exportColumns = this.cols.map(col => ({
+    this.exportColumns = this.cols.map((col) => ({
       title: col.header,
-      dataKey: col.field,
+      dataKey: col.field
     }));
     this.resetColumnSelections();
   }
@@ -389,10 +384,12 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
   clearColumnFilter(field: string) {
     delete this.filters[field];
+
     if (field.includes('Date')) {
       delete this.dateFilterMode[field];
       delete this.dateFilterValues[field];
     }
+
     if (field.includes('version')) {
       delete this.versionFilterMode[field];
       delete this.versionFilterValues[field];
@@ -428,6 +425,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       this.treeNodes = [...this.originalTreeNodes];
       this.assetCount = this.originalTreeNodes.length;
       this.reviewsCountChange.emit(this.totalRecords);
+
       return;
     }
 
@@ -440,6 +438,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   countAllNodes(nodes: TreeNode[]): number {
     return nodes.reduce((count, node) => {
       const childCount = node.children ? node.children.length : 0;
+
       return count + 1 + childCount;
     }, 0);
   }
@@ -448,24 +447,20 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     const matchingParents: TreeNode[] = [];
     const matchingChildrenWithNonMatchingParents: TreeNode[] = [];
 
-    nodes.forEach(node => {
+    nodes.forEach((node) => {
       const parentMatches = this.matchesFilters(node.data);
 
       if (parentMatches) {
-        const filteredChildren = node.children ?
-          node.children.filter(child => this.matchesFilters(child.data)) :
-          [];
+        const filteredChildren = node.children ? node.children.filter((child) => this.matchesFilters(child.data)) : [];
 
         matchingParents.push({
           ...node,
           children: filteredChildren
         });
       } else {
-        const matchingChildren = node.children ?
-          node.children.filter(child => this.matchesFilters(child.data)) :
-          [];
+        const matchingChildren = node.children ? node.children.filter((child) => this.matchesFilters(child.data)) : [];
 
-        matchingChildren.forEach(child => {
+        matchingChildren.forEach((child) => {
           matchingChildrenWithNonMatchingParents.push({
             data: { ...child.data, isParentRow: true, childCount: 0 },
             children: [],
@@ -488,10 +483,12 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       const fieldValue = this.getFieldValue(data, field);
 
       if (field === 'labels' && data.assetLabelIds) {
-        const nodeLabels = this.getReviewLabels(data).map(label => label.name.toLowerCase());
-        return filterValue.toLowerCase().split(' ').some(term =>
-          nodeLabels.some(label => label.includes(term))
-        );
+        const nodeLabels = this.getReviewLabels(data).map((label) => label.name.toLowerCase());
+
+        return filterValue
+          .toLowerCase()
+          .split(' ')
+          .some((term) => nodeLabels.some((label) => label.includes(term)));
       }
 
       if (field.includes('Date') && typeof filterValue === 'object' && filterValue.value instanceof Date) {
@@ -517,6 +514,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
       if (filterValue instanceof Date) {
         const nodeDate = new Date(fieldValue);
+
         return nodeDate.setHours(0, 0, 0, 0) === filterValue.setHours(0, 0, 0, 0);
       }
 
@@ -525,14 +523,16 @@ export class STIGManagerReviewsTableComponent implements OnInit {
         const filterVersionStr = filterValue.value;
 
         const compareVersions = (v1: string, v2: string): number => {
-          const parts1 = v1.split('.').map(p => parseInt(p, 10) || 0);
-          const parts2 = v2.split('.').map(p => parseInt(p, 10) || 0);
+          const parts1 = v1.split('.').map((p) => parseInt(p, 10) || 0);
+          const parts2 = v2.split('.').map((p) => parseInt(p, 10) || 0);
 
           for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
             const p1 = parts1[i] || 0;
             const p2 = parts2[i] || 0;
+
             if (p1 !== p2) return p1 - p2;
           }
+
           return 0;
         };
 
@@ -558,11 +558,11 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
       if (Array.isArray(filterValue)) {
         if (filterValue.length === 0) return true;
+
         if (typeof fieldValue === 'string') {
-          return filterValue.some(val =>
-            fieldValue.toLowerCase().includes(String(val).toLowerCase())
-          );
+          return filterValue.some((val) => fieldValue.toLowerCase().includes(String(val).toLowerCase()));
         }
+
         return filterValue.includes(fieldValue);
       } else if (typeof filterValue === 'string') {
         return String(fieldValue).toLowerCase().includes(filterValue.toLowerCase());
@@ -610,31 +610,35 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Export',
-        detail: 'No data to export',
+        detail: 'No data to export'
       });
+
       return;
     }
 
     const flattenedData = this.flattenTreeNodes(this.treeNodes);
     let csvContent = '';
-    const headers = this.selectedColumns.map(col => col.header);
+    const headers = this.selectedColumns.map((col) => col.header);
+
     csvContent += headers.join(',') + '\n';
 
     for (const row of flattenedData) {
-      const rowData = this.selectedColumns.map(col => {
+      const rowData = this.selectedColumns.map((col) => {
         let value = this.getFieldValue(row, col.field);
 
         if (col.field === 'evaluatedDate' && value) {
           const date = new Date(value);
+
           value = date.toLocaleString();
         } else if (col.field === 'labels' && row.assetLabelIds) {
           value = this.getReviewLabels(row)
-            .map(label => label.name)
+            .map((label) => label.name)
             .join('; ');
         }
 
         if (value === null || value === undefined) value = '';
         value = String(value).replace(/"/g, '""');
+
         if (value.includes(',') || value.includes('"') || value.includes('\n')) {
           value = `"${value}"`;
         }

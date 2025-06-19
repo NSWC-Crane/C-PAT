@@ -10,7 +10,6 @@
 
 const collectionService = require('../Services/collectionService');
 
-
 module.exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
     try {
         const getCollection = await collectionService.getCollectionBasicList(req, res, next);

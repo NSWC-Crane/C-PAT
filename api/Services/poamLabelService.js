@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -29,11 +29,11 @@ exports.getPoamLabels = async function getPoamLabels(collectionId) {
                 status: 400,
                 errors: {
                     collectionId: 'is required',
-                }
+                },
             });
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
                 FROM ${config.database.schema}.poamlabels t1
@@ -53,11 +53,11 @@ exports.getPoamLabels = async function getPoamLabels(collectionId) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
                 FROM ${config.database.schema}.poamlabels t1
@@ -67,11 +67,14 @@ exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(`
+                const [permissionRows] = await connection.query(
+                    `
                     SELECT collectionId
                     FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 2
-                `, [req.userObject.userId]);
+                `,
+                    [req.userObject.userId]
+                );
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -79,11 +82,11 @@ exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
                     return [];
                 }
 
-                sql += " WHERE t2.collectionId IN (?)";
+                sql += ' WHERE t2.collectionId IN (?)';
                 params.push(collectionIds);
             }
 
-            sql += " ORDER BY t3.labelName";
+            sql += ' ORDER BY t3.labelName';
 
             const [rowPoamLabels] = await connection.query(sql, params);
 
@@ -107,11 +110,11 @@ exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
                 status: 400,
                 errors: {
                     poamId: 'is required',
-                }
+                },
             });
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
                 FROM ${config.database.schema}.poamlabels t1
@@ -131,7 +134,7 @@ exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
     try {
@@ -140,11 +143,11 @@ exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
                 status: 400,
                 errors: {
                     labelId: 'is required',
-                }
+                },
             });
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
                 FROM ${config.database.schema}.poamlabels t1
@@ -164,7 +167,7 @@ exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
     try {
@@ -173,18 +176,18 @@ exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
                 status: 400,
                 errors: {
                     poamId: 'is required',
-                }
+                },
             });
         } else if (!labelId) {
             return next({
                 status: 400,
                 errors: {
                     labelId: 'is required',
-                }
+                },
             });
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
                 FROM ${config.database.schema}.poamlabels t1
@@ -200,7 +203,7 @@ exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.postPoamLabel = async function postPoamLabel(req, res, next) {
     if (!req.body.poamId) {
@@ -208,29 +211,29 @@ exports.postPoamLabel = async function postPoamLabel(req, res, next) {
             status: 400,
             errors: {
                 poamId: 'is required',
-            }
+            },
         });
     } else if (!req.body.labelId) {
         return next({
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.poamlabels (poamId, labelId) VALUES (?, ?)`;
             await connection.query(sql_query, [req.body.poamId, req.body.labelId]);
 
-                let labelSql = `SELECT labelName FROM ${config.database.schema}.label WHERE labelId = ?`;
-                const [label] = await connection.query(labelSql, [req.body.labelId]);
-                const labelName = label[0] ? label[0].labelName : "Unknown Label";
+            let labelSql = `SELECT labelName FROM ${config.database.schema}.label WHERE labelId = ?`;
+            const [label] = await connection.query(labelSql, [req.body.labelId]);
+            const labelName = label[0] ? label[0].labelName : 'Unknown Label';
 
-                let action = `"${labelName}" label was added to the POAM.`;
-                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
+            let action = `"${labelName}" label was added to the POAM.`;
+            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
@@ -246,17 +249,16 @@ exports.postPoamLabel = async function postPoamLabel(req, res, next) {
         });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
-            return await withConnection(async (connection) => {
+            return await withConnection(async connection => {
                 let fetchSql = `SELECT * FROM ${config.database.schema}.poamlabels WHERE labelId = ? AND poamId = ?`;
                 const [existingLabel] = await connection.query(fetchSql, [req.body.labelId, req.body.poamId]);
                 return existingLabel[0];
             });
-        }
-        else {
+        } else {
             return { error: error.message };
         }
     }
-}
+};
 
 exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
     if (!req.params.poamId) {
@@ -264,33 +266,33 @@ exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
             status: 400,
             errors: {
                 poamId: 'is required',
-            }
+            },
         });
     } else if (!req.params.labelId) {
         return next({
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `DELETE FROM ${config.database.schema}.poamlabels WHERE poamId = ? AND labelId = ?`;
             await connection.query(sql, [req.params.poamId, req.params.labelId]);
 
-                let labelSql = `SELECT labelName FROM ${config.database.schema}.label WHERE labelId = ?`;
-                const [label] = await connection.query(labelSql, [req.params.labelId]);
-                const labelName = label[0] ? label[0].labelName : "Unknown Label";
+            let labelSql = `SELECT labelName FROM ${config.database.schema}.label WHERE labelId = ?`;
+            const [label] = await connection.query(labelSql, [req.params.labelId]);
+            const labelName = label[0] ? label[0].labelName : 'Unknown Label';
 
-                let action = `"${labelName}" label was removed from the POAM.`;
-                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
+            let action = `"${labelName}" label was removed from the POAM.`;
+            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
 
             return {};
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};

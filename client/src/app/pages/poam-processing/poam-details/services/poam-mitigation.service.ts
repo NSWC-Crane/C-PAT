@@ -8,20 +8,18 @@
 !##########################################################################
 */
 
-import { Injectable } from "@angular/core";
-import { MessageService } from "primeng/api";
-import { Observable, firstValueFrom, of } from "rxjs";
-import { PoamService } from "../../poams.service";
+import { Injectable, inject } from '@angular/core';
+import { MessageService } from 'primeng/api';
+import { Observable, firstValueFrom, of } from 'rxjs';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
+import { PoamService } from '../../poams.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PoamMitigationService {
-  constructor(
-    private poamService: PoamService,
-    private messageService: MessageService
-  ) { }
+  private poamService = inject(PoamService);
+  private messageService = inject(MessageService);
 
   loadTeamMitigations(poamId: any): Observable<any[]> {
     if (!poamId || poamId === 'ADDPOAM') {
@@ -36,41 +34,35 @@ export class PoamMitigationService {
       return;
     }
 
-    poamAssignedTeams.forEach(team => {
-      const existingMitigation = teamMitigations.find(
-        m => m.assignedTeamId === team.assignedTeamId
-      );
+    poamAssignedTeams.forEach((team) => {
+      const existingMitigation = teamMitigations.find((m) => m.assignedTeamId === team.assignedTeamId);
 
       if (!existingMitigation) {
-        this.poamService.postPoamTeamMitigation({
-          poamId: poam.poamId,
-          assignedTeamId: team.assignedTeamId,
-          mitigationText: '',
-          isActive: true
-        }).subscribe({
-          next: (response) => {
-            teamMitigations.push({
-              mitigationId: response.mitigationId,
-              assignedTeamId: team.assignedTeamId,
-              assignedTeamName: team.assignedTeamName,
-              mitigationText: '',
-              isActive: true
-            });
+        this.poamService
+          .postPoamTeamMitigation({
+            poamId: poam.poamId,
+            assignedTeamId: team.assignedTeamId,
+            mitigationText: '',
+            isActive: true
+          })
+          .subscribe({
+            next: (response) => {
+              teamMitigations.push({
+                mitigationId: response.mitigationId,
+                assignedTeamId: team.assignedTeamId,
+                assignedTeamName: team.assignedTeamName,
+                mitigationText: '',
+                isActive: true
+              });
 
-            teamMitigations.sort((a, b) =>
-              a.assignedTeamName.localeCompare(b.assignedTeamName)
-            );
-          },
-          error: (error) => {
-            console.error('Error adding team mitigation:', error);
-          }
-        });
+              teamMitigations.sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName));
+            },
+            error: (error) => {
+              console.error('Error adding team mitigation:', error);
+            }
+          });
       } else if (!existingMitigation.isActive) {
-        this.poamService.updatePoamTeamMitigationStatus(
-          poam.poamId,
-          team.assignedTeamId,
-          true
-        ).subscribe({
+        this.poamService.updatePoamTeamMitigationStatus(poam.poamId, team.assignedTeamId, true).subscribe({
           next: () => {
             existingMitigation.isActive = true;
           },
@@ -81,17 +73,11 @@ export class PoamMitigationService {
       }
     });
 
-    teamMitigations.forEach(mitigation => {
-      const teamIsAssigned = poamAssignedTeams.some(
-        team => team.assignedTeamId === mitigation.assignedTeamId
-      );
+    teamMitigations.forEach((mitigation) => {
+      const teamIsAssigned = poamAssignedTeams.some((team) => team.assignedTeamId === mitigation.assignedTeamId);
 
       if (!teamIsAssigned && mitigation.isActive) {
-        this.poamService.updatePoamTeamMitigationStatus(
-          poam.poamId,
-          mitigation.assignedTeamId,
-          false
-        ).subscribe({
+        this.poamService.updatePoamTeamMitigationStatus(poam.poamId, mitigation.assignedTeamId, false).subscribe({
           next: () => {
             mitigation.isActive = false;
           },
@@ -109,9 +95,7 @@ export class PoamMitigationService {
     }
 
     if (poamAssignedTeams && poamAssignedTeams.length > 0) {
-      const newTeams = poamAssignedTeams.filter(team => {
-        return !teamMitigations.some(m => m.assignedTeamId === team.assignedTeamId);
-      });
+      const newTeams = poamAssignedTeams.filter((team) => !teamMitigations.some((m) => m.assignedTeamId === team.assignedTeamId));
 
       for (const team of newTeams) {
         try {
@@ -136,39 +120,24 @@ export class PoamMitigationService {
         }
       }
 
-      return teamMitigations
-        .sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName))
-        .filter((mitigation, index, self) =>
-          index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId)
-        );
+      return teamMitigations.sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName)).filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId));
     }
 
     return teamMitigations;
   }
 
   saveTeamMitigation(poam: any, teamMitigation: any): Observable<any> {
-    return this.poamService.updatePoamTeamMitigation(
-      poam.poamId,
-      teamMitigation.assignedTeamId,
-      teamMitigation.mitigationText
-    );
+    return this.poamService.updatePoamTeamMitigation(poam.poamId, teamMitigation.assignedTeamId, teamMitigation.mitigationText);
   }
 
   saveAllTeamMitigations(poam: any, teamMitigations: any[]): void {
-    const activeTeamMitigations = teamMitigations.filter(tm => tm.isActive);
+    const activeTeamMitigations = teamMitigations.filter((tm) => tm.isActive);
 
-    const savePromises = activeTeamMitigations.map(teamMitigation =>
-      this.poamService.updatePoamTeamMitigation(
-        poam.poamId,
-        teamMitigation.assignedTeamId,
-        teamMitigation.mitigationText
-      ).toPromise()
-    );
+    const savePromises = activeTeamMitigations.map((teamMitigation) => this.poamService.updatePoamTeamMitigation(poam.poamId, teamMitigation.assignedTeamId, teamMitigation.mitigationText).toPromise());
 
     Promise.all(savePromises)
-      .then(() => {
-      })
-      .catch(error => {
+      .then(() => {})
+      .catch((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

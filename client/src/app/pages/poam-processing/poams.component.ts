@@ -8,16 +8,16 @@
 !##########################################################################
 */
 
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { SubSink } from 'subsink';
-import { Subscription } from 'rxjs';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { PayloadService } from '../../common/services/setPayload.service';
-import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
-import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.component';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { Subscription } from 'rxjs';
+import { SubSink } from 'subsink';
+import { PayloadService } from '../../common/services/setPayload.service';
 import { getErrorMessage } from '../../common/utils/error-utils';
+import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
+import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.component';
 
 @Component({
   selector: 'cpat-poams',
@@ -28,6 +28,12 @@ import { getErrorMessage } from '../../common/utils/error-utils';
   providers: [MessageService]
 })
 export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
+  private collectionsService = inject(CollectionsService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private setPayloadService = inject(PayloadService);
+  private messageService = inject(MessageService);
+
   protected accessLevel: any;
   private subs = new SubSink();
   public isLoggedIn = false;
@@ -36,14 +42,6 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   payload: any;
   selectedCollection: any;
   private payloadSubscription: Subscription[] = [];
-
-  constructor(
-    private collectionsService: CollectionsService,
-    private router: Router,
-    private cdr: ChangeDetectorRef,
-    private setPayloadService: PayloadService,
-    private messageService: MessageService
-  ) {}
 
   async ngOnInit() {
     this.setPayload();
@@ -56,14 +54,15 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   async setPayload() {
     this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
+
         if (this.accessLevel > 0) {
           this.selectedCollection = this.user.lastCollectionAccessedId;
           this.getPoamData();
@@ -73,19 +72,18 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getPoamData() {
-    this.collectionsService.getPoamsByCollection(this.selectedCollection)
-      .subscribe({
-        next: (poamData: any) => {
-          this.poams = poamData;
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching POAM data: ${getErrorMessage(error)}`
-          });
-        }
-      });
+    this.collectionsService.getPoamsByCollection(this.selectedCollection).subscribe({
+      next: (poamData: any) => {
+        this.poams = poamData;
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching POAM data: ${getErrorMessage(error)}`
+        });
+      }
+    });
   }
 
   addPoam() {
@@ -94,6 +92,6 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }

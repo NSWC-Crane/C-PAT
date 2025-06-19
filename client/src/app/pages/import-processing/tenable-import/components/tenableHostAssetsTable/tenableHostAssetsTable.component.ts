@@ -8,28 +8,28 @@
 !##########################################################################
 */
 
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { ImportService } from '../../../import.service';
-import { Table, TableModule } from 'primeng/table';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { CommonModule } from '@angular/common';
+import { Component, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { format } from 'date-fns';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Table, TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { TextareaModule } from 'primeng/textarea';
-import { TagModule } from 'primeng/tag';
-import { SharedService } from '../../../../../common/services/shared.service';
 import { Subscription } from 'rxjs';
-import { format } from 'date-fns';
-import { PoamService } from '../../../../poam-processing/poams.service';
-import { Router } from '@angular/router';
+import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { PoamService } from '../../../../poam-processing/poams.service';
+import { ImportService } from '../../../import.service';
 
 interface ExportColumn {
   title: string;
@@ -41,23 +41,15 @@ interface ExportColumn {
   templateUrl: './tenableHostAssetsTable.component.html',
   styleUrls: ['./tenableHostAssetsTable.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    TableModule,
-    ButtonModule,
-    InputTextModule,
-    InputIconModule,
-    IconFieldModule,
-    TextareaModule,
-    MultiSelectModule,
-    DialogModule,
-    ToastModule,
-    TooltipModule,
-    TagModule
-  ],
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, DialogModule, ToastModule, TooltipModule, TagModule]
 })
 export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
+  private importService = inject(ImportService);
+  private messageService = inject(MessageService);
+  private sharedService = inject(SharedService);
+  private poamService = inject(PoamService);
+  private router = inject(Router);
+
   @Input() tenableRepoId: number;
   @ViewChild('hostAssetTable') hostAssetTable!: Table;
   @ViewChild('hostFindingsTable') hostFindingsTable!: Table;
@@ -89,18 +81,9 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   otherReferences: any[] = [];
   private subscriptions = new Subscription();
 
-
-  constructor(
-    private importService: ImportService,
-    private messageService: MessageService,
-    private sharedService: SharedService,
-    private poamService: PoamService,
-    private router: Router
-  ) { }
-
   ngOnInit() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
         this.loadPoamAssociations();
       })
@@ -123,7 +106,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
       { field: 'firstSeen', header: 'First Seen', filterType: 'date' },
       { field: 'lastSeen', header: 'Last Seen', filterType: 'date' },
       { field: 'uuid', header: 'Host ID', filterType: 'text' },
-      { field: 'source', header: 'Source', filterType: 'text' },
+      { field: 'source', header: 'Source', filterType: 'text' }
     ];
 
     this.hostDialogCols = [
@@ -143,8 +126,8 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
           { label: 'False-Positive', value: 'False-Positive' },
           { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
           { label: 'Rejected', value: 'Rejected' },
-          { label: 'Submitted', value: 'Submitted' },
-        ],
+          { label: 'Submitted', value: 'Submitted' }
+        ]
       },
       { field: 'pluginID', header: 'Plugin ID', filterType: 'text' },
       { field: 'pluginName', header: 'Plugin Name', filterType: 'text' },
@@ -157,8 +140,8 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
           { label: 'Low', value: 'Low' },
           { label: 'Medium', value: 'Medium' },
           { label: 'High', value: 'High' },
-          { label: 'Critical', value: 'Critical' },
-        ],
+          { label: 'Critical', value: 'Critical' }
+        ]
       },
       { field: 'port', header: 'Port', filterType: 'numeric' },
       { field: 'protocol', header: 'Protocol', filterType: 'text' },
@@ -166,61 +149,40 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
       { field: 'epssScore', header: 'EPSS (%)', filterType: 'numeric' },
       { field: 'lastSeen', header: 'Last Seen', filterType: 'date' }
     ];
-    this.exportColumns = this.cols.map(col => ({
+    this.exportColumns = this.cols.map((col) => ({
       title: col.header,
-      dataKey: col.field,
+      dataKey: col.field
     }));
-    this.selectedColumns = this.cols.filter(col =>
-      [
-        'name',
-        'os',
-        'macAddress',
-        'firstSeen',
-        'lastSeen',
-        'netBios',
-        'dns',
-        'ipAddress',
-        'systemType',
-        'uuid',
-        'source',
-        'acr',
-        'acrLastEvaluatedTime',
-        'aes'
-      ].includes(col.field)
-    );
+    this.selectedColumns = this.cols.filter((col) => ['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes'].includes(col.field));
   }
 
   loadPoamAssociations() {
     if (!this.selectedCollection) return;
 
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection)
-      .subscribe({
-        next: (poamData) => {
-          if (poamData && Array.isArray(poamData)) {
-            this.existingPoamPluginIDs = poamData.reduce(
-              (acc: { [key: string]: { poamId: number; status: string } },
-                item: { vulnerabilityId: string; status: string; poamId: number }) => {
-                acc[item.vulnerabilityId] = {
-                  poamId: item.poamId,
-                  status: item.status,
-                };
-                return acc;
-              },
-              {}
-            );
-          } else {
-            console.error('Unexpected POAM data format:', poamData);
-            this.showErrorMessage('Error loading POAM data. Unexpected data format.');
-          }
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error loading POAM data: ${getErrorMessage(error)}`
-          });
+    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
+      next: (poamData) => {
+        if (poamData && Array.isArray(poamData)) {
+          this.existingPoamPluginIDs = poamData.reduce((acc: { [key: string]: { poamId: number; status: string } }, item: { vulnerabilityId: string; status: string; poamId: number }) => {
+            acc[item.vulnerabilityId] = {
+              poamId: item.poamId,
+              status: item.status
+            };
+
+            return acc;
+          }, {});
+        } else {
+          console.error('Unexpected POAM data format:', poamData);
+          this.showErrorMessage('Error loading POAM data. Unexpected data format.');
         }
-      });
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error loading POAM data: ${getErrorMessage(error)}`
+        });
+      }
+    });
   }
 
   getAffectedAssets() {
@@ -228,22 +190,22 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     const hostParams = {
-      "filters": {
-        "and": [
+      filters: {
+        and: [
           {
-            "property": "repositoryHost",
-            "operator": "eq",
-            "value": this.tenableRepoId.toString()
+            property: 'repositoryHost',
+            operator: 'eq',
+            value: this.tenableRepoId.toString()
           },
           {
-            "property": "assetCriticalityRating",
-            "operator": "eq",
-            "value": "all"
+            property: 'assetCriticalityRating',
+            operator: 'eq',
+            value: 'all'
           },
           {
-            "property": "assetExposureScore",
-            "operator": "eq",
-            "value": "all"
+            property: 'assetExposureScore',
+            operator: 'eq',
+            value: 'all'
           }
         ]
       }
@@ -252,10 +214,17 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     this.importService.postTenableHostSearch(hostParams).subscribe({
       next: (data) => {
         this.affectedAssets = data.response.map((asset: any) => {
-          const formattedSystemType = asset.systemType ?
-            asset.systemType.split(',').map((type: string) => {
-              return type.trim().replace(/_/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase());
-            }).join(', ') : '';
+          const formattedSystemType = asset.systemType
+            ? asset.systemType
+                .split(',')
+                .map((type: string) =>
+                  type
+                    .trim()
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, (char: string) => char.toUpperCase())
+                )
+                .join(', ')
+            : '';
 
           return {
             ...asset,
@@ -303,9 +272,11 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
 
       if (isNaN(date.getTime())) {
         const dateMs = new Date(Number(timestamp));
+
         if (!isNaN(dateMs.getTime())) {
           return format(dateMs, 'MM/dd/yyyy');
         }
+
         return '';
       }
 
@@ -316,6 +287,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
         summary: 'Error',
         detail: `Error formatting timestamp: ${getErrorMessage(error)}`
       });
+
       return '';
     }
   }
@@ -330,6 +302,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     if (!host || !host.name) {
       this.isLoading = false;
       this.showErrorMessage('Invalid host name');
+
       return Promise.reject('Invalid host name');
     }
 
@@ -337,13 +310,12 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     this.selectedSeverities = [];
     this.dialogFilterValue = '';
 
-
     this.selectedHost = host;
 
     const analysisParams = {
       query: {
         type: 'vuln',
-        tool: "tenable_internal_vulndetails",
+        tool: 'tenable_internal_vulndetails',
         sourceType: 'cumulative',
         startOffset: 0,
         endOffset: 5000,
@@ -354,8 +326,8 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
             value: [
               {
                 id: this.tenableRepoId.toString()
-              },
-            ],
+              }
+            ]
           },
           {
             filterName: 'dnsName',
@@ -367,55 +339,56 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
             operator: '=',
             value: host.ipAddress ? host.ipAddress : ''
           }
-        ],
+        ]
       },
-      sortDir: "desc",
-      sortField: "severity",
+      sortDir: 'desc',
+      sortField: 'severity',
       sourceType: 'cumulative',
       type: 'vuln'
     };
 
     return new Promise((resolve, reject) => {
-      this.importService.postTenableAnalysis(analysisParams)
-        .subscribe({
-          next: (data) => {
-            if (!data || !data.response) {
-              reject(new Error('Invalid response from getTenablePlugin'));
-              this.isLoading = false;
-              return;
-            }
-
-            this.hostData = data.response.results.map((item: any) => {
-              const poamAssociation = this.existingPoamPluginIDs?.[item.pluginID];
-              return {
-                pluginID: item.pluginID || '',
-                pluginName: item.pluginName || '',
-                severity: item.severity?.name || '',
-                port: item.port || '',
-                protocol: item.protocol || '',
-                vprScore: item.vprScore || '',
-                epssScore: item.epssScore || '',
-                lastSeen: this.formatTimestamp(item.lastSeen),
-                poam: !!poamAssociation,
-                poamId: poamAssociation?.poamId || null,
-                poamStatus: poamAssociation?.status ? poamAssociation.status : 'No Existing POAM',
-              };
-            });
-
-            this.displayDialog = true;
+      this.importService.postTenableAnalysis(analysisParams).subscribe({
+        next: (data) => {
+          if (!data || !data.response) {
+            reject(new Error('Invalid response from getTenablePlugin'));
             this.isLoading = false;
-            resolve();
-          },
-          error: (error) => {
-            this.isLoading = false;
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-            });
-            reject(error);
+
+            return;
           }
-        });
+
+          this.hostData = data.response.results.map((item: any) => {
+            const poamAssociation = this.existingPoamPluginIDs?.[item.pluginID];
+
+            return {
+              pluginID: item.pluginID || '',
+              pluginName: item.pluginName || '',
+              severity: item.severity?.name || '',
+              port: item.port || '',
+              protocol: item.protocol || '',
+              vprScore: item.vprScore || '',
+              epssScore: item.epssScore || '',
+              lastSeen: this.formatTimestamp(item.lastSeen),
+              poam: !!poamAssociation,
+              poamId: poamAssociation?.poamId || null,
+              poamStatus: poamAssociation?.status ? poamAssociation.status : 'No Existing POAM'
+            };
+          });
+
+          this.displayDialog = true;
+          this.isLoading = false;
+          resolve();
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+          });
+          reject(error);
+        }
+      });
     });
   }
 
@@ -425,10 +398,11 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     this.showPluginDetails(plugin);
   }
 
-showPluginDetails(plugin: any): Promise<void> {
+  showPluginDetails(plugin: any): Promise<void> {
     if (!plugin || !plugin.pluginID) {
       this.isLoadingPluginDetails = false;
       this.showErrorMessage('Invalid plugin ID');
+
       return Promise.reject('Invalid plugin ID');
     }
 
@@ -436,19 +410,19 @@ showPluginDetails(plugin: any): Promise<void> {
 
     const filters = [
       {
-        filterName: "pluginID",
-        id: "pluginID",
+        filterName: 'pluginID',
+        id: 'pluginID',
         isPredefined: true,
-        operator: "=",
-        type: "vuln",
+        operator: '=',
+        type: 'vuln',
         value: plugin.pluginID
       },
       {
-        filterName: "repository",
-        id: "repository",
+        filterName: 'repository',
+        id: 'repository',
         isPredefined: true,
-        operator: "=",
-        type: "vuln",
+        operator: '=',
+        type: 'vuln',
         value: [
           {
             id: this.tenableRepoId.toString()
@@ -459,33 +433,33 @@ showPluginDetails(plugin: any): Promise<void> {
 
     if (this.selectedHost?.ipAddress) {
       filters.push({
-        filterName: "ip",
-        id: "ip",
+        filterName: 'ip',
+        id: 'ip',
         isPredefined: true,
-        operator: "=",
-        type: "vuln",
+        operator: '=',
+        type: 'vuln',
         value: this.selectedHost.ipAddress
       });
     }
 
     if (this.selectedHost?.dns) {
       filters.push({
-        filterName: "dnsName",
-        id: "dnsName",
+        filterName: 'dnsName',
+        id: 'dnsName',
         isPredefined: true,
-        operator: "=",
-        type: "vuln",
+        operator: '=',
+        type: 'vuln',
         value: this.selectedHost.dns
       });
     }
 
     if (plugin.port) {
       filters.push({
-        filterName: "port",
-        id: "port",
+        filterName: 'port',
+        id: 'port',
         isPredefined: true,
-        operator: "=",
-        type: "vuln",
+        operator: '=',
+        type: 'vuln',
         value: plugin.port
       });
     }
@@ -493,85 +467,87 @@ showPluginDetails(plugin: any): Promise<void> {
     const analysisParams = {
       columns: [],
       query: {
-        context: "",
+        context: '',
         createdTime: 0,
-        description: "",
+        description: '',
         endOffset: 50,
         filters: filters,
         groups: [],
         modifiedTime: 0,
-        name: "",
-        sourceType: "cumulative",
+        name: '',
+        sourceType: 'cumulative',
         startOffset: 0,
         status: -1,
-        tool: "vulndetails",
-        type: "vuln",
-        vulnTool: "vulndetails"
+        tool: 'vulndetails',
+        type: 'vuln',
+        vulnTool: 'vulndetails'
       },
-      sourceType: "cumulative",
-      type: "vuln"
+      sourceType: 'cumulative',
+      type: 'vuln'
     };
 
     return new Promise((resolve, reject) => {
-      this.importService.postTenableAnalysis(analysisParams)
-        .subscribe({
-          next: (data) => {
-            if (!data || !data.response || !data.response.results || !data.response.results.length) {
-              reject(new Error('Invalid response from postTenableAnalysis'));
-              this.isLoadingPluginDetails = false;
-              return;
-            }
-
-            const rawData = data.response.results[0];
-            this.pluginDetailData = {
-              ...rawData,
-              firstSeen: this.formatTimestamp(rawData.firstSeen),
-              lastSeen: this.formatTimestamp(rawData.lastSeen),
-              pluginPubDate: this.formatTimestamp(rawData.pluginPubDate),
-              pluginModDate: this.formatTimestamp(rawData.pluginModDate),
-              vulnPubDate: this.formatTimestamp(rawData.vulnPubDate),
-              patchPubDate: this.formatTimestamp(rawData.patchPubDate),
-              seolDate: this.formatTimestamp(rawData.seolDate),
-              acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime)
-            };
-
-            if (this.pluginDetailData.xrefs) {
-              this.parseReferences(this.pluginDetailData.xrefs);
-            } else {
-              this.cveReferences = [];
-              this.iavReferences = [];
-              this.otherReferences = [];
-            }
-            this.displayDialog = false;
-            this.displayPluginDialog = true;
+      this.importService.postTenableAnalysis(analysisParams).subscribe({
+        next: (data) => {
+          if (!data || !data.response || !data.response.results || !data.response.results.length) {
+            reject(new Error('Invalid response from postTenableAnalysis'));
             this.isLoadingPluginDetails = false;
-            resolve();
-          },
-          error: (error) => {
-            this.isLoadingPluginDetails = false;
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-            });
-            reject(error);
+
+            return;
           }
-        });
+
+          const rawData = data.response.results[0];
+
+          this.pluginDetailData = {
+            ...rawData,
+            firstSeen: this.formatTimestamp(rawData.firstSeen),
+            lastSeen: this.formatTimestamp(rawData.lastSeen),
+            pluginPubDate: this.formatTimestamp(rawData.pluginPubDate),
+            pluginModDate: this.formatTimestamp(rawData.pluginModDate),
+            vulnPubDate: this.formatTimestamp(rawData.vulnPubDate),
+            patchPubDate: this.formatTimestamp(rawData.patchPubDate),
+            seolDate: this.formatTimestamp(rawData.seolDate),
+            acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime)
+          };
+
+          if (this.pluginDetailData.xrefs) {
+            this.parseReferences(this.pluginDetailData.xrefs);
+          } else {
+            this.cveReferences = [];
+            this.iavReferences = [];
+            this.otherReferences = [];
+          }
+
+          this.displayDialog = false;
+          this.displayPluginDialog = true;
+          this.isLoadingPluginDetails = false;
+          resolve();
+        },
+        error: (error) => {
+          this.isLoadingPluginDetails = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+          });
+          reject(error);
+        }
+      });
     });
   }
 
-  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+  getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (severity) {
       case 'Critical':
       case 'High':
-        return "danger";
+        return 'danger';
       case 'Medium':
-        return "warn";
+        return 'warn';
       case 'Low':
       case 'Info':
-        return "info";
+        return 'info';
       default:
-        return "info";
+        return 'info';
     }
   }
 
@@ -644,9 +620,11 @@ showPluginDetails(plugin: any): Promise<void> {
 
   async onPoamIconClick(vulnerability: any, event: Event) {
     event.stopPropagation();
+
     try {
       if (vulnerability.poam && vulnerability.poamId) {
         this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
+
         return;
       }
 
@@ -661,8 +639,8 @@ showPluginDetails(plugin: any): Promise<void> {
           vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData,
           iavNumber: vulnerability.iav || '',
-          iavComplyByDate: vulnerability.navyComplyDate || null,
-        },
+          iavComplyByDate: vulnerability.navyComplyDate || null
+        }
       });
     } catch (error) {
       this.messageService.add({
@@ -676,30 +654,31 @@ showPluginDetails(plugin: any): Promise<void> {
   getPluginData(pluginID: string): Promise<void> {
     if (!pluginID) {
       this.showErrorMessage('Invalid plugin ID');
+
       return Promise.reject('Invalid plugin ID');
     }
 
     return new Promise((resolve, reject) => {
-      this.importService.getTenablePlugin(pluginID)
-        .subscribe({
-          next: (data) => {
-            if (!data || !data.response) {
-              reject(new Error('Invalid response from getTenablePlugin'));
-              return;
-            }
+      this.importService.getTenablePlugin(pluginID).subscribe({
+        next: (data) => {
+          if (!data || !data.response) {
+            reject(new Error('Invalid response from getTenablePlugin'));
 
-            this.pluginData = data.response;
-            resolve();
-          },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-            });
-            reject(error);
+            return;
           }
-        });
+
+          this.pluginData = data.response;
+          resolve();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+          });
+          reject(error);
+        }
+      });
     });
   }
 
@@ -708,10 +687,12 @@ showPluginDetails(plugin: any): Promise<void> {
       this.cveReferences = [];
       this.iavReferences = [];
       this.otherReferences = [];
+
       return;
     }
 
     const refs = xrefs.split(/\s+/).filter(Boolean);
+
     this.cveReferences = [];
     this.iavReferences = [];
     this.otherReferences = [];
@@ -734,6 +715,7 @@ showPluginDetails(plugin: any): Promise<void> {
 
   parsePluginOutput(pluginText: string): string {
     if (!pluginText) return '';
+
     return pluginText.replace(/<plugin_output>/g, '').replace(/<\/plugin_output>/g, '');
   }
 
@@ -750,7 +732,7 @@ showPluginDetails(plugin: any): Promise<void> {
       severity: 'error',
       summary: 'Error',
       detail: message,
-      sticky: true,
+      sticky: true
     });
   }
 
@@ -763,19 +745,21 @@ showPluginDetails(plugin: any): Promise<void> {
     if (this.hostFindingsTable) {
       this.hostFindingsTable.clear();
     }
+
     this.dialogFilterValue = '';
     this.selectedPoamStatuses = [];
     this.selectedSeverities = [];
   }
 
-
   onGlobalFilter(event: Event) {
     const value = (event.target as HTMLInputElement).value;
+
     this.hostAssetTable.filterGlobal(value, 'contains');
   }
 
   onHostFindingsTableFilter(event: Event) {
     const value = (event.target as HTMLInputElement).value;
+
     this.hostFindingsTable.filterGlobal(value, 'contains');
   }
 
@@ -793,11 +777,7 @@ showPluginDetails(plugin: any): Promise<void> {
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter(col =>
-      ['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes'].includes(
-        col.field
-      )
-    );
+    this.selectedColumns = this.cols.filter((col) => ['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes'].includes(col.field));
   }
 
   toggleAddColumnOverlay() {

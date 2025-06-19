@@ -8,42 +8,35 @@
 !##########################################################################
 */
 
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { HttpResponse } from '@angular/common/http';
-import { PoamAttachmentService } from '../../services/poam-attachments.service';
-import { Subscription } from 'rxjs';
-import { FileUpload, FileUploadModule } from 'primeng/fileupload';
-import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { CommonModule, DatePipe } from '@angular/common';
+import { HttpResponse } from '@angular/common/http';
+import { Component, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { Subscription } from 'rxjs';
+import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { PoamAttachmentService } from '../../services/poam-attachments.service';
 
 @Component({
   selector: 'cpat-poam-attachments',
   templateUrl: './poam-attachments.component.html',
   styleUrls: ['./poam-attachments.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    FileUploadModule,
-    TableModule,
-    ProgressBarModule,
-    BadgeModule,
-    ToastModule,
-    TooltipModule,
-    DatePipe,
-  ],
+  imports: [CommonModule, FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, ToastModule, TooltipModule, DatePipe]
 })
 export class PoamAttachmentsComponent implements OnInit, OnDestroy {
+  private messageService = inject(MessageService);
+  private poamAttachmentService = inject(PoamAttachmentService);
+  private setPayloadService = inject(PayloadService);
+
   @ViewChild('fileUpload') fileUpload!: FileUpload;
   @Input() poamId: number | string;
   private accessLevelSubscription: Subscription;
@@ -99,16 +92,11 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     '.txt'
   ];
 
-  constructor(
-    private messageService: MessageService,
-    private poamAttachmentService: PoamAttachmentService,
-    private setPayloadService: PayloadService
-  ) {}
-
   async ngOnInit() {
     this.setPayloadService.setPayload();
-    this.accessLevelSubscription = this.setPayloadService.accessLevel$.subscribe(level => {
+    this.accessLevelSubscription = this.setPayloadService.accessLevel$.subscribe((level) => {
       this.accessLevel = level;
+
       if (this.accessLevel > 0) {
         this.loadAttachedFiles();
       }
@@ -135,52 +123,51 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   }
 
   downloadFile(attachment: any) {
-    this.poamAttachmentService.downloadAttachment(+this.poamId, attachment.attachmentId)
-      .subscribe({
-        next: (blob: any) => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = attachment.filename;
-          link.click();
-          window.URL.revokeObjectURL(url);
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to download file: ${getErrorMessage(error)}`
-          });
-        }
-      });
+    this.poamAttachmentService.downloadAttachment(+this.poamId, attachment.attachmentId).subscribe({
+      next: (blob: any) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = attachment.filename;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to download file: ${getErrorMessage(error)}`
+        });
+      }
+    });
   }
 
   deleteAttachment(attachment: any) {
-    this.poamAttachmentService.deleteAttachment(+this.poamId, attachment.attachmentId)
-      .subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'File deleted successfully'
-          });
-          this.loadAttachedFiles();
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to delete file: ${getErrorMessage(error)}`
-          });
-        }
-      });
+    this.poamAttachmentService.deleteAttachment(+this.poamId, attachment.attachmentId).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'File deleted successfully'
+        });
+        this.loadAttachedFiles();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to delete file: ${getErrorMessage(error)}`
+        });
+      }
+    });
   }
 
   onUpload() {
     this.messageService.add({
       severity: 'info',
       summary: 'File Uploaded',
-      detail: '',
+      detail: ''
     });
   }
 
@@ -193,18 +180,21 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'File size exceeds 5MB limit.',
+        detail: 'File size exceeds 5MB limit.'
       });
+
       return false;
     }
 
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+
     if (!this.allowedTypes.includes(fileExtension)) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'File type not allowed.',
+        detail: 'File type not allowed.'
       });
+
       return false;
     }
 
@@ -216,6 +206,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     }
 
     const file = event.files[0];
+
     if (!file) {
       console.error('No file selected');
       this.messageService.add({
@@ -223,34 +214,34 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
         summary: 'Error',
         detail: 'No file selected'
       });
+
       return;
     }
 
     if (this.validateFile(file)) {
-      this.poamAttachmentService.uploadAttachment(file, +this.poamId)
-        .subscribe({
-          next: (event: any) => {
-            if (event instanceof HttpResponse) {
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'File uploaded successfully'
-              });
-              this.fileUpload.clear();
-              this.loadAttachedFiles();
-            }
-          },
-          error: (error) => {
+      this.poamAttachmentService.uploadAttachment(file, +this.poamId).subscribe({
+        next: (event: any) => {
+          if (event instanceof HttpResponse) {
             this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `File upload failed: ${getErrorMessage(error)}`
+              severity: 'success',
+              summary: 'Success',
+              detail: 'File uploaded successfully'
             });
-          },
-          complete: () => {
-            this.updateTotalSize();
+            this.fileUpload.clear();
+            this.loadAttachedFiles();
           }
-        });
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `File upload failed: ${getErrorMessage(error)}`
+          });
+        },
+        complete: () => {
+          this.updateTotalSize();
+        }
+      });
     } else {
       this.fileUpload.clear();
     }
@@ -273,11 +264,13 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
 
   updateTotalSize() {
     let totalSize = 0;
+
     if (this.fileUpload.files) {
       for (const file of this.fileUpload.files) {
         totalSize += file.size;
       }
     }
+
     this.totalSize = this.formatSize(totalSize);
     this.totalSizePercent = (totalSize / 5242880) * 100;
   }
@@ -287,6 +280,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 

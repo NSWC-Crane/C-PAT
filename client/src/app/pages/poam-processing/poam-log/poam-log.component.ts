@@ -8,16 +8,16 @@
 !##########################################################################
 */
 
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SharedService } from '../../../common/services/shared.service';
-import { Subscription } from 'rxjs';
-import { PoamLogService } from './poam-log.service';
+import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
-import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { Subscription } from 'rxjs';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { PoamLogService } from './poam-log.service';
 
 interface FSEntry {
   Timestamp: string;
@@ -31,9 +31,16 @@ interface FSEntry {
   styleUrls: ['./poam-log.component.scss'],
   standalone: true,
   imports: [DialogModule, TableModule, ToastModule],
-  providers: [MessageService],
+  providers: [MessageService]
 })
 export class PoamLogComponent implements OnInit {
+  private router = inject(Router);
+  private sharedService = inject(SharedService);
+  private route = inject(ActivatedRoute);
+  private poamLogService = inject(PoamLogService);
+  private changeDetectorRef = inject(ChangeDetectorRef);
+  private messageService = inject(MessageService);
+
   customColumn = 'Timestamp';
   defaultColumns = ['User', 'Action'];
   allColumns = [this.customColumn, ...this.defaultColumns];
@@ -43,25 +50,17 @@ export class PoamLogComponent implements OnInit {
   displayModal: boolean = true;
   private subscriptions = new Subscription();
 
-  constructor(
-    private router: Router,
-    private sharedService: SharedService,
-    private route: ActivatedRoute,
-    private poamLogService: PoamLogService,
-    private changeDetectorRef: ChangeDetectorRef,
-    private messageService: MessageService
-  ) {}
-
   public ngOnInit() {
-    this.route.params.subscribe(async params => {
+    this.route.params.subscribe(async (params) => {
       this.poamId = params['poamId'];
+
       if (this.poamId) {
         this.fetchPoamLog(this.poamId);
       }
     });
 
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
       })
     );
@@ -73,7 +72,7 @@ export class PoamLogComponent implements OnInit {
         this.dataSource = response.map((log: FSEntry) => ({
           Timestamp: log.Timestamp,
           User: log.User,
-          Action: log.Action,
+          Action: log.Action
         }));
         this.changeDetectorRef.detectChanges();
       },
@@ -83,7 +82,7 @@ export class PoamLogComponent implements OnInit {
           summary: 'Error',
           detail: `An error occurred: ${getErrorMessage(error)}`
         });
-        }
+      }
     });
   }
 

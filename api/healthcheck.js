@@ -8,29 +8,28 @@
 !##########################################################################
 */
 
-const http = require("http");
+const http = require('http');
 const config = require('./utils/config');
 
 const options = {
-    host : "localhost",
+    host: 'localhost',
     port: config.http.port,
-    path: "/api/op/definition?jsonpath=%24.info.version",
-    timeout : 2000
-}
+    path: '/api/op/definition?jsonpath=%24.info.version',
+    timeout: 2000,
+};
 
-const request = http.request(options, (res) => {
-    console.log(`STATUS: ${res.statusCode}`)
+const request = http.request(options, res => {
+    console.log(`STATUS: ${res.statusCode}`);
     if (res.statusCode == 200) {
-        process.exit(0)
+        process.exit(0);
+    } else {
+        process.exit(1);
     }
-    else {
-        process.exit(1)
-    }
-})
+});
 
-request.on('error', function(err) {
-    console.log('ERROR')
-    process.exit(1)
-})
+request.on('error', function (err) {
+    console.log('ERROR');
+    process.exit(1);
+});
 
-request.end()
+request.end();

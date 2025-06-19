@@ -18,7 +18,7 @@
     [showClear]="true"
     styleClass="tenableRepositorySelect"
     appendTo="body"
-    [style]="{'width':'100%'}"
+    [style]="{ width: '100%' }"
   >
   </p-select>
 </div>
@@ -30,7 +30,7 @@
     (click)="importTenableRepository()"
     (onKeyUp)="importTenableRepository()"
     [disabled]="!selectedTenableRepository"
-    [style]="{'width':'100%', 'margin-bottom': '10px'}"
+    [style]="{ width: '100%', 'margin-bottom': '10px' }"
     [outlined]="true"
   >
   </p-button>
@@ -43,7 +43,7 @@
     (click)="importAllRemainingRepositories()"
     (onKeyUp)="importAllRemainingRepositories()"
     [disabled]="!filteredRepositories || filteredRepositories.length === 0"
-    [style]="{'width':'100%'}"
+    [style]="{ width: '100%' }"
     [outlined]="true"
   >
   </p-button>

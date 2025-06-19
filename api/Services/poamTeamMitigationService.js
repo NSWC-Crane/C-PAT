@@ -23,7 +23,7 @@ async function withConnection(callback) {
 }
 
 exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
-    return await withConnection(async (connection) => {
+    return await withConnection(async connection => {
         let sql = `
             SELECT ptm.mitigationId, ptm.poamId, ptm.assignedTeamId, ptm.mitigationText, ptm.isActive,
                    at.assignedTeamName
@@ -38,7 +38,7 @@ exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
             assignedTeamId: row.assignedTeamId,
             assignedTeamName: row.assignedTeamName,
             mitigationText: row.mitigationText,
-            isActive: row.isActive != null ? Boolean(row.isActive) : null
+            isActive: row.isActive != null ? Boolean(row.isActive) : null,
         }));
         return { poamTeamMitigations };
     });
@@ -49,7 +49,7 @@ exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsBy
         throw new Error('getPoamTeamMitigationsByPoamId: poamId is required');
     }
 
-    return await withConnection(async (connection) => {
+    return await withConnection(async connection => {
         let sql = `
             SELECT ptm.mitigationId, ptm.poamId, ptm.assignedTeamId, ptm.mitigationText, ptm.isActive,
                    at.assignedTeamName
@@ -65,7 +65,7 @@ exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsBy
             assignedTeamId: row.assignedTeamId,
             assignedTeamName: row.assignedTeamName,
             mitigationText: row.mitigationText,
-            isActive: row.isActive != null ? Boolean(row.isActive) : null
+            isActive: row.isActive != null ? Boolean(row.isActive) : null,
         }));
         return poamTeamMitigations;
     });
@@ -80,7 +80,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
         throw new Error('postPoamTeamMitigation: poamId is required');
     }
 
-    return await withConnection(async (connection) => {
+    return await withConnection(async connection => {
         try {
             let fetchSql = `SELECT mitigationId, poamId, assignedTeamId, mitigationText, isActive FROM ${config.database.schema}.poamteammitigations WHERE assignedTeamId = ? AND poamId = ?`;
             const [existingTeamMitigation] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
@@ -99,12 +99,12 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
                 req.body.poamId,
                 req.body.assignedTeamId,
                 req.body.mitigationText || '',
-                req.body.isActive !== undefined ? req.body.isActive : true
+                req.body.isActive !== undefined ? req.body.isActive : true,
             ]);
 
             let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
             const [team] = await connection.query(assignedTeamSql, [req.body.assignedTeamId]);
-            const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
+            const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
 
             let action = `Team Mitigation was created for ${teamName}.`;
             let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
@@ -122,7 +122,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
             }
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY') {
-                return await withConnection(async (connection) => {
+                return await withConnection(async connection => {
                     let fetchSql = `SELECT mitigationId, poamId, assignedTeamId, mitigationText, isActive FROM ${config.database.schema}.poamteammitigations WHERE assignedTeamId = ? AND poamId = ?`;
                     const [existingTeamMitigation] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
                     if (existingTeamMitigation.length > 0) {
@@ -133,8 +133,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
                         return existingTeamMitigation[0];
                     }
                 });
-            }
-            else {
+            } else {
                 return { error: error.message };
             }
         }
@@ -152,14 +151,14 @@ exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, 
         throw new Error('updatePoamTeamMitigation: mitigationText is required');
     }
 
-    return await withConnection(async (connection) => {
+    return await withConnection(async connection => {
         try {
             let updateSql = `UPDATE ${config.database.schema}.poamteammitigations SET mitigationText = ? WHERE assignedTeamId = ? AND poamId = ?`;
             await connection.query(updateSql, [req.body.mitigationText, req.params.assignedTeamId, req.params.poamId]);
 
             let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
             const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
-            const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
+            const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
 
             let action = `Team Mitigation was updated for ${teamName}.`;
             let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
@@ -192,7 +191,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
         throw new Error('updatePoamTeamMitigationStatus: isActive is required');
     }
 
-    return await withConnection(async (connection) => {
+    return await withConnection(async connection => {
         const maxRetries = 3;
         let retryCount = 0;
 
@@ -218,7 +217,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
                     let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams
                                            WHERE assignedTeamId = ?`;
                     const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
-                    const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
+                    const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
 
                     let fetchSql = `SELECT mitigationId, poamId, assignedTeamId, mitigationText, isActive
                                     FROM ${config.database.schema}.poamteammitigations
@@ -234,12 +233,10 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
                     } else {
                         throw new Error('Team Mitigation not found after status update');
                     }
-
                 } catch (error) {
                     await connection.rollback();
                     throw error;
                 }
-
             } catch (error) {
                 if (error.code === 'ER_LOCK_DEADLOCK' && retryCount < maxRetries - 1) {
                     retryCount++;
@@ -262,10 +259,10 @@ exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req, 
         throw new Error('deletePoamTeamMitigation: poamId is required');
     }
 
-    await withConnection(async (connection) => {
+    await withConnection(async connection => {
         let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
         const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
-        const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
+        const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
 
         let sql = `DELETE FROM ${config.database.schema}.poamteammitigations WHERE assignedTeamId = ? AND poamId = ?`;
         await connection.query(sql, [req.params.assignedTeamId, req.params.poamId]);

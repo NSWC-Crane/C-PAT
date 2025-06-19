@@ -8,54 +8,54 @@
 !##########################################################################
 */
 
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, signal, Input, Output, EventEmitter } from '@angular/core';
-import { ImportService } from '../../../import.service';
-import { PoamService } from '../../../../poam-processing/poams.service';
-import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, signal, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Popover } from 'primeng/popover';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
-import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
-import { EMPTY, Observable, Subscription, catchError, finalize, forkJoin, map, of, switchMap, tap } from 'rxjs';
-import { SharedService } from '../../../../../common/services/shared.service';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { parseISO } from 'date-fns/fp';
+import { AccordionModule } from 'primeng/accordion';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
+import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TabsModule } from 'primeng/tabs';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Popover } from 'primeng/popover';
 import { Select } from 'primeng/select';
-import { CardModule } from 'primeng/card';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { AccordionModule } from 'primeng/accordion';
-import { TooltipModule } from 'primeng/tooltip';
-import { TextareaModule } from 'primeng/textarea';
-import { TenableFiltersComponent } from '../../components/tenableFilters/tenableFilters.component';
+import { SkeletonModule } from 'primeng/skeleton';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { EMPTY, Observable, Subscription, catchError, finalize, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import {
-  AssetsFilter,
-  FilterConfig,
-  TenableFilter,
-  Reference,
-  IdAndName,
-  CustomFilter,
   AccordionItem,
-  IAVInfo,
-  TempFilters,
+  AssetsFilter,
+  CustomFilter,
   ExportColumn,
+  FilterConfig,
+  FilterHandler,
+  FilterValue,
+  IAVInfo,
+  IdAndName,
   PoamAssociation,
   PremadeFilterOption,
-  FilterValue,
-  FilterHandler
+  Reference,
+  TempFilters,
+  TenableFilter
 } from '../../../../../common/models/tenable.model';
-import { parseISO } from 'date-fns/fp';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
+import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { PoamService } from '../../../../poam-processing/poams.service';
+import { ImportService } from '../../../import.service';
+import { TenableFiltersComponent } from '../../components/tenableFilters/tenableFilters.component';
 
 @Component({
   selector: 'cpat-tenable-vulnerabilities',
@@ -82,9 +82,19 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
     TenableFiltersComponent,
     TagModule
   ],
-  providers: [MessageService],
+  providers: [MessageService]
 })
 export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
+  private importService = inject(ImportService);
+  private sanitizer = inject(DomSanitizer);
+  private cdr = inject(ChangeDetectorRef);
+  private collectionsService = inject(CollectionsService);
+  protected messageService = inject(MessageService);
+  private poamService = inject(PoamService);
+  private setPayloadService = inject(PayloadService);
+  private sharedService = inject(SharedService);
+  private router = inject(Router);
+
   cveReferences: Reference[] = [];
   iavReferences: Reference[] = [];
   otherReferences: Reference[] = [];
@@ -129,7 +139,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   payload: any;
   private subscriptions = new Subscription();
   @Input() parentSidebarVisible: boolean = false;
-  @Input() currentPreset: string = "main";
+  @Input() currentPreset: string = 'main';
   @Output() sidebarToggle = new EventEmitter<boolean>();
   @Output() totalRecordsChange = new EventEmitter<number>();
 
@@ -140,7 +150,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   acceptRiskStatusOptions = [
     { label: 'All', value: 'all' },
     { label: 'Accepted Risk', value: 'accepted' },
-    { label: 'Non-Accepted Risk', value: 'nonAcceptedRisk' },
+    { label: 'Non-Accepted Risk', value: 'nonAcceptedRisk' }
   ];
 
   severityOptions = [
@@ -148,7 +158,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Low', value: '1' },
     { label: 'Medium', value: '2' },
     { label: 'High', value: '3' },
-    { label: 'Critical', value: '4' },
+    { label: 'Critical', value: '4' }
   ];
 
   tenableDateOptions = [
@@ -172,7 +182,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Last Quarter', value: 'lastQuarter' },
     { label: 'Current Year', value: 'currentYear' },
     { label: 'Last Year', value: 'lastYear' },
-    { label: 'More than One Year', value: '365:all' },
+    { label: 'More than One Year', value: '365:all' }
   ];
   seolDateOptions = this.tenableDateOptions;
   lastSeenOptions = this.tenableDateOptions;
@@ -186,27 +196,27 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Agent', value: 'agent' },
     { label: 'IPv4', value: 'IPv4' },
     { label: 'IPv6', value: 'IPv6' },
-    { label: 'Universal', value: 'universal' },
+    { label: 'Universal', value: 'universal' }
   ];
 
   aesSeverityOptions = [
     { label: 'High', value: 'high' },
     { label: 'Medium', value: 'medium' },
     { label: 'Low', value: 'low' },
-    { label: 'Unclassified', value: 'unclassified' },
+    { label: 'Unclassified', value: 'unclassified' }
   ];
 
   protocolOptions = [
     { label: 'ICMP', value: '1' },
     { label: 'TCP', value: '6' },
     { label: 'UDP', value: '17' },
-    { label: 'Unknown', value: '0' },
+    { label: 'Unknown', value: '0' }
   ];
 
   vulnerabilityTypeOptions = [
     { label: 'All', value: 'All' },
     { label: 'IAV Vulnerabilities', value: 'iav' },
-    { label: 'Non IAV Vulnerabilities', value: 'non-iav' },
+    { label: 'Non IAV Vulnerabilities', value: 'non-iav' }
   ];
 
   webAppScanningOptions = [
@@ -217,27 +227,27 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   exploitAvailableOptions = [
     { label: 'Yes', value: 'true' },
-    { label: 'No', value: 'false' },
+    { label: 'No', value: 'false' }
   ];
 
   mitigatedStatusOptions = [
     { label: 'Never Mitigated', value: 'never' },
-    { label: 'Previously Mitigated', value: 'previously' },
+    { label: 'Previously Mitigated', value: 'previously' }
   ];
 
   recastRiskStatusOptions = [
     { label: 'Non-Recast Risk', value: 'notRecast' },
-    { label: 'Recast Risk', value: 'recast' },
+    { label: 'Recast Risk', value: 'recast' }
   ];
 
   exploitFrameworkOptions = [
     { label: 'Contains', value: '~=' },
-    { label: 'Exact Match', value: '=' },
+    { label: 'Exact Match', value: '=' }
   ];
 
   containsAndRegexOptions = [
     { label: 'Contains', value: '=' },
-    { label: 'Regex', value: 'pcre' },
+    { label: 'Regex', value: 'pcre' }
   ];
   pluginNameOptions = this.containsAndRegexOptions;
   pluginTextOptions = this.containsAndRegexOptions;
@@ -246,13 +256,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Active', value: 'active' },
     { label: 'Compliance', value: 'compliance' },
     { label: 'Event', value: 'lce' },
-    { label: 'Passive', value: 'passive' },
+    { label: 'Passive', value: 'passive' }
   ];
 
   containsExactMatchAndRegexOptions = [
     { label: 'Contains', value: '~=' },
     { label: 'Exact Match', value: '=' },
-    { label: 'Regex', value: 'pcre' },
+    { label: 'Regex', value: 'pcre' }
   ];
   cpeOptions = this.containsExactMatchAndRegexOptions;
   netbiosNameOptions = this.containsExactMatchAndRegexOptions;
@@ -261,7 +271,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: '=', value: '=' },
     { label: '≠', value: '!=' },
     { label: '≥', value: '>=' },
-    { label: '≤', value: '<=' },
+    { label: '≤', value: '<=' }
   ];
   pluginIDOptions = this.numericOptions;
   portOptions = this.numericOptions;
@@ -269,13 +279,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   xrefOptions = [
     { label: '=', value: '=' },
-    { label: '≠', value: '!=' },
+    { label: '≠', value: '!=' }
   ];
 
   customRangeOptions = [
     { label: 'All', value: 'all' },
     { label: 'None', value: 'none' },
-    { label: 'Custom Range', value: 'customRange' },
+    { label: 'Custom Range', value: 'customRange' }
   ];
   assetCriticalityRatingOptions = this.customRangeOptions;
   assetExposureScoreOptions = this.customRangeOptions;
@@ -306,28 +316,28 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       content: 'rangeFilter',
       identifier: 'assetCriticalityRating',
       options: this.assetCriticalityRatingOptions,
-      value: 0,
+      value: 0
     },
     {
       header: 'AES',
       content: 'rangeFilter',
       identifier: 'assetExposureScore',
       options: this.assetExposureScoreOptions,
-      value: 1,
+      value: 1
     },
     {
       header: 'AES Severity',
       content: 'multiSelect',
       identifier: 'aesSeverity',
       options: this.aesSeverityOptions,
-      value: 2,
+      value: 2
     },
     {
       header: 'Accept Risk',
       content: 'dropdown',
       identifier: 'acceptRiskStatus',
       options: this.acceptRiskStatusOptions,
-      value: 3,
+      value: 3
     },
     {
       header: 'Address',
@@ -335,7 +345,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'ip',
       placeholder: 'IP Address...',
       validator: this.validateIP.bind(this),
-      value: 4,
+      value: 4
     },
     {
       header: 'Agent ID',
@@ -343,56 +353,56 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'uuid',
       placeholder: 'UUID...',
       validator: this.validateUUID.bind(this),
-      value: 5,
+      value: 5
     },
     {
       header: 'Application CPE',
       content: 'dropdownAndTextarea',
       identifier: 'cpe',
       options: this.cpeOptions,
-      value: 6,
+      value: 6
     },
     {
       header: 'Assets',
       content: 'multiSelect',
       identifier: 'asset',
       options: this.assetOptions,
-      value: 7,
+      value: 7
     },
     {
       header: 'Audit File',
       content: 'dropdown',
       identifier: 'auditFile',
       options: this.auditFileOptions,
-      value: 8,
+      value: 8
     },
     {
       header: 'CCE ID',
       content: 'input',
       identifier: 'cceId',
       placeholder: 'CCE ID...',
-      value: 9,
+      value: 9
     },
     {
       header: 'Cross References',
       content: 'dropdownAndTextarea',
       identifier: 'xref',
       options: this.xrefOptions,
-      value: 10,
+      value: 10
     },
     {
       header: 'CVE ID',
       content: 'input',
       identifier: 'cveId',
       placeholder: 'CVE ID...',
-      value: 11,
+      value: 11
     },
     {
       header: 'CVSS v2 Score',
       content: 'rangeFilter',
       identifier: 'baseCVSSScore',
       options: this.baseCVSSScoreOptions,
-      value: 12,
+      value: 12
     },
     {
       header: 'CVSS v2 Vector',
@@ -400,14 +410,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'cvssVector',
       placeholder: 'Enter CVSS v2 Vector...',
       validator: this.validateCVSSv2Vector.bind(this),
-      value: 13,
+      value: 13
     },
     {
       header: 'CVSS v3 Score',
       content: 'rangeFilter',
       identifier: 'cvssV3BaseScore',
       options: this.cvssV3BaseScoreOptions,
-      value: 14,
+      value: 14
     },
     {
       header: 'CVSS v3 Vector',
@@ -415,35 +425,35 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'cvssV3Vector',
       placeholder: 'Enter CVSS v3 Vector...',
       validator: this.validateCVSSv3Vector.bind(this),
-      value: 15,
+      value: 15
     },
     {
       header: 'Data Format',
       content: 'multiSelect',
       identifier: 'dataFormat',
       options: this.dataFormatOptions,
-      value: 16,
+      value: 16
     },
     {
       header: 'DNS Name',
       content: 'input',
       identifier: 'dnsName',
       placeholder: 'Enter DNS Name...',
-      value: 17,
+      value: 17
     },
     {
       header: 'Exploit Available',
       content: 'dropdown',
       identifier: 'exploitAvailable',
       options: this.exploitAvailableOptions,
-      value: 18,
+      value: 18
     },
     {
       header: 'Exploit Frameworks',
       content: 'dropdownAndTextarea',
       identifier: 'exploitFrameworks',
       options: this.exploitFrameworkOptions,
-      value: 19,
+      value: 19
     },
     {
       header: 'Host ID',
@@ -451,7 +461,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'hostUUID',
       placeholder: 'Enter Host UUID...',
       validator: this.validateUUID.bind(this),
-      value: 20,
+      value: 20
     },
     {
       header: 'IAVM ID',
@@ -459,112 +469,112 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'iavmID',
       placeholder: 'Enter IAVM ID...',
       validator: this.validateIAVM.bind(this),
-      value: 21,
+      value: 21
     },
     {
       header: 'Input Name',
       content: 'input',
       identifier: 'wasInputName',
       placeholder: 'Enter input name...',
-      value: 22,
+      value: 22
     },
     {
       header: 'Input Type',
       content: 'input',
       identifier: 'wasInputType',
       placeholder: 'Enter input type...',
-      value: 23,
+      value: 23
     },
     {
       header: 'MS Bulletin ID',
       content: 'input',
       identifier: 'msbulletinID',
       placeholder: 'Enter MS Bulletin ID...',
-      value: 24,
+      value: 24
     },
     {
       header: 'Mitigated Status',
       content: 'dropdown',
       identifier: 'mitigatedStatus',
       options: this.mitigatedStatusOptions,
-      value: 25,
+      value: 25
     },
     {
       header: 'NetBIOS Name',
       content: 'dropdownAndTextarea',
       identifier: 'netbiosName',
       options: this.netbiosNameOptions,
-      value: 26,
+      value: 26
     },
     {
       header: 'Patch Published',
       content: 'dropdown',
       identifier: 'patchPublished',
       options: this.patchPublishedOptions,
-      value: 27,
+      value: 27
     },
     {
       header: 'Plugin Family',
       content: 'multiSelect',
       identifier: 'family',
       options: this.familyOptions,
-      value: 28,
+      value: 28
     },
     {
       header: 'Plugin ID',
       content: 'dropdownAndTextarea',
       identifier: 'pluginID',
       options: this.pluginIDOptions,
-      value: 29,
+      value: 29
     },
     {
       header: 'Plugin Modified',
       content: 'dropdown',
       identifier: 'pluginModified',
       options: this.pluginModifiedOptions,
-      value: 30,
+      value: 30
     },
     {
       header: 'Plugin Name',
       content: 'dropdownAndTextarea',
       identifier: 'pluginName',
       options: this.pluginNameOptions,
-      value: 31,
+      value: 31
     },
     {
       header: 'Plugin Published',
       content: 'dropdown',
       identifier: 'pluginPublished',
       options: this.pluginPublishedOptions,
-      value: 32,
+      value: 32
     },
     {
       header: 'Plugin Type',
       content: 'dropdown',
       identifier: 'pluginType',
       options: this.pluginTypeOptions,
-      value: 33,
+      value: 33
     },
     {
       header: 'Port',
       content: 'dropdownAndTextarea',
       identifier: 'port',
       options: this.portOptions,
-      value: 34,
+      value: 34
     },
     {
       header: 'Protocol',
       content: 'multiSelect',
       identifier: 'protocol',
       options: this.protocolOptions,
-      value: 35,
+      value: 35
     },
     {
       header: 'Recast Risk',
       content: 'dropdown',
       identifier: 'recastRiskStatus',
       options: this.recastRiskStatusOptions,
-      value: 36,
+      value: 36
     },
     {
       header: 'STIG Severity',
@@ -572,106 +582,106 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'stigSeverity',
       options: this.stigSeverityOptions,
       validator: this.validateStigSeverity.bind(this),
-      value: 37,
+      value: 37
     },
     {
       header: 'Scan Policy Plugins',
       content: 'dropdown',
       identifier: 'policy',
       options: this.scanPolicyPluginOptions,
-      value: 38,
+      value: 38
     },
     {
       header: 'Severity',
       content: 'multiSelect',
       identifier: 'severity',
       options: this.severityOptions,
-      value: 39,
+      value: 39
     },
     {
       header: 'Security End of Life Date',
       content: 'dropdown',
       identifier: 'seolDate',
       options: this.seolDateOptions,
-      value: 40,
+      value: 40
     },
     {
       header: 'Users',
       content: 'multiSelect',
       identifier: 'responsibleUser',
       options: this.userOptions,
-      value: 41,
+      value: 41
     },
     {
       header: 'Vulnerability Discovered',
       content: 'dropdown',
       identifier: 'firstSeen',
       options: this.firstSeenOptions,
-      value: 42,
+      value: 42
     },
     {
       header: 'Vulnerability UUID',
       content: 'input',
       identifier: 'vulnUUID',
       placeholder: 'Enter Vuln UUID...',
-      value: 43,
+      value: 43
     },
     {
       header: 'Vulnerability Last Observed',
       content: 'dropdown',
       identifier: 'lastSeen',
       options: this.lastSeenOptions,
-      value: 44,
+      value: 44
     },
     {
       header: 'Vulnerability Priority Rating',
       content: 'rangeFilter',
       identifier: 'vprScore',
       options: this.vprScoreOptions,
-      value: 45,
+      value: 45
     },
     {
       header: 'Vulnerability Published',
       content: 'dropdown',
       identifier: 'vulnPublished',
       options: this.vulnPublishedOptions,
-      value: 46,
+      value: 46
     },
     {
       header: 'Vulnerability Text',
       content: 'dropdownAndTextarea',
       identifier: 'pluginText',
       options: this.pluginTextOptions,
-      value: 47,
+      value: 47
     },
     {
       header: 'Vulnerability Type',
       content: 'dropdown',
       identifier: 'vulnerabilityType',
       options: this.vulnerabilityTypeOptions,
-      value: 48,
+      value: 48
     },
     {
       header: 'Web App HTTP Method',
       content: 'input',
       identifier: 'wasHttpMethod',
       placeholder: 'Web app HTTP method...',
-      value: 49,
+      value: 49
     },
     {
       header: 'Web App Scanning',
       content: 'dropdown',
       identifier: 'wasVuln',
       options: this.webAppScanningOptions,
-      value: 50,
+      value: 50
     },
     {
       header: 'Web App URL',
       content: 'input',
       identifier: 'wasURL',
       placeholder: 'Web app URL...',
-      value: 51,
-    },
+      value: 51
+    }
   ];
 
   private filterNameMappings: { [key: string]: FilterConfig } = {
@@ -738,9 +748,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       if (Array.isArray(filter.value)) {
         return filter.value;
       }
+
       if (typeof filter.value === 'string') {
         return filter.value.split(',');
       }
+
       return { value: [] };
     },
 
@@ -758,9 +770,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     idArray: (filter: any): FilterValue => {
       if (Array.isArray(filter.value)) {
         return {
-          value: filter.value.map((v: any) => typeof v === 'string' ? { id: v } : v)
+          value: filter.value.map((v: any) => (typeof v === 'string' ? { id: v } : v))
         };
       }
+
       return {
         value: [{ id: filter.value }]
       };
@@ -770,50 +783,42 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       if (!filter.value) {
         return { value: [] };
       }
+
       if (Array.isArray(filter.value) && filter.value[0]?.id) {
         return { value: filter.value };
       }
+
       if (Array.isArray(filter.value)) {
-        return { value: filter.value.map(v => ({ id: v })) };
+        return { value: filter.value.map((v) => ({ id: v })) };
       }
+
       return {
         value: [{ id: filter.value }]
       };
     },
 
-    severity: (filter: any): FilterValue => {
-      return {
-        value: Array.isArray(filter.value) ? filter.value.join(',') : filter.value
-      }
-    },
+    severity: (filter: any): FilterValue => ({
+      value: Array.isArray(filter.value) ? filter.value.join(',') : filter.value
+    }),
 
     range: (filter: any): FilterValue => {
       if (filter.value === 'none' || filter.value === 'all') {
         return { value: filter.value };
       }
+
       if (filter.value.includes('-')) {
         const [min, max] = filter.value.split('-').map(Number);
+
         return {
           value: 'customRange',
           min,
           max
         };
       }
+
       return { value: filter.value };
     }
   };
-
-  constructor(
-    private importService: ImportService,
-    private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef,
-    private collectionsService: CollectionsService,
-    protected messageService: MessageService,
-    private poamService: PoamService,
-    private setPayloadService: PayloadService,
-    private sharedService: SharedService,
-    private router: Router
-  ) { }
 
   ngOnInit() {
     this.isLoading = true;
@@ -823,57 +828,53 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.setPayloadService.setPayload();
 
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
         this.loadSavedFilters();
-        this.collectionsService.getCollectionBasicList().pipe(
-          tap(data => {
-            const selectedCollectionData = data.find(
-              (collection: any) => collection.collectionId === this.selectedCollection
-            );
-            if (selectedCollectionData) {
-              this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
-            } else {
-              this.tenableRepoId = '';
+        this.collectionsService
+          .getCollectionBasicList()
+          .pipe(
+            tap((data) => {
+              const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
+
+              if (selectedCollectionData) {
+                this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
+              } else {
+                this.tenableRepoId = '';
+              }
+            }),
+            switchMap(() => forkJoin([this.loadAssetOptions(), this.loadAuditFileOptions(), this.loadFamilyOptions(), this.loadScanPolicyPluginOptions(), this.loadUserOptions(), this.loadPoamAssociations()])),
+            catchError((error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error loading filter list data: ${getErrorMessage(error)}`
+              });
+              this.isLoading = false;
+
+              return EMPTY;
+            })
+          )
+          .subscribe({
+            next: () => {
+              this.updateAccordionItems();
+              this.initializeColumnsAndFilters();
+              this.filteredAccordionItems = [...this.accordionItems];
+              this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+              this.currentFilterHistoryIndex = 0;
             }
-          }),
-          switchMap(() => forkJoin([
-            this.loadAssetOptions(),
-            this.loadAuditFileOptions(),
-            this.loadFamilyOptions(),
-            this.loadScanPolicyPluginOptions(),
-            this.loadUserOptions(),
-            this.loadPoamAssociations()
-          ])),
-          catchError(error => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Error loading filter list data: ${getErrorMessage(error)}`
-            });
-            this.isLoading = false;
-            return EMPTY;
-          })
-        ).subscribe({
-          next: () => {
-            this.updateAccordionItems();
-            this.initializeColumnsAndFilters();
-            this.filteredAccordionItems = [...this.accordionItems];
-            this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
-            this.currentFilterHistoryIndex = 0;
-          }
-        });
+          });
       })
     );
 
     this.subscriptions.add(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       })
     );
 
     this.subscriptions.add(
-      this.setPayloadService.accessLevel$.subscribe(async level => {
+      this.setPayloadService.accessLevel$.subscribe(async (level) => {
         this.accessLevel.set(level);
       })
     );
@@ -897,74 +898,75 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           { label: 'False-Positive', value: 'False-Positive' },
           { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
           { label: 'Rejected', value: 'Rejected' },
-          { label: 'Submitted', value: 'Submitted' },
-        ],
+          { label: 'Submitted', value: 'Submitted' }
+        ]
       },
       {
         field: 'pluginID',
         header: 'Plugin ID',
-        filterable: true,
+        filterable: true
       },
       { field: 'pluginName', header: 'Name', filterable: true },
       { field: 'family', header: 'Family', filterable: true },
       {
         field: 'severity',
         header: 'Severity',
-        filterable: true,
+        filterable: true
       },
       { field: 'vprScore', header: 'VPR', filterable: true },
       { field: 'iav', header: 'IAV', filterType: 'text' },
       {
         field: 'navyComplyDate',
         header: 'Navy Comply Date',
-        filterType: 'date',
+        filterType: 'date'
       },
       { field: 'ips', header: 'IP Address' },
       { field: 'acrScore', header: 'ACR', filterable: false },
       {
         field: 'assetExposureScore',
         header: 'AES',
-        filterable: false,
+        filterable: false
       },
       {
         field: 'netbiosName',
         header: 'NetBIOS',
-        filterable: false,
+        filterable: false
       },
       { field: 'dnsName', header: 'DNS', filterable: false },
       {
         field: 'macAddress',
         header: 'MAC Address',
-        filterable: false,
+        filterable: false
       },
       { field: 'port', header: 'Port', filterable: false },
       {
         field: 'protocol',
         header: 'Protocol',
-        filterable: false,
+        filterable: false
       },
       { field: 'uuid', header: 'Agent ID', filterable: false },
       {
         field: 'hostUUID',
         header: 'Host ID',
-        filterable: false,
+        filterable: false
       },
       {
         field: 'total',
         header: 'Total',
-        filterType: 'numeric',
+        filterType: 'numeric'
       },
       {
         field: 'hostTotal',
         header: 'Host Total',
-        filterType: 'numeric',
-      },
+        filterType: 'numeric'
+      }
     ];
     this.resetColumnSelections();
-    this.exportColumns = this.cols.map(col => ({
+    this.exportColumns = this.cols.map((col) => ({
       title: col.header,
-      dataKey: col.field,
+      dataKey: col.field
     }));
+
     if (this.currentPreset === 'exploitAvailable') {
       this.tempFilters['exploitAvailable'] = 'true';
     } else if (this.currentPreset === 'failedCredential') {
@@ -978,10 +980,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
     }
+
     this.applyFilters();
     this.filterAccordionItems();
   }
-
 
   private initializeTempFilters(): TempFilters {
     return {
@@ -1001,14 +1003,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         value: null,
         operator: null,
         isValid: true,
-        isDirty: false,
+        isDirty: false
       },
       cvssV3BaseScore: { value: 'all', min: 0, max: 10 },
       cvssV3Vector: {
         value: null,
         operator: null,
         isValid: true,
-        isDirty: false,
+        isDirty: false
       },
       xref: { operator: null, value: null },
       dataFormat: [],
@@ -1022,7 +1024,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         value: null,
         operator: null,
         isValid: true,
-        isDirty: false,
+        isDirty: false
       },
       netbiosName: { operator: null, value: null },
       patchPublished: null,
@@ -1042,7 +1044,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         value: null,
         operator: null,
         isValid: true,
-        isDirty: false,
+        isDirty: false
       },
       responsibleUser: [],
       vprScore: { value: 'all', min: 0, max: 10 },
@@ -1060,7 +1062,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   updateAccordionItems() {
-    this.accordionItems = this.accordionItems.map(item => {
+    this.accordionItems = this.accordionItems.map((item) => {
       switch (item.identifier) {
         case 'asset':
           return { ...item, options: this.assetOptions };
@@ -1085,9 +1087,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     if (this.filterSearch?.trim()) {
       const searchTerm = this.filterSearch.toLowerCase().trim();
-      items = items.filter(item =>
-        item.header.toLowerCase().includes(searchTerm)
-      );
+
+      items = items.filter((item) => item.header.toLowerCase().includes(searchTerm));
     }
 
     items.sort((a, b) => {
@@ -1105,19 +1106,21 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   loadAssetOptions(): Observable<any> {
     return this.importService.getTenableAssetsFilter().pipe(
-      map(assetsData => {
+      map((assetsData) => {
         this.assetOptions = assetsData.response.usable.map((assets: any) => ({
           value: assets.id,
-          label: assets.name,
+          label: assets.name
         }));
+
         return this.assetOptions;
       }),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching tenable asset filter data: ${getErrorMessage(error)}`
         });
+
         return EMPTY;
       })
     );
@@ -1125,19 +1128,21 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   loadAuditFileOptions(): Observable<any> {
     return this.importService.getTenableAuditFileFilter().pipe(
-      map(auditFileData => {
+      map((auditFileData) => {
         this.auditFileOptions = auditFileData.response.usable.map((auditFile: any) => ({
           value: auditFile.id,
-          label: auditFile.name,
+          label: auditFile.name
         }));
+
         return this.auditFileOptions;
       }),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching audit file data: ${getErrorMessage(error)}`
         });
+
         return EMPTY;
       })
     );
@@ -1145,19 +1150,21 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   loadFamilyOptions(): Observable<any> {
     return this.importService.getTenablePluginFamily().pipe(
-      map(familyData => {
+      map((familyData) => {
         this.familyOptions = familyData.response.map((family: any) => ({
           value: family.id,
-          label: family.name,
+          label: family.name
         }));
+
         return this.familyOptions;
       }),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching plugin family data: ${getErrorMessage(error)}`
         });
+
         return EMPTY;
       })
     );
@@ -1165,19 +1172,21 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   loadScanPolicyPluginOptions(): Observable<any> {
     return this.importService.getTenableScanPolicyPluginsFilter().pipe(
-      map(scanPolicyPluginData => {
+      map((scanPolicyPluginData) => {
         this.scanPolicyPluginOptions = scanPolicyPluginData.response.usable.map((plugins: any) => ({
           value: plugins.id,
-          label: plugins.name,
+          label: plugins.name
         }));
+
         return this.scanPolicyPluginOptions;
       }),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching scan policy plugin data: ${getErrorMessage(error)}`
         });
+
         return EMPTY;
       })
     );
@@ -1185,19 +1194,21 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   loadUserOptions(): Observable<any> {
     return this.importService.getTenableUsersFilter().pipe(
-      map(userData => {
+      map((userData) => {
         this.userOptions = userData.response.map((user: any) => ({
           value: user.id,
-          label: `${user.firstname} ${user.lastname} [${user.username}]`,
+          label: `${user.firstname} ${user.lastname} [${user.username}]`
         }));
+
         return this.userOptions;
       }),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching tenable user data: ${getErrorMessage(error)}`
         });
+
         return EMPTY;
       })
     );
@@ -1208,7 +1219,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
-    const startOffset = this.tenableTool === 'sumid' ? 0 : event.first ?? 0;
+    const startOffset = this.tenableTool === 'sumid' ? 0 : (event.first ?? 0);
     const endOffset = this.tenableTool === 'sumid' ? 5000 : startOffset + (event.rows ?? 20);
     const analysisParams = {
       query: {
@@ -1224,108 +1235,115 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         startOffset,
         endOffset,
         filters: [this.createRepositoryFilter(), ...this.activeFilters],
-        vulnTool: this.tenableTool,
+        vulnTool: this.tenableTool
       },
       sourceType: 'cumulative',
       columns: [],
-      type: 'vuln',
+      type: 'vuln'
     };
 
-    this.importService.postTenableAnalysis(analysisParams).pipe(
-      catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching all Vulnerabilities: ${getErrorMessage(error)}`
-        });
-        return EMPTY;
-      }),
-      switchMap(data => {
-        if (data.error_msg) {
-          this.showErrorMessage(data.error_msg);
+    this.importService
+      .postTenableAnalysis(analysisParams)
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching all Vulnerabilities: ${getErrorMessage(error)}`
+          });
+
           return EMPTY;
+        }),
+        switchMap((data) => {
+          if (data.error_msg) {
+            this.showErrorMessage(data.error_msg);
+
+            return EMPTY;
+          }
+
+          const pluginIDs = data.response.results.map((vuln: any) => Number(vuln.pluginID));
+
+          if (pluginIDs.length > 0) {
+            return this.importService.getIAVInfoForPlugins(pluginIDs).pipe(
+              catchError((error) => {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Error fetching IAV info: ${getErrorMessage(error)}`
+                });
+
+                return of([]);
+              }),
+              map((iavData) => ({
+                vulnData: data.response,
+                iavInfoMap: this.createIAVInfoMap(iavData)
+              }))
+            );
+          }
+
+          return of({
+            vulnData: data.response,
+            iavInfoMap: {}
+          });
+        }),
+        finalize(() => {
+          this.isLoading = false;
+          this.filterAccordionItems();
+        })
+      )
+      .subscribe({
+        next: ({ vulnData, iavInfoMap }) => {
+          this.allVulnerabilities = vulnData.results.map((vuln: any) => {
+            const defaultVuln = {
+              pluginID: '',
+              pluginName: '',
+              family: { name: '' },
+              severity: { name: '' },
+              vprScore: '',
+              ips: [],
+              acrScore: '',
+              assetExposureScore: '',
+              netbiosName: '',
+              dnsName: '',
+              macAddress: '',
+              port: '',
+              protocol: '',
+              uuid: '',
+              hostUUID: '',
+              total: '',
+              hostTotal: ''
+            };
+
+            const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
+            const iavInfo = iavInfoMap[Number(vuln.pluginID)] || { iav: null, navyComplyDate: null };
+
+            return {
+              ...defaultVuln,
+              ...vuln,
+              poam: !!poamAssociation,
+              poamId: poamAssociation?.poamId || null,
+              poamStatus: poamAssociation?.status ? poamAssociation.status : 'No Existing POAM',
+              iav: iavInfo.iav,
+              navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
+              pluginName: vuln.name || '',
+              family: vuln.family?.name || '',
+              severity: { name: vuln.severity?.name || '' }
+            };
+          });
+
+          this.totalRecords = vulnData.totalRecords ? vulnData.totalRecords : this.allVulnerabilities.length;
+          this.totalRecordsChange.emit(this.totalRecords);
         }
-
-        const pluginIDs = data.response.results.map((vuln: any) => Number(vuln.pluginID));
-
-        if (pluginIDs.length > 0) {
-          return this.importService.getIAVInfoForPlugins(pluginIDs).pipe(
-            catchError(error => {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Error fetching IAV info: ${getErrorMessage(error)}`
-              });
-              return of([]);
-            }),
-            map(iavData => ({
-              vulnData: data.response,
-              iavInfoMap: this.createIAVInfoMap(iavData)
-            }))
-          );
-        }
-
-        return of({
-          vulnData: data.response,
-          iavInfoMap: {}
-        });
-      }),
-      finalize(() => {
-        this.isLoading = false;
-        this.filterAccordionItems();
-      })
-    ).subscribe({
-      next: ({ vulnData, iavInfoMap }) => {
-        this.allVulnerabilities = vulnData.results.map((vuln: any) => {
-          const defaultVuln = {
-            pluginID: '',
-            pluginName: '',
-            family: { name: '' },
-            severity: { name: '' },
-            vprScore: '',
-            ips: [],
-            acrScore: '',
-            assetExposureScore: '',
-            netbiosName: '',
-            dnsName: '',
-            macAddress: '',
-            port: '',
-            protocol: '',
-            uuid: '',
-            hostUUID: '',
-            total: '',
-            hostTotal: '',
-          };
-
-          const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
-          const iavInfo = iavInfoMap[Number(vuln.pluginID)] || { iav: null, navyComplyDate: null };
-
-          return {
-            ...defaultVuln,
-            ...vuln,
-            poam: !!poamAssociation,
-            poamId: poamAssociation?.poamId || null,
-            poamStatus: poamAssociation?.status ? poamAssociation.status : 'No Existing POAM',
-            iav: iavInfo.iav,
-            navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
-            pluginName: vuln.name || '',
-            family: vuln.family?.name || '',
-            severity: { name: vuln.severity?.name || '' },
-          };
-        });
-
-        this.totalRecords = vulnData.totalRecords ? vulnData.totalRecords : this.allVulnerabilities.length;
-        this.totalRecordsChange.emit(this.totalRecords)
-      }
-    });
+      });
   }
 
   private createIAVInfoMap(iavData: any[]): { [key: number]: IAVInfo } {
     return iavData.reduce((acc: any, item: any) => {
       acc[item.pluginID] = {
         iav: item.iav || null,
-        navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null,
+        navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null
       };
+
       return acc;
     }, {});
   }
@@ -1355,42 +1373,46 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.sidebarToggle.emit(this.sidebarVisible);
   }
 
-  onFilterChange(
-    event: any,
-    identifier: string,
-    isInput: boolean = false,
-    isOperator: boolean = false
-  ) {
+  onFilterChange(event: any, identifier: string, isInput: boolean = false, isOperator: boolean = false) {
     if (!identifier) {
       console.warn('Missing identifier in onFilterChange', { event, isInput, isOperator });
+
       return;
     }
+
     if (!event) {
       console.warn('Missing event in onFilterChange', { identifier, isInput, isOperator });
+
       return;
     }
+
     if (identifier === 'severity') {
       this.tempFilters['severity'] = event.value;
+
       return;
     }
+
     if (identifier === 'lastSeen') {
       this.tempFilters['lastSeen'] = event.value;
+
       return;
     }
+
     if (identifier === 'family') {
-      this.tempFilters['family'] = Array.isArray(event.value) ?
-        event.value :
-        event.value ? [event.value] : [];
+      this.tempFilters['family'] = Array.isArray(event.value) ? event.value : event.value ? [event.value] : [];
+
       return;
     }
+
     if (identifier === 'policy' || identifier === 'auditFile') {
       this.tempFilters[identifier] = event.value ? [event.value] : [];
+
       return;
     }
 
     if (identifier) {
-      const accordionItem = this.accordionItems.find(item => item.identifier === identifier);
-      const value = isInput ? event.target?.value ?? event.value : event.value;
+      const accordionItem = this.accordionItems.find((item) => item.identifier === identifier);
+      const value = isInput ? (event.target?.value ?? event.value) : event.value;
 
       if (!this.tempFilters[identifier]) {
         this.tempFilters[identifier] = { operator: null, value: null };
@@ -1398,8 +1420,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
       if (isInput) {
         this.tempFilters[identifier].value = value;
-        this.tempFilters[identifier].isValid =
-          !accordionItem?.validator || accordionItem.validator(value);
+        this.tempFilters[identifier].isValid = !accordionItem?.validator || accordionItem.validator(value);
         this.tempFilters[identifier].isDirty = true;
       } else if (isOperator) {
         this.tempFilters[identifier].operator = value;
@@ -1410,35 +1431,43 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   private mapSingleFilter(filter: any): void {
     if (!filter) {
       console.warn('Invalid filter object:', filter);
+
       return;
     }
 
     if (!filter.filterName) {
       console.warn('Filter missing filterName:', filter);
+
       return;
     }
 
     if (filter.filterName === 'xref' && filter.value.includes('IAVA|20*,IAVB|20*')) {
       const value = filter.operator === '=' ? 'iav' : 'non-iav';
+
       this.tempFilters['vulnerabilityType'] = value;
       this.onFilterChange({ value }, 'vulnerabilityType');
+
       return;
     }
 
     if (filter.filterName === 'family' && Array.isArray(filter.value)) {
       this.tempFilters['family'] = filter.value.map((v: any) => v.id || v);
+
       return;
     }
 
     if (filter.filterName === 'severity') {
       this.tempFilters['severity'] = filter.value.split(',');
+
       return;
     }
 
     const config = this.filterNameMappings[filter.filterName];
+
     if (!config) return;
 
     const handler = this.filterHandlers[config.handler];
+
     if (!handler) return;
 
     const filterValue = handler(filter);
@@ -1470,27 +1499,31 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (!value || value.length === 0) {
       return null;
     }
+
     if (value.length === 1) {
       return {
         filterName: 'asset',
         operator: '=',
-        value: { id: value[0] },
+        value: { id: value[0] }
       };
     }
+
     let formattedValue: any = { id: value[0] };
+
     for (let i = 1; i < value.length; i++) {
       formattedValue = {
         operator: 'union',
         operand1: formattedValue,
         operand2: {
-          id: value[i],
-        },
+          id: value[i]
+        }
       };
     }
+
     return {
       filterName: 'asset',
       operator: '~',
-      value: formattedValue,
+      value: formattedValue
     };
   }
 
@@ -1499,16 +1532,17 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       .filter(([_, value]) => {
         if (value === null || value === undefined) return false;
         if (Array.isArray(value) && value.length === 0) return false;
+
         if (typeof value === 'object') {
           if ('value' in value && (value.value === null || value.value === undefined)) return false;
           if ('value' in value && value.value === 'all') return false;
           if (Object.keys(value).length === 0) return false;
         }
+
         return true;
       })
       .map(([uiName, value]) => {
-        const apiConfig = Object.entries(this.filterNameMappings)
-          .find(([_, config]) => config.uiName === uiName);
+        const apiConfig = Object.entries(this.filterNameMappings).find(([_, config]) => config.uiName === uiName);
 
         if (!apiConfig) return null;
 
@@ -1519,6 +1553,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             if (apiName === 'asset') {
               if (Array.isArray(value)) {
                 const assetFilter = this.createAssetsFilter(value);
+
                 if (assetFilter) {
                   return {
                     id: apiName,
@@ -1528,8 +1563,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
                   };
                 }
               }
+
               return null;
             }
+
             if (typeof value === 'string') {
               return {
                 id: apiName,
@@ -1540,6 +1577,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
                 value: [{ id: value }]
               };
             }
+
             if (Array.isArray(value) && value.length > 0) {
               return {
                 id: apiName,
@@ -1547,55 +1585,65 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
                 operator: '=',
                 type: 'vuln',
                 isPredefined: true,
-                value: value.map(v => ({ id: v }))
+                value: value.map((v) => ({ id: v }))
               };
             }
+
             return null;
 
           case 'family':
             if (!Array.isArray(value) || value.length === 0) return null;
+
             return {
               id: 'family',
               filterName: 'family',
               operator: '=',
               type: 'vuln',
               isPredefined: true,
-              value: value.map(v => ({ id: v }))
+              value: value.map((v) => ({ id: v }))
             };
 
-          case 'severity':
+          case 'severity': {
             const severityValue = Array.isArray(value) ? value.join(',') : value;
-            return severityValue ? {
-              id: 'severity',
-              filterName: 'severity',
-              operator: '=',
-              type: 'vuln',
-              isPredefined: true,
-              value: severityValue
-            } : null;
 
-          case 'array':
-            const hasValue = Array.isArray(value)
-              ? value.length > 0
-              : value !== null && value !== undefined;
-            return hasValue ? {
-              id: apiName,
-              filterName: apiName,
-              operator: '=',
-              type: 'vuln',
-              isPredefined: true,
-              value: Array.isArray(value) ? value.join(',') : value
-            } : null;
+            return severityValue
+              ? {
+                  id: 'severity',
+                  filterName: 'severity',
+                  operator: '=',
+                  type: 'vuln',
+                  isPredefined: true,
+                  value: severityValue
+                }
+              : null;
+          }
+
+          case 'array': {
+            const hasValue = Array.isArray(value) ? value.length > 0 : value !== null && value !== undefined;
+
+            return hasValue
+              ? {
+                  id: apiName,
+                  filterName: apiName,
+                  operator: '=',
+                  type: 'vuln',
+                  isPredefined: true,
+                  value: Array.isArray(value) ? value.join(',') : value
+                }
+              : null;
+          }
 
           case 'operatorValue':
-            return value.value ? {
-              id: apiName,
-              filterName: apiName,
-              operator: value.operator || '=',
-              type: 'vuln',
-              isPredefined: true,
-              value: value.value
-            } : null;
+            return value.value
+              ? {
+                  id: apiName,
+                  filterName: apiName,
+                  operator: value.operator || '=',
+                  type: 'vuln',
+                  isPredefined: true,
+                  value: value.value
+                }
+              : null;
 
           case 'range':
             if (value.value === 'none') {
@@ -1608,7 +1656,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
                 value: 'none'
               };
             }
+
             if (value.value === 'all' || !value.value) return null;
+
             if (value.value === 'customRange') {
               return {
                 id: apiName,
@@ -1619,17 +1669,20 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
                 value: `${value.min}-${value.max}`
               };
             }
+
             return null;
 
           case 'simpleValue':
-            return value ? {
-              id: apiName,
-              filterName: apiName,
-              operator: '=',
-              type: 'vuln',
-              isPredefined: true,
-              value: value?.value !== undefined ? value.value : value
-            } : null;
+            return value
+              ? {
+                  id: apiName,
+                  filterName: apiName,
+                  operator: '=',
+                  type: 'vuln',
+                  isPredefined: true,
+                  value: value?.value !== undefined ? value.value : value
+                }
+              : null;
 
           default:
             return null;
@@ -1656,6 +1709,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
       this.selectedPremadeFilter = null;
     }
+
     this.sidebarVisible = false;
     this.sidebarToggle.emit(this.sidebarVisible);
   }
@@ -1674,6 +1728,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   clearIndividualFilter(identifier: string, event: Event) {
     event.stopPropagation();
+
     switch (identifier) {
       case 'assetCriticalityRating':
       case 'assetExposureScore':
@@ -1683,7 +1738,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.tempFilters[identifier] = {
           value: 'all',
           min: 0,
-          max: this.getMaxValue(identifier),
+          max: this.getMaxValue(identifier)
         };
         break;
       case 'aesSeverity':
@@ -1717,7 +1772,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           value: null,
           operator: null,
           isValid: true,
-          isDirty: false,
+          isDirty: false
         };
         break;
       case 'cpe':
@@ -1734,11 +1789,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       default:
         this.tempFilters[identifier] = null;
     }
+
     this.applyFilters();
   }
 
   isFilterActive(identifier: string): boolean {
     const filter = this.tempFilters[identifier];
+
     if (!filter) return false;
 
     switch (identifier) {
@@ -1791,41 +1848,45 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   validateIP(ip: string): boolean {
-    const ipRegex =
-      /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
     return ipRegex.test(ip);
   }
 
   validateUUID(uuid: string): boolean {
-    const uuidRegex =
-      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
     return uuidRegex.test(uuid);
   }
 
   validateCVSSv2Vector(vector: string): boolean {
-    const cvssV2Regex =
-      /^(AV:[LAN]|AC:[LMH]|Au:[MSN]|C:[NPC]|I:[NPC]|A:[NPC])(\/(?!.*\1)(AV:[LAN]|AC:[LMH]|Au:[MSN]|C:[NPC]|I:[NPC]|A:[NPC])){5}$/;
+    const cvssV2Regex = /^(AV:[LAN]|AC:[LMH]|Au:[MSN]|C:[NPC]|I:[NPC]|A:[NPC])(\/(?!.*\1)(AV:[LAN]|AC:[LMH]|Au:[MSN]|C:[NPC]|I:[NPC]|A:[NPC])){5}$/;
+
     return cvssV2Regex.test(vector);
   }
 
   validateCVSSv3Vector(vector: string): boolean {
     const cvssV3Regex =
       /^CVSS:3\.[01]\/((AV:[NALP]|AC:[LH]|PR:[NLH]|UI:[NR]|S:[UC]|C:[NLH]|I:[NLH]|A:[NLH]|E:[XUPFH]|RL:[XOTWU]|RC:[XURC]|CR:[XLH]|IR:[XLH]|AR:[XLH]|MAV:[XNALP]|MAC:[XLH]|MPR:[XNLH]|MUI:[XNR]|MS:[XUC]|MC:[XNLH]|MI:[XNLH]|MA:[XNLH])\/){8,11}$/;
+
     return cvssV3Regex.test(vector);
   }
 
   validateIAVM(iavmNumber: string): boolean {
     const iavmRegex = /^\d{4}-[A-Za-z]-\d{4}$/;
+
     return iavmRegex.test(iavmNumber);
   }
 
   validateStigSeverity(severity: string): boolean {
     const stigSeverityRegex = /^(I{1,3})$/;
+
     return stigSeverityRegex.test(severity);
   }
 
   onRangeChange(event: any, identifier: string) {
     this.tempFilters[identifier].value = event.value;
+
     if (event.value === 'customRange') {
       switch (identifier) {
         case 'assetCriticalityRating':
@@ -1848,6 +1909,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   onRangeValueChange(identifier: string) {
     const filter = this.tempFilters[identifier];
+
     switch (identifier) {
       case 'assetCriticalityRating':
         filter.min = Math.max(1, Math.min(filter.min, 10));
@@ -1870,6 +1932,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.table.clear();
     this.tenableTool = 'sumid';
     this.tempFilters = this.initializeTempFilters();
+
     if (this.currentPreset === 'exploitAvailable') {
       this.tempFilters['exploitAvailable'] = 'true';
     } else if (this.currentPreset === 'failedCredential') {
@@ -1883,6 +1946,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
     }
+
     this.activeFilters = [];
     this.filterSearch = '';
     this.filterHistory = [];
@@ -1893,6 +1957,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.applyFilters(false);
     this.filterAccordionItems();
     this.resetColumnSelections();
+
     if (loadVuln) {
       this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
       this.selectedPremadeFilter = null;
@@ -1926,6 +1991,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (!event?.value) return;
 
     const selectedFilter = this.findFilterByValue(event.value);
+
     if (!selectedFilter) return;
 
     if (this.tempFilters) {
@@ -1934,9 +2000,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
 
     if (event.value.startsWith('saved_')) {
-      const savedFilter = typeof selectedFilter.filter === 'string'
-        ? JSON.parse(selectedFilter.filter)
-        : selectedFilter.filter;
+      const savedFilter = typeof selectedFilter.filter === 'string' ? JSON.parse(selectedFilter.filter) : selectedFilter.filter;
 
       if (savedFilter) {
         this.table.clear();
@@ -1946,7 +2010,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.filterSearch = '';
 
         if (Array.isArray(savedFilter.filters)) {
-          savedFilter.filters.forEach(filter => {
+          savedFilter.filters.forEach((filter) => {
             if (filter && typeof filter === 'object' && filter.filterName && filter.value !== undefined) {
               try {
                 this.mapSingleFilter(filter);
@@ -1967,11 +2031,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         this.filteredAccordionItems = [...this.accordionItems];
         this.filterAccordionItems();
         this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
+
         return;
       }
     }
 
     this.clearFilters(false);
+
     switch (event.value) {
       case 'vulnpublished30':
         this.tempFilters['vulnPublished'] = '30:all';
@@ -2044,6 +2110,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     if (isNaN(numericId)) {
       this.showErrorMessage('Invalid filter ID');
+
       return;
     }
 
@@ -2100,13 +2167,15 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (this.premadeFilterOptions) {
       for (const group of this.premadeFilterOptions) {
         if (group.items) {
-          const found = group.items.find(item => item.value === value);
+          const found = group.items.find((item) => item.value === value);
+
           if (found) return found;
         } else if (group.value === value) {
           return group;
         }
       }
     }
+
     return null;
   }
 
@@ -2114,7 +2183,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (this.selectedCollection) {
       this.importService.getTenableFilters(this.selectedCollection).subscribe({
         next: (filters: TenableFilter[]) => {
-          const savedFilterOptions: PremadeFilterOption[] = filters.map(filter => ({
+          const savedFilterOptions: PremadeFilterOption[] = filters.map((filter) => ({
             label: String(filter.filterName),
             value: `saved_${filter.filterId}`,
             filter: filter.filter,
@@ -2170,7 +2239,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.tenableTool = 'listvuln';
     this.tempFilters['pluginID'] = {
       operator: '=',
-      value: vulnerability.pluginID,
+      value: vulnerability.pluginID
     };
     this.applyFilters(true);
     this.expandColumnSelections();
@@ -2183,10 +2252,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   async onPoamIconClick(vulnerability: any, event: Event) {
     event.stopPropagation();
+
     try {
       const poamAssociation = this.existingPoamPluginIDs[vulnerability.pluginID];
+
       if (poamAssociation?.poamId) {
         this.router.navigateByUrl(`/poam-processing/poam-details/${poamAssociation.poamId}`);
+
         return;
       }
 
@@ -2198,8 +2270,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
       const pluginIAVData = this.iavInfo[this.pluginData.id];
       let formattedIavComplyByDate = null;
+
       if (pluginIAVData?.navyComplyDate) {
         const complyDate = new Date(pluginIAVData.navyComplyDate);
+
         formattedIavComplyByDate = format(complyDate, 'yyyy-MM-dd');
       }
 
@@ -2208,8 +2282,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData,
           iavNumber: pluginIAVData?.iav,
-          iavComplyByDate: formattedIavComplyByDate,
-        },
+          iavComplyByDate: formattedIavComplyByDate
+        }
       });
     } catch (error) {
       this.messageService.add({
@@ -2290,55 +2364,57 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   showDetails(vulnerability: any, createPoam: boolean = false): Promise<void> {
     if (!vulnerability || !vulnerability.pluginID) {
       this.showErrorMessage('Invalid vulnerability data');
+
       return Promise.reject('Invalid vulnerability data');
     }
 
     return new Promise((resolve, reject) => {
-      this.importService.getTenablePlugin(vulnerability.pluginID).pipe(
-        tap(data => {
-          if (!data || !data.response) {
-            throw new Error('Invalid response from getTenablePlugin');
-          }
-        }),
-        map(data => data.response)
-      ).subscribe({
-        next: (pluginData) => {
-          this.pluginData = pluginData;
-          this.formattedDescription = this.pluginData.description
-            ? this.sanitizer.bypassSecurityTrustHtml(
-              this.pluginData.description.replace(/\n\n/g, '<br>')
-            )
-            : '';
+      this.importService
+        .getTenablePlugin(vulnerability.pluginID)
+        .pipe(
+          tap((data) => {
+            if (!data || !data.response) {
+              throw new Error('Invalid response from getTenablePlugin');
+            }
+          }),
+          map((data) => data.response)
+        )
+        .subscribe({
+          next: (pluginData) => {
+            this.pluginData = pluginData;
+            this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replace(/\n\n/g, '<br>')) : '';
 
-          if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
-            this.parseReferences(this.pluginData.xrefs);
-          } else {
-            this.cveReferences = [];
-            this.iavReferences = [];
-            this.otherReferences = [];
-          }
+            if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
+              this.parseReferences(this.pluginData.xrefs);
+            } else {
+              this.cveReferences = [];
+              this.iavReferences = [];
+              this.otherReferences = [];
+            }
 
-          if (Array.isArray(this.pluginData.vprContext)) {
-            this.parseVprContext(this.pluginData.vprContext);
-          } else {
-            this.parsedVprContext = [];
-          }
+            if (Array.isArray(this.pluginData.vprContext)) {
+              this.parseVprContext(this.pluginData.vprContext);
+            } else {
+              this.parsedVprContext = [];
+            }
 
-          this.selectedVulnerability = vulnerability;
-          if (!createPoam) {
-            this.displayDialog = true;
+            this.selectedVulnerability = vulnerability;
+
+            if (!createPoam) {
+              this.displayDialog = true;
+            }
+
+            resolve();
+          },
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching plugin data.: ${getErrorMessage(error)}`
+            });
+            reject(error);
           }
-          resolve();
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching plugin data.: ${getErrorMessage(error)}`
-          });
-          reject(error);
-        }
-      });
+        });
     });
   }
 
@@ -2346,12 +2422,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     try {
       this.parsedVprContext = JSON.parse(vprContext);
     } catch (error) {
+      console.error('Error parsing VPR context:', error);
       this.parsedVprContext = [];
     }
   }
 
   parseReferences(xrefs: string) {
     const refs = xrefs.split(/\s+/).filter(Boolean);
+
     this.cveReferences = [];
     this.iavReferences = [];
     this.otherReferences = [];
@@ -2383,44 +2461,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter(col =>
-      [
-        'poam',
-        'pluginID',
-        'pluginName',
-        'family',
-        'severity',
-        'vprScore',
-        'iav',
-        'navyComplyDate',
-        'total',
-        'hostTotal',
-      ].includes(col.field)
-    );
+    this.selectedColumns = this.cols.filter((col) => ['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'total', 'hostTotal'].includes(col.field));
   }
 
   expandColumnSelections() {
-    this.selectedColumns = this.cols.filter(col =>
-      [
-        'poam',
-        'pluginID',
-        'pluginName',
-        'family',
-        'severity',
-        'vprScore',
-        'iav',
-        'navyComplyDate',
-        'ips',
-        'acrScore',
-        'assetExposureScore',
-        'netbiosName',
-        'dnsName',
-        'macAddress',
-        'port',
-        'protocol',
-        'uuid',
-        'hostUUID',
-      ].includes(col.field)
+    this.selectedColumns = this.cols.filter((col) =>
+      ['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID'].includes(col.field)
     );
   }
 
@@ -2434,49 +2480,46 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   loadPoamAssociations(): Observable<any> {
     return this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).pipe(
-      map(poamData => {
+      map((poamData) => {
         if (poamData && Array.isArray(poamData)) {
-          this.existingPoamPluginIDs = poamData.reduce(
-            (
-              acc: { [key: string]: PoamAssociation },
-              item: { vulnerabilityId: string; poamId: number; status: string }
-            ) => {
-              acc[item.vulnerabilityId] = {
-                poamId: item.poamId,
-                status: item.status,
-              };
-              return acc;
-            },
-            {}
-          );
+          this.existingPoamPluginIDs = poamData.reduce((acc: { [key: string]: PoamAssociation }, item: { vulnerabilityId: string; poamId: number; status: string }) => {
+            acc[item.vulnerabilityId] = {
+              poamId: item.poamId,
+              status: item.status
+            };
+
+            return acc;
+          }, {});
+
           return this.existingPoamPluginIDs;
         } else {
           throw new Error('Unexpected POAM data format');
         }
       }),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error loading POAM data: ${getErrorMessage(error)}`
         });
+
         return EMPTY;
       })
     );
   }
 
-  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+  getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (severity) {
       case 'Critical':
       case 'High':
-        return "danger";
+        return 'danger';
       case 'Medium':
-        return "warn";
+        return 'warn';
       case 'Low':
       case 'Info':
-        return "info";
+        return 'info';
       default:
-        return "info";
+        return 'info';
     }
   }
 
@@ -2490,7 +2533,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       severity: 'error',
       summary: 'Alert',
       detail: message,
-      sticky: true,
+      sticky: true
     });
   }
 

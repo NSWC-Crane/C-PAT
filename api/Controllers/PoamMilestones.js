@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-const poamMilestoneService = require('../Services/poamMilestoneService')
+const poamMilestoneService = require('../Services/poamMilestoneService');
 
 module.exports.getPoamMilestones = async function getPoamMilestones(req, res, next) {
     try {
@@ -22,7 +22,7 @@ module.exports.getPoamMilestones = async function getPoamMilestones(req, res, ne
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.postPoamMilestone = async function postPoamMilestone(req, res, next) {
     try {
@@ -36,7 +36,7 @@ module.exports.postPoamMilestone = async function postPoamMilestone(req, res, ne
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.putPoamMilestone = async function putPoamMilestone(req, res, next) {
     try {
@@ -50,7 +50,7 @@ module.exports.putPoamMilestone = async function putPoamMilestone(req, res, next
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.deletePoamMilestone = async function deletePoamMilestone(req, res, next) {
     try {
@@ -64,4 +64,4 @@ module.exports.deletePoamMilestone = async function deletePoamMilestone(req, res
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};

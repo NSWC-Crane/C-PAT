@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -28,30 +28,30 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        const permissions = await withConnection(async (connection) => {
+        const permissions = await withConnection(async connection => {
             let sql = `SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
                        FROM ${config.database.schema}.collectionpermissions T1
                        INNER JOIN ${config.database.schema}.user T2 ON T1.userId = T2.userId
-                       WHERE collectionId = ?;`
+                       WHERE collectionId = ?;`;
 
             let [rowPermissions] = await connection.query(sql, [req.params.collectionId]);
             return rowPermissions.map(permission => ({
-                ...permission
+                ...permission,
             }));
         });
 
         return permissions;
     } catch (error) {
         return {
-            error: error.message
+            error: error.message,
         };
     }
-}
+};
 
 exports.postPermission = async function postPermission(userId, elevate, req) {
     if (!req.body.userId) {
@@ -59,7 +59,7 @@ exports.postPermission = async function postPermission(userId, elevate, req) {
             status: 400,
             errors: {
                 userId: 'is required',
-            }
+            },
         });
     }
 
@@ -68,7 +68,7 @@ exports.postPermission = async function postPermission(userId, elevate, req) {
             status: 400,
             errors: {
                 oldCollectionId: 'is required',
-            }
+            },
         });
     }
 
@@ -77,12 +77,12 @@ exports.postPermission = async function postPermission(userId, elevate, req) {
             status: 400,
             errors: {
                 accessLevel: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql_query = `INSERT INTO ${config.database.schema}.collectionpermissions (accessLevel, userId, collectionId) VALUES (?, ?, ?);`;
                 await connection.query(sql_query, [req.body.accessLevel, req.body.userId, req.body.collectionId]);
@@ -93,21 +93,20 @@ exports.postPermission = async function postPermission(userId, elevate, req) {
                     accessLevel: req.body.accessLevel,
                 };
                 return message;
-
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
             }
         });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
-            return await withConnection(async (connection) => {
+            return await withConnection(async connection => {
                 let fetchSql = `SELECT * FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`;
                 const [existingPermission] = await connection.query(fetchSql, [req.body.userId, req.body.collectionId]);
                 return existingPermission[0];
             });
         } else {
             return {
-                error: error.message
+                error: error.message,
             };
         }
     }
@@ -119,7 +118,7 @@ exports.putPermission = async function putPermission(userId, elevate, req) {
             status: 400,
             errors: {
                 userId: 'is required',
-            }
+            },
         });
     }
 
@@ -128,7 +127,7 @@ exports.putPermission = async function putPermission(userId, elevate, req) {
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
 
@@ -137,15 +136,20 @@ exports.putPermission = async function putPermission(userId, elevate, req) {
             status: 400,
             errors: {
                 accessLevel: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql_query = `UPDATE ${config.database.schema}.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;`;
-                await connection.query(sql_query, [req.body.newCollectionId, req.body.accessLevel, req.body.userId, req.body.oldCollectionId]);
+                await connection.query(sql_query, [
+                    req.body.newCollectionId,
+                    req.body.accessLevel,
+                    req.body.userId,
+                    req.body.oldCollectionId,
+                ]);
 
                 const message = {
                     userId: req.body.userId,
@@ -159,7 +163,7 @@ exports.putPermission = async function putPermission(userId, elevate, req) {
         });
     } catch (error) {
         return {
-            error: error.message
+            error: error.message,
         };
     }
 };
@@ -170,7 +174,7 @@ exports.deletePermission = async function deletePermission(userId, elevate, req)
             status: 400,
             errors: {
                 userId: 'is required',
-            }
+            },
         });
     }
 
@@ -179,18 +183,18 @@ exports.deletePermission = async function deletePermission(userId, elevate, req)
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql = `DELETE FROM  ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`;
                 await connection.query(sql, [req.params.userId, req.params.collectionId]);
 
                 return {
-                    permissions: []
+                    permissions: [],
                 };
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
@@ -198,7 +202,7 @@ exports.deletePermission = async function deletePermission(userId, elevate, req)
         });
     } catch (error) {
         return {
-            error: error.message
+            error: error.message,
         };
     }
 };

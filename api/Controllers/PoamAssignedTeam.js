@@ -15,7 +15,7 @@ exports.getPoamAssignedTeams = async function getPoamAssignedTeams(req, res, nex
         const result = await poamAssignedTeamService.getPoamAssignedTeam();
         return res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while retrieving POAM assigned teams" });
+        return res.status(500).json({ error: 'An error occurred while retrieving POAM assigned teams' });
     }
 };
 
@@ -24,7 +24,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
         const result = await poamAssignedTeamService.getPoamAssignedTeamsByPoamId(req.params.poamId);
         return res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while retrieving POAM assigned teams by poamId" });
+        return res.status(500).json({ error: 'An error occurred while retrieving POAM assigned teams by poamId' });
     }
 };
 
@@ -33,7 +33,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
         const assignedTeam = await poamAssignedTeamService.postPoamAssignedTeam(req, res, next);
         return res.status(201).json(assignedTeam);
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while entering the POAM assigned team" });
+        return res.status(500).json({ error: 'An error occurred while entering the POAM assigned team' });
     }
 };
 
@@ -42,6 +42,6 @@ exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req, res,
         await poamAssignedTeamService.deletePoamAssignedTeam(req, res, next);
         return res.status(204).send();
     } catch (error) {
-        return res.status(500).json({ error: "An error occurred while deleting the POAM assigned team" });
+        return res.status(500).json({ error: 'An error occurred while deleting the POAM assigned team' });
     }
 };

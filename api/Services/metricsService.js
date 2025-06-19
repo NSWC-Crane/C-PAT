@@ -9,10 +9,10 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
-const logger = require('../utils/logger')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
+const logger = require('../utils/logger');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -23,11 +23,9 @@ async function withConnection(callback) {
     }
 }
 
-
-
 exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collectionId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
                 FROM ${config.database.schema}.assetlabels pl
@@ -40,7 +38,7 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collect
 
             let assetLabel = rows.map(row => ({
                 label: row.labelName,
-                labelCount: row.labelCount
+                labelCount: row.labelCount,
             }));
 
             return { assetLabel };
@@ -48,35 +46,34 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collect
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getCollectionPoamStatus = async function getCollectionPoamStatus(collectionId) {
     try {
-        return await withConnection(async (connection) => {
-            let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY status;`
-            let [rows] = await connection.query(sql, [collectionId])
+        return await withConnection(async connection => {
+            let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY status;`;
+            let [rows] = await connection.query(sql, [collectionId]);
 
-            const size = Object.keys(rows).length
+            const size = Object.keys(rows).length;
 
-            const poamStatus = []
+            const poamStatus = [];
 
             for (let counter = 0; counter < size; counter++) {
                 poamStatus.push({
-                    ...rows[counter]
+                    ...rows[counter],
                 });
             }
 
             return { poamStatus: poamStatus };
         });
+    } catch (error) {
+        return { null: 'Undefined collection' };
     }
-    catch (error) {
-        return { "null": "Undefined collection" }
-    }
-}
+};
 
 exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectionId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
                 FROM ${config.database.schema}.poamlabels pl
@@ -89,7 +86,7 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectio
 
             let poamLabel = rows.map(row => ({
                 label: row.labelName,
-                labelCount: row.labelCount
+                labelCount: row.labelCount,
             }));
 
             return { poamLabel };
@@ -97,36 +94,35 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectio
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(collectionId) {
     try {
-        return await withConnection(async (connection) => {
-            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY rawSeverity;`
-            let [rows] = await connection.query(sql, [collectionId])
+        return await withConnection(async connection => {
+            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY rawSeverity;`;
+            let [rows] = await connection.query(sql, [collectionId]);
 
-            const size = Object.keys(rows).length
+            const size = Object.keys(rows).length;
 
-            const poamSeverity = []
+            const poamSeverity = [];
 
             for (let counter = 0; counter < size; counter++) {
                 poamSeverity.push({
                     severity: rows[counter].rawSeverity,
-                    severityCount: rows[counter].severityCount
+                    severityCount: rows[counter].severityCount,
                 });
             }
 
             return { poamSeverity: poamSeverity };
         });
+    } catch (error) {
+        return { null: 'Undefined collection' };
     }
-    catch (error) {
-        return { "null": "Undefined collection" }
-    }
-}
+};
 
 exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoamStatus(collectionId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
         SELECT
           CASE
@@ -159,19 +155,19 @@ exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoam
                 .filter(([status]) => status !== 'null')
                 .map(([status, statusCount]) => ({
                     status,
-                    statusCount
+                    statusCount,
                 }));
 
             return { poamStatus };
         });
     } catch (error) {
-        return { "null": "Undefined collection" };
+        return { null: 'Undefined collection' };
     }
 };
 
 exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(collectionId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT scheduledCompletionDate,
                 FROM poam
@@ -181,24 +177,24 @@ exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamS
             let [rows] = await connection.query(sql, [collectionId]);
 
             let buckets = {
-                "OVERDUE": 0,
-                "< 30 Days": 0,
-                "30-60 Days": 0,
-                "60-90 Days": 0,
-                "90-180 Days": 0,
-                "180-365 Days": 0,
-                "> 365 Days": 0,
+                OVERDUE: 0,
+                '< 30 Days': 0,
+                '30-60 Days': 0,
+                '60-90 Days': 0,
+                '90-180 Days': 0,
+                '180-365 Days': 0,
+                '> 365 Days': 0,
             };
 
             rows.forEach(row => {
                 let days = row.scheduledCompletionDate;
-                if (days <= 0) buckets["OVERDUE"]++;
-                else if (days <= 30) buckets["< 30 Days"]++;
-                else if (days <= 60) buckets["30-60 Days"]++;
-                else if (days <= 90) buckets["60-90 Days"]++;
-                else if (days <= 180) buckets["90-180 Days"]++;
-                else if (days <= 365) buckets["180-365 Days"]++;
-                else if (days > 365) buckets["> 365 Days"]++;
+                if (days <= 0) buckets['OVERDUE']++;
+                else if (days <= 30) buckets['< 30 Days']++;
+                else if (days <= 60) buckets['30-60 Days']++;
+                else if (days <= 90) buckets['60-90 Days']++;
+                else if (days <= 180) buckets['90-180 Days']++;
+                else if (days <= 365) buckets['180-365 Days']++;
+                else if (days > 365) buckets['> 365 Days']++;
             });
 
             let poamScheduledCompletion = Object.keys(buckets).map(key => ({
@@ -211,12 +207,11 @@ exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamS
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
     try {
-        return await withConnection(async (connection) => {
-
+        return await withConnection(async connection => {
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
                 FROM ${config.database.schema}.assetlabels pl
@@ -227,11 +222,14 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(`
+                const [permissionRows] = await connection.query(
+                    `
                     SELECT collectionId
                     FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [req.userObject.userId]);
+                `,
+                    [req.userObject.userId]
+                );
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -239,17 +237,17 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
                     return { assetLabel: [] };
                 }
 
-                sql += " WHERE p.collectionId IN (?)";
+                sql += ' WHERE p.collectionId IN (?)';
                 params.push(collectionIds);
             }
 
-            sql += " GROUP BY l.labelName";
+            sql += ' GROUP BY l.labelName';
 
             const [rows] = await connection.query(sql, params);
 
             const assetLabel = rows.map(row => ({
                 label: row.labelName,
-                labelCount: row.labelCount
+                labelCount: row.labelCount,
             }));
 
             return { assetLabel };
@@ -257,20 +255,23 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam`;
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(`
+                const [permissionRows] = await connection.query(
+                    `
                     SELECT collectionId
                     FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [req.userObject.userId]);
+                `,
+                    [req.userObject.userId]
+                );
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -278,30 +279,29 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
                     return { poamStatus: [] };
                 }
 
-                sql += " WHERE collectionId IN (?)";
+                sql += ' WHERE collectionId IN (?)';
                 params.push(collectionIds);
             }
 
-            sql += " GROUP BY status";
+            sql += ' GROUP BY status';
 
             const [rows] = await connection.query(sql, params);
 
             const poamStatus = rows.map(row => ({
                 status: row.status,
-                statusCount: row.statusCount
+                statusCount: row.statusCount,
             }));
 
             return { poamStatus };
         });
+    } catch (error) {
+        return { null: 'Undefined collection' };
     }
-    catch (error) {
-        return { "null": "Undefined collection" }
-    }
-}
+};
 
 exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamStatus(req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
         SELECT
           CASE
@@ -317,11 +317,14 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(`
+                const [permissionRows] = await connection.query(
+                    `
           SELECT collectionId
           FROM ${config.database.schema}.collectionpermissions
           WHERE userId = ? AND accessLevel >= 3
-        `, [req.userObject.userId]);
+        `,
+                    [req.userObject.userId]
+                );
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -329,11 +332,11 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
                     return { poamStatus: [] };
                 }
 
-                sql += " AND collectionId IN (?)";
+                sql += ' AND collectionId IN (?)';
                 params.push(collectionIds);
             }
 
-            sql += " GROUP BY status";
+            sql += ' GROUP BY status';
 
             const [rows] = await connection.query(sql, params);
 
@@ -353,19 +356,19 @@ exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamSt
                 .filter(([status]) => status !== 'null')
                 .map(([status, statusCount]) => ({
                     status,
-                    statusCount
+                    statusCount,
                 }));
 
             return { poamStatus };
         });
     } catch (error) {
-        return { "null": "Undefined collection" };
+        return { null: 'Undefined collection' };
     }
 };
 
 exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT l.labelName, COUNT(pl.labelId) AS labelCount
                 FROM ${config.database.schema}.poamlabels pl
@@ -376,11 +379,14 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(`
+                const [permissionRows] = await connection.query(
+                    `
                     SELECT collectionId
                     FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [req.userObject.userId]);
+                `,
+                    [req.userObject.userId]
+                );
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -388,17 +394,17 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
                     return { poamLabel: [] };
                 }
 
-                sql += " WHERE p.collectionId IN (?)";
+                sql += ' WHERE p.collectionId IN (?)';
                 params.push(collectionIds);
             }
 
-            sql += " GROUP BY l.labelName";
+            sql += ' GROUP BY l.labelName';
 
             const [rows] = await connection.query(sql, params);
 
             const poamLabel = rows.map(row => ({
                 label: row.labelName,
-                labelCount: row.labelCount
+                labelCount: row.labelCount,
             }));
 
             return { poamLabel };
@@ -406,20 +412,23 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam`;
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(`
+                const [permissionRows] = await connection.query(
+                    `
                     SELECT collectionId
                     FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [req.userObject.userId]);
+                `,
+                    [req.userObject.userId]
+                );
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -427,69 +436,71 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) 
                     return { poamSeverity: [] };
                 }
 
-                sql += " WHERE collectionId IN (?)";
+                sql += ' WHERE collectionId IN (?)';
                 params.push(collectionIds);
             }
 
-            sql += " GROUP BY rawSeverity";
+            sql += ' GROUP BY rawSeverity';
 
             const [rows] = await connection.query(sql, params);
 
             const poamSeverity = rows.map(row => ({
                 severity: row.rawSeverity,
-                severityCount: row.severityCount
-            }));
-
-            return { poamSeverity };
-        });
-    }
-    catch (error) {
-        return { "null": "Undefined collection" }
-    }
-}
-
-exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(req) {
-    try {
-        return await withConnection(async (connection) => {
-            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`;
-            let params = [];
-
-            if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(`
-          SELECT collectionId
-          FROM ${config.database.schema}.collectionpermissions
-          WHERE userId = ? AND accessLevel >= 3
-        `, [req.userObject.userId]);
-
-                const collectionIds = permissionRows.map(row => row.collectionId);
-
-                if (collectionIds.length === 0) {
-                    return { poamSeverity: [] };
-                }
-
-                sql += " AND collectionId IN (?)";
-                params.push(collectionIds);
-            }
-
-            sql += " GROUP BY rawSeverity";
-
-            const [rows] = await connection.query(sql, params);
-
-            const poamSeverity = rows.map(row => ({
-                severity: row.rawSeverity,
-                severityCount: row.severityCount
+                severityCount: row.severityCount,
             }));
 
             return { poamSeverity };
         });
     } catch (error) {
-        return { "null": "Undefined collection" };
+        return { null: 'Undefined collection' };
+    }
+};
+
+exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(req) {
+    try {
+        return await withConnection(async connection => {
+            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`;
+            let params = [];
+
+            if (req.userObject.isAdmin !== true) {
+                const [permissionRows] = await connection.query(
+                    `
+          SELECT collectionId
+          FROM ${config.database.schema}.collectionpermissions
+          WHERE userId = ? AND accessLevel >= 3
+        `,
+                    [req.userObject.userId]
+                );
+
+                const collectionIds = permissionRows.map(row => row.collectionId);
+
+                if (collectionIds.length === 0) {
+                    return { poamSeverity: [] };
+                }
+
+                sql += ' AND collectionId IN (?)';
+                params.push(collectionIds);
+            }
+
+            sql += ' GROUP BY rawSeverity';
+
+            const [rows] = await connection.query(sql, params);
+
+            const poamSeverity = rows.map(row => ({
+                severity: row.rawSeverity,
+                severityCount: row.severityCount,
+            }));
+
+            return { poamSeverity };
+        });
+    } catch (error) {
+        return { null: 'Undefined collection' };
     }
 };
 
 exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT
                     scheduledCompletionDate,
@@ -504,11 +515,14 @@ exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamSch
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(`
+                const [permissionRows] = await connection.query(
+                    `
                     SELECT collectionId
                     FROM ${config.database.schema}.collectionpermissions
                     WHERE userId = ? AND accessLevel >= 3
-                `, [req.userObject.userId]);
+                `,
+                    [req.userObject.userId]
+                );
 
                 const collectionIds = permissionRows.map(row => row.collectionId);
 
@@ -516,31 +530,31 @@ exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamSch
                     return { poamScheduledCompletion: [] };
                 }
 
-                sql += " WHERE collectionId IN (?)";
+                sql += ' WHERE collectionId IN (?)';
                 params.push(collectionIds);
             }
 
             const [rows] = await connection.query(sql, params);
 
             let buckets = {
-                "OVERDUE": 0,
-                "< 30 Days": 0,
-                "30-60 Days": 0,
-                "60-90 Days": 0,
-                "90-180 Days": 0,
-                "180-365 Days": 0,
-                "> 365 Days": 0,
+                OVERDUE: 0,
+                '< 30 Days': 0,
+                '30-60 Days': 0,
+                '60-90 Days': 0,
+                '90-180 Days': 0,
+                '180-365 Days': 0,
+                '> 365 Days': 0,
             };
 
             rows.forEach(row => {
                 let days = row.daysUntilCompletion;
-                if (days <= 0) buckets["OVERDUE"]++;
-                else if (days <= 30) buckets["< 30 Days"]++;
-                else if (days <= 60) buckets["30-60 Days"]++;
-                else if (days <= 90) buckets["60-90 Days"]++;
-                else if (days <= 180) buckets["90-180 Days"]++;
-                else if (days <= 365) buckets["180-365 Days"]++;
-                else if (days > 365) buckets["> 365 Days"]++;
+                if (days <= 0) buckets['OVERDUE']++;
+                else if (days <= 30) buckets['< 30 Days']++;
+                else if (days <= 60) buckets['30-60 Days']++;
+                else if (days <= 90) buckets['60-90 Days']++;
+                else if (days <= 180) buckets['90-180 Days']++;
+                else if (days <= 365) buckets['180-365 Days']++;
+                else if (days > 365) buckets['> 365 Days']++;
             });
 
             let poamScheduledCompletion = Object.keys(buckets).map(key => ({
@@ -553,4 +567,4 @@ exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamSch
     } catch (error) {
         return { error: error.message };
     }
-}
+};

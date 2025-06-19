@@ -10,7 +10,6 @@
 
 const permissionService = require('../Services/permissionsService');
 
-
 module.exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
     try {
         const permissions = await permissionService.getCollectionPermissions(req, res, next);

@@ -14,6 +14,6 @@ import { MarketplaceComponent } from './marketplace.component';
 export const marketplaceRoutes: Routes = [
   {
     path: '',
-    component: MarketplaceComponent,
-  },
+    component: MarketplaceComponent
+  }
 ];

@@ -44,7 +44,7 @@ const AI_BASE_URLS = {
     perplexity: 'https://api.perplexity.ai',
     replicate: 'https://api.replicate.com/v1',
     togetherai: 'https://api.together.xyz/v1',
-    xai: 'https://api.x.ai/v1'
+    xai: 'https://api.x.ai/v1',
 };
 
 const AI_MODELS = {
@@ -62,7 +62,7 @@ const AI_MODELS = {
     perplexity: 'sonar-pro',
     replicate: 'meta/meta-llama-3-8b-instruct',
     togetherai: 'google/gemma-2-9b-it',
-    xai: 'grok-2-1212'
+    xai: 'grok-2-1212',
 };
 
 const ENV_KEYS = {
@@ -78,7 +78,7 @@ const ENV_KEYS = {
     perplexity: 'PERPLEXITY_API_KEY',
     replicate: 'REPLICATE_API_TOKEN',
     togetherai: 'TOGETHER_AI_API_KEY',
-    xai: 'XAI_API_KEY'
+    xai: 'XAI_API_KEY',
 };
 
 async function getAIModel() {
@@ -122,7 +122,7 @@ async function getAIModel() {
             const niprgptProvider = createOpenAICompatible({
                 baseURL: AI_BASE_URLS.niprgpt,
                 apiKey: config.ai.apiKey,
-                name: 'niprgpt-provider'
+                name: 'niprgpt-provider',
             });
             return niprgptProvider.chatModel(modelName);
         case 'ollama':
@@ -147,31 +147,31 @@ exports.generateMitigation = async function generateMitigation(req, res, next) {
         return next({
             status: 400,
             errors: {
-                message: 'AI is disabled'
-            }
+                message: 'AI is disabled',
+            },
         });
     }
     if (!req.body) {
         logger.writeError('aiService', 'generateMitigation', {
-            error: 'Missing prompt'
+            error: 'Missing prompt',
         });
         return next({
             status: 400,
             errors: {
-                message: 'Prompt is required'
-            }
+                message: 'Prompt is required',
+            },
         });
     }
 
     if (!config.ai.provider) {
         logger.writeError('aiService', 'generateMitigation', {
-            error: 'Missing AI provider configuration'
+            error: 'Missing AI provider configuration',
         });
         return next({
             status: 500,
             errors: {
-                message: 'AI provider is not configured'
-            }
+                message: 'AI provider is not configured',
+            },
         });
     }
 
@@ -183,12 +183,12 @@ exports.generateMitigation = async function generateMitigation(req, res, next) {
             baseURL,
             model,
             prompt: req.body,
-            timeout: 60000
+            timeout: 60000,
         });
 
         if (!text) {
             logger.writeError('aiService', 'generateMitigation', {
-                error: 'Empty response from AI provider'
+                error: 'Empty response from AI provider',
             });
             throw new Error('No response received from AI provider');
         }
@@ -200,18 +200,17 @@ exports.generateMitigation = async function generateMitigation(req, res, next) {
         logger.writeError('aiService', 'generateMitigation', {
             error: error.message,
             stack: error.stack,
-            provider: config.ai.provider
+            provider: config.ai.provider,
         });
 
-        const isAuthError = error.message.includes('API key') ||
-            error.message.includes('authentication');
+        const isAuthError = error.message.includes('API key') || error.message.includes('authentication');
 
         return next({
             status: 500,
             errors: {
                 message: isAuthError ? 'AI service configuration error' : 'AI service error',
-                detail: error.message
-            }
+                detail: error.message,
+            },
         });
     }
 };

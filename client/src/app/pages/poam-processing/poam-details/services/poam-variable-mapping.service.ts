@@ -9,7 +9,7 @@
 */
 
 import { Injectable } from '@angular/core';
-import { format, add } from 'date-fns';
+import { add, format } from 'date-fns';
 import { AppConfiguration } from '../../../../common/models/appConfiguration.model';
 
 @Injectable({
@@ -21,10 +21,10 @@ export class PoamVariableMappingService {
     'CAT I - High': 'High',
     'CAT II - Medium': 'Moderate',
     'CAT III - Low': 'Low',
-    'CAT III - Informational': 'Very Low',
+    'CAT III - Informational': 'Very Low'
   };
 
-  constructor() { }
+  constructor() {}
 
   /**
    * Maps Tenable severity values to categorical severity values
@@ -76,15 +76,18 @@ export class PoamVariableMappingService {
   calculateScheduledCompletionDate(rawSeverity: string, appConfigSettings: AppConfiguration[]): string {
     const getConfigValue = (settingName: string, fallbackValue: number): number => {
       if (appConfigSettings) {
-        const setting = appConfigSettings.find(config => config.settingName === settingName);
+        const setting = appConfigSettings.find((config) => config.settingName === settingName);
+
         if (setting) {
           return parseInt(setting.settingValue, 10);
         }
       }
+
       return fallbackValue;
     };
 
     let daysToAdd: number;
+
     switch (rawSeverity) {
       case 'CAT I - Critical':
       case 'CAT I - High':
@@ -103,6 +106,7 @@ export class PoamVariableMappingService {
 
     const currentDate = new Date();
     const scheduledCompletionDate = add(currentDate, { days: daysToAdd });
+
     return format(scheduledCompletionDate, 'yyyy-MM-dd');
   }
 

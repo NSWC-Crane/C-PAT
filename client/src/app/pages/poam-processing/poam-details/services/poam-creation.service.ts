@@ -8,21 +8,21 @@
 !##########################################################################
 */
 
-import { Injectable } from "@angular/core";
-import { MessageService } from "primeng/api";
-import { firstValueFrom, forkJoin } from "rxjs";
-import { format, parse } from "date-fns";
-import { jsonToPlainText } from "json-to-plain-text";
-import { Permission } from "../../../../common/models/permission.model";
-import { ImportService } from "../../../import-processing/import.service";
-import { SharedService } from "../../../../common/services/shared.service";
-import { AppConfigurationService } from "../../../admin-processing/app-configuration/app-configuration.service";
-import { CollectionsService } from "../../../admin-processing/collection-processing/collections.service";
-import { AssignedTeamService } from "../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service";
-import { AssetService } from "../../../asset-processing/assets.service";
-import { PoamVariableMappingService } from "./poam-variable-mapping.service";
+import { Injectable, inject } from '@angular/core';
+import { format, parse } from 'date-fns';
+import { jsonToPlainText } from 'json-to-plain-text';
+import { MessageService } from 'primeng/api';
+import { firstValueFrom, forkJoin } from 'rxjs';
+import { AppConfiguration } from '../../../../common/models/appConfiguration.model';
+import { Permission } from '../../../../common/models/permission.model';
+import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
-import { AppConfiguration } from "../../../../common/models/appConfiguration.model";
+import { AppConfigurationService } from '../../../admin-processing/app-configuration/app-configuration.service';
+import { AssignedTeamService } from '../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
+import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
+import { AssetService } from '../../../asset-processing/assets.service';
+import { ImportService } from '../../../import-processing/import.service';
+import { PoamVariableMappingService } from './poam-variable-mapping.service';
 
 interface UserCollectionPermission {
   userId: number;
@@ -38,18 +38,16 @@ interface UserCollectionPermission {
   providedIn: 'root'
 })
 export class PoamCreationService {
-  appConfigSettings: AppConfiguration[] = [];
+  private importService = inject(ImportService);
+  private sharedService = inject(SharedService);
+  private appConfigurationService = inject(AppConfigurationService);
+  private collectionsService = inject(CollectionsService);
+  private assignedTeamService = inject(AssignedTeamService);
+  private assetService = inject(AssetService);
+  private mappingService = inject(PoamVariableMappingService);
+  private messageService = inject(MessageService);
 
-  constructor(
-    private importService: ImportService,
-    private sharedService: SharedService,
-    private appConfigurationService: AppConfigurationService,
-    private collectionsService: CollectionsService,
-    private assignedTeamService: AssignedTeamService,
-    private assetService: AssetService,
-    private mappingService: PoamVariableMappingService,
-    private messageService: MessageService
-  ) { }
+  appConfigSettings: AppConfiguration[] = [];
 
   loadAppConfiguration() {
     this.appConfigurationService.getAppConfiguration().subscribe({
@@ -89,18 +87,18 @@ export class PoamCreationService {
               operator: '=',
               type: 'vuln',
               isPredefined: true,
-              value: pluginId,
-            },
+              value: pluginId
+            }
           ],
           sortColumn: 'severity',
           sortDirection: 'desc',
-          vulnTool: 'sumid',
+          vulnTool: 'sumid'
         },
         sourceType: 'cumulative',
         sortField: 'severity',
         sortOrder: 'desc',
         columns: [],
-        type: 'vuln',
+        type: 'vuln'
       };
 
       this.importService.postTenableAnalysis(analysisParams).subscribe({
@@ -137,22 +135,22 @@ export class PoamCreationService {
 
       return jsonToPlainText(dataObject, {});
     } catch (error) {
+      console.log('Error parsing plugin data:', error);
+
       return pluginData;
     }
   }
 
   async createNewACASPoam(stateData: any, collectionInfo: any, userId: number): Promise<any> {
     this.loadAppConfiguration();
+
     try {
       const pluginData = stateData.pluginData;
       const tenableVulnResponse = await this.loadVulnerability(pluginData.id);
 
       const mappedSeverity = this.mappingService.mapTenableSeverity(tenableVulnResponse?.severity?.id);
 
-      const [users, assignedTeamOptions] = await firstValueFrom(forkJoin([
-        this.collectionsService.getCollectionPermissions(collectionInfo.collectionId),
-        this.assignedTeamService.getAssignedTeams()
-      ]));
+      const [users, assignedTeamOptions] = await firstValueFrom(forkJoin([this.collectionsService.getCollectionPermissions(collectionInfo.collectionId), this.assignedTeamService.getAssignedTeams()]));
 
       const poam: any = {
         poamId: 'ADDPOAM',
@@ -161,9 +159,7 @@ export class PoamCreationService {
         aaPackage: collectionInfo.collectionAAPackage || '',
         predisposingConditions: collectionInfo.collectionPredisposingConditions || '',
         iavmNumber: stateData.iavNumber || '',
-        iavComplyByDate: stateData.iavComplyByDate
-          ? format(new Date(stateData.iavComplyByDate), 'yyyy-MM-dd')
-          : null,
+        iavComplyByDate: stateData.iavComplyByDate ? format(new Date(stateData.iavComplyByDate), 'yyyy-MM-dd') : null,
         submittedDate: null,
         vulnerabilityId: pluginData.id || '',
         vulnerabilityTitle: pluginData.name || '',
@@ -193,17 +189,18 @@ ${pluginData.description || ''}`,
         tenablePluginData: this.parsePluginData(poam.tenablePluginData),
         assignedTeamOptions,
         collectionUsers: users,
-        collectionApprovers: Array.isArray(users)
-          ? users.filter((user: Permission) => user.accessLevel >= 3)
-          : [],
+        collectionApprovers: Array.isArray(users) ? users.filter((user: Permission) => user.accessLevel >= 3) : [],
         poamApprovers: Array.isArray(users)
-          ? users.filter((user: Permission) => user.accessLevel >= 3).map((approver: any) => ({
-            userId: approver.userId,
-            approvalStatus: 'Not Reviewed',
-            comments: '',
-            approvedDate: null,
-            isNew: false
-          })) : []
+          ? users
+              .filter((user: Permission) => user.accessLevel >= 3)
+              .map((approver: any) => ({
+                userId: approver.userId,
+                approvalStatus: 'Not Reviewed',
+                comments: '',
+                approvedDate: null,
+                isNew: false
+              }))
+          : []
       };
 
       poam.residualRisk = this.mappingService.mapToEmassValues(poam.rawSeverity);
@@ -222,11 +219,9 @@ ${pluginData.description || ''}`,
 
   async createNewSTIGManagerPoam(stateData: any, collectionInfo: any, userId: number): Promise<any> {
     this.loadAppConfiguration();
+
     return new Promise((resolve, reject) => {
-      forkJoin([
-        this.collectionsService.getCollectionPermissions(collectionInfo.collectionId),
-        this.assignedTeamService.getAssignedTeams()
-      ]).subscribe({
+      forkJoin([this.collectionsService.getCollectionPermissions(collectionInfo.collectionId), this.assignedTeamService.getAssignedTeams()]).subscribe({
         next: ([users, assignedTeamOptions]) => {
           const poam: any = {
             poamId: 'ADDPOAM',
@@ -255,22 +250,20 @@ ${pluginData.description || ''}`,
             submittedDate: null
           };
 
-          const collectionApprovers = Array.isArray(users)
-            ? users.filter((user: Permission) => user.accessLevel >= 3)
-            : [];
+          const collectionApprovers = Array.isArray(users) ? users.filter((user: Permission) => user.accessLevel >= 3) : [];
 
           const poamApprovers = Array.isArray(collectionApprovers)
             ? collectionApprovers.map((approver: UserCollectionPermission) => ({
-              userId: approver.userId,
-              approvalStatus: 'Not Reviewed',
-              comments: '',
-              approvedDate: null,
-              isNew: false
-            }))
+                userId: approver.userId,
+                approvalStatus: 'Not Reviewed',
+                comments: '',
+                approvedDate: null,
+                isNew: false
+              }))
             : [];
 
           this.sharedService.getSTIGsFromSTIGMAN().subscribe({
-            next: data => {
+            next: (data) => {
               const stigmanSTIGs = data.map((stig: any) => ({
                 title: stig.title,
                 benchmarkId: stig.benchmarkId,
@@ -284,9 +277,7 @@ ${pluginData.description || ''}`,
               poam.stigCheckData = stateData.ruleData;
               poam.stigBenchmarkId = stateData.benchmarkId;
 
-              const selectedStig = stigmanSTIGs.find(
-                (stig: any) => stig.benchmarkId === poam.stigBenchmarkId
-              );
+              const selectedStig = stigmanSTIGs.find((stig: any) => stig.benchmarkId === poam.stigBenchmarkId);
 
               let selectedStigObject = null;
 
@@ -294,9 +285,7 @@ ${pluginData.description || ''}`,
                 selectedStigObject = selectedStig;
 
                 const [version, release] = selectedStig.lastRevisionStr?.match(/\d+/g) || [];
-                const formattedRevision = version && release
-                  ? `Version ${version}, Release: ${release}`
-                  : selectedStig.lastRevisionStr;
+                const formattedRevision = version && release ? `Version ${version}, Release: ${release}` : selectedStig.lastRevisionStr;
 
                 poam.vulnerabilityTitle = `${selectedStig.title} :: ${formattedRevision} Benchmark Date: ${selectedStig.lastRevisionDate}`;
                 poam.vulnerabilityName = selectedStig.title;
@@ -335,14 +324,12 @@ ${pluginData.description || ''}`,
 
   async createNewPoam(collectionInfo: any, userId: number): Promise<any> {
     this.loadAppConfiguration();
+
     return new Promise((resolve, reject) => {
-      forkJoin([
-        this.collectionsService.getCollectionPermissions(collectionInfo.collectionId),
-        this.assetService.getAssetsByCollection(collectionInfo.collectionId),
-        this.assignedTeamService.getAssignedTeams()
-      ]).subscribe({
+      forkJoin([this.collectionsService.getCollectionPermissions(collectionInfo.collectionId), this.assetService.getAssetsByCollection(collectionInfo.collectionId), this.assignedTeamService.getAssignedTeams()]).subscribe({
         next: ([users, collectionAssets, assignedTeamOptions]) => {
           const dateIn30Days = new Date();
+
           dateIn30Days.setDate(dateIn30Days.getDate() + 30);
 
           const poam = {
@@ -368,22 +355,20 @@ ${pluginData.description || ''}`,
             submittedDate: null
           };
 
-          const collectionApprovers = Array.isArray(users)
-            ? users.filter((user: Permission) => user.accessLevel >= 3)
-            : [];
+          const collectionApprovers = Array.isArray(users) ? users.filter((user: Permission) => user.accessLevel >= 3) : [];
 
           const poamApprovers = Array.isArray(collectionApprovers)
             ? collectionApprovers.map((approver: UserCollectionPermission) => ({
-              userId: approver.userId,
-              approvalStatus: 'Not Reviewed',
-              comments: '',
-              approvedDate: null,
-              isNew: false
-            }))
+                userId: approver.userId,
+                approvalStatus: 'Not Reviewed',
+                comments: '',
+                approvedDate: null,
+                isNew: false
+              }))
             : [];
 
           this.sharedService.getSTIGsFromSTIGMAN().subscribe({
-            next: data => {
+            next: (data) => {
               const stigmanSTIGs = data.map((stig: any) => ({
                 title: stig.title,
                 benchmarkId: stig.benchmarkId,

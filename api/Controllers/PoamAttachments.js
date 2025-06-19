@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-const poamAttachmentService = require('../Services/poamAttachmentService')
+const poamAttachmentService = require('../Services/poamAttachmentService');
 
 module.exports.getPoamAttachmentsByPoamId = async function getPoamAttachmentsByPoamId(req, res, next) {
     try {

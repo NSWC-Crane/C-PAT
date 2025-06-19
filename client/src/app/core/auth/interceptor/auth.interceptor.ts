@@ -26,14 +26,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const configId = req.url.includes(stigmanApiUrl) ? 'stigman' : 'cpat';
 
   return from(oidcSecurityService.getAccessToken(configId)).pipe(
-    map(token => {
+    map((token) => {
       if (!token) {
         throw new Error(`No token available for ${configId}`);
       }
+
       return req.clone({
         headers: req.headers.set('Authorization', `Bearer ${token}`)
       });
     }),
-    switchMap(request => next(request))
+    switchMap((request) => next(request))
   );
 };

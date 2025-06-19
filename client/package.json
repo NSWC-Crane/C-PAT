@@ -3,14 +3,18 @@
   "version": "1.2.4",
   "scripts": {
     "ng": "ng",
-    "format": "prettier --write \"src/app/**/*.{ts,html,scss}\"",
     "analyze": "ng build --configuration=production --stats-json && webpack-bundle-analyzer dist/stats.json",
     "start": "ng serve",
     "build": "ng build --configuration=production",
-    "test": "ng test"
+    "test": "ng test",
+    "format": "prettier --write \"**/*.{js,mjs,ts,mts,d.ts,html}\" --cache",
+    "format:check": "prettier --check \"**/*.{js,mjs,ts,mts,d.ts,html}\"",
+    "lint": "eslint --ext \".js,.mjs,.ts,.mts\" . --cache",
+    "lint:fix": "eslint --fix --ext \".js,.mjs,.ts,.mts\" ."
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^20.0.4",
     "@angular/common": "^20.0.4",
     "@angular/core": "^20.0.4",
     "@angular/forms": "^20.0.4",
@@ -36,15 +40,21 @@
     "zone.js": "^0.15.1"
   },
   "devDependencies": {
+    "@angular-eslint/builder": "^20.1.1",
+    "@angular-eslint/eslint-plugin": "^20.1.1",
+    "@angular-eslint/eslint-plugin-template": "^20.1.1",
+    "@angular-eslint/schematics": "^20.1.1",
+    "@angular-eslint/template-parser": "^20.1.1",
     "@angular/build": "^20.0.3",
     "@angular/cli": "^20.0.3",
     "@angular/localize": "^20.0.4",
     "@angular/service-worker": "^20.0.4",
     "@tailwindcss/postcss": "^4.1.10",
-    "@types/chart.js": "^4.0.1",
     "@types/jasmine": "^5.1.8",
     "@types/node": "^24.0.3",
     "autoprefixer": "^10.4.21",
+    "eslint": "^9.29.0",
+    "eslint-config-prettier": "^10.1.5",
     "jasmine-core": "^5.8.0",
     "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.2.0",
@@ -56,6 +66,7 @@
     "prettier": "^3.5.3",
     "sass": "^1.89.2",
     "tailwindcss": "^4.1.10",
-    "tslib": "^2.8.1"
+    "tslib": "^2.8.1",
+    "typescript-eslint": "^8.34.1"
   }
 }

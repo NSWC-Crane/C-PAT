@@ -8,11 +8,11 @@
 !##########################################################################
 */
 
-import { Component } from '@angular/core';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PickListModule } from 'primeng/picklist';
 
 export interface EMassField {
@@ -22,57 +22,32 @@ export interface EMassField {
 }
 
 @Component({
-  selector: 'emasster-field-selection-dialog',
+  selector: 'cpat-emasster-field-selection-dialog',
   standalone: true,
-  imports: [
-    FormsModule,
-    CardModule,
-    PickListModule,
-    ButtonModule
-],
+  imports: [FormsModule, CardModule, PickListModule, ButtonModule],
   template: `
-      <div class="flex flex-col min-w-[800px]">
-        <div class="text-xl font-semibold mb-6 text-center">
-          eMASSter POAM Fields to Overwrite
-        </div>
+    <div class="flex flex-col min-w-[800px]">
+      <div class="text-xl font-semibold mb-6 text-center">eMASSter POAM Fields to Overwrite</div>
 
-        <p-pickList
-          [source]="unselectedFields"
-          [target]="selectedFields"
-          sourceHeader="Available Fields"
-          targetHeader="Selected Fields"
-          [dragdrop]="true"
-          [responsive]="true"
-          showSourceControls="false"
-          showTargetControls="false"
-          scrollHeight="38vh">
-          <ng-template let-field pTemplate="item">
-            <div class="flex items-center p-2">
-              <span class="font-medium">{{field.description}}</span>
-              <span class="text-sm text-gray-500 ml-2">(Column {{field.column}})</span>
-            </div>
-          </ng-template>
-        </p-pickList>
+      <p-pickList [source]="unselectedFields" [target]="selectedFields" sourceHeader="Available Fields" targetHeader="Selected Fields" [dragdrop]="true" [responsive]="true" showSourceControls="false" showTargetControls="false" scrollHeight="38vh">
+        <ng-template let-field pTemplate="item">
+          <div class="flex items-center p-2">
+            <span class="font-medium">{{ field.description }}</span>
+            <span class="text-sm text-gray-500 ml-2">(Column {{ field.column }})</span>
+          </div>
+        </ng-template>
+      </p-pickList>
 
-        <div class="flex justify-between mt-4">
-          <p-button
-            label="Cancel"
-            severity="secondary"
-            [outlined]="true"
-            [rounded]="true"
-            (onClick)="ref.close()">
-          </p-button>
-          <p-button
-            label="Confirm"
-            severity="primary"
-            [rounded]="true"
-            (onClick)="confirm()">
-          </p-button>
-        </div>
+      <div class="flex justify-between mt-4">
+        <p-button label="Cancel" severity="secondary" [outlined]="true" [rounded]="true" (onClick)="ref.close()"> </p-button>
+        <p-button label="Confirm" severity="primary" [rounded]="true" (onClick)="confirm()"> </p-button>
       </div>
+    </div>
   `
 })
 export class EMASSOverwriteSelectionComponent {
+  ref = inject(DynamicDialogRef);
+
   allFields: EMassField[] = [
     { column: 'C', description: 'Description', selected: true },
     { column: 'E', description: 'Office/Org', selected: false },
@@ -95,13 +70,14 @@ export class EMASSOverwriteSelectionComponent {
   selectedFields: EMassField[] = [];
   unselectedFields: EMassField[] = [];
 
-  constructor(public ref: DynamicDialogRef) {
-    this.selectedFields = this.allFields.filter(field => field.selected);
-    this.unselectedFields = this.allFields.filter(field => !field.selected);
+  constructor() {
+    this.selectedFields = this.allFields.filter((field) => field.selected);
+    this.unselectedFields = this.allFields.filter((field) => !field.selected);
   }
 
   confirm() {
-    const selectedColumns = this.selectedFields.map(field => field.column);
+    const selectedColumns = this.selectedFields.map((field) => field.column);
+
     this.ref.close(selectedColumns);
   }
 }

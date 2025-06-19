@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -20,32 +20,22 @@
               </div>
               <h5>{{ notification.title }}</h5>
               @if (notification.notificationId) {
-                <i
-                  class="dismiss-icon pi pi-times"
-                  (click)="dismissNotification(notification)"
-                  (onKeyUp)="dismissNotification(notification)"
-                ></i>
+                <i class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)" (onKeyUp)="dismissNotification(notification)"></i>
               }
             </div>
             <p [innerHTML]="notification.formattedMessage"></p>
-            <small>{{ notification.timestamp | date:'short' }}</small>
+            <small>{{ notification.timestamp | date: 'short' }}</small>
           </div>
         </ng-template>
       </p-listbox>
     } @else {
       <div class="p-6 text-center">
-        <i class="pi pi-inbox text-5xl mb-4" style="color: var(--p-text-color)"></i>
+        <i class="pi pi-inbox mb-4 text-5xl" style="color: var(--p-text-color)"></i>
         <p>No notifications found.</p>
       </div>
     }
   </div>
   <div class="p-card-footer">
-    <button
-      pButton
-      label="See all notifications"
-      class="p-button-outlined p-button-contrast p-button-sm w-full"
-      (click)="viewAllNotifications(); closeOverlay()"
-      appendTo="body"
-    ></button>
+    <button pButton label="See all notifications" class="p-button-outlined p-button-contrast p-button-sm w-full" (click)="viewAllNotifications(); closeOverlay()" appendTo="body"></button>
   </div>
 </div>

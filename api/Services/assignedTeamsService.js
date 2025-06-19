@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -24,7 +24,7 @@ async function withConnection(callback) {
 
 exports.getAssignedTeams = async function getAssignedTeams(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT
                     t.assignedTeamId,
@@ -43,22 +43,22 @@ exports.getAssignedTeams = async function getAssignedTeams(req, res, next) {
                 assignedTeamId: row.assignedTeamId,
                 assignedTeamName: row.assignedTeamName,
                 adTeam: row.adTeam,
-                permissions: row.collectionData ?
-                    row.collectionData.split(',').map(data => {
-                        const [id, name] = data.split(':');
-                        return {
-                            collectionId: parseInt(id),
-                            collectionName: name || ''
-                        };
-                    }) :
-                    []
+                permissions: row.collectionData
+                    ? row.collectionData.split(',').map(data => {
+                          const [id, name] = data.split(':');
+                          return {
+                              collectionId: parseInt(id),
+                              collectionName: name || '',
+                          };
+                      })
+                    : [],
             }));
             return assignedTeams;
         });
     } catch (error) {
         next(error);
     }
-}
+};
 
 exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
     if (!req.params.assignedTeamId) {
@@ -66,11 +66,11 @@ exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
             status: 400,
             errors: {
                 assignedTeamId: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT
                     t.assignedTeamId,
@@ -87,26 +87,31 @@ exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
             `;
             let [rowAssignedTeam] = await connection.query(sql, [req.params.assignedTeamId]);
 
-            const assignedTeam = rowAssignedTeam.length === 0 ? [] : [{
-                assignedTeamId: rowAssignedTeam[0].assignedTeamId,
-                assignedTeamName: rowAssignedTeam[0].assignedTeamName,
-                adTeam: rowAssignedTeam[0].adTeam,
-                permissions: rowAssignedTeam[0].collectionData ?
-                    rowAssignedTeam[0].collectionData.split(',').map(data => {
-                        const [id, name] = data.split(':');
-                        return {
-                            collectionId: parseInt(id),
-                            collectionName: name || ''
-                        };
-                    }) :
-                    []
-            }];
+            const assignedTeam =
+                rowAssignedTeam.length === 0
+                    ? []
+                    : [
+                          {
+                              assignedTeamId: rowAssignedTeam[0].assignedTeamId,
+                              assignedTeamName: rowAssignedTeam[0].assignedTeamName,
+                              adTeam: rowAssignedTeam[0].adTeam,
+                              permissions: rowAssignedTeam[0].collectionData
+                                  ? rowAssignedTeam[0].collectionData.split(',').map(data => {
+                                        const [id, name] = data.split(':');
+                                        return {
+                                            collectionId: parseInt(id),
+                                            collectionName: name || '',
+                                        };
+                                    })
+                                  : [],
+                          },
+                      ];
             return { assignedTeam };
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.postAssignedTeam = async function postAssignedTeam(req, res, next) {
     if (!req.body.assignedTeamName) {
@@ -114,14 +119,14 @@ exports.postAssignedTeam = async function postAssignedTeam(req, res, next) {
             status: 400,
             errors: {
                 assignedTeamName: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.assignedteams (assignedTeamName, adTeam) VALUES (?, ?)`;
-            await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam ]);
+            await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam]);
 
             let sql = `SELECT * FROM ${config.database.schema}.assignedteams WHERE assignedTeamName = ?`;
             let [rowAssignedTeam] = await connection.query(sql, [req.body.assignedTeamName]);
@@ -129,14 +134,14 @@ exports.postAssignedTeam = async function postAssignedTeam(req, res, next) {
             const assignedTeam = {
                 assignedTeamId: rowAssignedTeam[0].assignedTeamId,
                 assignedTeamName: rowAssignedTeam[0].assignedTeamName,
-                adTeam: rowAssignedTeam[0].adTeam
+                adTeam: rowAssignedTeam[0].adTeam,
             };
             return assignedTeam;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.putAssignedTeam = async function putAssignedTeam(req, res, next) {
     if (!req.body.assignedTeamId) {
@@ -144,33 +149,33 @@ exports.putAssignedTeam = async function putAssignedTeam(req, res, next) {
             status: 400,
             errors: {
                 assignedTeamId: 'is required',
-            }
+            },
         });
     } else if (!req.body.assignedTeamName) {
         return next({
             status: 400,
             errors: {
                 assignedTeamName: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `UPDATE ${config.database.schema}.assignedteams SET assignedTeamName = ?, adTeam = ? WHERE assignedTeamId = ?`;
-            await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam, req.body.assignedTeamId ]);
+            await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam, req.body.assignedTeamId]);
 
             const assignedTeam = {
                 assignedTeamId: req.body.assignedTeamId,
                 assignedTeamName: req.body.assignedTeamName,
-                adTeam: req.body.adTeam
+                adTeam: req.body.adTeam,
             };
             return assignedTeam;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, next) {
     if (!req.params.assignedTeamId) {
@@ -178,12 +183,12 @@ exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, next) {
             status: 400,
             errors: {
                 assignedTeamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `DELETE FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
             await connection.query(sql, [req.params.assignedTeamId]);
 
@@ -192,11 +197,11 @@ exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const { assignedTeamId, collectionId } = req.body;
 
             let sql = `
@@ -209,17 +214,17 @@ exports.postAssignedTeamPermission = async function postAssignedTeamPermission(r
 
             return {
                 assignedTeamId,
-                collectionId
+                collectionId,
             };
         });
     } catch (error) {
         next(error);
     }
-}
+};
 
 exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const { assignedTeamId, collectionId } = req.params;
 
             let sql = `
@@ -232,7 +237,7 @@ exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermissi
             if (result.affectedRows === 0) {
                 throw {
                     status: 404,
-                    message: 'Permission not found'
+                    message: 'Permission not found',
                 };
             }
 
@@ -241,4 +246,4 @@ exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermissi
     } catch (error) {
         next(error);
     }
-}
+};

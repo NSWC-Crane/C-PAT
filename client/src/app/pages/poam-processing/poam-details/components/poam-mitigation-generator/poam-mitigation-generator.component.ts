@@ -8,41 +8,34 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { TextareaModule } from 'primeng/textarea';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { TooltipModule } from 'primeng/tooltip';
-import { DialogModule } from 'primeng/dialog';
-import { MenuItem, MessageService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { PoamService } from '../../../poams.service';
-import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { PoamService } from '../../../poams.service';
 
 @Component({
   selector: 'cpat-poam-mitigation-generator',
   standalone: true,
-  imports: [
-    FormsModule,
-    ButtonModule,
-    TextareaModule,
-    ProgressBarModule,
-    TooltipModule,
-    DialogModule,
-    ConfirmDialogModule,
-    SplitButtonModule,
-    ToastModule
-],
+  imports: [FormsModule, ButtonModule, TextareaModule, ProgressBarModule, TooltipModule, DialogModule, ConfirmDialogModule, SplitButtonModule, ToastModule],
   templateUrl: './poam-mitigation-generator.component.html'
 })
-export class PoamMitigationGeneratorComponent implements OnInit, OnChanges {
+export class PoamMitigationGeneratorComponent implements OnChanges {
+  private poamService = inject(PoamService);
+  private messageService = inject(MessageService);
+
   @Input() poam: any;
   @Input() team: any = null;
   @Input() teams: any[] = [];
-  @Output() mitigationGenerated = new EventEmitter<{ mitigation: string, teamId?: number }>();
+  @Output() mitigationGenerated = new EventEmitter<{ mitigation: string; teamId?: number }>();
   aiEnabled: boolean = CPAT.Env.features.aiEnabled;
   isGenerating = signal<boolean>(false);
   showPromptEditor = signal<boolean>(false);
@@ -71,28 +64,21 @@ export class PoamMitigationGeneratorComponent implements OnInit, OnChanges {
     }
   ];
 
-  constructor(
-    private poamService: PoamService,
-    private messageService: MessageService
-  ) { }
-
-  ngOnInit(): void { }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['teams'] && !changes['teams'].firstChange) {
-      if (this.team && !this.teams.some(t => t.assignedTeamId === this.team.assignedTeamId)) {
+      if (this.team && !this.teams.some((t) => t.assignedTeamId === this.team.assignedTeamId)) {
         this.reset();
       }
     }
 
     if (changes['team'] && !changes['team'].firstChange && this.generatedMitigation) {
-       this.reset();
+      this.reset();
     }
   }
 
-
   isTeamActive(): boolean {
     if (!this.team) return true;
+
     return this.team.isActive !== false;
   }
 
@@ -103,6 +89,7 @@ export class PoamMitigationGeneratorComponent implements OnInit, OnChanges {
         summary: 'Warning',
         detail: `Cannot generate mitigations for inactive team ${this.team.assignedTeamName}`
       });
+
       return;
     }
 
@@ -114,34 +101,34 @@ export class PoamMitigationGeneratorComponent implements OnInit, OnChanges {
     this.showPromptEditor.set(false);
     this.isGenerating.set(true);
 
-    this.poamService.automateMitigation(this.mitigationPrompt)
-      .subscribe({
-        next: (response) => {
-          if (response?.mitigation) {
-            this.generatedMitigation = response.mitigation.replace(/\*/g, '');
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: `Mitigation content generated successfully${this.team ? ' for ' + this.team.assignedTeamName : ''}`
-            });
-          } else {
-            this.messageService.add({
-              severity: 'warn',
-              summary: 'Warning',
-              detail: 'No mitigation content could be generated'
-            });
-          }
-          this.isGenerating.set(false);
-        },
-        error: (error) => {
+    this.poamService.automateMitigation(this.mitigationPrompt).subscribe({
+      next: (response) => {
+        if (response?.mitigation) {
+          this.generatedMitigation = response.mitigation.replace(/\*/g, '');
           this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to generate mitigation content: ${getErrorMessage(error)}`
+            severity: 'success',
+            summary: 'Success',
+            detail: `Mitigation content generated successfully${this.team ? ' for ' + this.team.assignedTeamName : ''}`
           });
-          this.isGenerating.set(false);
+        } else {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Warning',
+            detail: 'No mitigation content could be generated'
+          });
         }
-      });
+
+        this.isGenerating.set(false);
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to generate mitigation content: ${getErrorMessage(error)}`
+        });
+        this.isGenerating.set(false);
+      }
+    });
   }
 
   private buildMitigationPrompt() {
@@ -153,13 +140,13 @@ Vulnerability Title: ${this.poam.vulnerabilityTitle}
 Vulnerability ID: ${this.poam.vulnerabilityId}
 
 Technical Details:
-${this.poam.vulnerabilitySource === 'STIG' ?
-        `STIG Control Details:
+${
+  this.poam.vulnerabilitySource === 'STIG'
+    ? `STIG Control Details:
    ${this.poam.stigCheckData}`
-        :
-        `Nessus Plugin Details:
+    : `Nessus Plugin Details:
    ${this.poam.tenablePluginData}`
-      }
+}
 
 Required Output:
 1. Multiple layers of compensating controls that WILL be implemented

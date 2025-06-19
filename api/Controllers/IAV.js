@@ -8,13 +8,12 @@
 !##########################################################################
 */
 
-const iavService = require('../Services/iavService')
-
+const iavService = require('../Services/iavService');
 
 module.exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(req, res, next) {
     try {
         const vramUpdatedDate = await iavService.getVramDataUpdatedDate(req, res, next);
-            res.status(200).json(vramUpdatedDate);
+        res.status(200).json(vramUpdatedDate);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
@@ -22,7 +21,7 @@ module.exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(re
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.getIAVTableData = async function getIAVTableData(req, res, next) {
     try {
@@ -35,7 +34,7 @@ module.exports.getIAVTableData = async function getIAVTableData(req, res, next) 
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.mapIAVPluginIds = async function mapIAVPluginIds(req, res, next) {
     try {
@@ -48,7 +47,7 @@ module.exports.mapIAVPluginIds = async function mapIAVPluginIds(req, res, next) 
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) {
     try {
@@ -61,7 +60,7 @@ module.exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) 
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(req, res, next) {
     try {

@@ -8,35 +8,35 @@
 !##########################################################################
 */
 
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ViewChild, effect, signal } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { HttpResponse } from '@angular/common/http';
-import { AssetDeltaService } from './asset-delta.service';
-import { CollectionsService } from '../collection-processing/collections.service';
-import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
-import { UsersService } from '../user-processing/users.service';
-import { EMPTY, Observable, Subject, catchError, finalize, forkJoin, map, of, switchMap, takeUntil } from 'rxjs';
-import { FileUpload, FileUploadModule } from 'primeng/fileupload';
-import { FloatLabel } from "primeng/floatlabel"
 import { CommonModule } from '@angular/common';
+import { HttpResponse } from '@angular/common/http';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ViewChild, effect, signal, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { BadgeModule } from 'primeng/badge';
-import { ToastModule } from 'primeng/toast';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { ImportService } from '../../import-processing/import.service';
-import { SharedService } from '../../../common/services/shared.service';
-import { TableModule } from 'primeng/table';
-import { InputTextModule } from 'primeng/inputtext';
+import { ChartModule } from 'primeng/chart';
+import { DialogModule } from 'primeng/dialog';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { FloatLabel } from 'primeng/floatlabel';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
-import { DialogModule } from 'primeng/dialog';
-import { TooltipModule } from 'primeng/tooltip';
-import { ChartModule } from 'primeng/chart';
-import { AppConfigService } from '../../../layout/services/appconfigservice';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { EMPTY, Observable, Subject, catchError, finalize, forkJoin, map, of, switchMap, takeUntil } from 'rxjs';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AppConfigService } from '../../../layout/services/appconfigservice';
+import { ImportService } from '../../import-processing/import.service';
+import { CollectionsService } from '../collection-processing/collections.service';
+import { UsersService } from '../user-processing/users.service';
+import { AssetDeltaService } from './asset-delta.service';
 
 interface AssetDeltaResponse {
   assets: AssetData[];
@@ -73,29 +73,21 @@ interface ChartData {
   templateUrl: './asset-delta.component.html',
   styleUrls: ['./asset-delta.component.scss'],
   standalone: true,
-  imports: [
-    BadgeModule,
-    ButtonModule,
-    CardModule,
-    ChartModule,
-    CommonModule,
-    DialogModule,
-    FileUploadModule,
-    FloatLabel,
-    FormsModule,
-    InputTextModule,
-    IconField,
-    InputIcon,
-    ProgressBarModule,
-    SelectModule,
-    TableModule,
-    ToastModule,
-    TooltipModule
-  ],
+  imports: [BadgeModule, ButtonModule, CardModule, ChartModule, CommonModule, DialogModule, FileUploadModule, FloatLabel, FormsModule, InputTextModule, IconField, InputIcon, ProgressBarModule, SelectModule, TableModule, ToastModule, TooltipModule],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AssetDeltaComponent implements OnInit, AfterViewInit {
+export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
+  private importService = inject(ImportService);
+  private messageService = inject(MessageService);
+  private assetDeltaService = inject(AssetDeltaService);
+  private collectionsService = inject(CollectionsService);
+  private sharedService = inject(SharedService);
+  private userService = inject(UsersService);
+  private configService = inject(AppConfigService);
+  private cdr = inject(ChangeDetectorRef);
+  private elementRef = inject(ElementRef);
+
   @ViewChild('assetDeltaTable', { static: false }) assetDeltaTable: any;
   @ViewChild('fileUpload') fileUpload!: FileUpload;
   @Output() navigateToPluginMapping = new EventEmitter<void>();
@@ -136,25 +128,17 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       this.isVisible = true;
       setTimeout(() => this.calculateTableHeight(), 100);
     }
+
     this.isVisible = isActive;
   }
 
-  constructor(
-    private importService: ImportService,
-    private messageService: MessageService,
-    private assetDeltaService: AssetDeltaService,
-    private collectionsService: CollectionsService,
-    private sharedService: SharedService,
-    private userService: UsersService,
-    private configService: AppConfigService,
-    private cdr: ChangeDetectorRef,
-    private elementRef: ElementRef
-  ) {
+  constructor() {
     effect(() => {
       if (!this.themeInitialized()) {
         setTimeout(() => {
           const baseOptions = this.setChartOptions('bar');
           const stackedOptions = this.setChartOptions('stacked');
+
           this.chartOptions.set(baseOptions);
           this.stackedBarOptions.set(stackedOptions);
           this.doughnutOptions.set({
@@ -190,6 +174,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       requestAnimationFrame(() => {
         const baseOptions = this.setChartOptions('bar');
         const stackedOptions = this.setChartOptions('stacked');
+
         this.chartOptions.set(baseOptions);
         this.stackedBarOptions.set(stackedOptions);
         this.doughnutOptions.set({
@@ -222,56 +207,63 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     this.initializeColumns();
     this.themeInitialized.set(false);
 
-    this.userService.getCurrentUser().pipe(
-      takeUntil(this.destroy$),
-      catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to fetch user data: ${getErrorMessage(error)}`
-        });
-        return EMPTY;
-      })
-    ).subscribe(user => {
-      this.user = user;
+    this.userService
+      .getCurrentUser()
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch user data: ${getErrorMessage(error)}`
+          });
 
-      this.collectionsService.getCollectionBasicList().pipe(
-        takeUntil(this.destroy$)
-      ).subscribe({
-        next: (response) => {
-          this.availableCollections = response || [];
-          if (this.availableCollections.length > 0) {
-            let collectionToUse = null;
-            if (this.user?.lastCollectionAccessedId) {
-              const userCollection = this.availableCollections.find(
-                c => c.collectionId === this.user.lastCollectionAccessedId
-              );
-
-              if (userCollection) {
-                collectionToUse = userCollection.collectionId;
-              }
-            }
-
-            if (collectionToUse === null) {
-              collectionToUse = this.availableCollections[0].collectionId;
-            }
-            this.selectedCollection.set(collectionToUse);
-            this.loadAssetDeltaList(collectionToUse);
-          } else {
-            this.messageService.add({
-              severity: 'warn',
-              summary: 'No Collections',
-              detail: 'No collections available. Please create a collection first.'
-            });
-          }
-        },
-        error: (error) => this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load available collections: ${getErrorMessage(error)}`
+          return EMPTY;
         })
+      )
+      .subscribe((user) => {
+        this.user = user;
+
+        this.collectionsService
+          .getCollectionBasicList()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (response) => {
+              this.availableCollections = response || [];
+
+              if (this.availableCollections.length > 0) {
+                let collectionToUse = null;
+
+                if (this.user?.lastCollectionAccessedId) {
+                  const userCollection = this.availableCollections.find((c) => c.collectionId === this.user.lastCollectionAccessedId);
+
+                  if (userCollection) {
+                    collectionToUse = userCollection.collectionId;
+                  }
+                }
+
+                if (collectionToUse === null) {
+                  collectionToUse = this.availableCollections[0].collectionId;
+                }
+
+                this.selectedCollection.set(collectionToUse);
+                this.loadAssetDeltaList(collectionToUse);
+              } else {
+                this.messageService.add({
+                  severity: 'warn',
+                  summary: 'No Collections',
+                  detail: 'No collections available. Please create a collection first.'
+                });
+              }
+            },
+            error: (error) =>
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Failed to load available collections: ${getErrorMessage(error)}`
+              })
+          });
       });
-    });
   }
 
   ngAfterViewInit() {
@@ -292,6 +284,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     });
 
     const componentElement = this.elementRef.nativeElement;
+
     if (componentElement) {
       observer.observe(componentElement, {
         childList: true,
@@ -299,6 +292,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       });
 
       const tabPanel = componentElement.closest('.p-tabpanel');
+
       if (tabPanel) {
         observer.observe(tabPanel, {
           attributes: true,
@@ -319,14 +313,18 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       setTimeout(() => {
         const componentElement = this.elementRef.nativeElement;
         const tabPanel = componentElement.closest('.p-tabpanel');
+
         if (!tabPanel) {
           this.tableScrollHeight = '50vh';
+
           return;
         }
 
         const cardContainer = tabPanel.closest('.card');
+
         if (!cardContainer) {
           this.tableScrollHeight = '50vh';
+
           return;
         }
 
@@ -339,6 +337,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         const bottomPadding = 90;
         const availableHeight = cardBottom - tabPanelTop - chartsHeight - headerHeight - bottomPadding;
         const finalHeight = Math.max(availableHeight, 200);
+
         this.tableScrollHeight = `${finalHeight}px`;
 
         this.cdr.detectChanges();
@@ -358,34 +357,34 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       { field: 'existsInStigManager', header: 'STIG Manager', customExportHeader: 'STIG Manager' }
     ];
 
-    this.exportColumns = this.cols.map(col => ({
+    this.exportColumns = this.cols.map((col) => ({
       field: col.field,
       header: col.customExportHeader || col.header
     }));
   }
 
   loadCollections() {
-    this.collectionsService.getCollectionBasicList().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response) => {
-        this.availableCollections = response || [];
-        if (this.availableCollections.length > 0) {
-          const lastCollection = this.user;
-          const initialCollection = lastCollection &&
-            this.availableCollections.some(c => c.collectionId === lastCollection)
-            ? lastCollection
-            : this.availableCollections[0].collectionId;
+    this.collectionsService
+      .getCollectionBasicList()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.availableCollections = response || [];
 
-          this.onCollectionChange(initialCollection);
-        }
-      },
-      error: (error) => this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: `Failed to load available collections: ${getErrorMessage(error)}`
-      })
-    });
+          if (this.availableCollections.length > 0) {
+            const lastCollection = this.user;
+            const initialCollection = lastCollection && this.availableCollections.some((c) => c.collectionId === lastCollection) ? lastCollection : this.availableCollections[0].collectionId;
+
+            this.onCollectionChange(initialCollection);
+          }
+        },
+        error: (error) =>
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load available collections: ${getErrorMessage(error)}`
+          })
+      });
   }
 
   onUpload() {
@@ -410,6 +409,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         summary: 'Error',
         detail: 'No file selected'
       });
+
       return;
     }
 
@@ -419,33 +419,35 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         summary: 'Error',
         detail: 'Please select a collection first'
       });
+
       return;
     }
 
-    this.assetDeltaService.upload(file, collectionId).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (event: any) => {
-        if (event instanceof HttpResponse) {
+    this.assetDeltaService
+      .upload(file, collectionId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (event: any) => {
+          if (event instanceof HttpResponse) {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'File uploaded successfully'
+            });
+            this.loadAssetDeltaList(collectionId);
+            this.fileUpload.clear();
+            this.showUploadDialog.set(false);
+            this.checkAllStatuses();
+          }
+        },
+        error: (error) => {
           this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'File uploaded successfully'
+            severity: 'error',
+            summary: 'Error',
+            detail: `File upload failed: : ${getErrorMessage(error)}`
           });
-          this.loadAssetDeltaList(collectionId);
-          this.fileUpload.clear();
-          this.showUploadDialog.set(false);
-          this.checkAllStatuses();
         }
-      },
-      error: error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `File upload failed: : ${getErrorMessage(error)}`
-        });
-      }
-    });
+      });
   }
 
   onCollectionChange(collectionId: number) {
@@ -462,105 +464,111 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         summary: 'Warning',
         detail: 'Please select a collection first'
       });
+
       return;
     }
 
     this.loading.set(true);
-    this.assetDeltaService.getAssetDeltaListByCollection(collectionId).pipe(
-      takeUntil(this.destroy$),
-      finalize(() => this.loading.set(false))
-    ).subscribe({
-      next: (response: AssetDeltaResponse) => {
-        if (!response) {
+    this.assetDeltaService
+      .getAssetDeltaListByCollection(collectionId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe({
+        next: (response: AssetDeltaResponse) => {
+          if (!response) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Invalid response received from server'
+            });
+
+            return;
+          }
+
+          const assets = (response.assets || []).map((asset: AssetData) => ({
+            key: asset.key,
+            value: asset.value,
+            eMASS: asset.eMASS || false,
+            loading: false,
+            existsInTenable: undefined,
+            existsInStigManager: undefined,
+            assignedTeam: asset.assignedTeam
+          }));
+
+          this.assets.set(assets);
+          this.filteredAssets.set(assets);
+
+          if (response.assetDeltaUpdated) {
+            this.assetDeltaUpdated.set(response.assetDeltaUpdated);
+          }
+
+          if (response.emassHardwareListUpdated) {
+            this.emassHardwareListUpdated.set(response.emassHardwareListUpdated);
+          }
+
+          this.filteredTotal.set(response.assets?.length || 0);
+
+          if (this.assets().length > 0) {
+            this.updateChartData();
+          }
+        },
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Invalid response received from server'
+            detail: `Failed to load asset list: ${getErrorMessage(error)}`
           });
-          return;
+          this.assets.set([]);
+          this.assetDeltaUpdated.set(null);
+          this.emassHardwareListUpdated.set(null);
         }
-
-        const assets = (response.assets || []).map((asset: AssetData) => ({
-          key: asset.key,
-          value: asset.value,
-          eMASS: asset.eMASS || false,
-          loading: false,
-          existsInTenable: undefined,
-          existsInStigManager: undefined,
-          assignedTeam: asset.assignedTeam
-        }));
-
-        this.assets.set(assets);
-        this.filteredAssets.set(assets);
-
-        if (response.assetDeltaUpdated) {
-          this.assetDeltaUpdated.set(response.assetDeltaUpdated);
-        }
-
-        if (response.emassHardwareListUpdated) {
-          this.emassHardwareListUpdated.set(response.emassHardwareListUpdated);
-        }
-
-        this.filteredTotal.set(response.assets?.length || 0);
-
-        if (this.assets().length > 0) {
-          this.updateChartData();
-        }
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load asset list: ${getErrorMessage(error)}`
-        });
-        this.assets.set([]);
-        this.assetDeltaUpdated.set(null);
-        this.emassHardwareListUpdated.set(null);
-      }
-    });
+      });
   }
 
   checkStigManagerStatus(): Observable<Set<string>> {
-    this.assets.update(assets => assets.map(asset => ({
-      ...asset,
-      loading: true,
-      existsInStigManager: undefined
-    })));
+    this.assets.update((assets) =>
+      assets.map((asset) => ({
+        ...asset,
+        loading: true,
+        existsInStigManager: undefined
+      }))
+    );
 
     return this.sharedService.getCollectionsFromSTIGMAN().pipe(
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching STIG Manager collections: ${getErrorMessage(error)}`
         });
+
         return EMPTY;
       }),
-      switchMap(collections => {
+      switchMap((collections) => {
         if (!collections?.length) {
           return of(new Set<string>());
         }
 
-        const assetRequests = collections.map(collection =>
+        const assetRequests = collections.map((collection) =>
           this.sharedService.getAssetsFromSTIGMAN(collection.collectionId).pipe(
-            catchError(error => {
+            catchError((error) => {
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
                 detail: `Error fetching assets for collection ${collection.collectionId}: ${getErrorMessage(error)}`
               });
+
               return of([]);
             })
           )
         );
 
         return forkJoin(assetRequests).pipe(
-          map(assetArrays => {
-            const allAssets = new Set(
-              assetArrays
-                .flat()
-                .map(asset => asset.name.toLowerCase())
-            );
+          map((assetArrays) => {
+            const allAssets = new Set(assetArrays.flat().map((asset) => asset.name.toLowerCase()));
+
             return allAssets;
           })
         );
@@ -576,103 +584,108 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       detail: 'Status check initiated'
     });
 
-    const tenableCheck = this.checkTenableStatus(this.assets().map(a => a.key)).pipe(
+    const tenableCheck = this.checkTenableStatus(this.assets().map((a) => a.key)).pipe(
       takeUntil(this.destroy$),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Tenable status check failed: ${getErrorMessage(error)}`
         });
+
         return of(null);
       })
     );
 
     const stigManagerCheck = this.checkStigManagerStatus().pipe(
       takeUntil(this.destroy$),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `STIG Manager status check failed: ${getErrorMessage(error)}`
         });
+
         return of(null);
       })
     );
 
-    forkJoin([tenableCheck, stigManagerCheck]).pipe(
-      takeUntil(this.destroy$),
-      finalize(() => {
-        this.loading.set(false);
-      })
-    ).subscribe({
-      next: ([tenableResponse, stigManagerAssets]) => {
-        let tenableResults: string[] = [];
-        if (tenableResponse) {
-          tenableResults = tenableResponse.response.results.map((r: any) => r.dnsName.toLowerCase());
-        }
-
-        this.assets.update(assets => assets.map(asset => {
-          const updatedAsset = { ...asset, loading: false };
+    forkJoin([tenableCheck, stigManagerCheck])
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.loading.set(false);
+        })
+      )
+      .subscribe({
+        next: ([tenableResponse, stigManagerAssets]) => {
+          let tenableResults: string[] = [];
 
           if (tenableResponse) {
-            updatedAsset.existsInTenable = tenableResults.some((dnsName: string) =>
-              dnsName.includes(asset.key.toLowerCase())
-            );
+            tenableResults = tenableResponse.response.results.map((r: any) => r.dnsName.toLowerCase());
           }
 
-          if (stigManagerAssets) {
-            updatedAsset.existsInStigManager = stigManagerAssets.has(asset.key.toLowerCase());
+          this.assets.update((assets) =>
+            assets.map((asset) => {
+              const updatedAsset = { ...asset, loading: false };
+
+              if (tenableResponse) {
+                updatedAsset.existsInTenable = tenableResults.some((dnsName: string) => dnsName.includes(asset.key.toLowerCase()));
+              }
+
+              if (stigManagerAssets) {
+                updatedAsset.existsInStigManager = stigManagerAssets.has(asset.key.toLowerCase());
+              }
+
+              return updatedAsset;
+            })
+          );
+
+          this.filteredAssets.set(this.assets());
+          this.updateChartData();
+          this.cdr.detectChanges();
+
+          if (tenableResponse && stigManagerAssets) {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'All status checks completed'
+            });
+          } else {
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Partial Success',
+              detail: 'Some status checks completed' + (tenableResponse ? '' : ' - Tenable check failed') + (stigManagerAssets ? '' : ' - STIG Manager check failed')
+            });
           }
-
-          return updatedAsset;
-        }));
-
-        this.filteredAssets.set(this.assets());
-        this.updateChartData();
-        this.cdr.detectChanges();
-
-        if (tenableResponse && stigManagerAssets) {
+        },
+        error: (error) => {
           this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'All status checks completed'
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error during status checks: ${getErrorMessage(error)}`
           });
-        } else {
+          this.assets.update((assets) =>
+            assets.map((asset) => ({
+              ...asset,
+              loading: false
+            }))
+          );
+
+          this.filteredAssets.set(this.assets());
+
           this.messageService.add({
-            severity: 'info',
-            summary: 'Partial Success',
-            detail: 'Some status checks completed' +
-              (tenableResponse ? '' : ' - Tenable check failed') +
-              (stigManagerAssets ? '' : ' - STIG Manager check failed')
+            severity: 'error',
+            summary: 'Error',
+            detail: `Status checks failed: ${getErrorMessage(error)}`
           });
+          this.cdr.detectChanges();
         }
-      },
-      error: error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error during status checks: ${getErrorMessage(error)}`
-        });
-        this.assets.update(assets => assets.map(asset => ({
-          ...asset,
-          loading: false
-        })));
-
-        this.filteredAssets.set(this.assets());
-
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Status checks failed: ${getErrorMessage(error)}`
-        });
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   isTenableCheckDisabled(): boolean {
-    return !this.assets().length || this.assets().some(a => a.loading);
+    return !this.assets().length || this.assets().some((a) => a.loading);
   }
 
   choose(event: Event, chooseCallback: Function) {
@@ -692,11 +705,13 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
 
   updateTotalSize() {
     let totalSize = 0;
+
     if (this.fileUpload.files) {
       for (const file of this.fileUpload.files) {
         totalSize += file.size;
       }
     }
+
     this.totalSize.set(this.formatSize(totalSize));
     this.totalSizePercent.set((totalSize / 10485760) * 100);
   }
@@ -706,6 +721,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
@@ -717,14 +733,16 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         createdTime: 0,
         description: '',
         endOffset: 100000,
-        filters: [{
-          filterName: 'dnsName',
-          id: 'dnsName',
-          isPredefined: true,
-          operator: '~',
-          type: 'vuln',
-          value: hostnames.join(',')
-        }],
+        filters: [
+          {
+            filterName: 'dnsName',
+            id: 'dnsName',
+            isPredefined: true,
+            operator: '~',
+            type: 'vuln',
+            value: hostnames.join(',')
+          }
+        ],
         groups: [],
         modifiedTime: 0,
         name: '',
@@ -740,7 +758,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       sortDir: 'desc',
       sortField: 'total',
       sourceType: 'cumulative',
-      type: 'vuln',
+      type: 'vuln'
     };
 
     return this.importService.postTenableAnalysis(analysisParams);
@@ -764,74 +782,71 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     const assets = this.assets();
 
     const counts = {
-      inAllSystems: assets.filter(a => a.existsInTenable && a.existsInStigManager && a.eMASS).length,
-      inTenableAndStigManager: assets.filter(a => a.existsInTenable && a.existsInStigManager && !a.eMASS).length,
-      inTenableAndEMass: assets.filter(a => a.existsInTenable && !a.existsInStigManager && a.eMASS).length,
-      inStigManagerAndEMass: assets.filter(a => !a.existsInTenable && a.existsInStigManager && a.eMASS).length,
-      onlyInTenable: assets.filter(a => a.existsInTenable && !a.existsInStigManager && !a.eMASS).length,
-      onlyInStigManager: assets.filter(a => !a.existsInTenable && a.existsInStigManager && !a.eMASS).length,
-      onlyInEMass: assets.filter(a => !a.existsInTenable && !a.existsInStigManager && a.eMASS).length,
-      notInAnySystem: assets.filter(a => (!a.existsInTenable && !a.existsInStigManager && !a.eMASS) ||
-        a.existsInTenable === undefined ||
-        a.existsInStigManager === undefined).length
+      inAllSystems: assets.filter((a) => a.existsInTenable && a.existsInStigManager && a.eMASS).length,
+      inTenableAndStigManager: assets.filter((a) => a.existsInTenable && a.existsInStigManager && !a.eMASS).length,
+      inTenableAndEMass: assets.filter((a) => a.existsInTenable && !a.existsInStigManager && a.eMASS).length,
+      inStigManagerAndEMass: assets.filter((a) => !a.existsInTenable && a.existsInStigManager && a.eMASS).length,
+      onlyInTenable: assets.filter((a) => a.existsInTenable && !a.existsInStigManager && !a.eMASS).length,
+      onlyInStigManager: assets.filter((a) => !a.existsInTenable && a.existsInStigManager && !a.eMASS).length,
+      onlyInEMass: assets.filter((a) => !a.existsInTenable && !a.existsInStigManager && a.eMASS).length,
+      notInAnySystem: assets.filter((a) => (!a.existsInTenable && !a.existsInStigManager && !a.eMASS) || a.existsInTenable === undefined || a.existsInStigManager === undefined).length
     };
 
-    const teams = Array.from(new Set(assets.map(asset => asset.value)));
-    const teamData = teams.map(team => {
-      const teamAssets = assets.filter(asset => asset.value === team);
-      return {
-        team,
-        missingTenable: teamAssets.filter(asset => !asset.existsInTenable && (asset.existsInStigManager || asset.eMASS)).length,
-        missingStigManager: teamAssets.filter(asset => !asset.existsInStigManager && (asset.existsInTenable || asset.eMASS)).length,
-        missingEMass: teamAssets.filter(asset => !asset.eMASS && (asset.existsInTenable || asset.existsInStigManager)).length,
-        missingAll: teamAssets.filter(asset => (!asset.existsInTenable && !asset.existsInStigManager && !asset.eMASS) ||
-          asset.existsInTenable === undefined ||
-          asset.existsInStigManager === undefined).length
-      };
-    }).filter(team => team.missingTenable > 0 || team.missingStigManager > 0 || team.missingEMass > 0 || team.missingAll > 0);
+    const teams = Array.from(new Set(assets.map((asset) => asset.value)));
+    const teamData = teams
+      .map((team) => {
+        const teamAssets = assets.filter((asset) => asset.value === team);
+
+        return {
+          team,
+          missingTenable: teamAssets.filter((asset) => !asset.existsInTenable && (asset.existsInStigManager || asset.eMASS)).length,
+          missingStigManager: teamAssets.filter((asset) => !asset.existsInStigManager && (asset.existsInTenable || asset.eMASS)).length,
+          missingEMass: teamAssets.filter((asset) => !asset.eMASS && (asset.existsInTenable || asset.existsInStigManager)).length,
+          missingAll: teamAssets.filter((asset) => (!asset.existsInTenable && !asset.existsInStigManager && !asset.eMASS) || asset.existsInTenable === undefined || asset.existsInStigManager === undefined).length
+        };
+      })
+      .filter((team) => team.missingTenable > 0 || team.missingStigManager > 0 || team.missingEMass > 0 || team.missingAll > 0);
 
     const stackedDatasets: any[] = [
       {
         label: 'Missing from Tenable',
-        data: teamData.map(team => team.missingTenable),
+        data: teamData.map((team) => team.missingTenable),
         backgroundColor: colors.p600,
         borderRadius: 0,
         borderSkipped: false
       },
       {
         label: 'Missing from STIG Manager',
-        data: teamData.map(team => team.missingStigManager),
+        data: teamData.map((team) => team.missingStigManager),
         backgroundColor: colors.p500,
         borderRadius: 0,
         borderSkipped: false
       },
       {
         label: 'Missing from eMASS',
-        data: teamData.map(team => team.missingEMass),
+        data: teamData.map((team) => team.missingEMass),
         backgroundColor: colors.p400,
         borderRadius: 0,
         borderSkipped: false
       },
       {
         label: 'Missing from All',
-        data: teamData.map(team => team.missingAll),
+        data: teamData.map((team) => team.missingAll),
         backgroundColor: colors.p300,
         borderRadius: 0,
         borderSkipped: false
       }
     ];
 
-    const nonEmptyDatasets = stackedDatasets.filter(dataset =>
-      dataset.data.some(value => value > 0)
-    );
+    const nonEmptyDatasets = stackedDatasets.filter((dataset) => dataset.data.some((value) => value > 0));
 
-    nonEmptyDatasets.forEach(dataset => {
+    nonEmptyDatasets.forEach((dataset) => {
       dataset.borderRadius = dataset.data.map(() => 0);
     });
 
     teamData.forEach((_, teamIndex) => {
       const datasetStackOrder = [...nonEmptyDatasets].reverse();
-      const topVisibleDataset = datasetStackOrder.find(dataset => dataset.data[teamIndex] > 0);
+      const topVisibleDataset = datasetStackOrder.find((dataset) => dataset.data[teamIndex] > 0);
 
       if (topVisibleDataset) {
         topVisibleDataset.borderRadius[teamIndex] = { topLeft: 5, topRight: 5 };
@@ -839,7 +854,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
     });
 
     this.stackedBarData.set({
-      labels: teamData.map(team => team.team),
+      labels: teamData.map((team) => team.team),
       datasets: nonEmptyDatasets
     });
 
@@ -852,27 +867,31 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       { label: 'Only in STIG Manager', value: counts.onlyInStigManager, color: colors.p300 },
       { label: 'Only in eMASS', value: counts.onlyInEMass, color: colors.p200 },
       { label: 'Not In Any System', value: counts.notInAnySystem, color: colors.p100 }
-    ].filter(item => item.value > 0);
+    ].filter((item) => item.value > 0);
 
     this.doughnutData.set({
-      labels: doughnutItems.map(item => item.label),
-      datasets: [{
-        data: doughnutItems.map(item => item.value),
-        backgroundColor: doughnutItems.map(item => item.color),
-        borderWidth: 0
-      }]
+      labels: doughnutItems.map((item) => item.label),
+      datasets: [
+        {
+          data: doughnutItems.map((item) => item.value),
+          backgroundColor: doughnutItems.map((item) => item.color),
+          borderWidth: 0
+        }
+      ]
     });
 
     const teamColors = [colors.p700, colors.p600, colors.p500, colors.p400, colors.p300, colors.p200, colors.p100];
 
     this.barData.set({
       labels: teams,
-      datasets: [{
-        data: teams.map(team => assets.filter(asset => asset.value === team).length),
-        backgroundColor: teamColors,
-        borderRadius: { topLeft: 5, topRight: 5 },
-        borderSkipped: false
-      }]
+      datasets: [
+        {
+          data: teams.map((team) => assets.filter((asset) => asset.value === team).length),
+          backgroundColor: teamColors,
+          borderRadius: { topLeft: 5, topRight: 5 },
+          borderSkipped: false
+        }
+      ]
     });
   }
 
@@ -883,6 +902,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         summary: 'Error',
         detail: 'Table component not initialized'
       });
+
       return;
     }
 
@@ -892,6 +912,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         summary: 'No Data',
         detail: 'There is no data to export'
       });
+
       return;
     }
 
@@ -980,40 +1001,49 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
 
               if (tooltip.opacity === 0) {
                 tooltipEl.style.opacity = 0;
+
                 return;
               }
 
               if (tooltip.body) {
                 tooltipEl.innerHTML = '';
                 const tooltipBody = document.createElement('div');
+
                 tooltipBody.classList.add('flex', 'flex-col', 'gap-4', 'px-3', 'py-3', 'min-w-[18rem]');
 
                 const teamHeader = document.createElement('div');
+
                 teamHeader.classList.add('text-base', 'font-medium', 'text-color', 'border-bottom-1', 'surface-border', 'pb-2');
                 teamHeader.appendChild(document.createTextNode(tooltip.title[0]));
                 tooltipBody.appendChild(teamHeader);
 
-                const values = tooltip.dataPoints.map(dp => ({
-                  value: dp.formattedValue,
-                  label: dp.dataset.label,
-                  color: dp.dataset.backgroundColor
-                })).filter(item => parseInt(item.value) > 0);
+                const values = tooltip.dataPoints
+                  .map((dp) => ({
+                    value: dp.formattedValue,
+                    label: dp.dataset.label,
+                    color: dp.dataset.backgroundColor
+                  }))
+                  .filter((item) => parseInt(item.value) > 0);
 
                 values.forEach((item) => {
                   const row = document.createElement('div');
+
                   row.classList.add('flex', 'items-center', 'gap-2', 'w-full');
 
                   const point = document.createElement('div');
+
                   point.classList.add('w-2.5', 'h-2.5', 'rounded-full');
                   point.style.backgroundColor = item.color;
                   row.appendChild(point);
 
                   const label = document.createElement('span');
+
                   label.appendChild(document.createTextNode(item.label));
                   label.classList.add('text-base', 'font-medium', 'text-color', 'flex-1', 'text-left');
                   row.appendChild(label);
 
                   const value = document.createElement('span');
+
                   value.appendChild(document.createTextNode(item.value));
                   value.classList.add('text-base', 'font-medium', 'text-color', 'text-right');
                   row.appendChild(value);
@@ -1031,11 +1061,12 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
 
               tooltipEl.style.opacity = 1;
               tooltipEl.style.left = positionX + tooltip.caretX + 'px';
-              tooltipEl.style.top = positionY + elementY - (tooltipHeight / 2) + 'px';
+              tooltipEl.style.top = positionY + elementY - tooltipHeight / 2 + 'px';
               tooltipEl.style.font = tooltip.options.bodyFont.string;
               tooltipEl.style.padding = '0px';
 
               const chartWidth = chart.width;
+
               if (parseFloat(tooltipEl.style.left) + tooltipWidth > chartWidth) {
                 tooltipEl.style.left = positionX + tooltip.caretX - tooltipWidth - 8 + 'px';
               }
@@ -1064,11 +1095,13 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
 
   updateFilteredTotal() {
     const filteredValue = this.assetDeltaTable?.filteredValue;
+
     this.filteredTotal.set(filteredValue?.length ?? this.assets().length);
   }
 
   filterGlobal(event: any) {
     const filterValue = (event.target as HTMLInputElement).value;
+
     this.assetDeltaTable.filterGlobal(filterValue, 'contains');
     setTimeout(() => {
       this.updateFilteredTotal();
@@ -1077,6 +1110,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
 
   clearAllFilters() {
     const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+
     if (searchInput) {
       searchInput.value = '';
       this.filterGlobal({ target: searchInput });

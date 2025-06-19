@@ -8,29 +8,29 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { AssignedTeamService } from './assignedTeam-processing.service';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
-import { InputIconModule } from 'primeng/inputicon';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
-import { CollectionsService } from '../collection-processing/collections.service';
-import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
-import { EMPTY, Subscription, catchError } from 'rxjs';
-import { Permission } from '../../../common/models/permission.model';
-import { AssetDeltaService } from '../asset-delta/asset-delta.service';
-import { AutoCompleteModule } from 'primeng/autocomplete';
-import { MultiSelectModule } from 'primeng/multiselect';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { EMPTY, Subscription, catchError } from 'rxjs';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
+import { Permission } from '../../../common/models/permission.model';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AssetDeltaService } from '../asset-delta/asset-delta.service';
+import { CollectionsService } from '../collection-processing/collections.service';
+import { AssignedTeamService } from './assignedTeam-processing.service';
 interface AssignedTeam {
   assignedTeamId: number;
   assignedTeamName: string;
@@ -43,24 +43,16 @@ interface AssignedTeam {
   templateUrl: './assignedTeam-processing.component.html',
   styleUrls: ['./assignedTeam-processing.component.scss'],
   standalone: true,
-  imports: [
-    AutoCompleteModule,
-    ButtonModule,
-    CommonModule,
-    DialogModule,
-    FormsModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule,
-    MultiSelectModule,
-    PickListModule,
-    TableModule,
-    TagModule,
-    ToastModule,
-  ],
-  providers: [MessageService],
+  imports: [AutoCompleteModule, ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule],
+  providers: [MessageService]
 })
 export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
+  private assetDeltaService = inject(AssetDeltaService);
+  private assignedTeamService = inject(AssignedTeamService);
+  private collectionsService = inject(CollectionsService);
+  private messageService = inject(MessageService);
+  private sharedService = inject(SharedService);
+
   @ViewChild('dt') table!: Table;
   private allCollections: CollectionsBasicList[] = [];
   assignedTeams: AssignedTeam[] = [];
@@ -76,17 +68,9 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   selectedCollection: any;
   private subscriptions = new Subscription();
 
-  constructor(
-    private assetDeltaService: AssetDeltaService,
-    private assignedTeamService: AssignedTeamService,
-    private collectionsService: CollectionsService,
-    private messageService: MessageService,
-    private sharedService: SharedService
-  ) {}
-
   ngOnInit() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
         this.loadAssignedTeams();
         this.loadAssetDeltaList();
@@ -98,12 +82,13 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
 
   loadAssignedTeams() {
     this.assignedTeamService.getAssignedTeams().subscribe({
-      next: (response) => this.assignedTeams = response || [],
-      error: (error) => this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: `Failed to load Assigned Teams: ${getErrorMessage(error)}`
-      })
+      next: (response) => (this.assignedTeams = response || []),
+      error: (error) =>
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load Assigned Teams: ${getErrorMessage(error)}`
+        })
     });
   }
 
@@ -113,19 +98,19 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         this.uniqueTeams = response;
         this.filteredTeams = [...this.uniqueTeams];
       },
-      error: (error) => this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: `Failed to load Asset Delta Teams: ${getErrorMessage(error)}`
-      })
+      error: (error) =>
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load Asset Delta Teams: ${getErrorMessage(error)}`
+        })
     });
   }
 
   filterTeams(event: any) {
     const query = event.filter ? event.filter.toLowerCase() : '';
-    this.filteredTeams = this.uniqueTeams.filter(team =>
-      team.toLowerCase().includes(query)
-    );
+
+    this.filteredTeams = this.uniqueTeams.filter((team) => team.toLowerCase().includes(query));
   }
 
   loadCollections() {
@@ -134,11 +119,12 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         this.allCollections = response || [];
         this.availableCollections = [...this.allCollections];
       },
-      error: (error) => this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: `Failed to load available collections: ${getErrorMessage(error)}`
-      })
+      error: (error) =>
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load available collections: ${getErrorMessage(error)}`
+        })
     });
   }
 
@@ -148,12 +134,10 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
     if (this.editingAssignedTeam.adTeam) {
       this.selectedAdTeams = this.editingAssignedTeam.adTeam
         .split(',')
-        .map(team => team.trim())
-        .filter(team => team.length > 0);
+        .map((team) => team.trim())
+        .filter((team) => team.length > 0);
 
-      const missingTeams = this.selectedAdTeams.filter(
-        team => !this.uniqueTeams.includes(team)
-      );
+      const missingTeams = this.selectedAdTeams.filter((team) => !this.uniqueTeams.includes(team));
 
       if (missingTeams.length > 0) {
         this.filteredTeams = [...this.uniqueTeams, ...missingTeams];
@@ -165,16 +149,13 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
       this.filteredTeams = [...this.uniqueTeams];
     }
 
-    this.assignedCollections = assignedTeam.permissions?.map(p => ({
-      collectionId: p.collectionId,
-      collectionName: p.collectionName,
-    })) || [];
+    this.assignedCollections =
+      assignedTeam.permissions?.map((p) => ({
+        collectionId: p.collectionId,
+        collectionName: p.collectionName
+      })) || [];
 
-    this.availableCollections = this.allCollections.filter(
-      collection => !this.assignedCollections.some(
-        assigned => assigned.collectionId === collection.collectionId
-      )
-    );
+    this.availableCollections = this.allCollections.filter((collection) => !this.assignedCollections.some((assigned) => assigned.collectionId === collection.collectionId));
 
     this.dialogMode = 'edit';
     this.teamDialog = true;
@@ -191,13 +172,15 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
 
   onMoveToTarget(event: any) {
     const collections = Array.isArray(event.items) ? event.items : [event.items];
+
     if (!this.editingAssignedTeam || !collections.length) return;
 
     if (this.dialogMode === 'new' && this.editingAssignedTeam.assignedTeamId === 0) {
       if (!this.editingAssignedTeam.permissions) {
         this.editingAssignedTeam.permissions = [];
       }
-      collections.forEach(collection => {
+
+      collections.forEach((collection) => {
         this.editingAssignedTeam!.permissions!.push({
           collectionId: collection.collectionId,
           collectionName: collection.collectionName
@@ -208,6 +191,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         summary: 'Success',
         detail: `${collections.length} Permission${collections.length > 1 ? 's' : ''} Added`
       });
+
       return;
     }
 
@@ -215,72 +199,82 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
     let errorCount = 0;
     let completedCount = 0;
 
-    collections.forEach(collection => {
-      this.assignedTeamService.postAssignedTeamPermission({
-        assignedTeamId: this.editingAssignedTeam!.assignedTeamId,
-        collectionId: collection.collectionId
-      }).pipe(
-        catchError(error => {
-          errorCount++;
-          this.handlePermissionError(collection, error);
+    collections.forEach((collection) => {
+      this.assignedTeamService
+        .postAssignedTeamPermission({
+          assignedTeamId: this.editingAssignedTeam!.assignedTeamId,
+          collectionId: collection.collectionId
+        })
+        .pipe(
+          catchError((error) => {
+            errorCount++;
+            this.handlePermissionError(collection, error);
+            completedCount++;
+
+            if (completedCount === collections.length) {
+              this.showFinalMessage(successCount, errorCount);
+            }
+
+            return EMPTY;
+          })
+        )
+        .subscribe(() => {
+          successCount++;
           completedCount++;
+
+          if (!this.editingAssignedTeam!.permissions) {
+            this.editingAssignedTeam!.permissions = [];
+          }
+
+          this.editingAssignedTeam!.permissions.push({
+            collectionId: collection.collectionId,
+            collectionName: collection.collectionName
+          });
+
           if (completedCount === collections.length) {
             this.showFinalMessage(successCount, errorCount);
           }
-          return EMPTY;
-        })
-      ).subscribe(() => {
-        successCount++;
-        completedCount++;
-        if (!this.editingAssignedTeam!.permissions) {
-          this.editingAssignedTeam!.permissions = [];
-        }
-        this.editingAssignedTeam!.permissions.push({
-          collectionId: collection.collectionId,
-          collectionName: collection.collectionName
         });
-
-        if (completedCount === collections.length) {
-          this.showFinalMessage(successCount, errorCount);
-        }
-      });
     });
   }
 
   onMoveToSource(event: any) {
     const collections = Array.isArray(event.items) ? event.items : [event.items];
+
     if (!this.editingAssignedTeam || !collections.length) return;
 
     let successCount = 0;
     let errorCount = 0;
     let completedCount = 0;
 
-    collections.forEach(collection => {
-      this.assignedTeamService.deleteAssignedTeamPermission(
-        this.editingAssignedTeam!.assignedTeamId,
-        collection.collectionId
-      ).pipe(
-        catchError(error => {
-          errorCount++;
-          this.handlePermissionError(collection, error, true);
+    collections.forEach((collection) => {
+      this.assignedTeamService
+        .deleteAssignedTeamPermission(this.editingAssignedTeam!.assignedTeamId, collection.collectionId)
+        .pipe(
+          catchError((error) => {
+            errorCount++;
+            this.handlePermissionError(collection, error, true);
+            completedCount++;
+
+            if (completedCount === collections.length) {
+              this.showFinalMessage(successCount, errorCount, true);
+            }
+
+            return EMPTY;
+          })
+        )
+        .subscribe(() => {
+          successCount++;
           completedCount++;
+
+          if (this.editingAssignedTeam!.permissions) {
+            this.editingAssignedTeam!.permissions = this.editingAssignedTeam!.permissions.filter((p) => p.collectionId !== collection.collectionId);
+          }
+
           if (completedCount === collections.length) {
             this.showFinalMessage(successCount, errorCount, true);
           }
-          return EMPTY;
-        })
-      ).subscribe(() => {
-        successCount++;
-        completedCount++;
-        if (this.editingAssignedTeam!.permissions) {
-          this.editingAssignedTeam!.permissions = this.editingAssignedTeam!.permissions
-            .filter(p => p.collectionId !== collection.collectionId);
-        }
-
-        if (completedCount === collections.length) {
-          this.showFinalMessage(successCount, errorCount, true);
-        }
-      });
+        });
     });
   }
 
@@ -292,6 +286,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         detail: `${successCount} Permission${successCount > 1 ? 's' : ''} ${isRemoval ? 'Removed' : 'Added'}`
       });
     }
+
     if (errorCount > 0) {
       this.messageService.add({
         severity: 'error',
@@ -311,80 +306,84 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
     }
 
     if (this.editingAssignedTeam.permissions) {
-      this.editingAssignedTeam.permissions = this.editingAssignedTeam.permissions
-        .filter(p => p.collectionId !== 0);
+      this.editingAssignedTeam.permissions = this.editingAssignedTeam.permissions.filter((p) => p.collectionId !== 0);
     }
 
-    (this.dialogMode === 'new'
-      ? this.assignedTeamService.postAssignedTeam(this.editingAssignedTeam)
-      : this.assignedTeamService.putAssignedTeam(this.editingAssignedTeam)
-    ).pipe(
-      catchError(error => {
+    (this.dialogMode === 'new' ? this.assignedTeamService.postAssignedTeam(this.editingAssignedTeam) : this.assignedTeamService.putAssignedTeam(this.editingAssignedTeam))
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to save Assigned Team: ${getErrorMessage(error)}`
+          });
+
+          return EMPTY;
+        })
+      )
+      .subscribe((response) => {
+        if (this.dialogMode === 'new') {
+          this.assignedTeams = [...this.assignedTeams, response];
+        } else {
+          const index = this.assignedTeams.findIndex((team) => team.assignedTeamId === this.editingAssignedTeam?.assignedTeamId);
+
+          this.assignedTeams[index] = this.editingAssignedTeam!;
+          this.assignedTeams = [...this.assignedTeams];
+        }
+
         this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to save Assigned Team: ${getErrorMessage(error)}`
+          severity: 'success',
+          summary: 'Success',
+          detail: `Assigned Team ${this.dialogMode === 'new' ? 'Added' : 'Updated'}`
         });
-        return EMPTY;
-      })
-    ).subscribe(response => {
-      if (this.dialogMode === 'new') {
-        this.assignedTeams = [...this.assignedTeams, response];
-      } else {
-        const index = this.assignedTeams.findIndex(
-          team => team.assignedTeamId === this.editingAssignedTeam?.assignedTeamId
-        );
-        this.assignedTeams[index] = this.editingAssignedTeam!;
-        this.assignedTeams = [...this.assignedTeams];
-      }
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `Assigned Team ${this.dialogMode === 'new' ? 'Added' : 'Updated'}`
+        this.hideDialog();
       });
-      this.hideDialog();
-    });
   }
 
   getAdTeamsArray(adTeamString: string | null | undefined): string[] {
     if (!adTeamString) return [];
-    return adTeamString.split(',').map(team => team.trim()).filter(team => team.length > 0);
+
+    return adTeamString
+      .split(',')
+      .map((team) => team.trim())
+      .filter((team) => team.length > 0);
   }
 
   onRowDelete(assignedTeam: AssignedTeam) {
-    this.assignedTeamService.deleteAssignedTeam(assignedTeam.assignedTeamId).pipe(
-      catchError(error => {
+    this.assignedTeamService
+      .deleteAssignedTeam(assignedTeam.assignedTeamId)
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to delete Assigned Team: ${getErrorMessage(error)}`
+          });
+
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.assignedTeams = this.assignedTeams.filter((p) => p.assignedTeamId !== assignedTeam.assignedTeamId);
         this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to delete Assigned Team: ${getErrorMessage(error)}`
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Assigned Team Deleted'
         });
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.assignedTeams = this.assignedTeams
-        .filter(p => p.assignedTeamId !== assignedTeam.assignedTeamId);
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Assigned Team Deleted'
       });
-    });
   }
 
   private handlePermissionError(collection: any, error: Error, isRemoval = false) {
     if (isRemoval) {
-      const index = this.availableCollections.findIndex(
-        c => c.collectionId === collection.collectionId
-      );
+      const index = this.availableCollections.findIndex((c) => c.collectionId === collection.collectionId);
+
       if (index !== -1) {
         this.availableCollections.splice(index, 1);
         this.assignedCollections.push(collection);
       }
     } else {
-      const index = this.assignedCollections.findIndex(
-        c => c.collectionId === collection.collectionId
-      );
+      const index = this.assignedCollections.findIndex((c) => c.collectionId === collection.collectionId);
+
       if (index !== -1) {
         this.assignedCollections.splice(index, 1);
         this.availableCollections.push(collection);
@@ -405,6 +404,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
 
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
+
     this.table.filterGlobal(inputValue, 'contains');
   }
 

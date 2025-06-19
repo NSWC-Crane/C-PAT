@@ -8,18 +8,17 @@
 !##########################################################################
 */
 
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse, HttpEvent } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
-import { HttpEvent } from '@angular/common/http';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class AssetDeltaService {
-  private cpatApiBase = CPAT.Env.apiBase;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) { }
+  private cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -27,6 +26,7 @@ export class AssetDeltaService {
     } else {
       console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
+
     return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
@@ -42,24 +42,19 @@ export class AssetDeltaService {
       .post(`${this.cpatApiBase}/import/assetlist/${collectionId}`, formData, {
         reportProgress: true,
         observe: 'events'
-      }).pipe(catchError(this.handleError));
+      })
+      .pipe(catchError(this.handleError));
   }
 
   getAssetDeltaListByCollection(collectionId: number): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/assets/delta/list/${collectionId}`)
-      .pipe(catchError(this.handleError));
+    return this.http.get(`${this.cpatApiBase}/assets/delta/list/${collectionId}`).pipe(catchError(this.handleError));
   }
 
   getAssetDeltaList(): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/assets/delta/list`)
-      .pipe(catchError(this.handleError));
+    return this.http.get(`${this.cpatApiBase}/assets/delta/list`).pipe(catchError(this.handleError));
   }
 
   getAssetDeltaTeams(): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/assets/delta/teams`)
-      .pipe(catchError(this.handleError));
+    return this.http.get(`${this.cpatApiBase}/assets/delta/teams`).pipe(catchError(this.handleError));
   }
 }

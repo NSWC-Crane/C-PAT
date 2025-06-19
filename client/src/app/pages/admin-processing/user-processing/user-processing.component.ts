@@ -8,46 +8,41 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UsersService } from './users.service';
-import { Subscription, forkJoin } from 'rxjs';
-import { ConfirmationService, TreeNode } from 'primeng/api';
-import { SubSink } from 'subsink';
-import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { TreeTable, TreeTableModule } from 'primeng/treetable';
-import { Router } from '@angular/router';
-import { PayloadService } from '../../../common/services/setPayload.service';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { ConfirmationService, TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { UserComponent } from './user/user.component';
-import { Select } from 'primeng/select';
-import { TableModule } from 'primeng/table';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { TreeTable, TreeTableModule } from 'primeng/treetable';
+import { Subscription, forkJoin } from 'rxjs';
+import { SubSink } from 'subsink';
+import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { UserComponent } from './user/user.component';
+import { UsersService } from './users.service';
 
 @Component({
   selector: 'cpat-user-processing',
   templateUrl: './user-processing.component.html',
   styleUrls: ['./user-processing.component.scss'],
   standalone: true,
-  imports: [
-    ButtonModule,
-    CommonModule,
-    Select,
-    FormsModule,
-    InputIconModule,
-    InputTextModule,
-    IconFieldModule,
-    TableModule,
-    TreeTableModule,
-    UserComponent,
-  ],
-  providers: [ConfirmationService],
+  imports: [ButtonModule, CommonModule, Select, FormsModule, InputIconModule, InputTextModule, IconFieldModule, TableModule, TreeTableModule, UserComponent],
+  providers: [ConfirmationService]
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {
+  private collectionsService = inject(CollectionsService);
+  private userService = inject(UsersService);
+  private confirmationService = inject(ConfirmationService);
+  private router = inject(Router);
+  private setPayloadService = inject(PayloadService);
+
   @ViewChild('usersTable') usersTable!: TreeTable;
   public isLoggedIn = false;
   cols: any = [];
@@ -63,14 +58,6 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   payload: any;
   private payloadSubscription: Subscription[] = [];
   private subs = new SubSink();
-
-  constructor(
-    private collectionsService: CollectionsService,
-    private userService: UsersService,
-    private confirmationService: ConfirmationService,
-    private router: Router,
-    private setPayloadService: PayloadService
-  ) {}
 
   onSubmit() {
     this.resetData();
@@ -96,14 +83,15 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   async setPayload() {
     this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
+
         if (this.user.isAdmin) {
           this.getUserData();
         } else {
@@ -114,24 +102,19 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   async getUserData() {
-    forkJoin([
-      await this.userService.getUsers(),
-      await this.collectionsService.getCollectionBasicList(),
-    ]).subscribe(([userData, collectionData]: [any, any]) => {
+    forkJoin([await this.userService.getUsers(), await this.collectionsService.getCollectionBasicList()]).subscribe(([userData, collectionData]: [any, any]) => {
       this.data = userData;
       this.collectionList = collectionData.map((collection: any) => ({
         collectionId: collection.collectionId,
-        collectionName: collection.collectionName,
+        collectionName: collection.collectionName
       }));
       this.getUsersTree();
     });
   }
 
   getUsersTree() {
-    const sortOrder = { 'PENDING': 0, 'ACTIVE': 1, 'DISABLED': 2 };
-    const sortedUserData = [...this.data].sort((a, b) => {
-      return sortOrder[a.accountStatus as keyof typeof sortOrder] - sortOrder[b.accountStatus as keyof typeof sortOrder];
-    });
+    const sortOrder = { PENDING: 0, ACTIVE: 1, DISABLED: 2 };
+    const sortedUserData = [...this.data].sort((a, b) => sortOrder[a.accountStatus as keyof typeof sortOrder] - sortOrder[b.accountStatus as keyof typeof sortOrder]);
 
     const treeData: any[] = [];
 
@@ -141,16 +124,14 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
 
       if (userPermissions && userPermissions.length > 0) {
         for (const permission of userPermissions) {
-          const collection = this.collectionList.find(
-            c => c.collectionId === permission.collectionId
-          );
+          const collection = this.collectionList.find((c) => c.collectionId === permission.collectionId);
           const collectionName = collection ? collection.collectionName : '';
 
           const accessLevelMap: { [key: number]: string } = {
             1: 'Viewer',
             2: 'Submitter',
             3: 'Approver',
-            4: 'CAT-I Approver',
+            4: 'CAT-I Approver'
           };
 
           const accessLevelDisplay = accessLevelMap[permission.accessLevel] || '';
@@ -158,8 +139,8 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
           children.push({
             data: {
               Collection: collectionName,
-              'Access Level': accessLevelDisplay,
-            },
+              'Access Level': accessLevelDisplay
+            }
           });
         }
       }
@@ -170,7 +151,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
           Status: user.accountStatus,
           'First Name': user.firstName,
           'Last Name': user.lastName,
-          Email: user.email,
+          Email: user.email
         },
         children: children,
         styleClass: user.accountStatus === 'PENDING' ? 'pending-row' : ''
@@ -182,6 +163,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
 
   filterGlobal(event: any) {
     const filterValue = (event.target as HTMLInputElement).value;
+
     this.usersTable.filterGlobal(filterValue, 'contains');
   }
 
@@ -192,6 +174,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
 
   setUserFromTable(rowData: any) {
     const selectedUser = this.data.find((user: any) => user.userId === rowData['User']);
+
     if (selectedUser) {
       this.selectedUser = selectedUser;
       this.setUser(selectedUser);
@@ -208,7 +191,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): void => {
@@ -217,7 +200,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
       header: dialogOptions.header,
       icon: 'pi pi-exclamation-triangle',
       accept: () => {},
-      reject: () => {},
+      reject: () => {}
     });
   };
 }

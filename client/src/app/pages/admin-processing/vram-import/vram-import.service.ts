@@ -8,19 +8,18 @@
 !##########################################################################
 */
 
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse, HttpEvent } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { HttpEvent } from '@angular/common/http';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class VRAMImportService {
-  private cpatApiBase = CPAT.Env.apiBase;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) { }
+  private cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -28,11 +27,13 @@ export class VRAMImportService {
     } else {
       console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
+
     return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
   upload(file: File): Observable<HttpEvent<any>> {
     const formData = new FormData();
+
     formData.append('file', file, file.name);
 
     return this.http.post(`${this.cpatApiBase}/import/vram`, formData, {
@@ -42,8 +43,6 @@ export class VRAMImportService {
   }
 
   getVramDataUpdatedDate(): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/iav/vramUpdatedDate`)
-      .pipe(catchError(this.handleError));
+    return this.http.get(`${this.cpatApiBase}/iav/vramUpdatedDate`).pipe(catchError(this.handleError));
   }
 }

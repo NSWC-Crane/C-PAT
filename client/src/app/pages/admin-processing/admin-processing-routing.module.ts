@@ -9,8 +9,8 @@
 */
 
 import { Routes } from '@angular/router';
-import { AdminProcessingComponent } from './admin-processing.component';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
+import { AdminProcessingComponent } from './admin-processing.component';
 import { AppInfoComponent } from './app-info/app-info.component';
 
 export const adminProcessingRoutes: Routes = [
@@ -18,12 +18,12 @@ export const adminProcessingRoutes: Routes = [
     path: '',
     canActivate: [AuthGuard],
     component: AdminProcessingComponent,
-    data: { guardType: 'admin' },
+    data: { guardType: 'admin' }
   },
   {
     path: 'app-info',
     canActivate: [AuthGuard],
     component: AppInfoComponent,
-    data: { guardType: 'admin' },
+    data: { guardType: 'admin' }
   }
 ];

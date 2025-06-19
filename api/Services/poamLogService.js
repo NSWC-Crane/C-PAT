@@ -10,9 +10,9 @@
 
 'use strict';
 
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -30,11 +30,11 @@ exports.getPoamLogByPoamId = async function getPoamLogByPoamId(poamId) {
                 status: 400,
                 errors: {
                     poamId: 'is required',
-                }
+                },
             });
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `
         SELECT pl.timestamp, pl.action, u.fullName
         FROM ${config.database.schema}.poamlogs pl
@@ -45,7 +45,7 @@ exports.getPoamLogByPoamId = async function getPoamLogByPoamId(poamId) {
             const poamLog = rows.map(row => ({
                 Timestamp: row.timestamp,
                 User: row.fullName,
-                Action: row.action
+                Action: row.action,
             }));
             return poamLog;
         });

@@ -8,28 +8,28 @@
 !##########################################################################
 */
 
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { AssetDeltaService } from '../../../../admin-processing/asset-delta/asset-delta.service';
-import { MessageService } from 'primeng/api';
-import { ImportService } from '../../../import.service';
-import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { CommonModule } from '@angular/common';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
-import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
-import { TextareaModule } from 'primeng/textarea';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { Observable, Subscription, catchError, map, of } from 'rxjs';
 import { SharedService } from '../../../../../common/services/shared.service';
-import { Subscription, of, map, catchError, Observable } from 'rxjs';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { AssetDeltaService } from '../../../../admin-processing/asset-delta/asset-delta.service';
+import { ImportService } from '../../../import.service';
 interface Reference {
   type: string;
   value: string;
@@ -44,24 +44,15 @@ interface ExportColumn {
   templateUrl: './tenableAssetsTable.component.html',
   styleUrls: ['./tenableAssetsTable.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    TableModule,
-    TabsModule,
-    ButtonModule,
-    InputTextModule,
-    InputIconModule,
-    IconFieldModule,
-    TextareaModule,
-    MultiSelectModule,
-    DialogModule,
-    ToastModule,
-    TooltipModule,
-    TagModule
-  ],
+  imports: [CommonModule, FormsModule, TableModule, TabsModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, DialogModule, ToastModule, TooltipModule, TagModule]
 })
 export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
+  private assetDeltaService = inject(AssetDeltaService);
+  private importService = inject(ImportService);
+  private sanitizer = inject(DomSanitizer);
+  private messageService = inject(MessageService);
+  private sharedService = inject(SharedService);
+
   @Input() pluginID!: string;
   @Input() assetProcessing: boolean = false;
   @Input() tenableRepoId: number;
@@ -87,22 +78,14 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   selectedCollection: any;
   assetDeltaList: any;
   assetsByTeam: { [teamId: string]: any[] } = {};
-  teamTabs: { teamId: string, teamName: string, assets: any[] }[] = [];
+  teamTabs: { teamId: string; teamName: string; assets: any[] }[] = [];
   activeTab: string = 'all';
   private tableMap = new Map<string, Table>();
   private subscriptions = new Subscription();
 
-  constructor(
-    private assetDeltaService: AssetDeltaService,
-    private importService: ImportService,
-    private sanitizer: DomSanitizer,
-    private messageService: MessageService,
-    private sharedService: SharedService
-  ) {}
-
   ngOnInit() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
       })
     );
@@ -135,13 +118,13 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         field: 'sourcePluginIDs',
         header: 'Source',
         width: '150px',
-        filterable: true,
+        filterable: true
       },
       {
         field: 'severity',
         header: 'Severity',
         width: '100px',
-        filterable: true,
+        filterable: true
       },
       { field: 'vprScore', header: 'VPR', width: '100px', filterable: true },
       { field: 'ips', header: 'IP Address', width: '150px' },
@@ -150,60 +133,43 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         field: 'assetExposureScore',
         header: 'AES',
         width: '100px',
-        filterable: false,
+        filterable: false
       },
       {
         field: 'netbiosName',
         header: 'NetBIOS',
         width: '150px',
-        filterable: false,
+        filterable: false
       },
       { field: 'dnsName', header: 'DNS', width: '200px', filterable: false },
       {
         field: 'macAddress',
         header: 'MAC Address',
         width: '150px',
-        filterable: false,
+        filterable: false
       },
       { field: 'port', header: 'Port', width: '100px', filterable: false },
       {
         field: 'protocol',
         header: 'Protocol',
         width: '100px',
-        filterable: false,
+        filterable: false
       },
       { field: 'uuid', header: 'Agent ID', width: '200px', filterable: false },
       {
         field: 'hostUUID',
         header: 'Host ID',
         width: '200px',
-        filterable: false,
+        filterable: false
       },
-      { field: 'teamAssigned', header: 'Team', width: '120px', filterable: false },
+      { field: 'teamAssigned', header: 'Team', width: '120px', filterable: false }
     ];
-    this.exportColumns = this.cols.map(col => ({
+    this.exportColumns = this.cols.map((col) => ({
       title: col.header,
-      dataKey: col.field,
+      dataKey: col.field
     }));
-    this.selectedColumns = this.cols.filter(col =>
-      [
-        'sourcePluginIDs',
-        'pluginName',
-        'family',
-        'severity',
-        'vprScore',
-        'ips',
-        'acrScore',
-        'assetExposureScore',
-        'netbiosName',
-        'dnsName',
-        'macAddress',
-        'port',
-        'protocol',
-        'uuid',
-        'hostUUID',
-        'teamAssigned'
-      ].includes(col.field)
+    this.selectedColumns = this.cols.filter((col) =>
+      ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'vprScore', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID', 'teamAssigned'].includes(col.field)
     );
   }
 
@@ -213,12 +179,13 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     const netbiosName = asset.netbiosName?.toLowerCase() || '';
     const dnsName = asset.dnsName?.toLowerCase() || '';
 
-    return this.assetDeltaList.assets.some(deltaAsset => {
+    return this.assetDeltaList.assets.some((deltaAsset) => {
       const deltaKey = deltaAsset.key.toLowerCase();
+
       if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
-        return (deltaAsset.assignedTeams && deltaAsset.assignedTeams.length > 0) ||
-          (deltaAsset.assignedTeam && deltaAsset.assignedTeam.assignedTeamId);
+        return (deltaAsset.assignedTeams && deltaAsset.assignedTeams.length > 0) || (deltaAsset.assignedTeam && deltaAsset.assignedTeam.assignedTeamId);
       }
+
       return false;
     });
   }
@@ -228,22 +195,19 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
       next: (response) => {
         this.assetDeltaList = response || [];
       },
-      error: (error) => this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: `Failed to load Asset Delta List: ${getErrorMessage(error)}`
-      })
+      error: (error) =>
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load Asset Delta List: ${getErrorMessage(error)}`
+        })
     });
   }
 
   getAffectedAssetsForAllPlugins() {
     this.isLoading = true;
 
-    const associatedPluginIds = this.associatedVulnerabilities
-      .map(vuln => typeof vuln === 'string' ? vuln :
-        typeof vuln === 'object' && vuln.associatedVulnerability ?
-          vuln.associatedVulnerability : null)
-      .filter(id => id !== null);
+    const associatedPluginIds = this.associatedVulnerabilities.map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null)).filter((id) => id !== null);
 
     const allPluginIds = [this.pluginID, ...associatedPluginIds];
 
@@ -267,7 +231,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
             operator: '=',
             type: 'vuln',
             isPredefined: true,
-            value: allPluginIds.join(','),
+            value: allPluginIds.join(',')
           },
           {
             id: 'repository',
@@ -275,14 +239,14 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
             operator: '=',
             type: 'vuln',
             isPredefined: true,
-            value: [{ id: this.tenableRepoId.toString() }],
-          },
+            value: [{ id: this.tenableRepoId.toString() }]
+          }
         ],
-        vulnTool: 'listvuln',
+        vulnTool: 'listvuln'
       },
       sourceType: 'cumulative',
       columns: [],
-      type: 'vuln',
+      type: 'vuln'
     };
 
     this.importService.postTenableAnalysis(analysisParams).subscribe({
@@ -294,6 +258,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
             detail: 'No assets found for these vulnerabilities'
           });
           this.isLoading = false;
+
           return;
         }
 
@@ -311,13 +276,14 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
         const assetMap = new Map();
 
-        processedAssets.forEach(asset => {
+        processedAssets.forEach((asset) => {
           const key = `${asset.hostUUID || ''}-${asset.netbiosName || ''}-${asset.dnsName || ''}-${asset.macAddress || ''}`;
 
           if (!assetMap.has(key)) {
             assetMap.set(key, asset);
           } else {
             const existing = assetMap.get(key);
+
             existing.sourcePluginIDs = [...new Set([...existing.sourcePluginIDs, ...asset.sourcePluginIDs])];
           }
         });
@@ -360,7 +326,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
             operator: '=',
             type: 'vuln',
             isPredefined: true,
-            value: pluginID,
+            value: pluginID
           },
           {
             id: 'repository',
@@ -368,26 +334,27 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
             operator: '=',
             type: 'vuln',
             isPredefined: true,
-            value: [{ id: tenableRepoId.toString() }],
-          },
+            value: [{ id: tenableRepoId.toString() }]
+          }
         ],
-        vulnTool: 'listvuln',
+        vulnTool: 'listvuln'
       },
       sourceType: 'cumulative',
       columns: [],
-      type: 'vuln',
+      type: 'vuln'
     };
 
     return this.importService.postTenableAnalysis(analysisParams).pipe(
-      map((data) => {
-        return data.response.results.map((asset: any) => {
+      map((data) =>
+        data.response.results.map((asset: any) => {
           const defaultAsset = {
             pluginID: '',
             pluginName: '',
             family: { name: '' },
             severity: { name: '' },
-            vprScore: '',
+            vprScore: ''
           };
+
           return {
             ...defaultAsset,
             ...asset,
@@ -396,14 +363,15 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
             severity: asset.severity?.name || '',
             sourcePluginID: pluginID
           };
-        });
-      }),
-      catchError(error => {
+        })
+      ),
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching assets for plugin ${pluginID}: ${getErrorMessage(error)}`
         });
+
         return of([]);
       })
     );
@@ -413,25 +381,20 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     if (!this.assetDeltaList?.assets || !this.affectedAssets) return;
     this.assetsByTeam = {};
 
-    this.affectedAssets.forEach(asset => {
+    this.affectedAssets.forEach((asset) => {
       const netbiosName = asset.netbiosName?.toLowerCase() || '';
       const dnsName = asset.dnsName?.toLowerCase() || '';
 
-      this.assetDeltaList.assets.forEach(deltaAsset => {
+      this.assetDeltaList.assets.forEach((deltaAsset) => {
         const deltaKey = deltaAsset.key.toLowerCase();
 
         if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
           if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
-            deltaAsset.assignedTeams.forEach(team => {
+            deltaAsset.assignedTeams.forEach((team) => {
               this.addAssetToTeam(asset, team.assignedTeamId, team.assignedTeamName);
             });
-          }
-          else if (deltaAsset.assignedTeam) {
-            this.addAssetToTeam(
-              asset,
-              deltaAsset.assignedTeam.assignedTeamId,
-              deltaAsset.assignedTeam.assignedTeamName
-            );
+          } else if (deltaAsset.assignedTeam) {
+            this.addAssetToTeam(asset, deltaAsset.assignedTeam.assignedTeamId, deltaAsset.assignedTeam.assignedTeamName);
           }
         }
       });
@@ -445,9 +408,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
       this.assetsByTeam[teamId] = [];
     }
 
-    const isDuplicate = this.assetsByTeam[teamId].some(existingAsset =>
-      JSON.stringify(existingAsset) === JSON.stringify(asset)
-    );
+    const isDuplicate = this.assetsByTeam[teamId].some((existingAsset) => JSON.stringify(existingAsset) === JSON.stringify(asset));
 
     if (!isDuplicate) {
       this.assetsByTeam[teamId].push({
@@ -459,13 +420,12 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   createTeamTabs() {
-    this.teamTabs = [
-      { teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }
-    ];
+    this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }];
 
-    Object.keys(this.assetsByTeam).forEach(teamId => {
+    Object.keys(this.assetsByTeam).forEach((teamId) => {
       if (this.assetsByTeam[teamId].length > 0) {
         const teamName = this.assetsByTeam[teamId][0].assignedTeamName || `Team ${teamId}`;
+
         this.teamTabs.push({
           teamId: teamId,
           teamName: teamName,
@@ -496,7 +456,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
       operator: '=',
       type: 'vuln',
       isPredefined: true,
-      value: [{ id: this.tenableRepoId.toString() }],
+      value: [{ id: this.tenableRepoId.toString() }]
     };
 
     const analysisParams = {
@@ -513,11 +473,11 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         startOffset: startOffset,
         endOffset: endOffset,
         filters: [repoFilter],
-        vulnTool: 'listvuln',
+        vulnTool: 'listvuln'
       },
       sourceType: 'cumulative',
       columns: [],
-      type: 'vuln',
+      type: 'vuln'
     };
 
     this.importService.postTenableAnalysis(analysisParams).subscribe({
@@ -528,14 +488,15 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
             pluginName: '',
             family: { name: '' },
             severity: { name: '' },
-            vprScore: '',
+            vprScore: ''
           };
+
           return {
             ...defaultAsset,
             ...asset,
             pluginName: asset.name || '',
             family: asset.family?.name || '',
-            severity: asset.severity?.name || '',
+            severity: asset.severity?.name || ''
           };
         });
 
@@ -560,61 +521,59 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     });
   }
 
-    showDetails(vulnerability: any) {
-        if (!vulnerability || !vulnerability.pluginID) {
-            throw new Error('Invalid vulnerability data');
+  showDetails(vulnerability: any) {
+    if (!vulnerability || !vulnerability.pluginID) {
+      throw new Error('Invalid vulnerability data');
+    }
+
+    this.importService.getTenablePlugin(vulnerability.pluginID).subscribe({
+      next: (data) => {
+        if (!data || !data.response) {
+          throw new Error('Invalid response from getTenablePlugin');
         }
 
-        this.importService.getTenablePlugin(vulnerability.pluginID).subscribe({
-            next: (data) => {
-                if (!data || !data.response) {
-                    throw new Error('Invalid response from getTenablePlugin');
-                }
+        this.pluginData = data.response;
+        this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replace(/\n\n/g, '<br>')) : '';
 
-                this.pluginData = data.response;
-                this.formattedDescription = this.pluginData.description
-                    ? this.sanitizer.bypassSecurityTrustHtml(
-                        this.pluginData.description.replace(/\n\n/g, '<br>')
-                    )
-                    : '';
+        if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
+          this.parseReferences(this.pluginData.xrefs);
+        } else {
+          this.cveReferences = [];
+          this.iavReferences = [];
+          this.otherReferences = [];
+        }
 
-                if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
-                    this.parseReferences(this.pluginData.xrefs);
-                } else {
-                    this.cveReferences = [];
-                    this.iavReferences = [];
-                    this.otherReferences = [];
-                }
+        if (Array.isArray(this.pluginData.vprContext)) {
+          this.parseVprContext(this.pluginData.vprContext);
+        } else {
+          this.parsedVprContext = [];
+        }
 
-                if (Array.isArray(this.pluginData.vprContext)) {
-                    this.parseVprContext(this.pluginData.vprContext);
-                } else {
-                    this.parsedVprContext = [];
-                }
-
-                this.selectedVulnerability = vulnerability;
-                this.displayDialog = true;
-            },
-            error: (error) => {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-              });
-            }
+        this.selectedVulnerability = vulnerability;
+        this.displayDialog = true;
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching plugin data: ${getErrorMessage(error)}`
         });
-    }
+      }
+    });
+  }
 
   parseVprContext(vprContext: string) {
     try {
       this.parsedVprContext = JSON.parse(vprContext);
     } catch (error) {
+      console.error('Failed to parse VPR context:', error);
       this.parsedVprContext = [];
     }
   }
 
   parseReferences(xrefs: string) {
     const refs = xrefs.split(/\s+/).filter(Boolean);
+
     this.cveReferences = [];
     this.iavReferences = [];
     this.otherReferences = [];
@@ -658,15 +617,18 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   clear() {
     const activeTable = this.getActiveTable();
+
     if (activeTable) {
       activeTable.clear();
     }
+
     this.filterValue = '';
   }
 
   onGlobalFilter(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     const activeTable = this.getActiveTable();
+
     if (activeTable) {
       activeTable.filterGlobal(value, 'contains');
     }
@@ -674,6 +636,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   exportCSV() {
     const activeTable = this.getActiveTable();
+
     if (activeTable) {
       activeTable.exportCSV();
     }
@@ -681,6 +644,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   private getActiveTable(): Table | null {
     const table = this.tableMap.get(this.activeTab);
+
     if (!table) {
       console.warn(`No table found for tab ${this.activeTab}`);
 
@@ -688,15 +652,12 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         return this.tables.first;
       }
     }
+
     return table || null;
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter(col =>
-      ['netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID', 'teamAssigned'].includes(
-        col.field
-      )
-    );
+    this.selectedColumns = this.cols.filter((col) => ['netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID', 'teamAssigned'].includes(col.field));
   }
 
   toggleAddColumnOverlay() {
@@ -707,18 +668,18 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     }
   }
 
-  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+  getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (severity) {
       case 'Critical':
       case 'High':
-        return "danger";
+        return 'danger';
       case 'Medium':
-        return "warn";
+        return 'warn';
       case 'Low':
       case 'Info':
-        return "info";
+        return 'info';
       default:
-        return "info";
+        return 'info';
     }
   }
 

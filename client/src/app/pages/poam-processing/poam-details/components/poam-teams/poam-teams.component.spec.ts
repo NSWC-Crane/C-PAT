@@ -9,11 +9,11 @@
 */
 
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { PoamTeamsComponent } from './poam-teams.component';
+import { FormsModule } from '@angular/forms';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { Subject, of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
+import { PoamTeamsComponent } from './poam-teams.component';
 
 describe('PoamTeamsComponent', () => {
   let component: PoamTeamsComponent;
@@ -37,14 +37,8 @@ describe('PoamTeamsComponent', () => {
     } as jasmine.SpyObj<MessageService>;
 
     await TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        PoamTeamsComponent,
-        FormsModule
-      ],
-      providers: [
-        { provide: MessageService, useValue: mockMessageService }
-      ]
+      imports: [NoopAnimationsModule, PoamTeamsComponent, FormsModule],
+      providers: [{ provide: MessageService, useValue: mockMessageService }]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PoamTeamsComponent);
@@ -71,6 +65,7 @@ describe('PoamTeamsComponent', () => {
 
   it('should add a new team', () => {
     const teamsSpy = spyOn(component.teamsChanged, 'emit');
+
     component.addAssignedTeam();
     expect(component.poamAssignedTeams.length).toBe(1);
     expect(component.poamAssignedTeams[0].isNew).toBeTruthy();
@@ -87,9 +82,7 @@ describe('PoamTeamsComponent', () => {
     };
 
     component.poam.poamId = '12345';
-    mockPoamService.getPoamAssignedTeams.and.returnValue(of([
-      { assignedTeamId: 1, assignedTeamName: 'Team A' }
-    ]));
+    mockPoamService.getPoamAssignedTeams.and.returnValue(of([{ assignedTeamId: 1, assignedTeamName: 'Team A' }]));
 
     component.confirmCreateAssignedTeam(newTeam);
     tick();
@@ -102,8 +95,10 @@ describe('PoamTeamsComponent', () => {
 
   it('should handle team selection for new POAM', async () => {
     const teamsSpy = spyOn(component.teamsChanged, 'emit');
+
     component.addAssignedTeam();
     const newTeam = component.poamAssignedTeams[0];
+
     newTeam.assignedTeamId = 1;
 
     component.poam.poamId = 'ADDPOAM';
@@ -119,8 +114,10 @@ describe('PoamTeamsComponent', () => {
 
   it('should handle remove selection when team id is null', async () => {
     const teamsSpy = spyOn(component.teamsChanged, 'emit');
+
     component.addAssignedTeam();
     const newTeam = component.poamAssignedTeams[0];
+
     newTeam.assignedTeamId = null;
 
     await component.onAssignedTeamChange(newTeam, 0);
@@ -136,6 +133,7 @@ describe('PoamTeamsComponent', () => {
       assignedTeamId: 1,
       assignedTeamName: 'Team A'
     };
+
     component.poamAssignedTeams = [team];
 
     component.confirmDeleteAssignedTeam(team);
@@ -154,6 +152,7 @@ describe('PoamTeamsComponent', () => {
       assignedTeamName: '',
       isNew: true
     };
+
     component.poamAssignedTeams = [team];
 
     await component.deleteAssignedTeam(team, 0);
@@ -169,11 +168,10 @@ describe('PoamTeamsComponent', () => {
       assignedTeamId: 1,
       assignedTeamName: 'Team A'
     };
+
     component.poamAssignedTeams = [team];
 
-    mockPoamService.deletePoamAssignedTeam.and.returnValue(
-      throwError(() => new Error('Test error'))
-    );
+    mockPoamService.deletePoamAssignedTeam.and.returnValue(throwError(() => new Error('Test error')));
 
     component.confirmDeleteAssignedTeam(team);
     tick();

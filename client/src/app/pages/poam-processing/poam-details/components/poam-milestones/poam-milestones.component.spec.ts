@@ -8,15 +8,15 @@
 !##########################################################################
 */
 
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { PoamMilestonesComponent, Milestone } from './poam-milestones.component';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
-import { Table } from 'primeng/table';
-import { addDays } from 'date-fns';
 import { DatePipe } from '@angular/common';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { addDays } from 'date-fns';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { Table } from 'primeng/table';
 import { Subject } from 'rxjs';
+import { Milestone, PoamMilestonesComponent } from './poam-milestones.component';
 
 describe('PoamMilestonesComponent', () => {
   let component: PoamMilestonesComponent;
@@ -37,16 +37,8 @@ describe('PoamMilestonesComponent', () => {
     } as jasmine.SpyObj<MessageService>;
 
     await TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        PoamMilestonesComponent,
-        FormsModule
-      ],
-      providers: [
-        { provide: MessageService, useValue: mockMessageService },
-        ConfirmationService,
-        DatePipe
-      ]
+      imports: [NoopAnimationsModule, PoamMilestonesComponent, FormsModule],
+      providers: [{ provide: MessageService, useValue: mockMessageService }, ConfirmationService, DatePipe]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PoamMilestonesComponent);
@@ -97,6 +89,7 @@ describe('PoamMilestonesComponent', () => {
           assignedTeamId: 1
         }
       ];
+
       component.poamMilestones = milestones;
       component.ngOnInit();
       expect(component.poamMilestones).toBe(milestones);
@@ -113,6 +106,7 @@ describe('PoamMilestonesComponent', () => {
 
       expect(component.poamMilestones.length).toBe(1);
       const newMilestone = component.poamMilestones[0];
+
       expect(newMilestone.milestoneId).toContain('temp_');
       expect(newMilestone.milestoneComments).toBeNull();
       expect(newMilestone.milestoneStatus).toBe('Pending');
@@ -125,6 +119,7 @@ describe('PoamMilestonesComponent', () => {
 
     it('should set default date 30 days from now', () => {
       const expectedDate = addDays(new Date(), 30);
+
       component.onAddNewMilestone();
 
       const newMilestone = component.poamMilestones[0];
@@ -262,20 +257,24 @@ describe('PoamMilestonesComponent', () => {
 
     it('should show confirmation dialog for new milestone with unmodified date', () => {
       const confirmSpy = spyOn(confirmationService, 'confirm');
+
       milestone.isNew = true;
       milestone.dateModified = false;
 
       component.onRowEditSave(milestone);
 
-      expect(confirmSpy).toHaveBeenCalledWith(jasmine.objectContaining({
-        message: 'The milestone date has not been modified. Would you like to proceed?',
-        header: 'Confirm Milestone Date'
-      }));
+      expect(confirmSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          message: 'The milestone date has not been modified. Would you like to proceed?',
+          header: 'Confirm Milestone Date'
+        })
+      );
     });
 
     it('should finalize edit when confirmation is accepted', () => {
       spyOn(confirmationService, 'confirm').and.callFake((config: any) => {
         config.accept();
+
         return confirmationService;
       });
       spyOn(component.milestonesChanged, 'emit');
@@ -345,6 +344,7 @@ describe('PoamMilestonesComponent', () => {
         isNew: true,
         editing: true
       };
+
       component.poamMilestones = [newMilestone];
 
       component.onRowEditCancel(newMilestone, 0);
@@ -392,18 +392,22 @@ describe('PoamMilestonesComponent', () => {
         milestoneStatus: 'Pending',
         assignedTeamId: 1
       };
+
       component.poamMilestones = [milestone];
       component.deleteMilestone(milestone, 0);
 
-      expect(confirmSpy).toHaveBeenCalledWith(jasmine.objectContaining({
-        message: 'Are you sure you want to delete this milestone?',
-        header: 'Delete Confirmation'
-      }));
+      expect(confirmSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          message: 'Are you sure you want to delete this milestone?',
+          header: 'Delete Confirmation'
+        })
+      );
     });
 
     it('should delete milestone when confirmed', () => {
       spyOn(confirmationService, 'confirm').and.callFake((config: any) => {
         config.accept();
+
         return confirmationService;
       });
       spyOn(component.milestonesChanged, 'emit');
@@ -414,6 +418,7 @@ describe('PoamMilestonesComponent', () => {
         milestoneStatus: 'Pending',
         assignedTeamId: 1
       };
+
       component.poamMilestones = [milestone];
 
       component.deleteMilestone(milestone, 0);
@@ -430,6 +435,7 @@ describe('PoamMilestonesComponent', () => {
     it('should not delete milestone when rejected', () => {
       spyOn(confirmationService, 'confirm').and.callFake((config: any) => {
         if (config.reject) config.reject();
+
         return confirmationService;
       });
       spyOn(component.milestonesChanged, 'emit');
@@ -440,6 +446,7 @@ describe('PoamMilestonesComponent', () => {
         milestoneStatus: 'Pending',
         assignedTeamId: 1
       };
+
       component.poamMilestones = [milestone];
 
       component.deleteMilestone(milestone, 0);
@@ -452,28 +459,33 @@ describe('PoamMilestonesComponent', () => {
   describe('getTeamName', () => {
     it('should return team name for valid team ID', () => {
       const teamName = component.getTeamName(1);
+
       expect(teamName).toBe('Team A');
     });
 
     it('should return empty string for invalid team ID', () => {
       const teamName = component.getTeamName(999);
+
       expect(teamName).toBe('');
     });
 
     it('should return empty string for null team ID', () => {
       const teamName = component.getTeamName(null as any);
+
       expect(teamName).toBe('');
     });
 
     it('should return empty string when no team options', () => {
       component.assignedTeamOptions = [];
       const teamName = component.getTeamName(1);
+
       expect(teamName).toBe('');
     });
 
     it('should return empty string when team options is null', () => {
       component.assignedTeamOptions = null as any;
       const teamName = component.getTeamName(1);
+
       expect(teamName).toBe('');
     });
   });
@@ -491,6 +503,7 @@ describe('PoamMilestonesComponent', () => {
         assignedTeamId: 1,
         editing: true
       };
+
       component.clonedMilestones['123'] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -505,6 +518,7 @@ describe('PoamMilestonesComponent', () => {
     it('should handle exact scheduled completion date', () => {
       spyOn(component.milestonesChanged, 'emit');
       const completionDate = new Date('2024-12-31');
+
       component.poam.scheduledCompletionDate = completionDate;
 
       const milestone: Milestone = {
@@ -515,6 +529,7 @@ describe('PoamMilestonesComponent', () => {
         assignedTeamId: 1,
         editing: true
       };
+
       component.clonedMilestones['123'] = { ...milestone };
 
       component.onRowEditSave(milestone);

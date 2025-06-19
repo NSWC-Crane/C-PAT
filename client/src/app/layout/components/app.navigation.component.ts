@@ -8,56 +8,32 @@
 !##########################################################################
 */
 
-import { AuthService } from '../../core/auth/services/auth.service';
-import { NavigationEnd, Router } from '@angular/router';
-import {
-  afterNextRender,
-  booleanAttribute,
-  Component,
-  computed,
-  ElementRef,
-  inject,
-  Inject,
-  Input,
-  OnDestroy,
-  OnInit,
-  Renderer2,
-  ViewChild,
-  DOCUMENT
-} from '@angular/core';
-import { MenuItem } from 'primeng/api';
-import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
-import { NotificationService } from '../../common/components/notifications/notifications.service';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
-import { SubSink } from 'subsink';
-import { SharedService } from '../../common/services/shared.service';
-import { Subject, Subscription, filter, take, takeUntil } from 'rxjs';
+import { Component, DOCUMENT, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild, afterNextRender, booleanAttribute, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MenuModule } from 'primeng/menu';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
+import { NavigationEnd, Router } from '@angular/router';
+import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
-import { AppConfigService } from '../services/appconfigservice';
-import { AppTopBarComponent } from './app.topbar.component';
-import { AppLayoutComponent } from './app.layout.component';
-import { AppFooterComponent } from './app.footer.component';
-import { AppClassificationComponent } from './app.classification.component';
+import { ButtonModule } from 'primeng/button';
+import { MenuModule } from 'primeng/menu';
+import { TagModule } from 'primeng/tag';
+import { Subject, Subscription, filter, take, takeUntil } from 'rxjs';
+import { SubSink } from 'subsink';
+import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { PayloadService } from '../../common/services/setPayload.service';
+import { SharedService } from '../../common/services/shared.service';
+import { AuthService } from '../../core/auth/services/auth.service';
+import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
+import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { AppConfigService } from '../services/appconfigservice';
+import { AppClassificationComponent } from './app.classification.component';
+import { AppFooterComponent } from './app.footer.component';
+import { AppLayoutComponent } from './app.layout.component';
+import { AppTopBarComponent } from './app.topbar.component';
 
 @Component({
   selector: 'cpat-navigation',
   standalone: true,
-  imports: [
-    AppClassificationComponent,
-    AppTopBarComponent,
-    AppLayoutComponent,
-    BadgeModule,
-    ButtonModule,
-    AppFooterComponent,
-    MenuModule,
-    TagModule,
-    FormsModule
-],
+  imports: [AppClassificationComponent, AppTopBarComponent, AppLayoutComponent, BadgeModule, ButtonModule, AppFooterComponent, MenuModule, TagModule, FormsModule],
   template: `
     <div class="landing">
       <cpat-classification></cpat-classification>
@@ -65,9 +41,21 @@ import { PayloadService } from '../../common/services/setPayload.service';
       <cpat-layout></cpat-layout>
       <cpat-footer></cpat-footer>
     </div>
-  `,
+  `
 })
 export class AppNavigationComponent implements OnInit, OnDestroy {
+  private document = inject<Document>(DOCUMENT);
+  private renderer = inject(Renderer2);
+  private configService = inject(AppConfigService);
+  private authService = inject(AuthService);
+  private collectionsService = inject(CollectionsService);
+  private sharedService = inject(SharedService);
+  private userService = inject(UsersService);
+  private router = inject(Router);
+  private setPayloadService = inject(PayloadService);
+  private notificationService = inject(NotificationService);
+  el = inject(ElementRef);
+
   @Input({ transform: booleanAttribute }) showConfigurator = true;
 
   @Input({ transform: booleanAttribute }) showMenuButton = true;
@@ -93,19 +81,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   @ViewChild('menubutton') menuButton!: ElementRef;
   @ViewChild('menuContainer') menuContainer!: ElementRef;
   readonly user$ = inject(AuthService).user$;
-  constructor(
-    @Inject(DOCUMENT) private document: Document,
-    private renderer: Renderer2,
-    private configService: AppConfigService,
-    private authService: AuthService,
-    private collectionsService: CollectionsService,
-    private sharedService: SharedService,
-    private userService: UsersService,
-    private router: Router,
-    private setPayloadService: PayloadService,
-    private notificationService: NotificationService,
-    public el: ElementRef
-  ) {
+  constructor() {
     this.window = this.document.defaultView as Window;
 
     afterNextRender(() => {
@@ -116,10 +92,10 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     this.authService.user$
       .pipe(
-        filter(user => !!user),
+        filter((user) => !!user),
         take(1)
       )
-      .subscribe(user => {
+      .subscribe((user) => {
         this.user = user;
         this.getNotificationCount();
         this.getCollections();
@@ -132,16 +108,14 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
 
   isMenuActive = computed(() => this.configService.appState().menuActive);
 
-  landingClass = computed(() => {
-    return {
-      'layout-dark': this.isDarkMode(),
-      'layout-light': !this.isDarkMode(),
-      'layout-news-active': this.isNewsActive(),
-    };
-  });
+  landingClass = computed(() => ({
+    'layout-dark': this.isDarkMode(),
+    'layout-light': !this.isDarkMode(),
+    'layout-news-active': this.isNewsActive()
+  }));
 
   toggleDarkMode() {
-    this.configService.appState.update(state => ({ ...state, darkTheme: !state.darkTheme }));
+    this.configService.appState.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
   }
 
   bindScrollListener() {
@@ -167,7 +141,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     try {
       this.setPayloadService.setPayload();
       this.payloadSubscription.push(
-        this.setPayloadService.user$.subscribe(user => {
+        this.setPayloadService.user$.subscribe((user) => {
           this.user = user;
           this.getNotificationCount();
           this.getCollections();
@@ -175,7 +149,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
           this.setupUserMenuActions();
           this.router.events
             .pipe(
-              filter(event => event instanceof NavigationEnd),
+              filter((event) => event instanceof NavigationEnd),
               takeUntil(this.destroy$)
             )
             .subscribe(() => {
@@ -191,20 +165,20 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   }
 
   private getCollections() {
-    this.collectionsService.getCollections().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (collections: any) => {
-        this.collections = collections;
-        if (this.user?.lastCollectionAccessedId) {
-          this.selectedCollection = collections.find(
-            (c: any) => c.collectionId === this.user.lastCollectionAccessedId
-          );
-          this.resetWorkspace(this.user.lastCollectionAccessedId);
-        }
-      },
-      error: (error) => console.error('Error loading collections:', error)
-    });
+    this.collectionsService
+      .getCollections()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (collections: any) => {
+          this.collections = collections;
+
+          if (this.user?.lastCollectionAccessedId) {
+            this.selectedCollection = collections.find((c: any) => c.collectionId === this.user.lastCollectionAccessedId);
+            this.resetWorkspace(this.user.lastCollectionAccessedId);
+          }
+        },
+        error: (error) => console.error('Error loading collections:', error)
+      });
   }
 
   getTagColor(origin: string): 'secondary' | 'success' | 'warn' | 'danger' | 'info' | undefined {
@@ -220,45 +194,47 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     }
   }
 
-getNotificationCount() {
-  this.notificationService.getUnreadNotificationCount().pipe(
-    takeUntil(this.destroy$)
-  ).subscribe({
-    next: (result: any) => {
-      this.notificationCount = result > 0 ? result : null;
-    },
-    error: (error) => console.error('Error getting notification count:', error)
-  });
-}
+  getNotificationCount() {
+    this.notificationService
+      .getUnreadNotificationCount()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result: any) => {
+          this.notificationCount = result > 0 ? result : null;
+        },
+        error: (error) => console.error('Error getting notification count:', error)
+      });
+  }
 
   setMenuItems() {
     const marketplaceDisabled = CPAT.Env.features.marketplaceDisabled ?? false;
+
     if (marketplaceDisabled) {
       this.userMenu = [
         {
           label: 'Log Out',
           icon: 'pi pi-sign-out',
-          command: () => this.logout(),
-        },
+          command: () => this.logout()
+        }
       ];
     } else {
       this.userMenu = [
         {
           label: 'Marketplace',
           icon: 'pi pi-shopping-cart',
-          command: () => this.goToMarketplace(),
+          command: () => this.goToMarketplace()
         },
         {
           label: 'Log Out',
           icon: 'pi pi-sign-out',
-          command: () => this.logout(),
-        },
+          command: () => this.logout()
+        }
       ];
     }
   }
 
   setupUserMenuActions() {
-    this.userMenu.forEach(item => {
+    this.userMenu.forEach((item) => {
       if (item.label === 'Marketplace') {
         item.command = () => this.goToMarketplace();
       } else if (item.label === 'Log Out') {
@@ -271,17 +247,16 @@ getNotificationCount() {
     this.router.navigate(['/marketplace']);
   }
 
-    logout() {
-        this.authService.logout().subscribe({
-            next: () => {
-                this.router.navigate(['/login']);
-            },
-            error: (error) => {
-                console.error('Logout failed:', error);
-            },
-        });
-    }
-
+  logout() {
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/login']);
+      },
+      error: (error) => {
+        console.error('Logout failed:', error);
+      }
+    });
+  }
 
   onCollectionClick(event: any) {
     if (event && event.value) {
@@ -292,9 +267,7 @@ getNotificationCount() {
   resetWorkspace(selectedCollectionId: number) {
     this.sharedService.setSelectedCollection(selectedCollectionId);
 
-    const collection = this.collections.find(
-      (x: { collectionId: number }) => x.collectionId === selectedCollectionId
-    );
+    const collection = this.collections.find((x: { collectionId: number }) => x.collectionId === selectedCollectionId);
 
     if (collection) {
       this.selectedCollection = collection;
@@ -303,19 +276,20 @@ getNotificationCount() {
     if (this.user?.lastCollectionAccessedId !== selectedCollectionId) {
       const userUpdate = {
         userId: this.user.userId,
-        lastCollectionAccessedId: selectedCollectionId,
+        lastCollectionAccessedId: selectedCollectionId
       };
 
-      this.userService.updateUserLastCollection(userUpdate).pipe(
-        takeUntil(this.destroy$)
-      ).subscribe({
-        next: (result) => {
-          if (result) {
-            window.location.pathname = '/poam-processing';
-          }
-        },
-        error: (error) => console.error('Error updating user:', error)
-      });
+      this.userService
+        .updateUserLastCollection(userUpdate)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (result) => {
+            if (result) {
+              window.location.pathname = '/poam-processing';
+            }
+          },
+          error: (error) => console.error('Error updating user:', error)
+        });
     }
   }
 

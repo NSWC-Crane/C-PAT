@@ -13,41 +13,26 @@
     <tr>
       <th pSortableColumn="associatedVulnerability" scope="col">Associated Vulnerability</th>
       @if (accessLevel < 4) {
-        <th scope="col"
-          style="width: 8rem"
-          pTooltip="Associating additional vulnerabilities is restricted to CAT-I Approvers."
-          tooltipPosition="top"
-          >
-          <button pButton
-            icon="pi pi-plus"
-            class="p-button-rounded p-button-text"
-          [disabled]="accessLevel < 4"></button>
+        <th scope="col" style="width: 8rem" pTooltip="Associating additional vulnerabilities is restricted to CAT-I Approvers." tooltipPosition="top">
+          <button pButton icon="pi pi-plus" class="p-button-rounded p-button-text" [disabled]="accessLevel < 4"></button>
         </th>
       }
       @if (accessLevel >= 4) {
         <th scope="col" style="width: 8rem">
-          <button pButton
-            icon="pi pi-plus"
-            (click)="addAssociatedVulnerability()"
-            class="p-button-rounded p-button-text"
-          [disabled]="accessLevel < 4"></button>
+          <button pButton icon="pi pi-plus" (click)="addAssociatedVulnerability()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 4"></button>
         </th>
       }
     </tr>
   </ng-template>
-  <ng-template pTemplate="body"
-    let-associatedVulnerability
-    let-rowIndex="rowIndex">
+  <ng-template pTemplate="body" let-associatedVulnerability let-rowIndex="rowIndex">
     <tr>
       <td>
         @if (!associatedVulnerability.isNew) {
           <span>
-            <p-tag [value]="matchVulnerabilityTitle(associatedVulnerability.associatedVulnerability)"
-              [rounded]="true">
-            </p-tag>
+            <p-tag [value]="matchVulnerabilityTitle(associatedVulnerability.associatedVulnerability)" [rounded]="true"> </p-tag>
             @if (getVulnerabilityTitleText(associatedVulnerability.associatedVulnerability)) {
               <span class="ml-2">
-                {{getVulnerabilityTitleText(associatedVulnerability.associatedVulnerability)}}
+                {{ getVulnerabilityTitleText(associatedVulnerability.associatedVulnerability) }}
               </span>
             }
           </span>
@@ -60,9 +45,9 @@
             [suggestions]="selectedVulnerabilities"
             class="w-full"
             styleClass="w-full"
-            [style]="{'width':'100%'}"
-            [inputStyle]="{'width':'100%'}"
-            [panelStyle]="{'width':'auto', 'min-width':'90%', 'max-width':'100%'}"
+            [style]="{ width: '100%' }"
+            [inputStyle]="{ width: '100%' }"
+            [panelStyle]="{ width: 'auto', 'min-width': '90%', 'max-width': '100%' }"
             appendTo="body"
             id="associatedVulnerability"
             name="associatedVulnerability"
@@ -72,14 +57,13 @@
             (completeMethod)="search($event)"
             (keydown)="handleKeydown($event, associatedVulnerability)"
             (paste)="handlePaste($event, associatedVulnerability)"
-            optionLabel="">
+            optionLabel=""
+          >
             <ng-template let-item pTemplate="item">
               <div>
-                <span>{{item}}</span>
+                <span>{{ item }}</span>
                 @if (getVulnerabilityTitleText(item)) {
-                  <span class="ml-2" style="color: var(--text-secondary-color)">
-                    - {{getVulnerabilityTitleText(item)}}
-                  </span>
+                  <span class="ml-2" style="color: var(--text-secondary-color)"> - {{ getVulnerabilityTitleText(item) }} </span>
                 }
               </div>
             </ng-template>
@@ -88,17 +72,9 @@
       </td>
       <td>
         @if (associatedVulnerability.isNew) {
-          <button pButton
-            icon="pi pi-check"
-            (click)="onAssociatedVulnerabilityChange(associatedVulnerability, rowIndex)"
-            class="p-button-rounded p-button-text p-button-success"
-          [disabled]="accessLevel < 4"></button>
+          <button pButton icon="pi pi-check" (click)="onAssociatedVulnerabilityChange(associatedVulnerability, rowIndex)" class="p-button-rounded p-button-text p-button-success" [disabled]="accessLevel < 4"></button>
         }
-        <button pButton
-          icon="pi pi-trash"
-          (click)="deleteAssociatedVulnerability(associatedVulnerability, rowIndex)"
-          class="p-button-rounded p-button-text p-button-danger"
-        [disabled]="accessLevel < 4"></button>
+        <button pButton icon="pi pi-trash" (click)="deleteAssociatedVulnerability(associatedVulnerability, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 4"></button>
       </td>
     </tr>
   </ng-template>

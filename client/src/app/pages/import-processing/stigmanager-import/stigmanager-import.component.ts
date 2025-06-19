@@ -8,31 +8,31 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { SharedService } from '../../../common/services/shared.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { UsersService } from '../../admin-processing/user-processing/users.service';
-import { MessageService } from 'primeng/api';
-import { PoamService } from '../../poam-processing/poams.service';
 import { CommonModule } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
-import { InputIconModule } from 'primeng/inputicon';
-import { IconFieldModule } from 'primeng/iconfield';
-import { ToastModule } from 'primeng/toast';
-import { TabsModule } from 'primeng/tabs';
-import { SkeletonModule } from 'primeng/skeleton';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { Table, TableModule } from 'primeng/table';
-import { TooltipModule } from 'primeng/tooltip';
-import { TagModule } from 'primeng/tag';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { SkeletonModule } from 'primeng/skeleton';
+import { Table, TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
+import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { Subscription } from 'rxjs';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { UsersService } from '../../admin-processing/user-processing/users.service';
+import { PoamService } from '../../poam-processing/poams.service';
+import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
 
 interface STIGManagerFinding {
   groupId: string;
@@ -68,9 +68,16 @@ interface STIGManagerFinding {
     ProgressBarModule,
     TagModule
   ],
-  providers: [MessageService],
+  providers: [MessageService]
 })
 export class STIGManagerImportComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private collectionsService = inject(CollectionsService);
+  private sharedService = inject(SharedService);
+  private userService = inject(UsersService);
+  private messageService = inject(MessageService);
+  private poamService = inject(PoamService);
+
   @ViewChild('stigFindingsTable') findingsTable!: Table;
   @ViewChild('stigBenchmarksTable') benchmarksTable!: Table;
   allColumns = [
@@ -91,8 +98,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         { label: 'False-Positive', value: 'False-Positive' },
         { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
         { label: 'Rejected', value: 'Rejected' },
-        { label: 'Submitted', value: 'Submitted' },
-      ],
+        { label: 'Submitted', value: 'Submitted' }
+      ]
     },
     { field: 'groupId', header: 'Group ID', width: '12%', filterType: 'text' },
     { field: 'ruleTitle', header: 'Rule Title', width: '35%', filterType: 'text' },
@@ -114,7 +121,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         { label: 'CAT III - Low', value: 'CAT III - Low' }
       ]
     },
-    { field: 'assetCount', header: 'Asset Count', width: '15%', filterType: 'numeric' },
+    { field: 'assetCount', header: 'Asset Count', width: '15%', filterType: 'numeric' }
   ];
   private dataSource: STIGManagerFinding[] = [];
   public displayDataSource: STIGManagerFinding[] = [];
@@ -132,18 +139,9 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   findingsCount: number = 0;
   reviewsCount: number = 0;
 
-  constructor(
-    private router: Router,
-    private collectionsService: CollectionsService,
-    private sharedService: SharedService,
-    private userService: UsersService,
-    private messageService: MessageService,
-    private poamService: PoamService
-  ) { }
-
   ngOnInit() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
       })
     );
@@ -170,50 +168,50 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     });
   }
 
-  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+  getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (severity) {
       case 'CAT I - High':
-        return "danger";
+        return 'danger';
       case 'CAT II - Medium':
-        return "warn";
+        return 'warn';
       case 'CAT III - Low':
-        return "info";
+        return 'info';
       default:
-        return "info";
+        return 'info';
     }
   }
 
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
+
     this.findingsTable.filterGlobal(inputValue, 'contains');
   }
 
   validateStigManagerCollection() {
     this.collectionsService.getCollectionBasicList().subscribe({
       next: (basicListData) => {
-        const selectedCollection = basicListData?.find(
-          collection => +collection.collectionId === +this.user.lastCollectionAccessedId
-        );
+        const selectedCollection = basicListData?.find((collection) => +collection.collectionId === +this.user.lastCollectionAccessedId);
 
         if (!selectedCollection) {
           this.showWarn('Unable to find the selected collection. Please try again.');
+
           return;
         }
 
         if (selectedCollection.collectionOrigin !== 'STIG Manager') {
           this.showWarn('The current collection is not associated with STIG Manager.');
+
           return;
         }
 
         this.stigmanCollection = {
           collectionId: selectedCollection.originCollectionId,
-          name: selectedCollection.collectionName,
+          name: selectedCollection.collectionName
         };
 
         if (!this.stigmanCollection.collectionId) {
-          this.showWarn(
-            'Unable to determine the matching STIG Manager collection ID. Please try again.'
-          );
+          this.showWarn('Unable to determine the matching STIG Manager collection ID. Please try again.');
+
           return;
         }
 
@@ -236,8 +234,10 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         if (!data || data.length === 0) {
           this.showWarn('No benchmark summaries found.');
           this.loadingTableInfo = false;
+
           return;
         }
+
         this.benchmarkSummaries = data;
       },
       error: (error) => {
@@ -275,26 +275,25 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   getSTIGMANFindings(stigmanCollectionId: number, benchmarkId?: string) {
     this.loadingTableInfo = true;
 
-    const apiCall = benchmarkId
-      ? this.sharedService.getFindingsByBenchmarkFromSTIGMAN(stigmanCollectionId, benchmarkId)
-      : this.sharedService.getFindingsFromSTIGMAN(stigmanCollectionId);
+    const apiCall = benchmarkId ? this.sharedService.getFindingsByBenchmarkFromSTIGMAN(stigmanCollectionId, benchmarkId) : this.sharedService.getFindingsFromSTIGMAN(stigmanCollectionId);
 
     apiCall.subscribe({
       next: (data) => {
         if (!data || data.length === 0) {
           this.showWarn('No affected assets found' + (benchmarkId ? ' for this benchmark.' : '.'));
           this.loadingTableInfo = false;
+
           return;
         }
 
-        this.dataSource = data.map(item => ({
+        this.dataSource = data.map((item) => ({
           groupId: item.groupId,
           ruleTitle: item.rules[0].title,
           ruleId: item.rules[0].ruleId,
           benchmarkId: item.stigs[0].benchmarkId,
           severity: this.mapSeverity(item.severity),
           assetCount: item.assetCount,
-          hasExistingPoam: false,
+          hasExistingPoam: false
         }));
 
         this.displayDataSource = [...this.dataSource];
@@ -316,10 +315,14 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
 
   private mapSeverity(severity: string): string {
     switch (severity) {
-      case 'high': return 'CAT I - High';
-      case 'medium': return 'CAT II - Medium';
-      case 'low': return 'CAT III - Low';
-      default: return severity;
+      case 'high':
+        return 'CAT I - High';
+      case 'medium':
+        return 'CAT II - Medium';
+      case 'low':
+        return 'CAT III - Low';
+      default:
+        return severity;
     }
   }
 
@@ -328,27 +331,25 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   filterFindings() {
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection)
-      .subscribe({
-        next: (response: any) => {
-          this.existingPoams = response;
-          this.updateExistingPoams();
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching existing POAMs: ${getErrorMessage(error)}`
-          });
-        }
-      });
+    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
+      next: (response: any) => {
+        this.existingPoams = response;
+        this.updateExistingPoams();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching existing POAMs: ${getErrorMessage(error)}`
+        });
+      }
+    });
   }
 
   private updateExistingPoams() {
-    this.dataSource.forEach(item => {
-      const existingPoam = this.existingPoams.find(
-        (poam: any) => poam.vulnerabilityId === item.groupId
-      );
+    this.dataSource.forEach((item) => {
+      const existingPoam = this.existingPoams.find((poam: any) => poam.vulnerabilityId === item.groupId);
+
       item.hasExistingPoam = !!existingPoam;
       item.poamStatus = existingPoam ? existingPoam.status : 'No Existing POAM';
     });
@@ -404,8 +405,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   getPoamStatusTooltip(status: string | undefined, hasExistingPoam: boolean): string {
     if (!hasExistingPoam) return 'No Existing POAM. Click to create draft POAM.';
     if (!status) return 'POAM Status Unknown. Click to view POAM.';
-    if (hasExistingPoam && status === 'Associated')
-      return 'This vulnerability is associated with an existing master POAM. Click icon to view POAM.';
+    if (hasExistingPoam && status === 'Associated') return 'This vulnerability is associated with an existing master POAM. Click icon to view POAM.';
 
     return `POAM Status: ${status}. Click to view POAM.`;
   }
@@ -413,24 +413,25 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   addPoam(rowData: any): void {
     if (!rowData?.ruleId || !rowData?.groupId) {
       this.showError('Invalid data for POAM creation. Please try again.');
+
       return;
     }
 
-    this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId)
-      .subscribe({
-        next: (ruleData: any) => {
-          const ruleDataString = this.formatRuleData(ruleData);
-          const descriptionString = this.formatDescription(ruleData);
-          this.navigateToPoam(rowData, ruleDataString, descriptionString);
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching rule data: ${getErrorMessage(error)}`
-          });
-        }
-      });
+    this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId).subscribe({
+      next: (ruleData: any) => {
+        const ruleDataString = this.formatRuleData(ruleData);
+        const descriptionString = this.formatDescription(ruleData);
+
+        this.navigateToPoam(rowData, ruleDataString, descriptionString);
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error fetching rule data: ${getErrorMessage(error)}`
+        });
+      }
+    });
   }
 
   private formatRuleData(ruleData: any): string {
@@ -465,13 +466,11 @@ ${ruleData.detail.vulnDiscussion}`;
         benchmarkId: rowData.benchmarkId,
         severity: rowData.severity,
         ruleData: ruleDataString,
-        description: descriptionString,
-      },
+        description: descriptionString
+      }
     };
 
-    const existingPoam = this.existingPoams.find(
-      (item: any) => item.vulnerabilityId === rowData.groupId
-    );
+    const existingPoam = this.existingPoams.find((item: any) => item.vulnerabilityId === rowData.groupId);
 
     routePath += existingPoam ? existingPoam.poamId : 'ADDPOAM';
     this.router.navigate([routePath], routeParams);
@@ -493,6 +492,7 @@ ${ruleData.detail.vulnDiscussion}`;
 
   filterBenchmarkGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
+
     this.benchmarksTable.filterGlobal(inputValue, 'contains');
   }
 
@@ -514,7 +514,7 @@ ${ruleData.detail.vulnDiscussion}`;
     this.messageService.add({
       severity: 'warn',
       summary: 'Warn',
-      detail: message,
+      detail: message
     });
   }
 
@@ -522,7 +522,7 @@ ${ruleData.detail.vulnDiscussion}`;
     this.messageService.add({
       severity: 'error',
       summary: 'Error',
-      detail: message,
+      detail: message
     });
   }
 

@@ -8,19 +8,19 @@
 !##########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
-import { EMPTY, forkJoin, Observable, Subject } from 'rxjs';
-import { catchError, map, takeUntil, tap } from 'rxjs/operators';
-import { CollectionsService } from '../collection-processing/collections.service';
-import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
-import { ImportService } from '../../import-processing/import.service';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Select } from 'primeng/select';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { Select } from 'primeng/select';
+import { ToastModule } from 'primeng/toast';
+import { EMPTY, Observable, Subject, forkJoin } from 'rxjs';
+import { catchError, map, takeUntil, tap } from 'rxjs/operators';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { ImportService } from '../../import-processing/import.service';
+import { CollectionsService } from '../collection-processing/collections.service';
 interface TenableRepository {
   id: string;
   name: string;
@@ -35,21 +35,19 @@ interface TenableRepository {
   styleUrls: ['./tenable-admin.component.scss'],
   standalone: true,
   imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService, MessageService]
 })
-export class TenableAdminComponent implements OnInit {
+export class TenableAdminComponent implements OnInit, OnDestroy {
+  private collectionsService = inject(CollectionsService);
+  private importService = inject(ImportService);
+  private confirmationService = inject(ConfirmationService);
+  private messageService = inject(MessageService);
+
   tenableRepositories: TenableRepository[] = [];
   filteredRepositories: TenableRepository[] = [];
   selectedTenableRepository: TenableRepository | null = null;
   existingCollections: CollectionsBasicList[] = [];
   private destroy$ = new Subject<void>();
-
-  constructor(
-    private collectionsService: CollectionsService,
-    private importService: ImportService,
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService
-  ) {}
 
   ngOnInit() {
     this.fetchDataAndCompare();
@@ -59,50 +57,49 @@ export class TenableAdminComponent implements OnInit {
     forkJoin({
       repositories: this.importService.getTenableRepositories().pipe(
         map((response: any) => response.response),
-        catchError(error => {
+        catchError((error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Unable to connect to Tenable: ${getErrorMessage(error)}`
           });
+
           return EMPTY;
         })
       ),
       collections: this.collectionsService.getCollectionBasicList().pipe(
-        catchError(error => {
+        catchError((error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Unable to fetch existing collections: ${getErrorMessage(error)}`
           });
+
           return EMPTY;
         })
       )
-    }).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: ({ repositories, collections }) => {
-        this.tenableRepositories = repositories;
-        this.existingCollections = collections;
-        this.filterRepositories();
-      },
-      error: error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching data: ${getErrorMessage(error)}`
-        });
-      }
-    });
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ repositories, collections }) => {
+          this.tenableRepositories = repositories;
+          this.existingCollections = collections;
+          this.filterRepositories();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching data: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   filterRepositories() {
-    const existingNames = new Set(
-      this.existingCollections.map(c => c.collectionName.toLowerCase())
-    );
-    this.filteredRepositories = this.tenableRepositories?.filter(
-      repo => !existingNames.has(repo.name.toLowerCase())
-    );
+    const existingNames = new Set(this.existingCollections.map((c) => c.collectionName.toLowerCase()));
+
+    this.filteredRepositories = this.tenableRepositories?.filter((repo) => !existingNames.has(repo.name.toLowerCase()));
 
     if (this.filteredRepositories?.length === 0) {
       this.messageService.add({
@@ -120,14 +117,15 @@ export class TenableAdminComponent implements OnInit {
   importTenableRepository() {
     if (!this.selectedTenableRepository) {
       this.showPopup('Please select a repository to import.');
+
       return;
     }
 
-    this.importRepository(this.selectedTenableRepository).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      complete: () => this.fetchDataAndCompare()
-    });
+    this.importRepository(this.selectedTenableRepository)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        complete: () => this.fetchDataAndCompare()
+      });
   }
 
   importAllRemainingRepositories() {
@@ -136,27 +134,25 @@ export class TenableAdminComponent implements OnInit {
       header: 'Confirm Bulk Import',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        forkJoin(
-          this.filteredRepositories.map(repo => this.importRepository(repo))
-        ).pipe(
-          takeUntil(this.destroy$)
-        ).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: 'All repositories imported successfully'
-            });
-            this.fetchDataAndCompare();
-          },
-          error: error => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Error during bulk import: ${getErrorMessage(error)}`
-            });
-          }
-        });
+        forkJoin(this.filteredRepositories.map((repo) => this.importRepository(repo)))
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'All repositories imported successfully'
+              });
+              this.fetchDataAndCompare();
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error during bulk import: ${getErrorMessage(error)}`
+              });
+            }
+          });
       }
     });
   }
@@ -166,7 +162,7 @@ export class TenableAdminComponent implements OnInit {
       collectionName: repository.name,
       description: repository.description,
       collectionOrigin: 'Tenable',
-      originCollectionId: +repository.id,
+      originCollectionId: +repository.id
     };
 
     return this.collectionsService.addCollection(collectionData).pipe(
@@ -177,12 +173,13 @@ export class TenableAdminComponent implements OnInit {
           detail: `Repository "${repository.name}" imported successfully`
         });
       }),
-      catchError(error => {
+      catchError((error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error importing repository "${repository.name}": ${getErrorMessage(error)}`
         });
+
         return EMPTY;
       })
     );

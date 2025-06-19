@@ -14,6 +14,6 @@ import { AssetProcessingComponent } from './asset-processing.component';
 export const assetProcessingRoutes: Routes = [
   {
     path: '',
-    component: AssetProcessingComponent,
-  },
+    component: AssetProcessingComponent
+  }
 ];

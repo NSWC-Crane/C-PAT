@@ -8,59 +8,54 @@
 !##########################################################################
 */
 
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { ConfirmationService } from 'primeng/api';
-import { Subscription, forkJoin } from 'rxjs';
-import { addDays, format, isAfter, parseISO } from 'date-fns';
-import { PoamService } from '../poams.service';
-import { SharedService } from '../../../common/services/shared.service';
-import { PoamExtensionService } from '../poam-extend/poam-extend.service';
-import { MessageService } from 'primeng/api';
-import { PayloadService } from '../../../common/services/setPayload.service';
-import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
 import { CommonModule, DatePipe } from '@angular/common';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { addDays, format, isAfter, parseISO } from 'date-fns';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
-import { DatePicker } from 'primeng/datepicker';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
-import { TextareaModule } from 'primeng/textarea';
 import { StepperModule } from 'primeng/stepper';
 import { TableModule } from 'primeng/table';
+import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
-import { InputTextModule } from 'primeng/inputtext';
-import { LabelService } from '../../label-processing/label.service';
 import { TooltipModule } from 'primeng/tooltip';
+import { Subscription, forkJoin } from 'rxjs';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
+import { LabelService } from '../../label-processing/label.service';
+import { PoamExtensionService } from '../poam-extend/poam-extend.service';
+import { PoamService } from '../poams.service';
 
 @Component({
   selector: 'cpat-poam-extend',
   templateUrl: './poam-extend.component.html',
   styleUrls: ['./poam-extend.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    AutoCompleteModule,
-    ButtonModule,
-    DatePicker,
-    DialogModule,
-    Select,
-    InputTextModule,
-    TextareaModule,
-    TooltipModule,
-    StepperModule,
-    TableModule,
-    ToastModule,
-    ConfirmDialogModule,
-    DatePipe,
-  ],
-  providers: [ConfirmationService, MessageService],
+  imports: [CommonModule, FormsModule, AutoCompleteModule, ButtonModule, DatePicker, DialogModule, Select, InputTextModule, TextareaModule, TooltipModule, StepperModule, TableModule, ToastModule, ConfirmDialogModule, DatePipe],
+  providers: [ConfirmationService, MessageService]
 })
 export class PoamExtendComponent implements OnInit, OnDestroy {
+  private assignedTeamService = inject(AssignedTeamService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private poamService = inject(PoamService);
+  private sharedService = inject(SharedService);
+  private poamExtensionService = inject(PoamExtensionService);
+  private confirmationService = inject(ConfirmationService);
+  private labelService = inject(LabelService);
+  private messageService = inject(MessageService);
+  private cdr = inject(ChangeDetectorRef);
+  private setPayloadService = inject(PayloadService);
+
   assignedTeamOptions: any;
   displayExtensionDialog: boolean = false;
   dates: any = {};
@@ -71,11 +66,10 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   clonedMilestones: { [s: string]: any } = {};
   milestoneStatusOptions = [
     { label: 'Pending', value: 'Pending' },
-    { label: 'Complete', value: 'Complete' },
+    { label: 'Complete', value: 'Complete' }
   ];
   extensionJustification: string = '';
-  extensionJustificationPlaceholder: string =
-    'Select from the available options, modify a provided option, or provide a custom justification';
+  extensionJustificationPlaceholder: string = 'Select from the available options, modify a provided option, or provide a custom justification';
   justifications: string[] = [
     'Security Vulnerability Remediation - More Time Required',
     'Unforeseen Technical/Infrastructure Challenges',
@@ -84,7 +78,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     'Project Scope Changes',
     'Resource Constraints',
     'Procurement Required',
-    'Unanticipated Risks',
+    'Unanticipated Risks'
   ];
   filteredJustifications: string[] = [];
   extensionTimeOptions = [
@@ -95,14 +89,14 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     { label: '60 Days', value: 60 },
     { label: '90 Days', value: 90 },
     { label: '180 Days', value: 180 },
-    { label: '365 Days', value: 365 },
+    { label: '365 Days', value: 365 }
   ];
   residualRiskOptions = [
     { label: 'Very Low', value: 'Very Low' },
     { label: 'Low', value: 'Low' },
     { label: 'Moderate', value: 'Moderate' },
     { label: 'High', value: 'High' },
-    { label: 'Very High', value: 'Very High' },
+    { label: 'Very High', value: 'Very High' }
   ];
 
   likelihoodOptions = [
@@ -110,7 +104,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     { label: 'Low', value: 'Low' },
     { label: 'Moderate', value: 'Moderate' },
     { label: 'High', value: 'High' },
-    { label: 'Very High', value: 'Very High' },
+    { label: 'Very High', value: 'Very High' }
   ];
 
   localImpactOptions = [
@@ -118,7 +112,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     { label: 'Low', value: 'Low' },
     { label: 'Moderate', value: 'Moderate' },
     { label: 'High', value: 'High' },
-    { label: 'Very High', value: 'Very High' },
+    { label: 'Very High', value: 'Very High' }
   ];
 
   selectedCollection: any;
@@ -132,27 +126,13 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   private payloadSubscription: Subscription[] = [];
 
-  constructor(
-    private assignedTeamService: AssignedTeamService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private poamService: PoamService,
-    private sharedService: SharedService,
-    private poamExtensionService: PoamExtensionService,
-    private confirmationService: ConfirmationService,
-    private labelService: LabelService,
-    private messageService: MessageService,
-    private cdr: ChangeDetectorRef,
-    private setPayloadService: PayloadService
-  ) {}
-
   ngOnInit() {
     this.openModal();
-    this.route.params.subscribe(async params => {
+    this.route.params.subscribe(async (params) => {
       this.poamId = params['poamId'];
     });
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
       })
     );
@@ -162,14 +142,15 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   async setPayload() {
     this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
+
         if (this.accessLevel > 0) {
           this.getData();
         }
@@ -179,26 +160,21 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   getData() {
     this.subscriptions.add(
-      forkJoin([
-        this.poamService.getPoam(this.poamId),
-        this.poamExtensionService.getPoamExtension(this.poamId),
-        this.poamService.getPoamMilestones(this.poamId),
-        this.assignedTeamService.getAssignedTeams()
-      ]).subscribe({
+      forkJoin([this.poamService.getPoam(this.poamId), this.poamExtensionService.getPoamExtension(this.poamId), this.poamService.getPoamMilestones(this.poamId), this.assignedTeamService.getAssignedTeams()]).subscribe({
         next: ([poamData, extension, poamMilestones, assignedTeamOptions]: any) => {
           const extensionDataset = extension;
+
           this.poamMilestones = poamMilestones.map((milestone: any) => ({
             ...milestone,
             milestoneDate: milestone.milestoneDate ? milestone.milestoneDate.split('T')[0] : null,
-            milestoneChangeDate: milestone.milestoneChangeDate
-              ? milestone.milestoneChangeDate.split('T')[0]
-              : null,
+            milestoneChangeDate: milestone.milestoneChangeDate ? milestone.milestoneChangeDate.split('T')[0] : null
           }));
 
           this.assignedTeamOptions = assignedTeamOptions;
 
           if (extensionDataset.length > 0) {
             const extensionData = extensionDataset[0];
+
             this.poam = {
               poamId: +poamData.poamId,
               status: poamData.status,
@@ -210,18 +186,14 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
               impactDescription: poamData.impactDescription,
               extensionTimeAllowed: extensionData.extensionTimeAllowed,
               extensionJustification: extensionData.extensionJustification,
-              scheduledCompletionDate: extensionData.scheduledCompletionDate
-                ? extensionData.scheduledCompletionDate.split('T')[0]
-                : '',
+              scheduledCompletionDate: extensionData.scheduledCompletionDate ? extensionData.scheduledCompletionDate.split('T')[0] : ''
             };
 
             this.extensionJustification = this.poam.extensionJustification;
 
             if (this.poam.scheduledCompletionDate) {
-              const extendedDate = addDays(
-                parseISO(this.poam.scheduledCompletionDate),
-                this.poam.extensionTimeAllowed
-              );
+              const extendedDate = addDays(parseISO(this.poam.scheduledCompletionDate), this.poam.extensionTimeAllowed);
+
               this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
             } else {
               this.completionDateWithExtension = '';
@@ -236,7 +208,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
               residualRisk: '',
               likelihood: '',
               localImpact: '',
-              impactDescription: '',
+              impactDescription: ''
             };
 
             this.extensionJustification = '';
@@ -259,8 +231,9 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       milestoneStatus: 'Pending',
       assignedTeamId: null,
       isNew: true,
-      editing: true,
+      editing: true
     };
+
     this.poamMilestones = [newMilestone, ...this.poamMilestones];
     this.onRowEditInit(newMilestone);
     this.cdr.detectChanges();
@@ -294,26 +267,27 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         summary: 'Information',
         detail: 'When providing a milestone change date, you must also include milestone change comments.'
       });
+
       return false;
     }
 
     const requiredFields = [
       {
         field: 'milestoneChangeComments',
-        message: 'Milestone Change Comments is a required field.',
+        message: 'Milestone Change Comments is a required field.'
       },
       {
         field: 'milestoneChangeDate',
-        message: 'Milestone Change Date is a required field.',
+        message: 'Milestone Change Date is a required field.'
       },
       {
         field: 'milestoneStatus',
-        message: 'Milestone Status is a required field.',
+        message: 'Milestone Status is a required field.'
       },
       {
         field: 'assignedTeamId',
-        message: 'Milestone Team is a required field.',
-      },
+        message: 'Milestone Team is a required field.'
+      }
     ];
 
     for (const { field, message } of requiredFields) {
@@ -321,8 +295,9 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Information',
-          detail: message,
+          detail: message
         });
+
         return false;
       }
     }
@@ -340,19 +315,21 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'warn',
           summary: 'Information',
-          detail: 'The Milestone date provided exceeds the POAM scheduled completion date.',
+          detail: 'The Milestone date provided exceeds the POAM scheduled completion date.'
         });
+
         return false;
       }
     } else {
       const maxAllowedDate = addDays(scheduledCompletionDate, extensionTimeAllowed);
+
       if (isAfter(milestoneDate, maxAllowedDate)) {
         this.messageService.add({
           severity: 'warn',
           summary: 'Information',
-          detail:
-            'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.',
+          detail: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
         });
+
         return false;
       }
     }
@@ -367,68 +344,55 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       milestoneChangeComments: milestone.milestoneChangeComments || null,
       milestoneChangeDate: format(milestone.milestoneChangeDate, 'yyyy-MM-dd'),
       milestoneStatus: milestone.milestoneStatus || 'Pending',
-      assignedTeamId: milestone.assignedTeamId || null,
+      assignedTeamId: milestone.assignedTeamId || null
     };
 
-    this.poamService.addPoamMilestone(this.poam.poamId, newMilestone)
-      .subscribe((res: any) => {
-        if (res.null) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Information',
-            detail: 'Unable to insert row, please validate entry and try again.',
-          });
-          return;
-        } else {
-          milestone.milestoneId = res.milestoneId;
-          milestone.isNew = false;
-          delete milestone.editing;
+    this.poamService.addPoamMilestone(this.poam.poamId, newMilestone).subscribe((res: any) => {
+      if (res.null) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Information',
+          detail: 'Unable to insert row, please validate entry and try again.'
+        });
 
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Milestone added successfully'
-          });
-        }
-      });
+        return;
+      } else {
+        milestone.milestoneId = res.milestoneId;
+        milestone.isNew = false;
+        delete milestone.editing;
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Milestone added successfully'
+        });
+      }
+    });
   }
-
 
   private updateExistingMilestone(milestone: any) {
     const milestoneUpdate = {
       ...(milestone.milestoneDate && {
-        milestoneDate: milestone.milestoneDate
-          ? (typeof milestone.milestoneDate === 'string'
-            ? milestone.milestoneDate
-            : format(milestone.milestoneDate, 'yyyy-MM-dd'))
-          : null,
+        milestoneDate: milestone.milestoneDate ? (typeof milestone.milestoneDate === 'string' ? milestone.milestoneDate : format(milestone.milestoneDate, 'yyyy-MM-dd')) : null
       }),
       ...(milestone.milestoneComments && {
-        milestoneComments: milestone.milestoneComments,
+        milestoneComments: milestone.milestoneComments
       }),
       ...(milestone.milestoneChangeDate && {
-        milestoneChangeDate: milestone.milestoneChangeDate
-          ? (typeof milestone.milestoneChangeDate === 'string'
-            ? milestone.milestoneChangeDate
-            : format(milestone.milestoneChangeDate, 'yyyy-MM-dd'))
-          : null,
+        milestoneChangeDate: milestone.milestoneChangeDate ? (typeof milestone.milestoneChangeDate === 'string' ? milestone.milestoneChangeDate : format(milestone.milestoneChangeDate, 'yyyy-MM-dd')) : null
       }),
       ...(milestone.milestoneChangeComments && {
-        milestoneChangeComments: milestone.milestoneChangeComments,
+        milestoneChangeComments: milestone.milestoneChangeComments
       }),
       ...(milestone.milestoneStatus && {
-        milestoneStatus: milestone.milestoneStatus,
+        milestoneStatus: milestone.milestoneStatus
       }),
       ...(milestone.assignedTeamId && {
-        assignedTeamId: milestone.assignedTeamId,
-      }),
+        assignedTeamId: milestone.assignedTeamId
+      })
     };
 
-    this.poamService.updatePoamMilestone(
-      this.poam.poamId,
-      milestone.milestoneId,
-      milestoneUpdate
-    ).subscribe({
+    this.poamService.updatePoamMilestone(this.poam.poamId, milestone.milestoneId, milestoneUpdate).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
@@ -436,19 +400,20 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           detail: 'Milestone updated successfully'
         });
       },
-      error: error => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Failed to update milestone: ${getErrorMessage(error)}`
         });
-      },
+      }
     });
   }
 
   getTeamName(teamId: number): string {
     if (!teamId || !this.assignedTeamOptions) return '';
-    const team = this.assignedTeamOptions.find(t => t.assignedTeamId === teamId);
+    const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === teamId);
+
     return team ? team.assignedTeamName : '';
   }
 
@@ -464,18 +429,19 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   deleteMilestone(milestone: any, index: number) {
     if (!milestone.milestoneId) {
       this.poamMilestones.splice(index, 1);
+
       return;
     }
+
     this.confirmationService.confirm({
       message: 'Are you sure you want to delete this milestone?',
       header: 'Delete Confirmation',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.poamService.deletePoamMilestone(this.poam.poamId, milestone.milestoneId, false)
-          .subscribe(() => {
-            this.poamMilestones.splice(index, 1);
-          });
-      },
+        this.poamService.deletePoamMilestone(this.poam.poamId, milestone.milestoneId, false).subscribe(() => {
+          this.poamMilestones.splice(index, 1);
+        });
+      }
     });
   }
 
@@ -489,15 +455,10 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   computeDeadlineWithExtension() {
     if (this.poam.extensionTimeAllowed === 0 || this.poam.extensionTimeAllowed == null) {
-      this.completionDateWithExtension = format(
-        this.poam.scheduledCompletionDate,
-        'EEE MMM dd yyyy'
-      );
+      this.completionDateWithExtension = format(this.poam.scheduledCompletionDate, 'EEE MMM dd yyyy');
     } else {
-      const extendedDate = addDays(
-        parseISO(this.poam.scheduledCompletionDate),
-        this.poam.extensionTimeAllowed
-      );
+      const extendedDate = addDays(parseISO(this.poam.scheduledCompletionDate), this.poam.extensionTimeAllowed);
+
       this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
     }
   }
@@ -506,7 +467,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     this.messageService.add({
       severity: severity,
       summary: 'Notification',
-      detail: message,
+      detail: message
     });
   }
 
@@ -526,6 +487,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         summary: 'Validation Error',
         detail: 'Extension Time Requested is required.'
       });
+
       return;
     }
 
@@ -535,6 +497,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         summary: 'Validation Error',
         detail: 'Justification for Extension is required.'
       });
+
       return;
     }
 
@@ -544,13 +507,12 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         summary: 'Validation Error',
         detail: 'Mitigations are required.'
       });
+
       return;
     }
 
     if (this.poam.extensionTimeAllowed > 0) {
-      const milestoneWithChangeDateButNoComment = this.poamMilestones.some(
-        milestone => milestone.milestoneChangeDate && !milestone.milestoneChangeComments
-      );
+      const milestoneWithChangeDateButNoComment = this.poamMilestones.some((milestone) => milestone.milestoneChangeDate && !milestone.milestoneChangeComments);
 
       if (milestoneWithChangeDateButNoComment) {
         this.messageService.add({
@@ -558,14 +520,16 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           summary: 'Validation Error',
           detail: 'All milestones with a change date must also have change comments.'
         });
+
         return;
       }
 
       const today = new Date();
-      const pastDueMilestonesWithoutChanges = this.poamMilestones.some(milestone => {
+      const pastDueMilestonesWithoutChanges = this.poamMilestones.some((milestone) => {
         if (!milestone.milestoneDate) return false;
 
         const milestoneDate = new Date(milestone.milestoneDate);
+
         return milestoneDate < today && !milestone.milestoneChangeDate;
       });
 
@@ -575,20 +539,19 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           summary: 'Validation Error',
           detail: 'All past-due milestones must have a milestone change date and comments before submitting an extension request.'
         });
+
         return;
       }
 
-      const hasChangedMilestone = this.poamMilestones.some(
-        milestone => milestone.milestoneChangeComments && milestone.milestoneChangeDate
-      );
+      const hasChangedMilestone = this.poamMilestones.some((milestone) => milestone.milestoneChangeComments && milestone.milestoneChangeDate);
 
       if (!hasChangedMilestone) {
         this.messageService.add({
           severity: 'error',
           summary: 'Validation Error',
-          detail:
-            'At least one milestone must have both change comments and change date filled before submitting an extension request.'
+          detail: 'At least one milestone must have both change comments and change date filled before submitting an extension request.'
         });
+
         return;
       }
 
@@ -611,7 +574,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       residualRisk: this.poam.residualRisk,
       likelihood: this.poam.likelihood,
       localImpact: this.poam.localImpact,
-      impactDescription: this.poam.impactDescription,
+      impactDescription: this.poam.impactDescription
     };
 
     if (this.poam.extensionTimeAllowed > 0) {
@@ -637,6 +600,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             if (this.poam.extensionTimeAllowed > 0) {
               this.poamService.updatePoamStatus(this.poamId, extensionData).subscribe();
             }
+
             setTimeout(() => {
               this.displayExtensionDialog = false;
               this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
@@ -662,19 +626,24 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   findOrCreateExtendedLabel() {
     const extendedLabel = this.poamLabels?.find((label: any) => label.labelName === 'Extended');
+
     if (extendedLabel) {
       return;
     }
+
     this.subscriptions.add(
       this.poamService.getLabels(this.selectedCollection).subscribe((labels: any) => {
         this.labelList = labels;
+
         if (this.labelList) {
           const extendedLabel = this.labelList.find((label: any) => label.labelName === 'Extended');
+
           if (extendedLabel) {
             const extendedPoamLabel = {
               poamId: +this.poamId,
               labelId: +extendedLabel.labelId
             };
+
             this.poamService.postPoamLabel(extendedPoamLabel).subscribe();
           }
         } else {
@@ -683,6 +652,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             labelName: 'Extended',
             description: 'POAM has been extended'
           };
+
           this.subscriptions.add(
             this.labelService.addLabel(this.selectedCollection, extendLabel).subscribe(() => {
               this.findOrCreateExtendedLabel();
@@ -695,13 +665,12 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   filterJustifications(event: any) {
     const query = event.query;
-    this.filteredJustifications = this.justifications.filter(justification =>
-      justification.toLowerCase().includes(query.toLowerCase())
-    );
+
+    this.filteredJustifications = this.justifications.filter((justification) => justification.toLowerCase().includes(query.toLowerCase()));
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }

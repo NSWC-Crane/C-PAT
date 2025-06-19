@@ -8,45 +8,35 @@
 !##########################################################################
 */
 
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { Table, TableModule } from 'primeng/table';
-import { MessageService } from 'primeng/api';
-import { AppConfigurationService } from './app-configuration.service';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { Table, TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
 import { AppConfiguration } from '../../../common/models/appConfiguration.model';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AppConfigurationService } from './app-configuration.service';
 
 @Component({
   selector: 'cpat-app-configuration',
   templateUrl: './app-configuration.component.html',
   styleUrls: ['./app-configuration.component.scss'],
   standalone: true,
-  imports: [
-    ButtonModule,
-    FormsModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule,
-    TableModule,
-    ToastModule
-],
-  providers: [MessageService],
+  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule],
+  providers: [MessageService]
 })
 export class AppConfigurationComponent implements OnInit {
+  private appConfigurationService = inject(AppConfigurationService);
+  private messageService = inject(MessageService);
+
   @ViewChild('dt') table!: Table;
 
   appConfiguration: AppConfiguration[] = [];
   editingAppConfiguration: AppConfiguration | null = null;
-
-  constructor(
-    private appConfigurationService: AppConfigurationService,
-    private messageService: MessageService
-  ) {}
 
   ngOnInit() {
     this.loadAppConfiguration();
@@ -98,6 +88,7 @@ export class AppConfigurationComponent implements OnInit {
 
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
+
     this.table.filterGlobal(inputValue, 'contains');
   }
 }

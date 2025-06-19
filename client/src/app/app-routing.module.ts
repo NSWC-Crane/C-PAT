@@ -10,20 +10,20 @@
 
 import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
-import { NotificationsComponent } from './common/components/notifications/notifications.component';
-import { AuthGuard } from './core/auth/guards/auth.guard';
-import { StatusMessageComponent } from './common/components/status-message/status-message.component';
-import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
-import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
-import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
-import { importProcessingRoutes } from './pages/import-processing/import-processing-routing.module';
 import { consentRoute } from './common/components/dod-consent/dod-consent.routing';
-import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
-import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
+import { NotificationsComponent } from './common/components/notifications/notifications.component';
+import { StatusMessageComponent } from './common/components/status-message/status-message.component';
+import { AuthGuard } from './core/auth/guards/auth.guard';
 import { AppNavigationComponent } from './layout/components/app.navigation.component';
+import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
+import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
+import { importProcessingRoutes } from './pages/import-processing/import-processing-routing.module';
+import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
+import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
+import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
 
 const routerOptions: ExtraOptions = {
-  anchorScrolling: 'enabled',
+  anchorScrolling: 'enabled'
 };
 
 export const routes: Routes = [
@@ -34,86 +34,86 @@ export const routes: Routes = [
       {
         path: '',
         redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing',
-        pathMatch: 'full',
+        pathMatch: 'full'
       },
       {
         path: 'admin-processing',
         canActivate: [AuthGuard],
         data: { guardType: 'admin' },
-        children: adminProcessingRoutes,
+        children: adminProcessingRoutes
       },
       {
         path: 'app-info',
         canActivate: [AuthGuard],
         data: { guardType: 'admin' },
-        children: adminProcessingRoutes,
+        children: adminProcessingRoutes
       },
       {
         path: 'asset-processing',
         canActivate: [AuthGuard],
-        children: assetProcessingRoutes,
+        children: assetProcessingRoutes
       },
       {
         path: 'consent',
         canActivate: [AuthGuard],
-        children: consentRoute,
+        children: consentRoute
       },
       {
         path: 'import-processing',
         canActivate: [AuthGuard],
-        children: importProcessingRoutes,
+        children: importProcessingRoutes
       },
       {
         path: 'label-processing',
         canActivate: [AuthGuard],
-        children: labelProcessingRoutes,
+        children: labelProcessingRoutes
       },
       {
         path: 'notifications',
         canActivate: [AuthGuard],
-        component: NotificationsComponent,
+        component: NotificationsComponent
       },
       {
         path: 'poam-processing',
         canActivate: [AuthGuard],
-        children: poamProcessingRoutes,
+        children: poamProcessingRoutes
       },
       {
         path: 'marketplace',
         canActivate: [AuthGuard],
-        children: marketplaceRoutes,
-      },
-    ],
+        children: marketplaceRoutes
+      }
+    ]
   },
   {
     path: '401',
     component: StatusMessageComponent,
-    data: { statusCode: 401 },
+    data: { statusCode: 401 }
   },
   {
     path: '403',
     component: StatusMessageComponent,
-    data: { statusCode: 403 },
+    data: { statusCode: 403 }
   },
   {
     path: '404',
     component: StatusMessageComponent,
-    data: { statusCode: 404 },
+    data: { statusCode: 404 }
   },
   {
     path: '418',
     component: StatusMessageComponent,
-    data: { statusCode: 418 },
+    data: { statusCode: 418 }
   },
   {
     path: 'not-activated',
     component: StatusMessageComponent,
-    data: { statusCode: 999 },
+    data: { statusCode: 999 }
   },
-  { path: '**', redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing' },
+  { path: '**', redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing' }
 ];
 @NgModule({
   imports: [RouterModule.forRoot(routes, routerOptions)],
-  exports: [RouterModule],
+  exports: [RouterModule]
 })
 export class AppRoutingModule {}

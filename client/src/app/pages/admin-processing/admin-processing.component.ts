@@ -8,26 +8,26 @@
 !##########################################################################
 */
 
-import { Component, OnInit } from '@angular/core';
-import { UsersService } from './user-processing/users.service';
-import { Router } from '@angular/router';
-import { TabsModule } from 'primeng/tabs';
-import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { TabsModule } from 'primeng/tabs';
+import { ToastModule } from 'primeng/toast';
+import { Subject, takeUntil } from 'rxjs';
+import { getErrorMessage } from '../../common/utils/error-utils';
 import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
 import { AppConfigurationComponent } from './app-configuration/app-configuration.component';
-import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plugin-mapping.component';
-import { VRAMImportComponent } from './vram-import/vram-import.component';
 import { AssetDeltaComponent } from './asset-delta/asset-delta.component';
-import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
-import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
+import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
+import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plugin-mapping.component';
+import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
+import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
-import { ButtonModule } from 'primeng/button';
-import { Subject, takeUntil } from 'rxjs';
-import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
-import { getErrorMessage } from '../../common/utils/error-utils';
+import { UsersService } from './user-processing/users.service';
+import { VRAMImportComponent } from './vram-import/vram-import.component';
 
 @Component({
   selector: 'cpat-admin-processing',
@@ -52,36 +52,37 @@ import { getErrorMessage } from '../../common/utils/error-utils';
   ],
   providers: [MessageService]
 })
-export class AdminProcessingComponent implements OnInit {
+export class AdminProcessingComponent implements OnInit, OnDestroy {
+  private userService = inject(UsersService);
+  private router = inject(Router);
+  private messageService = inject(MessageService);
+
   value: number = 0;
   user: any;
   private destroy$ = new Subject<void>();
   tenableEnabled = CPAT.Env.features.tenableEnabled;
-  constructor(
-    private userService: UsersService,
-    private router: Router,
-    private messageService: MessageService
-  ) {}
 
   ngOnInit() {
     this.user = null;
-    this.userService.getCurrentUser().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response: any) => {
-        this.user = response;
-        if (!this.user.isAdmin) {
-          this.router.navigate(['/403']);
+    this.userService
+      .getCurrentUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          this.user = response;
+
+          if (!this.user.isAdmin) {
+            this.router.navigate(['/403']);
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `An error occurred: ${getErrorMessage(error)}`
+          });
         }
-      },
-      error: error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `An error occurred: ${getErrorMessage(error)}`
-        });
-      }
-    });
+      });
   }
 
   navigateToAppInfo() {

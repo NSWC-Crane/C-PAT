@@ -8,37 +8,32 @@
 !##########################################################################
 */
 
-import {
-  Component,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
-import { AssetService } from './assets.service';
-import { forkJoin, Subscription } from 'rxjs';
-import { SubSink } from 'subsink';
-import { PayloadService } from '../../common/services/setPayload.service';
-import { DialogService } from 'primeng/dynamicdialog';
-import { Table, TableModule } from 'primeng/table';
-import { SharedService } from '../../common/services/shared.service';
-import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
+import { DialogModule } from 'primeng/dialog';
+import { DialogService } from 'primeng/dynamicdialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { Table, TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { Subscription, forkJoin } from 'rxjs';
+import { SubSink } from 'subsink';
+import { PayloadService } from '../../common/services/setPayload.service';
+import { SharedService } from '../../common/services/shared.service';
+import { getErrorMessage } from '../../common/utils/error-utils';
+import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
 import { STIGManagerAssetsTableComponent } from '../import-processing/stigmanager-import/stigManagerAssetsTable/stigManagerAssetsTable.component';
 import { TenableHostAssetsTableComponent } from '../import-processing/tenable-import/components/tenableHostAssetsTable/tenableHostAssetsTable.component';
-import { TabsModule } from 'primeng/tabs';
-import { DialogModule } from 'primeng/dialog';
 import { AssetComponent } from './asset/asset.component';
-import { InputTextModule } from 'primeng/inputtext';
-import { TooltipModule } from 'primeng/tooltip';
-import { Select } from 'primeng/select';
-import { InputIconModule } from 'primeng/inputicon';
-import { IconFieldModule } from 'primeng/iconfield';
-import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
-import { getErrorMessage } from '../../common/utils/error-utils';
+import { AssetService } from './assets.service';
 
 interface Column {
   field: string;
@@ -75,10 +70,16 @@ interface AssetEntry {
     ToastModule,
     TenableHostAssetsTableComponent,
     TooltipModule
-],
-  providers: [DialogService, MessageService],
+  ],
+  providers: [DialogService, MessageService]
 })
 export class AssetProcessingComponent implements OnInit, OnDestroy {
+  private assetService = inject(AssetService);
+  private setPayloadService = inject(PayloadService);
+  private sharedService = inject(SharedService);
+  private collectionsService = inject(CollectionsService);
+  private messageService = inject(MessageService);
+
   @ViewChild('assetTable') assetTable!: Table;
   public assetLabel: any[] = [];
   chartData: any;
@@ -93,7 +94,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
     assetName: '',
     description: '',
     ipAddress: '',
-    macAddress: '',
+    macAddress: ''
   };
   selectedCollection: any;
   assetDialogVisible: boolean = false;
@@ -107,28 +108,21 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   private subs = new SubSink();
   private subscriptions = new Subscription();
 
-  constructor(
-    private assetService: AssetService,
-    private setPayloadService: PayloadService,
-    private sharedService: SharedService,
-    private collectionsService: CollectionsService,
-    private messageService: MessageService
-  ) {
+  constructor() {
     this.initializeChartOptions();
   }
 
   async ngOnInit() {
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
       })
     );
 
     this.collectionsService.getCollectionBasicList().subscribe({
-      next: data => {
-        const selectedCollectionData = data.find(
-          (collection: any) => collection.collectionId === this.selectedCollection
-        );
+      next: (data) => {
+        const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
+
         if (selectedCollectionData) {
           this.collectionOrigin = selectedCollectionData.collectionOrigin;
           this.originCollectionId = selectedCollectionData.originCollectionId;
@@ -141,7 +135,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
           detail: `An error occurred: ${getErrorMessage(error)}`
         });
         this.collectionOrigin = '';
-      },
+      }
     });
 
     this.setPayload();
@@ -181,14 +175,15 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   async setPayload() {
     this.setPayloadService.setPayload();
     this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
+      this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
       }),
-      this.setPayloadService.payload$.subscribe(payload => {
+      this.setPayloadService.payload$.subscribe((payload) => {
         this.payload = payload;
       }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
+      this.setPayloadService.accessLevel$.subscribe((level) => {
         this.accessLevel = level;
+
         if (this.accessLevel > 0) {
           this.getAssetData();
         }
@@ -199,17 +194,17 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   getAssetData() {
     if (!this.payload) return;
 
-    this.subs.sink = forkJoin([
-      this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId),
-      this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)
-    ]).subscribe(
+    this.subs.sink = forkJoin([this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId), this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)]).subscribe(
       ([assetData, assetLabelResponse]: any) => {
         if (!Array.isArray(assetData)) {
           console.error('Unexpected response format:', assetData);
+
           return;
         }
+
         if (!Array.isArray(assetLabelResponse.assetLabel)) {
           console.error('assetLabelResponse.assetLabel is not an array', assetLabelResponse.assetLabel);
+
           return;
         }
 
@@ -217,14 +212,14 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
         this.setLabelChartData(this.assetLabel);
 
         this.data = (assetData as AssetEntry[])
-          .map(asset => ({
+          .map((asset) => ({
             ...asset,
-            assetId: Number(asset.assetId),
+            assetId: Number(asset.assetId)
           }))
           .sort((a, b) => a.assetId - b.assetId);
         this.assets = this.data;
       },
-      error => {
+      (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -239,17 +234,18 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
       {
         field: 'assetId',
         header: 'Asset ID',
-        customExportHeader: 'Asset Identifier',
+        customExportHeader: 'Asset Identifier'
       },
       { field: 'assetName', header: 'Asset Name' },
       { field: 'description', header: 'Description' },
       { field: 'ipAddress', header: 'IP Address' },
-      { field: 'macAddress', header: 'MAC Address' },
+      { field: 'macAddress', header: 'MAC Address' }
     ];
   }
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+
     if (this.assetTable) {
       this.assetTable.filterGlobal(filterValue, 'contains');
     }
@@ -259,6 +255,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
     if (this.assetTable) {
       this.assetTable.clear();
     }
+
     this.filterValue = '';
     this.data = [...this.assets];
   }
@@ -266,7 +263,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   setLabelChartData(assetLabel: any[]) {
     this.chartData = {
       labels: ['Assets'],
-      datasets: assetLabel.map(item => ({
+      datasets: assetLabel.map((item) => ({
         label: item.label,
         data: [item.labelCount]
       }))
@@ -275,8 +272,10 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
 
   exportChart() {
     const canvas = document.getElementsByTagName('canvas')[0];
+
     if (canvas) {
       const link = document.createElement('a');
+
       link.download = 'C-PAT_Asset_Label_Chart.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
@@ -284,7 +283,8 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   }
 
   setAsset(assetId: number) {
-    const selectedData = this.data.find(asset => asset.assetId === assetId);
+    const selectedData = this.data.find((asset) => asset.assetId === assetId);
+
     if (selectedData) {
       this.asset = { ...selectedData };
       this.assetDialogVisible = true;
@@ -294,7 +294,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
         assetName: '',
         description: '',
         ipAddress: '',
-        macAddress: '',
+        macAddress: ''
       };
     }
   }
@@ -305,7 +305,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
       assetName: '',
       description: '',
       ipAddress: '',
-      macAddress: '',
+      macAddress: ''
     };
     this.assetDialogVisible = true;
   }
@@ -316,7 +316,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
       assetName: '',
       description: '',
       ipAddress: '',
-      macAddress: '',
+      macAddress: ''
     };
     this.getAssetData();
   }
@@ -328,6 +328,6 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
+    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }

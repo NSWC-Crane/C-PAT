@@ -23,7 +23,7 @@ async function withConnection(callback) {
 }
 
 exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
-    return await withConnection(async (connection) => {
+    return await withConnection(async connection => {
         let sql = `
             SELECT t1.assignedTeamId, t2.assignedTeamName, t1.automated, t1.poamId, t3.status
             FROM ${config.database.schema}.poamassignedteams t1
@@ -47,7 +47,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
     if (!poamId) {
         throw new Error('getPoamAssignedTeamsByPoamId: poamId is required');
     }
-    return await withConnection(async (connection) => {
+    return await withConnection(async connection => {
         let sql = `
             SELECT t1.assignedTeamId, t1.automated, t1.poamId, t2.assignedTeamName, t3.status, t3.isGlobalFinding
             FROM ${config.database.schema}.poamassignedteams t1
@@ -74,26 +74,21 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
             let complete;
 
             if (row.isGlobalFinding) {
-                complete = "global";
+                complete = 'global';
             } else {
-                const hasMitigation = mitigations.some(m =>
-                    m.assignedTeamId === teamId &&
-                    m.isActive &&
-                    m.mitigationText &&
-                    m.mitigationText.trim() !== ''
+                const hasMitigation = mitigations.some(
+                    m => m.assignedTeamId === teamId && m.isActive && m.mitigationText && m.mitigationText.trim() !== ''
                 );
-                const hasMilestone = milestones.some(m =>
-                    m.assignedTeamId === teamId &&
-                    m.milestoneComments &&
-                    m.milestoneComments.length >= 15
+                const hasMilestone = milestones.some(
+                    m => m.assignedTeamId === teamId && m.milestoneComments && m.milestoneComments.length >= 15
                 );
 
                 if (hasMitigation && hasMilestone) {
-                    complete = "true";
+                    complete = 'true';
                 } else if (hasMitigation || hasMilestone) {
-                    complete = "partial";
+                    complete = 'partial';
                 } else {
-                    complete = "false";
+                    complete = 'false';
                 }
             }
 
@@ -103,7 +98,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
                 automated: row.automated != null ? Boolean(row.automated) : false,
                 poamId: row.poamId,
                 status: row.status,
-                complete: complete
+                complete: complete,
             };
         });
         return poamAssignedTeams;
@@ -119,7 +114,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
         throw new Error('postPoamAssignedTeam: poamId is required');
     }
 
-    return await withConnection(async (connection) => {
+    return await withConnection(async connection => {
         try {
             let fetchSql = `SELECT poamId, assignedTeamId, automated FROM ${config.database.schema}.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?`;
             const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
@@ -129,14 +124,14 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
             }
 
             let addSql = `INSERT INTO ${config.database.schema}.poamassignedteams (poamId, assignedTeamId, automated) VALUES (?, ?, ?)`;
-            await connection.query(addSql, [req.body.poamId, req.body.assignedTeamId, req.body.automated ? req.body.automated : false ]);
+            await connection.query(addSql, [req.body.poamId, req.body.assignedTeamId, req.body.automated ? req.body.automated : false]);
 
             let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
             const [team] = await connection.query(assignedTeamSql, [req.body.assignedTeamId]);
-            const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
+            const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
 
-                let action = `${teamName} was added to the Assigned Team List.`;
-                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            let action = `${teamName} was added to the Assigned Team List.`;
+            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
             await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
             let fetchNewSql = `SELECT poamId, assignedTeamId, automated FROM ${config.database.schema}.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?`;
@@ -151,7 +146,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
             }
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY') {
-                return await withConnection(async (connection) => {
+                return await withConnection(async connection => {
                     let fetchSql = `SELECT poamId, assignedTeamId, automated FROM ${config.database.schema}.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?`;
                     const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
 
@@ -159,8 +154,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
                     result.automated = result.automated != null ? Boolean(result.automated) : null;
                     return result;
                 });
-            }
-            else {
+            } else {
                 return { error: error.message };
             }
         }
@@ -175,16 +169,16 @@ exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req, res,
         throw new Error('deletePoamAssignedTeam: poamId is required');
     }
 
-    await withConnection(async (connection) => {
+    await withConnection(async connection => {
         let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
         const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
-        const teamName = team[0] ? team[0].assignedTeamName : "Unknown Team";
+        const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
 
         let sql = `DELETE FROM ${config.database.schema}.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?`;
         await connection.query(sql, [req.params.assignedTeamId, req.params.poamId]);
 
-            let action = `${teamName} was removed from the Assigned Team List.`;
+        let action = `${teamName} was removed from the Assigned Team List.`;
         let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
+        await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
     });
 };

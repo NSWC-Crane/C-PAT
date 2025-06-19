@@ -27,7 +27,7 @@ module.exports.getAvailablePoams = async function getAvailablePoams(req, res, ne
 module.exports.getPoam = async function getPoam(req, res, next) {
     try {
         const poam = await poamService.getPoam(req, res, next);
-            res.status(200).json(poam);
+        res.status(200).json(poam);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
@@ -40,7 +40,7 @@ module.exports.getPoam = async function getPoam(req, res, next) {
 module.exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res, next) {
     try {
         const poams = await poamService.getPoamsByCollectionId(req, res, next);
-            res.status(200).json(poams);
+        res.status(200).json(poams);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
@@ -53,7 +53,7 @@ module.exports.getPoamsByCollectionId = async function getPoamsByCollectionId(re
 module.exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next) {
     try {
         const poams = await poamService.getPoamsByOwnership(req, res, next);
-            res.status(200).json(poams);
+        res.status(200).json(poams);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });

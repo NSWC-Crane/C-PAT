@@ -8,23 +8,23 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { updateSurfacePalette } from '@primeng/themes';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { MarketplaceService } from './marketplace.service';
-import { SubSink } from 'subsink';
-import { forkJoin } from 'rxjs';
-import { UsersService } from '../admin-processing/user-processing/users.service';
+import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DividerModule } from 'primeng/divider';
-import { ToastModule } from 'primeng/toast';
-import { ButtonModule } from 'primeng/button';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ImageModule } from 'primeng/image';
-import { AppConfigService } from '../../layout/services/appconfigservice';
-import { updateSurfacePalette } from '@primeng/themes';
+import { ToastModule } from 'primeng/toast';
+import { forkJoin } from 'rxjs';
+import { SubSink } from 'subsink';
 import { getErrorMessage } from '../../common/utils/error-utils';
+import { AppConfigService } from '../../layout/services/appconfigservice';
+import { UsersService } from '../admin-processing/user-processing/users.service';
+import { MarketplaceService } from './marketplace.service';
 interface Theme {
   themeId: number;
   themeIdentifier: string;
@@ -38,18 +38,16 @@ interface Theme {
   templateUrl: './marketplace.component.html',
   styleUrls: ['./marketplace.component.scss'],
   standalone: true,
-  imports: [
-    ButtonModule,
-    CardModule,
-    ChipModule,
-    ConfirmDialogModule,
-    DividerModule,
-    ToastModule,
-    ImageModule
-],
-  providers: [DialogService, ConfirmationService, MessageService],
+  imports: [ButtonModule, CardModule, ChipModule, ConfirmDialogModule, DividerModule, ToastModule, ImageModule],
+  providers: [DialogService, ConfirmationService, MessageService]
 })
 export class MarketplaceComponent implements OnInit, OnDestroy {
+  private marketplaceService = inject(MarketplaceService);
+  private userService = inject(UsersService);
+  private confirmationService = inject(ConfirmationService);
+  private messageService = inject(MessageService);
+  private configService = inject(AppConfigService);
+
   userPoints = 0;
   themes: Theme[] = [];
   purchasedThemes: Theme[] = [];
@@ -75,8 +73,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         700: '#7b7b7b',
         800: '#616161',
         900: '#464646',
-        950: '#2c2c2c',
-      },
+        950: '#2c2c2c'
+      }
     },
     {
       name: 'tungsten',
@@ -93,8 +91,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         700: '#545454',
         800: '#424242',
         900: '#303030',
-        950: '#1e1e1e',
-      },
+        950: '#1e1e1e'
+      }
     },
     {
       name: 'darksmooth',
@@ -111,8 +109,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         700: '#616161',
         800: '#424242',
         900: '#212121',
-        950: '#0c0a09',
-      },
+        950: '#0c0a09'
+      }
     },
     {
       name: 'graygreen',
@@ -129,8 +127,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         700: '#5b5955',
         800: '#46443f',
         900: '#34312c',
-        950: '#1d1c16',
-      },
+        950: '#1d1c16'
+      }
     },
     {
       name: 'dusk',
@@ -147,8 +145,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         700: '#4b4c6b',
         800: '#33344f',
         900: '#1c1d33',
-        950: '#0d0e1a',
-      },
+        950: '#0d0e1a'
+      }
     },
     {
       name: 'alpine',
@@ -165,8 +163,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         700: '#405a67',
         800: '#2a3f4a',
         900: '#15242d',
-        950: '#0a1216',
-      },
+        950: '#0a1216'
+      }
     },
     {
       name: 'mauve',
@@ -183,8 +181,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         700: '#6b4664',
         800: '#4b3046',
         900: '#2c1b28',
-        950: '#160d14',
-      },
+        950: '#160d14'
+      }
     },
     {
       name: 'dustyrose',
@@ -201,8 +199,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         700: '#8b6f77',
         800: '#655155',
         900: '#3f3234',
-        950: '#20191a',
-      },
+        950: '#20191a'
+      }
     },
     {
       name: 'dustyzinc',
@@ -219,18 +217,10 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         700: '#5a4747',
         800: '#473838',
         900: '#342828',
-        950: '#201919',
-      },
-    },
+        950: '#201919'
+      }
+    }
   ];
-
-  constructor(
-    private marketplaceService: MarketplaceService,
-    private userService: UsersService,
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService,
-    private configService: AppConfigService
-  ) {}
 
   ngOnInit() {
     this.loadUserData();
@@ -271,14 +261,9 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   }
 
   loadThemes() {
-    this.subs.sink = forkJoin([
-      this.marketplaceService.getThemes(),
-      this.marketplaceService.getUserThemes()
-    ]).subscribe({
+    this.subs.sink = forkJoin([this.marketplaceService.getThemes(), this.marketplaceService.getUserThemes()]).subscribe({
       next: ([allThemes, purchasedThemes]: [Theme[], Theme[]]) => {
-        this.themes = allThemes.filter(
-          theme => !purchasedThemes.find(p => p.themeId === theme.themeId)
-        );
+        this.themes = allThemes.filter((theme) => !purchasedThemes.find((p) => p.themeId === theme.themeId));
         this.purchasedThemes = purchasedThemes;
         this.updateThemeImageUrls();
       },
@@ -293,10 +278,10 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   }
 
   updateThemeImageUrls() {
-    this.themes.forEach(theme => {
+    this.themes.forEach((theme) => {
       this.themeImageUrls[theme.themeId] = this.getThemeImage(theme.themeId);
     });
-    this.purchasedThemes.forEach(theme => {
+    this.purchasedThemes.forEach((theme) => {
       this.themeImageUrls[theme.themeId] = this.getThemeImage(theme.themeId);
     });
   }
@@ -308,27 +293,26 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         header: 'Confirm Purchase',
         icon: 'pi pi-exclamation-triangle',
         accept: () => {
-          this.subs.sink = this.marketplaceService.purchaseTheme(this.user.userId, theme.themeId)
-            .subscribe({
-              next: () => {
-                this.userPoints -= theme.cost;
-                this.loadThemes();
-                this.setTheme(theme.themeIdentifier);
-                this.messageService.add({
-                  severity: 'success',
-                  summary: 'Success',
-                  detail: 'Theme purchased successfully',
-                });
-              },
-              error: (error: Error) => {
-                this.messageService.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: `Failed to purchase theme: ${getErrorMessage(error)}`
-                });
-              }
-            });
-        },
+          this.subs.sink = this.marketplaceService.purchaseTheme(this.user.userId, theme.themeId).subscribe({
+            next: () => {
+              this.userPoints -= theme.cost;
+              this.loadThemes();
+              this.setTheme(theme.themeIdentifier);
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Theme purchased successfully'
+              });
+            },
+            error: (error: Error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Failed to purchase theme: ${getErrorMessage(error)}`
+              });
+            }
+          });
+        }
       });
     } else {
       this.showInsufficientPointsPopup();
@@ -339,24 +323,26 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     this.messageService.add({
       severity: 'warn',
       summary: 'Insufficient Points',
-      detail: 'You do not have enough points to purchase this theme.',
+      detail: 'You do not have enough points to purchase this theme.'
     });
   }
 
   setTheme(surfaceName: string) {
-    const surface = this.surfaces.find(s => s.name === surfaceName);
+    const surface = this.surfaces.find((s) => s.name === surfaceName);
+
     if (!surface) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: `Surface palette ${surfaceName} not found`,
+        detail: `Surface palette ${surfaceName} not found`
       });
+
       return;
     }
 
-    this.configService.appState.update(state => ({
+    this.configService.appState.update((state) => ({
       ...state,
-      surface: surfaceName,
+      surface: surfaceName
     }));
 
     updateSurfacePalette(surface.palette);
@@ -368,27 +354,26 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         primary: currentState.primary,
         surface: surfaceName,
         darkTheme: currentState.darkTheme,
-        rtl: currentState.RTL,
-      }),
+        rtl: currentState.RTL
+      })
     };
 
-    this.subs.sink = this.userService.updateUserTheme(preferences)
-      .subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Theme applied successfully',
-          });
-        },
-        error: (error: Error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to apply theme: ${getErrorMessage(error)}`
-          });
-        }
-      });
+    this.subs.sink = this.userService.updateUserTheme(preferences).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Theme applied successfully'
+        });
+      },
+      error: (error: Error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to apply theme: ${getErrorMessage(error)}`
+        });
+      }
+    });
   }
 
   getThemeImage(themeId: number | undefined): string {
@@ -399,6 +384,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     if (this.dialogRef) {
       this.dialogRef.close();
     }
+
     this.subs.unsubscribe();
   }
 }

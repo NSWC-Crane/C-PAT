@@ -14,6 +14,6 @@ import { DoDConsentComponent } from './dod-consent.component';
 export const consentRoute: Routes = [
   {
     path: '',
-    component: DoDConsentComponent,
-  },
+    component: DoDConsentComponent
+  }
 ];

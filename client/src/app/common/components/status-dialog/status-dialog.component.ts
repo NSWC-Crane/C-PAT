@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -18,25 +18,15 @@ import { ProgressBarModule } from 'primeng/progressbar';
 @Component({
   selector: 'cpat-status-dialog',
   template: `
-    <p-dialog
-      header="File Upload Status"
-      [(visible)]="display"
-      [modal]="true"
-      [closable]="false"
-      [style]="{ width: '50vw' }"
-    >
-      <p-progressBar
-        [value]="progress"
-        [showValue]="true"
-        [style]="{ height: '20px' }"
-      ></p-progressBar>
+    <p-dialog header="File Upload Status" [(visible)]="display" [modal]="true" [closable]="false" [style]="{ width: '50vw' }">
+      <p-progressBar [value]="progress" [showValue]="true" [style]="{ height: '20px' }"></p-progressBar>
       @if (message) {
-      <p>{{ message + ' ' + countdownMessage }}</p>
+        <p>{{ message + ' ' + countdownMessage }}</p>
       }
     </p-dialog>
   `,
   standalone: true,
-  imports: [ButtonModule, CommonModule, DialogModule, FormsModule, ProgressBarModule],
+  imports: [ButtonModule, CommonModule, DialogModule, FormsModule, ProgressBarModule]
 })
 export class StatusDialogComponent implements OnInit, OnDestroy {
   @Input() progress: number = 0;
@@ -64,6 +54,7 @@ export class StatusDialogComponent implements OnInit, OnDestroy {
     this.intervalId = setInterval(() => {
       this.countdown -= 1;
       this.countdownMessage = `The page will refresh in ${this.countdown} seconds.`;
+
       if (this.countdown <= 0) {
         clearInterval(this.intervalId);
         this.display = false;
