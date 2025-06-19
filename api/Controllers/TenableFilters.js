@@ -26,7 +26,7 @@ module.exports.getTenableFilters = async function getTenableFilters(req, res, ne
 module.exports.getTenableFilter = async function getTenableFilter(req, res, next) {
     try {
         const tenableFilter = await tenableFilterService.getTenableFilter(req, res, next);
-            res.status(200).json(tenableFilter);
+        res.status(200).json(tenableFilter);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });

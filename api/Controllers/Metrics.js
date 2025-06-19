@@ -95,7 +95,7 @@ module.exports.getCollectionMonthlyPoamStatus = async function getCollectionMont
 };
 
 module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res, next) {
-    try {        
+    try {
         const getMetrics = await metricsService.getAvailableAssetLabel(req);
         if (getMetrics) {
             res.status(200).json(getMetrics);

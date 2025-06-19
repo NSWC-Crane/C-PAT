@@ -11,400 +11,330 @@
 <p-toast></p-toast>
 
 <div class="card assetDeltas">
-  <div class="mb-4 flex items-center">
-    <p-floatlabel class="w-full" variant="in">
-      <p-select id="collection-select"
-        [options]="availableCollections"
-        [ngModel]="selectedCollection()"
-        (ngModelChange)="onCollectionChange($event)"
-        (onChange)="onCollectionChange($event.value)"
-        optionLabel="collectionName"
-        optionValue="collectionId"
-        placeholder="Select a Collection"
-        styleClass="w-full"
-        [disabled]="loading()">
-      </p-select>
-      <label for="collection-select">Collection</label>
-    </p-floatlabel>
-  </div>
-  <div class="charts-container flex gap-4">
-    <div class="flex-1">
-      <p-card>
-        <div class="chart-wrapper">
-          @if (chartInitialized() && assets().length > 0) {
-            <p-chart type="bar"
-              [data]="stackedBarData()"
-              [options]="stackedBarOptions()"
-              height="220px">
-            </p-chart>
-          } @else {
-            <div class="flex h-full w-full items-center justify-center">
-              <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
-            </div>
-          }
-        </div>
-      </p-card>
+    <div class="mb-4 flex items-center">
+        <p-floatlabel class="w-full" variant="in">
+            <p-select
+                id="collection-select"
+                [options]="availableCollections"
+                [ngModel]="selectedCollection()"
+                (ngModelChange)="onCollectionChange($event)"
+                (onChange)="onCollectionChange($event.value)"
+                optionLabel="collectionName"
+                optionValue="collectionId"
+                placeholder="Select a Collection"
+                styleClass="w-full"
+                [disabled]="loading()"
+            >
+            </p-select>
+            <label for="collection-select">Collection</label>
+        </p-floatlabel>
     </div>
-
-    <div class="flex-1">
-      <p-card>
-        <div class="chart-wrapper">
-          @if (chartInitialized() && assets().length > 0) {
-            <p-chart type="doughnut"
-              [data]="doughnutData()"
-              [options]="doughnutOptions()"
-              height="215px">
-            </p-chart>
-          } @else {
-            <div class="flex h-full w-full items-center justify-center">
-              <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
-            </div>
-          }
-        </div>
-      </p-card>
-    </div>
-
-    <div class="flex-1">
-      <p-card>
-        <div class="chart-wrapper">
-          @if (chartInitialized() && assets().length > 0) {
-            <p-chart type="bar"
-              [data]="barData()"
-              [options]="chartOptions()"
-              height="220px">
-            </p-chart>
-          } @else {
-            <div class="flex h-full w-full items-center justify-center">
-              <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
-            </div>
-          }
-        </div>
-      </p-card>
-    </div>
-  </div>
-
-  <div class="mt-4">
-    <p-table #assetDeltaTable
-      [value]="filteredAssets()"
-      [columns]="cols"
-      [globalFilterFields]="['key', 'value']"
-      selectionMode="single"
-      [scrollable]="true"
-      [scrollHeight]="tableScrollHeight"
-      [tableStyle]="{ 'min-width': '50rem' }"
-      styleClass="p-datatable-sm"
-      (onFilter)="updateFilteredTotal()">
-      <ng-template pTemplate="caption">
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <p-iconfield iconPosition="left">
-              <p-inputicon>
-                <i class="pi pi-search"></i>
-              </p-inputicon>
-              <input pInputText
-                type="text"
-                (input)="filterGlobal($event)"
-                placeholder="Search..." />
-              </p-iconfield>
-              <p-button icon="pi pi-filter-slash"
-                (onClick)="clearAllFilters()"
-                [rounded]="true"
-                [text]="true"
-                severity="secondary"
-                pTooltip="Clear All Filters"
-                tooltipPosition="bottom">
-              </p-button>
-              <div class="text-color-secondary ml-2 flex items-center gap-4 text-sm">
-                <div class="flex items-center gap-2">
-                  <i class="pi pi-list"></i>
-                  <span>Total Assets: {{ filteredTotal() }}</span>
-                </div>
-                @if (assetDeltaUpdated()) {
-                  <div class="border-surface-200 border-l-1 flex items-center gap-2 pl-4">
-                    <i class="pi pi-clock"></i>
-                    <span>Asset List Updated: {{ assetDeltaUpdated() | date:'medium' }}</span>
-                  </div>
-                }
-                @if (emassHardwareListUpdated()) {
-                  <div class="border-surface-200 border-l-1 flex items-center gap-2 pl-4">
-                    <i class="pi pi-file-excel"></i>
-                    <span>eMASS Hardware List Updated: {{ emassHardwareListUpdated() | date:'mediumDate' }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-            <div class="flex gap-2">
-              <p-button icon="pi pi-upload"
-                (onClick)="showUploadDialog.set(true)"
-                [rounded]="true"
-                [text]="true"
-                [raised]="true"
-                severity="primary"
-                pTooltip="Upload Assets"
-                tooltipPosition="bottom">
-              </p-button>
-              <p-button [icon]="loading() ? 'pi pi-spin pi-sync' : 'pi pi-sync'"
-                [disabled]="isTenableCheckDisabled() || loading()"
-                (onClick)="checkAllStatuses()"
-                [rounded]="true"
-                [text]="true"
-                [raised]="true"
-                severity="primary"
-                pTooltip="Query Tenable and STIG Manager to establish asset deltas"
-                tooltipPosition="bottom">
-              </p-button>
-              <p-button icon="pi pi-download"
-                (onClick)="assetDeltaTable.exportCSV({selectionOnly:false})"
-                [rounded]="true"
-                [text]="true"
-                [raised]="true"
-                severity="primary"
-                pTooltip="Export Data"
-                tooltipPosition="bottom">
-              </p-button>
-            </div>
-          </div>
-        </ng-template>
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="key">
-              Asset
-              <p-columnFilter type="text" field="key" display="menu" showOperator="false" showAddButton="false"></p-columnFilter>
-            </th>
-            <th pSortableColumn="value">
-              Team
-              <p-columnFilter type="text" field="value" display="menu" showOperator="false" showAddButton="false"></p-columnFilter>
-            </th>
-            <th pSortableColumn="eMASS" style="width: 10%">
-              eMASS
-              <p-columnFilter field="eMASS"
-                matchMode="equals"
-                display="menu"
-                showOperator="false"
-                showAddButton="false"
-                showMatchModes="false">
-                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                  <p-select [ngModel]="value"
-                    [options]="[{label: 'All', value: null}, {label: 'Yes', value: true}, {label: 'No', value: false}]"
-                    (onChange)="filter($event.value)"
-                    placeholder="Select"
-                    [style]="{'width': '100%'}"
-                    appendTo="body">
-                  </p-select>
-                </ng-template>
-              </p-columnFilter>
-            </th>
-            <th pSortableColumn="existsInTenable" style="width: 10%">
-              Tenable
-              <p-columnFilter field="existsInTenable"
-                matchMode="equals"
-                display="menu"
-                showOperator="false"
-                showAddButton="false"
-                showMatchModes="false">
-                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                  <p-select [ngModel]="value"
-                    [options]="[{label: 'All', value: null}, {label: 'Yes', value: true}, {label: 'No', value: false}]"
-                    (onChange)="filter($event.value)"
-                    placeholder="Select"
-                    [style]="{'width': '100%'}"
-                    appendTo="body">
-                  </p-select>
-                </ng-template>
-              </p-columnFilter>
-            </th>
-            <th pSortableColumn="existsInStigManager" style="width: 10%">
-              STIG Manager
-              <p-columnFilter field="existsInStigManager"
-                matchMode="equals"
-                display="menu"
-                showOperator="false"
-                showAddButton="false"
-                showMatchModes="false">
-                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                  <p-select [ngModel]="value"
-                    [options]="[{label: 'All', value: null}, {label: 'Yes', value: true}, {label: 'No', value: false}]"
-                    (onChange)="filter($event.value)"
-                    placeholder="Select"
-                    [style]="{'width': '100%'}"
-                    appendTo="body">
-                  </p-select>
-                </ng-template>
-              </p-columnFilter>
-            </th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-asset>
-          <tr>
-            <td>{{ asset.key }}</td>
-            <td>{{ asset.value }}</td>
-            <td class="text-center">
-              @if (asset.eMASS) {
-                <i
-                class="pi pi-check-circle text-xl text-green-500"></i>
-              }
-              @if (asset.eMASS === false) {
-                <i
-                class="pi pi-times-circle text-xl text-red-700"></i>
-              }
-            </td>
-            <td class="text-center">
-              @if (!asset.loading && asset.existsInTenable === true) {
-                <i
-                class="pi pi-check-circle text-xl text-green-500"></i>
-              }
-              @if (!asset.loading && asset.existsInTenable === false) {
-                <i
-                class="pi pi-times-circle text-xl text-red-700"></i>
-              }
-              @if (asset.loading) {
-                <i
-                class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
-              }
-            </td>
-            <td class="text-center">
-              @if (!asset.loading && asset.existsInStigManager === true) {
-                <i
-                class="pi pi-check-circle text-xl text-green-500"></i>
-              }
-              @if (!asset.loading && asset.existsInStigManager === false) {
-                <i
-                class="pi pi-times-circle text-xl text-red-700"></i>
-              }
-              @if (asset.loading) {
-                <i
-                class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
-              }
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-  </div>
-
-  <p-dialog [visible]="showUploadDialog()"
-    (visibleChange)="showUploadDialog.set($event)"
-    [style]="{width: '80vw'}"
-    [modal]="true"
-    header="Upload Assets">
-    <div class="mb-4">
-      <div class="bg-primary-50 border-1 border-primary-100 rounded p-2 dark:bg-primary-900 dark:border-primary-800">
-        <div class="flex gap-2">
-          <i class="pi pi-info-circle text-primary mt-1"></i>
-          <div>
-            <p class="m-0">Upload a regular asset list (2 columns) or an eMASS hardware list (the system will automatically detect the file type).</p>
-            <p class="m-0 mt-2">For eMASS files, asset names will be extracted from Column C of the Hardware sheet, and the date will be extracted from cell C2.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <p-fileUpload #fileUpload
-      class="pb-[8rem]"
-      name="file"
-      [multiple]="false"
-      accept=".xls,.xlsx,.xlsm,.csv"
-      [maxFileSize]="10485760"
-      (onUpload)="onUpload()"
-      (onSelect)="onSelect($event)"
-      [customUpload]="true"
-      (uploadHandler)="customUploadHandler($event)">
-      <ng-template pTemplate="header"
-        let-files
-        let-chooseCallback="chooseCallback"
-        let-clearCallback="clearCallback"
-        let-uploadCallback="uploadCallback">
-        <div class="flex w-full flex-wrap items-center justify-between gap-2">
-          <div class="flex gap-2">
-            <p-button (onClick)="choose($event, chooseCallback)"
-              icon="pi pi-file"
-              [rounded]="true"
-              [outlined]="true"
-              pTooltip="Select File"
-              tooltipPosition="bottom" />
-              <p-button (onClick)="uploadEvent(uploadCallback)"
-                icon="pi pi-cloud-upload"
-                [rounded]="true"
-                [outlined]="true"
-                severity="success"
-                [disabled]="!files || files.length === 0"
-                pTooltip="Upload Selected File"
-                tooltipPosition="bottom"
-                [ngClass]="{'focus-attention': files?.length > 0}" />
-                <p-button (onClick)="clearCallback()"
-                  icon="pi pi-times"
-                  [rounded]="true"
-                  [outlined]="true"
-                  severity="danger"
-                  [disabled]="!files || files.length === 0"
-                  pTooltip="Clear Selection"
-                  tooltipPosition="bottom" />
-                </div>
-                <p-progressBar [value]="totalSizePercent()"
-                  [showValue]="false"
-                  class="h-4 w-full md:ml-auto md:w-80"
-                  [ngClass]="{ 'exceeded-progress-bar': totalSizePercent() > 100 }">
-                  <span class="whitespace-nowrap">{{ totalSize() }}B / 10Mb</span>
-                </p-progressBar>
-              </div>
-            </ng-template>
-            <ng-template pTemplate="content"
-              let-files
-              let-uploadedFiles="uploadedFiles"
-              let-removeFileCallback="removeFileCallback"
-              let-removeUploadedFileCallback="removeUploadedFileCallback">
-              @if (files?.length > 0) {
-                <div>
-                  <h5>Pending</h5>
-                  <div class="flex flex-wrap gap-8 p-0 sm:p-8">
-                    @for (file of files; track file; let i = $index) {
-                      <div
-                        class="m-0 flex flex-col items-center gap-4 rounded border border-gray-200 px-12 dark:border-gray-700">
-                        <div>
-                          <i class="pi pi-file text-4xl"></i>
+    <div class="charts-container flex gap-4">
+        <div class="flex-1">
+            <p-card>
+                <div class="chart-wrapper">
+                    @if (chartInitialized() && assets().length > 0) {
+                        <p-chart type="bar" [data]="stackedBarData()" [options]="stackedBarOptions()" height="220px"> </p-chart>
+                    } @else {
+                        <div class="flex h-full w-full items-center justify-center">
+                            <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
                         </div>
-                        <span class="font-semibold">{{ file.name }}</span>
-                        <div>{{ formatSize(file.size) }}</div>
-                        <p-badge value="Pending" severity="warn" />
-                        <p-button icon="pi pi-times"
-                          (onClick)="onRemoveFile($event, file, removeFileCallback)"
-                          [outlined]="true"
-                          [rounded]="true"
-                          severity="danger" />
+                    }
+                </div>
+            </p-card>
+        </div>
+
+        <div class="flex-1">
+            <p-card>
+                <div class="chart-wrapper">
+                    @if (chartInitialized() && assets().length > 0) {
+                        <p-chart type="doughnut" [data]="doughnutData()" [options]="doughnutOptions()" height="215px"> </p-chart>
+                    } @else {
+                        <div class="flex h-full w-full items-center justify-center">
+                            <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
                         </div>
-                      }
+                    }
+                </div>
+            </p-card>
+        </div>
+
+        <div class="flex-1">
+            <p-card>
+                <div class="chart-wrapper">
+                    @if (chartInitialized() && assets().length > 0) {
+                        <p-chart type="bar" [data]="barData()" [options]="chartOptions()" height="220px"> </p-chart>
+                    } @else {
+                        <div class="flex h-full w-full items-center justify-center">
+                            <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
+                        </div>
+                    }
+                </div>
+            </p-card>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <p-table
+            #assetDeltaTable
+            [value]="filteredAssets()"
+            [columns]="cols"
+            [globalFilterFields]="['key', 'value']"
+            selectionMode="single"
+            [scrollable]="true"
+            [scrollHeight]="tableScrollHeight"
+            [tableStyle]="{ 'min-width': '50rem' }"
+            styleClass="p-datatable-sm"
+            (onFilter)="updateFilteredTotal()"
+        >
+            <ng-template pTemplate="caption">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <p-iconfield iconPosition="left">
+                            <p-inputicon>
+                                <i class="pi pi-search"></i>
+                            </p-inputicon>
+                            <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search..." />
+                        </p-iconfield>
+                        <p-button icon="pi pi-filter-slash" (onClick)="clearAllFilters()" [rounded]="true" [text]="true" severity="secondary" pTooltip="Clear All Filters" tooltipPosition="bottom"> </p-button>
+                        <div class="text-color-secondary ml-2 flex items-center gap-4 text-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="pi pi-list"></i>
+                                <span>Total Assets: {{ filteredTotal() }}</span>
+                            </div>
+                            @if (assetDeltaUpdated()) {
+                                <div class="border-surface-200 border-l-1 flex items-center gap-2 pl-4">
+                                    <i class="pi pi-clock"></i>
+                                    <span>Asset List Updated: {{ assetDeltaUpdated() | date: 'medium' }}</span>
+                                </div>
+                            }
+                            @if (emassHardwareListUpdated()) {
+                                <div class="border-surface-200 border-l-1 flex items-center gap-2 pl-4">
+                                    <i class="pi pi-file-excel"></i>
+                                    <span>eMASS Hardware List Updated: {{ emassHardwareListUpdated() | date: 'mediumDate' }}</span>
+                                </div>
+                            }
+                        </div>
                     </div>
-                  </div>
-                }
-                @if (uploadedFiles?.length > 0) {
-                  <div>
+                    <div class="flex gap-2">
+                        <p-button icon="pi pi-upload" (onClick)="showUploadDialog.set(true)" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Upload Assets" tooltipPosition="bottom"> </p-button>
+                        <p-button
+                            [icon]="loading() ? 'pi pi-spin pi-sync' : 'pi pi-sync'"
+                            [disabled]="isTenableCheckDisabled() || loading()"
+                            (onClick)="checkAllStatuses()"
+                            [rounded]="true"
+                            [text]="true"
+                            [raised]="true"
+                            severity="primary"
+                            pTooltip="Query Tenable and STIG Manager to establish asset deltas"
+                            tooltipPosition="bottom"
+                        >
+                        </p-button>
+                        <p-button icon="pi pi-download" (onClick)="assetDeltaTable.exportCSV({ selectionOnly: false })" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Export Data" tooltipPosition="bottom"> </p-button>
+                    </div>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="key">
+                        Asset
+                        <p-columnFilter type="text" field="key" display="menu" showOperator="false" showAddButton="false"></p-columnFilter>
+                    </th>
+                    <th pSortableColumn="value">
+                        Team
+                        <p-columnFilter type="text" field="value" display="menu" showOperator="false" showAddButton="false"></p-columnFilter>
+                    </th>
+                    <th pSortableColumn="eMASS" style="width: 10%">
+                        eMASS
+                        <p-columnFilter field="eMASS" matchMode="equals" display="menu" showOperator="false" showAddButton="false" showMatchModes="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-select
+                                    [ngModel]="value"
+                                    [options]="[
+                                        { label: 'All', value: null },
+                                        { label: 'Yes', value: true },
+                                        { label: 'No', value: false }
+                                    ]"
+                                    (onChange)="filter($event.value)"
+                                    placeholder="Select"
+                                    [style]="{ width: '100%' }"
+                                    appendTo="body"
+                                >
+                                </p-select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th pSortableColumn="existsInTenable" style="width: 10%">
+                        Tenable
+                        <p-columnFilter field="existsInTenable" matchMode="equals" display="menu" showOperator="false" showAddButton="false" showMatchModes="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-select
+                                    [ngModel]="value"
+                                    [options]="[
+                                        { label: 'All', value: null },
+                                        { label: 'Yes', value: true },
+                                        { label: 'No', value: false }
+                                    ]"
+                                    (onChange)="filter($event.value)"
+                                    placeholder="Select"
+                                    [style]="{ width: '100%' }"
+                                    appendTo="body"
+                                >
+                                </p-select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th pSortableColumn="existsInStigManager" style="width: 10%">
+                        STIG Manager
+                        <p-columnFilter field="existsInStigManager" matchMode="equals" display="menu" showOperator="false" showAddButton="false" showMatchModes="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-select
+                                    [ngModel]="value"
+                                    [options]="[
+                                        { label: 'All', value: null },
+                                        { label: 'Yes', value: true },
+                                        { label: 'No', value: false }
+                                    ]"
+                                    (onChange)="filter($event.value)"
+                                    placeholder="Select"
+                                    [style]="{ width: '100%' }"
+                                    appendTo="body"
+                                >
+                                </p-select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-asset>
+                <tr>
+                    <td>{{ asset.key }}</td>
+                    <td>{{ asset.value }}</td>
+                    <td class="text-center">
+                        @if (asset.eMASS) {
+                            <i class="pi pi-check-circle text-xl text-green-500"></i>
+                        }
+                        @if (asset.eMASS === false) {
+                            <i class="pi pi-times-circle text-xl text-red-700"></i>
+                        }
+                    </td>
+                    <td class="text-center">
+                        @if (!asset.loading && asset.existsInTenable === true) {
+                            <i class="pi pi-check-circle text-xl text-green-500"></i>
+                        }
+                        @if (!asset.loading && asset.existsInTenable === false) {
+                            <i class="pi pi-times-circle text-xl text-red-700"></i>
+                        }
+                        @if (asset.loading) {
+                            <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
+                        }
+                    </td>
+                    <td class="text-center">
+                        @if (!asset.loading && asset.existsInStigManager === true) {
+                            <i class="pi pi-check-circle text-xl text-green-500"></i>
+                        }
+                        @if (!asset.loading && asset.existsInStigManager === false) {
+                            <i class="pi pi-times-circle text-xl text-red-700"></i>
+                        }
+                        @if (asset.loading) {
+                            <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
+                        }
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>
+
+<p-dialog [visible]="showUploadDialog()" (visibleChange)="showUploadDialog.set($event)" [style]="{ width: '80vw' }" [modal]="true" header="Upload Assets">
+    <div class="mb-4">
+        <div class="bg-primary-50 border-1 border-primary-100 rounded p-2 dark:bg-primary-900 dark:border-primary-800">
+            <div class="flex gap-2">
+                <i class="pi pi-info-circle text-primary mt-1"></i>
+                <div>
+                    <p class="m-0">Upload a regular asset list (2 columns) or an eMASS hardware list (the system will automatically detect the file type).</p>
+                    <p class="m-0 mt-2">For eMASS files, asset names will be extracted from Column C of the Hardware sheet, and the date will be extracted from cell C2.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p-fileUpload
+        #fileUpload
+        class="pb-[8rem]"
+        name="file"
+        [multiple]="false"
+        accept=".xls,.xlsx,.xlsm,.csv"
+        [maxFileSize]="10485760"
+        (onUpload)="onUpload()"
+        (onSelect)="onSelect($event)"
+        [customUpload]="true"
+        (uploadHandler)="customUploadHandler($event)"
+    >
+        <ng-template pTemplate="header" let-files let-chooseCallback="chooseCallback" let-clearCallback="clearCallback" let-uploadCallback="uploadCallback">
+            <div class="flex w-full flex-wrap items-center justify-between gap-2">
+                <div class="flex gap-2">
+                    <p-button (onClick)="choose($event, chooseCallback)" icon="pi pi-file" [rounded]="true" [outlined]="true" pTooltip="Select File" tooltipPosition="bottom" />
+                    <p-button
+                        (onClick)="uploadEvent(uploadCallback)"
+                        icon="pi pi-cloud-upload"
+                        [rounded]="true"
+                        [outlined]="true"
+                        severity="success"
+                        [disabled]="!files || files.length === 0"
+                        pTooltip="Upload Selected File"
+                        tooltipPosition="bottom"
+                        [ngClass]="{ 'focus-attention': files?.length > 0 }"
+                    />
+                    <p-button (onClick)="clearCallback()" icon="pi pi-times" [rounded]="true" [outlined]="true" severity="danger" [disabled]="!files || files.length === 0" pTooltip="Clear Selection" tooltipPosition="bottom" />
+                </div>
+                <p-progressBar [value]="totalSizePercent()" [showValue]="false" class="h-4 w-full md:ml-auto md:w-80" [ngClass]="{ 'exceeded-progress-bar': totalSizePercent() > 100 }">
+                    <span class="whitespace-nowrap">{{ totalSize() }}B / 10Mb</span>
+                </p-progressBar>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="content" let-files let-uploadedFiles="uploadedFiles" let-removeFileCallback="removeFileCallback" let-removeUploadedFileCallback="removeUploadedFileCallback">
+            @if (files?.length > 0) {
+                <div>
+                    <h5>Pending</h5>
+                    <div class="flex flex-wrap gap-8 p-0 sm:p-8">
+                        @for (file of files; track file; let i = $index) {
+                            <div class="m-0 flex flex-col items-center gap-4 rounded border border-gray-200 px-12 dark:border-gray-700">
+                                <div>
+                                    <i class="pi pi-file text-4xl"></i>
+                                </div>
+                                <span class="font-semibold">{{ file.name }}</span>
+                                <div>{{ formatSize(file.size) }}</div>
+                                <p-badge value="Pending" severity="warn" />
+                                <p-button icon="pi pi-times" (onClick)="onRemoveFile($event, file, removeFileCallback)" [outlined]="true" [rounded]="true" severity="danger" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            @if (uploadedFiles?.length > 0) {
+                <div>
                     <h5>Completed</h5>
                     <div class="flex flex-wrap gap-8 p-0 sm:p-8">
-                      @for (file of uploadedFiles; track file; let i = $index) {
-                        <div
-                          class="m-0 flex flex-col items-center gap-4 rounded border border-gray-200 px-12 dark:border-gray-700">
-                          <div>
-                            <i class="pi pi-file text-4xl"></i>
-                          </div>
-                          <span class="font-semibold">{{ file.name }}</span>
-                          <div>{{ formatSize(file.size) }}</div>
-                          <p-badge value="Completed" class="mt-4" severity="success" />
-                          <p-button icon="pi pi-times"
-                            (onClick)="removeUploadedFileCallback(i)"
-                            [outlined]="true"
-                            [rounded]="true"
-                            severity="danger" />
-                          </div>
+                        @for (file of uploadedFiles; track file; let i = $index) {
+                            <div class="m-0 flex flex-col items-center gap-4 rounded border border-gray-200 px-12 dark:border-gray-700">
+                                <div>
+                                    <i class="pi pi-file text-4xl"></i>
+                                </div>
+                                <span class="font-semibold">{{ file.name }}</span>
+                                <div>{{ formatSize(file.size) }}</div>
+                                <p-badge value="Completed" class="mt-4" severity="success" />
+                                <p-button icon="pi pi-times" (onClick)="removeUploadedFileCallback(i)" [outlined]="true" [rounded]="true" severity="danger" />
+                            </div>
                         }
-                      </div>
                     </div>
-                  }
-                </ng-template>
-                <ng-template pTemplate="empty">
-                  <div class="flex h-64 flex-col items-center justify-center">
-                    <i class="pi pi-cloud-upload rounded-full border-2 border-gray-400 p-8 text-8xl text-gray-400 dark:border-gray-500 dark:text-gray-500"></i>
-                    <p class="mb-0 mt-6 text-gray-600 dark:text-gray-400">Drag and drop files here to upload.</p>
-                  </div>
-                </ng-template>
-              </p-fileUpload>
-            </p-dialog>
+                </div>
+            }
+        </ng-template>
+        <ng-template pTemplate="empty">
+            <div class="flex h-64 flex-col items-center justify-center">
+                <i class="pi pi-cloud-upload rounded-full border-2 border-gray-400 p-8 text-8xl text-gray-400 dark:border-gray-500 dark:text-gray-500"></i>
+                <p class="mb-0 mt-6 text-gray-600 dark:text-gray-400">Drag and drop files here to upload.</p>
+            </div>
+        </ng-template>
+    </p-fileUpload>
+</p-dialog>

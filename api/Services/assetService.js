@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -29,20 +29,20 @@ exports.getAssetsByCollection = async function getAssetsByCollection(req, res, n
                 status: 400,
                 errors: {
                     collectionId: 'is required',
-                }
+                },
             });
         }
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `SELECT * FROM ${config.database.schema}.asset WHERE collectionId = ? ORDER BY assetName;`;
             let [rowAssets] = await connection.query(sql, [req.params.collectionId]);
             const assets = rowAssets.map(row => ({
-                "assetId": row.assetId,
-                "assetName": row.assetName,
-                "description": row.description,
-                "fullyQualifiedDomainName": row.fullyQualifiedDomainName,
-                "collectionId": row.collectionId,
-                "ipAddress": row.ipAddress,
-                "macAddress": row.macAddress,
+                assetId: row.assetId,
+                assetName: row.assetName,
+                description: row.description,
+                fullyQualifiedDomainName: row.fullyQualifiedDomainName,
+                collectionId: row.collectionId,
+                ipAddress: row.ipAddress,
+                macAddress: row.macAddress,
             }));
             return { assets };
         });
@@ -57,11 +57,11 @@ exports.getAsset = async function getAsset(req, res, next) {
             status: 400,
             errors: {
                 assetId: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `SELECT * FROM  ${config.database.schema}.asset WHERE assetId = ?`;
             let [rowAssets] = await connection.execute(sql, [req.params.assetId]);
             const response = {
@@ -69,11 +69,11 @@ exports.getAsset = async function getAsset(req, res, next) {
                     assetId: asset.assetId,
                     assetName: asset.assetName,
                     collectionId: asset.collectionId,
-                    ipAddress: asset.ipAddress || "",
-                    description: asset.description || "",
-                    fullyQualifiedDomainName: asset.fullyQualifiedDomainName || "",
-                    macAddress: asset.macAddress || ""
-                }))
+                    ipAddress: asset.ipAddress || '',
+                    description: asset.description || '',
+                    fullyQualifiedDomainName: asset.fullyQualifiedDomainName || '',
+                    macAddress: asset.macAddress || '',
+                })),
             };
             return response;
         });
@@ -88,11 +88,11 @@ exports.getAssetByName = async function getAssetByName(req, res, next) {
             status: 400,
             errors: {
                 assetName: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sql = `SELECT * FROM ${config.database.schema}.asset WHERE assetName = ?`;
             let [rowAssets] = await connection.execute(sql, [req.params.assetName]);
             const response = {
@@ -100,11 +100,11 @@ exports.getAssetByName = async function getAssetByName(req, res, next) {
                     assetId: asset.assetId,
                     assetName: asset.assetName,
                     collectionId: asset.collectionId,
-                    ipAddress: asset.ipAddress || "",
-                    description: asset.description || "",
-                    fullyQualifiedDomainName: asset.fullyQualifiedDomainName || "",
-                    macAddress: asset.macAddress || ""
-                }))
+                    ipAddress: asset.ipAddress || '',
+                    description: asset.description || '',
+                    fullyQualifiedDomainName: asset.fullyQualifiedDomainName || '',
+                    macAddress: asset.macAddress || '',
+                })),
             };
             return response;
         });
@@ -119,7 +119,7 @@ exports.postAsset = async function postAsset(req, res, next) {
             status: 400,
             errors: {
                 assetName: 'is required',
-            }
+            },
         });
     }
     if (!req.body.collectionId) {
@@ -127,7 +127,7 @@ exports.postAsset = async function postAsset(req, res, next) {
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
     if (!req.body.ipAddress) {
@@ -135,20 +135,23 @@ exports.postAsset = async function postAsset(req, res, next) {
             status: 400,
             errors: {
                 ipAddress: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `
                 INSERT INTO ${config.database.schema}.asset (assetName, fullyQualifiedDomainName,
                 collectionId, description, ipAddress, macAddress)
                 VALUES (?, ?, ?, ?, ?, ?)
             `;
             await connection.query(sql_query, [
-                req.body.assetName, req.body.fullyQualifiedDomainName,
-                req.body.collectionId, req.body.description, req.body.ipAddress,
-                req.body.macAddress
+                req.body.assetName,
+                req.body.fullyQualifiedDomainName,
+                req.body.collectionId,
+                req.body.description,
+                req.body.ipAddress,
+                req.body.macAddress,
             ]);
             let sql = `SELECT * FROM ${config.database.schema}.asset WHERE assetName = ?`;
             let [rowAsset] = await connection.query(sql, [req.body.assetName]);
@@ -167,7 +170,7 @@ exports.postAsset = async function postAsset(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.putAsset = async function putAsset(req, res, next) {
     if (!req.body.assetId) {
@@ -175,7 +178,7 @@ exports.putAsset = async function putAsset(req, res, next) {
             status: 400,
             errors: {
                 assetId: 'is required',
-            }
+            },
         });
     }
     if (!req.body.assetName) {
@@ -183,7 +186,7 @@ exports.putAsset = async function putAsset(req, res, next) {
             status: 400,
             errors: {
                 assetName: 'is required',
-            }
+            },
         });
     }
     if (!req.body.collectionId) {
@@ -191,7 +194,7 @@ exports.putAsset = async function putAsset(req, res, next) {
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
     if (!req.body.ipAddress) {
@@ -199,14 +202,14 @@ exports.putAsset = async function putAsset(req, res, next) {
             status: 400,
             errors: {
                 ipAddress: 'is required',
-            }
+            },
         });
     }
-    if (!req.body.description) req.body.description = "";
-    if (!req.body.fullyQualifiedDomainName) req.body.fullyQualifiedDomainName = "";
-    if (!req.body.macAddress) req.body.macAddress = "";
+    if (!req.body.description) req.body.description = '';
+    if (!req.body.fullyQualifiedDomainName) req.body.fullyQualifiedDomainName = '';
+    if (!req.body.macAddress) req.body.macAddress = '';
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `
                 UPDATE ${config.database.schema}.asset
                 SET assetName = ?, fullyQualifiedDomainName = ?,
@@ -214,9 +217,13 @@ exports.putAsset = async function putAsset(req, res, next) {
                 WHERE assetId = ?
             `;
             await connection.query(sql_query, [
-                req.body.assetName, req.body.fullyQualifiedDomainName,
-                req.body.collectionId, req.body.description, req.body.ipAddress,
-                req.body.macAddress, req.body.assetId
+                req.body.assetName,
+                req.body.fullyQualifiedDomainName,
+                req.body.collectionId,
+                req.body.description,
+                req.body.ipAddress,
+                req.body.macAddress,
+                req.body.assetId,
             ]);
             let sql = `SELECT * FROM ${config.database.schema}.asset WHERE assetId = ?`;
             let [rowAsset] = await connection.query(sql, [req.body.assetId]);
@@ -234,7 +241,7 @@ exports.putAsset = async function putAsset(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.deleteAsset = async function deleteAsset(req, res, next) {
     if (!req.params.assetId) {
@@ -242,11 +249,11 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
             status: 400,
             errors: {
                 assetId: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `DELETE FROM ${config.database.schema}.asset WHERE assetId = ?`;
             await connection.query(sql, [req.params.assetId]);
             return { asset: [] };
@@ -254,7 +261,7 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, next) {
     if (!req.params.poamId) {
@@ -262,11 +269,11 @@ exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, nex
             status: 400,
             errors: {
                 poamId: 'is required',
-            }
+            },
         });
     }
     try {
-        await withConnection(async (connection) => {
+        await withConnection(async connection => {
             let findAssetSql = `SELECT * FROM ${config.database.schema}.poamassets WHERE poamId = ?`;
             const [rowAssets] = await connection.query(findAssetSql, [req.params.poamId]);
 
@@ -284,7 +291,7 @@ exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, nex
 
 exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const assetsSql = `
                 SELECT
                     a.key,
@@ -304,21 +311,19 @@ exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
                 const compositeKey = `${row.key}_${row.value}`;
                 if (!assetMap.has(compositeKey)) {
                     assetMap.set(compositeKey, {
-                        "key": row.key,
-                        "value": row.value,
-                        "eMASS": row.eMASS || false,
-                        "assignedTeams": []
+                        key: row.key,
+                        value: row.value,
+                        eMASS: row.eMASS || false,
+                        assignedTeams: [],
                     });
                 }
                 if (row.assignedTeamId) {
                     const asset = assetMap.get(compositeKey);
-                    const teamExists = asset.assignedTeams.some(
-                        team => team.assignedTeamId === row.assignedTeamId
-                    );
+                    const teamExists = asset.assignedTeams.some(team => team.assignedTeamId === row.assignedTeamId);
                     if (!teamExists) {
                         asset.assignedTeams.push({
-                            "assignedTeamId": row.assignedTeamId,
-                            "assignedTeamName": row.assignedTeamName
+                            assignedTeamId: row.assignedTeamId,
+                            assignedTeamName: row.assignedTeamName,
                         });
                     }
                     if (asset.assignedTeams.length === 1) {
@@ -328,7 +333,7 @@ exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
             });
             const assets = Array.from(assetMap.values());
             return {
-                assets
+                assets,
             };
         });
     } catch (error) {
@@ -338,7 +343,7 @@ exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
 
 exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollection(req, res, next, collectionId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const assetsSql = `
                 SELECT
                     a.key,
@@ -363,24 +368,22 @@ exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollec
 
                 if (!assetMap.has(key)) {
                     assetMap.set(key, {
-                        "key": row.key,
-                        "value": row.value,
-                        "eMASS": row.eMASS || false,
-                        "assignedTeams": []
+                        key: row.key,
+                        value: row.value,
+                        eMASS: row.eMASS || false,
+                        assignedTeams: [],
                     });
                 }
 
                 if (row.assignedTeamId) {
                     const asset = assetMap.get(key);
 
-                    const teamExists = asset.assignedTeams.some(
-                        team => team.assignedTeamId === row.assignedTeamId
-                    );
+                    const teamExists = asset.assignedTeams.some(team => team.assignedTeamId === row.assignedTeamId);
 
                     if (!teamExists) {
                         asset.assignedTeams.push({
-                            "assignedTeamId": row.assignedTeamId,
-                            "assignedTeamName": row.assignedTeamName
+                            assignedTeamId: row.assignedTeamId,
+                            assignedTeamName: row.assignedTeamName,
                         });
                     }
 
@@ -396,14 +399,12 @@ exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollec
             let emassHardwareListUpdated = null;
 
             if (rowAssets.length > 0) {
-                const [assetDeltaConfig] = await connection.query(
-                    'SELECT `value` FROM config WHERE `key` = ?',
-                    [`assetDeltaUpdated_${collectionId}`]
-                );
-                const [emassConfig] = await connection.query(
-                    'SELECT `value` FROM config WHERE `key` = ?',
-                    [`emassHardwareListUpdated_${collectionId}`]
-                );
+                const [assetDeltaConfig] = await connection.query('SELECT `value` FROM config WHERE `key` = ?', [
+                    `assetDeltaUpdated_${collectionId}`,
+                ]);
+                const [emassConfig] = await connection.query('SELECT `value` FROM config WHERE `key` = ?', [
+                    `emassHardwareListUpdated_${collectionId}`,
+                ]);
                 assetDeltaUpdated = assetDeltaConfig.length > 0 ? assetDeltaConfig[0].value : null;
                 emassHardwareListUpdated = emassConfig.length > 0 ? emassConfig[0].value : null;
             }
@@ -411,7 +412,7 @@ exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollec
             return {
                 assets,
                 assetDeltaUpdated,
-                emassHardwareListUpdated
+                emassHardwareListUpdated,
             };
         });
     } catch (error) {

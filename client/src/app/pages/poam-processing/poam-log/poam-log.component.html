@@ -8,37 +8,24 @@
 !##########################################################################
 -->
 
-<p-dialog
-  [(visible)]="displayModal"
-  [style]="{width: '60vw', 'max-height': '80vh'}"
-  [modal]="true"
-  [closable]="true"
-  (onHide)="closeModal()"
->
-  <div class="container">
-    <p-table
-      [value]="dataSource"
-      [scrollable]="true"
-      scrollHeight="flex"
-      [style]="{'max-height':'60vh'}"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th scope="col" pSortableColumn="Timestamp" style="width: 20%">
-            Timestamp <p-sortIcon field="Timestamp"></p-sortIcon>
-          </th>
-          <th scope="col" pSortableColumn="User" style="width: 20%">User</th>
-          <th scope="col" pSortableColumn="Action" style="width: 60%">Action</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-row>
-        <tr>
-          <td style="width: 20%">{{ row.Timestamp }}</td>
-          <td style="width: 20%">{{ row.User }}</td>
-          <td style="width: 60%" [innerHTML]="row.Action"></td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </div>
+<p-dialog [(visible)]="displayModal" [style]="{ width: '60vw', 'max-height': '80vh' }" [modal]="true" [closable]="true" (onHide)="closeModal()">
+    <div class="container">
+        <p-table [value]="dataSource" [scrollable]="true" scrollHeight="flex" [style]="{ 'max-height': '60vh' }">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th scope="col" pSortableColumn="Timestamp" style="width: 20%">Timestamp <p-sortIcon field="Timestamp"></p-sortIcon></th>
+                    <th scope="col" pSortableColumn="User" style="width: 20%">User</th>
+                    <th scope="col" pSortableColumn="Action" style="width: 60%">Action</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+                <tr>
+                    <td style="width: 20%">{{ row.Timestamp }}</td>
+                    <td style="width: 20%">{{ row.User }}</td>
+                    <td style="width: 60%" [innerHTML]="row.Action"></td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
 </p-dialog>
 <p-toast />

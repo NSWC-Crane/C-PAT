@@ -22,82 +22,74 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AppConfigurationService } from './app-configuration.service';
 
 @Component({
-  selector: 'cpat-app-configuration',
-  templateUrl: './app-configuration.component.html',
-  styleUrls: ['./app-configuration.component.scss'],
-  standalone: true,
-  imports: [
-    ButtonModule,
-    FormsModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule,
-    TableModule,
-    ToastModule
-],
-  providers: [MessageService],
+    selector: 'cpat-app-configuration',
+    templateUrl: './app-configuration.component.html',
+    styleUrls: ['./app-configuration.component.scss'],
+    standalone: true,
+    imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule],
+    providers: [MessageService]
 })
 export class AppConfigurationComponent implements OnInit {
-  @ViewChild('dt') table!: Table;
+    @ViewChild('dt') table!: Table;
 
-  appConfiguration: AppConfiguration[] = [];
-  editingAppConfiguration: AppConfiguration | null = null;
+    appConfiguration: AppConfiguration[] = [];
+    editingAppConfiguration: AppConfiguration | null = null;
 
-  constructor(
-    private appConfigurationService: AppConfigurationService,
-    private messageService: MessageService
-  ) {}
+    constructor(
+        private appConfigurationService: AppConfigurationService,
+        private messageService: MessageService
+    ) {}
 
-  ngOnInit() {
-    this.loadAppConfiguration();
-  }
+    ngOnInit() {
+        this.loadAppConfiguration();
+    }
 
-  loadAppConfiguration() {
-    this.appConfigurationService.getAppConfiguration().subscribe({
-      next: (response) => {
-        this.appConfiguration = response || [];
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load App Configuration: ${getErrorMessage(error)}`
+    loadAppConfiguration() {
+        this.appConfigurationService.getAppConfiguration().subscribe({
+            next: (response) => {
+                this.appConfiguration = response || [];
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Failed to load App Configuration: ${getErrorMessage(error)}`
+                });
+            }
         });
-      }
-    });
-  }
+    }
 
-  onRowEditInit(appConfig: AppConfiguration) {
-    this.editingAppConfiguration = { ...appConfig };
-  }
+    onRowEditInit(appConfig: AppConfiguration) {
+        this.editingAppConfiguration = { ...appConfig };
+    }
 
-  onRowEditSave(appConfig: AppConfiguration) {
-    this.appConfigurationService.putAppConfiguration(appConfig).subscribe({
-      next: (_response) => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `${appConfig.settingName} updated.`
+    onRowEditSave(appConfig: AppConfiguration) {
+        this.appConfigurationService.putAppConfiguration(appConfig).subscribe({
+            next: (_response) => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: `${appConfig.settingName} updated.`
+                });
+                this.editingAppConfiguration = null;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Failed to save ${appConfig.settingName}: ${getErrorMessage(error)}`
+                });
+            }
         });
+    }
+
+    onRowEditCancel(index: number) {
+        this.appConfiguration[index] = this.editingAppConfiguration!;
         this.editingAppConfiguration = null;
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to save ${appConfig.settingName}: ${getErrorMessage(error)}`
-        });
-      }
-    });
-  }
+    }
 
-  onRowEditCancel(index: number) {
-    this.appConfiguration[index] = this.editingAppConfiguration!;
-    this.editingAppConfiguration = null;
-  }
-
-  filterGlobal(event: Event) {
-    const inputValue = (event.target as HTMLInputElement)?.value || '';
-    this.table.filterGlobal(inputValue, 'contains');
-  }
+    filterGlobal(event: Event) {
+        const inputValue = (event.target as HTMLInputElement)?.value || '';
+        this.table.filterGlobal(inputValue, 'contains');
+    }
 }

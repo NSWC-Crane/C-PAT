@@ -8,194 +8,172 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, Output } from "@angular/core";
-import { FormsModule } from "@angular/forms";
-import { MessageService } from "primeng/api";
-import { ButtonModule } from "primeng/button";
-import { ProgressBarModule } from "primeng/progressbar";
-import { SelectModule } from "primeng/select";
-import { TableModule } from "primeng/table";
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { firstValueFrom } from "rxjs";
+import { firstValueFrom } from 'rxjs';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
-import { PoamService } from "../../../poams.service";
+import { PoamService } from '../../../poams.service';
 
 @Component({
-  selector: 'cpat-poam-teams',
-  templateUrl: './poam-teams.component.html',
-  standalone: true,
-  imports: [
-    FormsModule,
-    TableModule,
-    ProgressBarModule,
-    SelectModule,
-    ButtonModule,
-    ToastModule
-]
+    selector: 'cpat-poam-teams',
+    templateUrl: './poam-teams.component.html',
+    standalone: true,
+    imports: [FormsModule, TableModule, ProgressBarModule, SelectModule, ButtonModule, ToastModule]
 })
 export class PoamTeamsComponent {
-  @Input() poam: any;
-  @Input() accessLevel: number;
-  @Input() poamAssignedTeams: any[] = [];
-  @Input() assignedTeamOptions: any[] = [];
-  @Input() loading: boolean = false;
-  @Input() poamService!: PoamService;
-  @Output() teamsChanged = new EventEmitter<{ teams: any[], action: string, team?: any }>();
+    @Input() poam: any;
+    @Input() accessLevel: number;
+    @Input() poamAssignedTeams: any[] = [];
+    @Input() assignedTeamOptions: any[] = [];
+    @Input() loading: boolean = false;
+    @Input() poamService!: PoamService;
+    @Output() teamsChanged = new EventEmitter<{ teams: any[]; action: string; team?: any }>();
 
-  constructor(private messageService: MessageService) { }
+    constructor(private messageService: MessageService) {}
 
-  async addAssignedTeam() {
-    const newAssignedTeam = {
-      poamId: this.poam.poamId === 'ADDPOAM' ? 0 : +this.poam.poamId,
-      assignedTeamId: null,
-      assignedTeamName: '',
-      isNew: true,
-    };
+    async addAssignedTeam() {
+        const newAssignedTeam = {
+            poamId: this.poam.poamId === 'ADDPOAM' ? 0 : +this.poam.poamId,
+            assignedTeamId: null,
+            assignedTeamName: '',
+            isNew: true
+        };
 
-    this.poamAssignedTeams = [newAssignedTeam, ...this.poamAssignedTeams];
-    this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'added', team: newAssignedTeam });
-  }
-
-  async onAssignedTeamChange(assignedTeam: any, rowIndex: number) {
-    if (assignedTeam.assignedTeamId) {
-      const selectedTeam = this.assignedTeamOptions.find(
-        (team: any) => team.assignedTeamId === assignedTeam.assignedTeamId
-      );
-      assignedTeam.assignedTeamName = selectedTeam ? selectedTeam.assignedTeamName : '';
-
-      assignedTeam.isNew = false;
-      this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'added', team: assignedTeam });
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `${assignedTeam.assignedTeamName} added to assigned teams list.`
-      });
-    } else {
-      this.poamAssignedTeams.splice(rowIndex, 1);
-      this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'updated' });
-    }
-  }
-
-  async deleteAssignedTeam(assignedTeam: any, rowIndex: number) {
-    this.poamAssignedTeams = this.poamAssignedTeams.filter((_a, index) => index !== rowIndex);
-    this.teamsChanged.emit({
-      teams: this.poamAssignedTeams,
-      action: 'deleted',
-      team: assignedTeam
-    });
-
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: `${assignedTeam.assignedTeamName || 'Team'} removed from assigned teams list.`
-    });
-  }
-
-  async confirmCreateAssignedTeam(newAssignedTeam: any) {
-    let assignedTeamName = newAssignedTeam.assignedTeamName;
-    if (!assignedTeamName) {
-      const matchingTeam = this.assignedTeamOptions.find(
-        (team: any) => team.assignedTeamId === newAssignedTeam.assignedTeamId
-      );
-      assignedTeamName = matchingTeam ? matchingTeam.assignedTeamName : 'Team';
+        this.poamAssignedTeams = [newAssignedTeam, ...this.poamAssignedTeams];
+        this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'added', team: newAssignedTeam });
     }
 
-    if (this.poam.poamId !== 'ADDPOAM' && newAssignedTeam.assignedTeamId) {
-      const poamAssignedTeam = {
-        poamId: +this.poam.poamId,
-        assignedTeamId: +newAssignedTeam.assignedTeamId,
-      };
+    async onAssignedTeamChange(assignedTeam: any, rowIndex: number) {
+        if (assignedTeam.assignedTeamId) {
+            const selectedTeam = this.assignedTeamOptions.find((team: any) => team.assignedTeamId === assignedTeam.assignedTeamId);
+            assignedTeam.assignedTeamName = selectedTeam ? selectedTeam.assignedTeamName : '';
 
-      try {
-        await firstValueFrom(
-          this.poamService.postPoamAssignedTeam(poamAssignedTeam)
-        );
+            assignedTeam.isNew = false;
+            this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'added', team: assignedTeam });
 
-        const updatedTeams = await firstValueFrom(
-          this.poamService.getPoamAssignedTeams(this.poam.poamId)
-        );
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `${assignedTeam.assignedTeamName} added to assigned teams list.`
+            });
+        } else {
+            this.poamAssignedTeams.splice(rowIndex, 1);
+            this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'updated' });
+        }
+    }
 
-        this.poamAssignedTeams = updatedTeams;
+    async deleteAssignedTeam(assignedTeam: any, rowIndex: number) {
+        this.poamAssignedTeams = this.poamAssignedTeams.filter((_a, index) => index !== rowIndex);
         this.teamsChanged.emit({
-          teams: this.poamAssignedTeams,
-          action: 'saved',
-          team: newAssignedTeam
+            teams: this.poamAssignedTeams,
+            action: 'deleted',
+            team: assignedTeam
         });
 
         this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `${assignedTeamName} was successfully added to the assigned teams list`,
-        });
-      } catch (error: any) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to add team: ${getErrorMessage(error)}`
-        });
-      }
-    } else if (this.poam.poamId === 'ADDPOAM' && newAssignedTeam.assignedTeamId) {
-      newAssignedTeam.assignedTeamName = assignedTeamName;
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `${assignedTeamName} was successfully added to the assigned teams list`,
-      });
-    } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to create entry. Invalid input.',
-      });
-    }
-  }
-
-  confirmDeleteAssignedTeam(assignedTeamData: any) {
-    let assignedTeamName = assignedTeamData.assignedTeamName || '';
-
-    if (this.poam.poamId !== 'ADDPOAM' && assignedTeamData.assignedTeamId) {
-      this.poamService.deletePoamAssignedTeam(
-        +this.poam.poamId,
-        +assignedTeamData.assignedTeamId
-      ).subscribe({
-        next: () => {
-          this.poamAssignedTeams = this.poamAssignedTeams.filter(
-            (a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId
-          );
-          this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'deleted', team: assignedTeamData });
-
-          this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: `${assignedTeamName} was removed as an assigned team`,
-          });
-        },
-        error: (error: Error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to remove assigned team: ${getErrorMessage(error)}`
-          });
-        }
-      });
-    } else if (this.poam.poamId === 'ADDPOAM' && assignedTeamData.assignedTeamId) {
-      this.poamAssignedTeams = this.poamAssignedTeams.filter(
-        (a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId
-      );
-      this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'deleted', team: assignedTeamData });
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `${assignedTeamName} was removed as an assigned team`,
-      });
-    } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to delete entry. Invalid input.',
-      });
+            detail: `${assignedTeam.assignedTeamName || 'Team'} removed from assigned teams list.`
+        });
     }
-  }
+
+    async confirmCreateAssignedTeam(newAssignedTeam: any) {
+        let assignedTeamName = newAssignedTeam.assignedTeamName;
+        if (!assignedTeamName) {
+            const matchingTeam = this.assignedTeamOptions.find((team: any) => team.assignedTeamId === newAssignedTeam.assignedTeamId);
+            assignedTeamName = matchingTeam ? matchingTeam.assignedTeamName : 'Team';
+        }
+
+        if (this.poam.poamId !== 'ADDPOAM' && newAssignedTeam.assignedTeamId) {
+            const poamAssignedTeam = {
+                poamId: +this.poam.poamId,
+                assignedTeamId: +newAssignedTeam.assignedTeamId
+            };
+
+            try {
+                await firstValueFrom(this.poamService.postPoamAssignedTeam(poamAssignedTeam));
+
+                const updatedTeams = await firstValueFrom(this.poamService.getPoamAssignedTeams(this.poam.poamId));
+
+                this.poamAssignedTeams = updatedTeams;
+                this.teamsChanged.emit({
+                    teams: this.poamAssignedTeams,
+                    action: 'saved',
+                    team: newAssignedTeam
+                });
+
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: `${assignedTeamName} was successfully added to the assigned teams list`
+                });
+            } catch (error: any) {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Failed to add team: ${getErrorMessage(error)}`
+                });
+            }
+        } else if (this.poam.poamId === 'ADDPOAM' && newAssignedTeam.assignedTeamId) {
+            newAssignedTeam.assignedTeamName = assignedTeamName;
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `${assignedTeamName} was successfully added to the assigned teams list`
+            });
+        } else {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Failed to create entry. Invalid input.'
+            });
+        }
+    }
+
+    confirmDeleteAssignedTeam(assignedTeamData: any) {
+        let assignedTeamName = assignedTeamData.assignedTeamName || '';
+
+        if (this.poam.poamId !== 'ADDPOAM' && assignedTeamData.assignedTeamId) {
+            this.poamService.deletePoamAssignedTeam(+this.poam.poamId, +assignedTeamData.assignedTeamId).subscribe({
+                next: () => {
+                    this.poamAssignedTeams = this.poamAssignedTeams.filter((a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId);
+                    this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'deleted', team: assignedTeamData });
+
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Success',
+                        detail: `${assignedTeamName} was removed as an assigned team`
+                    });
+                },
+                error: (error: Error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: `Failed to remove assigned team: ${getErrorMessage(error)}`
+                    });
+                }
+            });
+        } else if (this.poam.poamId === 'ADDPOAM' && assignedTeamData.assignedTeamId) {
+            this.poamAssignedTeams = this.poamAssignedTeams.filter((a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId);
+            this.teamsChanged.emit({ teams: this.poamAssignedTeams, action: 'deleted', team: assignedTeamData });
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `${assignedTeamName} was removed as an assigned team`
+            });
+        } else {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Failed to delete entry. Invalid input.'
+            });
+        }
+    }
 }

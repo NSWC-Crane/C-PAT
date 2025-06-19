@@ -28,12 +28,12 @@ exports.getMessagesByPoamId = async function getMessagesByPoamId(req, res, next)
             status: 400,
             errors: {
                 poamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT pc.messageId, pc.userId, pc.poamId, pc.text, pc.createdAt,
                        u.firstName, u.lastName, u.userName
@@ -52,8 +52,8 @@ exports.getMessagesByPoamId = async function getMessagesByPoamId(req, res, next)
                 user: {
                     firstName: row.firstName,
                     lastName: row.lastName,
-                    userName: row.userName
-                }
+                    userName: row.userName,
+                },
             }));
             return messages || [];
         });
@@ -68,7 +68,7 @@ exports.createMessage = async function createMessage(req, res, next) {
             status: 400,
             errors: {
                 poamId: 'is required',
-            }
+            },
         });
     }
 
@@ -77,12 +77,12 @@ exports.createMessage = async function createMessage(req, res, next) {
             status: 400,
             errors: {
                 text: 'is required and cannot be empty',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let checkSql = `SELECT 1 FROM ${config.database.schema}.poam WHERE poamId = ?`;
             let [checkRows] = await connection.query(checkSql, [req.params.poamId]);
 
@@ -91,7 +91,7 @@ exports.createMessage = async function createMessage(req, res, next) {
                     status: 404,
                     errors: {
                         poamId: 'POAM not found',
-                    }
+                    },
                 });
             }
 
@@ -100,11 +100,7 @@ exports.createMessage = async function createMessage(req, res, next) {
                 VALUES (?, ?, ?, NOW())
             `;
 
-            let [result] = await connection.query(sql, [
-                req.userObject.userId,
-                req.params.poamId,
-                req.body.text.trim()
-            ]);
+            let [result] = await connection.query(sql, [req.userObject.userId, req.params.poamId, req.body.text.trim()]);
 
             if (result.affectedRows === 1) {
                 let selectSql = `
@@ -126,8 +122,8 @@ exports.createMessage = async function createMessage(req, res, next) {
                         user: {
                             firstName: messages[0].firstName,
                             lastName: messages[0].lastName,
-                            userName: messages[0].userName
-                        }
+                            userName: messages[0].userName,
+                        },
                     };
                     return message;
                 }
@@ -137,7 +133,7 @@ exports.createMessage = async function createMessage(req, res, next) {
                 status: 500,
                 errors: {
                     general: 'Failed to create message',
-                }
+                },
             });
         });
     } catch (error) {
@@ -151,12 +147,12 @@ exports.deleteMessage = async function deleteMessage(req, res, next) {
             status: 400,
             errors: {
                 messageId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let checkSql = `SELECT userId FROM ${config.database.schema}.poamchat WHERE messageId = ?`;
             let [checkRows] = await connection.query(checkSql, [req.params.messageId]);
 
@@ -165,7 +161,7 @@ exports.deleteMessage = async function deleteMessage(req, res, next) {
                     status: 404,
                     errors: {
                         messageId: 'Message not found',
-                    }
+                    },
                 });
             }
 
@@ -174,7 +170,7 @@ exports.deleteMessage = async function deleteMessage(req, res, next) {
                     status: 403,
                     errors: {
                         general: 'Not authorized to delete this message',
-                    }
+                    },
                 });
             }
 
@@ -188,7 +184,7 @@ exports.deleteMessage = async function deleteMessage(req, res, next) {
                     status: 500,
                     errors: {
                         general: 'Failed to delete message',
-                    }
+                    },
                 });
             }
         });

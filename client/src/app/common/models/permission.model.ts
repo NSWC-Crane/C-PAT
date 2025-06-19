@@ -9,8 +9,8 @@
 */
 
 export interface Permission {
-  userId?: number;
-  collectionId?: number;
-  collectionName?: string;
-  accessLevel?: number;
+    userId?: number;
+    collectionId?: number;
+    collectionName?: string;
+    accessLevel?: number;
 }

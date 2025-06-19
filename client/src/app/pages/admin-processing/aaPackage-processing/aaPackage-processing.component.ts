@@ -22,128 +22,118 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AAPackageService } from './aaPackage-processing.service';
 
 @Component({
-  selector: 'cpat-aa-package-processing',
-  templateUrl: './aaPackage-processing.component.html',
-  styleUrls: ['./aaPackage-processing.component.scss'],
-  standalone: true,
-  imports: [
-    ButtonModule,
-    FormsModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule,
-    TableModule,
-    ToastModule
-],
-  providers: [MessageService],
+    selector: 'cpat-aa-package-processing',
+    templateUrl: './aaPackage-processing.component.html',
+    styleUrls: ['./aaPackage-processing.component.scss'],
+    standalone: true,
+    imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule],
+    providers: [MessageService]
 })
 export class AAPackageProcessingComponent implements OnInit {
-  @ViewChild('dt') table!: Table;
+    @ViewChild('dt') table!: Table;
 
-  aaPackages: AAPackage[] = [];
-  newAAPackage: AAPackage = { aaPackageId: 0, aaPackage: '' };
-  editingAAPackage: AAPackage | null = null;
+    aaPackages: AAPackage[] = [];
+    newAAPackage: AAPackage = { aaPackageId: 0, aaPackage: '' };
+    editingAAPackage: AAPackage | null = null;
 
-  constructor(
-    private aaPackageService: AAPackageService,
-    private messageService: MessageService
-  ) {}
+    constructor(
+        private aaPackageService: AAPackageService,
+        private messageService: MessageService
+    ) {}
 
-  ngOnInit() {
-    this.loadAAPackages();
-  }
-
-  loadAAPackages() {
-    this.aaPackageService.getAAPackages().subscribe({
-      next: (response) => {
-        this.aaPackages = response || [];
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load A&A Packages: ${getErrorMessage(error)}`
-        });
-      }
-    });
-  }
-
-  onAddNewClick() {
-    this.newAAPackage = { aaPackageId: 0, aaPackage: '' };
-    this.aaPackages = [this.newAAPackage, ...this.aaPackages];
-
-    if (this.table) {
-      this.table.first = 0;
+    ngOnInit() {
+        this.loadAAPackages();
     }
 
-    setTimeout(() => {
-      this.table.initRowEdit(this.aaPackages[0]);
-    });
-  }
+    loadAAPackages() {
+        this.aaPackageService.getAAPackages().subscribe({
+            next: (response) => {
+                this.aaPackages = response || [];
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Failed to load A&A Packages: ${getErrorMessage(error)}`
+                });
+            }
+        });
+    }
 
-  onRowEditInit(aaPackage: AAPackage) {
-    this.editingAAPackage = { ...aaPackage };
-  }
+    onAddNewClick() {
+        this.newAAPackage = { aaPackageId: 0, aaPackage: '' };
+        this.aaPackages = [this.newAAPackage, ...this.aaPackages];
 
-  onRowEditSave(aaPackage: AAPackage) {
-    const operation = aaPackage.aaPackageId === 0
-      ? this.aaPackageService.postAAPackage(aaPackage)
-      : this.aaPackageService.putAAPackage(aaPackage);
-
-    operation.subscribe({
-      next: (response) => {
-        if (aaPackage.aaPackageId === 0) {
-          const index = this.aaPackages.findIndex(p => p.aaPackageId === 0);
-          this.aaPackages[index] = response;
+        if (this.table) {
+            this.table.first = 0;
         }
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `A&A Package ${aaPackage.aaPackageId === 0 ? 'Added' : 'Updated'}`
-        });
-        this.editingAAPackage = null;
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to save A&A Package: ${getErrorMessage(error)}`
-        });
-      }
-    });
-  }
 
-  onRowEditCancel(aaPackage: AAPackage, index: number) {
-    if (aaPackage.aaPackageId === 0) {
-      this.aaPackages = this.aaPackages.filter(p => p.aaPackageId !== 0);
-    } else {
-      this.aaPackages[index] = this.editingAAPackage!;
+        setTimeout(() => {
+            this.table.initRowEdit(this.aaPackages[0]);
+        });
     }
-    this.editingAAPackage = null;
-  }
 
-  onRowDelete(aaPackage: AAPackage) {
-    this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId).subscribe({
-      next: () => {
-        this.aaPackages = this.aaPackages.filter(p => p.aaPackageId !== aaPackage.aaPackageId);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'A&A Package Deleted'
-        });
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to delete A&A Package: ${getErrorMessage(error)}`
-        });
-      }
-    });
-  }
+    onRowEditInit(aaPackage: AAPackage) {
+        this.editingAAPackage = { ...aaPackage };
+    }
 
-  filterGlobal(event: Event) {
-    const inputValue = (event.target as HTMLInputElement)?.value || '';
-    this.table.filterGlobal(inputValue, 'contains');
-  }
+    onRowEditSave(aaPackage: AAPackage) {
+        const operation = aaPackage.aaPackageId === 0 ? this.aaPackageService.postAAPackage(aaPackage) : this.aaPackageService.putAAPackage(aaPackage);
+
+        operation.subscribe({
+            next: (response) => {
+                if (aaPackage.aaPackageId === 0) {
+                    const index = this.aaPackages.findIndex((p) => p.aaPackageId === 0);
+                    this.aaPackages[index] = response;
+                }
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: `A&A Package ${aaPackage.aaPackageId === 0 ? 'Added' : 'Updated'}`
+                });
+                this.editingAAPackage = null;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Failed to save A&A Package: ${getErrorMessage(error)}`
+                });
+            }
+        });
+    }
+
+    onRowEditCancel(aaPackage: AAPackage, index: number) {
+        if (aaPackage.aaPackageId === 0) {
+            this.aaPackages = this.aaPackages.filter((p) => p.aaPackageId !== 0);
+        } else {
+            this.aaPackages[index] = this.editingAAPackage!;
+        }
+        this.editingAAPackage = null;
+    }
+
+    onRowDelete(aaPackage: AAPackage) {
+        this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId).subscribe({
+            next: () => {
+                this.aaPackages = this.aaPackages.filter((p) => p.aaPackageId !== aaPackage.aaPackageId);
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: 'A&A Package Deleted'
+                });
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Failed to delete A&A Package: ${getErrorMessage(error)}`
+                });
+            }
+        });
+    }
+
+    filterGlobal(event: Event) {
+        const inputValue = (event.target as HTMLInputElement)?.value || '';
+        this.table.filterGlobal(inputValue, 'contains');
+    }
 }

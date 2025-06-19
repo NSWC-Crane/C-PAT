@@ -9,679 +9,577 @@
 -->
 
 <div class="row col-span-12">
-  <div class="col">
-    <div class="p-fluid">
-      <div class="toolbar mb-4">
-        <div class="flex items-center justify-between">
-          <p-iconField iconPosition="left">
-            <p-inputIcon>
-              <i class="pi pi-search"></i>
-            </p-inputIcon>
-            <input pInputText
-              type="text"
-              class="w-48"
-              [(ngModel)]="filterValue"
-              (input)="onGlobalFilter($event)"
-              placeholder="Global Search" />
-            </p-iconField>
-            <p-button [rounded]="true"
-              [text]="true"
-              [raised]="true"
-              severity="secondary"
-              class="ml-2"
-              icon="pi pi-filter-slash"
-              (click)="clear()"
-              pTooltip="Clear all filters">
-            </p-button>
-          </div>
-          <div class="right-buttons">
-            <p-button class="mr-2"
-              [rounded]="true"
-              [text]="true"
-              [raised]="true"
-              severity="secondary"
-              icon="pi pi-refresh"
-              (click)="resetColumnSelections()"
-            pTooltip="Reset column selections"></p-button>
-            <p-button icon="pi pi-plus"
-              [rounded]="true"
-              [text]="true"
-              [raised]="true"
-              severity="primary"
-              (click)="toggleAddColumnOverlay()">
-            </p-button>
-            <p-button icon="pi pi-external-link"
-              severity="secondary"
-              [rounded]="true"
-              [text]="true"
-              (onClick)="exportCSV()">
-            </p-button>
-            <p-multiSelect #ms
-              [options]="cols"
-              [(ngModel)]="selectedColumns"
-              optionLabel="header"
-              styleClass="custom-multiselect"
-              appendTo="body"
-              filterPlaceHolder="Add columns..."
-              [showToggleAll]="true">
-            </p-multiSelect>
-          </div>
+    <div class="col">
+        <div class="p-fluid">
+            <div class="toolbar mb-4">
+                <div class="flex items-center justify-between">
+                    <p-iconField iconPosition="left">
+                        <p-inputIcon>
+                            <i class="pi pi-search"></i>
+                        </p-inputIcon>
+                        <input pInputText type="text" class="w-48" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Global Search" />
+                    </p-iconField>
+                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters"> </p-button>
+                </div>
+                <div class="right-buttons">
+                    <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections"></p-button>
+                    <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()"> </p-button>
+                    <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()"> </p-button>
+                    <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" styleClass="custom-multiselect" appendTo="body" filterPlaceHolder="Add columns..." [showToggleAll]="true"> </p-multiSelect>
+                </div>
+            </div>
+            <div class="scrollable-hosts">
+                <p-table
+                    #hostAssetTable
+                    [value]="affectedAssets"
+                    [columns]="selectedColumns"
+                    [paginator]="true"
+                    [rows]="20"
+                    [showCurrentPageReport]="true"
+                    [rowsPerPageOptions]="[10, 20, 50]"
+                    [totalRecords]="totalRecords"
+                    [loading]="isLoading"
+                    [globalFilterFields]="['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes']"
+                    [filterDelay]="300"
+                    [rowHover]="true"
+                    dataKey="id"
+                    [resizableColumns]="true"
+                    styleClass="p-datatable-sm p-datatable-gridlines-hidden"
+                >
+                    <ng-template pTemplate="header" let-columns>
+                        <tr>
+                            @for (col of columns; track col) {
+                                <th [pSortableColumn]="col.field" pResizableColumn scope="col">
+                                    {{ col.header }}
+                                    <ng-container>
+                                        <p-columnFilter
+                                            [type]="col.filterType"
+                                            [field]="col.field"
+                                            [showMatchModes]="true"
+                                            [showOperator]="false"
+                                            [showAddButton]="false"
+                                            [showApplyButton]="true"
+                                            [showClearButton]="true"
+                                            [display]="'menu'"
+                                            [showMenu]="true"
+                                        >
+                                        </p-columnFilter>
+                                    </ng-container>
+                                </th>
+                            }
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-host let-columns="columns">
+                        <tr>
+                            @for (col of columns; track col) {
+                                <td>
+                                    @switch (col.field) {
+                                        @case ('name') {
+                                            <span (click)="onHostNameClick(host, $event)" (keyup.enter)="onHostNameClick(host, $event)" style="cursor: pointer; color: var(--p-primary-color); font-weight: bold">
+                                                {{ host[col.field] }}
+                                            </span>
+                                        }
+                                        @case ('source') {
+                                            <p-tag [value]="host[col.field]" [rounded]="false"> </p-tag>
+                                        }
+                                        @default {
+                                            {{ host[col.field] }}
+                                        }
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td [attr.colspan]="selectedColumns.length" style="text-align: center">No assets to display</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
         </div>
-        <div class="scrollable-hosts">
-          <p-table #hostAssetTable
-            [value]="affectedAssets"
-            [columns]="selectedColumns"
-            [paginator]="true"
-            [rows]="20"
-            [showCurrentPageReport]="true"
-            [rowsPerPageOptions]="[10,20,50]"
-            [totalRecords]="totalRecords"
-            [loading]="isLoading"
-            [globalFilterFields]="['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes']"
-            [filterDelay]="300"
-            [rowHover]="true"
-            dataKey="id"
-            [resizableColumns]="true"
-            styleClass="p-datatable-sm p-datatable-gridlines-hidden">
-            <ng-template pTemplate="header" let-columns>
-              <tr>
-                @for (col of columns; track col) {
-                  <th
-                    [pSortableColumn]="col.field"
-                    pResizableColumn
-                    scope="col">
-                    {{col.header}}
-                    <ng-container>
-                      <p-columnFilter [type]="col.filterType"
-                        [field]="col.field"
-                        [showMatchModes]="true"
-                        [showOperator]="false"
-                        [showAddButton]="false"
-                        [showApplyButton]="true"
-                        [showClearButton]="true"
-                        [display]="'menu'"
-                        [showMenu]="true">
-                      </p-columnFilter>
-                    </ng-container>
-                  </th>
-                }
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-host let-columns="columns">
-              <tr>
-                @for (col of columns; track col) {
-                  <td>
-                    @switch (col.field) {
-                      @case ('name') {
-                        <span (click)="onHostNameClick(host, $event)"
-                          (keyup.enter)="onHostNameClick(host, $event)"
-                          style="
-                        cursor: pointer;
-                        color: var(--p-primary-color);
-                        font-weight: bold;
-                      ">
-                          {{host[col.field]}}
-                        </span>
-                      }
-                      @case ('source') {
-                        <p-tag [value]="host[col.field]"
-                          [rounded]="false">
-                        </p-tag>
-                      }
-                      @default {
-                        {{host[col.field]}}
-                      }
-                    }
-                  </td>
-                }
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td [attr.colspan]="selectedColumns.length" style="text-align: center">
-                  No assets to display
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      </div>
     </div>
-  </div>
+</div>
 
-  <p-dialog class="hostDialog"
-    [(visible)]="displayDialog"
-    [modal]="true"
-    [style]="{'width': '80vw', 'background-color': 'var(--ground-background)'}">
+<p-dialog class="hostDialog" [(visible)]="displayDialog" [modal]="true" [style]="{ width: '80vw', 'background-color': 'var(--ground-background)' }">
     <ng-template pTemplate="content">
-      <div class="card mb-4">
-        <div class="p-col-12 mb-4"><h3>Host Information</h3></div>
+        <div class="card mb-4">
+            <div class="p-col-12 mb-4"><h3>Host Information</h3></div>
 
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">NAME</div>
-          <div>{{selectedHost.name}}</div>
-        </div>
-
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">SYSTEM TYPE</div>
-          <div>{{selectedHost.systemType}}</div>
-        </div>
-
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">OPERATING SYSTEM</div>
-          <div>{{selectedHost.os}}</div>
-        </div>
-
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">IP ADDRESSES</div>
-          <div>{{selectedHost.ipAddress}}</div>
-        </div>
-
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">MAC ADDRESSES</div>
-          <div>{{selectedHost.macAddress}}</div>
-        </div>
-
-        <div class="p-col-12 mb-8" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">HOST ID</div>
-          <div>{{selectedHost.uuid}}</div>
-        </div>
-
-        <div class="p-col-12 mb-4"><h3>Scan Information</h3></div>
-
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">FIRST SEEN</div>
-          <div>{{selectedHost.firstSeen}}</div>
-        </div>
-
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">LAST SEEN</div>
-          <div>{{selectedHost.lastSeen}}</div>
-        </div>
-
-        <div class="p-col-12" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">SOURCE</div>
-          <div>{{selectedHost.source}}</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="toolbar mb-4">
-          <div class="flex items-center justify-between">
-            <p-iconField iconPosition="left">
-              <p-inputIcon>
-                <i class="pi pi-search"></i>
-              </p-inputIcon>
-              <input pInputText
-                type="text"
-                class="w-48"
-                [(ngModel)]="dialogFilterValue"
-                (input)="onHostFindingsTableFilter($event)"
-                placeholder="Search Findings" />
-              </p-iconField>
-              <p-button [rounded]="true"
-                [text]="true"
-                [raised]="true"
-                severity="secondary"
-                class="ml-2"
-                icon="pi pi-filter-slash"
-                (click)="clearHostFindingsTable()"
-                pTooltip="Clear all filters">
-              </p-button>
+            <div class="p-col-12 mb-2" style="display: flex">
+                <div style="width: 250px; color: var(--text-secondary-color)">NAME</div>
+                <div>{{ selectedHost.name }}</div>
             </div>
-            <div class="right-buttons">
-              <p-button icon="pi pi-external-link"
-                severity="secondary"
-                [rounded]="true"
-                [text]="true"
-                (onClick)="exportHostFindingsTableCSV()">
-              </p-button>
-            </div>
-          </div>
-          <p-table #hostFindingsTable
-            [value]="hostData"
-            [paginator]="true"
-            [rows]="20"
-            [showCurrentPageReport]="true"
-            [rowsPerPageOptions]="[10,20,50]"
-            [rowHover]="true"
-            [globalFilterFields]="['poamStatus', 'pluginID', 'pluginName', 'severity', 'port', 'protocol', 'vprScore', 'epssScore', 'lastSeen']"
-            [filterDelay]="300"
-            [loading]="isLoadingPluginDetails"
-            dataKey="pluginID"
-            [resizableColumns]="true"
-            styleClass="p-datatable-sm">
-            <ng-template pTemplate="header">
-              <tr>
-                @for (col of hostDialogCols; track col) {
-                  <th
-                    [pSortableColumn]="col.field"
-                    pResizableColumn>
-                    {{col.header}}
-                    @if (col.field === 'poam') {
-                      <p-columnFilter [field]="col.filterField"
-                        type="multi"
-                        matchMode="in"
-                        [showOperator]="false"
-                        [showMatchModes]="false"
-                        [showAddButton]="false"
-                        [showButtons]="true"
-                        display="menu">
-                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                          <p-multiSelect [ngModel]="selectedPoamStatuses"
-                            [options]="col.filterOptions"
-                            (onChange)="filter($event.value); selectedPoamStatuses = $event.value"
-                            (onClear)="filter([]); selectedPoamStatuses = []"
-                            placeholder="Select Status"
-                            [showClear]="true"
-                            styleClass="w-full">
-                          </p-multiSelect>
-                        </ng-template>
-                      </p-columnFilter>
-                    }
-                    @if (col.field === 'severity') {
-                      <p-columnFilter type="multi"
-                        [field]="col.field"
-                        matchMode="in"
-                        [showOperator]="false"
-                        [showMatchModes]="false"
-                        [showAddButton]="false"
-                        [showButtons]="true"
-                        display="menu">
-                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                          <p-multiSelect [ngModel]="selectedSeverities"
-                            [options]="col.filterOptions"
-                            (onChange)="filter($event.value); selectedSeverities = $event.value;"
-                            (onClear)="filter([]); selectedSeverities = []"
-                            placeholder="Select Severity"
-                            [showClear]="true"
-                            styleClass="w-full">
-                          </p-multiSelect>
-                        </ng-template>
-                      </p-columnFilter>
-                    }
-                    @if (col.field !== 'poam' && col.field !== 'severity') {
-                      <p-columnFilter [type]="col.filterType"
-                        [field]="col.field"
-                        [showMatchModes]="true"
-                        [showOperator]="false"
-                        [showAddButton]="false"
-                        [showApplyButton]="true"
-                        [showClearButton]="true"
-                        [display]="'menu'"
-                        [showMenu]="true">
-                      </p-columnFilter>
-                    }
-                  </th>
-                }
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-item>
-              <tr>
-                @for (col of hostDialogCols; track col) {
-                  <td>
-                    @switch (col.field) {
-                      @case ('poam') {
-                        <i class="pi"
-                          [ngClass]="item.poam ? getPoamStatusIcon(item.poamStatus) : 'pi pi-plus-circle'"
-                     [ngStyle]="{
-                         'color': item.poam ? getPoamStatusColor(item.poamStatus) : 'maroon',
-                         'font-size': '1.5rem',
-                         'cursor': 'pointer'
-                       }"
-                          (click)="onPoamIconClick(item, $event)"
-                          (keyup.enter)="onPoamIconClick(item, $event)"
-                          [pTooltip]="getPoamStatusTooltip(item.poamStatus)"
-                          tooltipPosition="top"
-                          tooltipZIndex="100000">
-                        </i>
-                      }
-                      @case ('severity') {
-                        <p-tag [value]="item[col.field]"
-                          [severity]="getSeverityStyling(item[col.field])"
-                          [rounded]="false">
-                        </p-tag>
-                      }
-                      @case ('pluginID') {
-                        <span (click)="onPluginIDClick(item, $event)"
-                          (keyup.enter)="onPluginIDClick(item, $event)"
-                        style="
-                  cursor: pointer;
-                  color: var(--p-primary-color);
-                  font-weight: bold;
-                ">
-                          {{item[col.field]}}
-                        </span>
-                      }
-                      @default {
-                        {{item[col.field]}}
-                      }
-                    }
-                  </td>
-                }
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td [attr.colspan]="hostDialogCols.length" style="text-align: center">
-                  No findings to display for this host
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      </ng-template>
-    </p-dialog>
 
-  <p-dialog class="pluginDialog"
-            [(visible)]="displayPluginDialog"
-            [modal]="true"
-            [style]="{'width': '80vw', 'background-color': 'var(--ground-background)'}">
+            <div class="p-col-12 mb-2" style="display: flex">
+                <div style="width: 250px; color: var(--text-secondary-color)">SYSTEM TYPE</div>
+                <div>{{ selectedHost.systemType }}</div>
+            </div>
+
+            <div class="p-col-12 mb-2" style="display: flex">
+                <div style="width: 250px; color: var(--text-secondary-color)">OPERATING SYSTEM</div>
+                <div>{{ selectedHost.os }}</div>
+            </div>
+
+            <div class="p-col-12 mb-2" style="display: flex">
+                <div style="width: 250px; color: var(--text-secondary-color)">IP ADDRESSES</div>
+                <div>{{ selectedHost.ipAddress }}</div>
+            </div>
+
+            <div class="p-col-12 mb-2" style="display: flex">
+                <div style="width: 250px; color: var(--text-secondary-color)">MAC ADDRESSES</div>
+                <div>{{ selectedHost.macAddress }}</div>
+            </div>
+
+            <div class="p-col-12 mb-8" style="display: flex">
+                <div style="width: 250px; color: var(--text-secondary-color)">HOST ID</div>
+                <div>{{ selectedHost.uuid }}</div>
+            </div>
+
+            <div class="p-col-12 mb-4"><h3>Scan Information</h3></div>
+
+            <div class="p-col-12 mb-2" style="display: flex">
+                <div style="width: 250px; color: var(--text-secondary-color)">FIRST SEEN</div>
+                <div>{{ selectedHost.firstSeen }}</div>
+            </div>
+
+            <div class="p-col-12 mb-2" style="display: flex">
+                <div style="width: 250px; color: var(--text-secondary-color)">LAST SEEN</div>
+                <div>{{ selectedHost.lastSeen }}</div>
+            </div>
+
+            <div class="p-col-12" style="display: flex">
+                <div style="width: 250px; color: var(--text-secondary-color)">SOURCE</div>
+                <div>{{ selectedHost.source }}</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="toolbar mb-4">
+                <div class="flex items-center justify-between">
+                    <p-iconField iconPosition="left">
+                        <p-inputIcon>
+                            <i class="pi pi-search"></i>
+                        </p-inputIcon>
+                        <input pInputText type="text" class="w-48" [(ngModel)]="dialogFilterValue" (input)="onHostFindingsTableFilter($event)" placeholder="Search Findings" />
+                    </p-iconField>
+                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clearHostFindingsTable()" pTooltip="Clear all filters"> </p-button>
+                </div>
+                <div class="right-buttons">
+                    <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportHostFindingsTableCSV()"> </p-button>
+                </div>
+            </div>
+            <p-table
+                #hostFindingsTable
+                [value]="hostData"
+                [paginator]="true"
+                [rows]="20"
+                [showCurrentPageReport]="true"
+                [rowsPerPageOptions]="[10, 20, 50]"
+                [rowHover]="true"
+                [globalFilterFields]="['poamStatus', 'pluginID', 'pluginName', 'severity', 'port', 'protocol', 'vprScore', 'epssScore', 'lastSeen']"
+                [filterDelay]="300"
+                [loading]="isLoadingPluginDetails"
+                dataKey="pluginID"
+                [resizableColumns]="true"
+                styleClass="p-datatable-sm"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        @for (col of hostDialogCols; track col) {
+                            <th [pSortableColumn]="col.field" pResizableColumn>
+                                {{ col.header }}
+                                @if (col.field === 'poam') {
+                                    <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                            <p-multiSelect
+                                                [ngModel]="selectedPoamStatuses"
+                                                [options]="col.filterOptions"
+                                                (onChange)="filter($event.value); selectedPoamStatuses = $event.value"
+                                                (onClear)="filter([]); selectedPoamStatuses = []"
+                                                placeholder="Select Status"
+                                                [showClear]="true"
+                                                styleClass="w-full"
+                                            >
+                                            </p-multiSelect>
+                                        </ng-template>
+                                    </p-columnFilter>
+                                }
+                                @if (col.field === 'severity') {
+                                    <p-columnFilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                            <p-multiSelect
+                                                [ngModel]="selectedSeverities"
+                                                [options]="col.filterOptions"
+                                                (onChange)="filter($event.value); selectedSeverities = $event.value"
+                                                (onClear)="filter([]); selectedSeverities = []"
+                                                placeholder="Select Severity"
+                                                [showClear]="true"
+                                                styleClass="w-full"
+                                            >
+                                            </p-multiSelect>
+                                        </ng-template>
+                                    </p-columnFilter>
+                                }
+                                @if (col.field !== 'poam' && col.field !== 'severity') {
+                                    <p-columnFilter
+                                        [type]="col.filterType"
+                                        [field]="col.field"
+                                        [showMatchModes]="true"
+                                        [showOperator]="false"
+                                        [showAddButton]="false"
+                                        [showApplyButton]="true"
+                                        [showClearButton]="true"
+                                        [display]="'menu'"
+                                        [showMenu]="true"
+                                    >
+                                    </p-columnFilter>
+                                }
+                            </th>
+                        }
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                    <tr>
+                        @for (col of hostDialogCols; track col) {
+                            <td>
+                                @switch (col.field) {
+                                    @case ('poam') {
+                                        <i
+                                            class="pi"
+                                            [ngClass]="item.poam ? getPoamStatusIcon(item.poamStatus) : 'pi pi-plus-circle'"
+                                            [ngStyle]="{
+                                                color: item.poam ? getPoamStatusColor(item.poamStatus) : 'maroon',
+                                                'font-size': '1.5rem',
+                                                cursor: 'pointer'
+                                            }"
+                                            (click)="onPoamIconClick(item, $event)"
+                                            (keyup.enter)="onPoamIconClick(item, $event)"
+                                            [pTooltip]="getPoamStatusTooltip(item.poamStatus)"
+                                            tooltipPosition="top"
+                                            tooltipZIndex="100000"
+                                        >
+                                        </i>
+                                    }
+                                    @case ('severity') {
+                                        <p-tag [value]="item[col.field]" [severity]="getSeverityStyling(item[col.field])" [rounded]="false"> </p-tag>
+                                    }
+                                    @case ('pluginID') {
+                                        <span (click)="onPluginIDClick(item, $event)" (keyup.enter)="onPluginIDClick(item, $event)" style="cursor: pointer; color: var(--p-primary-color); font-weight: bold">
+                                            {{ item[col.field] }}
+                                        </span>
+                                    }
+                                    @default {
+                                        {{ item[col.field] }}
+                                    }
+                                }
+                            </td>
+                        }
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="hostDialogCols.length" style="text-align: center">No findings to display for this host</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-dialog class="pluginDialog" [(visible)]="displayPluginDialog" [modal]="true" [style]="{ width: '80vw', 'background-color': 'var(--ground-background)' }">
     <ng-template pTemplate="header">
-      <div class="flex items-center">
-        <p-button icon="pi pi-arrow-left"
-                  [rounded]="true"
-                  [text]="true"
-                  severity="secondary"
-                  (click)="goBackToHostDialog()"
-                  pTooltip="Back to Host Findings"
-                  tooltipPosition="bottom"
-                  class="mr-3">
-        </p-button>
-        <span>Plugin Details</span>
-      </div>
+        <div class="flex items-center">
+            <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true" severity="secondary" (click)="goBackToHostDialog()" pTooltip="Back to Host Findings" tooltipPosition="bottom" class="mr-3"> </p-button>
+            <span>Plugin Details</span>
+        </div>
     </ng-template>
     <ng-template pTemplate="content">
-      @if (isLoadingPluginDetails) {
-      <div class="justify-content-center flex">
-        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-      </div>
-      }
-      @if (!isLoadingPluginDetails && pluginDetailData) {
-      <div class="card">
-        <div class="p-col-12 mb-2"><h3>Plugin Information</h3></div>
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN ID</div>
-          <div>{{pluginDetailData.pluginID}}</div>
-        </div>
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN NAME</div>
-          <div>{{pluginDetailData.pluginName}}</div>
-        </div>
-        @if (pluginDetailData.pluginPubDate) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">PUBLISHED</div>
-          <div>{{pluginDetailData.pluginPubDate}}</div>
-        </div>
+        @if (isLoadingPluginDetails) {
+            <div class="justify-content-center flex">
+                <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+            </div>
         }
-        <div class="p-col-12" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">SEVERITY</div>
-          <div>
-            <p-tag [value]="pluginDetailData.severity?.name"
-                   [severity]="getSeverityStyling(pluginDetailData.severity?.name)"
-                   [rounded]="false">
-            </p-tag>
-          </div>
-        </div>
-        @if (pluginDetailData.synopsis) {
-        <div class="mt-4">
-          <div class="p-col-12 mb-2"><h3>Synopsis</h3></div>
-          <div class="p-col-12">{{pluginDetailData.synopsis}}</div>
-        </div>
+        @if (!isLoadingPluginDetails && pluginDetailData) {
+            <div class="card">
+                <div class="p-col-12 mb-2"><h3>Plugin Information</h3></div>
+                <div class="p-col-12 mb-2" style="display: flex">
+                    <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN ID</div>
+                    <div>{{ pluginDetailData.pluginID }}</div>
+                </div>
+                <div class="p-col-12 mb-2" style="display: flex">
+                    <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN NAME</div>
+                    <div>{{ pluginDetailData.pluginName }}</div>
+                </div>
+                @if (pluginDetailData.pluginPubDate) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">PUBLISHED</div>
+                        <div>{{ pluginDetailData.pluginPubDate }}</div>
+                    </div>
+                }
+                <div class="p-col-12" style="display: flex">
+                    <div style="width: 250px; color: var(--text-secondary-color)">SEVERITY</div>
+                    <div>
+                        <p-tag [value]="pluginDetailData.severity?.name" [severity]="getSeverityStyling(pluginDetailData.severity?.name)" [rounded]="false"> </p-tag>
+                    </div>
+                </div>
+                @if (pluginDetailData.synopsis) {
+                    <div class="mt-4">
+                        <div class="p-col-12 mb-2"><h3>Synopsis</h3></div>
+                        <div class="p-col-12">{{ pluginDetailData.synopsis }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.description) {
+                    <div class="mt-4">
+                        <div class="p-col-12 mb-2"><h3>Description</h3></div>
+                        <div class="p-col-12">{{ pluginDetailData.description }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.solution) {
+                    <div class="mt-4">
+                        <div class="p-col-12 mb-2"><h3>Steps To Remediate</h3></div>
+                        <div class="p-col-12">{{ pluginDetailData.solution }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.pluginText) {
+                    <div class="mt-4">
+                        <div class="p-col-12 mb-2"><h3>Output</h3></div>
+                        <div class="card p-col-12 outputData">
+                            <pre>{{ parsePluginOutput(pluginDetailData.pluginText) }}</pre>
+                        </div>
+                    </div>
+                }
+                <div class="p-col-12 mb-2 mt-4"><h3>Discovery</h3></div>
+                @if (pluginDetailData.firstSeen) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">FIRST OBSERVED</div>
+                        <div>{{ pluginDetailData.firstSeen }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.lastSeen) {
+                    <div class="p-col-12" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">LAST OBSERVED</div>
+                        <div>{{ pluginDetailData.lastSeen }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.seolDate) {
+                    <div class="p-col-12" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">SEoL DATE</div>
+                        <div>{{ pluginDetailData.seolDate }}</div>
+                    </div>
+                }
+                <div class="p-col-12 mb-2 mt-4"><h3>Host Information</h3></div>
+                @if (pluginDetailData.ip) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">IP ADDRESS</div>
+                        <div>{{ pluginDetailData.ip }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.uuid) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">AGENT ID</div>
+                        <div>{{ pluginDetailData.uuid }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.dns) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">DNS</div>
+                        <div>{{ pluginDetailData.dns }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.macAddress) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">MAC</div>
+                        <div>{{ pluginDetailData.macAddress }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.recastRiskRuleComment) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">RECAST RISK COMMENT</div>
+                        <div>{{ pluginDetailData.recastRiskRuleComment }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.acceptRiskRuleComment) {
+                    <div class="p-col-12" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">ACCEPT RISK COMMENT</div>
+                        <div>{{ pluginDetailData.acceptRiskRuleComment }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.acrScore) {
+                    <div class="p-col-12 mb-2 mt-4"><h3>Asset Criticality Rating</h3></div>
+                }
+                @if (pluginDetailData.acrScore) {
+                    <div class="p-col-12" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">ACR</div>
+                        <div>{{ pluginDetailData.acrScore }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.assetExposureScore) {
+                    <div class="p-col-12 mb-2 mt-4"><h3>Asset Exposure Score</h3></div>
+                }
+                @if (pluginDetailData.assetExposureScore) {
+                    <div class="p-col-12" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">AES</div>
+                        <div>{{ pluginDetailData.assetExposureScore }}</div>
+                    </div>
+                }
+                <div class="p-col-12 mb-2 mt-4"><h3>Risk Information</h3></div>
+                @if (pluginDetailData.riskFactor) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 SEVERITY</div>
+                        <div>{{ pluginDetailData.riskFactor }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.stigSeverity) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">STIG SEVERITY</div>
+                        <div>{{ pluginDetailData.stigSeverity }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.vprScore) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">VULNERABILITY PRIORITY RATING</div>
+                        <div>{{ pluginDetailData.vprScore }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.epssScore) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">EXPLOIT PREDICTION SCORING SYSTEM (%)</div>
+                        <div>{{ pluginDetailData.epssScore }}%</div>
+                    </div>
+                }
+                @if (pluginDetailData.baseScore) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 BASE SCORE</div>
+                        <div>{{ pluginDetailData.baseScore }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.temporalScore) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 TEMPORAL SCORE</div>
+                        <div>{{ pluginDetailData.temporalScore }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.cvssVector) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 VECTOR</div>
+                        <div>{{ pluginDetailData.cvssVector }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.cvssV3BaseScore) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">CVSS V3 BASE SCORE</div>
+                        <div>{{ pluginDetailData.cvssV3BaseScore }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.cvssV3TemporalScore) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">CVSS V3 TEMPORAL SCORE</div>
+                        <div>{{ pluginDetailData.cvssV3TemporalScore }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.cvssV3Vector) {
+                    <div class="p-col-12" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">CVSS V3 VECTOR</div>
+                        <div>{{ pluginDetailData.cvssV3Vector }}</div>
+                    </div>
+                }
+                <div class="p-col-12 mb-2 mt-4"><h3>Exploit Information</h3></div>
+                @if (pluginDetailData.patchPubDate) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">PATCH PUBLISHED</div>
+                        <div>{{ pluginDetailData.patchPubDate }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.exploitAvailable) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">EXPLOIT AVAILABLE</div>
+                        <div>{{ pluginDetailData.exploitAvailable }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.exploitEase) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">EXPLOITABILITY EASE</div>
+                        <div>{{ pluginDetailData.exploitEase }}</div>
+                    </div>
+                }
+                <div class="p-col-12 mb-2 mt-4"><h3>Plugin Details</h3></div>
+                <div class="p-col-12 mb-2" style="display: flex">
+                    <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN ID</div>
+                    <div>{{ pluginDetailData.pluginID }}</div>
+                </div>
+                @if (pluginDetailData.patchPubDate) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">PUBLISHED</div>
+                        <div>{{ pluginDetailData.patchPubDate }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.pluginModDate) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">LAST MODIFIED</div>
+                        <div>{{ pluginDetailData.pluginModDate }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.family?.name) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">FAMILY</div>
+                        <div>{{ pluginDetailData.family?.name }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.version) {
+                    <div class="p-col-12 mb-2" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">VERSION</div>
+                        <div>{{ pluginDetailData.version }}</div>
+                    </div>
+                }
+                @if (pluginDetailData.checkType) {
+                    <div class="p-col-12" style="display: flex">
+                        <div style="width: 250px; color: var(--text-secondary-color)">TYPE</div>
+                        <div>{{ pluginDetailData.checkType }}</div>
+                    </div>
+                }
+                @if (iavReferences.length > 0) {
+                    <div class="p-col-12 mb-2 mt-4">
+                        <div style="width: 250px; color: var(--text-secondary-color)">IAV REFERENCES</div>
+                        <div>
+                            <ul class="pl-4">
+                                @for (ref of iavReferences; track ref) {
+                                    <li>
+                                        <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener">{{ ref.type }}:{{ ref.value }}</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+                @if (cveReferences.length > 0) {
+                    <div class="p-col-12 mb-2 mt-4">
+                        <div style="width: 250px; color: var(--text-secondary-color)">CVE REFERENCES</div>
+                        <div>
+                            <ul class="pl-4">
+                                @for (ref of cveReferences; track ref) {
+                                    <li>
+                                        <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener">{{ ref.type }}:{{ ref.value }}</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+                @if (otherReferences.length > 0) {
+                    <div class="p-col-12 mb-2 mt-4">
+                        <div style="width: 250px; color: var(--text-secondary-color)">OTHER REFERENCES</div>
+                        <div>
+                            <ul class="pl-4">
+                                @for (ref of otherReferences; track ref) {
+                                    <li>{{ ref.type }}:{{ ref.value }}</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+            </div>
         }
-        @if (pluginDetailData.description) {
-        <div class="mt-4">
-          <div class="p-col-12 mb-2"><h3>Description</h3></div>
-          <div class="p-col-12">{{pluginDetailData.description}}</div>
-        </div>
-        }
-        @if (pluginDetailData.solution) {
-        <div class="mt-4">
-          <div class="p-col-12 mb-2"><h3>Steps To Remediate</h3></div>
-          <div class="p-col-12">{{pluginDetailData.solution}}</div>
-        </div>
-        }
-        @if (pluginDetailData.pluginText) {
-        <div class="mt-4">
-          <div class="p-col-12 mb-2"><h3>Output</h3></div>
-          <div class="card p-col-12 outputData">
-            <pre>{{parsePluginOutput(pluginDetailData.pluginText)}}</pre>
-          </div>
-        </div>
-        }
-        <div class="p-col-12 mb-2 mt-4"><h3>Discovery</h3></div>
-        @if (pluginDetailData.firstSeen) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">FIRST OBSERVED</div>
-          <div>{{pluginDetailData.firstSeen}}</div>
-        </div>
-        }
-        @if (pluginDetailData.lastSeen) {
-        <div class="p-col-12" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">LAST OBSERVED</div>
-          <div>{{pluginDetailData.lastSeen}}</div>
-        </div>
-        }
-        @if (pluginDetailData.seolDate) {
-        <div class="p-col-12" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">SEoL DATE</div>
-          <div>{{pluginDetailData.seolDate}}</div>
-        </div>
-        }
-        <div class="p-col-12 mb-2 mt-4"><h3>Host Information</h3></div>
-        @if (pluginDetailData.ip) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">IP ADDRESS</div>
-          <div>{{pluginDetailData.ip}}</div>
-        </div>
-        }
-        @if (pluginDetailData.uuid) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">AGENT ID</div>
-          <div>{{pluginDetailData.uuid}}</div>
-        </div>
-        }
-        @if (pluginDetailData.dns) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">DNS</div>
-          <div>{{pluginDetailData.dns}}</div>
-        </div>
-        }
-        @if (pluginDetailData.macAddress) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">MAC</div>
-          <div>{{pluginDetailData.macAddress}}</div>
-        </div>
-        }
-        @if (pluginDetailData.recastRiskRuleComment) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">RECAST RISK COMMENT</div>
-          <div>{{pluginDetailData.recastRiskRuleComment}}</div>
-        </div>
-        }
-        @if (pluginDetailData.acceptRiskRuleComment) {
-        <div class="p-col-12" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">ACCEPT RISK COMMENT</div>
-          <div>{{pluginDetailData.acceptRiskRuleComment}}</div>
-        </div>
-        }
-        @if (pluginDetailData.acrScore) {
-        <div class="p-col-12 mb-2 mt-4"><h3>Asset Criticality Rating</h3></div>
-        }
-        @if (pluginDetailData.acrScore) {
-        <div class="p-col-12" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">ACR</div>
-          <div>{{pluginDetailData.acrScore}}</div>
-        </div>
-        }
-        @if (pluginDetailData.assetExposureScore) {
-        <div class="p-col-12 mb-2 mt-4"><h3>Asset Exposure Score</h3></div>
-        }
-        @if (pluginDetailData.assetExposureScore) {
-        <div class="p-col-12" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">AES</div>
-          <div>{{pluginDetailData.assetExposureScore}}</div>
-        </div>
-        }
-        <div class="p-col-12 mb-2 mt-4"><h3>Risk Information</h3></div>
-        @if (pluginDetailData.riskFactor) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 SEVERITY</div>
-          <div>{{pluginDetailData.riskFactor}}</div>
-        </div>
-        }
-        @if (pluginDetailData.stigSeverity) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">STIG SEVERITY</div>
-          <div>{{pluginDetailData.stigSeverity}}</div>
-        </div>
-        }
-        @if (pluginDetailData.vprScore) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">VULNERABILITY PRIORITY RATING</div>
-          <div>{{pluginDetailData.vprScore}}</div>
-        </div>
-        }
-        @if (pluginDetailData.epssScore) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">EXPLOIT PREDICTION SCORING SYSTEM (%)</div>
-          <div>{{pluginDetailData.epssScore}}%</div>
-        </div>
-        }
-        @if (pluginDetailData.baseScore) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 BASE SCORE</div>
-          <div>{{pluginDetailData.baseScore}}</div>
-        </div>
-        }
-        @if (pluginDetailData.temporalScore) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 TEMPORAL SCORE</div>
-          <div>{{pluginDetailData.temporalScore}}</div>
-        </div>
-        }
-        @if (pluginDetailData.cvssVector) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 VECTOR</div>
-          <div>{{pluginDetailData.cvssVector}}</div>
-        </div>
-        }
-        @if (pluginDetailData.cvssV3BaseScore) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">CVSS V3 BASE SCORE</div>
-          <div>{{pluginDetailData.cvssV3BaseScore}}</div>
-        </div>
-        }
-        @if (pluginDetailData.cvssV3TemporalScore) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">CVSS V3 TEMPORAL SCORE</div>
-          <div>{{pluginDetailData.cvssV3TemporalScore}}</div>
-        </div>
-        }
-        @if (pluginDetailData.cvssV3Vector) {
-        <div class="p-col-12" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">CVSS V3 VECTOR</div>
-          <div>{{pluginDetailData.cvssV3Vector}}</div>
-        </div>
-        }
-        <div class="p-col-12 mb-2 mt-4"><h3>Exploit Information</h3></div>
-        @if (pluginDetailData.patchPubDate) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">PATCH PUBLISHED</div>
-          <div>{{pluginDetailData.patchPubDate}}</div>
-        </div>
-        }
-        @if (pluginDetailData.exploitAvailable) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">EXPLOIT AVAILABLE</div>
-          <div>{{pluginDetailData.exploitAvailable}}</div>
-        </div>
-        }
-        @if (pluginDetailData.exploitEase) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">EXPLOITABILITY EASE</div>
-          <div>{{pluginDetailData.exploitEase}}</div>
-        </div>
-        }
-        <div class="p-col-12 mb-2 mt-4"><h3>Plugin Details</h3></div>
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN ID</div>
-          <div>{{pluginDetailData.pluginID}}</div>
-        </div>
-        @if (pluginDetailData.patchPubDate) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">PUBLISHED</div>
-          <div>{{pluginDetailData.patchPubDate}}</div>
-        </div>
-        }
-        @if (pluginDetailData.pluginModDate) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">LAST MODIFIED</div>
-          <div>{{pluginDetailData.pluginModDate}}</div>
-        </div>
-        }
-        @if (pluginDetailData.family?.name) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">FAMILY</div>
-          <div>{{pluginDetailData.family?.name}}</div>
-        </div>
-        }
-        @if (pluginDetailData.version) {
-        <div class="p-col-12 mb-2" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">VERSION</div>
-          <div>{{pluginDetailData.version}}</div>
-        </div>
-        }
-        @if (pluginDetailData.checkType) {
-        <div class="p-col-12" style="display: flex;">
-          <div style="width: 250px; color: var(--text-secondary-color)">TYPE</div>
-          <div>{{pluginDetailData.checkType}}</div>
-        </div>
-        }
-        @if (iavReferences.length > 0) {
-        <div class="p-col-12 mb-2 mt-4">
-          <div style="width: 250px; color: var(--text-secondary-color)">IAV REFERENCES</div>
-          <div>
-            <ul class="pl-4">
-              @for (ref of iavReferences; track ref) {
-              <li>
-                <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener">{{ref.type}}:{{ref.value}}</a>
-              </li>
-              }
-            </ul>
-          </div>
-        </div>
-        }
-        @if (cveReferences.length > 0) {
-        <div class="p-col-12 mb-2 mt-4">
-          <div style="width: 250px; color: var(--text-secondary-color)">CVE REFERENCES</div>
-          <div>
-            <ul class="pl-4">
-              @for (ref of cveReferences; track ref) {
-              <li>
-                <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener">{{ref.type}}:{{ref.value}}</a>
-              </li>
-              }
-            </ul>
-          </div>
-        </div>
-        }
-        @if (otherReferences.length > 0) {
-        <div class="p-col-12 mb-2 mt-4">
-          <div style="width: 250px; color: var(--text-secondary-color)">OTHER REFERENCES</div>
-          <div>
-            <ul class="pl-4">
-              @for (ref of otherReferences; track ref) {
-              <li>
-                {{ref.type}}:{{ref.value}}
-              </li>
-              }
-            </ul>
-          </div>
-        </div>
-        }
-      </div>
-      }
     </ng-template>
-  </p-dialog>
+</p-dialog>
 
-    <p-toast position="center" key="error"></p-toast>
+<p-toast position="center" key="error"></p-toast>

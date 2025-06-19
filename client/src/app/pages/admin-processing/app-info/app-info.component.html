@@ -9,502 +9,419 @@
 -->
 
 @if (appInfo()) {
-  <div class="grid">
-    <div class="col-12">
-      <p-card>
-        <div class="m-[-1rem] flex" style="position: relative;">
-          <button pButton
-            icon="pi pi-times"
-            class="p-button-rounded p-button-text"
-            (click)="goBack()"
-            style="position: absolute; top: 0; right: 0;">
-          </button>
+    <div class="grid">
+        <div class="col-12">
+            <p-card>
+                <div class="m-[-1rem] flex" style="position: relative">
+                    <button pButton icon="pi pi-times" class="p-button-rounded p-button-text" (click)="goBack()" style="position: absolute; top: 0; right: 0"></button>
+                </div>
+                <div class="mb-3 mt-8 flex flex-wrap gap-3">
+                    <div><strong>App Version:</strong> {{ appInfo()?.version }}</div>
+                    <div><strong>MySQL Version:</strong> {{ appInfo()?.mysql.version }}</div>
+                    <div><strong>Node.js Version:</strong> {{ appInfo()?.nodejs.version }}</div>
+                    <div><strong>Last Updated:</strong> {{ appInfo()?.date | date: 'medium' }}</div>
+                    <div><strong>Uptime:</strong> {{ formatUptime(appInfo()?.nodejs.uptime) }}</div>
+                </div>
+                <div class="mb-2 flex flex-wrap gap-3">
+                    <div><strong>Platform:</strong> {{ appInfo()?.nodejs.os.platform }}</div>
+                    <div><strong>Architecture:</strong> {{ appInfo()?.nodejs.os.arch }}</div>
+                    <div><strong>OS:</strong> {{ appInfo()?.nodejs.os.osName }} {{ appInfo()?.nodejs.os.osRelease }}</div>
+                </div>
+                <div class="mb-2 flex flex-wrap gap-3">
+                    <div><strong>API Requests:</strong> {{ appInfo()?.requests.totalApiRequests }}</div>
+                    <div><strong>Total Duration:</strong> {{ appInfo()?.requests.totalRequestDuration }}ms</div>
+                </div>
+            </p-card>
         </div>
-        <div class="mb-3 mt-8 flex flex-wrap gap-3">
-          <div><strong>App Version:</strong> {{ appInfo()?.version }}</div>
-          <div><strong>MySQL Version:</strong> {{ appInfo()?.mysql.version }}</div>
-          <div><strong>Node.js Version:</strong> {{ appInfo()?.nodejs.version }}</div>
-          <div><strong>Last Updated:</strong> {{ appInfo()?.date | date:'medium' }}</div>
-          <div><strong>Uptime:</strong> {{ formatUptime(appInfo()?.nodejs.uptime) }}</div>
+        <div class="col-12 mt-4">
+            <div class="flex w-full flex-col gap-4 lg:flex-row">
+                <div class="w-full lg:w-1/3">
+                    <p-card styleClass="h-full">
+                        <div class="mb-6 flex flex-wrap items-center gap-6">
+                            <div class="text-color flex-1 font-semibold leading-6">Top 10 Operations by Request Count</div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                @for (item of requestsChartData()?.datasets; track item) {
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-3 w-3 rounded-full" [style.backgroundColor]="item.backgroundColor"></div>
+                                        <span class="text-color leading-2 font-medium">{{ item.label }}</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <p-chart type="bar" [data]="requestsChartData()" [options]="requestsChartOptions()" height="400px"></p-chart>
+                    </p-card>
+                </div>
+                <div class="w-full lg:w-1/3">
+                    <p-card styleClass="h-full">
+                        <div class="mb-6 flex flex-wrap items-center gap-6">
+                            <div class="text-color flex-1 font-semibold leading-6">Top 10 Operations by Duration</div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                @for (item of operationsChartData()?.datasets; track item) {
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-3 w-3 rounded-full" [style.backgroundColor]="item.backgroundColor"></div>
+                                        <span class="text-color leading-2 font-medium">{{ item.label }}</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <p-chart type="bar" [data]="operationsChartData()" [options]="operationsChartOptions()" height="400px"></p-chart>
+                    </p-card>
+                </div>
+                <div class="w-full lg:w-1/3">
+                    <p-card styleClass="h-full">
+                        <div class="mb-6 flex flex-wrap items-center gap-6">
+                            <div class="text-color flex-1 font-semibold leading-6">Memory Usage</div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                @for (label of memoryChartData()?.labels; track label; let i = $index) {
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-3 w-3 rounded-full" [style.backgroundColor]="memoryChartData()?.datasets[0].backgroundColor[i]"></div>
+                                        <span class="text-color leading-2 font-medium">{{ label }}</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <p-chart type="pie" [data]="memoryChartData()" [options]="memoryChartOptions()" height="400px"></p-chart>
+                    </p-card>
+                </div>
+            </div>
         </div>
-        <div class="mb-2 flex flex-wrap gap-3">
-          <div><strong>Platform:</strong> {{ appInfo()?.nodejs.os.platform }}</div>
-          <div><strong>Architecture:</strong> {{ appInfo()?.nodejs.os.arch }}</div>
-          <div><strong>OS:</strong> {{ appInfo()?.nodejs.os.osName }} {{ appInfo()?.nodejs.os.osRelease }}</div>
+        <div class="col-12 mt-4">
+            <p-card>
+                <p-tabs value="0" scrollable>
+                    <p-tablist>
+                        <p-tab value="0">Request Details</p-tab>
+                        <p-tab value="1">MySQL Tables</p-tab>
+                        <p-tab value="2">CPU Information</p-tab>
+                        <p-tab value="3">Environment Variables</p-tab>
+                        <p-tab value="4">Users</p-tab>
+                    </p-tablist>
+                    <p-tabpanels>
+                        <p-tabpanel value="0">
+                            <div class="overflow-x-auto">
+                                <p-table
+                                    [value]="operationRows()"
+                                    [scrollable]="true"
+                                    [tableStyle]="{ 'min-width': '50rem' }"
+                                    [rows]="10"
+                                    [paginator]="true"
+                                    (onRowSelect)="onOperationSelect($event)"
+                                    selectionMode="single"
+                                    [selection]="selectedOperation()"
+                                    (selectionChange)="selectedOperation.set($event)"
+                                >
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th>Operation</th>
+                                            <th>Total Requests</th>
+                                            <th>Errors</th>
+                                            <th>Total Duration</th>
+                                            <th>Min Duration</th>
+                                            <th>Max Duration</th>
+                                            <th>Avg Retries</th>
+                                            <th>Elevated Reqs</th>
+                                            <th>Max Duration Updates</th>
+                                            <th>Max Res Length</th>
+                                            <th>Min Res Length</th>
+                                            <th>Retried</th>
+                                            <th>Total Res Length</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-operation>
+                                        <tr [pSelectableRow]="operation">
+                                            <td>{{ operation.name }}</td>
+                                            <td>{{ operation.totalRequests }}</td>
+                                            <td>{{ operation.errorCount }}</td>
+                                            <td>{{ operation.totalDuration }}ms</td>
+                                            <td>{{ operation.minDuration }}ms</td>
+                                            <td>{{ operation.maxDuration }}ms</td>
+                                            <td>{{ operation.averageRetries }}</td>
+                                            <td>{{ operation.elevatedRequests }}</td>
+                                            <td>{{ operation.maxDurationUpdates }}</td>
+                                            <td>{{ formatBytes(operation.maxResLength) }}</td>
+                                            <td>{{ formatBytes(operation.minResLength) }}</td>
+                                            <td>{{ operation.retried }}</td>
+                                            <td>{{ formatBytes(operation.totalResLength) }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                            <div class="mt-4 flex flex-col gap-4 md:flex-row">
+                                <div class="flex-1">
+                                    <p-panel header="Client Requests" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                                        <p-table [value]="selectedOperationClients()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th>Client</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="body" let-client>
+                                                <tr>
+                                                    <td>{{ client.name }}</td>
+                                                    <td>{{ client.count }}</td>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="emptymessage">
+                                                <tr>
+                                                    <td colspan="2" class="text-center">No clients found</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-panel>
+                                </div>
+                                <div class="flex-1">
+                                    <p-panel header="User Requests" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                                        <p-table [value]="selectedOperationUsers()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th>User</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="body" let-user>
+                                                <tr>
+                                                    <td>{{ user.name }}</td>
+                                                    <td>{{ user.count }}</td>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="emptymessage">
+                                                <tr>
+                                                    <td colspan="2" class="text-center">No users found</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-panel>
+                                </div>
+                                <div class="flex-1">
+                                    <p-panel header="Errors" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                                        <p-table [value]="selectedOperationErrors()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th>Error</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="body" let-error>
+                                                <tr>
+                                                    <td>{{ error.name }}</td>
+                                                    <td>{{ error.count }}</td>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="emptymessage">
+                                                <tr>
+                                                    <td colspan="2" class="text-center">No errors found</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-panel>
+                                </div>
+                            </div>
+                        </p-tabpanel>
+                        <p-tabpanel value="1">
+                            <div class="overflow-x-auto">
+                                <p-table [value]="mysqlTableRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th>Table Name</th>
+                                            <th>Row Count</th>
+                                            <th>Data Length</th>
+                                            <th>Index Length</th>
+                                            <th>Created</th>
+                                            <th>Last Updated</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-table>
+                                        <tr>
+                                            <td>{{ table.name }}</td>
+                                            <td>{{ table.rowCount }}</td>
+                                            <td>{{ formatBytes(table.dataLength) }}</td>
+                                            <td>{{ formatBytes(table.indexLength) }}</td>
+                                            <td>{{ table.createTime | date: 'short' }}</td>
+                                            <td>{{ table.updateTime | date: 'short' }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                        </p-tabpanel>
+                        <p-tabpanel value="2">
+                            <div class="overflow-x-auto">
+                                <p-table [value]="cpuRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th>CPU #</th>
+                                            <th>Model</th>
+                                            <th>Speed (MHz)</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-cpu let-rowIndex="rowIndex">
+                                        <tr>
+                                            <td>CPU {{ rowIndex + 1 }}</td>
+                                            <td>{{ cpu.model }}</td>
+                                            <td>{{ cpu.speed }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                        </p-tabpanel>
+                        <p-tabpanel value="3">
+                            <div class="overflow-x-auto">
+                                <p-table [value]="environmentRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th>Variable</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-env>
+                                        <tr>
+                                            <td>{{ env.name }}</td>
+                                            <td>{{ env.value }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                        </p-tabpanel>
+                        <p-tabpanel value="4">
+                            <div class="overflow-x-auto">
+                                <p-table [value]="userRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single" [selection]="selectedUser()" (selectionChange)="selectedUser.set($event)">
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Created</th>
+                                            <th>Last Access</th>
+                                            <th>Privileges</th>
+                                            <th>Viewer Role</th>
+                                            <th>Approver Role</th>
+                                            <th>Submitter Role</th>
+                                            <th>CAT-I Approver Role</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-user>
+                                        <tr [pSelectableRow]="user">
+                                            <td>{{ user.username }}</td>
+                                            <td>{{ user.created | date: 'short' }}</td>
+                                            <td>{{ user.lastAccess | date: 'short' }}</td>
+                                            <td>{{ user.privileges.join(', ') || 'None' }}</td>
+                                            <td>{{ user.roles['Viewer'] }}</td>
+                                            <td>{{ user.roles['Approver'] }}</td>
+                                            <td>{{ user.roles['Submitter'] }}</td>
+                                            <td>{{ user.roles['CAT-I Approver'] }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                            <div class="mt-4 flex flex-col gap-4 md:flex-row">
+                                <div class="flex-1">
+                                    <p-panel header="Overall Privileges" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                                        <p-table [value]="userPrivilegeOverall()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th>Privilege</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="body" let-priv>
+                                                <tr>
+                                                    <td>{{ priv.name }}</td>
+                                                    <td>{{ priv.count }}</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-panel>
+                                </div>
+                                <div class="flex-1">
+                                    <p-panel header="Active in Last 30 Days" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                                        <p-table [value]="userPrivilege30Days()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th>Privilege</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="body" let-priv>
+                                                <tr>
+                                                    <td>{{ priv.name }}</td>
+                                                    <td>{{ priv.count }}</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-panel>
+                                </div>
+                                <div class="flex-1">
+                                    <p-panel header="Active in Last 90 Days" [toggleable]="true" [collapsed]="isPanelsCollapsed()" styleClass="h-full" (collapsedChange)="toggleAllPanels($event)">
+                                        <p-table [value]="userPrivilege90Days()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th>Privilege</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="body" let-priv>
+                                                <tr>
+                                                    <td>{{ priv.name }}</td>
+                                                    <td>{{ priv.count }}</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-panel>
+                                </div>
+                            </div>
+                        </p-tabpanel>
+                    </p-tabpanels>
+                </p-tabs>
+            </p-card>
         </div>
-        <div class="mb-2 flex flex-wrap gap-3">
-          <div><strong>API Requests:</strong> {{ appInfo()?.requests.totalApiRequests }}</div>
-          <div><strong>Total Duration:</strong> {{ appInfo()?.requests.totalRequestDuration }}ms</div>
+        <div class="col-12 mt-4">
+            <div class="flex flex-col gap-4 lg:flex-row">
+                <div class="flex-1">
+                    <p-card>
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold">MySQL Variables</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <p-table [value]="variableRows()" [scrollable]="true" scrollHeight="400px" styleClass="w-full" size="small" selectionMode="single">
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th class="font-semibold">Variable</th>
+                                        <th class="font-semibold">Value</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-variable>
+                                    <tr>
+                                        <td class="py-2">{{ variable.name }}</td>
+                                        <td class="py-2">{{ variable.value }}</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </p-card>
+                </div>
+                <div class="flex-1">
+                    <p-card>
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold">MySQL Status</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <p-table [value]="statusRows()" [scrollable]="true" scrollHeight="400px" styleClass="w-full" size="small" selectionMode="single">
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th class="font-semibold">Status</th>
+                                        <th class="font-semibold">Value</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-status>
+                                    <tr>
+                                        <td class="py-2">{{ status.name }}</td>
+                                        <td class="py-2">{{ status.value }}</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </p-card>
+                </div>
+            </div>
         </div>
-      </p-card>
     </div>
-    <div class="col-12 mt-4">
-      <div class="flex w-full flex-col gap-4 lg:flex-row">
-        <div class="w-full lg:w-1/3">
-          <p-card styleClass="h-full">
-            <div class="mb-6 flex flex-wrap items-center gap-6">
-              <div class="text-color flex-1 font-semibold leading-6">Top 10 Operations by Request Count</div>
-              <div class="flex flex-wrap items-center gap-2">
-                @for (item of requestsChartData()?.datasets; track item) {
-                  <div class="flex items-center gap-2">
-                    <div class="h-3 w-3 rounded-full" [style.backgroundColor]="item.backgroundColor"></div>
-                    <span class="text-color leading-2 font-medium">{{ item.label }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-            <p-chart type="bar" [data]="requestsChartData()" [options]="requestsChartOptions()" height="400px"></p-chart>
-          </p-card>
-        </div>
-        <div class="w-full lg:w-1/3">
-          <p-card styleClass="h-full">
-            <div class="mb-6 flex flex-wrap items-center gap-6">
-              <div class="text-color flex-1 font-semibold leading-6">Top 10 Operations by Duration</div>
-              <div class="flex flex-wrap items-center gap-2">
-                @for (item of operationsChartData()?.datasets; track item) {
-                  <div class="flex items-center gap-2">
-                    <div class="h-3 w-3 rounded-full" [style.backgroundColor]="item.backgroundColor"></div>
-                    <span class="text-color leading-2 font-medium">{{ item.label }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-            <p-chart type="bar" [data]="operationsChartData()" [options]="operationsChartOptions()" height="400px"></p-chart>
-          </p-card>
-        </div>
-        <div class="w-full lg:w-1/3">
-          <p-card styleClass="h-full">
-            <div class="mb-6 flex flex-wrap items-center gap-6">
-              <div class="text-color flex-1 font-semibold leading-6">Memory Usage</div>
-              <div class="flex flex-wrap items-center gap-2">
-                @for (label of memoryChartData()?.labels; track label; let i = $index) {
-                  <div class="flex items-center gap-2">
-                    <div class="h-3 w-3 rounded-full" [style.backgroundColor]="memoryChartData()?.datasets[0].backgroundColor[i]"></div>
-                    <span class="text-color leading-2 font-medium">{{ label }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-            <p-chart type="pie" [data]="memoryChartData()" [options]="memoryChartOptions()" height="400px"></p-chart>
-          </p-card>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 mt-4">
-      <p-card>
-        <p-tabs value="0" scrollable>
-          <p-tablist>
-            <p-tab value="0">Request Details</p-tab>
-            <p-tab value="1">MySQL Tables</p-tab>
-            <p-tab value="2">CPU Information</p-tab>
-            <p-tab value="3">Environment Variables</p-tab>
-            <p-tab value="4">Users</p-tab>
-          </p-tablist>
-          <p-tabpanels>
-            <p-tabpanel value="0">
-              <div class="overflow-x-auto">
-                <p-table [value]="operationRows()"
-                  [scrollable]="true"
-                  [tableStyle]="{'min-width': '50rem'}"
-                  [rows]="10"
-                  [paginator]="true"
-                  (onRowSelect)="onOperationSelect($event)"
-                  selectionMode="single"
-                  [selection]="selectedOperation()"
-                  (selectionChange)="selectedOperation.set($event)">
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th>Operation</th>
-                      <th>Total Requests</th>
-                      <th>Errors</th>
-                      <th>Total Duration</th>
-                      <th>Min Duration</th>
-                      <th>Max Duration</th>
-                      <th>Avg Retries</th>
-                      <th>Elevated Reqs</th>
-                      <th>Max Duration Updates</th>
-                      <th>Max Res Length</th>
-                      <th>Min Res Length</th>
-                      <th>Retried</th>
-                      <th>Total Res Length</th>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-operation>
-                    <tr [pSelectableRow]="operation">
-                      <td>{{ operation.name }}</td>
-                      <td>{{ operation.totalRequests }}</td>
-                      <td>{{ operation.errorCount }}</td>
-                      <td>{{ operation.totalDuration }}ms</td>
-                      <td>{{ operation.minDuration }}ms</td>
-                      <td>{{ operation.maxDuration }}ms</td>
-                      <td>{{ operation.averageRetries }}</td>
-                      <td>{{ operation.elevatedRequests }}</td>
-                      <td>{{ operation.maxDurationUpdates }}</td>
-                      <td>{{ formatBytes(operation.maxResLength) }}</td>
-                      <td>{{ formatBytes(operation.minResLength) }}</td>
-                      <td>{{ operation.retried }}</td>
-                      <td>{{ formatBytes(operation.totalResLength) }}</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
-              </div>
-              <div class="mt-4 flex flex-col gap-4 md:flex-row">
-                <div class="flex-1">
-                  <p-panel header="Client Requests"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="selectedOperationClients()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
-                      <ng-template pTemplate="header">
-                        <tr>
-                          <th>Client</th>
-                          <th>Count</th>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="body" let-client>
-                        <tr>
-                          <td>{{ client.name }}</td>
-                          <td>{{ client.count }}</td>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="emptymessage">
-                        <tr>
-                          <td colspan="2" class="text-center">No clients found</td>
-                        </tr>
-                      </ng-template>
-                    </p-table>
-                  </p-panel>
-                </div>
-                <div class="flex-1">
-                  <p-panel header="User Requests"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="selectedOperationUsers()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
-                      <ng-template pTemplate="header">
-                        <tr>
-                          <th>User</th>
-                          <th>Count</th>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="body" let-user>
-                        <tr>
-                          <td>{{ user.name }}</td>
-                          <td>{{ user.count }}</td>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="emptymessage">
-                        <tr>
-                          <td colspan="2" class="text-center">No users found</td>
-                        </tr>
-                      </ng-template>
-                    </p-table>
-                  </p-panel>
-                </div>
-                <div class="flex-1">
-                  <p-panel header="Errors"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="selectedOperationErrors()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
-                      <ng-template pTemplate="header">
-                        <tr>
-                          <th>Error</th>
-                          <th>Count</th>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="body" let-error>
-                        <tr>
-                          <td>{{ error.name }}</td>
-                          <td>{{ error.count }}</td>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="emptymessage">
-                        <tr>
-                          <td colspan="2" class="text-center">No errors found</td>
-                        </tr>
-                      </ng-template>
-                    </p-table>
-                  </p-panel>
-                </div>
-              </div>
-            </p-tabpanel>
-            <p-tabpanel value="1">
-              <div class="overflow-x-auto">
-                <p-table [value]="mysqlTableRows()" [scrollable]="true" [tableStyle]="{'min-width': '50rem'}"
-                  [rows]="10" [paginator]="true" selectionMode="single">
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th>Table Name</th>
-                      <th>Row Count</th>
-                      <th>Data Length</th>
-                      <th>Index Length</th>
-                      <th>Created</th>
-                      <th>Last Updated</th>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-table>
-                    <tr>
-                      <td>{{ table.name }}</td>
-                      <td>{{ table.rowCount }}</td>
-                      <td>{{ formatBytes(table.dataLength) }}</td>
-                      <td>{{ formatBytes(table.indexLength) }}</td>
-                      <td>{{ table.createTime | date:'short' }}</td>
-                      <td>{{ table.updateTime | date:'short' }}</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
-              </div>
-            </p-tabpanel>
-            <p-tabpanel value="2">
-              <div class="overflow-x-auto">
-                <p-table [value]="cpuRows()" [scrollable]="true" [tableStyle]="{'min-width': '50rem'}"
-                  [rows]="10" [paginator]="true" selectionMode="single">
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th>CPU #</th>
-                      <th>Model</th>
-                      <th>Speed (MHz)</th>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-cpu let-rowIndex="rowIndex">
-                    <tr>
-                      <td>CPU {{ rowIndex + 1 }}</td>
-                      <td>{{ cpu.model }}</td>
-                      <td>{{ cpu.speed }}</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
-              </div>
-            </p-tabpanel>
-            <p-tabpanel value="3">
-              <div class="overflow-x-auto">
-                <p-table [value]="environmentRows()" [scrollable]="true" [tableStyle]="{'min-width': '50rem'}"
-                  [rows]="10" [paginator]="true" selectionMode="single">
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th>Variable</th>
-                      <th>Value</th>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-env>
-                    <tr>
-                      <td>{{ env.name }}</td>
-                      <td>{{ env.value }}</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
-              </div>
-            </p-tabpanel>
-            <p-tabpanel value="4">
-              <div class="overflow-x-auto">
-                <p-table [value]="userRows()"
-                  [scrollable]="true"
-                  [tableStyle]="{'min-width': '50rem'}"
-                  [rows]="10"
-                  [paginator]="true"
-                  selectionMode="single"
-                  [selection]="selectedUser()"
-                  (selectionChange)="selectedUser.set($event)">
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th>Username</th>
-                      <th>Created</th>
-                      <th>Last Access</th>
-                      <th>Privileges</th>
-                      <th>Viewer Role</th>
-                      <th>Approver Role</th>
-                      <th>Submitter Role</th>
-                      <th>CAT-I Approver Role</th>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-user>
-                    <tr [pSelectableRow]="user">
-                      <td>{{ user.username }}</td>
-                      <td>{{ user.created | date:'short' }}</td>
-                      <td>{{ user.lastAccess | date:'short' }}</td>
-                      <td>{{ user.privileges.join(', ') || 'None' }}</td>
-                      <td>{{ user.roles['Viewer'] }}</td>
-                      <td>{{ user.roles['Approver'] }}</td>
-                      <td>{{ user.roles['Submitter'] }}</td>
-                      <td>{{ user.roles['CAT-I Approver'] }}</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
-              </div>
-              <div class="mt-4 flex flex-col gap-4 md:flex-row">
-                <div class="flex-1">
-                  <p-panel header="Overall Privileges"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="userPrivilegeOverall()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
-                      <ng-template pTemplate="header">
-                        <tr>
-                          <th>Privilege</th>
-                          <th>Count</th>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="body" let-priv>
-                        <tr>
-                          <td>{{ priv.name }}</td>
-                          <td>{{ priv.count }}</td>
-                        </tr>
-                      </ng-template>
-                    </p-table>
-                  </p-panel>
-                </div>
-                <div class="flex-1">
-                  <p-panel header="Active in Last 30 Days"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="userPrivilege30Days()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
-                      <ng-template pTemplate="header">
-                        <tr>
-                          <th>Privilege</th>
-                          <th>Count</th>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="body" let-priv>
-                        <tr>
-                          <td>{{ priv.name }}</td>
-                          <td>{{ priv.count }}</td>
-                        </tr>
-                      </ng-template>
-                    </p-table>
-                  </p-panel>
-                </div>
-                <div class="flex-1">
-                  <p-panel header="Active in Last 90 Days"
-                    [toggleable]="true"
-                    [collapsed]="isPanelsCollapsed()"
-                    styleClass="h-full"
-                    (collapsedChange)="toggleAllPanels($event)">
-                    <p-table [value]="userPrivilege90Days()"
-                      [scrollable]="true"
-                      [scrollHeight]="'150px'"
-                      styleClass="w-full"
-                      [style]="{'min-height': '200px'}"
-                      size="small"
-                      selectionMode="single">
-                      <ng-template pTemplate="header">
-                        <tr>
-                          <th>Privilege</th>
-                          <th>Count</th>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="body" let-priv>
-                        <tr>
-                          <td>{{ priv.name }}</td>
-                          <td>{{ priv.count }}</td>
-                        </tr>
-                      </ng-template>
-                    </p-table>
-                  </p-panel>
-                </div>
-              </div>
-            </p-tabpanel>
-          </p-tabpanels>
-        </p-tabs>
-      </p-card>
-    </div>
-    <div class="col-12 mt-4">
-      <div class="flex flex-col gap-4 lg:flex-row">
-        <div class="flex-1">
-          <p-card>
-            <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-lg font-semibold">MySQL Variables</h3>
-            </div>
-            <div class="overflow-x-auto">
-              <p-table [value]="variableRows()"
-                [scrollable]="true"
-                scrollHeight="400px"
-                styleClass="w-full"
-                size="small"
-                selectionMode="single">
-                <ng-template pTemplate="header">
-                  <tr>
-                    <th class="font-semibold">Variable</th>
-                    <th class="font-semibold">Value</th>
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-variable>
-                  <tr>
-                    <td class="py-2">{{ variable.name }}</td>
-                    <td class="py-2">{{ variable.value }}</td>
-                  </tr>
-                </ng-template>
-              </p-table>
-            </div>
-          </p-card>
-        </div>
-        <div class="flex-1">
-          <p-card>
-            <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-lg font-semibold">MySQL Status</h3>
-            </div>
-            <div class="overflow-x-auto">
-              <p-table [value]="statusRows()"
-                [scrollable]="true"
-                scrollHeight="400px"
-                styleClass="w-full"
-                size="small"
-                selectionMode="single">
-                <ng-template pTemplate="header">
-                  <tr>
-                    <th class="font-semibold">Status</th>
-                    <th class="font-semibold">Value</th>
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-status>
-                  <tr>
-                    <td class="py-2">{{ status.name }}</td>
-                    <td class="py-2">{{ status.value }}</td>
-                  </tr>
-                </ng-template>
-              </p-table>
-            </div>
-          </p-card>
-        </div>
-      </div>
-    </div>
-  </div>
 }
 
 <p-toast />

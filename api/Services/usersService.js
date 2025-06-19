@@ -13,7 +13,7 @@ const logger = require('../utils/logger');
 const SmError = require('../utils/error');
 const config = require('../utils/config');
 
-const privilegeGetter = new Function("obj", "return obj?." + config.oauth.claims.privilegesChain + " || [];");
+const privilegeGetter = new Function('obj', 'return obj?.' + config.oauth.claims.privilegesChain + ' || [];');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -26,54 +26,56 @@ async function withConnection(callback) {
 
 exports.getUsers = async function getUsers(elevate, req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 const allUsersSql = `SELECT * FROM ${config.database.schema}.user`;
                 const [allUsersRows] = await connection.query(allUsersSql);
-                const users = await Promise.all(allUsersRows.map(async (user) => {
-                    const permissionsSql = `SELECT * FROM ${config.database.schema}.collectionpermissions WHERE userId = ?`;
-                    const [permissionRows] = await connection.query(permissionsSql, [user.userId]);
-                    const permissions = permissionRows.map(permission => ({
-                        userId: permission.userId,
-                        collectionId: permission.collectionId,
-                        accessLevel: permission.accessLevel,
-                    }));
+                const users = await Promise.all(
+                    allUsersRows.map(async user => {
+                        const permissionsSql = `SELECT * FROM ${config.database.schema}.collectionpermissions WHERE userId = ?`;
+                        const [permissionRows] = await connection.query(permissionsSql, [user.userId]);
+                        const permissions = permissionRows.map(permission => ({
+                            userId: permission.userId,
+                            collectionId: permission.collectionId,
+                            accessLevel: permission.accessLevel,
+                        }));
 
-                    const assignedTeamSql = `SELECT * FROM ${config.database.schema}.userassignedteams WHERE userId = ?`;
-                    const [assignedTeamsRows] = await connection.query(assignedTeamSql, [user.userId]);
-                    const assignedTeams = assignedTeamsRows.map(assignedTeam => ({
-                        assignedTeamId: assignedTeam.assignedTeamId,
-                        accessLevel: assignedTeam.accessLevel,
-                    }));
+                        const assignedTeamSql = `SELECT * FROM ${config.database.schema}.userassignedteams WHERE userId = ?`;
+                        const [assignedTeamsRows] = await connection.query(assignedTeamSql, [user.userId]);
+                        const assignedTeams = assignedTeamsRows.map(assignedTeam => ({
+                            assignedTeamId: assignedTeam.assignedTeamId,
+                            accessLevel: assignedTeam.accessLevel,
+                        }));
 
-                    let isAdmin;
-                    try {
-                        isAdmin = privilegeGetter(user.lastClaims).includes('admin');
-                    } catch (e) {
-                        isAdmin = false;
-                    }
+                        let isAdmin;
+                        try {
+                            isAdmin = privilegeGetter(user.lastClaims).includes('admin');
+                        } catch (e) {
+                            isAdmin = false;
+                        }
 
-                    return {
-                        userId: user.userId,
-                        userName: user.userName,
-                        email: user.email,
-                        phoneNumber: user.phoneNumber,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        created: user.created,
-                        lastAccess: user.lastAccess,
-                        lastCollectionAccessedId: user.lastCollectionAccessedId,
-                        accountStatus: user.accountStatus,
-                        fullName: user.fullName,
-                        officeOrg: user.officeOrg,
-                        defaultTheme: user.defaultTheme,
-                        points: user.points,
-                        isAdmin: isAdmin,
-                        lastClaims: user.lastClaims,
-                        permissions: permissions,
-                        assignedTeams: assignedTeams
-                    };
-                }));
+                        return {
+                            userId: user.userId,
+                            userName: user.userName,
+                            email: user.email,
+                            phoneNumber: user.phoneNumber,
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                            created: user.created,
+                            lastAccess: user.lastAccess,
+                            lastCollectionAccessedId: user.lastCollectionAccessedId,
+                            accountStatus: user.accountStatus,
+                            fullName: user.fullName,
+                            officeOrg: user.officeOrg,
+                            defaultTheme: user.defaultTheme,
+                            points: user.points,
+                            isAdmin: isAdmin,
+                            lastClaims: user.lastClaims,
+                            permissions: permissions,
+                            assignedTeams: assignedTeams,
+                        };
+                    })
+                );
                 return users;
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
@@ -86,7 +88,7 @@ exports.getUsers = async function getUsers(elevate, req) {
 
 exports.getCurrentUser = async function getCurrentUser(req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const sqlUser = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
             const [userRows] = await connection.query(sqlUser, [req.userObject.userId]);
 
@@ -137,7 +139,7 @@ exports.getCurrentUser = async function getCurrentUser(req) {
                 isAdmin: isAdmin,
                 lastClaims: user.lastClaims,
                 permissions: permissions,
-                assignedTeams: assignedTeams
+                assignedTeams: assignedTeams,
             };
             return userObject;
         });
@@ -148,7 +150,7 @@ exports.getCurrentUser = async function getCurrentUser(req) {
 
 exports.getUserByUserID = async function getUserByUserID(req, elevate) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
                 const [userQueryRows] = await connection.query(sql, [req.params.userId]);
@@ -200,7 +202,7 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
                     isAdmin: isAdmin,
                     lastClaims: user.lastClaims,
                     permissions: permissions,
-                    assignedTeams: assignedTeams
+                    assignedTeams: assignedTeams,
                 };
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
@@ -213,7 +215,7 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
 
 exports.getUserByUserName = async function getUserByUserName(userName) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT * FROM ${config.database.schema}.user WHERE userName = ?`;
             const [userRows] = await connection.query(sql, [userName]);
             if (userRows.length === 0) {
@@ -254,7 +256,7 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
                 points: user.points,
                 isAdmin: isAdmin,
                 lastClaims: user.lastClaims,
-                permissions: permissions
+                permissions: permissions,
             };
             return userObject;
         });
@@ -266,29 +268,29 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
 
 exports.updateUser = async function updateUser(userId, elevate, req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
-            let sql = `UPDATE ${config.database.schema}.user SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, points = ? WHERE userId = ?`;
+                let sql = `UPDATE ${config.database.schema}.user SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, points = ? WHERE userId = ?`;
 
-            await connection.query(sql, [
-                req.body.firstName,
-                req.body.lastName,
-                req.body.email,
-                req.body.phoneNumber,
-                req.body.lastAccess,
-                req.body.lastCollectionAccessedId,
-                req.body.accountStatus,
-                `${req.body.firstName} ${req.body.lastName}`,
-                req.body.officeOrg,
-                req.body.defaultTheme,
-                req.body.points,
-                req.body.userId
-            ]);
+                await connection.query(sql, [
+                    req.body.firstName,
+                    req.body.lastName,
+                    req.body.email,
+                    req.body.phoneNumber,
+                    req.body.lastAccess,
+                    req.body.lastCollectionAccessedId,
+                    req.body.accountStatus,
+                    `${req.body.firstName} ${req.body.lastName}`,
+                    req.body.officeOrg,
+                    req.body.defaultTheme,
+                    req.body.points,
+                    req.body.userId,
+                ]);
 
                 sql = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
-            let [updatedUser] = await connection.query(sql, [req.body.userId]);
+                let [updatedUser] = await connection.query(sql, [req.body.userId]);
 
-            return updatedUser[0];
+                return updatedUser[0];
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
             }
@@ -300,13 +302,10 @@ exports.updateUser = async function updateUser(userId, elevate, req) {
 
 exports.updateUserTheme = async function updateUserTheme(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
-        let sql = `UPDATE ${config.database.schema}.user SET defaultTheme = ? WHERE userId = ?`;
+        return await withConnection(async connection => {
+            let sql = `UPDATE ${config.database.schema}.user SET defaultTheme = ? WHERE userId = ?`;
 
-            await connection.query(sql, [
-                req.body.defaultTheme,
-                req.body.userId
-            ]);
+            await connection.query(sql, [req.body.defaultTheme, req.body.userId]);
 
             return { success: true, message: 'Theme updated successfully' };
         });
@@ -317,13 +316,13 @@ exports.updateUserTheme = async function updateUserTheme(req, res, next) {
 
 exports.updateUserPoints = async function updateUserPoints(elevate, req) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
-            let sql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
+                let sql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
 
                 await connection.query(sql, [req.body.points, req.body.userId]);
 
-            return { success: true, message: 'User points updated successfully' };
+                return { success: true, message: 'User points updated successfully' };
             } else {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
             }
@@ -335,14 +334,14 @@ exports.updateUserPoints = async function updateUserPoints(elevate, req) {
 
 exports.hourlyPoints = async function hourlyPoints(userId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let findUserSql = `SELECT points from ${config.database.schema}.user WHERE userId = ?`;
             const [response] = await connection.query(findUserSql, [userId]);
             const points = response[0].points + 1;
 
-                let sql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
-                await connection.query(sql, [points, userId]);
-                return { success: true, message: 'User points updated successfully' };
+            let sql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
+            await connection.query(sql, [points, userId]);
+            return { success: true, message: 'User points updated successfully' };
         });
     } catch (error) {
         return { error: error.message };
@@ -351,7 +350,7 @@ exports.hourlyPoints = async function hourlyPoints(userId) {
 
 exports.dailyPoints = async function dailyPoints(userId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let findUserSql = `SELECT points from ${config.database.schema}.user WHERE userId = ?`;
             const [response] = await connection.query(findUserSql, [userId]);
             const points = response[0].points + 5;
@@ -367,7 +366,7 @@ exports.dailyPoints = async function dailyPoints(userId) {
 
 exports.updateUserLastCollectionAccessed = async function updateUserLastCollectionAccessed(userId, lastCollectionAccessedId) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `UPDATE ${config.database.schema}.user SET lastCollectionAccessedId = ? WHERE userId = ?`;
             await connection.query(sql, [lastCollectionAccessedId, userId]);
 
@@ -380,46 +379,46 @@ exports.updateUserLastCollectionAccessed = async function updateUserLastCollecti
 
 exports.setUserData = async function setUserData(userObject, fields, newUser) {
     try {
-        return await withConnection(async (connection) => {
-            let insertColumns = ['userName']
-            let updateColumns = ['userId = LAST_INSERT_ID(userId)']
-            let binds = [userObject.userName]
+        return await withConnection(async connection => {
+            let insertColumns = ['userName'];
+            let updateColumns = ['userId = LAST_INSERT_ID(userId)'];
+            let binds = [userObject.userName];
 
             if (newUser && userObject.firstName) {
-                insertColumns.push('firstName')
-                updateColumns.push('firstName = VALUES(firstName)')
-                binds.push(userObject.firstName)
+                insertColumns.push('firstName');
+                updateColumns.push('firstName = VALUES(firstName)');
+                binds.push(userObject.firstName);
             }
             if (newUser && userObject.lastName) {
-                insertColumns.push('lastName')
-                updateColumns.push('lastName = VALUES(lastName)')
-                binds.push(userObject.lastName)
+                insertColumns.push('lastName');
+                updateColumns.push('lastName = VALUES(lastName)');
+                binds.push(userObject.lastName);
             }
             if (newUser && userObject.fullName) {
-                insertColumns.push('fullName')
-                updateColumns.push('fullName = VALUES(fullName)')
-                binds.push(userObject.fullName)
+                insertColumns.push('fullName');
+                updateColumns.push('fullName = VALUES(fullName)');
+                binds.push(userObject.fullName);
             }
             if (newUser && userObject.email) {
-                insertColumns.push('email')
-                updateColumns.push('email = VALUES(email)')
-                binds.push(userObject.email)
+                insertColumns.push('email');
+                updateColumns.push('email = VALUES(email)');
+                binds.push(userObject.email);
             }
             if (fields.lastAccess) {
-                insertColumns.push('lastAccess')
-                updateColumns.push('lastAccess = VALUES(lastAccess)')
-                binds.push(fields.lastAccess)
+                insertColumns.push('lastAccess');
+                updateColumns.push('lastAccess = VALUES(lastAccess)');
+                binds.push(fields.lastAccess);
             }
             if (fields.lastClaims) {
-                insertColumns.push('lastClaims')
-                updateColumns.push('lastClaims = VALUES(lastClaims)')
-                binds.push(JSON.stringify(fields.lastClaims))
+                insertColumns.push('lastClaims');
+                updateColumns.push('lastClaims = VALUES(lastClaims)');
+                binds.push(JSON.stringify(fields.lastClaims));
             }
             let sqlUpsert = `INSERT INTO ${config.database.schema}.user (
     ${insertColumns.join(',\n')}
   ) VALUES ? ON DUPLICATE KEY UPDATE
-    ${updateColumns.join(',\n')}`
-            let [result] = await connection.query(sqlUpsert, [[binds]])
+    ${updateColumns.join(',\n')}`;
+            let [result] = await connection.query(sqlUpsert, [[binds]]);
             return result;
         });
     } catch (error) {
@@ -427,13 +426,12 @@ exports.setUserData = async function setUserData(userObject, fields, newUser) {
     }
 };
 
-
 exports.setLastAccess = async function (userId, timestamp) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `UPDATE ${config.database.schema}.user SET lastAccess = ? where userId = ?`;
             await connection.query(sql, [timestamp, userId]);
-            return true
+            return true;
         });
     } catch (error) {
         return { error: error.message };
@@ -446,7 +444,7 @@ exports.disableUser = async function disableUser(elevate, userId) {
             throw new Error('Invalid userId');
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             if (!elevate) {
                 throw new SmError.PrivilegeError('Elevate parameter is required');
             }

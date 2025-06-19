@@ -21,7 +21,7 @@ module.exports.generateMitigation = async function generateMitigation(req, res, 
     } catch (error) {
         logger.writeError('AI', 'generateMitigation', {
             error: error.message,
-            prompt: req.body
+            prompt: req.body,
         });
 
         if (!res.headersSent) {

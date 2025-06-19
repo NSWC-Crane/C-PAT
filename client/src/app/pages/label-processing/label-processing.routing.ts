@@ -12,8 +12,8 @@ import { Routes } from '@angular/router';
 import { LabelProcessingComponent } from './label-processing.component';
 
 export const labelProcessingRoutes: Routes = [
-  {
-    path: '',
-    component: LabelProcessingComponent,
-  },
+    {
+        path: '',
+        component: LabelProcessingComponent
+    }
 ];

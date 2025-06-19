@@ -8,9 +8,9 @@
 !##########################################################################
 */
 export interface Label {
-  labelId: any;
-  collectionId?: number;
-  labelName: string;
-  description: string;
-  stigmanLabelId?: number;
+    labelId: any;
+    collectionId?: number;
+    labelName: string;
+    description: string;
+    stigmanLabelId?: number;
 }

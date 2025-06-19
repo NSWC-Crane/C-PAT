@@ -9,349 +9,220 @@
 -->
 
 <div class="page-container">
-  <div class="form-content">
-    <form #form="ngForm" class="form">
-      <div class="mb-4">
-        <label for="userName" class="mb-2 block text-base font-medium">First Name:</label>
-        <input pInputText
-               class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2"
-               type="text"
-               name="userName"
-               [(ngModel)]="user.firstName"
-               placeholder="First Name"
-               required />
-      </div>
-      <div class="mb-4">
-        <label for="lastName" class="mb-2 block text-base font-medium">Last Name:</label>
-        <input pInputText
-               class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2"
-               type="text"
-               name="lastName"
-               [(ngModel)]="user.lastName"
-               placeholder="Last Name" />
-      </div>
-      <div class="mb-4">
-        <label for="fullName" class="mb-2 block text-base font-medium">Full Name:</label>
-        <input pInputText
-               class="mt-2 w-full rounded-md border bg-gray-100 p-2"
-               type="text"
-               name="fullName"
-               value="{{user.firstName}} {{user.lastName}}"
-               placeholder="Full Name"
-               disabled />
-      </div>
-      <div class="mb-4">
-        <label for="email" class="mb-2 block text-base font-medium">Email:</label>
-        <input pInputText
-               class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2"
-               type="text"
-               name="email"
-               [(ngModel)]="user.email"
-               placeholder="Email" />
-      </div>
-      <div class="mb-4">
-        <label for="phoneNumber" class="mb-2 block text-base font-medium">Phone Number:</label>
-        <input pInputText
-               class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2"
-               type="text"
-               name="phoneNumber"
-               [(ngModel)]="user.phoneNumber"
-               placeholder="Phone Number..." />
-      </div>
-      <div class="mb-4">
-        <label for="officeOrg" class="mb-2 block text-base font-medium">Office/Organization:</label>
-        <div>
-          <p-autoComplete class="w-1/6"
-                          [(ngModel)]="user.officeOrg"
-                          [suggestions]="filteredOfficeOrgs"
-                          (completeMethod)="filterOfficeOrgs($event)"
-                          [dropdown]="false"
-                          [forceSelection]="false"
-                          name="officeOrg"
-                          id="officeOrg"
-                          placeholder="Office/Org...">
-          </p-autoComplete>
-        </div>
-      </div>
-      <div class="mb-4">
-        <label for="accountStatus" class="mb-2 block text-base font-medium">Account Status:</label>
-        <div>
-          <p-select class="w-1/6"
-                    [options]="[{label: 'Active', value: 'ACTIVE'}, {label: 'Pending', value: 'PENDING'}, {label: 'Disabled', value: 'DISABLED'}]"
-                    [(ngModel)]="user.accountStatus"
-                    name="accountStatus"
-                    placeholder="Select Status"
-                    optionLabel="label"
-                    optionValue="value">
-          </p-select>
-        </div>
-      </div>
-      @if (marketplaceDisabled === false) {
-      <div class="mb-4">
-        <label for="userPoints" class="mb-2 block text-base font-medium">User Points:</label>
-        <div class="flex items-center">
-          <p-inputNumber class="w-4/5"
-                         [(ngModel)]="user.points"
-                         [showButtons]="true"
-                         [min]="0"
-                         [step]="10"
-                         buttonLayout="horizontal"
-                         decrementButtonClass="p-button-secondary"
-                         incrementButtonClass="p-button-secondary"
-                         incrementButtonIcon="pi pi-plus"
-                         decrementButtonIcon="pi pi-minus"
-                         name="userPoints"
-                         id="userPoints">
-          </p-inputNumber>
-        </div>
-      </div>
-      }
-      <div class="flex items-center pt-4">
-        <p-toggleswitch [(ngModel)]="checked" name="isAdmin" disabled></p-toggleswitch>
-        <label for="isAdmin" class="ml-4 text-base font-medium">C-PAT Admin</label>
-        <i class="pi pi-info-circle text-primary ml-2 cursor-pointer"
-           pTooltip="The C-PAT administrative privilege is assigned by granting a user the admin role within the OIDC provider."
-           tooltipPosition="top">
-        </i>
-      </div>
-      @if (user.lastClaims) {
-      <div class="mb-6">
-        <div class="flex items-center pt-4">
-          <p-toggleswitch id="showLastClaims"
-                          [(ngModel)]="showLastClaims"
-                          binary="true"
-                          name="showLastClaims">
-          </p-toggleswitch>
-          <label for="showLastClaims" class="ml-4 text-base font-medium">View Last Claims</label>
-        </div>
-        @if (showLastClaims) {
-        <textarea pTextarea
-                  class="mt-2 w-full rounded-md border p-2"
-                  [value]="user.lastClaims | json"
-                  name="lastClaimsTextarea"
-                  rows="15"
-                  readonly>
-          </textarea>
-        }
-      </div>
-      }
-      <hr class="my-6" />
-      <p-stepper [value]="1">
-        <p-step-list>
-          <p-step [value]="1">Team Assignments</p-step>
-          <p-step [value]="2">Collection Permissions</p-step>
-        </p-step-list>
-        <p-step-panels>
-          <p-step-panel [value]="1">
-            <ng-template #content let-activateCallback="activateCallback">
-              <p-table #teamTable
-                       class="w-full"
-                       [value]="userAssignedTeams"
-                       [columns]="teamCols"
-                       editMode="row"
-                       [paginator]="true"
-                       [rows]="5">
-                <ng-template pTemplate="header" let-columns>
-                  <tr>
-                    <th scope="col" class="w-24">
-                      <button pButton
-                              icon="pi pi-plus"
-                              class="p-button-text"
-                              (click)="onAddNewAssignedTeam()">
-                      </button>
-                    </th>
-                    @for (col of columns; track col.header) {
-                    <th scope="col">{{col.header}}</th>
+    <div class="form-content">
+        <form #form="ngForm" class="form">
+            <div class="mb-4">
+                <label for="userName" class="mb-2 block text-base font-medium">First Name:</label>
+                <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" name="userName" [(ngModel)]="user.firstName" placeholder="First Name" required />
+            </div>
+            <div class="mb-4">
+                <label for="lastName" class="mb-2 block text-base font-medium">Last Name:</label>
+                <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" name="lastName" [(ngModel)]="user.lastName" placeholder="Last Name" />
+            </div>
+            <div class="mb-4">
+                <label for="fullName" class="mb-2 block text-base font-medium">Full Name:</label>
+                <input pInputText class="mt-2 w-full rounded-md border bg-gray-100 p-2" type="text" name="fullName" value="{{ user.firstName }} {{ user.lastName }}" placeholder="Full Name" disabled />
+            </div>
+            <div class="mb-4">
+                <label for="email" class="mb-2 block text-base font-medium">Email:</label>
+                <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" name="email" [(ngModel)]="user.email" placeholder="Email" />
+            </div>
+            <div class="mb-4">
+                <label for="phoneNumber" class="mb-2 block text-base font-medium">Phone Number:</label>
+                <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" name="phoneNumber" [(ngModel)]="user.phoneNumber" placeholder="Phone Number..." />
+            </div>
+            <div class="mb-4">
+                <label for="officeOrg" class="mb-2 block text-base font-medium">Office/Organization:</label>
+                <div>
+                    <p-autoComplete
+                        class="w-1/6"
+                        [(ngModel)]="user.officeOrg"
+                        [suggestions]="filteredOfficeOrgs"
+                        (completeMethod)="filterOfficeOrgs($event)"
+                        [dropdown]="false"
+                        [forceSelection]="false"
+                        name="officeOrg"
+                        id="officeOrg"
+                        placeholder="Office/Org..."
+                    >
+                    </p-autoComplete>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="accountStatus" class="mb-2 block text-base font-medium">Account Status:</label>
+                <div>
+                    <p-select
+                        class="w-1/6"
+                        [options]="[
+                            { label: 'Active', value: 'ACTIVE' },
+                            { label: 'Pending', value: 'PENDING' },
+                            { label: 'Disabled', value: 'DISABLED' }
+                        ]"
+                        [(ngModel)]="user.accountStatus"
+                        name="accountStatus"
+                        placeholder="Select Status"
+                        optionLabel="label"
+                        optionValue="value"
+                    >
+                    </p-select>
+                </div>
+            </div>
+            @if (marketplaceDisabled === false) {
+                <div class="mb-4">
+                    <label for="userPoints" class="mb-2 block text-base font-medium">User Points:</label>
+                    <div class="flex items-center">
+                        <p-inputNumber
+                            class="w-4/5"
+                            [(ngModel)]="user.points"
+                            [showButtons]="true"
+                            [min]="0"
+                            [step]="10"
+                            buttonLayout="horizontal"
+                            decrementButtonClass="p-button-secondary"
+                            incrementButtonClass="p-button-secondary"
+                            incrementButtonIcon="pi pi-plus"
+                            decrementButtonIcon="pi pi-minus"
+                            name="userPoints"
+                            id="userPoints"
+                        >
+                        </p-inputNumber>
+                    </div>
+                </div>
+            }
+            <div class="flex items-center pt-4">
+                <p-toggleswitch [(ngModel)]="checked" name="isAdmin" disabled></p-toggleswitch>
+                <label for="isAdmin" class="ml-4 text-base font-medium">C-PAT Admin</label>
+                <i class="pi pi-info-circle text-primary ml-2 cursor-pointer" pTooltip="The C-PAT administrative privilege is assigned by granting a user the admin role within the OIDC provider." tooltipPosition="top"> </i>
+            </div>
+            @if (user.lastClaims) {
+                <div class="mb-6">
+                    <div class="flex items-center pt-4">
+                        <p-toggleswitch id="showLastClaims" [(ngModel)]="showLastClaims" binary="true" name="showLastClaims"> </p-toggleswitch>
+                        <label for="showLastClaims" class="ml-4 text-base font-medium">View Last Claims</label>
+                    </div>
+                    @if (showLastClaims) {
+                        <textarea pTextarea class="mt-2 w-full rounded-md border p-2" [value]="user.lastClaims | json" name="lastClaimsTextarea" rows="15" readonly> </textarea>
                     }
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-rowData let-columns="columns">
-                  <tr>
-                    <td class="w-24">
-                      <div class="flex space-x-2">
-                        @if (rowData.editing) {
-                        <button pButton
-                                type="button"
-                                icon="pi pi-check"
-                                (click)="onSaveAssignedTeam(rowData)"
-                                class="p-button-rounded p-button-text p-button-success">
-                        </button>
-                        <button pButton
-                                type="button"
-                                icon="pi pi-times"
-                                (click)="onCancelEditAssignedTeam(rowData)"
-                                class="p-button-rounded p-button-text p-button-danger">
-                        </button>
-                        } @else {
-                        <button pButton
-                                type="button"
-                                icon="pi pi-pencil"
-                                (click)="onEditAssignedTeam(rowData)"
-                                class="p-button-rounded p-button-text">
-                        </button>
-                        }
-                        <button pButton
-                                type="button"
-                                icon="pi pi-trash"
-                                class="p-button-text"
-                                (click)="onDeleteAssignedTeam(rowData)">
-                        </button>
-                      </div>
-                    </td>
-                    @for (col of columns; track col.field) {
-                    <td>
-                      @if (!rowData.editing) {
-                      <span>{{rowData[col.field]}}</span>
-                      }
-                      @if (rowData.editing && col.field === 'assignedTeamName') {
-                      <p-select [options]="availableTeams"
-                                [(ngModel)]="rowData.assignedTeamId"
-                                name="teamDropdown"
-                                optionLabel="title"
-                                optionValue="value"
-                                class="w-full"
-                                appendTo="body">
-                      </p-select>
-                      }
-                      @if (rowData.editing && col.field === 'accessLevelLabel') {
-                      <p-select [options]="accessLevelOptions"
-                                [(ngModel)]="rowData.accessLevel"
-                                name="accessLevelDropdown"
-                                optionLabel="label"
-                                optionValue="value"
-                                class="w-full"
-                                appendTo="body">
-                      </p-select>
-                      }
-                    </td>
-                    }
-                  </tr>
-                </ng-template>
-              </p-table>
-              <div class="flex justify-end pt-6">
-                <p-button label="Next"
-                          icon="pi pi-arrow-right"
-                          iconPos="right"
-                          (onClick)="activateCallback(2)" />
-              </div>
-            </ng-template>
-          </p-step-panel>
+                </div>
+            }
+            <hr class="my-6" />
+            <p-stepper [value]="1">
+                <p-step-list>
+                    <p-step [value]="1">Team Assignments</p-step>
+                    <p-step [value]="2">Collection Permissions</p-step>
+                </p-step-list>
+                <p-step-panels>
+                    <p-step-panel [value]="1">
+                        <ng-template #content let-activateCallback="activateCallback">
+                            <p-table #teamTable class="w-full" [value]="userAssignedTeams" [columns]="teamCols" editMode="row" [paginator]="true" [rows]="5">
+                                <ng-template pTemplate="header" let-columns>
+                                    <tr>
+                                        <th scope="col" class="w-24">
+                                            <button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewAssignedTeam()"></button>
+                                        </th>
+                                        @for (col of columns; track col.header) {
+                                            <th scope="col">{{ col.header }}</th>
+                                        }
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-rowData let-columns="columns">
+                                    <tr>
+                                        <td class="w-24">
+                                            <div class="flex space-x-2">
+                                                @if (rowData.editing) {
+                                                    <button pButton type="button" icon="pi pi-check" (click)="onSaveAssignedTeam(rowData)" class="p-button-rounded p-button-text p-button-success"></button>
+                                                    <button pButton type="button" icon="pi pi-times" (click)="onCancelEditAssignedTeam(rowData)" class="p-button-rounded p-button-text p-button-danger"></button>
+                                                } @else {
+                                                    <button pButton type="button" icon="pi pi-pencil" (click)="onEditAssignedTeam(rowData)" class="p-button-rounded p-button-text"></button>
+                                                }
+                                                <button pButton type="button" icon="pi pi-trash" class="p-button-text" (click)="onDeleteAssignedTeam(rowData)"></button>
+                                            </div>
+                                        </td>
+                                        @for (col of columns; track col.field) {
+                                            <td>
+                                                @if (!rowData.editing) {
+                                                    <span>{{ rowData[col.field] }}</span>
+                                                }
+                                                @if (rowData.editing && col.field === 'assignedTeamName') {
+                                                    <p-select [options]="availableTeams" [(ngModel)]="rowData.assignedTeamId" name="teamDropdown" optionLabel="title" optionValue="value" class="w-full" appendTo="body"> </p-select>
+                                                }
+                                                @if (rowData.editing && col.field === 'accessLevelLabel') {
+                                                    <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body"> </p-select>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                            <div class="flex justify-end pt-6">
+                                <p-button label="Next" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(2)" />
+                            </div>
+                        </ng-template>
+                    </p-step-panel>
 
-          <p-step-panel [value]="2">
-            <ng-template #content let-activateCallback="activateCallback">
-              <p-table #permissionsTable
-                       class="w-full"
-                       [value]="collectionPermissions"
-                       [columns]="cols"
-                       editMode="row"
-                       [paginator]="true"
-                       [rows]="5">
-                <ng-template pTemplate="header" let-columns>
-                  <tr>
-                    <th scope="col" class="w-24">
-                      <button pButton
-                              icon="pi pi-plus"
-                              class="p-button-text"
-                              (click)="onAddNewPermission()">
-                      </button>
-                    </th>
-                    @for (col of columns; track col.header) {
-                    <th scope="col">{{col.header}}</th>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-rowData let-columns="columns">
-                  <tr>
-                    <td class="w-24">
-                      <div class="flex space-x-2">
-                        @if (rowData.editing) {
-                        <button pButton
-                                type="button"
-                                icon="pi pi-check"
-                                (click)="onSavePermission(rowData)"
-                                class="p-button-rounded p-button-text p-button-success">
-                        </button>
-                        <button pButton
-                                type="button"
-                                icon="pi pi-times"
-                                (click)="onCancelEditPermission(rowData)"
-                                class="p-button-rounded p-button-text p-button-danger">
-                        </button>
-                        } @else {
-                        <button pButton
-                                type="button"
-                                icon="pi pi-pencil"
-                                (click)="onEditPermission(rowData)"
-                                class="p-button-rounded p-button-text">
-                        </button>
-                        }
-                        <button pButton
-                                type="button"
-                                icon="pi pi-trash"
-                                class="p-button-text"
-                                (click)="onDeletePermission(rowData)">
-                        </button>
-                      </div>
-                    </td>
-                    @for (col of columns; track col.field) {
-                    <td>
-                      @if (!rowData.editing) {
-                      <span>{{rowData[col.field]}}</span>
-                      }
-                      @if (rowData.editing && col.field === 'collectionName') {
-                      <p-select [options]="availableCollections"
-                                [(ngModel)]="rowData.collectionId"
-                                name="collectionDropdown"
-                                optionLabel="title"
-                                optionValue="value"
-                                class="w-full"
-                                appendTo="body">
-                      </p-select>
-                      }
-                      @if (rowData.editing && col.field === 'accessLevelLabel') {
-                      <p-select [options]="accessLevelOptions"
-                                [(ngModel)]="rowData.accessLevel"
-                                name="accessLevelDropdown"
-                                optionLabel="label"
-                                optionValue="value"
-                                class="w-full"
-                                appendTo="body">
-                      </p-select>
-                      }
-                    </td>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="emptymessage">
-                  <tr>
-                    <td colspan="3" class="text-center">No Data to Display</td>
-                  </tr>
-                </ng-template>
-              </p-table>
-              <div class="flex justify-between pt-6">
-                <p-button label="Back" icon="pi pi-arrow-left" (onClick)="activateCallback(1)" />
-              </div>
-            </ng-template>
-          </p-step-panel>
-        </p-step-panels>
-      </p-stepper>
-    </form>
-  </div>
-
-  <div class="form-footer">
-    <div class="inline-flex space-x-4">
-      <p-button label="Save"
-                [outlined]="true"
-                (onClick)="onSubmit()"
-                [disabled]="!form.valid">
-      </p-button>
-      <p-button label="Cancel"
-                [outlined]="true"
-                (onClick)="resetData()"
-                styleClass="p-button-secondary">
-      </p-button>
+                    <p-step-panel [value]="2">
+                        <ng-template #content let-activateCallback="activateCallback">
+                            <p-table #permissionsTable class="w-full" [value]="collectionPermissions" [columns]="cols" editMode="row" [paginator]="true" [rows]="5">
+                                <ng-template pTemplate="header" let-columns>
+                                    <tr>
+                                        <th scope="col" class="w-24">
+                                            <button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewPermission()"></button>
+                                        </th>
+                                        @for (col of columns; track col.header) {
+                                            <th scope="col">{{ col.header }}</th>
+                                        }
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-rowData let-columns="columns">
+                                    <tr>
+                                        <td class="w-24">
+                                            <div class="flex space-x-2">
+                                                @if (rowData.editing) {
+                                                    <button pButton type="button" icon="pi pi-check" (click)="onSavePermission(rowData)" class="p-button-rounded p-button-text p-button-success"></button>
+                                                    <button pButton type="button" icon="pi pi-times" (click)="onCancelEditPermission(rowData)" class="p-button-rounded p-button-text p-button-danger"></button>
+                                                } @else {
+                                                    <button pButton type="button" icon="pi pi-pencil" (click)="onEditPermission(rowData)" class="p-button-rounded p-button-text"></button>
+                                                }
+                                                <button pButton type="button" icon="pi pi-trash" class="p-button-text" (click)="onDeletePermission(rowData)"></button>
+                                            </div>
+                                        </td>
+                                        @for (col of columns; track col.field) {
+                                            <td>
+                                                @if (!rowData.editing) {
+                                                    <span>{{ rowData[col.field] }}</span>
+                                                }
+                                                @if (rowData.editing && col.field === 'collectionName') {
+                                                    <p-select [options]="availableCollections" [(ngModel)]="rowData.collectionId" name="collectionDropdown" optionLabel="title" optionValue="value" class="w-full" appendTo="body"> </p-select>
+                                                }
+                                                @if (rowData.editing && col.field === 'accessLevelLabel') {
+                                                    <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body"> </p-select>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td colspan="3" class="text-center">No Data to Display</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                            <div class="flex justify-between pt-6">
+                                <p-button label="Back" icon="pi pi-arrow-left" (onClick)="activateCallback(1)" />
+                            </div>
+                        </ng-template>
+                    </p-step-panel>
+                </p-step-panels>
+            </p-stepper>
+        </form>
     </div>
-  </div>
+
+    <div class="form-footer">
+        <div class="inline-flex space-x-4">
+            <p-button label="Save" [outlined]="true" (onClick)="onSubmit()" [disabled]="!form.valid"> </p-button>
+            <p-button label="Cancel" [outlined]="true" (onClick)="resetData()" styleClass="p-button-secondary"> </p-button>
+        </div>
+    </div>
 </div>
 
 <p-toast></p-toast>

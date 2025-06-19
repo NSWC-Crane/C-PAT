@@ -16,75 +16,55 @@ import { CollectionsBasicList } from '../../../common/models/collections-basic.m
 import { Collections } from '../../../common/models/collections.model';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root'
 })
 export class CollectionsService {
-  private cpatApiBase = CPAT.Env.apiBase;
+    private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {}
 
-  private handleError(error: any) {
-    console.error('An error occurred:', error);
-    return throwError(() => error);
-  }
+    private handleError(error: any) {
+        console.error('An error occurred:', error);
+        return throwError(() => error);
+    }
 
-  getAllCollections(): Observable<Collections[]> {
-    return this.http
-      .get<Collections[]>(`${this.cpatApiBase}/collections?elevate=true`)
-      .pipe(catchError(this.handleError));
-  }
+    getAllCollections(): Observable<Collections[]> {
+        return this.http.get<Collections[]>(`${this.cpatApiBase}/collections?elevate=true`).pipe(catchError(this.handleError));
+    }
 
-  getCollections(): Observable<Collections[]> {
-    return this.http
-      .get<Collections[]>(`${this.cpatApiBase}/collections`)
-      .pipe(catchError(this.handleError));
-  }
+    getCollections(): Observable<Collections[]> {
+        return this.http.get<Collections[]>(`${this.cpatApiBase}/collections`).pipe(catchError(this.handleError));
+    }
 
-  getCollectionBasicList(): Observable<CollectionsBasicList[]> {
-    return this.http
-      .get<CollectionsBasicList[]>(`${this.cpatApiBase}/collections/basiclist`)
-      .pipe(catchError(this.handleError));
-  }
+    getCollectionBasicList(): Observable<CollectionsBasicList[]> {
+        return this.http.get<CollectionsBasicList[]>(`${this.cpatApiBase}/collections/basiclist`).pipe(catchError(this.handleError));
+    }
 
-  addCollection(collection: any): Observable<Collections> {
-    return this.http
-      .post<Collections>(`${this.cpatApiBase}/collection`, collection)
-      .pipe(catchError(this.handleError));
-  }
+    addCollection(collection: any): Observable<Collections> {
+        return this.http.post<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(catchError(this.handleError));
+    }
 
-  updateCollection(collection: any): Observable<Collections> {
-    return this.http
-      .put<Collections>(`${this.cpatApiBase}/collection`, collection)
-      .pipe(catchError(this.handleError));
-  }
+    updateCollection(collection: any): Observable<Collections> {
+        return this.http.put<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(catchError(this.handleError));
+    }
 
-  deleteCollection(collectionId: number): Observable<Collections> {
-    return this.http
-      .delete<Collections>(`${this.cpatApiBase}/collection/${collectionId}?elevate=true`)
-      .pipe(catchError(this.handleError));
-  }
+    deleteCollection(collectionId: number): Observable<Collections> {
+        return this.http.delete<Collections>(`${this.cpatApiBase}/collection/${collectionId}?elevate=true`).pipe(catchError(this.handleError));
+    }
 
-  getCollectionPermissions(collectionId: number): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/permissions/${collectionId}`)
-      .pipe(catchError(this.handleError));
-  }
+    getCollectionPermissions(collectionId: number): Observable<any> {
+        return this.http.get(`${this.cpatApiBase}/permissions/${collectionId}`).pipe(catchError(this.handleError));
+    }
 
-  getPoamsByCollection(id: any): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true&associatedVulnerabilities=true&teamMitigations=true`)
-      .pipe(catchError(this.handleError));
-  }
+    getPoamsByCollection(id: any): Observable<any> {
+        return this.http.get(`${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true&associatedVulnerabilities=true&teamMitigations=true`).pipe(catchError(this.handleError));
+    }
 
-  addCollectionAprover(approver: any): Observable<any> {
-    return this.http
-      .post<any>(`${this.cpatApiBase}/collectionApprover`, approver)
-      .pipe(catchError(this.handleError));
-  }
+    addCollectionAprover(approver: any): Observable<any> {
+        return this.http.post<any>(`${this.cpatApiBase}/collectionApprover`, approver).pipe(catchError(this.handleError));
+    }
 
-  putCollectionApprover(approver: any): Observable<any> {
-    return this.http
-      .put<any>(`${this.cpatApiBase}/collectionApprover`, approver)
-      .pipe(catchError(this.handleError));
-  }
+    putCollectionApprover(approver: any): Observable<any> {
+        return this.http.put<any>(`${this.cpatApiBase}/collectionApprover`, approver).pipe(catchError(this.handleError));
+    }
 }

@@ -11,152 +11,145 @@
 'use strict';
 
 class NonError extends Error {
-	constructor(message) {
-		super(NonError._prepareSuperMessage(message));
-		Object.defineProperty(this, 'name', {
-			value: 'NonError',
-			configurable: true,
-			writable: true
-		});
+    constructor(message) {
+        super(NonError._prepareSuperMessage(message));
+        Object.defineProperty(this, 'name', {
+            value: 'NonError',
+            configurable: true,
+            writable: true,
+        });
 
-		if (Error.captureStackTrace) {
-			Error.captureStackTrace(this, NonError);
-		}
-	}
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, NonError);
+        }
+    }
 
-	static _prepareSuperMessage(message) {
-		try {
-			return JSON.stringify(message);
-		} catch {
-			return String(message);
-		}
-	}
+    static _prepareSuperMessage(message) {
+        try {
+            return JSON.stringify(message);
+        } catch {
+            return String(message);
+        }
+    }
 }
 
 const commonProperties = [
-	{ property: 'name', enumerable: false },
-	{ property: 'message', enumerable: false },
-	{ property: 'stack', enumerable: false },
-	{ property: 'code', enumerable: true }
+    { property: 'name', enumerable: false },
+    { property: 'message', enumerable: false },
+    { property: 'stack', enumerable: false },
+    { property: 'code', enumerable: true },
 ];
 
 const isCalled = Symbol('.toJSON called');
 
 const toJSON = from => {
-	from[isCalled] = true;
-	const json = from.toJSON();
-	delete from[isCalled];
-	return json;
+    from[isCalled] = true;
+    const json = from.toJSON();
+    delete from[isCalled];
+    return json;
 };
 
-const destroyCircular = ({
-	from,
-	seen,
-	to_,
-	forceEnumerable,
-	maxDepth,
-	depth
-}) => {
-	const to = to_ || (Array.isArray(from) ? [] : {});
+const destroyCircular = ({ from, seen, to_, forceEnumerable, maxDepth, depth }) => {
+    const to = to_ || (Array.isArray(from) ? [] : {});
 
-	seen.push(from);
+    seen.push(from);
 
-	if (depth >= maxDepth) {
-		return to;
-	}
+    if (depth >= maxDepth) {
+        return to;
+    }
 
-	if (typeof from.toJSON === 'function' && from[isCalled] !== true) {
-		return toJSON(from);
-	}
+    if (typeof from.toJSON === 'function' && from[isCalled] !== true) {
+        return toJSON(from);
+    }
 
-	for (const [key, value] of Object.entries(from)) {
-		if (typeof Buffer === 'function' && Buffer.isBuffer(value)) {
-			to[key] = '[object Buffer]';
-			continue;
-		}
+    for (const [key, value] of Object.entries(from)) {
+        if (typeof Buffer === 'function' && Buffer.isBuffer(value)) {
+            to[key] = '[object Buffer]';
+            continue;
+        }
 
-		if (typeof value === 'function') {
-			continue;
-		}
+        if (typeof value === 'function') {
+            continue;
+        }
 
-		if (!value || typeof value !== 'object') {
-			to[key] = value;
-			continue;
-		}
+        if (!value || typeof value !== 'object') {
+            to[key] = value;
+            continue;
+        }
 
-		if (!seen.includes(from[key])) {
-			depth++;
+        if (!seen.includes(from[key])) {
+            depth++;
 
-			to[key] = destroyCircular({
-				from: from[key],
-				seen: seen.slice(),
-				forceEnumerable,
-				maxDepth,
-				depth
-			});
-			continue;
-		}
+            to[key] = destroyCircular({
+                from: from[key],
+                seen: seen.slice(),
+                forceEnumerable,
+                maxDepth,
+                depth,
+            });
+            continue;
+        }
 
-		to[key] = '[Circular]';
-	}
+        to[key] = '[Circular]';
+    }
 
-	for (const { property, enumerable } of commonProperties) {
-		if (typeof from[property] === 'string') {
-			Object.defineProperty(to, property, {
-				value: from[property],
-				enumerable: forceEnumerable ? true : enumerable,
-				configurable: true,
-				writable: true
-			});
-		}
-	}
+    for (const { property, enumerable } of commonProperties) {
+        if (typeof from[property] === 'string') {
+            Object.defineProperty(to, property, {
+                value: from[property],
+                enumerable: forceEnumerable ? true : enumerable,
+                configurable: true,
+                writable: true,
+            });
+        }
+    }
 
-	return to;
+    return to;
 };
 
 const serializeError = (value, options = {}) => {
-	const { maxDepth = Number.POSITIVE_INFINITY } = options;
+    const { maxDepth = Number.POSITIVE_INFINITY } = options;
 
-	if (typeof value === 'object' && value !== null) {
-		return destroyCircular({
-			from: value,
-			seen: [],
-			forceEnumerable: true,
-			maxDepth,
-			depth: 0
-		});
-	}
+    if (typeof value === 'object' && value !== null) {
+        return destroyCircular({
+            from: value,
+            seen: [],
+            forceEnumerable: true,
+            maxDepth,
+            depth: 0,
+        });
+    }
 
-	if (typeof value === 'function') {
-		return `[Function: ${(value.name || 'anonymous')}]`;
-	}
+    if (typeof value === 'function') {
+        return `[Function: ${value.name || 'anonymous'}]`;
+    }
 
-	return value;
+    return value;
 };
 
 const deserializeError = (value, options = {}) => {
-	const { maxDepth = Number.POSITIVE_INFINITY } = options;
+    const { maxDepth = Number.POSITIVE_INFINITY } = options;
 
-	if (value instanceof Error) {
-		return value;
-	}
+    if (value instanceof Error) {
+        return value;
+    }
 
-	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-		const newError = new Error();
-		destroyCircular({
-			from: value,
-			seen: [],
-			to_: newError,
-			maxDepth,
-			depth: 0
-		});
-		return newError;
-	}
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        const newError = new Error();
+        destroyCircular({
+            from: value,
+            seen: [],
+            to_: newError,
+            maxDepth,
+            depth: 0,
+        });
+        return newError;
+    }
 
-	return new NonError(value);
+    return new NonError(value);
 };
 
 module.exports = {
-	serializeError,
-	deserializeError
+    serializeError,
+    deserializeError,
 };

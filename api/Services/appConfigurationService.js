@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -24,13 +24,13 @@ async function withConnection(callback) {
 
 exports.getAppConfiguration = async function getAppConfiguration(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT * FROM ${config.database.schema}.appconfiguration;`;
             let [rowAppConfiguration] = await connection.query(sql);
 
             const appConfiguration = rowAppConfiguration.map(row => ({
                 settingName: row.settingName,
-                settingValue: row.settingValue
+                settingValue: row.settingValue,
             }));
 
             return appConfiguration;
@@ -38,7 +38,7 @@ exports.getAppConfiguration = async function getAppConfiguration(req, res, next)
     } catch (error) {
         next(error);
     }
-}
+};
 
 exports.postAppConfiguration = async function postAppConfiguration(req, res, next) {
     if (!req.body.settingName) {
@@ -46,7 +46,7 @@ exports.postAppConfiguration = async function postAppConfiguration(req, res, nex
             status: 400,
             errors: {
                 settingName: 'is required',
-            }
+            },
         });
     }
     if (!req.body.settingValue) {
@@ -54,12 +54,12 @@ exports.postAppConfiguration = async function postAppConfiguration(req, res, nex
             status: 400,
             errors: {
                 settingValue: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.appconfiguration (settingName, settingValue) VALUES (?, ?)`;
             await connection.query(sql_query, [req.body.settingName, req.body.settingValue]);
 
@@ -68,14 +68,14 @@ exports.postAppConfiguration = async function postAppConfiguration(req, res, nex
 
             const appConfiguration = {
                 settingName: rowAppConfiguration[0].settingName,
-                settingValue: rowAppConfiguration[0].settingValue
+                settingValue: rowAppConfiguration[0].settingValue,
             };
             return appConfiguration;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.putAppConfiguration = async function putAppConfiguration(req, res, next) {
     if (!req.body.settingName) {
@@ -83,7 +83,7 @@ exports.putAppConfiguration = async function putAppConfiguration(req, res, next)
             status: 400,
             errors: {
                 settingName: 'is required',
-            }
+            },
         });
     }
     if (!req.body.settingValue) {
@@ -91,22 +91,22 @@ exports.putAppConfiguration = async function putAppConfiguration(req, res, next)
             status: 400,
             errors: {
                 settingValue: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `UPDATE ${config.database.schema}.appconfiguration SET settingValue = ? WHERE settingName = ?`;
             await connection.query(sql_query, [req.body.settingValue, req.body.settingName]);
 
             const appConfiguration = {
                 settingName: req.body.settingName,
-                settingValue: req.body.settingValue
+                settingValue: req.body.settingValue,
             };
             return appConfiguration;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};

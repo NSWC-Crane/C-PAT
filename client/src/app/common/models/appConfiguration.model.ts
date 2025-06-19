@@ -9,6 +9,6 @@
 */
 
 export interface AppConfiguration {
-  settingName: string;
-  settingValue: string;
+    settingName: string;
+    settingValue: string;
 }

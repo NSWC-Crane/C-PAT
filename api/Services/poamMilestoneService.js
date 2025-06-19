@@ -35,11 +35,11 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
                 status: 400,
                 errors: {
                     poamId: 'is required',
-                }
+                },
             });
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `SELECT pm.*, at.assignedTeamName
                        FROM ${config.database.schema}.poammilestones pm
                        LEFT JOIN ${config.database.schema}.assignedteams at ON pm.assignedTeamId = at.assignedTeamId
@@ -60,7 +60,7 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, req) {
                 status: 400,
                 errors: {
                     poamId: 'is required',
-                }
+                },
             });
         }
 
@@ -78,7 +78,7 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, req) {
         if (!req.body.milestoneChangeComments) req.body.milestoneChangeComments = null;
         if (!req.body.milestoneStatus) req.body.milestoneStatus = null;
         if (!req.body.assignedTeamId) req.body.assignedTeamId = null;
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneChangeComments, milestoneChangeDate, milestoneStatus, assignedTeamId) VALUES (?, ?, ?, ?, ?, ?, ?)`;
             await connection.query(sql_query, [
                 poamId,
@@ -104,13 +104,13 @@ Milestone Comment: ${req.body.milestoneChangeComments}`;
                 let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poamId, action, userId]);
             } else {
-                    let userId = req.userObject.userId;
-                    let action = `POAM Milestone Created.<br>
+                let userId = req.userObject.userId;
+                let action = `POAM Milestone Created.<br>
 Milestone Date: ${normalizeDate(req.body.milestoneDate)}<br>
 Milestone Comment: ${req.body.milestoneComments}`;
 
-                    let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                    await connection.query(logSql, [poamId, action, userId]);
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                await connection.query(logSql, [poamId, action, userId]);
             }
             return poamMilestone;
         });
@@ -126,14 +126,14 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
                 status: 400,
                 errors: {
                     poamId: 'is required',
-                }
+                },
             });
         } else if (!milestoneId) {
             return next({
                 status: 400,
                 errors: {
                     milestoneId: 'is required',
-                }
+                },
             });
         }
 
@@ -152,7 +152,7 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
         if (!req.body.milestoneStatus) req.body.milestoneStatus = null;
         if (!req.body.assignedTeamId) req.body.assignedTeamId = null;
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let getMilestoneSql = `SELECT * FROM ${config.database.schema}.poammilestones WHERE poamId = ? AND milestoneId = ?`;
             let [existingMilestone] = await connection.query(getMilestoneSql, [poamId, milestoneId]);
 
@@ -173,28 +173,28 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
 
             const poamMilestone = rows.map(row => ({ ...row }));
 
-                let userId = req.userObject.userId;
-                let actionParts = ["POAM Milestone Updated."];
+            let userId = req.userObject.userId;
+            let actionParts = ['POAM Milestone Updated.'];
 
-                if (normalizeDate(existingMilestone[0].milestoneDate) !== normalizeDate(req.body.milestoneDate)) {
-                    actionParts.push(`Previous Milestone Date: ${normalizeDate(existingMilestone[0].milestoneDate)}<br>
+            if (normalizeDate(existingMilestone[0].milestoneDate) !== normalizeDate(req.body.milestoneDate)) {
+                actionParts.push(`Previous Milestone Date: ${normalizeDate(existingMilestone[0].milestoneDate)}<br>
 New Milestone Date: ${normalizeDate(req.body.milestoneChangeDate)}`);
-                }
+            }
 
-                if (existingMilestone[0].milestoneComments !== req.body.milestoneComments) {
-                    actionParts.push(`Previous Milestone Comment: ${existingMilestone[0].milestoneComments}<br>
+            if (existingMilestone[0].milestoneComments !== req.body.milestoneComments) {
+                actionParts.push(`Previous Milestone Comment: ${existingMilestone[0].milestoneComments}<br>
 New Milestone Comment: ${req.body.milestoneChangeComments}`);
-                }
+            }
 
-                if (existingMilestone[0].milestoneStatus !== req.body.milestoneStatus) {
-                    actionParts.push(`Previous Milestone Status: ${existingMilestone[0].milestoneStatus}<br>
+            if (existingMilestone[0].milestoneStatus !== req.body.milestoneStatus) {
+                actionParts.push(`Previous Milestone Status: ${existingMilestone[0].milestoneStatus}<br>
 New Milestone Status: ${req.body.milestoneStatus}`);
-                }
+            }
 
-                let action = actionParts.join("<br>");
+            let action = actionParts.join('<br>');
 
-                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [poamId, action, userId]);
+            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            await connection.query(logSql, [poamId, action, userId]);
 
             return poamMilestone;
         });
@@ -210,30 +210,29 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
                 status: 400,
                 errors: {
                     poamId: 'is required',
-                }
+                },
             });
         } else if (!milestoneId) {
             return next({
                 status: 400,
                 errors: {
                     milestoneId: 'is required',
-                }
+                },
             });
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `DELETE FROM ${config.database.schema}.poammilestones WHERE poamId= ? AND milestoneId = ?`;
             await connection.query(sql, [poamId, milestoneId]);
 
             let action = `Milestone Deleted.`;
-                if (req.body.extension === true) {
-                    action = `Extension milestone deleted.`;
-                }
-                else {
-                    action = `POAM milestone deleted.`;
-                }
-                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [poamId, action, req.userObject.userId]);
+            if (req.body.extension === true) {
+                action = `Extension milestone deleted.`;
+            } else {
+                action = `POAM milestone deleted.`;
+            }
+            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            await connection.query(logSql, [poamId, action, req.userObject.userId]);
             return {};
         });
     } catch (error) {

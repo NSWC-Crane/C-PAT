@@ -30,70 +30,71 @@ import { UsersService } from './user-processing/users.service';
 import { VRAMImportComponent } from './vram-import/vram-import.component';
 
 @Component({
-  selector: 'cpat-admin-processing',
-  templateUrl: './admin-processing.component.html',
-  styleUrls: ['./admin-processing.component.scss'],
-  standalone: true,
-  imports: [
-    AAPackageProcessingComponent,
-    AppConfigurationComponent,
-    AssignedTeamProcessingComponent,
-    ButtonModule,
-    CollectionProcessingComponent,
-    FormsModule,
-    NessusPluginMappingComponent,
-    STIGManagerAdminComponent,
-    TabsModule,
-    ToastModule,
-    TenableAdminComponent,
-    UserProcessingComponent,
-    AssetDeltaComponent,
-    VRAMImportComponent
-  ],
-  providers: [MessageService]
+    selector: 'cpat-admin-processing',
+    templateUrl: './admin-processing.component.html',
+    styleUrls: ['./admin-processing.component.scss'],
+    standalone: true,
+    imports: [
+        AAPackageProcessingComponent,
+        AppConfigurationComponent,
+        AssignedTeamProcessingComponent,
+        ButtonModule,
+        CollectionProcessingComponent,
+        FormsModule,
+        NessusPluginMappingComponent,
+        STIGManagerAdminComponent,
+        TabsModule,
+        ToastModule,
+        TenableAdminComponent,
+        UserProcessingComponent,
+        AssetDeltaComponent,
+        VRAMImportComponent
+    ],
+    providers: [MessageService]
 })
 export class AdminProcessingComponent implements OnInit {
-  value: number = 0;
-  user: any;
-  private destroy$ = new Subject<void>();
-  tenableEnabled = CPAT.Env.features.tenableEnabled;
-  constructor(
-    private userService: UsersService,
-    private router: Router,
-    private messageService: MessageService
-  ) {}
+    value: number = 0;
+    user: any;
+    private destroy$ = new Subject<void>();
+    tenableEnabled = CPAT.Env.features.tenableEnabled;
+    constructor(
+        private userService: UsersService,
+        private router: Router,
+        private messageService: MessageService
+    ) {}
 
-  ngOnInit() {
-    this.user = null;
-    this.userService.getCurrentUser().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response: any) => {
-        this.user = response;
-        if (!this.user.isAdmin) {
-          this.router.navigate(['/403']);
-        }
-      },
-      error: error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `An error occurred: ${getErrorMessage(error)}`
-        });
-      }
-    });
-  }
+    ngOnInit() {
+        this.user = null;
+        this.userService
+            .getCurrentUser()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (response: any) => {
+                    this.user = response;
+                    if (!this.user.isAdmin) {
+                        this.router.navigate(['/403']);
+                    }
+                },
+                error: (error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: `An error occurred: ${getErrorMessage(error)}`
+                    });
+                }
+            });
+    }
 
-  navigateToAppInfo() {
-    this.router.navigate(['/admin-processing/app-info']);
-  }
+    navigateToAppInfo() {
+        this.router.navigate(['/admin-processing/app-info']);
+    }
 
-  switchToPluginMapping() {
-    this.value = 6;
-  }
+    switchToPluginMapping() {
+        this.value = 6;
+    }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
 }

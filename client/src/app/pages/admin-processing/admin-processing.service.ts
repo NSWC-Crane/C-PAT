@@ -15,24 +15,22 @@ import { catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AdminProcessingService {
-  private cpatApiBase = CPAT.Env.apiBase;
+    private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {}
 
-  private handleError(error: any) {
-    let errorMessage = 'An unknown error occurred!';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+    private handleError(error: any) {
+        let errorMessage = 'An unknown error occurred!';
+        if (error.error instanceof ErrorEvent) {
+            errorMessage = `Error: ${error.error.message}`;
+        } else {
+            errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+        }
+        console.error(errorMessage);
+        return throwError(() => new Error(errorMessage));
     }
-    console.error(errorMessage);
-    return throwError(() => new Error(errorMessage));
-  }
 
-  getAppInfo(): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/op/appinfo?elevate=true`)
-      .pipe(catchError(this.handleError));
-  }
+    getAppInfo(): Observable<any> {
+        return this.http.get(`${this.cpatApiBase}/op/appinfo?elevate=true`).pipe(catchError(this.handleError));
+    }
 }

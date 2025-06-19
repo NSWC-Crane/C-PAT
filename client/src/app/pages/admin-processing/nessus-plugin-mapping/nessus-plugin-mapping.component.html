@@ -9,147 +9,108 @@
 -->
 
 @if (isUpdating) {
-  <p-progressBar [value]="updateProgress"></p-progressBar>
+    <p-progressBar [value]="updateProgress"></p-progressBar>
 }
 
 @if (isUpdating) {
-  <p-message severity="warn" styleClass="mb-6 w-full">
-    <div class="flex items-center justify-between">
-      <span>
-        Warning: Please do not close or reload the page while the update is in progress.
-        @if (estimatedTimeRemaining) {
-          <span>
-            Estimated time remaining: {{ estimatedTimeRemaining }}
-          </span>
-        }
-      </span>
-    </div>
-  </p-message>
+    <p-message severity="warn" styleClass="mb-6 w-full">
+        <div class="flex items-center justify-between">
+            <span>
+                Warning: Please do not close or reload the page while the update is in progress.
+                @if (estimatedTimeRemaining) {
+                    <span> Estimated time remaining: {{ estimatedTimeRemaining }} </span>
+                }
+            </span>
+        </div>
+    </p-message>
 }
 
 @if (nessusPluginsMapped) {
-  <div class="text-color-secondary mb-4 flex items-center gap-2 text-sm">
-    <i class="pi pi-clock"></i>
-    <span>Nessus Plugins Mapped: {{ nessusPluginsMapped | date:'medium' }}</span>
-  </div>
+    <div class="text-color-secondary mb-4 flex items-center gap-2 text-sm">
+        <i class="pi pi-clock"></i>
+        <span>Nessus Plugins Mapped: {{ nessusPluginsMapped | date: 'medium' }}</span>
+    </div>
 }
 
 <div class="scrollable-plugins overflow-hidden">
-  <p-table #dt
-    [columns]="cols"
-    [value]="tableData"
-    dataKey="iav"
-    [rows]="20"
-    [loading]="loading"
-    [paginator]="true"
-    [scrollable]="true"
-    scrollHeight="flex"
-    [globalFilterFields]="['iav', 'pluginID', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate', 'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins']">
-    <ng-template pTemplate="caption">
-      <div class="flex items-center justify-between">
-        <p-iconField iconPosition="left">
-          <p-inputIcon>
-            <i class="pi pi-search"></i>
-          </p-inputIcon>
-          <input pInputText
-            type="text"
-            [(ngModel)]="searchValue"
-            (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-            placeholder="Global Search" />
-          </p-iconField>
-          <button #mapButton
-            pButton
-            class="ml-4"
-            severity="primary"
-            type="button"
-            label="Map Plugins to IAV"
-            (click)="updatePluginIds()"
-          [disabled]="isUpdating"></button>
-          <button pButton
-            type="button"
-            class="ml-auto"
-            icon="pi pi-filter-slash"
-            [rounded]="true"
-            [text]="true"
-            [raised]="true"
-            severity="primary"
-            pTooltip="Clear"
-          (click)="clear(dt)"></button>
-          <p-button icon="pi pi-download"
-            (onClick)="dt.exportCSV()"
-            [rounded]="true"
-            [text]="true"
-            [raised]="true"
-            severity="primary"
-            pTooltip="Export Data"
-            tooltipPosition="bottom">
-          </p-button>
-        </div>
-      </ng-template>
-      <ng-template pTemplate="header">
-        <tr>
-          @for (col of cols; track col) {
-            <th [style.min-width]="col.minWidth" [scope]="'col'" [pSortableColumn]="col.field">
-              <div class="flex items-center">
-                {{col.header}}
-                <p-columnFilter [type]="getFilterType(col)"
-                  [field]="col.field"
-                  [showOperator]="false"
-                  display="menu">
-                  <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                    @switch (getFilterType(col)) {
-                      @case ('text') {
-                        <input type="text"
-                          pInputText
-                          [ngModel]="value"
-                          (ngModelChange)="filter($event)" />
-                        }
-                        @case ('numeric') {
-                          <input type="number"
-                            pInputText
-                            [ngModel]="value"
-                            (ngModelChange)="filter($event)" />
-                          }
-                          @case ('date') {
-                            <p-datepicker [ngModel]="value"
-                              (ngModelChange)="filter($event)"
-                            dateFormat="yy-mm-dd"></p-datepicker>
-                          }
-                        }
-                      </ng-template>
-                    </p-columnFilter>
-                  </div>
-                </th>
-              }
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-rowData>
+    <p-table
+        #dt
+        [columns]="cols"
+        [value]="tableData"
+        dataKey="iav"
+        [rows]="20"
+        [loading]="loading"
+        [paginator]="true"
+        [scrollable]="true"
+        scrollHeight="flex"
+        [globalFilterFields]="['iav', 'pluginID', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate', 'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins']"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex items-center justify-between">
+                <p-iconField iconPosition="left">
+                    <p-inputIcon>
+                        <i class="pi pi-search"></i>
+                    </p-inputIcon>
+                    <input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Global Search" />
+                </p-iconField>
+                <button #mapButton pButton class="ml-4" severity="primary" type="button" label="Map Plugins to IAV" (click)="updatePluginIds()" [disabled]="isUpdating"></button>
+                <button pButton type="button" class="ml-auto" icon="pi pi-filter-slash" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Clear" (click)="clear(dt)"></button>
+                <p-button icon="pi pi-download" (onClick)="dt.exportCSV()" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Export Data" tooltipPosition="bottom"> </p-button>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
             <tr>
-              @for (col of cols; track col) {
-                <td>
-                  @switch (col.field) {
-                    @case ('pluginID') {
-                      {{ rowData[col.field]?.join(', ') || 'N/A' }}
-                    }
-                    @case ('releaseDate') {
-                      {{ rowData[col.field] | date:'yyyy-MM-dd' }}
-                    }
-                    @case ('navyComplyDate') {
-                      {{ rowData[col.field] | date:'yyyy-MM-dd' }}
-                    }
-                    @default {
-                      {{ rowData[col.field] }}
-                    }
-                  }
-                </td>
-              }
+                @for (col of cols; track col) {
+                    <th [style.min-width]="col.minWidth" [scope]="'col'" [pSortableColumn]="col.field">
+                        <div class="flex items-center">
+                            {{ col.header }}
+                            <p-columnFilter [type]="getFilterType(col)" [field]="col.field" [showOperator]="false" display="menu">
+                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                    @switch (getFilterType(col)) {
+                                        @case ('text') {
+                                            <input type="text" pInputText [ngModel]="value" (ngModelChange)="filter($event)" />
+                                        }
+                                        @case ('numeric') {
+                                            <input type="number" pInputText [ngModel]="value" (ngModelChange)="filter($event)" />
+                                        }
+                                        @case ('date') {
+                                            <p-datepicker [ngModel]="value" (ngModelChange)="filter($event)" dateFormat="yy-mm-dd"></p-datepicker>
+                                        }
+                                    }
+                                </ng-template>
+                            </p-columnFilter>
+                        </div>
+                    </th>
+                }
             </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData>
             <tr>
-              <td colspan="12">No IAV data found.</td>
+                @for (col of cols; track col) {
+                    <td>
+                        @switch (col.field) {
+                            @case ('pluginID') {
+                                {{ rowData[col.field]?.join(', ') || 'N/A' }}
+                            }
+                            @case ('releaseDate') {
+                                {{ rowData[col.field] | date: 'yyyy-MM-dd' }}
+                            }
+                            @case ('navyComplyDate') {
+                                {{ rowData[col.field] | date: 'yyyy-MM-dd' }}
+                            }
+                            @default {
+                                {{ rowData[col.field] }}
+                            }
+                        }
+                    </td>
+                }
             </tr>
-          </ng-template>
-        </p-table>
-      </div>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="12">No IAV data found.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
 <p-toast />

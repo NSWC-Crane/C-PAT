@@ -9,43 +9,33 @@
 -->
 
 <div class="notifications-popover">
-  <div class="p-card-body">
-    @if (notifications.length > 0) {
-      <p-listbox [options]="notifications" optionLabel="title" scrollHeight="40vh">
-        <ng-template let-notification pTemplate="item">
-          <div class="notification-content" (click)="onNotificationClick($event)">
-            <div class="notification-header">
-              <div class="notification-icon">
-                <i [class]="notification.icon"></i>
-              </div>
-              <h5>{{ notification.title }}</h5>
-              @if (notification.notificationId) {
-                <i
-                  class="dismiss-icon pi pi-times"
-                  (click)="dismissNotification(notification)"
-                  (onKeyUp)="dismissNotification(notification)"
-                ></i>
-              }
+    <div class="p-card-body">
+        @if (notifications.length > 0) {
+            <p-listbox [options]="notifications" optionLabel="title" scrollHeight="40vh">
+                <ng-template let-notification pTemplate="item">
+                    <div class="notification-content" (click)="onNotificationClick($event)">
+                        <div class="notification-header">
+                            <div class="notification-icon">
+                                <i [class]="notification.icon"></i>
+                            </div>
+                            <h5>{{ notification.title }}</h5>
+                            @if (notification.notificationId) {
+                                <i class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)" (onKeyUp)="dismissNotification(notification)"></i>
+                            }
+                        </div>
+                        <p [innerHTML]="notification.formattedMessage"></p>
+                        <small>{{ notification.timestamp | date: 'short' }}</small>
+                    </div>
+                </ng-template>
+            </p-listbox>
+        } @else {
+            <div class="p-6 text-center">
+                <i class="pi pi-inbox mb-4 text-5xl" style="color: var(--p-text-color)"></i>
+                <p>No notifications found.</p>
             </div>
-            <p [innerHTML]="notification.formattedMessage"></p>
-            <small>{{ notification.timestamp | date:'short' }}</small>
-          </div>
-        </ng-template>
-      </p-listbox>
-    } @else {
-      <div class="p-6 text-center">
-        <i class="pi pi-inbox mb-4 text-5xl" style="color: var(--p-text-color)"></i>
-        <p>No notifications found.</p>
-      </div>
-    }
-  </div>
-  <div class="p-card-footer">
-    <button
-      pButton
-      label="See all notifications"
-      class="p-button-outlined p-button-contrast p-button-sm w-full"
-      (click)="viewAllNotifications(); closeOverlay()"
-      appendTo="body"
-    ></button>
-  </div>
+        }
+    </div>
+    <div class="p-card-footer">
+        <button pButton label="See all notifications" class="p-button-outlined p-button-contrast p-button-sm w-full" (click)="viewAllNotifications(); closeOverlay()" appendTo="body"></button>
+    </div>
 </div>

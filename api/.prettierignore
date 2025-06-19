@@ -1,0 +1,14 @@
+node_modules/
+tls/
+Services/migrations/
+
+*.json
+*.yml
+*.yaml
+package-lock.json
+.env
+.env.*
+example_env.txt
+
+.DS_Store
+Thumbs.db

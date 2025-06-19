@@ -10,93 +10,347 @@
 
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>C-PAT</title>
-  <base href="/">
-  <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, viewport-fit=cover">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script>
-    (function () {
-      const APP_CONFIG_KEY = 'appConfigState';
-      const storedConfig = localStorage.getItem(APP_CONFIG_KEY);
+    <head>
+        <meta charset="utf-8" />
+        <title>C-PAT</title>
+        <base href="/" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, viewport-fit=cover" />
+        <link rel="icon" type="image/x-icon" href="favicon.ico" />
+        <script>
+            (function () {
+                const APP_CONFIG_KEY = 'appConfigState';
+                const storedConfig = localStorage.getItem(APP_CONFIG_KEY);
 
-      if (storedConfig) {
-        const parsedConfig = JSON.parse(storedConfig);
-        if (parsedConfig.darkTheme) {
-          document.documentElement.classList.add('p-dark');
-        } else {
-          document.documentElement.classList.remove('p-dark');
-        }
-      }
-    })();
-  </script>
-  <script type="application/javascript" src="cpat/Env.js"></script>
-</head>
-<body>
-  <cpat-app>
-    <div id="particles-background" class="vertical-centered-box"></div>
-    <div id="particles-foreground" class="vertical-centered-box"></div>
-    <div class="vertical-centered-box">
-      <div class="content">
-        <div class="loader-circle"></div>
-        <div class="loader-line-mask">
-          <div class="loader-line"></div>
-        </div>
-        <svg width="100" height="30" viewBox="0 0 170 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g transform="matrix(1,0,0,1.3333375,-308.99834,-252.67754)">
-            <path transform="scale(1.1524269,0.867734)" d="m 299.35694,252.71645 h -22.1684 q -0.85081,0 -1.84343,-0.18907 -0.96898,-0.21271 -1.93796,-0.63811 -0.94535,-0.42541 -1.81979,-1.08715 -0.87445,-0.68538 -1.55983,-1.63073 -0.66174,-0.96898 -1.06351,-2.22156 -0.40178,-1.27622 -0.40178,-2.85968 v -16.63812 q 0,-0.85081 0.18907,-1.81979 0.21271,-0.99262 0.63811,-1.93797 0.42541,-0.96898 1.11079,-1.84342 0.68537,-0.87445 1.63072,-1.53619 0.96898,-0.68538 2.22157,-1.08715 1.25258,-0.40178 2.83604,-0.40178 h 22.1684 v 6.14476 h -22.1684 q -1.20532,0 -1.84343,0.63811 -0.63811,0.63811 -0.63811,1.8907 v 16.59085 q 0,1.18168 0.63811,1.84343 0.66175,0.63811 1.84343,0.63811 h 22.1684 z m 39.58643,-19.7105 q 0,2.1034 -0.51994,3.75775 -0.51994,1.65436 -1.41802,2.93058 -0.87445,1.25259 -2.0325,2.15067 -1.15805,0.89808 -2.43427,1.46529 -1.25258,0.56721 -2.55244,0.82718 -1.27621,0.25997 -2.41063,0.25997 h -13.89661 v -6.14476 h 13.89661 q 1.18168,-0.0945 2.12703,-0.47268 0.96898,-0.40177 1.65436,-1.06351 0.68538,-0.66175 1.06351,-1.58346 0.37814,-0.94535 0.37814,-2.12703 v -2.78878 q -0.11816,-1.15805 -0.4963,-2.12703 -0.37814,-0.96898 -1.03989,-1.65436 -0.63811,-0.68537 -1.55982,-1.06351 -0.92171,-0.40178 -2.12703,-0.40178 h -13.84934 q -1.22896,0 -1.86707,0.63811 -0.63811,0.63811 -0.63811,1.84343 v 25.26442 h -6.14476 v -25.26442 q 0,-2.36337 0.85082,-4.01773 0.87444,-1.65436 2.15066,-2.6706 1.29986,-1.01625 2.81241,-1.46529 1.51256,-0.47268 2.78878,-0.47268 h 13.89661 q 2.07976,0 3.73412,0.54358 1.65436,0.51994 2.90695,1.41802 1.27621,0.87445 2.15066,2.0325 0.89808,1.15805 1.46529,2.43427 0.59084,1.25258 0.85081,2.55244 0.25997,1.27622 0.25997,2.41063 z m 38.49929,19.7105 h -6.14476 v -8.31906 h -21.60119 v 8.31906 h -6.14476 v -16.94536 q 0,-3.71049 1.27622,-6.83014 1.27621,-3.11964 3.54505,-5.36484 2.26883,-2.24521 5.36485,-3.49779 3.09601,-1.25259 6.75923,-1.25259 h 13.84934 q 0.63811,0 1.20532,0.23634 0.56721,0.23634 0.99262,0.66174 0.4254,0.42541 0.66174,0.99262 0.23634,0.56721 0.23634,1.20532 z m -27.74595,-14.46382 h 21.60119 v -13.28214 h -10.8006 q -0.2836,0 -1.20532,0.0945 -0.89808,0.0709 -2.10339,0.40177 -1.18169,0.33087 -2.50518,1.01625 -1.32348,0.68538 -2.43427,1.89069 -1.11078,1.20532 -1.84342,3.02512 -0.70901,1.79616 -0.70901,4.37223 z m 65.51258,-13.28214 h -13.54211 v 27.74596 h -6.14476 v -27.74596 h -13.56574 v -6.14476 h 33.25261 z" fill="rgba(255, 255, 255, 0.6)" />
-          </g>
-        </svg>
-      </div>
-    </div>
-  </cpat-app>
+                if (storedConfig) {
+                    const parsedConfig = JSON.parse(storedConfig);
+                    if (parsedConfig.darkTheme) {
+                        document.documentElement.classList.add('p-dark');
+                    } else {
+                        document.documentElement.classList.remove('p-dark');
+                    }
+                }
+            })();
+        </script>
+        <script type="application/javascript" src="cpat/Env.js"></script>
+    </head>
+    <body>
+        <cpat-app>
+            <div id="particles-background" class="vertical-centered-box"></div>
+            <div id="particles-foreground" class="vertical-centered-box"></div>
+            <div class="vertical-centered-box">
+                <div class="content">
+                    <div class="loader-circle"></div>
+                    <div class="loader-line-mask">
+                        <div class="loader-line"></div>
+                    </div>
+                    <svg width="100" height="30" viewBox="0 0 170 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g transform="matrix(1,0,0,1.3333375,-308.99834,-252.67754)">
+                            <path
+                                transform="scale(1.1524269,0.867734)"
+                                d="m 299.35694,252.71645 h -22.1684 q -0.85081,0 -1.84343,-0.18907 -0.96898,-0.21271 -1.93796,-0.63811 -0.94535,-0.42541 -1.81979,-1.08715 -0.87445,-0.68538 -1.55983,-1.63073 -0.66174,-0.96898 -1.06351,-2.22156 -0.40178,-1.27622 -0.40178,-2.85968 v -16.63812 q 0,-0.85081 0.18907,-1.81979 0.21271,-0.99262 0.63811,-1.93797 0.42541,-0.96898 1.11079,-1.84342 0.68537,-0.87445 1.63072,-1.53619 0.96898,-0.68538 2.22157,-1.08715 1.25258,-0.40178 2.83604,-0.40178 h 22.1684 v 6.14476 h -22.1684 q -1.20532,0 -1.84343,0.63811 -0.63811,0.63811 -0.63811,1.8907 v 16.59085 q 0,1.18168 0.63811,1.84343 0.66175,0.63811 1.84343,0.63811 h 22.1684 z m 39.58643,-19.7105 q 0,2.1034 -0.51994,3.75775 -0.51994,1.65436 -1.41802,2.93058 -0.87445,1.25259 -2.0325,2.15067 -1.15805,0.89808 -2.43427,1.46529 -1.25258,0.56721 -2.55244,0.82718 -1.27621,0.25997 -2.41063,0.25997 h -13.89661 v -6.14476 h 13.89661 q 1.18168,-0.0945 2.12703,-0.47268 0.96898,-0.40177 1.65436,-1.06351 0.68538,-0.66175 1.06351,-1.58346 0.37814,-0.94535 0.37814,-2.12703 v -2.78878 q -0.11816,-1.15805 -0.4963,-2.12703 -0.37814,-0.96898 -1.03989,-1.65436 -0.63811,-0.68537 -1.55982,-1.06351 -0.92171,-0.40178 -2.12703,-0.40178 h -13.84934 q -1.22896,0 -1.86707,0.63811 -0.63811,0.63811 -0.63811,1.84343 v 25.26442 h -6.14476 v -25.26442 q 0,-2.36337 0.85082,-4.01773 0.87444,-1.65436 2.15066,-2.6706 1.29986,-1.01625 2.81241,-1.46529 1.51256,-0.47268 2.78878,-0.47268 h 13.89661 q 2.07976,0 3.73412,0.54358 1.65436,0.51994 2.90695,1.41802 1.27621,0.87445 2.15066,2.0325 0.89808,1.15805 1.46529,2.43427 0.59084,1.25258 0.85081,2.55244 0.25997,1.27622 0.25997,2.41063 z m 38.49929,19.7105 h -6.14476 v -8.31906 h -21.60119 v 8.31906 h -6.14476 v -16.94536 q 0,-3.71049 1.27622,-6.83014 1.27621,-3.11964 3.54505,-5.36484 2.26883,-2.24521 5.36485,-3.49779 3.09601,-1.25259 6.75923,-1.25259 h 13.84934 q 0.63811,0 1.20532,0.23634 0.56721,0.23634 0.99262,0.66174 0.4254,0.42541 0.66174,0.99262 0.23634,0.56721 0.23634,1.20532 z m -27.74595,-14.46382 h 21.60119 v -13.28214 h -10.8006 q -0.2836,0 -1.20532,0.0945 -0.89808,0.0709 -2.10339,0.40177 -1.18169,0.33087 -2.50518,1.01625 -1.32348,0.68538 -2.43427,1.89069 -1.11078,1.20532 -1.84342,3.02512 -0.70901,1.79616 -0.70901,4.37223 z m 65.51258,-13.28214 h -13.54211 v 27.74596 h -6.14476 v -27.74596 h -13.56574 v -6.14476 h 33.25261 z"
+                                fill="rgba(255, 255, 255, 0.6)"
+                            />
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </cpat-app>
 
-  <script>
-    !function (a, b) { "use strict"; function c(a) { a = a || {}; for (var b = 1; b < arguments.length; b++) { var c = arguments[b]; if (c) for (var d in c) c.hasOwnProperty(d) && ("object" == typeof c[d] ? deepExtend(a[d], c[d]) : a[d] = c[d]) } return a } function d(d, g) { function h() { if (y) { r = b.createElement("canvas"), r.className = "pg-canvas", r.style.display = "block", d.insertBefore(r, d.firstChild), s = r.getContext("2d"), i(); for (var c = Math.round(r.width * r.height / g.density), e = 0; c > e; e++) { var f = new n; f.setStackPos(e), z.push(f) } a.addEventListener("resize", function () { k() }, !1), b.addEventListener("mousemove", function (a) { A = a.pageX, B = a.pageY }, !1), D && !C && a.addEventListener("deviceorientation", function () { F = Math.min(Math.max(-event.beta, -30), 30), E = Math.min(Math.max(-event.gamma, -30), 30) }, !0), j(), q("onInit") } } function i() { r.width = d.offsetWidth, r.height = d.offsetHeight, s.fillStyle = g.dotColor, s.strokeStyle = g.lineColor, s.lineWidth = g.lineWidth } function j() { if (y) { u = a.innerWidth, v = a.innerHeight, s.clearRect(0, 0, r.width, r.height); for (var b = 0; b < z.length; b++)z[b].updatePosition(); for (var b = 0; b < z.length; b++)z[b].draw(); G || (t = requestAnimationFrame(j)) } } function k() { i(); for (var a = d.offsetWidth, b = d.offsetHeight, c = z.length - 1; c >= 0; c--)(z[c].position.x > a || z[c].position.y > b) && z.splice(c, 1); var e = Math.round(r.width * r.height / g.density); if (e > z.length) for (; e > z.length;) { var f = new n; z.push(f) } else e < z.length && z.splice(e); for (c = z.length - 1; c >= 0; c--)z[c].setStackPos(c) } function l() { G = !0 } function m() { G = !1, j() } function n() { switch (this.stackPos, this.active = !0, this.layer = Math.ceil(3 * Math.random()), this.parallaxOffsetX = 0, this.parallaxOffsetY = 0, this.position = { x: Math.ceil(Math.random() * r.width), y: Math.ceil(Math.random() * r.height) }, this.speed = {}, g.directionX) { case "left": this.speed.x = +(-g.maxSpeedX + Math.random() * g.maxSpeedX - g.minSpeedX).toFixed(2); break; case "right": this.speed.x = +(Math.random() * g.maxSpeedX + g.minSpeedX).toFixed(2); break; default: this.speed.x = +(-g.maxSpeedX / 2 + Math.random() * g.maxSpeedX).toFixed(2), this.speed.x += this.speed.x > 0 ? g.minSpeedX : -g.minSpeedX }switch (g.directionY) { case "up": this.speed.y = +(-g.maxSpeedY + Math.random() * g.maxSpeedY - g.minSpeedY).toFixed(2); break; case "down": this.speed.y = +(Math.random() * g.maxSpeedY + g.minSpeedY).toFixed(2); break; default: this.speed.y = +(-g.maxSpeedY / 2 + Math.random() * g.maxSpeedY).toFixed(2), this.speed.x += this.speed.y > 0 ? g.minSpeedY : -g.minSpeedY } } function o(a, b) { return b ? void (g[a] = b) : g[a] } function p() { console.log("destroy"), r.parentNode.removeChild(r), q("onDestroy"), f && f(d).removeData("plugin_" + e) } function q(a) { void 0 !== g[a] && g[a].call(d) } var r, s, t, u, v, w, x, y = !!b.createElement("canvas").getContext, z = [], A = 0, B = 0, C = !navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|BB10|mobi|tablet|opera mini|nexus 7)/i), D = !!a.DeviceOrientationEvent, E = 0, F = 0, G = !1; return g = c({}, a[e].defaults, g), n.prototype.draw = function () { s.beginPath(), s.arc(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY, g.particleRadius / 2, 0, 2 * Math.PI, !0), s.closePath(), s.fill(), s.beginPath(); for (var a = z.length - 1; a > this.stackPos; a--) { var b = z[a], c = this.position.x - b.position.x, d = this.position.y - b.position.y, e = Math.sqrt(c * c + d * d).toFixed(2); e < g.proximity && (s.moveTo(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY), g.curvedLines ? s.quadraticCurveTo(Math.max(b.position.x, b.position.x), Math.min(b.position.y, b.position.y), b.position.x + b.parallaxOffsetX, b.position.y + b.parallaxOffsetY) : s.lineTo(b.position.x + b.parallaxOffsetX, b.position.y + b.parallaxOffsetY)) } s.stroke(), s.closePath() }, n.prototype.updatePosition = function () { if (g.parallax) { if (D && !C) { var a = (u - 0) / 60; w = (E - -30) * a + 0; var b = (v - 0) / 60; x = (F - -30) * b + 0 } else w = A, x = B; this.parallaxTargX = (w - u / 2) / (g.parallaxMultiplier * this.layer), this.parallaxOffsetX += (this.parallaxTargX - this.parallaxOffsetX) / 10, this.parallaxTargY = (x - v / 2) / (g.parallaxMultiplier * this.layer), this.parallaxOffsetY += (this.parallaxTargY - this.parallaxOffsetY) / 10 } var c = d.offsetWidth, e = d.offsetHeight; switch (g.directionX) { case "left": this.position.x + this.speed.x + this.parallaxOffsetX < 0 && (this.position.x = c - this.parallaxOffsetX); break; case "right": this.position.x + this.speed.x + this.parallaxOffsetX > c && (this.position.x = 0 - this.parallaxOffsetX); break; default: (this.position.x + this.speed.x + this.parallaxOffsetX > c || this.position.x + this.speed.x + this.parallaxOffsetX < 0) && (this.speed.x = -this.speed.x) }switch (g.directionY) { case "up": this.position.y + this.speed.y + this.parallaxOffsetY < 0 && (this.position.y = e - this.parallaxOffsetY); break; case "down": this.position.y + this.speed.y + this.parallaxOffsetY > e && (this.position.y = 0 - this.parallaxOffsetY); break; default: (this.position.y + this.speed.y + this.parallaxOffsetY > e || this.position.y + this.speed.y + this.parallaxOffsetY < 0) && (this.speed.y = -this.speed.y) }this.position.x += this.speed.x, this.position.y += this.speed.y }, n.prototype.setStackPos = function (a) { this.stackPos = a }, h(), { option: o, destroy: p, start: m, pause: l } } var e = "particleground", f = a.jQuery; a[e] = function (a, b) { return new d(a, b) }, a[e].defaults = { minSpeedX: .1, maxSpeedX: .7, minSpeedY: .1, maxSpeedY: .7, directionX: "center", directionY: "center", density: 1e4, dotColor: "#666666", lineColor: "#666666", particleRadius: 7, lineWidth: 1, curvedLines: !1, proximity: 100, parallax: !0, parallaxMultiplier: 5, onInit: function () { }, onDestroy: function () { } }, f && (f.fn[e] = function (a) { if ("string" == typeof arguments[0]) { var b, c = arguments[0], g = Array.prototype.slice.call(arguments, 1); return this.each(function () { f.data(this, "plugin_" + e) && "function" == typeof f.data(this, "plugin_" + e)[c] && (b = f.data(this, "plugin_" + e)[c].apply(this, g)) }), void 0 !== b ? b : this } return "object" != typeof a && a ? void 0 : this.each(function () { f.data(this, "plugin_" + e) || f.data(this, "plugin_" + e, new d(this, a)) }) }) }(window, document),
-      /**
-      * requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
-      * @see: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-      * @see: http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
-      * @license: MIT license
-      */
-      function () { for (var a = 0, b = ["ms", "moz", "webkit", "o"], c = 0; c < b.length && !window.requestAnimationFrame; ++c)window.requestAnimationFrame = window[b[c] + "RequestAnimationFrame"], window.cancelAnimationFrame = window[b[c] + "CancelAnimationFrame"] || window[b[c] + "CancelRequestAnimationFrame"]; window.requestAnimationFrame || (window.requestAnimationFrame = function (b) { var c = (new Date).getTime(), d = Math.max(0, 16 - (c - a)), e = window.setTimeout(function () { b(c + d) }, d); return a = c + d, e }), window.cancelAnimationFrame || (window.cancelAnimationFrame = function (a) { clearTimeout(a) }) }();
+        <script>
+            !(function (a, b) {
+                'use strict';
+                function c(a) {
+                    a = a || {};
+                    for (var b = 1; b < arguments.length; b++) {
+                        var c = arguments[b];
+                        if (c) for (var d in c) c.hasOwnProperty(d) && ('object' == typeof c[d] ? deepExtend(a[d], c[d]) : (a[d] = c[d]));
+                    }
+                    return a;
+                }
+                function d(d, g) {
+                    function h() {
+                        if (y) {
+                            (r = b.createElement('canvas')), (r.className = 'pg-canvas'), (r.style.display = 'block'), d.insertBefore(r, d.firstChild), (s = r.getContext('2d')), i();
+                            for (var c = Math.round((r.width * r.height) / g.density), e = 0; c > e; e++) {
+                                var f = new n();
+                                f.setStackPos(e), z.push(f);
+                            }
+                            a.addEventListener(
+                                'resize',
+                                function () {
+                                    k();
+                                },
+                                !1
+                            ),
+                                b.addEventListener(
+                                    'mousemove',
+                                    function (a) {
+                                        (A = a.pageX), (B = a.pageY);
+                                    },
+                                    !1
+                                ),
+                                D &&
+                                    !C &&
+                                    a.addEventListener(
+                                        'deviceorientation',
+                                        function () {
+                                            (F = Math.min(Math.max(-event.beta, -30), 30)), (E = Math.min(Math.max(-event.gamma, -30), 30));
+                                        },
+                                        !0
+                                    ),
+                                j(),
+                                q('onInit');
+                        }
+                    }
+                    function i() {
+                        (r.width = d.offsetWidth), (r.height = d.offsetHeight), (s.fillStyle = g.dotColor), (s.strokeStyle = g.lineColor), (s.lineWidth = g.lineWidth);
+                    }
+                    function j() {
+                        if (y) {
+                            (u = a.innerWidth), (v = a.innerHeight), s.clearRect(0, 0, r.width, r.height);
+                            for (var b = 0; b < z.length; b++) z[b].updatePosition();
+                            for (var b = 0; b < z.length; b++) z[b].draw();
+                            G || (t = requestAnimationFrame(j));
+                        }
+                    }
+                    function k() {
+                        i();
+                        for (var a = d.offsetWidth, b = d.offsetHeight, c = z.length - 1; c >= 0; c--) (z[c].position.x > a || z[c].position.y > b) && z.splice(c, 1);
+                        var e = Math.round((r.width * r.height) / g.density);
+                        if (e > z.length)
+                            for (; e > z.length; ) {
+                                var f = new n();
+                                z.push(f);
+                            }
+                        else e < z.length && z.splice(e);
+                        for (c = z.length - 1; c >= 0; c--) z[c].setStackPos(c);
+                    }
+                    function l() {
+                        G = !0;
+                    }
+                    function m() {
+                        (G = !1), j();
+                    }
+                    function n() {
+                        switch (
+                            (this.stackPos,
+                            (this.active = !0),
+                            (this.layer = Math.ceil(3 * Math.random())),
+                            (this.parallaxOffsetX = 0),
+                            (this.parallaxOffsetY = 0),
+                            (this.position = { x: Math.ceil(Math.random() * r.width), y: Math.ceil(Math.random() * r.height) }),
+                            (this.speed = {}),
+                            g.directionX)
+                        ) {
+                            case 'left':
+                                this.speed.x = +(-g.maxSpeedX + Math.random() * g.maxSpeedX - g.minSpeedX).toFixed(2);
+                                break;
+                            case 'right':
+                                this.speed.x = +(Math.random() * g.maxSpeedX + g.minSpeedX).toFixed(2);
+                                break;
+                            default:
+                                (this.speed.x = +(-g.maxSpeedX / 2 + Math.random() * g.maxSpeedX).toFixed(2)), (this.speed.x += this.speed.x > 0 ? g.minSpeedX : -g.minSpeedX);
+                        }
+                        switch (g.directionY) {
+                            case 'up':
+                                this.speed.y = +(-g.maxSpeedY + Math.random() * g.maxSpeedY - g.minSpeedY).toFixed(2);
+                                break;
+                            case 'down':
+                                this.speed.y = +(Math.random() * g.maxSpeedY + g.minSpeedY).toFixed(2);
+                                break;
+                            default:
+                                (this.speed.y = +(-g.maxSpeedY / 2 + Math.random() * g.maxSpeedY).toFixed(2)), (this.speed.x += this.speed.y > 0 ? g.minSpeedY : -g.minSpeedY);
+                        }
+                    }
+                    function o(a, b) {
+                        return b ? void (g[a] = b) : g[a];
+                    }
+                    function p() {
+                        console.log('destroy'), r.parentNode.removeChild(r), q('onDestroy'), f && f(d).removeData('plugin_' + e);
+                    }
+                    function q(a) {
+                        void 0 !== g[a] && g[a].call(d);
+                    }
+                    var r,
+                        s,
+                        t,
+                        u,
+                        v,
+                        w,
+                        x,
+                        y = !!b.createElement('canvas').getContext,
+                        z = [],
+                        A = 0,
+                        B = 0,
+                        C = !navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|BB10|mobi|tablet|opera mini|nexus 7)/i),
+                        D = !!a.DeviceOrientationEvent,
+                        E = 0,
+                        F = 0,
+                        G = !1;
+                    return (
+                        (g = c({}, a[e].defaults, g)),
+                        (n.prototype.draw = function () {
+                            s.beginPath(), s.arc(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY, g.particleRadius / 2, 0, 2 * Math.PI, !0), s.closePath(), s.fill(), s.beginPath();
+                            for (var a = z.length - 1; a > this.stackPos; a--) {
+                                var b = z[a],
+                                    c = this.position.x - b.position.x,
+                                    d = this.position.y - b.position.y,
+                                    e = Math.sqrt(c * c + d * d).toFixed(2);
+                                e < g.proximity &&
+                                    (s.moveTo(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY),
+                                    g.curvedLines
+                                        ? s.quadraticCurveTo(Math.max(b.position.x, b.position.x), Math.min(b.position.y, b.position.y), b.position.x + b.parallaxOffsetX, b.position.y + b.parallaxOffsetY)
+                                        : s.lineTo(b.position.x + b.parallaxOffsetX, b.position.y + b.parallaxOffsetY));
+                            }
+                            s.stroke(), s.closePath();
+                        }),
+                        (n.prototype.updatePosition = function () {
+                            if (g.parallax) {
+                                if (D && !C) {
+                                    var a = (u - 0) / 60;
+                                    w = (E - -30) * a + 0;
+                                    var b = (v - 0) / 60;
+                                    x = (F - -30) * b + 0;
+                                } else (w = A), (x = B);
+                                (this.parallaxTargX = (w - u / 2) / (g.parallaxMultiplier * this.layer)),
+                                    (this.parallaxOffsetX += (this.parallaxTargX - this.parallaxOffsetX) / 10),
+                                    (this.parallaxTargY = (x - v / 2) / (g.parallaxMultiplier * this.layer)),
+                                    (this.parallaxOffsetY += (this.parallaxTargY - this.parallaxOffsetY) / 10);
+                            }
+                            var c = d.offsetWidth,
+                                e = d.offsetHeight;
+                            switch (g.directionX) {
+                                case 'left':
+                                    this.position.x + this.speed.x + this.parallaxOffsetX < 0 && (this.position.x = c - this.parallaxOffsetX);
+                                    break;
+                                case 'right':
+                                    this.position.x + this.speed.x + this.parallaxOffsetX > c && (this.position.x = 0 - this.parallaxOffsetX);
+                                    break;
+                                default:
+                                    (this.position.x + this.speed.x + this.parallaxOffsetX > c || this.position.x + this.speed.x + this.parallaxOffsetX < 0) && (this.speed.x = -this.speed.x);
+                            }
+                            switch (g.directionY) {
+                                case 'up':
+                                    this.position.y + this.speed.y + this.parallaxOffsetY < 0 && (this.position.y = e - this.parallaxOffsetY);
+                                    break;
+                                case 'down':
+                                    this.position.y + this.speed.y + this.parallaxOffsetY > e && (this.position.y = 0 - this.parallaxOffsetY);
+                                    break;
+                                default:
+                                    (this.position.y + this.speed.y + this.parallaxOffsetY > e || this.position.y + this.speed.y + this.parallaxOffsetY < 0) && (this.speed.y = -this.speed.y);
+                            }
+                            (this.position.x += this.speed.x), (this.position.y += this.speed.y);
+                        }),
+                        (n.prototype.setStackPos = function (a) {
+                            this.stackPos = a;
+                        }),
+                        h(),
+                        { option: o, destroy: p, start: m, pause: l }
+                    );
+                }
+                var e = 'particleground',
+                    f = a.jQuery;
+                (a[e] = function (a, b) {
+                    return new d(a, b);
+                }),
+                    (a[e].defaults = {
+                        minSpeedX: 0.1,
+                        maxSpeedX: 0.7,
+                        minSpeedY: 0.1,
+                        maxSpeedY: 0.7,
+                        directionX: 'center',
+                        directionY: 'center',
+                        density: 1e4,
+                        dotColor: '#666666',
+                        lineColor: '#666666',
+                        particleRadius: 7,
+                        lineWidth: 1,
+                        curvedLines: !1,
+                        proximity: 100,
+                        parallax: !0,
+                        parallaxMultiplier: 5,
+                        onInit: function () {},
+                        onDestroy: function () {}
+                    }),
+                    f &&
+                        (f.fn[e] = function (a) {
+                            if ('string' == typeof arguments[0]) {
+                                var b,
+                                    c = arguments[0],
+                                    g = Array.prototype.slice.call(arguments, 1);
+                                return (
+                                    this.each(function () {
+                                        f.data(this, 'plugin_' + e) && 'function' == typeof f.data(this, 'plugin_' + e)[c] && (b = f.data(this, 'plugin_' + e)[c].apply(this, g));
+                                    }),
+                                    void 0 !== b ? b : this
+                                );
+                            }
+                            return 'object' != typeof a && a
+                                ? void 0
+                                : this.each(function () {
+                                      f.data(this, 'plugin_' + e) || f.data(this, 'plugin_' + e, new d(this, a));
+                                  });
+                        });
+            })(window, document),
+                /**
+                 * requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
+                 * @see: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+                 * @see: http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+                 * @license: MIT license
+                 */
+                (function () {
+                    for (var a = 0, b = ['ms', 'moz', 'webkit', 'o'], c = 0; c < b.length && !window.requestAnimationFrame; ++c)
+                        (window.requestAnimationFrame = window[b[c] + 'RequestAnimationFrame']), (window.cancelAnimationFrame = window[b[c] + 'CancelAnimationFrame'] || window[b[c] + 'CancelRequestAnimationFrame']);
+                    window.requestAnimationFrame ||
+                        (window.requestAnimationFrame = function (b) {
+                            var c = new Date().getTime(),
+                                d = Math.max(0, 16 - (c - a)),
+                                e = window.setTimeout(function () {
+                                    b(c + d);
+                                }, d);
+                            return (a = c + d), e;
+                        }),
+                        window.cancelAnimationFrame ||
+                            (window.cancelAnimationFrame = function (a) {
+                                clearTimeout(a);
+                            });
+                })();
 
-    document.addEventListener('DOMContentLoaded', function () {
-      const foregroundEl = document.getElementById('particles-foreground');
-      if (foregroundEl) {
-        particleground(foregroundEl, {
-          dotColor: 'rgba(255, 255, 255, 1)',
-          lineColor: 'rgba(255, 255, 255, 0.05)',
-          minSpeedX: 0.3,
-          maxSpeedX: 0.6,
-          minSpeedY: 0.3,
-          maxSpeedY: 0.6,
-          density: 50000,
-          curvedLines: false,
-          proximity: 250,
-          parallaxMultiplier: 10,
-          particleRadius: 4,
-        });
-      }
+            document.addEventListener('DOMContentLoaded', function () {
+                const foregroundEl = document.getElementById('particles-foreground');
+                if (foregroundEl) {
+                    particleground(foregroundEl, {
+                        dotColor: 'rgba(255, 255, 255, 1)',
+                        lineColor: 'rgba(255, 255, 255, 0.05)',
+                        minSpeedX: 0.3,
+                        maxSpeedX: 0.6,
+                        minSpeedY: 0.3,
+                        maxSpeedY: 0.6,
+                        density: 50000,
+                        curvedLines: false,
+                        proximity: 250,
+                        parallaxMultiplier: 10,
+                        particleRadius: 4
+                    });
+                }
 
-      const backgroundEl = document.getElementById('particles-background');
-      if (backgroundEl) {
-        particleground(backgroundEl, {
-          dotColor: 'rgba(255, 255, 255, 0.5)',
-          lineColor: 'rgba(255, 255, 255, 0.05)',
-          minSpeedX: 0.075,
-          maxSpeedX: 0.15,
-          minSpeedY: 0.075,
-          maxSpeedY: 0.15,
-          density: 30000,
-          curvedLines: false,
-          proximity: 20,
-          parallaxMultiplier: 20,
-          particleRadius: 2,
-        });
-      }
-    });
-  </script>
-</body>
+                const backgroundEl = document.getElementById('particles-background');
+                if (backgroundEl) {
+                    particleground(backgroundEl, {
+                        dotColor: 'rgba(255, 255, 255, 0.5)',
+                        lineColor: 'rgba(255, 255, 255, 0.05)',
+                        minSpeedX: 0.075,
+                        maxSpeedX: 0.15,
+                        minSpeedY: 0.075,
+                        maxSpeedY: 0.15,
+                        density: 30000,
+                        curvedLines: false,
+                        proximity: 20,
+                        parallaxMultiplier: 20,
+                        particleRadius: 2
+                    });
+                }
+            });
+        </script>
+    </body>
 </html>

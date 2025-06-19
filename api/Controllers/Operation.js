@@ -14,15 +14,14 @@ const SmError = require('../utils/error.js');
 
 module.exports.getConfiguration = async function getConfiguration(req, res, next) {
     try {
-        let dbConfigs = await operationService.getConfiguration()
-        let version = { version: config.version }
-        let response = { ...version, ...dbConfigs }
-        res.json(response)
-    }
-    catch (err) {
+        let dbConfigs = await operationService.getConfiguration();
+        let version = { version: config.version };
+        let response = { ...version, ...dbConfigs };
+        res.json(response);
+    } catch (err) {
         next(err);
     }
-}
+};
 
 module.exports.setConfigurationItem = async function setConfigurationItem(req, res, next) {
     try {
@@ -33,7 +32,6 @@ module.exports.setConfigurationItem = async function setConfigurationItem(req, r
 
         await operationService.setConfigurationItem(key, value);
         res.json({ message: 'Configuration item updated successfully.' });
-
     } catch (err) {
         next(err);
     }
@@ -56,31 +54,27 @@ module.exports.deleteConfigurationItem = async function deleteConfigurationItem(
 
 module.exports.getDefinition = async function getDefinition(req, res, next) {
     try {
-        let jsonpath = req.query.jsonpath
+        let jsonpath = req.query.jsonpath;
         if (jsonpath) {
-            res.json(JSONPath(jsonpath, config.definition))
+            res.json(JSONPath(jsonpath, config.definition));
+        } else {
+            res.json(config.definition);
         }
-        else {
-            res.json(config.definition)
-        }
+    } catch (err) {
+        next(err);
     }
-    catch (err) {
-        next(err)
-    }
-}
+};
 
 module.exports.getAppInfo = async function getAppInfo(req, res, next) {
     try {
-        let elevate = req.query.elevate
+        let elevate = req.query.elevate;
         if (elevate) {
             const response = await operationService.getAppInfo();
             res.json(response);
-        }
-        else {
+        } else {
             throw new SmError.PrivilegeError();
         }
-    }
-    catch (err) {
+    } catch (err) {
         next(err);
     }
-}
+};

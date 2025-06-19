@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-const assetService = require('../Services/assetService')
+const assetService = require('../Services/assetService');
 
 module.exports.getAsset = async function getAsset(req, res, next) {
     try {
@@ -48,7 +48,7 @@ module.exports.getAssetsByCollection = async function getAssetsByCollection(req,
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.postAsset = async function postAsset(req, res, next) {
     try {
@@ -61,7 +61,7 @@ module.exports.postAsset = async function postAsset(req, res, next) {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.putAsset = async function putAsset(req, res, next) {
     try {
@@ -74,7 +74,7 @@ module.exports.putAsset = async function putAsset(req, res, next) {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.deleteAsset = async function deleteAsset(req, res, next) {
     try {
@@ -87,7 +87,7 @@ module.exports.deleteAsset = async function deleteAsset(req, res, next) {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, next) {
     try {
@@ -100,13 +100,13 @@ module.exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, r
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
     try {
         const response = await assetService.getAssetDeltaList(req, res, next);
         res.status(200).json({
-            assets: response.assets
+            assets: response.assets,
         });
     } catch (error) {
         if (error.status === 400) {
@@ -115,7 +115,7 @@ module.exports.getAssetDeltaList = async function getAssetDeltaList(req, res, ne
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};
 
 module.exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollection(req, res, next) {
     try {
@@ -123,7 +123,7 @@ module.exports.getAssetDeltaListByCollection = async function getAssetDeltaListB
         if (!collectionId) {
             return res.status(400).json({
                 error: 'Validation Error',
-                detail: 'Collection ID is required'
+                detail: 'Collection ID is required',
             });
         }
 
@@ -131,7 +131,7 @@ module.exports.getAssetDeltaListByCollection = async function getAssetDeltaListB
         res.status(200).json({
             assets: response.assets,
             assetDeltaUpdated: response.assetDeltaUpdated || null,
-            emassHardwareListUpdated: response.emassHardwareListUpdated || null
+            emassHardwareListUpdated: response.emassHardwareListUpdated || null,
         });
     } catch (error) {
         if (error.status === 400) {
@@ -140,4 +140,4 @@ module.exports.getAssetDeltaListByCollection = async function getAssetDeltaListB
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
-}
+};

@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -24,12 +24,12 @@ async function withConnection(callback) {
 
 exports.getADTeamsList = async function getADTeamsList(req, res, next) {
     try {
-        return await withConnection(async (connection) => {
-            let sql = `SELECT DISTINCT value FROM ${config.database.schema}.assetdeltalist ORDER BY value;`
+        return await withConnection(async connection => {
+            let sql = `SELECT DISTINCT value FROM ${config.database.schema}.assetdeltalist ORDER BY value;`;
             let [rowADTeams] = await connection.query(sql);
             return rowADTeams.map(row => row.value);
         });
     } catch (error) {
         next(error);
     }
-}
+};

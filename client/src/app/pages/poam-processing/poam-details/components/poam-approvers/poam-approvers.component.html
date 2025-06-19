@@ -9,71 +9,59 @@
 -->
 
 <div class="table-container">
-  <p-toast></p-toast>
-  <p-table [value]="poamApprovers" dataKey="userId">
-    <ng-template pTemplate="header">
-      <tr>
-        <th pSortableColumn="userId" scope="col">Approver</th>
-        <th pSortableColumn="approvalStatus" scope="col">Approval Status</th>
-        <th pSortableColumn="approvedDate" scope="col">Approved Date</th>
-        <th pSortableColumn="comments" scope="col">Comments For Approver</th>
-        <th style="width: 8rem" scope="col">
-          <button pButton
-            icon="pi pi-plus"
-            (click)="addApprover()"
-            class="p-button-rounded p-button-text"
-          [disabled]="accessLevel < 2"></button>
-        </th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-approver let-rowIndex="rowIndex">
-      <tr>
-        <td>
-          @if (!approver.isNew) {
-            <span>{{getApproverName(approver.userId)}}</span>
-          }
-          @if (approver.isNew) {
-            <p-select
-              [options]="collectionApprovers"
-              [(ngModel)]="approver.userId"
-              optionLabel="fullName"
-              optionValue="userId"
-              [style]="{'width':'100%'}"
-              (onChange)="onApproverChange(approver)"
-              appendTo="body"
-            [disabled]="accessLevel < 2"></p-select>
-          }
-        </td>
-        <td>{{approver.approvalStatus}}</td>
-        <td>
-          {{approver.approvedDate ? (approver.approvedDate | date:'yyyy-MM-dd') : 'Not Reviewed'}}
-        </td>
-        <td>
-          @if (!approver.isNew) {
-            <span>{{approver.comments}}</span>
-          }
-          @if (approver.isNew) {
-            <textarea pTextarea
-              class="w-full"
-              [(ngModel)]="approver.comments"
-              [rows]="3"
-              [maxlength]="2000"
-            [disabled]="accessLevel < 2"></textarea>
-          }
-        </td>
-        <td>
-          <button pButton
-            icon="pi pi-trash"
-            (click)="deleteApprover(rowIndex)"
-            class="p-button-rounded p-button-text p-button-danger"
-          [disabled]="accessLevel < 2"></button>
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="5" style="text-align: center">No Approvers to Display</td>
-      </tr>
-    </ng-template>
-  </p-table>
+    <p-toast></p-toast>
+    <p-table [value]="poamApprovers" dataKey="userId">
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="userId" scope="col">Approver</th>
+                <th pSortableColumn="approvalStatus" scope="col">Approval Status</th>
+                <th pSortableColumn="approvedDate" scope="col">Approved Date</th>
+                <th pSortableColumn="comments" scope="col">Comments For Approver</th>
+                <th style="width: 8rem" scope="col">
+                    <button pButton icon="pi pi-plus" (click)="addApprover()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-approver let-rowIndex="rowIndex">
+            <tr>
+                <td>
+                    @if (!approver.isNew) {
+                        <span>{{ getApproverName(approver.userId) }}</span>
+                    }
+                    @if (approver.isNew) {
+                        <p-select
+                            [options]="collectionApprovers"
+                            [(ngModel)]="approver.userId"
+                            optionLabel="fullName"
+                            optionValue="userId"
+                            [style]="{ width: '100%' }"
+                            (onChange)="onApproverChange(approver)"
+                            appendTo="body"
+                            [disabled]="accessLevel < 2"
+                        ></p-select>
+                    }
+                </td>
+                <td>{{ approver.approvalStatus }}</td>
+                <td>
+                    {{ approver.approvedDate ? (approver.approvedDate | date: 'yyyy-MM-dd') : 'Not Reviewed' }}
+                </td>
+                <td>
+                    @if (!approver.isNew) {
+                        <span>{{ approver.comments }}</span>
+                    }
+                    @if (approver.isNew) {
+                        <textarea pTextarea class="w-full" [(ngModel)]="approver.comments" [rows]="3" [maxlength]="2000" [disabled]="accessLevel < 2"></textarea>
+                    }
+                </td>
+                <td>
+                    <button pButton icon="pi pi-trash" (click)="deleteApprover(rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5" style="text-align: center">No Approvers to Display</td>
+            </tr>
+        </ng-template>
+    </p-table>
 </div>

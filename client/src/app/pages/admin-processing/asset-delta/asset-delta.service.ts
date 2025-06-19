@@ -13,52 +13,47 @@ import { Injectable } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root'
 })
 export class AssetDeltaService {
-  private cpatApiBase = CPAT.Env.apiBase;
+    private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {}
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error('An error occurred:', error.error.message);
-    } else {
-      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
+    private handleError(error: HttpErrorResponse) {
+        if (error.error instanceof ErrorEvent) {
+            console.error('An error occurred:', error.error.message);
+        } else {
+            console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
+        }
+        return throwError(() => new Error('Something bad happened; please try again later.'));
     }
-    return throwError(() => new Error('Something bad happened; please try again later.'));
-  }
 
-  upload(file: File, collectionId: number): Observable<HttpEvent<any>> {
-    const formData = new FormData();
+    upload(file: File, collectionId: number): Observable<HttpEvent<any>> {
+        const formData = new FormData();
 
-    const contentType = file.name.endsWith('.csv') ? 'text/csv' : file.type;
-    const fileBlob = new Blob([file], { type: contentType });
+        const contentType = file.name.endsWith('.csv') ? 'text/csv' : file.type;
+        const fileBlob = new Blob([file], { type: contentType });
 
-    formData.append('file', fileBlob, file.name);
+        formData.append('file', fileBlob, file.name);
 
-    return this.http
-      .post(`${this.cpatApiBase}/import/assetlist/${collectionId}`, formData, {
-        reportProgress: true,
-        observe: 'events'
-      }).pipe(catchError(this.handleError));
-  }
+        return this.http
+            .post(`${this.cpatApiBase}/import/assetlist/${collectionId}`, formData, {
+                reportProgress: true,
+                observe: 'events'
+            })
+            .pipe(catchError(this.handleError));
+    }
 
-  getAssetDeltaListByCollection(collectionId: number): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/assets/delta/list/${collectionId}`)
-      .pipe(catchError(this.handleError));
-  }
+    getAssetDeltaListByCollection(collectionId: number): Observable<any> {
+        return this.http.get(`${this.cpatApiBase}/assets/delta/list/${collectionId}`).pipe(catchError(this.handleError));
+    }
 
-  getAssetDeltaList(): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/assets/delta/list`)
-      .pipe(catchError(this.handleError));
-  }
+    getAssetDeltaList(): Observable<any> {
+        return this.http.get(`${this.cpatApiBase}/assets/delta/list`).pipe(catchError(this.handleError));
+    }
 
-  getAssetDeltaTeams(): Observable<any> {
-    return this.http
-      .get(`${this.cpatApiBase}/assets/delta/teams`)
-      .pipe(catchError(this.handleError));
-  }
+    getAssetDeltaTeams(): Observable<any> {
+        return this.http.get(`${this.cpatApiBase}/assets/delta/teams`).pipe(catchError(this.handleError));
+    }
 }

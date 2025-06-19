@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-const poamAssetService = require('../Services/poamAssetService')
+const poamAssetService = require('../Services/poamAssetService');
 
 module.exports.getPoamAssets = async function getPoamAssets(req, res, next) {
     try {
@@ -22,7 +22,7 @@ module.exports.getPoamAssets = async function getPoamAssets(req, res, next) {
 module.exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, next) {
     try {
         const poamAssets = await poamAssetService.getPoamAssetsByPoamId(req, res, next);
-            res.status(200).json(poamAssets);
+        res.status(200).json(poamAssets);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -49,7 +49,7 @@ module.exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(
 module.exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res, next) {
     try {
         const poamAssets = await poamAssetService.getPoamAssetsByAssetId(req, res, next);
-            res.status(200).json(poamAssets);
+        res.status(200).json(poamAssets);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }

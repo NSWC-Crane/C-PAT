@@ -9,6 +9,6 @@
 */
 
 export interface AAPackage {
-  aaPackageId: number;
-  aaPackage: string;
+    aaPackageId: number;
+    aaPackage: string;
 }

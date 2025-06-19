@@ -9,346 +9,274 @@
 -->
 
 <div class="row col-span-12">
-  <div class="col">
-    <div class="p-fluid">
-      <div class="toolbar mb-4">
-        <div class="flex items-center justify-between">
-          <p-button icon="pi pi-filter"
-            class="ml-2"
-            [rounded]="true"
-            [text]="true"
-            [raised]="true"
-            severity="primary"
-            (click)="toggleNavyComplyFilter()"
-            (onKeyUp)="toggleNavyComplyFilter()">
-          </p-button>
-          <p-button [rounded]="true"
-            [text]="true"
-            [raised]="true"
-            severity="secondary"
-            class="ml-2"
-            icon="pi pi-filter-slash"
-            (click)="clear()"
-            (onKeyUp)="clear()"
-            pTooltip="Reset default filters">
-          </p-button>
-          <p-select #dd
-            [options]="navyComplyDateFilters"
-            [(ngModel)]="selectedNavyComplyDateFilter"
-            (onChange)="onNavyComplyDateFilterChange($event)"
-            appendTo="body"
-            styleClass="custom-dropdown">
-          </p-select>
-          @if (this.tenableTool === 'sumid') {
-            <p-button [rounded]="true"
-              [text]="true"
-              [raised]="true"
-              severity="secondary"
-              icon="pi pi-search-plus"
-              (click)="loadVulnList()"
-              (onKeyUp)="loadVulnList()"
-            pTooltip="Load Vulnerability List"></p-button>
-          }
-          @if (this.tenableTool === 'listvuln') {
-            <p-button [rounded]="true"
-              [text]="true"
-              [raised]="true"
-              severity="secondary"
-              icon="pi pi-search-minus"
-              (click)="loadVulnSummary()"
-              (onKeyUp)="loadVulnSummary()"
-            pTooltip="Load Vulnerability Summary"></p-button>
-          }
+    <div class="col">
+        <div class="p-fluid">
+            <div class="toolbar mb-4">
+                <div class="flex items-center justify-between">
+                    <p-button icon="pi pi-filter" class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleNavyComplyFilter()" (onKeyUp)="toggleNavyComplyFilter()"> </p-button>
+                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()" pTooltip="Reset default filters"> </p-button>
+                    <p-select #dd [options]="navyComplyDateFilters" [(ngModel)]="selectedNavyComplyDateFilter" (onChange)="onNavyComplyDateFilterChange($event)" appendTo="body" styleClass="custom-dropdown"> </p-select>
+                    @if (this.tenableTool === 'sumid') {
+                        <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-plus" (click)="loadVulnList()" (onKeyUp)="loadVulnList()" pTooltip="Load Vulnerability List"></p-button>
+                    }
+                    @if (this.tenableTool === 'listvuln') {
+                        <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-minus" (click)="loadVulnSummary()" (onKeyUp)="loadVulnSummary()" pTooltip="Load Vulnerability Summary"></p-button>
+                    }
+                </div>
+                <div class="right-buttons">
+                    <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" (onKeyUp)="resetColumnSelections()" pTooltip="Reset column selections"></p-button>
+                    <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (onKeyUp)="toggleAddColumnOverlay()" (click)="toggleAddColumnOverlay()"> </p-button>
+                    <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onKeyUp)="dt.exportCSV()" (onClick)="dt.exportCSV()"> </p-button>
+                    <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" styleClass="custom-multiselect" appendTo="body" filterPlaceHolder="Add columns..." [showToggleAll]="true"> </p-multiSelect>
+                </div>
+            </div>
+            <div class="scrollable-vulnerabilities">
+                <p-table
+                    #dt
+                    [value]="applicableVulnerabilities"
+                    [columns]="selectedColumns"
+                    [paginator]="true"
+                    [filters]="filters"
+                    [rows]="20"
+                    [totalRecords]="totalRecords"
+                    [showCurrentPageReport]="true"
+                    [rowsPerPageOptions]="[10, 20, 50]"
+                    [globalFilterFields]="[
+                        'poam',
+                        'pluginID',
+                        'pluginName',
+                        'family',
+                        'severity',
+                        'vprScore',
+                        'iav',
+                        'navyComplyDate',
+                        'supersededBy',
+                        'ips',
+                        'acrScore',
+                        'assetExposureScore',
+                        'netbiosName',
+                        'dnsName',
+                        'macAddress',
+                        'port',
+                        'protocol',
+                        'uuid',
+                        'hostUUID'
+                    ]"
+                    [filterDelay]="300"
+                    [rowHover]="true"
+                    dataKey="pluginID"
+                    [resizableColumns]="true"
+                    [scrollable]="true"
+                    scrollHeight="calc(100vh - 25rem)"
+                    [loading]="isLoading"
+                    styleClass="p-datatable-sm p-datatable-gridlines-hidden"
+                    (onFilter)="onFilter($event)"
+                >
+                    <ng-template pTemplate="header" let-columns>
+                        <tr>
+                            @for (col of columns; track col) {
+                                <th [pSortableColumn]="col.field" pResizableColumn scope="col">
+                                    {{ col.header }}
+                                    @if (col.field === 'poam') {
+                                        <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" styleClass="w-full"> </p-multiSelect>
+                                            </ng-template>
+                                        </p-columnFilter>
+                                    }
+                                    @if (col.field === 'severity') {
+                                        <p-columnFilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                <p-multiSelect
+                                                    [ngModel]="selectedSeverities"
+                                                    [options]="col.filterOptions"
+                                                    (onChange)="filter($event.value); selectedSeverities = $event.value"
+                                                    (onClear)="filter([]); selectedSeverities = []"
+                                                    placeholder="Select Severity"
+                                                    [showClear]="true"
+                                                    styleClass="w-full"
+                                                >
+                                                </p-multiSelect>
+                                            </ng-template>
+                                        </p-columnFilter>
+                                    }
+                                    @if (col.field !== 'poam' && col.field !== 'severity') {
+                                        <p-columnFilter
+                                            [type]="col.filterType"
+                                            [field]="col.field"
+                                            [showMatchModes]="true"
+                                            [showOperator]="false"
+                                            [showAddButton]="false"
+                                            [showApplyButton]="true"
+                                            [showClearButton]="true"
+                                            [display]="'menu'"
+                                            [showMenu]="true"
+                                        >
+                                        </p-columnFilter>
+                                    }
+                                </th>
+                            }
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-vulnerability let-columns="columns">
+                        <tr (click)="onRowClick(vulnerability, $event)" (keyup)="onRowClick(vulnerability, $event)" style="cursor: pointer">
+                            @for (col of columns; track col) {
+                                <td>
+                                    @switch (col.field) {
+                                        @case ('poam') {
+                                            <i
+                                                class="pi"
+                                                [ngClass]="vulnerability.poam ? getPoamStatusIcon(vulnerability.poamStatus) : 'pi pi-plus-circle'"
+                                                [ngStyle]="{
+                                                    color: vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus) : 'maroon',
+                                                    'font-size': '1.5rem',
+                                                    cursor: 'pointer'
+                                                }"
+                                                (click)="onPoamIconClick(vulnerability, $event)"
+                                                (keyup.enter)="onPoamIconClick(vulnerability, $event)"
+                                                [pTooltip]="getPoamStatusTooltip(vulnerability.poamStatus)"
+                                                tooltipPosition="top"
+                                            >
+                                            </i>
+                                        }
+                                        @case ('pluginID') {
+                                            <span
+                                                (click)="onPluginIDClick(vulnerability, $event)"
+                                                (keyup.enter)="onPluginIDClick(vulnerability, $event)"
+                                                style="cursor: pointer; color: var(--p-primary-color); font-weight: bold; text-decoration: underline"
+                                            >
+                                                {{ vulnerability[col.field] }}
+                                            </span>
+                                        }
+                                        @case ('severity') {
+                                            <p-tag [value]="vulnerability[col.field]" [severity]="getSeverityStyling(vulnerability[col.field])" [rounded]="false"> </p-tag>
+                                        }
+                                        @case ('navyComplyDate') {
+                                            {{ vulnerability[col.field] | date: 'mediumDate' }}
+                                        }
+                                        @default {
+                                            {{ vulnerability[col.field] }}
+                                        }
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="17" style="text-align: center">No vulnerabilities to display</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
         </div>
-        <div class="right-buttons">
-          <p-button class="mr-2"
-            [rounded]="true"
-            [text]="true"
-            [raised]="true"
-            severity="secondary"
-            icon="pi pi-refresh"
-            (click)="resetColumnSelections()"
-            (onKeyUp)="resetColumnSelections()"
-          pTooltip="Reset column selections"></p-button>
-          <p-button icon="pi pi-plus"
-            [rounded]="true"
-            [text]="true"
-            [raised]="true"
-            severity="primary"
-            (onKeyUp)="toggleAddColumnOverlay()"
-            (click)="toggleAddColumnOverlay()">
-          </p-button>
-          <p-button icon="pi pi-external-link"
-            severity="secondary"
-            [rounded]="true"
-            [text]="true"
-            (onKeyUp)="dt.exportCSV()"
-            (onClick)="dt.exportCSV()">
-          </p-button>
-          <p-multiSelect #ms
-            [options]="cols"
-            [(ngModel)]="selectedColumns"
-            optionLabel="header"
-            styleClass="custom-multiselect"
-            appendTo="body"
-            filterPlaceHolder="Add columns..."
-            [showToggleAll]="true">
-          </p-multiSelect>
-        </div>
-      </div>
-      <div class="scrollable-vulnerabilities">
-        <p-table #dt
-          [value]="applicableVulnerabilities"
-          [columns]="selectedColumns"
-          [paginator]="true"
-          [filters]="filters"
-          [rows]="20"
-          [totalRecords]="totalRecords"
-          [showCurrentPageReport]="true"
-          [rowsPerPageOptions]="[10,20,50]"
-          [globalFilterFields]="['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'supersededBy', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID']"
-          [filterDelay]="300"
-          [rowHover]="true"
-          dataKey="pluginID"
-          [resizableColumns]="true"
-          [scrollable]="true"
-          scrollHeight="calc(100vh - 25rem)"
-          [loading]="isLoading"
-          styleClass="p-datatable-sm p-datatable-gridlines-hidden"
-          (onFilter)="onFilter($event)">
-          <ng-template pTemplate="header" let-columns>
-            <tr>
-              @for (col of columns; track col) {
-                <th
-                  [pSortableColumn]="col.field"
-                  pResizableColumn
-                  scope="col">
-                  {{col.header}}
-                  @if (col.field === 'poam') {
-                    <p-columnFilter [field]="col.filterField"
-                      type="multi"
-                      matchMode="in"
-                      [showOperator]="false"
-                      [showMatchModes]="false"
-                      [showAddButton]="false"
-                      [showButtons]="true"
-                      display="menu">
-                      <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                        <p-multiSelect [ngModel]="value"
-                          [options]="col.filterOptions"
-                          (onChange)="filter($event.value)"
-                          placeholder="Select Status"
-                          [showClear]="true"
-                          styleClass="w-full">
-                        </p-multiSelect>
-                      </ng-template>
-                    </p-columnFilter>
-                  }
-                  @if (col.field === 'severity') {
-                    <p-columnFilter type="multi"
-                      [field]="col.field"
-                      matchMode="in"
-                      [showOperator]="false"
-                      [showMatchModes]="false"
-                      [showAddButton]="false"
-                      [showButtons]="true"
-                      display="menu">
-                      <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                        <p-multiSelect [ngModel]="selectedSeverities"
-                          [options]="col.filterOptions"
-                          (onChange)="filter($event.value); selectedSeverities = $event.value;"
-                          (onClear)="filter([]); selectedSeverities = []"
-                          placeholder="Select Severity"
-                          [showClear]="true"
-                          styleClass="w-full">
-                        </p-multiSelect>
-                      </ng-template>
-                    </p-columnFilter>
-                  }
-                  @if (col.field !== 'poam' && col.field !== 'severity') {
-                    <p-columnFilter [type]="col.filterType"
-                      [field]="col.field"
-                      [showMatchModes]="true"
-                      [showOperator]="false"
-                      [showAddButton]="false"
-                      [showApplyButton]="true"
-                      [showClearButton]="true"
-                      [display]="'menu'"
-                      [showMenu]="true">
-                    </p-columnFilter>
-                  }
-                </th>
-              }
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-vulnerability let-columns="columns">
-            <tr (click)="onRowClick(vulnerability, $event)"
-              (keyup)="onRowClick(vulnerability, $event)"
-              style="cursor: pointer">
-              @for (col of columns; track col) {
-                <td>
-                  @switch (col.field) {
-                    @case ('poam') {
-                      <i class="pi"
-                        [ngClass]="vulnerability.poam ? getPoamStatusIcon(vulnerability.poamStatus) : 'pi pi-plus-circle'"
-                       [ngStyle]="{
-       'color': vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus) : 'maroon',
-       'font-size': '1.5rem',
-       'cursor': 'pointer'
-     }"
-                        (click)="onPoamIconClick(vulnerability, $event)"
-                        (keyup.enter)="onPoamIconClick(vulnerability, $event)"
-                        [pTooltip]="getPoamStatusTooltip(vulnerability.poamStatus)"
-                        tooltipPosition="top">
-                      </i>
-                    }
-                    @case ('pluginID') {
-                      <span (click)="onPluginIDClick(vulnerability, $event)"
-                        (keyup.enter)="onPluginIDClick(vulnerability, $event)"
-                          style="
-                        cursor: pointer;
-                        color: var(--p-primary-color);
-                        font-weight: bold;
-                        text-decoration: underline;
-                      ">
-                        {{vulnerability[col.field]}}
-                      </span>
-                    }
-                    @case ('severity') {
-                      <p-tag [value]="vulnerability[col.field]"
-                        [severity]="getSeverityStyling(vulnerability[col.field])"
-                        [rounded]="false">
-                      </p-tag>
-                    }
-                    @case ('navyComplyDate') {
-                      {{vulnerability[col.field] | date:'mediumDate'}}
-                    }
-                    @default {
-                      {{vulnerability[col.field]}}
-                    }
-                  }
-                </td>
-              }
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="17" style="text-align: center">No vulnerabilities to display</td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
     </div>
-  </div>
 </div>
 
-<p-dialog class="pluginDialog"
-  [(visible)]="displayDialog"
-  [modal]="true"
-  [style]="{'width': '50vw'}">
-  <ng-template pTemplate="content">
-    <div class="p-grid">
-      <div class="p-col-12"><b>Plugin ID:</b> {{selectedVulnerability.pluginID}}</div>
-      <div class="p-col-12"><b>Name:</b> {{selectedVulnerability.name}}</div>
-      <div class="p-col-12"><b>Severity:</b> {{selectedVulnerability.severity.name}}</div>
-      <div class="p-col-12"><b>VPR Score:</b> {{selectedVulnerability.vprScore}}</div>
-      <div class="p-col-12"><b>Protocol:</b> {{selectedVulnerability.protocol}}</div>
-      <div class="p-col-12"><b>Family:</b> {{selectedVulnerability.family}}</div>
-      <br />
-      <div class="p-col-12">
-        <p-table [value]="parsedVprContext" styleClass="p-datatable-sm">
-          <ng-template pTemplate="header">
-            <tr>
-              <th scope="col">Vulnerability Priority Rating (VPR) Key Drivers</th>
-              <th scope="col"></th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-item>
-            <tr>
-              <td>{{ item.name }}:</td>
-              <td>
-                <span>
-                  @switch (item.type) {
-                    @case ('boolean') {
-                      <span>{{item.value ? 'Yes' : 'No'}}</span>
-                    }
-                    @default {
-                      <span>{{item.value}}</span>
-                    }
-                  }
-                </span>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
-      <div class="p-col-12">
-        <div class="description">
-          <h6>Description</h6>
-          <div class="p-col-12" [innerHTML]="formattedDescription"></div>
-          <h6>Solution</h6>
-          <div class="p-col-12">{{ pluginData.solution }}</div>
-        </div>
-        <div class="p-col-12"><b>CVSS v2 Severity:</b> {{ pluginData.riskFactor }}</div>
-        <div class="p-col-12"><b>Vulnerability Priority Rating:</b> {{ pluginData.vprScore }}</div>
-        <div class="p-col-12"><b>CVSS Base Score:</b> {{ pluginData.baseScore }}</div>
-        <div class="p-col-12"><b>CVSS Temporal Score:</b> {{ pluginData.temporalScore }}</div>
-        <div class="p-col-12"><b>CVSS v3 Base Score:</b> {{ pluginData.cvssV3BaseScore }}</div>
-        <div class="p-col-12">
-          <b>CVSS v3 Temporal Score:</b> {{ pluginData.cvssV3TemporalScore }}
-        </div>
-        <div class="p-col-12"><b>CVSS v3 Vector:</b> {{ pluginData.cvssV3Vector }}</div>
-        <div class="p-col-12"><b>CPE:</b> {{ pluginData.cpe }}</div>
-        <div class="p-col-12">
-          <b>Vulnerability Publication Date: </b>{{
-          pluginData.pluginPubDate * 1000 | date:'MMMM d,
+<p-dialog class="pluginDialog" [(visible)]="displayDialog" [modal]="true" [style]="{ width: '50vw' }">
+    <ng-template pTemplate="content">
+        <div class="p-grid">
+            <div class="p-col-12"><b>Plugin ID:</b> {{ selectedVulnerability.pluginID }}</div>
+            <div class="p-col-12"><b>Name:</b> {{ selectedVulnerability.name }}</div>
+            <div class="p-col-12"><b>Severity:</b> {{ selectedVulnerability.severity.name }}</div>
+            <div class="p-col-12"><b>VPR Score:</b> {{ selectedVulnerability.vprScore }}</div>
+            <div class="p-col-12"><b>Protocol:</b> {{ selectedVulnerability.protocol }}</div>
+            <div class="p-col-12"><b>Family:</b> {{ selectedVulnerability.family }}</div>
+            <br />
+            <div class="p-col-12">
+                <p-table [value]="parsedVprContext" styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th scope="col">Vulnerability Priority Rating (VPR) Key Drivers</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-item>
+                        <tr>
+                            <td>{{ item.name }}:</td>
+                            <td>
+                                <span>
+                                    @switch (item.type) {
+                                        @case ('boolean') {
+                                            <span>{{ item.value ? 'Yes' : 'No' }}</span>
+                                        }
+                                        @default {
+                                            <span>{{ item.value }}</span>
+                                        }
+                                    }
+                                </span>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+            <div class="p-col-12">
+                <div class="description">
+                    <h6>Description</h6>
+                    <div class="p-col-12" [innerHTML]="formattedDescription"></div>
+                    <h6>Solution</h6>
+                    <div class="p-col-12">{{ pluginData.solution }}</div>
+                </div>
+                <div class="p-col-12"><b>CVSS v2 Severity:</b> {{ pluginData.riskFactor }}</div>
+                <div class="p-col-12"><b>Vulnerability Priority Rating:</b> {{ pluginData.vprScore }}</div>
+                <div class="p-col-12"><b>CVSS Base Score:</b> {{ pluginData.baseScore }}</div>
+                <div class="p-col-12"><b>CVSS Temporal Score:</b> {{ pluginData.temporalScore }}</div>
+                <div class="p-col-12"><b>CVSS v3 Base Score:</b> {{ pluginData.cvssV3BaseScore }}</div>
+                <div class="p-col-12"><b>CVSS v3 Temporal Score:</b> {{ pluginData.cvssV3TemporalScore }}</div>
+                <div class="p-col-12"><b>CVSS v3 Vector:</b> {{ pluginData.cvssV3Vector }}</div>
+                <div class="p-col-12"><b>CPE:</b> {{ pluginData.cpe }}</div>
+                <div class="p-col-12">
+                    <b>Vulnerability Publication Date: </b
+                    >{{
+                        pluginData.pluginPubDate * 1000
+                            | date
+                                : 'MMMM d,
           yyyy'
-          }}
-        </div>
-        <div class="p-col-12">
-          <b>Patch Publication Date: </b>{{ pluginData.patchPubDate * 1000 | date:'MMMM d, yyyy' }}
-        </div>
-        <div class="p-col-12">
-          <b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date:'MMMM d, yyyy' }}
-        </div>
-        <div class="p-col-12">
-          <b>Plugin Last Modification Date:</b> {{
-          pluginData.pluginModDate * 1000 | date:'MMMM d,
+                    }}
+                </div>
+                <div class="p-col-12"><b>Patch Publication Date: </b>{{ pluginData.patchPubDate * 1000 | date: 'MMMM d, yyyy' }}</div>
+                <div class="p-col-12"><b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date: 'MMMM d, yyyy' }}</div>
+                <div class="p-col-12">
+                    <b>Plugin Last Modification Date:</b>
+                    {{
+                        pluginData.pluginModDate * 1000
+                            | date
+                                : 'MMMM d,
           yyyy'
-          }}
+                    }}
+                </div>
+                <div class="p-col-12"><b>Source File:</b> {{ pluginData.sourceFile }}</div>
+                <div class="p-col-12"><b>Version:</b> {{ pluginData.version }}</div>
+            </div>
+            <br />
+            <div class="p-col-12">
+                <h6>IAV References</h6>
+                <ul>
+                    @for (ref of iavReferences; track ref) {
+                        <li>
+                            <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
+                        </li>
+                    }
+                </ul>
+                <h6>CVE References</h6>
+                <ul>
+                    @for (ref of cveReferences; track ref) {
+                        <li>
+                            <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
+                        </li>
+                    }
+                </ul>
+                @if (otherReferences.length > 0) {
+                    <h6>Cross-References</h6>
+                }
+                <ul>
+                    @for (ref of otherReferences; track ref) {
+                        <li>{{ ref.type }}:{{ ref.value }}</li>
+                    }
+                </ul>
+            </div>
         </div>
-        <div class="p-col-12"><b>Source File:</b> {{ pluginData.sourceFile }}</div>
-        <div class="p-col-12"><b>Version:</b> {{ pluginData.version }}</div>
-      </div>
-      <br />
-      <div class="p-col-12">
-        <h6>IAV References</h6>
-        <ul>
-          @for (ref of iavReferences; track ref) {
-            <li>
-              <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
-            </li>
-          }
-        </ul>
-        <h6>CVE References</h6>
-        <ul>
-          @for (ref of cveReferences; track ref) {
-            <li>
-              <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
-            </li>
-          }
-        </ul>
-        @if (otherReferences.length > 0) {
-          <h6>Cross-References</h6>
-        }
-        <ul>
-          @for (ref of otherReferences; track ref) {
-            <li>{{ref.type}}:{{ref.value}}</li>
-          }
-        </ul>
-      </div>
-    </div>
-  </ng-template>
+    </ng-template>
 </p-dialog>
 
 <p-toast position="center" key="error"></p-toast>

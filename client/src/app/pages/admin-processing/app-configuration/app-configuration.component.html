@@ -9,89 +9,54 @@
 -->
 
 <div class="grid grid-cols-12 gap-4">
-  <div class="col-span-12">
-    <div class="scrollable-appConfig overflow-hidden">
-      <p-table #dt
-               [value]="appConfiguration"
-               [globalFilterFields]="['settingName', 'settingValue']"
-               [rows]="15"
-               [paginator]="true"
-               [scrollable]="true"
-               scrollHeight="flex"
-               [rowHover]="true"
-               dataKey="settingName"
-               editMode="row">
-        <ng-template pTemplate="caption">
-          <div class="flex items-center justify-between">
-            <p-iconField iconPosition="left">
-              <p-inputIcon>
-                <i class="pi pi-search"></i>
-              </p-inputIcon>
-              <input pInputText
-                     type="text"
-                     (input)="filterGlobal($event)"
-                     placeholder="Search..."
-                     class="search-input" />
-            </p-iconField>
-          </div>
-        </ng-template>
-        <ng-template pTemplate="header">
-          <tr>
-            <th scope="col" pSortableColumn="settingName">Name</th>
-            <th scope="col" pSortableColumn="settingValue">Value</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-appConfig let-editing="editing" let-ri="rowIndex">
-          <tr [pEditableRow]="appConfig">
-            <td>{{appConfig.settingName}}</td>
-            <td>
-              <p-cellEditor>
-                <ng-template pTemplate="input">
-                  <input pInputText
-                         type="text"
-                         class="w-full"
-                         [(ngModel)]="appConfig.settingValue"
-                         maxlength="50" />
+    <div class="col-span-12">
+        <div class="scrollable-appConfig overflow-hidden">
+            <p-table #dt [value]="appConfiguration" [globalFilterFields]="['settingName', 'settingValue']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="settingName" editMode="row">
+                <ng-template pTemplate="caption">
+                    <div class="flex items-center justify-between">
+                        <p-iconField iconPosition="left">
+                            <p-inputIcon>
+                                <i class="pi pi-search"></i>
+                            </p-inputIcon>
+                            <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search..." class="search-input" />
+                        </p-iconField>
+                    </div>
                 </ng-template>
-                <ng-template pTemplate="output"> {{appConfig.settingValue}} </ng-template>
-              </p-cellEditor>
-            </td>
-            <td>
-              <div class="flex gap-2">
-                @if (!editing) {
-                <button pButton
-                        pRipple
-                        type="button"
-                        pInitEditableRow
-                        icon="pi pi-pencil"
-                        (click)="onRowEditInit(appConfig)"
-                        class="p-button-rounded p-button-text"></button>
-                }
-                @if (editing) {
-                <button pButton
-                        pRipple
-                        type="button"
-                        pSaveEditableRow
-                        icon="pi pi-check"
-                        (click)="onRowEditSave(appConfig)"
-                        class="p-button-rounded p-button-text p-button-success mr-2"></button>
-                }
-                @if (editing) {
-                <button pButton
-                        pRipple
-                        type="button"
-                        pCancelEditableRow
-                        icon="pi pi-times"
-                        (click)="onRowEditCancel(ri)"
-                        class="p-button-rounded p-button-text p-button-danger"></button>
-                }
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th scope="col" pSortableColumn="settingName">Name</th>
+                        <th scope="col" pSortableColumn="settingValue">Value</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-appConfig let-editing="editing" let-ri="rowIndex">
+                    <tr [pEditableRow]="appConfig">
+                        <td>{{ appConfig.settingName }}</td>
+                        <td>
+                            <p-cellEditor>
+                                <ng-template pTemplate="input">
+                                    <input pInputText type="text" class="w-full" [(ngModel)]="appConfig.settingValue" maxlength="50" />
+                                </ng-template>
+                                <ng-template pTemplate="output"> {{ appConfig.settingValue }} </ng-template>
+                            </p-cellEditor>
+                        </td>
+                        <td>
+                            <div class="flex gap-2">
+                                @if (!editing) {
+                                    <button pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(appConfig)" class="p-button-rounded p-button-text"></button>
+                                }
+                                @if (editing) {
+                                    <button pButton pRipple type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(appConfig)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+                                }
+                                @if (editing) {
+                                    <button pButton pRipple type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
     </div>
-  </div>
 </div>
 <p-toast></p-toast>

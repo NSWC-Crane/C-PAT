@@ -31,12 +31,12 @@ exports.getPoamAttachmentsByPoamId = async function (req, res, next) {
             status: 400,
             errors: {
                 poamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy
                 FROM ${config.database.schema}.poamattachments
@@ -50,13 +50,13 @@ exports.getPoamAttachmentsByPoamId = async function (req, res, next) {
                 fileSize: row.fileSize,
                 mimeType: row.mimeType,
                 uploadDate: row.uploadDate,
-                uploadedBy: row.uploadedBy
+                uploadedBy: row.uploadedBy,
             }));
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.downloadPoamAttachment = async function (req, res, next) {
     if (!req.params.poamId || !req.params.attachmentId) {
@@ -65,12 +65,12 @@ exports.downloadPoamAttachment = async function (req, res, next) {
             errors: {
                 poamId: 'is required',
                 attachmentId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT filename, fileSize, mimeType, fileContent
                 FROM ${config.database.schema}.poamattachments
@@ -86,7 +86,7 @@ exports.downloadPoamAttachment = async function (req, res, next) {
                 filename: attachment.filename,
                 fileSize: attachment.fileSize,
                 mimeType: attachment.mimeType,
-                fileContent: attachment.fileContent
+                fileContent: attachment.fileContent,
             };
         });
     } catch (error) {
@@ -144,16 +144,47 @@ async function validateFile(file) {
         'text/xml',
         'application/json',
         'application/vnd.ms-outlook',
-        'application/octet-stream'
+        'application/octet-stream',
     ];
     if (file.mimetype && !allowedMimeTypes.includes(file.mimetype)) {
         throw new SmError.UnprocessableError('Invalid file type');
     }
 
-    const allowedExtensions = ['.xls', '.xlsx', '.xlsm', '.xlsb', '.xltx', '.xltm', '.xlt',
-        '.doc', '.docx', '.docm', '.dotx', '.dotm', '.dot', '.ppt', '.pptx', '.pptm',
-        '.potx', '.potm', '.pot', '.pdf', '.txt', '.rtf', '.jpg', '.jpeg', '.png',
-        '.gif', '.bmp', '.tiff', '.tif', '.svg', '.csv', '.xml', '.json', '.msg'
+    const allowedExtensions = [
+        '.xls',
+        '.xlsx',
+        '.xlsm',
+        '.xlsb',
+        '.xltx',
+        '.xltm',
+        '.xlt',
+        '.doc',
+        '.docx',
+        '.docm',
+        '.dotx',
+        '.dotm',
+        '.dot',
+        '.ppt',
+        '.pptx',
+        '.pptm',
+        '.potx',
+        '.potm',
+        '.pot',
+        '.pdf',
+        '.txt',
+        '.rtf',
+        '.jpg',
+        '.jpeg',
+        '.png',
+        '.gif',
+        '.bmp',
+        '.tiff',
+        '.tif',
+        '.svg',
+        '.csv',
+        '.xml',
+        '.json',
+        '.msg',
     ];
 
     const fileExtension = path.extname(file.originalname).toLowerCase();
@@ -192,7 +223,7 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
             status: 400,
             errors: {
                 poamId: 'is required',
-            }
+            },
         });
     }
     if (!file) {
@@ -200,7 +231,7 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
             status: 400,
             errors: {
                 file: 'is required',
-            }
+            },
         });
     }
 
@@ -210,7 +241,7 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
             return { error: 'File validation failed' };
         }
 
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             const fileHash = validationResult.hash;
 
             let sql = `INSERT INTO ${config.database.schema}.poamattachments
@@ -224,7 +255,7 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
                 file.mimetype,
                 userId,
                 file.buffer,
-                fileHash
+                fileHash,
             ]);
 
             if (result.insertId) {
@@ -253,12 +284,12 @@ exports.deletePoamAttachment = async function (req, res, next, userId) {
             errors: {
                 attachmentId: 'is required',
                 poamId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let fetchSql = `SELECT filename FROM ${config.database.schema}.poamattachments WHERE attachmentId = ? AND poamId = ?`;
             let [[attachment]] = await connection.query(fetchSql, [req.params.attachmentId, req.params.poamId]);
 

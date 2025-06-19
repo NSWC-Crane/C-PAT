@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-const multer = require("multer");
+const multer = require('multer');
 const fastcsv = require('fast-csv');
 const config = require('../utils/config');
 const db = require('../utils/sequelize');
@@ -29,47 +29,47 @@ async function withConnection(callback) {
 }
 
 const excelColumnToDbColumnMapping = {
-    "POA&M Item ID": "",
-    "Control Vulnerability Description": "description",
-    "Controls / APs": "",
-    "Office/Org": "officeOrg",
-    "Security Checks": "vulnerabilityId",
-    "Resources Required": "requiredResources",
-    "Scheduled Completion Date": "scheduledCompletionDate",
-    "Milestone ID": "milestoneId",
-    "Milestone with Completion Dates": "milestones",
-    "Milestone Changes": "milestoneChanges",
-    "Source Identifying Vulnerability ": "vulnerabilitySource",
-    "Status": "",
-    "Comments": "",
-    "Raw Severity": "rawSeverity",
-    "Devices Affected": "devicesAffected",
-    "Mitigations (in-house and in conjunction with the Navy CSSP)": "mitigations",
-    "Predisposing Conditions": "predisposingConditions",
-    "Severity": "severity",
-    "Threat Description": "threatDescription",
-    "Likelihood": "likelihood",
-    "Impact Description": "impactDescription",
-    "Residual Risk Level": "residualRisk",
-    "Resulting Residual Risk after Proposed Mitigations": "adjSeverity"
+    'POA&M Item ID': '',
+    'Control Vulnerability Description': 'description',
+    'Controls / APs': '',
+    'Office/Org': 'officeOrg',
+    'Security Checks': 'vulnerabilityId',
+    'Resources Required': 'requiredResources',
+    'Scheduled Completion Date': 'scheduledCompletionDate',
+    'Milestone ID': 'milestoneId',
+    'Milestone with Completion Dates': 'milestones',
+    'Milestone Changes': 'milestoneChanges',
+    'Source Identifying Vulnerability ': 'vulnerabilitySource',
+    Status: '',
+    Comments: '',
+    'Raw Severity': 'rawSeverity',
+    'Devices Affected': 'devicesAffected',
+    'Mitigations (in-house and in conjunction with the Navy CSSP)': 'mitigations',
+    'Predisposing Conditions': 'predisposingConditions',
+    Severity: 'severity',
+    'Threat Description': 'threatDescription',
+    Likelihood: 'likelihood',
+    'Impact Description': 'impactDescription',
+    'Residual Risk Level': 'residualRisk',
+    'Resulting Residual Risk after Proposed Mitigations': 'adjSeverity',
 };
 
 function mapValueToCategory(cellValue, dbColumn) {
     const severityMapping = {
         rawSeverity: {
-            'Very High': "CAT I - Critical",
-            'High': "CAT I - High",
-            'Moderate': "CAT II - Medium",
-            'Low': "CAT III - Low",
-            'Very Low': "CAT III - Low"
+            'Very High': 'CAT I - Critical',
+            High: 'CAT I - High',
+            Moderate: 'CAT II - Medium',
+            Low: 'CAT III - Low',
+            'Very Low': 'CAT III - Low',
         },
         adjSeverity: {
-            'Very High': "CAT I - Critical",
-            'High': "CAT I - High",
-            'Moderate': "CAT II - Medium",
-            'Low': "CAT III - Low",
-            'Very Low': "CAT III - Low"
-        }
+            'Very High': 'CAT I - Critical',
+            High: 'CAT I - High',
+            Moderate: 'CAT II - Medium',
+            Low: 'CAT III - Low',
+            'Very Low': 'CAT III - Low',
+        },
     };
 
     return severityMapping[dbColumn][cellValue] || cellValue;
@@ -79,7 +79,7 @@ exports.excelFilter = (req, file, cb) => {
     const validMimeTypes = [
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-excel.sheet.macroenabled.12'
+        'application/vnd.ms-excel.sheet.macroenabled.12',
     ];
 
     if (validMimeTypes.includes(file.mimetype)) {
@@ -95,7 +95,7 @@ exports.excelAndCsvFilter = (req, file, cb) => {
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'application/vnd.ms-excel.sheet.macroenabled.12',
         'text/csv',
-        'application/csv'
+        'application/csv',
     ];
 
     if (validMimeTypes.includes(file.mimetype)) {
@@ -107,10 +107,10 @@ exports.excelAndCsvFilter = (req, file, cb) => {
 
 exports.processPoamFile = async function processPoamFile(file, userId) {
     if (!file) {
-        throw new Error("Please upload an Excel file!");
+        throw new Error('Please upload an Excel file!');
     }
     if (!userId) {
-        throw new Error("userId is required");
+        throw new Error('userId is required');
     }
 
     const workbook = await loadWorkbook(file);
@@ -139,14 +139,32 @@ function getFirstWorksheet(workbook) {
 
 function validateWorksheetHeaders(worksheet) {
     const expectedHeaders = [
-        "POA&M Item ID", "Control Vulnerability Description", "Controls / APs",
-        "Office/Org", "Security Checks", "Resources Required", "Scheduled Completion Date",
-        "Milestone ID", "Milestone with Completion Dates", "Milestone Changes",
-        "Source Identifying Vulnerability ", "Status", "Comments", "Raw Severity", "Devices Affected",
-        "Mitigations (in-house and in conjunction with the Navy CSSP)", "Predisposing Conditions",
-        "Severity", "Relevance of Threat", "Threat Description", "Likelihood", "Impact",
-        "Impact Description", "Residual Risk Level", "Recommendations",
-        "Resulting Residual Risk after Proposed Mitigations"
+        'POA&M Item ID',
+        'Control Vulnerability Description',
+        'Controls / APs',
+        'Office/Org',
+        'Security Checks',
+        'Resources Required',
+        'Scheduled Completion Date',
+        'Milestone ID',
+        'Milestone with Completion Dates',
+        'Milestone Changes',
+        'Source Identifying Vulnerability ',
+        'Status',
+        'Comments',
+        'Raw Severity',
+        'Devices Affected',
+        'Mitigations (in-house and in conjunction with the Navy CSSP)',
+        'Predisposing Conditions',
+        'Severity',
+        'Relevance of Threat',
+        'Threat Description',
+        'Likelihood',
+        'Impact',
+        'Impact Description',
+        'Residual Risk Level',
+        'Recommendations',
+        'Resulting Residual Risk after Proposed Mitigations',
     ];
 
     const actualHeaders = worksheet.getRow(7).values.slice(1);
@@ -192,7 +210,7 @@ async function getEMassCollection() {
                 description: 'eMASS Imports',
             });
         } catch (error) {
-            throw new Error("Failed to create eMASS collection: " + error.message);
+            throw new Error('Failed to create eMASS collection: ' + error.message);
         }
     }
     return eMassCollection;
@@ -254,7 +272,7 @@ function processCell(rowData, header, dbColumn, cellValue, cell) {
         if (cellValue) {
             rowData.milestones = {
                 text: cellValue,
-                id: rowData.milestoneId
+                id: rowData.milestoneId,
             };
         }
     } else {
@@ -264,22 +282,22 @@ function processCell(rowData, header, dbColumn, cellValue, cell) {
 
 function formatDate(cellValue, cellString) {
     if (cellValue instanceof Date) {
-        return format(cellValue, "yyyy-MM-dd");
+        return format(cellValue, 'yyyy-MM-dd');
     } else if (typeof cellString === 'string') {
         const match = cellString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (match) {
             const [, month, day, year] = match;
             const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            return format(date, "yyyy-MM-dd");
+            return format(date, 'yyyy-MM-dd');
         }
     }
     return null;
 }
 
 function processVulnerabilitySource(poamEntry, cellValue) {
-    if (cellValue.includes("Security Technical Implementation Guide")) {
+    if (cellValue.includes('Security Technical Implementation Guide')) {
         poamEntry.vulnerabilityTitle = cellValue;
-        poamEntry.vulnerabilitySource = "STIG";
+        poamEntry.vulnerabilitySource = 'STIG';
     } else {
         poamEntry.vulnerabilitySource = cellValue;
     }
@@ -332,14 +350,14 @@ async function createMilestone(poamId, milestoneText, milestoneId) {
     if (match) {
         const milestoneDateStr = match[1];
         milestoneText = milestoneText.replace(dateRegex, '').trim();
-        const parsedDate = parse(milestoneDateStr, "M/d/yyyy", new Date());
-        milestoneDate = format(parsedDate, "yyyy-MM-dd");
+        const parsedDate = parse(milestoneDateStr, 'M/d/yyyy', new Date());
+        milestoneDate = format(parsedDate, 'yyyy-MM-dd');
     }
 
     await poamMilestones.create({
         poamId: poamId,
         milestoneDate: milestoneDate,
-        milestoneComments: milestoneText
+        milestoneComments: milestoneText,
     });
 }
 
@@ -358,7 +376,7 @@ async function updatePoamAssets(poamId, devicesAffected, collectionId) {
 async function getExistingPoamAssets(poamId) {
     return db.poamAsset.findAll({
         where: { poamId: poamId },
-        include: [{ model: db.Asset, attributes: ['assetId', 'assetName'] }]
+        include: [{ model: db.Asset, attributes: ['assetId', 'assetName'] }],
     });
 }
 
@@ -369,7 +387,7 @@ async function processDevice(deviceName, poamId, existingAssetNames, collectionI
         if (!existingAssetNames.includes(trimmedDeviceName)) {
             await db.poamAsset.create({
                 assetId: asset.assetId,
-                poamId: poamId
+                poamId: poamId,
             });
         }
     }
@@ -378,14 +396,14 @@ async function processDevice(deviceName, poamId, existingAssetNames, collectionI
 async function findOrCreateAsset(assetName, collectionId) {
     let asset = await db.Asset.findOne({
         attributes: ['assetId', 'assetName'],
-        where: { assetName: assetName }
+        where: { assetName: assetName },
     });
 
     if (!asset) {
         asset = await db.Asset.create({
             assetName: assetName,
             collectionId: collectionId,
-            assetOrigin: 'eMASS'
+            assetOrigin: 'eMASS',
         });
     }
 
@@ -406,12 +424,12 @@ async function removeOrphanedAssets() {
             {
                 model: db.poamAsset,
                 required: false,
-                attributes: ['poamId']
-            }
+                attributes: ['poamId'],
+            },
         ],
         where: {
-            '$poamassets.poamId$': null
-        }
+            '$poamassets.poamId$': null,
+        },
     });
 
     for (const asset of orphanedAssets) {
@@ -421,7 +439,7 @@ async function removeOrphanedAssets() {
 
 exports.importVRAMExcel = async function importVRAMExcel(file) {
     if (!file) {
-        throw new Error("Please upload an Excel file!");
+        throw new Error('Please upload an Excel file!');
     }
 
     const workbook = await loadWorkbook(file);
@@ -430,18 +448,18 @@ exports.importVRAMExcel = async function importVRAMExcel(file) {
     const fileDate = extractVRAMFileDate(worksheet);
 
     try {
-        return await db.sequelize.transaction(async (t) => {
+        return await db.sequelize.transaction(async t => {
             const configEntry = await getVRAMConfigEntry(t);
 
             if (configEntry && !isNewerFile(fileDate, configEntry.value)) {
-                return { message: "File is not newer than the last update. No changes made." };
+                return { message: 'File is not newer than the last update. No changes made.' };
             }
 
             const vramData = extractVRAMData(worksheet);
             await updateVRAMData(vramData, t);
             await updateVRAMConfigEntry(configEntry, fileDate, t);
 
-            return { message: "VRAM data updated successfully", rowsProcessed: vramData.length };
+            return { message: 'VRAM data updated successfully', rowsProcessed: vramData.length };
         });
     } catch (error) {
         throw new Error(`Failed to update VRAM data in the database: ${error.message}`);
@@ -449,7 +467,19 @@ exports.importVRAMExcel = async function importVRAMExcel(file) {
 };
 
 function validateVRAMWorksheetHeaders(worksheet) {
-    const requiredHeaders = ['IAV', 'Status', 'Title', 'IAV CAT', 'Type', 'Release Date', 'Navy Comply Date', 'Superseded By', 'Known Exploits', 'Known DoD Incidents', 'Nessus Plugins'];
+    const requiredHeaders = [
+        'IAV',
+        'Status',
+        'Title',
+        'IAV CAT',
+        'Type',
+        'Release Date',
+        'Navy Comply Date',
+        'Superseded By',
+        'Known Exploits',
+        'Known DoD Incidents',
+        'Nessus Plugins',
+    ];
     const actualHeaders = worksheet.getRow(2).values.slice(1);
 
     const missingHeaders = requiredHeaders.filter(header => !actualHeaders.includes(header));
@@ -471,7 +501,7 @@ function extractVRAMFileDate(worksheet) {
 async function getVRAMConfigEntry(transaction) {
     return await db.Config.findOne({
         where: { key: 'vramUpdate' },
-        transaction: transaction
+        transaction: transaction,
     });
 }
 
@@ -509,17 +539,17 @@ function processVRAMRow(row, headers) {
 
 function processVRAMCell(vramEntry, header, value) {
     const columnMapping = {
-        'IAV': 'iav',
-        'Status': 'status',
-        'Title': 'title',
+        IAV: 'iav',
+        Status: 'status',
+        Title: 'title',
         'IAV CAT': 'iavCat',
-        'Type': 'type',
+        Type: 'type',
         'Release Date': 'releaseDate',
         'Navy Comply Date': 'navyComplyDate',
         'Superseded By': 'supersededBy',
         'Known Exploits': 'knownExploits',
         'Known DoD Incidents': 'knownDodIncidents',
-        'Nessus Plugins': 'nessusPlugins'
+        'Nessus Plugins': 'nessusPlugins',
     };
 
     const dbColumn = columnMapping[header];
@@ -567,14 +597,23 @@ function processCellDate(value) {
 
 async function updateVRAMData(vramData, transaction) {
     const fieldsToUpdate = [
-        'iav', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate',
-        'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins'
+        'iav',
+        'status',
+        'title',
+        'iavCat',
+        'type',
+        'releaseDate',
+        'navyComplyDate',
+        'supersededBy',
+        'knownExploits',
+        'knownDodIncidents',
+        'nessusPlugins',
     ];
 
     await db.IAV.bulkCreate(vramData, {
         updateOnDuplicate: fieldsToUpdate,
         transaction: transaction,
-        fields: fieldsToUpdate
+        fields: fieldsToUpdate,
     });
 }
 
@@ -583,20 +622,23 @@ async function updateVRAMConfigEntry(configEntry, fileDate, transaction) {
     if (configEntry) {
         await configEntry.update({ value: formattedDate }, { transaction: transaction });
     } else {
-        await db.Config.create({
-            key: 'vramUpdate',
-            value: formattedDate
-        }, { transaction: transaction });
+        await db.Config.create(
+            {
+                key: 'vramUpdate',
+                value: formattedDate,
+            },
+            { transaction: transaction }
+        );
     }
 }
 
 exports.importAssetListFile = async function importAssetListFile(file, collectionId) {
     if (!file) {
-        throw new Error("Please upload an Excel or CSV file!");
+        throw new Error('Please upload an Excel or CSV file!');
     }
 
     if (!collectionId) {
-        throw new Error("Collection ID is required");
+        throw new Error('Collection ID is required');
     }
 
     const isCSV = file.mimetype === 'text/csv' || file.mimetype === 'application/csv';
@@ -621,7 +663,7 @@ async function processEMassHardwareList(workbook, collectionId) {
     const worksheet = workbook.worksheets.find(sheet => sheet.name === 'Hardware');
 
     if (!worksheet) {
-        throw new Error("Hardware sheet not found in the eMASS file");
+        throw new Error('Hardware sheet not found in the eMASS file');
     }
 
     let emassDate = null;
@@ -654,7 +696,7 @@ async function processEMassHardwareList(workbook, collectionId) {
     });
 
     if (!assetNameColIndex) {
-        throw new Error("Asset Name column not found in the Hardware sheet");
+        throw new Error('Asset Name column not found in the Hardware sheet');
     }
 
     const assetNamesSet = new Set();
@@ -673,15 +715,17 @@ async function processEMassHardwareList(workbook, collectionId) {
     const assetNames = Array.from(assetNamesSet);
 
     if (assetNames.length === 0) {
-        throw new Error("No asset names found in the Hardware sheet");
+        throw new Error('No asset names found in the Hardware sheet');
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             await connection.beginTransaction();
 
             try {
-                await connection.query(`UPDATE ${config.database.schema}.assetdeltalist SET eMASS = FALSE WHERE collectionId = ?`, [collectionId]);
+                await connection.query(`UPDATE ${config.database.schema}.assetdeltalist SET eMASS = FALSE WHERE collectionId = ?`, [
+                    collectionId,
+                ]);
 
                 if (assetNames.length > 0) {
                     const [allAssets] = await connection.query(
@@ -690,9 +734,7 @@ async function processEMassHardwareList(workbook, collectionId) {
                     );
                     const existingLowercaseKeys = allAssets.map(row => row.key.toLowerCase());
 
-                    const matchingAssets = assetNames.filter(name =>
-                        existingLowercaseKeys.includes(name)
-                    );
+                    const matchingAssets = assetNames.filter(name => existingLowercaseKeys.includes(name));
 
                     if (matchingAssets.length > 0) {
                         for (const lowercaseName of matchingAssets) {
@@ -711,9 +753,9 @@ async function processEMassHardwareList(workbook, collectionId) {
 
                 await connection.commit();
                 return {
-                    message: "eMASS hardware list processed successfully",
+                    message: 'eMASS hardware list processed successfully',
                     matchingAssetsFound: assetNames.length,
-                    emassDate: emassDate
+                    emassDate: emassDate,
                 };
             } catch (error) {
                 await connection.rollback();
@@ -732,8 +774,9 @@ async function processCSVAssetList(file, collectionId) {
             const csvString = file.buffer.toString('utf8');
             let rowNumber = 0;
 
-            fastcsv.parseString(csvString, { headers: false })
-                .on('data', (row) => {
+            fastcsv
+                .parseString(csvString, { headers: false })
+                .on('data', row => {
                     rowNumber++;
                     if (rowNumber > 1 && row.length === 2 && row[0]) {
                         const key = row[0].toString().trim();
@@ -742,23 +785,25 @@ async function processCSVAssetList(file, collectionId) {
                         assetMap.set(lowercaseKey, { originalKey: key, value: value });
                     }
                 })
-                .on('error', (error) => {
+                .on('error', error => {
                     reject(new Error(`Error parsing CSV file: ${error.message}`));
                 })
-                .on('end', async (totalRowCount) => {
+                .on('end', async totalRowCount => {
                     try {
                         const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
                             key: data.originalKey,
-                            value: data.value
+                            value: data.value,
                         }));
                         if (assetData.length === 0) {
                             reject(new Error('No valid data found in the CSV file'));
                             return;
                         }
-                        const result = await withConnection(async (connection) => {
+                        const result = await withConnection(async connection => {
                             await connection.beginTransaction();
                             try {
-                                await connection.query(`DELETE FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [collectionId]);
+                                await connection.query(`DELETE FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [
+                                    collectionId,
+                                ]);
 
                                 if (assetData.length > 0) {
                                     const placeholders = assetData.map(() => '(?, ?, ?, FALSE)').join(',');
@@ -777,9 +822,9 @@ async function processCSVAssetList(file, collectionId) {
 
                                 await connection.commit();
                                 return {
-                                    message: "Asset list updated successfully from CSV",
+                                    message: 'Asset list updated successfully from CSV',
                                     rowsProcessed: assetData.length,
-                                    duplicatesRemoved: (totalRowCount - 1) - assetMap.size
+                                    duplicatesRemoved: totalRowCount - 1 - assetMap.size,
                                 };
                             } catch (error) {
                                 await connection.rollback();
@@ -816,7 +861,7 @@ async function processRegularAssetList(worksheet, collectionId) {
 
     const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
         key: data.originalKey,
-        value: data.value
+        value: data.value,
     }));
 
     if (assetData.length === 0) {
@@ -824,7 +869,7 @@ async function processRegularAssetList(worksheet, collectionId) {
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             await connection.beginTransaction();
 
             try {
@@ -849,9 +894,9 @@ async function processRegularAssetList(worksheet, collectionId) {
 
                 await connection.commit();
                 return {
-                    message: "Asset list updated successfully",
+                    message: 'Asset list updated successfully',
                     rowsProcessed: assetData.length,
-                    duplicatesRemoved: (worksheet.rowCount - 1) - assetMap.size
+                    duplicatesRemoved: worksheet.rowCount - 1 - assetMap.size,
                 };
             } catch (error) {
                 await connection.rollback();
@@ -879,7 +924,7 @@ function extractAssetListData(worksheet) {
             if (values.length === 2 && values[0]) {
                 assetData.push({
                     key: values[0].toString().trim(),
-                    value: values[1] ? values[1].toString().trim() : ''
+                    value: values[1] ? values[1].toString().trim() : '',
                 });
             }
         }
@@ -893,5 +938,5 @@ module.exports = {
     excelAndCsvFilter: exports.excelAndCsvFilter,
     processPoamFile: exports.processPoamFile,
     importVRAMExcel: exports.importVRAMExcel,
-    importAssetListFile: exports.importAssetListFile
+    importAssetListFile: exports.importAssetListFile,
 };

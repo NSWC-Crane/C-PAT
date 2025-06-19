@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "build": "cd ../client && npm run build",
-    "offline-rebuild": "cd ../client && npm run build && cd ../api && node index.js"
+    "offline-rebuild": "cd ../client && npm run build && cd ../api && node index.js",
+    "format": "prettier --write \"**/*.js\" --cache",
+    "format:check": "prettier --check \"**/*.js\""
   },
   "author": "Christian Rodriguez",
   "license": "ISC",
@@ -55,6 +57,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "npm-check-updates": "^18.0.1"
+    "npm-check-updates": "^18.0.1",
+    "prettier": "^3.5.3"
   }
 }

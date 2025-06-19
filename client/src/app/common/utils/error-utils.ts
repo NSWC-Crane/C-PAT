@@ -9,11 +9,11 @@
 */
 
 export function getErrorMessage(error: any): string {
-  console.error('Error occurred:', error);
+    console.error('Error occurred:', error);
 
-  if (error?.error?.detail) {
-    return error.error.detail;
-  }
+    if (error?.error?.detail) {
+        return error.error.detail;
+    }
 
-  return error?.message || 'An unexpected error occurred';
+    return error?.message || 'An unexpected error occurred';
 }

@@ -31,534 +31,489 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { AssetDeltaService } from '../../../../admin-processing/asset-delta/asset-delta.service';
 import { ImportService } from '../../../import.service';
 interface Reference {
-  type: string;
-  value: string;
+    type: string;
+    value: string;
 }
 interface ExportColumn {
-  title: string;
-  dataKey: string;
+    title: string;
+    dataKey: string;
 }
 
 @Component({
-  selector: 'cpat-tenable-assets-table',
-  templateUrl: './tenableAssetsTable.component.html',
-  styleUrls: ['./tenableAssetsTable.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    TableModule,
-    TabsModule,
-    ButtonModule,
-    InputTextModule,
-    InputIconModule,
-    IconFieldModule,
-    TextareaModule,
-    MultiSelectModule,
-    DialogModule,
-    ToastModule,
-    TooltipModule,
-    TagModule
-  ],
+    selector: 'cpat-tenable-assets-table',
+    templateUrl: './tenableAssetsTable.component.html',
+    styleUrls: ['./tenableAssetsTable.component.scss'],
+    standalone: true,
+    imports: [CommonModule, FormsModule, TableModule, TabsModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, DialogModule, ToastModule, TooltipModule, TagModule]
 })
 export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
-  @Input() pluginID!: string;
-  @Input() assetProcessing: boolean = false;
-  @Input() tenableRepoId: number;
-  @Input() associatedVulnerabilities: any[] = [];
-  @ViewChildren(Table) tables: QueryList<Table>;
-  @ViewChild('ms') multiSelect!: MultiSelect;
+    @Input() pluginID!: string;
+    @Input() assetProcessing: boolean = false;
+    @Input() tenableRepoId: number;
+    @Input() associatedVulnerabilities: any[] = [];
+    @ViewChildren(Table) tables: QueryList<Table>;
+    @ViewChild('ms') multiSelect!: MultiSelect;
 
-  cols: any[];
-  exportColumns!: ExportColumn[];
-  selectedColumns: any[];
-  cveReferences: Reference[] = [];
-  iavReferences: Reference[] = [];
-  otherReferences: Reference[] = [];
-  affectedAssets: any[] = [];
-  selectedVulnerability: any;
-  displayDialog: boolean = false;
-  parsedVprContext: any[] = [];
-  isLoading: boolean = true;
-  formattedDescription: SafeHtml = '';
-  pluginData: any;
-  totalRecords: number = 0;
-  filterValue: string = '';
-  selectedCollection: any;
-  assetDeltaList: any;
-  assetsByTeam: { [teamId: string]: any[] } = {};
-  teamTabs: { teamId: string, teamName: string, assets: any[] }[] = [];
-  activeTab: string = 'all';
-  private tableMap = new Map<string, Table>();
-  private subscriptions = new Subscription();
+    cols: any[];
+    exportColumns!: ExportColumn[];
+    selectedColumns: any[];
+    cveReferences: Reference[] = [];
+    iavReferences: Reference[] = [];
+    otherReferences: Reference[] = [];
+    affectedAssets: any[] = [];
+    selectedVulnerability: any;
+    displayDialog: boolean = false;
+    parsedVprContext: any[] = [];
+    isLoading: boolean = true;
+    formattedDescription: SafeHtml = '';
+    pluginData: any;
+    totalRecords: number = 0;
+    filterValue: string = '';
+    selectedCollection: any;
+    assetDeltaList: any;
+    assetsByTeam: { [teamId: string]: any[] } = {};
+    teamTabs: { teamId: string; teamName: string; assets: any[] }[] = [];
+    activeTab: string = 'all';
+    private tableMap = new Map<string, Table>();
+    private subscriptions = new Subscription();
 
-  constructor(
-    private assetDeltaService: AssetDeltaService,
-    private importService: ImportService,
-    private sanitizer: DomSanitizer,
-    private messageService: MessageService,
-    private sharedService: SharedService
-  ) {}
+    constructor(
+        private assetDeltaService: AssetDeltaService,
+        private importService: ImportService,
+        private sanitizer: DomSanitizer,
+        private messageService: MessageService,
+        private sharedService: SharedService
+    ) {}
 
-  ngOnInit() {
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
-        this.selectedCollection = collectionId;
-      })
-    );
-    this.initColumnsAndFilters();
-    this.loadAssetDeltaList();
+    ngOnInit() {
+        this.subscriptions.add(
+            this.sharedService.selectedCollection.subscribe((collectionId) => {
+                this.selectedCollection = collectionId;
+            })
+        );
+        this.initColumnsAndFilters();
+        this.loadAssetDeltaList();
 
-    this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
-    this.activeTab = 'all';
+        this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
+        this.activeTab = 'all';
 
-    if (this.pluginID && this.tenableRepoId) {
-      this.getAffectedAssetsForAllPlugins();
-    } else if (this.assetProcessing && this.tenableRepoId) {
-      this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
-    }
-  }
-
-  ngAfterViewInit() {
-    this.updateTableReferences();
-
-    this.tables.changes.subscribe(() => {
-      this.updateTableReferences();
-    });
-  }
-
-  initColumnsAndFilters() {
-    this.cols = [
-      { field: 'pluginName', header: 'Name', width: '200px', filterable: true },
-      { field: 'family', header: 'Family', width: '150px', filterable: true },
-      {
-        field: 'sourcePluginIDs',
-        header: 'Source',
-        width: '150px',
-        filterable: true,
-      },
-      {
-        field: 'severity',
-        header: 'Severity',
-        width: '100px',
-        filterable: true,
-      },
-      { field: 'vprScore', header: 'VPR', width: '100px', filterable: true },
-      { field: 'ips', header: 'IP Address', width: '150px' },
-      { field: 'acrScore', header: 'ACR', width: '100px', filterable: false },
-      {
-        field: 'assetExposureScore',
-        header: 'AES',
-        width: '100px',
-        filterable: false,
-      },
-      {
-        field: 'netbiosName',
-        header: 'NetBIOS',
-        width: '150px',
-        filterable: false,
-      },
-      { field: 'dnsName', header: 'DNS', width: '200px', filterable: false },
-      {
-        field: 'macAddress',
-        header: 'MAC Address',
-        width: '150px',
-        filterable: false,
-      },
-      { field: 'port', header: 'Port', width: '100px', filterable: false },
-      {
-        field: 'protocol',
-        header: 'Protocol',
-        width: '100px',
-        filterable: false,
-      },
-      { field: 'uuid', header: 'Agent ID', width: '200px', filterable: false },
-      {
-        field: 'hostUUID',
-        header: 'Host ID',
-        width: '200px',
-        filterable: false,
-      },
-      { field: 'teamAssigned', header: 'Team', width: '120px', filterable: false },
-    ];
-    this.exportColumns = this.cols.map(col => ({
-      title: col.header,
-      dataKey: col.field,
-    }));
-    this.selectedColumns = this.cols.filter(col =>
-      [
-        'sourcePluginIDs',
-        'pluginName',
-        'family',
-        'severity',
-        'vprScore',
-        'ips',
-        'acrScore',
-        'assetExposureScore',
-        'netbiosName',
-        'dnsName',
-        'macAddress',
-        'port',
-        'protocol',
-        'uuid',
-        'hostUUID',
-        'teamAssigned'
-      ].includes(col.field)
-    );
-  }
-
-  isAssetAssignedToTeam(asset: any): boolean {
-    if (!this.assetDeltaList?.assets) return false;
-
-    const netbiosName = asset.netbiosName?.toLowerCase() || '';
-    const dnsName = asset.dnsName?.toLowerCase() || '';
-
-    return this.assetDeltaList.assets.some(deltaAsset => {
-      const deltaKey = deltaAsset.key.toLowerCase();
-      if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
-        return (deltaAsset.assignedTeams && deltaAsset.assignedTeams.length > 0) ||
-          (deltaAsset.assignedTeam && deltaAsset.assignedTeam.assignedTeamId);
-      }
-      return false;
-    });
-  }
-
-  loadAssetDeltaList() {
-    this.assetDeltaService.getAssetDeltaListByCollection(this.selectedCollection).subscribe({
-      next: (response) => {
-        this.assetDeltaList = response || [];
-      },
-      error: (error) => this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: `Failed to load Asset Delta List: ${getErrorMessage(error)}`
-      })
-    });
-  }
-
-  getAffectedAssetsForAllPlugins() {
-    this.isLoading = true;
-
-    const associatedPluginIds = this.associatedVulnerabilities
-      .map(vuln => typeof vuln === 'string' ? vuln :
-        typeof vuln === 'object' && vuln.associatedVulnerability ?
-          vuln.associatedVulnerability : null)
-      .filter(id => id !== null);
-
-    const allPluginIds = [this.pluginID, ...associatedPluginIds];
-
-    const analysisParams = {
-      query: {
-        description: '',
-        context: '',
-        status: -1,
-        createdTime: 0,
-        modifiedTime: 0,
-        groups: [],
-        type: 'vuln',
-        tool: 'listvuln',
-        sourceType: 'cumulative',
-        startOffset: 0,
-        endOffset: 5000,
-        filters: [
-          {
-            id: 'pluginID',
-            filterName: 'pluginID',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: allPluginIds.join(','),
-          },
-          {
-            id: 'repository',
-            filterName: 'repository',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: [{ id: this.tenableRepoId.toString() }],
-          },
-        ],
-        vulnTool: 'listvuln',
-      },
-      sourceType: 'cumulative',
-      columns: [],
-      type: 'vuln',
-    };
-
-    this.importService.postTenableAnalysis(analysisParams).subscribe({
-      next: (data) => {
-        if (!data?.response?.results) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No assets found for these vulnerabilities'
-          });
-          this.isLoading = false;
-          return;
+        if (this.pluginID && this.tenableRepoId) {
+            this.getAffectedAssetsForAllPlugins();
+        } else if (this.assetProcessing && this.tenableRepoId) {
+            this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
         }
+    }
 
-        const processedAssets = data.response.results.map((asset: any) => {
-          const sourcePluginID = asset.pluginID || '';
+    ngAfterViewInit() {
+        this.updateTableReferences();
 
-          return {
-            ...asset,
-            pluginName: asset.name || '',
-            family: asset.family?.name || '',
-            severity: asset.severity?.name || '',
-            sourcePluginIDs: [sourcePluginID]
-          };
+        this.tables.changes.subscribe(() => {
+            this.updateTableReferences();
         });
+    }
 
-        const assetMap = new Map();
+    initColumnsAndFilters() {
+        this.cols = [
+            { field: 'pluginName', header: 'Name', width: '200px', filterable: true },
+            { field: 'family', header: 'Family', width: '150px', filterable: true },
+            {
+                field: 'sourcePluginIDs',
+                header: 'Source',
+                width: '150px',
+                filterable: true
+            },
+            {
+                field: 'severity',
+                header: 'Severity',
+                width: '100px',
+                filterable: true
+            },
+            { field: 'vprScore', header: 'VPR', width: '100px', filterable: true },
+            { field: 'ips', header: 'IP Address', width: '150px' },
+            { field: 'acrScore', header: 'ACR', width: '100px', filterable: false },
+            {
+                field: 'assetExposureScore',
+                header: 'AES',
+                width: '100px',
+                filterable: false
+            },
+            {
+                field: 'netbiosName',
+                header: 'NetBIOS',
+                width: '150px',
+                filterable: false
+            },
+            { field: 'dnsName', header: 'DNS', width: '200px', filterable: false },
+            {
+                field: 'macAddress',
+                header: 'MAC Address',
+                width: '150px',
+                filterable: false
+            },
+            { field: 'port', header: 'Port', width: '100px', filterable: false },
+            {
+                field: 'protocol',
+                header: 'Protocol',
+                width: '100px',
+                filterable: false
+            },
+            { field: 'uuid', header: 'Agent ID', width: '200px', filterable: false },
+            {
+                field: 'hostUUID',
+                header: 'Host ID',
+                width: '200px',
+                filterable: false
+            },
+            { field: 'teamAssigned', header: 'Team', width: '120px', filterable: false }
+        ];
+        this.exportColumns = this.cols.map((col) => ({
+            title: col.header,
+            dataKey: col.field
+        }));
+        this.selectedColumns = this.cols.filter((col) =>
+            ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'vprScore', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID', 'teamAssigned'].includes(col.field)
+        );
+    }
 
-        processedAssets.forEach(asset => {
-          const key = `${asset.hostUUID || ''}-${asset.netbiosName || ''}-${asset.dnsName || ''}-${asset.macAddress || ''}`;
+    isAssetAssignedToTeam(asset: any): boolean {
+        if (!this.assetDeltaList?.assets) return false;
 
-          if (!assetMap.has(key)) {
-            assetMap.set(key, asset);
-          } else {
-            const existing = assetMap.get(key);
-            existing.sourcePluginIDs = [...new Set([...existing.sourcePluginIDs, ...asset.sourcePluginIDs])];
-          }
+        const netbiosName = asset.netbiosName?.toLowerCase() || '';
+        const dnsName = asset.dnsName?.toLowerCase() || '';
+
+        return this.assetDeltaList.assets.some((deltaAsset) => {
+            const deltaKey = deltaAsset.key.toLowerCase();
+            if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
+                return (deltaAsset.assignedTeams && deltaAsset.assignedTeams.length > 0) || (deltaAsset.assignedTeam && deltaAsset.assignedTeam.assignedTeamId);
+            }
+            return false;
         });
+    }
 
-        this.affectedAssets = Array.from(assetMap.values());
-        this.totalRecords = this.affectedAssets.length;
-        this.isLoading = false;
-
-        this.matchAssetsWithTeams();
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching affected assets: ${getErrorMessage(error)}`
+    loadAssetDeltaList() {
+        this.assetDeltaService.getAssetDeltaListByCollection(this.selectedCollection).subscribe({
+            next: (response) => {
+                this.assetDeltaList = response || [];
+            },
+            error: (error) =>
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Failed to load Asset Delta List: ${getErrorMessage(error)}`
+                })
         });
-        this.isLoading = false;
-      }
-    });
-  }
+    }
 
-  getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number): Observable<any[]> {
-    const analysisParams = {
-      query: {
-        description: '',
-        context: '',
-        status: -1,
-        createdTime: 0,
-        modifiedTime: 0,
-        groups: [],
-        type: 'vuln',
-        tool: 'listvuln',
-        sourceType: 'cumulative',
-        startOffset: 0,
-        endOffset: 5000,
-        filters: [
-          {
-            id: 'pluginID',
-            filterName: 'pluginID',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: pluginID,
-          },
-          {
-            id: 'repository',
-            filterName: 'repository',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: [{ id: tenableRepoId.toString() }],
-          },
-        ],
-        vulnTool: 'listvuln',
-      },
-      sourceType: 'cumulative',
-      columns: [],
-      type: 'vuln',
-    };
+    getAffectedAssetsForAllPlugins() {
+        this.isLoading = true;
 
-    return this.importService.postTenableAnalysis(analysisParams).pipe(
-      map((data) => {
-        return data.response.results.map((asset: any) => {
-          const defaultAsset = {
-            pluginID: '',
-            pluginName: '',
-            family: { name: '' },
-            severity: { name: '' },
-            vprScore: '',
-          };
-          return {
-            ...defaultAsset,
-            ...asset,
-            pluginName: asset.name || '',
-            family: asset.family?.name || '',
-            severity: asset.severity?.name || '',
-            sourcePluginID: pluginID
-          };
+        const associatedPluginIds = this.associatedVulnerabilities.map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null)).filter((id) => id !== null);
+
+        const allPluginIds = [this.pluginID, ...associatedPluginIds];
+
+        const analysisParams = {
+            query: {
+                description: '',
+                context: '',
+                status: -1,
+                createdTime: 0,
+                modifiedTime: 0,
+                groups: [],
+                type: 'vuln',
+                tool: 'listvuln',
+                sourceType: 'cumulative',
+                startOffset: 0,
+                endOffset: 5000,
+                filters: [
+                    {
+                        id: 'pluginID',
+                        filterName: 'pluginID',
+                        operator: '=',
+                        type: 'vuln',
+                        isPredefined: true,
+                        value: allPluginIds.join(',')
+                    },
+                    {
+                        id: 'repository',
+                        filterName: 'repository',
+                        operator: '=',
+                        type: 'vuln',
+                        isPredefined: true,
+                        value: [{ id: this.tenableRepoId.toString() }]
+                    }
+                ],
+                vulnTool: 'listvuln'
+            },
+            sourceType: 'cumulative',
+            columns: [],
+            type: 'vuln'
+        };
+
+        this.importService.postTenableAnalysis(analysisParams).subscribe({
+            next: (data) => {
+                if (!data?.response?.results) {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'No assets found for these vulnerabilities'
+                    });
+                    this.isLoading = false;
+                    return;
+                }
+
+                const processedAssets = data.response.results.map((asset: any) => {
+                    const sourcePluginID = asset.pluginID || '';
+
+                    return {
+                        ...asset,
+                        pluginName: asset.name || '',
+                        family: asset.family?.name || '',
+                        severity: asset.severity?.name || '',
+                        sourcePluginIDs: [sourcePluginID]
+                    };
+                });
+
+                const assetMap = new Map();
+
+                processedAssets.forEach((asset) => {
+                    const key = `${asset.hostUUID || ''}-${asset.netbiosName || ''}-${asset.dnsName || ''}-${asset.macAddress || ''}`;
+
+                    if (!assetMap.has(key)) {
+                        assetMap.set(key, asset);
+                    } else {
+                        const existing = assetMap.get(key);
+                        existing.sourcePluginIDs = [...new Set([...existing.sourcePluginIDs, ...asset.sourcePluginIDs])];
+                    }
+                });
+
+                this.affectedAssets = Array.from(assetMap.values());
+                this.totalRecords = this.affectedAssets.length;
+                this.isLoading = false;
+
+                this.matchAssetsWithTeams();
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Error fetching affected assets: ${getErrorMessage(error)}`
+                });
+                this.isLoading = false;
+            }
         });
-      }),
-      catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching assets for plugin ${pluginID}: ${getErrorMessage(error)}`
-        });
-        return of([]);
-      })
-    );
-  }
+    }
 
-  matchAssetsWithTeams() {
-    if (!this.assetDeltaList?.assets || !this.affectedAssets) return;
-    this.assetsByTeam = {};
+    getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number): Observable<any[]> {
+        const analysisParams = {
+            query: {
+                description: '',
+                context: '',
+                status: -1,
+                createdTime: 0,
+                modifiedTime: 0,
+                groups: [],
+                type: 'vuln',
+                tool: 'listvuln',
+                sourceType: 'cumulative',
+                startOffset: 0,
+                endOffset: 5000,
+                filters: [
+                    {
+                        id: 'pluginID',
+                        filterName: 'pluginID',
+                        operator: '=',
+                        type: 'vuln',
+                        isPredefined: true,
+                        value: pluginID
+                    },
+                    {
+                        id: 'repository',
+                        filterName: 'repository',
+                        operator: '=',
+                        type: 'vuln',
+                        isPredefined: true,
+                        value: [{ id: tenableRepoId.toString() }]
+                    }
+                ],
+                vulnTool: 'listvuln'
+            },
+            sourceType: 'cumulative',
+            columns: [],
+            type: 'vuln'
+        };
 
-    this.affectedAssets.forEach(asset => {
-      const netbiosName = asset.netbiosName?.toLowerCase() || '';
-      const dnsName = asset.dnsName?.toLowerCase() || '';
+        return this.importService.postTenableAnalysis(analysisParams).pipe(
+            map((data) => {
+                return data.response.results.map((asset: any) => {
+                    const defaultAsset = {
+                        pluginID: '',
+                        pluginName: '',
+                        family: { name: '' },
+                        severity: { name: '' },
+                        vprScore: ''
+                    };
+                    return {
+                        ...defaultAsset,
+                        ...asset,
+                        pluginName: asset.name || '',
+                        family: asset.family?.name || '',
+                        severity: asset.severity?.name || '',
+                        sourcePluginID: pluginID
+                    };
+                });
+            }),
+            catchError((error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Error fetching assets for plugin ${pluginID}: ${getErrorMessage(error)}`
+                });
+                return of([]);
+            })
+        );
+    }
 
-      this.assetDeltaList.assets.forEach(deltaAsset => {
-        const deltaKey = deltaAsset.key.toLowerCase();
+    matchAssetsWithTeams() {
+        if (!this.assetDeltaList?.assets || !this.affectedAssets) return;
+        this.assetsByTeam = {};
 
-        if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
-          if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
-            deltaAsset.assignedTeams.forEach(team => {
-              this.addAssetToTeam(asset, team.assignedTeamId, team.assignedTeamName);
+        this.affectedAssets.forEach((asset) => {
+            const netbiosName = asset.netbiosName?.toLowerCase() || '';
+            const dnsName = asset.dnsName?.toLowerCase() || '';
+
+            this.assetDeltaList.assets.forEach((deltaAsset) => {
+                const deltaKey = deltaAsset.key.toLowerCase();
+
+                if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
+                    if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
+                        deltaAsset.assignedTeams.forEach((team) => {
+                            this.addAssetToTeam(asset, team.assignedTeamId, team.assignedTeamName);
+                        });
+                    } else if (deltaAsset.assignedTeam) {
+                        this.addAssetToTeam(asset, deltaAsset.assignedTeam.assignedTeamId, deltaAsset.assignedTeam.assignedTeamName);
+                    }
+                }
             });
-          }
-          else if (deltaAsset.assignedTeam) {
-            this.addAssetToTeam(
-              asset,
-              deltaAsset.assignedTeam.assignedTeamId,
-              deltaAsset.assignedTeam.assignedTeamName
-            );
-          }
-        }
-      });
-    });
-
-    this.createTeamTabs();
-  }
-
-  addAssetToTeam(asset, teamId, teamName) {
-    if (!this.assetsByTeam[teamId]) {
-      this.assetsByTeam[teamId] = [];
-    }
-
-    const isDuplicate = this.assetsByTeam[teamId].some(existingAsset =>
-      JSON.stringify(existingAsset) === JSON.stringify(asset)
-    );
-
-    if (!isDuplicate) {
-      this.assetsByTeam[teamId].push({
-        ...asset,
-        assignedTeamId: teamId,
-        assignedTeamName: teamName
-      });
-    }
-  }
-
-  createTeamTabs() {
-    this.teamTabs = [
-      { teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }
-    ];
-
-    Object.keys(this.assetsByTeam).forEach(teamId => {
-      if (this.assetsByTeam[teamId].length > 0) {
-        const teamName = this.assetsByTeam[teamId][0].assignedTeamName || `Team ${teamId}`;
-        this.teamTabs.push({
-          teamId: teamId,
-          teamName: teamName,
-          assets: this.assetsByTeam[teamId]
-        });
-      }
-    });
-  }
-
-  lazyOrNot(event: TableLazyLoadEvent) {
-    if (this.pluginID && !this.assetProcessing) {
-      this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
-    } else if (this.assetProcessing) {
-      this.getAffectedAssets(event);
-    }
-  }
-
-  getAffectedAssets(event: TableLazyLoadEvent) {
-    if (!this.tenableRepoId) return;
-
-    this.isLoading = true;
-
-    const startOffset = event.first ?? 0;
-    const endOffset = startOffset + (event.rows ?? 20);
-    const repoFilter = {
-      id: 'repository',
-      filterName: 'repository',
-      operator: '=',
-      type: 'vuln',
-      isPredefined: true,
-      value: [{ id: this.tenableRepoId.toString() }],
-    };
-
-    const analysisParams = {
-      query: {
-        description: '',
-        context: '',
-        status: -1,
-        createdTime: 0,
-        modifiedTime: 0,
-        groups: [],
-        type: 'vuln',
-        tool: 'listvuln',
-        sourceType: 'cumulative',
-        startOffset: startOffset,
-        endOffset: endOffset,
-        filters: [repoFilter],
-        vulnTool: 'listvuln',
-      },
-      sourceType: 'cumulative',
-      columns: [],
-      type: 'vuln',
-    };
-
-    this.importService.postTenableAnalysis(analysisParams).subscribe({
-      next: (data) => {
-        this.affectedAssets = data.response.results.map((asset: any) => {
-          const defaultAsset = {
-            pluginID: '',
-            pluginName: '',
-            family: { name: '' },
-            severity: { name: '' },
-            vprScore: '',
-          };
-          return {
-            ...defaultAsset,
-            ...asset,
-            pluginName: asset.name || '',
-            family: asset.family?.name || '',
-            severity: asset.severity?.name || '',
-          };
         });
 
-        this.totalRecords = data.response.totalRecords;
+        this.createTeamTabs();
+    }
 
-        if (this.assetProcessing) {
-          this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }];
-        } else {
-          this.matchAssetsWithTeams();
+    addAssetToTeam(asset, teamId, teamName) {
+        if (!this.assetsByTeam[teamId]) {
+            this.assetsByTeam[teamId] = [];
         }
 
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching affected assets: ${getErrorMessage(error)}`
+        const isDuplicate = this.assetsByTeam[teamId].some((existingAsset) => JSON.stringify(existingAsset) === JSON.stringify(asset));
+
+        if (!isDuplicate) {
+            this.assetsByTeam[teamId].push({
+                ...asset,
+                assignedTeamId: teamId,
+                assignedTeamName: teamName
+            });
+        }
+    }
+
+    createTeamTabs() {
+        this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }];
+
+        Object.keys(this.assetsByTeam).forEach((teamId) => {
+            if (this.assetsByTeam[teamId].length > 0) {
+                const teamName = this.assetsByTeam[teamId][0].assignedTeamName || `Team ${teamId}`;
+                this.teamTabs.push({
+                    teamId: teamId,
+                    teamName: teamName,
+                    assets: this.assetsByTeam[teamId]
+                });
+            }
         });
-        this.isLoading = false;
-      }
-    });
-  }
+    }
+
+    lazyOrNot(event: TableLazyLoadEvent) {
+        if (this.pluginID && !this.assetProcessing) {
+            this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
+        } else if (this.assetProcessing) {
+            this.getAffectedAssets(event);
+        }
+    }
+
+    getAffectedAssets(event: TableLazyLoadEvent) {
+        if (!this.tenableRepoId) return;
+
+        this.isLoading = true;
+
+        const startOffset = event.first ?? 0;
+        const endOffset = startOffset + (event.rows ?? 20);
+        const repoFilter = {
+            id: 'repository',
+            filterName: 'repository',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: [{ id: this.tenableRepoId.toString() }]
+        };
+
+        const analysisParams = {
+            query: {
+                description: '',
+                context: '',
+                status: -1,
+                createdTime: 0,
+                modifiedTime: 0,
+                groups: [],
+                type: 'vuln',
+                tool: 'listvuln',
+                sourceType: 'cumulative',
+                startOffset: startOffset,
+                endOffset: endOffset,
+                filters: [repoFilter],
+                vulnTool: 'listvuln'
+            },
+            sourceType: 'cumulative',
+            columns: [],
+            type: 'vuln'
+        };
+
+        this.importService.postTenableAnalysis(analysisParams).subscribe({
+            next: (data) => {
+                this.affectedAssets = data.response.results.map((asset: any) => {
+                    const defaultAsset = {
+                        pluginID: '',
+                        pluginName: '',
+                        family: { name: '' },
+                        severity: { name: '' },
+                        vprScore: ''
+                    };
+                    return {
+                        ...defaultAsset,
+                        ...asset,
+                        pluginName: asset.name || '',
+                        family: asset.family?.name || '',
+                        severity: asset.severity?.name || ''
+                    };
+                });
+
+                this.totalRecords = data.response.totalRecords;
+
+                if (this.assetProcessing) {
+                    this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }];
+                } else {
+                    this.matchAssetsWithTeams();
+                }
+
+                this.isLoading = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Error fetching affected assets: ${getErrorMessage(error)}`
+                });
+                this.isLoading = false;
+            }
+        });
+    }
 
     showDetails(vulnerability: any) {
         if (!vulnerability || !vulnerability.pluginID) {
@@ -572,11 +527,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
                 }
 
                 this.pluginData = data.response;
-                this.formattedDescription = this.pluginData.description
-                    ? this.sanitizer.bypassSecurityTrustHtml(
-                        this.pluginData.description.replace(/\n\n/g, '<br>')
-                    )
-                    : '';
+                this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replace(/\n\n/g, '<br>')) : '';
 
                 if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
                     this.parseReferences(this.pluginData.xrefs);
@@ -596,133 +547,129 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
                 this.displayDialog = true;
             },
             error: (error) => {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-              });
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+                });
             }
         });
     }
 
-  parseVprContext(vprContext: string) {
-    try {
-      this.parsedVprContext = JSON.parse(vprContext);
-    } catch (error) {
-      this.parsedVprContext = [];
-    }
-  }
-
-  parseReferences(xrefs: string) {
-    const refs = xrefs.split(/\s+/).filter(Boolean);
-    this.cveReferences = [];
-    this.iavReferences = [];
-    this.otherReferences = [];
-
-    refs.forEach((ref: string) => {
-      const [refType, ...valueParts] = ref.split(':');
-      const value = valueParts.join(':').replace(/,\s*$/, '').trim();
-
-      if (refType && value) {
-        if (refType === 'CVE') {
-          this.cveReferences.push({ type: refType, value });
-        } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType)) {
-          this.iavReferences.push({ type: refType, value });
-        } else {
-          this.otherReferences.push({ type: refType, value });
+    parseVprContext(vprContext: string) {
+        try {
+            this.parsedVprContext = JSON.parse(vprContext);
+        } catch (error) {
+            this.parsedVprContext = [];
         }
-      } else {
-        console.warn(`Invalid reference: ${ref}`);
-      }
-    });
-  }
-
-  getCveUrl(cve: string): string {
-    return `https://web.nvd.nist.gov/view/vuln/detail?vulnId=${cve}`;
-  }
-
-  getIavUrl(iavNumber: string): string {
-    return `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavNumber}`;
-  }
-
-  updateTableReferences() {
-    this.tableMap.clear();
-    const tablesArray = this.tables.toArray();
-
-    this.teamTabs.forEach((tab, index) => {
-      if (index < tablesArray.length) {
-        this.tableMap.set(tab.teamId, tablesArray[index]);
-      }
-    });
-  }
-
-  clear() {
-    const activeTable = this.getActiveTable();
-    if (activeTable) {
-      activeTable.clear();
     }
-    this.filterValue = '';
-  }
 
-  onGlobalFilter(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    const activeTable = this.getActiveTable();
-    if (activeTable) {
-      activeTable.filterGlobal(value, 'contains');
+    parseReferences(xrefs: string) {
+        const refs = xrefs.split(/\s+/).filter(Boolean);
+        this.cveReferences = [];
+        this.iavReferences = [];
+        this.otherReferences = [];
+
+        refs.forEach((ref: string) => {
+            const [refType, ...valueParts] = ref.split(':');
+            const value = valueParts.join(':').replace(/,\s*$/, '').trim();
+
+            if (refType && value) {
+                if (refType === 'CVE') {
+                    this.cveReferences.push({ type: refType, value });
+                } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType)) {
+                    this.iavReferences.push({ type: refType, value });
+                } else {
+                    this.otherReferences.push({ type: refType, value });
+                }
+            } else {
+                console.warn(`Invalid reference: ${ref}`);
+            }
+        });
     }
-  }
 
-  exportCSV() {
-    const activeTable = this.getActiveTable();
-    if (activeTable) {
-      activeTable.exportCSV();
+    getCveUrl(cve: string): string {
+        return `https://web.nvd.nist.gov/view/vuln/detail?vulnId=${cve}`;
     }
-  }
 
-  private getActiveTable(): Table | null {
-    const table = this.tableMap.get(this.activeTab);
-    if (!table) {
-      console.warn(`No table found for tab ${this.activeTab}`);
-
-      if (this.tables && this.tables.length > 0) {
-        return this.tables.first;
-      }
+    getIavUrl(iavNumber: string): string {
+        return `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavNumber}`;
     }
-    return table || null;
-  }
 
-  resetColumnSelections() {
-    this.selectedColumns = this.cols.filter(col =>
-      ['netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID', 'teamAssigned'].includes(
-        col.field
-      )
-    );
-  }
+    updateTableReferences() {
+        this.tableMap.clear();
+        const tablesArray = this.tables.toArray();
 
-  toggleAddColumnOverlay() {
-    if (this.multiSelect.overlayVisible) {
-      this.multiSelect.hide();
-    } else {
-      this.multiSelect.show();
+        this.teamTabs.forEach((tab, index) => {
+            if (index < tablesArray.length) {
+                this.tableMap.set(tab.teamId, tablesArray[index]);
+            }
+        });
     }
-  }
 
-  getSeverityStyling(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
-    switch (severity) {
-      case 'Critical':
-      case 'High':
-        return "danger";
-      case 'Medium':
-        return "warn";
-      case 'Low':
-      case 'Info':
-        return "info";
-      default:
-        return "info";
+    clear() {
+        const activeTable = this.getActiveTable();
+        if (activeTable) {
+            activeTable.clear();
+        }
+        this.filterValue = '';
     }
-  }
 
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-  }
+    onGlobalFilter(event: Event) {
+        const value = (event.target as HTMLInputElement).value;
+        const activeTable = this.getActiveTable();
+        if (activeTable) {
+            activeTable.filterGlobal(value, 'contains');
+        }
+    }
+
+    exportCSV() {
+        const activeTable = this.getActiveTable();
+        if (activeTable) {
+            activeTable.exportCSV();
+        }
+    }
+
+    private getActiveTable(): Table | null {
+        const table = this.tableMap.get(this.activeTab);
+        if (!table) {
+            console.warn(`No table found for tab ${this.activeTab}`);
+
+            if (this.tables && this.tables.length > 0) {
+                return this.tables.first;
+            }
+        }
+        return table || null;
+    }
+
+    resetColumnSelections() {
+        this.selectedColumns = this.cols.filter((col) => ['netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID', 'teamAssigned'].includes(col.field));
+    }
+
+    toggleAddColumnOverlay() {
+        if (this.multiSelect.overlayVisible) {
+            this.multiSelect.hide();
+        } else {
+            this.multiSelect.show();
+        }
+    }
+
+    getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+        switch (severity) {
+            case 'Critical':
+            case 'High':
+                return 'danger';
+            case 'Medium':
+                return 'warn';
+            case 'Low':
+            case 'Info':
+                return 'info';
+            default:
+                return 'info';
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.unsubscribe();
+    }
 }

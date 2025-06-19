@@ -1,15 +1,17 @@
 node_modules/
-dist/
-coverage/
 
-/dist
-/.angular
+dist/
+.angular/
+coverage/
 
 .DS_Store
 Thumbs.db
 
-/.idea
+.vscode/
+.idea/
 .project
 .classpath
 *.launch
 .settings/
+
+package-lock.json

@@ -14,27 +14,23 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root'
 })
 export class AppConfigurationService {
-  private cpatApiBase = CPAT.Env.apiBase;
+    private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {}
 
-  private handleError(error: any) {
-    console.error('An error occurred:', error);
-    return throwError(() => error);
-  }
+    private handleError(error: any) {
+        console.error('An error occurred:', error);
+        return throwError(() => error);
+    }
 
-  getAppConfiguration(): Observable<any> {
-    return this.http
-      .get<any>(`${this.cpatApiBase}/appConfig`)
-      .pipe(catchError(this.handleError));
-  }
+    getAppConfiguration(): Observable<any> {
+        return this.http.get<any>(`${this.cpatApiBase}/appConfig`).pipe(catchError(this.handleError));
+    }
 
-  putAppConfiguration(appConfiguration: any): Observable<any> {
-    return this.http
-      .put<any>(`${this.cpatApiBase}/appConfiguration`, appConfiguration)
-      .pipe(catchError(this.handleError));
-  }
+    putAppConfiguration(appConfiguration: any): Observable<any> {
+        return this.http.put<any>(`${this.cpatApiBase}/appConfiguration`, appConfiguration).pipe(catchError(this.handleError));
+    }
 }

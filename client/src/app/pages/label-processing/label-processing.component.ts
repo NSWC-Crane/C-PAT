@@ -24,10 +24,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Observable, Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
-import {
-    ConfirmationDialogComponent,
-    ConfirmationDialogOptions,
-} from '../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { Label } from '../../common/models/label.model';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { SharedService } from '../../common/services/shared.service';
@@ -36,168 +33,154 @@ import { LabelService } from './label.service';
 import { LabelComponent } from './label/label.component';
 
 @Component({
-  selector: 'cpat-label-processing',
-  templateUrl: './label-processing.component.html',
-  styleUrls: ['./label-processing.component.scss'],
-  standalone: true,
-  imports: [
-    FormsModule,
-    ButtonModule,
-    CardModule,
-    DialogModule,
-    Select,
-    InputTextModule,
-    InputIconModule,
-    IconFieldModule,
-    TableModule,
-    ToastModule,
-    TooltipModule,
-    LabelComponent
-],
-  providers: [DialogService, MessageService],
+    selector: 'cpat-label-processing',
+    templateUrl: './label-processing.component.html',
+    styleUrls: ['./label-processing.component.scss'],
+    standalone: true,
+    imports: [FormsModule, ButtonModule, CardModule, DialogModule, Select, InputTextModule, InputIconModule, IconFieldModule, TableModule, ToastModule, TooltipModule, LabelComponent],
+    providers: [DialogService, MessageService]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
-  @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;
-  @ViewChild('labelTable') labelTable!: Table;
-  labelDialogVisible: boolean = false;
-  customColumn = 'label';
-  defaultColumns = ['Name', 'Description'];
-  allColumns = [this.customColumn, ...this.defaultColumns];
-  data: Label[] = [];
-  filterValue: string = '';
-  users: any;
-  public isLoggedIn = false;
-  labels: Label[] = [];
-  label: Label = { labelId: '', labelName: '', description: '' };
-  allowSelectLabels = true;
-  selected: any;
-  selectedRole: string = 'admin';
-  selectedCollection: any;
-  selectedLabels: Label[] = [];
-  protected accessLevel: any;
-  user: any;
-  payload: any;
-  private payloadSubscription: Subscription[] = [];
-  private subscriptions = new Subscription();
-  private subs = new SubSink();
+    @ViewChild('labelPopup') labelPopup!: TemplateRef<any>;
+    @ViewChild('labelTable') labelTable!: Table;
+    labelDialogVisible: boolean = false;
+    customColumn = 'label';
+    defaultColumns = ['Name', 'Description'];
+    allColumns = [this.customColumn, ...this.defaultColumns];
+    data: Label[] = [];
+    filterValue: string = '';
+    users: any;
+    public isLoggedIn = false;
+    labels: Label[] = [];
+    label: Label = { labelId: '', labelName: '', description: '' };
+    allowSelectLabels = true;
+    selected: any;
+    selectedRole: string = 'admin';
+    selectedCollection: any;
+    selectedLabels: Label[] = [];
+    protected accessLevel: any;
+    user: any;
+    payload: any;
+    private payloadSubscription: Subscription[] = [];
+    private subscriptions = new Subscription();
+    private subs = new SubSink();
 
-  constructor(
-    private labelService: LabelService,
-    private dialogService: DialogService,
-    private setPayloadService: PayloadService,
-    private sharedService: SharedService,
-    private messageService: MessageService
-  ) {}
+    constructor(
+        private labelService: LabelService,
+        private dialogService: DialogService,
+        private setPayloadService: PayloadService,
+        private sharedService: SharedService,
+        private messageService: MessageService
+    ) {}
 
-  onSubmit() {
-    this.resetData();
-  }
+    onSubmit() {
+        this.resetData();
+    }
 
-  ngOnInit() {
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(collectionId => {
-        this.selectedCollection = collectionId;
-      })
-    );
-    this.setPayload();
-  }
+    ngOnInit() {
+        this.subscriptions.add(
+            this.sharedService.selectedCollection.subscribe((collectionId) => {
+                this.selectedCollection = collectionId;
+            })
+        );
+        this.setPayload();
+    }
 
-  setPayload() {
-    this.setPayloadService.setPayload();
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe(user => {
-        this.user = user;
-      }),
-      this.setPayloadService.payload$.subscribe(payload => {
-        this.payload = payload;
-      }),
-      this.setPayloadService.accessLevel$.subscribe(level => {
-        this.accessLevel = level;
-        if (this.accessLevel > 0) {
-          this.getLabelData();
+    setPayload() {
+        this.setPayloadService.setPayload();
+        this.payloadSubscription.push(
+            this.setPayloadService.user$.subscribe((user) => {
+                this.user = user;
+            }),
+            this.setPayloadService.payload$.subscribe((payload) => {
+                this.payload = payload;
+            }),
+            this.setPayloadService.accessLevel$.subscribe((level) => {
+                this.accessLevel = level;
+                if (this.accessLevel > 0) {
+                    this.getLabelData();
+                }
+            })
+        );
+    }
+
+    getLabelData() {
+        this.labels = [];
+        this.subs.sink = this.labelService.getLabels(this.selectedCollection).subscribe(
+            (result: any) => {
+                this.data = (result as Label[])
+                    .map((label) => ({
+                        ...label,
+                        labelId: Number(label.labelId)
+                    }))
+                    .sort((a, b) => a.labelId - b.labelId);
+                this.labels = this.data;
+            },
+            (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Error fetching labels: ${getErrorMessage(error)}`
+                });
+            }
+        );
+    }
+
+    setLabel(labelId: number) {
+        const selectedData = this.data.find((label) => label.labelId === labelId);
+        if (selectedData) {
+            this.label = { ...selectedData };
+            this.labelDialogVisible = true;
+        } else {
+            this.label = { labelId: '', labelName: '', description: '' };
         }
-      })
-    );
-  }
+    }
 
-  getLabelData() {
-    this.labels = [];
-    this.subs.sink = this.labelService.getLabels(this.selectedCollection)
-      .subscribe(
-        (result: any) => {
-          this.data = (result as Label[])
-            .map(label => ({
-              ...label,
-              labelId: Number(label.labelId),
-            }))
-            .sort((a, b) => a.labelId - b.labelId);
-          this.labels = this.data;
-        },
-        error => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching labels: ${getErrorMessage(error)}`
-          });
+    openLabelPopup() {
+        this.labelDialogVisible = true;
+    }
+
+    applyFilter(event: Event) {
+        const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+        if (this.labelTable) {
+            this.labelTable.filterGlobal(filterValue, 'contains');
         }
-      );
-  }
-
-  setLabel(labelId: number) {
-    const selectedData = this.data.find(label => label.labelId === labelId);
-    if (selectedData) {
-      this.label = { ...selectedData };
-      this.labelDialogVisible = true;
-    } else {
-      this.label = { labelId: '', labelName: '', description: '' };
     }
-  }
 
-  openLabelPopup() {
-    this.labelDialogVisible = true;
-  }
-
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    if (this.labelTable) {
-      this.labelTable.filterGlobal(filterValue, 'contains');
+    clear() {
+        this.filterValue = '';
+        if (this.labelTable) {
+            this.labelTable.clear();
+        }
+        this.data = [...this.labels];
     }
-  }
 
-  clear() {
-    this.filterValue = '';
-    if (this.labelTable) {
-      this.labelTable.clear();
+    resetData() {
+        this.label = { labelId: '', labelName: '', description: '' };
+        this.getLabelData();
+        this.label.labelId = 'ADDLABEL';
+        this.allowSelectLabels = true;
     }
-    this.data = [...this.labels];
-  }
 
-  resetData() {
-    this.label = { labelId: '', labelName: '', description: '' };
-    this.getLabelData();
-    this.label.labelId = 'ADDLABEL';
-    this.allowSelectLabels = true;
-  }
+    addLabel() {
+        this.label = { labelId: 'ADDLABEL', labelName: '', description: '' };
+        this.labelDialogVisible = true;
+    }
 
-  addLabel() {
-    this.label = { labelId: 'ADDLABEL', labelName: '', description: '' };
-    this.labelDialogVisible = true;
-  }
+    closeLabelPopup() {
+        this.labelDialogVisible = false;
+    }
 
-  closeLabelPopup() {
-    this.labelDialogVisible = false;
-  }
+    ngOnDestroy(): void {
+        this.subs.unsubscribe();
+        this.subscriptions.unsubscribe();
+        this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
+    }
 
-  ngOnDestroy(): void {
-    this.subs.unsubscribe();
-    this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach(subscription => subscription.unsubscribe());
-  }
-
-  confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
-    this.dialogService.open(ConfirmationDialogComponent, {
-      data: {
-        options: dialogOptions,
-      },
-    }).onClose;
+    confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
+        this.dialogService.open(ConfirmationDialogComponent, {
+            data: {
+                options: dialogOptions
+            }
+        }).onClose;
 }

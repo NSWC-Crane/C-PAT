@@ -26,7 +26,7 @@ module.exports.getLabels = async function getLabels(req, res, next) {
 module.exports.getLabel = async function getLabel(req, res, next) {
     try {
         const label = await labelService.getLabel(req, res, next);
-            res.status(200).json(label);
+        res.status(200).json(label);
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });

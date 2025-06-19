@@ -9,149 +9,85 @@
 -->
 
 <div class="row col-span-12">
-  <div class="col">
-    <p-card>
-      <div class="p-fluid">
-        <div class="toolbar mb-4">
-          <div class="flex items-center justify-between">
-            <p-iconField iconPosition="left">
-              <p-inputIcon>
-                <i class="pi pi-search"></i>
-              </p-inputIcon>
-              <input
-                pInputText
-                id="search"
-                [(ngModel)]="filterValue"
-                (input)="applyFilter($event)"
-                placeholder="Search Labels"
-                style="width: 300px"
-                />
-              </p-iconField>
-              <p-button
-                class="ml-2"
-                [rounded]="true"
-                [text]="true"
-                [raised]="true"
-                severity="secondary"
-                icon="pi pi-filter-slash"
-                pTooltip="Clear all filters"
-                (click)="clear()"
-                (onKeyUp)="clear()"
-              ></p-button>
-            </div>
-          </div>
-          <div class="scrollable-labels">
-            <p-table
-              #labelTable
-              [resizableColumns]="true"
-              [value]="data"
-              selectionMode="multiple"
-              [(selection)]="selectedLabels"
-              [metaKeySelection]="true"
-              dataKey="labelId"
-              [globalFilterFields]="['labelId', 'labelName', 'description']"
-              >
-              <ng-template pTemplate="header">
-                <tr>
-                  <th scope="col" pSortableColumn="labelId" pResizableColumn>
-                    <div class="flex items-center">
-                      Label ID
-                      <p-columnFilter
-                        type="text"
-                        field="labelId"
-                        [showOperator]="false"
-                        display="menu"
-                        />
-                      </div>
-                    </th>
-                    <th scope="col" pSortableColumn="labelName" pResizableColumn>
-                      <div class="flex items-center">
-                        Name
-                        <p-columnFilter
-                          type="text"
-                          field="labelName"
-                          [showOperator]="false"
-                          display="menu"
-                          />
-                        </div>
-                      </th>
-                      <th scope="col" pSortableColumn="description" pResizableColumn>
-                        <div class="flex items-center">
-                          Description
-                          <p-columnFilter
-                            type="text"
-                            field="description"
-                            [showOperator]="false"
-                            display="menu"
-                            />
-                          </div>
-                        </th>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="body" let-label let-rowIndex="rowIndex">
-                      <tr
-                        [pSelectableRow]="label"
-                        [pSelectableRowIndex]="rowIndex"
-                        (click)="accessLevel >= 2 ? setLabel(label.labelId) : null"
-                        (keyup.enter)="accessLevel >= 2 ? setLabel(label.labelId) : null"
-                        >
-                        <td>{{label.labelId}}</td>
-                        <td>{{label.labelName}}</td>
-                        <td>{{label.description}}</td>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="emptymessage">
-                      <tr>
-                        <td colspan="3" style="text-align: center">No Data to Display</td>
-                      </tr>
-                    </ng-template>
-                  </p-table>
+    <div class="col">
+        <p-card>
+            <div class="p-fluid">
+                <div class="toolbar mb-4">
+                    <div class="flex items-center justify-between">
+                        <p-iconField iconPosition="left">
+                            <p-inputIcon>
+                                <i class="pi pi-search"></i>
+                            </p-inputIcon>
+                            <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Labels" style="width: 300px" />
+                        </p-iconField>
+                        <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" pTooltip="Clear all filters" (click)="clear()" (onKeyUp)="clear()"></p-button>
+                    </div>
+                </div>
+                <div class="scrollable-labels">
+                    <p-table #labelTable [resizableColumns]="true" [value]="data" selectionMode="multiple" [(selection)]="selectedLabels" [metaKeySelection]="true" dataKey="labelId" [globalFilterFields]="['labelId', 'labelName', 'description']">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th scope="col" pSortableColumn="labelId" pResizableColumn>
+                                    <div class="flex items-center">
+                                        Label ID
+                                        <p-columnFilter type="text" field="labelId" [showOperator]="false" display="menu" />
+                                    </div>
+                                </th>
+                                <th scope="col" pSortableColumn="labelName" pResizableColumn>
+                                    <div class="flex items-center">
+                                        Name
+                                        <p-columnFilter type="text" field="labelName" [showOperator]="false" display="menu" />
+                                    </div>
+                                </th>
+                                <th scope="col" pSortableColumn="description" pResizableColumn>
+                                    <div class="flex items-center">
+                                        Description
+                                        <p-columnFilter type="text" field="description" [showOperator]="false" display="menu" />
+                                    </div>
+                                </th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-label let-rowIndex="rowIndex">
+                            <tr [pSelectableRow]="label" [pSelectableRowIndex]="rowIndex" (click)="accessLevel >= 2 ? setLabel(label.labelId) : null" (keyup.enter)="accessLevel >= 2 ? setLabel(label.labelId) : null">
+                                <td>{{ label.labelId }}</td>
+                                <td>{{ label.labelName }}</td>
+                                <td>{{ label.description }}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="3" style="text-align: center">No Data to Display</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
                 </div>
                 <div class="field mb-4">
-                  <p-select
-                    id="labelid"
-                    [options]="data"
-                    optionLabel="labelName"
-                    [(ngModel)]="label.labelId"
-                    placeholder="Select Label to Modify..."
-                    (onChange)="setLabel($event.value.labelId)"
-                    styleClass="mt-6 w-full"
-                    required
-                    appendTo="body"
-                    [disabled]="accessLevel < 2"
+                    <p-select
+                        id="labelid"
+                        [options]="data"
+                        optionLabel="labelName"
+                        [(ngModel)]="label.labelId"
+                        placeholder="Select Label to Modify..."
+                        (onChange)="setLabel($event.value.labelId)"
+                        styleClass="mt-6 w-full"
+                        required
+                        appendTo="body"
+                        [disabled]="accessLevel < 2"
                     >
-                  </p-select>
+                    </p-select>
                 </div>
                 <div class="field">
-                  <button
-                    pButton
-                    type="button"
-                    label="Add Label"
-                    class="p-button-outlined p-button-primary w-full"
-                    (onKeyUp)="addLabel()"
-                    (click)="addLabel()"
-                    [disabled]="accessLevel < 2"
-                  ></button>
+                    <button pButton type="button" label="Add Label" class="p-button-outlined p-button-primary w-full" (onKeyUp)="addLabel()" (click)="addLabel()" [disabled]="accessLevel < 2"></button>
                 </div>
-              </div>
-            </p-card>
-          </div>
-        </div>
-        @if (accessLevel >= 2) {
-          <p-dialog
-            header="Label Details"
-            [(visible)]="labelDialogVisible"
-            [modal]="true"
-            [style]="{width: '50vw'}"
-            >
-            <ng-template pTemplate="content">
-              <cpat-label
-                [label]="label"
-                [labels]="labels"
-                [payload]="payload"
-                (labelchange)="resetData(); closeLabelPopup();"
-              ></cpat-label>
-            </ng-template>
-          </p-dialog>
-        }
+            </div>
+        </p-card>
+    </div>
+</div>
+@if (accessLevel >= 2) {
+    <p-dialog header="Label Details" [(visible)]="labelDialogVisible" [modal]="true" [style]="{ width: '50vw' }">
+        <ng-template pTemplate="content">
+            <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData(); closeLabelPopup()"></cpat-label>
+        </ng-template>
+    </p-dialog>
+}
 <p-toast />

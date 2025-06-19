@@ -23,177 +23,170 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../collection-processing/collections.service';
 
 interface STIGManagerCollection {
-  collectionId: number;
-  name: string;
-  description?: string;
+    collectionId: number;
+    name: string;
+    description?: string;
 }
 
 @Component({
-  selector: 'cpat-stigmanager-admin',
-  templateUrl: './stigmanager-admin.component.html',
-  styleUrls: ['./stigmanager-admin.component.scss'],
-  standalone: true,
-  imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
-  providers: [ConfirmationService, MessageService],
+    selector: 'cpat-stigmanager-admin',
+    templateUrl: './stigmanager-admin.component.html',
+    styleUrls: ['./stigmanager-admin.component.scss'],
+    standalone: true,
+    imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
+    providers: [ConfirmationService, MessageService]
 })
 export class STIGManagerAdminComponent implements OnInit {
-  stigmanCollections: STIGManagerCollection[] = [];
-  filteredCollections: STIGManagerCollection[] = [];
-  selectedSTIGManagerCollection: STIGManagerCollection | null = null;
-  existingCollections: CollectionsBasicList[] = [];
-  private destroy$ = new Subject<void>();
-  constructor(
-    private collectionsService: CollectionsService,
-    private sharedService: SharedService,
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService
-  ) {}
+    stigmanCollections: STIGManagerCollection[] = [];
+    filteredCollections: STIGManagerCollection[] = [];
+    selectedSTIGManagerCollection: STIGManagerCollection | null = null;
+    existingCollections: CollectionsBasicList[] = [];
+    private destroy$ = new Subject<void>();
+    constructor(
+        private collectionsService: CollectionsService,
+        private sharedService: SharedService,
+        private confirmationService: ConfirmationService,
+        private messageService: MessageService
+    ) {}
 
-  ngOnInit() {
-    this.fetchDataAndCompare();
-  }
-
-  fetchDataAndCompare() {
-    forkJoin({
-      stigmanCollections: this.sharedService.getCollectionsFromSTIGMAN().pipe(
-        catchError(error => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching STIG Manager collections: ${getErrorMessage(error)}`
-          });
-          return EMPTY;
-        })
-      ),
-      existingCollections: this.collectionsService.getCollectionBasicList().pipe(
-        catchError(error => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching existing collections: ${getErrorMessage(error)}`
-          });
-          return EMPTY;
-        })
-      )
-    }).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: ({ stigmanCollections, existingCollections }) => {
-        this.stigmanCollections = stigmanCollections;
-        this.existingCollections = existingCollections;
-        this.filterCollections();
-      },
-      error: error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error in fetching data: ${getErrorMessage(error)}`
-        });
-      }
-    });
-  }
-
-  filterCollections() {
-    const existingNames = new Set(
-      this.existingCollections.map(c => c.collectionName.toLowerCase())
-    );
-    this.filteredCollections = this.stigmanCollections.filter(
-      collection => !existingNames.has(collection.name.toLowerCase())
-    );
-
-    if (this.filteredCollections.length === 0) {
-      this.messageService.add({
-        severity: 'info',
-        summary: 'No Collections',
-        detail: 'All STIG Manager collections have already been imported.'
-      });
-    }
-  }
-
-  onSTIGManagerCollectionSelect(collection: STIGManagerCollection) {
-    this.selectedSTIGManagerCollection = collection;
-  }
-
-  importSTIGManagerCollection() {
-    if (!this.selectedSTIGManagerCollection) {
-      this.confirmationService.confirm({
-        message: 'Please select a collection to import.',
-        header: 'Alert',
-        icon: 'pi pi-info-circle',
-        acceptLabel: 'OK',
-        rejectVisible: false
-      });
-      return;
+    ngOnInit() {
+        this.fetchDataAndCompare();
     }
 
-    this.importCollection(this.selectedSTIGManagerCollection).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      complete: () => this.fetchDataAndCompare()
-    });
-  }
-
-
-  importAllRemainingCollections() {
-    this.confirmationService.confirm({
-      message: `Are you sure you want to import all ${this.filteredCollections.length} remaining collections?`,
-      header: 'Confirm Bulk Import',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        forkJoin(
-          this.filteredCollections.map(collection => this.importCollection(collection))
-        ).pipe(
-          takeUntil(this.destroy$)
-        ).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: 'All collections imported successfully'
+    fetchDataAndCompare() {
+        forkJoin({
+            stigmanCollections: this.sharedService.getCollectionsFromSTIGMAN().pipe(
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: `Error fetching STIG Manager collections: ${getErrorMessage(error)}`
+                    });
+                    return EMPTY;
+                })
+            ),
+            existingCollections: this.collectionsService.getCollectionBasicList().pipe(
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: `Error fetching existing collections: ${getErrorMessage(error)}`
+                    });
+                    return EMPTY;
+                })
+            )
+        })
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: ({ stigmanCollections, existingCollections }) => {
+                    this.stigmanCollections = stigmanCollections;
+                    this.existingCollections = existingCollections;
+                    this.filterCollections();
+                },
+                error: (error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: `Error in fetching data: ${getErrorMessage(error)}`
+                    });
+                }
             });
-            this.fetchDataAndCompare();
-          },
-          error: error => {
+    }
+
+    filterCollections() {
+        const existingNames = new Set(this.existingCollections.map((c) => c.collectionName.toLowerCase()));
+        this.filteredCollections = this.stigmanCollections.filter((collection) => !existingNames.has(collection.name.toLowerCase()));
+
+        if (this.filteredCollections.length === 0) {
             this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Error during bulk import: ${getErrorMessage(error)}`
+                severity: 'info',
+                summary: 'No Collections',
+                detail: 'All STIG Manager collections have already been imported.'
             });
-          }
-        });
-      }
-    });
-  }
+        }
+    }
 
-  private importCollection(collection: STIGManagerCollection): Observable<any> {
-    const collectionData = {
-      collectionName: collection.name,
-      description: collection.description ?? '',
-      collectionOrigin: 'STIG Manager',
-      originCollectionId: +collection.collectionId
-    };
+    onSTIGManagerCollectionSelect(collection: STIGManagerCollection) {
+        this.selectedSTIGManagerCollection = collection;
+    }
 
-    return this.collectionsService.addCollection(collectionData).pipe(
-      tap(() => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `Collection "${collection.name}" imported successfully`
-        });
-      }),
-      catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error importing collection "${collection.name}": ${getErrorMessage(error)}`
-        });
-        return EMPTY;
-      })
-    );
-  }
+    importSTIGManagerCollection() {
+        if (!this.selectedSTIGManagerCollection) {
+            this.confirmationService.confirm({
+                message: 'Please select a collection to import.',
+                header: 'Alert',
+                icon: 'pi pi-info-circle',
+                acceptLabel: 'OK',
+                rejectVisible: false
+            });
+            return;
+        }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
+        this.importCollection(this.selectedSTIGManagerCollection)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                complete: () => this.fetchDataAndCompare()
+            });
+    }
+
+    importAllRemainingCollections() {
+        this.confirmationService.confirm({
+            message: `Are you sure you want to import all ${this.filteredCollections.length} remaining collections?`,
+            header: 'Confirm Bulk Import',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {
+                forkJoin(this.filteredCollections.map((collection) => this.importCollection(collection)))
+                    .pipe(takeUntil(this.destroy$))
+                    .subscribe({
+                        next: () => {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Success',
+                                detail: 'All collections imported successfully'
+                            });
+                            this.fetchDataAndCompare();
+                        },
+                        error: (error) => {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Error',
+                                detail: `Error during bulk import: ${getErrorMessage(error)}`
+                            });
+                        }
+                    });
+            }
+        });
+    }
+
+    private importCollection(collection: STIGManagerCollection): Observable<any> {
+        const collectionData = {
+            collectionName: collection.name,
+            description: collection.description ?? '',
+            collectionOrigin: 'STIG Manager',
+            originCollectionId: +collection.collectionId
+        };
+
+        return this.collectionsService.addCollection(collectionData).pipe(
+            tap(() => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: `Collection "${collection.name}" imported successfully`
+                });
+            }),
+            catchError((error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Error importing collection "${collection.name}": ${getErrorMessage(error)}`
+                });
+                return EMPTY;
+            })
+        );
+    }
+
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
 }

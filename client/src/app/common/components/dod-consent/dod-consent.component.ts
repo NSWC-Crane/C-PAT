@@ -15,25 +15,23 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 
 @Component({
-  selector: 'cpat-consent',
-  templateUrl: './dod-consent.component.html',
-  styleUrls: ['./dod-consent.component.scss'],
-  standalone: true,
-  imports: [DialogModule, FormsModule, ButtonModule]
+    selector: 'cpat-consent',
+    templateUrl: './dod-consent.component.html',
+    styleUrls: ['./dod-consent.component.scss'],
+    standalone: true,
+    imports: [DialogModule, FormsModule, ButtonModule]
 })
 export class DoDConsentComponent implements OnInit {
-  visible: boolean = false;
+    visible: boolean = false;
 
-  constructor(
-    private router: Router
-  ) { }
+    constructor(private router: Router) {}
 
-  ngOnInit() {
-    this.visible = true;
-  }
+    ngOnInit() {
+        this.visible = true;
+    }
 
-  consentOk() {
-    this.visible = false;
-    this.router.navigate(['/poam-processing']);
-  }
+    consentOk() {
+        this.visible = false;
+        this.router.navigate(['/poam-processing']);
+    }
 }

@@ -10,7 +10,6 @@
 
 const userTeamAssignmentService = require('../Services/userTeamAssignmentService');
 
-
 module.exports.getTeamAssignments = async function getTeamAssignments(req, res, next) {
     try {
         const teamAssignments = await userTeamAssignmentService.getTeamAssignments(req, res, next);

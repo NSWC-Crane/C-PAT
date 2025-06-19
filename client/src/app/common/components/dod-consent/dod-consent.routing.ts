@@ -12,8 +12,8 @@ import { Routes } from '@angular/router';
 import { DoDConsentComponent } from './dod-consent.component';
 
 export const consentRoute: Routes = [
-  {
-    path: '',
-    component: DoDConsentComponent,
-  },
+    {
+        path: '',
+        component: DoDConsentComponent
+    }
 ];

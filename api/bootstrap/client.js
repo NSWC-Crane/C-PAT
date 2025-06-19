@@ -17,17 +17,16 @@ const config = require('../utils/config');
 
 function serveClient(app) {
     if (config.client.disabled) {
-        logger.writeDebug('serveClient', 'client', { message: 'client disabled' })
-        return
+        logger.writeDebug('serveClient', 'client', { message: 'client disabled' });
+        return;
     }
     try {
-        serveClientEnv(app)
-        setupAngularRoutes(app)
-        serveStaticFiles(app)
-        logger.writeDebug('serveClient', 'client', { message: 'succeeded setting up client' })
-    }
-    catch (err) {
-        logger.writeError('serveClient', 'client', { message: err.message, stack: err.stack })
+        serveClientEnv(app);
+        setupAngularRoutes(app);
+        serveStaticFiles(app);
+        logger.writeDebug('serveClient', 'client', { message: 'succeeded setting up client' });
+    } catch (err) {
+        logger.writeError('serveClient', 'client', { message: err.message, stack: err.stack });
     }
 }
 
@@ -74,33 +73,33 @@ const CPAT = {
         tenableEnabled: ${config.tenable.enabled}
     }
   }
-}`
-    return envJS
+}`;
+    return envJS;
 }
 
 function serveClientEnv(app) {
-    const envJS = getClientEnv()
+    const envJS = getClientEnv();
     app.get('/cpat/Env.js', function (req, res) {
-        req.component = 'static'
-        writer.writeWithContentType(res, { payload: envJS, contentType: "application/javascript" })
-    })
+        req.component = 'static';
+        writer.writeWithContentType(res, { payload: envJS, contentType: 'application/javascript' });
+    });
 }
 function serveStaticFiles(app) {
-    const staticPath = path.join(__dirname, "../", config.client.directory)
-    logger.writeDebug('serveStaticFiles', 'client', { client_static: staticPath })
+    const staticPath = path.join(__dirname, '../', config.client.directory);
+    logger.writeDebug('serveStaticFiles', 'client', { client_static: staticPath });
 
     const expressStatic = express.static(staticPath, {
         setHeaders: (res, path) => {
             if (path.endsWith('.js')) {
-                res.setHeader('Content-Type', 'application/javascript')
+                res.setHeader('Content-Type', 'application/javascript');
             }
-        }
-    })
+        },
+    });
 
     app.use('/', (req, res, next) => {
-        req.component = 'static'
-        expressStatic(req, res, next)
-    })
+        req.component = 'static';
+        expressStatic(req, res, next);
+    });
 }
 
 function setupAngularRoutes(app) {
@@ -119,7 +118,7 @@ function setupAngularRoutes(app) {
         '/poam-processing/poam-extend/:poamId',
         '/poam-processing/poam-log/:poamId',
         '/notifications',
-        '/consent'
+        '/consent',
     ];
 
     const serveIndexWithBaseHref = (req, res) => {
@@ -134,10 +133,7 @@ function setupAngularRoutes(app) {
             const basePath = config.settings.basePath || '';
             const baseHref = basePath ? (basePath.endsWith('/') ? basePath : basePath + '/') : '/';
 
-            const modifiedHtml = data.replace(
-                /<base\s+href="[^"]*">/i,
-                `<base href="${baseHref}">`
-            );
+            const modifiedHtml = data.replace(/<base\s+href="[^"]*">/i, `<base href="${baseHref}">`);
 
             res.setHeader('Content-Type', 'text/html');
             res.send(modifiedHtml);
@@ -153,4 +149,4 @@ function setupAngularRoutes(app) {
 
 module.exports = {
     serveClient,
-}
+};

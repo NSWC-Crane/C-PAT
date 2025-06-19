@@ -9,9 +9,9 @@
 */
 
 'use strict';
-const config = require('../utils/config')
-const dbUtils = require('./utils')
-const mysql = require('mysql2')
+const config = require('../utils/config');
+const dbUtils = require('./utils');
+const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -28,11 +28,11 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName
                 FROM ${config.database.schema}.assetlabels t1
@@ -42,18 +42,18 @@ exports.getAssetLabels = async function getAssetLabels(req, res, next) {
                 ORDER BY t3.labelName
             `;
             let [rowAssetLabels] = await connection.query(sql, [req.params.collectionId]);
-            const assetLabels = rowAssetLabels.map((row) => ({
-                "assetId": row.assetId,
-                "assetName": row.assetName,
-                "labelId": row.labelId,
-                "labelName": row.labelName,
+            const assetLabels = rowAssetLabels.map(row => ({
+                assetId: row.assetId,
+                assetName: row.assetName,
+                labelId: row.labelId,
+                labelName: row.labelName,
             }));
             return assetLabels.assetLabel;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, next) {
     if (!req.params.assetId) {
@@ -61,12 +61,12 @@ exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, n
             status: 400,
             errors: {
                 assetId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName, t2.collectionId
                 FROM ${config.database.schema}.assetlabels t1
@@ -76,19 +76,19 @@ exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req, res, n
                 ORDER BY t3.labelName
             `;
             let [rowAssetLabels] = await connection.query(sql, [req.params.assetId]);
-            const assetLabels = rowAssetLabels.map((row) => ({
-                "assetId": row.assetId,
-                "assetName": row.assetName,
-                "labelId": row.labelId,
-                "labelName": row.labelName,
-                "collectionId": row.collectionId
+            const assetLabels = rowAssetLabels.map(row => ({
+                assetId: row.assetId,
+                assetName: row.assetName,
+                labelId: row.labelId,
+                labelName: row.labelName,
+                collectionId: row.collectionId,
             }));
             return assetLabels;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, next) {
     if (!req.params.labelId) {
@@ -96,11 +96,11 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, n
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName
                 FROM ${config.database.schema}.assetlabels t1
@@ -110,18 +110,18 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req, res, n
                 ORDER BY t3.labelName
             `;
             let [rowAssetLabels] = await connection.query(sql, [req.params.labelId]);
-            const assetLabels = rowAssetLabels.map((row) => ({
-                "assetId": row.assetId,
-                "assetName": row.assetName,
-                "labelId": row.labelId,
-                "labelName": row.labelName,
+            const assetLabels = rowAssetLabels.map(row => ({
+                assetId: row.assetId,
+                assetName: row.assetName,
+                labelId: row.labelId,
+                labelName: row.labelName,
             }));
             return assetLabels.assetLabels;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     if (!req.params.assetId) {
@@ -129,7 +129,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
             status: 400,
             errors: {
                 assetId: 'is required',
-            }
+            },
         });
     }
     if (!req.params.labelId) {
@@ -137,11 +137,11 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 SELECT t1.assetId, assetName, t1.labelId, labelName
                 FROM ${config.database.schema}.assetlabels t1
@@ -157,7 +157,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.postAssetLabel = async function postAssetLabel(req, res, next) {
     if (!req.body.assetId) {
@@ -165,7 +165,7 @@ exports.postAssetLabel = async function postAssetLabel(req, res, next) {
             status: 400,
             errors: {
                 assetId: 'is required',
-            }
+            },
         });
     }
     if (!req.body.labelId) {
@@ -173,7 +173,7 @@ exports.postAssetLabel = async function postAssetLabel(req, res, next) {
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     }
     if (!req.body.collectionId) {
@@ -181,12 +181,12 @@ exports.postAssetLabel = async function postAssetLabel(req, res, next) {
             status: 400,
             errors: {
                 collectionId: 'is required',
-            }
+            },
         });
     }
 
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql_query = `
                 INSERT INTO ${config.database.schema}.assetlabels (assetId, collectionId, labelId)
                 VALUES (?, ?, ?)
@@ -201,12 +201,12 @@ exports.postAssetLabel = async function postAssetLabel(req, res, next) {
             let [rowAssetLabel] = await connection.query(sql, [req.body.assetId, req.body.labelId]);
 
             const assetLabel = rowAssetLabel.length > 0 ? rowAssetLabel[0] : null;
-            return (assetLabel);
+            return assetLabel;
         });
     } catch (error) {
         return { error: error.message };
     }
-}
+};
 
 exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
     if (!req.params.assetId) {
@@ -214,7 +214,7 @@ exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
             status: 400,
             errors: {
                 assetId: 'is required',
-            }
+            },
         });
     }
     if (!req.params.labelId) {
@@ -222,11 +222,11 @@ exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
             status: 400,
             errors: {
                 labelId: 'is required',
-            }
+            },
         });
     }
     try {
-        return await withConnection(async (connection) => {
+        return await withConnection(async connection => {
             let sql = `
                 DELETE FROM ${config.database.schema}.assetlabels
                 WHERE assetId = ? AND labelId = ?
@@ -237,4 +237,4 @@ exports.deleteAssetLabel = async function deleteAssetLabel(req, res, next) {
     } catch (error) {
         return { error: error.message };
     }
-}
+};

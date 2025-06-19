@@ -14,31 +14,27 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root'
 })
 export class PoamApproveService {
-  private cpatApiBase = CPAT.Env.apiBase;
+    private cpatApiBase = CPAT.Env.apiBase;
 
-  constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {}
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error('An error occurred:', error.error.message);
-    } else {
-      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
+    private handleError(error: HttpErrorResponse) {
+        if (error.error instanceof ErrorEvent) {
+            console.error('An error occurred:', error.error.message);
+        } else {
+            console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
+        }
+        return throwError(() => new Error('Something bad happened; please try again later.'));
     }
-    return throwError(() => new Error('Something bad happened; please try again later.'));
-  }
 
-  getPoamApprovers(poamId: string): Observable<any> {
-    return this.http
-      .get<any>(`${this.cpatApiBase}/poamApprovers/${poamId}`)
-      .pipe(catchError(this.handleError));
-  }
+    getPoamApprovers(poamId: string): Observable<any> {
+        return this.http.get<any>(`${this.cpatApiBase}/poamApprovers/${poamId}`).pipe(catchError(this.handleError));
+    }
 
-  updatePoamApprover(approver: any): Observable<any> {
-    return this.http
-      .put<any>(`${this.cpatApiBase}/poamApprover`, approver)
-      .pipe(catchError(this.handleError));
-  }
+    updatePoamApprover(approver: any): Observable<any> {
+        return this.http.put<any>(`${this.cpatApiBase}/poamApprover`, approver).pipe(catchError(this.handleError));
+    }
 }
