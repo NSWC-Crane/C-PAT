@@ -61,7 +61,7 @@
               </div>
               <p-progressBar [value]="totalSizePercent"
                 [showValue]="false"
-                class="h-4 w-full md:w-80 md:ml-auto"
+                class="h-4 w-full md:ml-auto md:w-80"
                 [ngClass]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">
                 <span class="whitespace-nowrap">{{ totalSize }}B / 10Mb</span>
               </p-progressBar>
@@ -121,7 +121,7 @@
               </ng-template>
               <ng-template pTemplate="empty">
                 <div class="flex h-64 flex-col items-center justify-center">
-                  <i class="pi pi-cloud-upload border-2 rounded-full border-gray-400 p-8 text-8xl text-gray-400 dark:text-gray-500 dark:border-gray-500"></i>
+                  <i class="pi pi-cloud-upload rounded-full border-2 border-gray-400 p-8 text-8xl text-gray-400 dark:border-gray-500 dark:text-gray-500"></i>
                   <p class="mb-0 mt-6 text-gray-600 dark:text-gray-400">Drag and drop files here to upload.</p>
                 </div>
               </ng-template>
