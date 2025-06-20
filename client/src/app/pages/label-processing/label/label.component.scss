@@ -11,3 +11,7 @@
 .p-grid {
   margin-top: 20px;
 }
+
+::ng-deep .p-dialog .p-dialog-content {
+    padding-top: 0rem;
+}

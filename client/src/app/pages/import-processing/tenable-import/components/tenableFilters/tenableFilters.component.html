@@ -23,8 +23,8 @@
   </div>
   <ng-template pTemplate="footer">
     <div class="flex w-full justify-between">
-      <p-button label="Save" icon="pi pi-save" (onClick)="saveCustomFilter()" [disabled]="!newFilterName?.trim()"> </p-button>
       <p-button label="Cancel" icon="pi pi-times" (onClick)="cancelSaveFilter()" styleClass="p-button-secondary"> </p-button>
+      <p-button label="Save" icon="pi pi-save" (onClick)="saveCustomFilter()" [disabled]="!newFilterName?.trim()"> </p-button>
     </div>
   </ng-template>
 </p-dialog>

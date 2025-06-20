@@ -128,8 +128,10 @@ export class PoamMilestonesComponent implements OnInit {
         message: 'The milestone date has not been modified. Would you like to proceed?',
         header: 'Confirm Milestone Date',
         icon: 'pi pi-exclamation-triangle',
-        acceptButtonStyleClass: 'p-button-primary',
-        rejectButtonStyleClass: 'p-button-secondary',
+        acceptLabel: 'Confirm',
+        rejectLabel: 'Cancel',
+        acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+        rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
         accept: () => {
           this.finalizeRowEdit(milestone);
         },
@@ -183,8 +185,10 @@ export class PoamMilestonesComponent implements OnInit {
       message: 'Are you sure you want to delete this milestone?',
       header: 'Delete Confirmation',
       icon: 'pi pi-exclamation-triangle',
-      acceptButtonStyleClass: 'p-button-primary',
-      rejectButtonStyleClass: 'p-button-secondary',
+      acceptLabel: 'Confirm',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+      rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
       accept: () => {
         this.poamMilestones.splice(index, 1);
         this.milestonesChanged.emit(this.poamMilestones);

@@ -9,8 +9,14 @@
 */
 
 :host ::ng-deep {
-  .p-dialog-content {
-    padding: 2rem;
+  .p-dialog {
+    .p-dialog-header {
+      padding: var(--p-dialog-header-padding);
+    }
+
+    .p-dialog-content {
+      padding: 2rem;
+    }
   }
 
   .font-mono {

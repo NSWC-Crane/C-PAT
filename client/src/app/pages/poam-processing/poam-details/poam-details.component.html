@@ -762,9 +762,9 @@
 
       <!-- Buttons -->
       <p-footer>
+        <button pButton type="button" label="Cancel" class="p-button-outlined p-button-secondary" (click)="cancelPoam()" style="margin-left: 20px"></button>
         <button pButton type="button" label="Save" class="p-button-outlined p-button-primary" [disabled]="accessLevel() < 2" (click)="savePoam()" style="margin-left: 20px; margin-top: 20px"></button>
         <button pButton type="button" label="Submit" class="p-button-outlined p-button-success" (click)="verifySubmitPoam()" style="margin-left: 20px"></button>
-        <button pButton type="button" label="Cancel" class="p-button-outlined p-button-secondary" (click)="cancelPoam()" style="margin-left: 20px"></button>
       </p-footer>
     </p-card>
   </div>
@@ -782,13 +782,6 @@
       <p-button [text]="true" [raised]="true" (click)="cancelSubmit()" (onKeyUp)="cancelSubmit()" label="Cancel" severity="danger"></p-button>
       <p-button [text]="true" [raised]="true" (click)="confirmSubmit()" (onKeyUp)="confirmSubmit()" label="Submit"></p-button>
     </div>
-  </ng-template>
-</p-dialog>
-
-<p-dialog header="{{ errorHeader }}" [(visible)]="errorDialogVisible" [modal]="true" [style]="{ width: '300px' }" [baseZIndex]="10000">
-  <p>{{ errorMessage }}</p>
-  <ng-template pTemplate="footer">
-    <p-button icon="pi pi-check" (click)="hideErrorDialog()" (onKeyUp)="hideErrorDialog()" label="OK" styleClass="p-button-text"></p-button>
   </ng-template>
 </p-dialog>
 

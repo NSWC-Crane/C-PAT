@@ -56,14 +56,6 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: pr_other
-    attributes:
-      label: Other Reason
-      description: If your answer to the previous question is "Other", please explain the reason.
-    validations:
-      required: false
-
   - type: dropdown
     id: priority
     attributes:

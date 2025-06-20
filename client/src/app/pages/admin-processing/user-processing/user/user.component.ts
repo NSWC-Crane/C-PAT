@@ -540,8 +540,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       icon: ' ',
       acceptLabel: 'Confirm',
       rejectLabel: 'Cancel',
-      acceptButtonStyleClass: 'p-button-primary',
-      rejectButtonStyleClass: 'p-button-secondary',
+      acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+      rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
       accept: () => onConfirm(),
       reject: () => {
         this.messageService.add({

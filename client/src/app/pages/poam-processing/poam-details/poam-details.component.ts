@@ -133,9 +133,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   poamLabels: any[] = [];
   poamAssociatedVulnerabilities: any[] = [];
   labelList: any[] = [];
-  errorDialogVisible: boolean = false;
-  errorMessage: string = '';
-  errorHeader: string = 'Error';
   poam: any;
   poamId: any = '';
   dates: any = {};
@@ -1308,10 +1305,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       message: `Are you sure you want to delete POAM ${this.poam.poamId}? This action is irreversable.`,
       header: 'Confirm POAM Deletion',
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Yes',
-      rejectLabel: 'No',
-      acceptButtonStyleClass: 'p-button-primary',
-      rejectButtonStyleClass: 'p-button-secondary',
+      acceptLabel: 'Confirm',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+      rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
       accept: () => {
         this.poamService.deletePoam(this.poam.poamId).subscribe({
           next: () => {
@@ -1345,16 +1342,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       icon: 'pi pi-exclamation-triangle',
       accept: options.accept
     });
-  }
-
-  showError(message: string, header?: string) {
-    this.errorMessage = message;
-    this.errorHeader = header || 'Error';
-    this.errorDialogVisible = true;
-  }
-
-  hideErrorDialog() {
-    this.errorDialogVisible = false;
   }
 
   private _ensureUniqueTeamMitigations(): void {

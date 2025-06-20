@@ -20,8 +20,8 @@
   <div class="formgroup-inline">
     <div class="mt-8 flex w-full items-center justify-between">
       <div class="flex gap-6">
-        <button pButton type="submit" [outlined]="true" label="Submit" [disabled]="!form.valid"></button>
         <button pButton type="button" [outlined]="true" label="Cancel" class="p-button-secondary" (click)="resetData()"></button>
+        <button pButton type="submit" [outlined]="true" label="Submit" [disabled]="!form.valid"></button>
       </div>
       <button pButton type="button" [outlined]="true" label="Delete Label" class="p-button-danger" (click)="deleteLabel(label)" [disabled]="accessLevel < 2"></button>
     </div>
