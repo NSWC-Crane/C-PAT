@@ -1,0 +1,137 @@
+name: Bug report
+description: Create a report to help C-PAT improve.
+title: Issue Title
+labels:
+  - 'Type: Bug'
+  - 'Status: Needs Triage'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Issue Creation Guidelines
+
+        To help us assist you better, please follow these requirements when creating an issue:
+
+        ### C-PAT Version
+        Ensure that you are updated within the current minor version. i.e. C-PAT is on 1.2.4, version ^1.2.0 is required.
+
+        ### Provide a Pull Request
+        We highly encourage contributions from the community! If you have the time and ability, consider submitting a pull request to address this issue. Here's how you can get started:
+
+        1. Fork the repository.
+        2. Create a new branch (`git checkout -b feature/YourFeatureName`).
+        3. Make your changes.
+        4. Commit your changes (`git commit -m 'Add some feature'`).
+        5. Push to the branch (`git push origin feature/YourFeatureName`).
+        6. Open a pull request.
+
+        ### Discussions and Questions
+        Please refrain from creating issue tickets for questions or support requests. Instead, use the [C-PAT Teams channel](https://dod.teams.microsoft.us/l/team/19%3Adod%3AODkXfTLAxungD6xHi3ae-XHC1AW9hU_h_x77eJQoaOA1%40thread.tacv2/conversations?groupId=a6a733ca-a5bf-45ee-9830-6f5c99c5b580&tenantId=e3333e00-c877-4b87-b6ad-45e942de1750) or [email](mailto:christian.a.rodriguez@mantech.com?subject=CPAT%20Question) for assistance.
+
+        ## New Issue Report
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the report is about.
+    validations:
+      required: true
+
+  - type: input
+    id: pull_request
+    attributes:
+      label: Pull Request Link
+      description: Link to your pull request, if applicable.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: reason_for_no_pr
+    attributes:
+      label: Reason for not contributing a PR
+      options:
+        - label: Lack of time
+        - label: Unsure how to implement the fix/feature
+        - label: Difficulty understanding the codebase
+        - label: Other
+
+  - type: textarea
+    id: pr_other
+    attributes:
+      label: Other Reason
+      description: If your answer to the previous question is "Other", please explain the reason.
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Tell us about your environment.
+    validations:
+      required: true
+
+  - type: input
+    id: cpat_version
+    attributes:
+      label: C-PAT version
+      description: Only issues related to the current minor version will be accepted.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment_type
+    attributes:
+      label: Deployment Type
+      description: Select the type of deployment you are using. If unsure, select "Other".
+      options:
+        - Source Code
+        - Container
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: deployment_type_other
+    attributes:
+      label: Other Deployment Type
+      description: If your answer to the previous question is "Other", please describe the deployment scenario.
+    validations:
+      required: false
+
+  - type: input
+    id: browsers
+    attributes:
+      label: Browser(s)
+      description: List specific browser(s) the problem occurs on or leave blank if ALL browsers
+      placeholder: e.g. Safari 15, Firefox 139.0.4, Chrome 90
+
+  - type: textarea
+    id: reproduce_steps
+    attributes:
+      label: Steps to reproduce the behavior
+      description: A clear and concise description of how to make the issue happen.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_information
+    attributes:
+      label: Additional Information
+      description: Add any other context about the problem here, such as screenshot links, logs, or error messages.
+    validations:
+      required: true

@@ -1,0 +1,105 @@
+name: Feature request
+description: Suggest an idea or enhancement for C-PAT.
+title: Feature Request
+labels:
+  - 'Type: New Feature'
+  - 'Status: Needs Triage'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request Guidelines
+
+        To help us understand and evaluate your feature request, please follow these guidelines:
+
+        ### Discussions and Questions
+        For general discussions about potential features or to gauge community interest, please use the [C-PAT Teams channel](https://dod.teams.microsoft.us/l/team/19%3Adod%3AODkXfTLAxungD6xHi3ae-XHC1AW9hU_h_x77eJQoaOA1%40thread.tacv2/conversations?groupId=a6a733ca-a5bf-45ee-9830-6f5c99c5b580&tenantId=e3333e00-c877-4b87-b6ad-45e942de1750) or [email](mailto:christian.a.rodriguez@mantech.com?subject=CPAT%20Feature%20Discussion) before creating a formal feature request.
+
+        ### Provide a Pull Request
+        We highly encourage contributions from the community! If you have the time and ability, consider implementing this feature yourself. Here's how you can get started:
+
+        1. Fork the repository.
+        2. Create a new branch (`git checkout -b feature/YourFeatureName`).
+        3. Implement your feature.
+        4. Commit your changes (`git commit -m 'Add new feature'`).
+        5. Push to the branch (`git push origin feature/YourFeatureName`).
+        6. Open a pull request.
+
+        ## New Feature Request
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Describe the feature
+      description: A clear and concise description of the feature you'd like to see implemented.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem_statement
+    attributes:
+      label: Problem Statement
+      description: Describe the problem or limitation this feature would solve. Why is this feature needed?
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: Describe a specific scenario or workflow where this feature would be used.
+      placeholder: |
+        1. User navigates to '...'
+        2. User wants to '....'
+        3. With this feature, user could '....'
+        4. Result would be '....'
+    validations:
+      required: true
+
+  - type: input
+    id: pull_request
+    attributes:
+      label: Pull Request Link
+      description: Link to your pull request implementing this feature, if applicable.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: reason_for_no_pr
+    attributes:
+      label: Reason for not contributing a PR
+      options:
+        - label: Lack of time
+        - label: Unsure how to implement the feature
+        - label: Difficulty understanding the codebase
+        - label: Requires architectural decisions
+        - label: Other
+
+  - type: textarea
+    id: pr_other
+    attributes:
+      label: Other Reason
+      description: If your answer to the previous question is "Other", please explain the reason.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to your workflow?
+      options:
+        - Critical - Blocking work
+        - High - Major improvement
+        - Medium - Nice to have
+        - Low - Minor enhancement
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, diagrams, or examples about the feature request here.
+    validations:
+      required: false
