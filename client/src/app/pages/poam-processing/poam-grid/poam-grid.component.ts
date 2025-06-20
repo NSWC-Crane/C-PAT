@@ -131,7 +131,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         source: poam.vulnerabilitySource,
         vulnerabilityTitle: poam.vulnerabilityTitle ?? '',
         adjSeverity: poam.adjSeverity,
-        submitter: poam.submitterName,
+        owner: poam.ownerName ?? poam.submitterName,
         submittedDate: poam.submittedDate?.split('T')[0],
         scheduledCompletionDate: poam.scheduledCompletionDate?.split('T')[0],
         assignedTeams: poam.assignedTeams

@@ -56,7 +56,7 @@
           'iavmNumber',
           'vulnerabilityTitle',
           'adjSeverity',
-          'submitter',
+          'owner',
           'assignedTeams',
           'labels',
           'associatedVulnerabilities',
@@ -125,10 +125,10 @@
                 <p-columnFilter type="text" field="adjSeverity" [showOperator]="false" display="menu"></p-columnFilter>
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="submitter">
+            <th scope="col" pResizableColumn pSortableColumn="owner">
               <div class="flex items-center">
-                Submitter
-                <p-columnFilter type="text" field="submitter" [showOperator]="false" display="menu"></p-columnFilter>
+                Owner
+                <p-columnFilter type="text" field="owner" [showOperator]="false" display="menu"></p-columnFilter>
               </div>
             </th>
             <th scope="col" pResizableColumn pSortableColumn="submittedDate">
@@ -199,7 +199,7 @@
             <td>{{ row.taskOrderNumber }}</td>
             <td>{{ row.iavmNumber }}</td>
             <td>{{ row.adjSeverity }}</td>
-            <td>{{ row.submitter }}</td>
+            <td>{{ row.owner }}</td>
             <td>{{ row.submittedDate }}</td>
             <td>{{ row.scheduledCompletionDate }}</td>
             <td style="text-align: center">{{ row.lastUpdated }}</td>

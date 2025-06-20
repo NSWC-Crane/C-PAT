@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, computed, signal, inject } from '@angular/core';
+import { Component, Input, ViewChild, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { addDays, format } from 'date-fns';
@@ -18,59 +18,113 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+
+interface AssignedTeam {
+  name: string;
+  complete: 'true' | 'false' | 'partial' | 'global';
+}
+
+interface PoamAssignedData {
+  poamId: string;
+  vulnerabilityId: string;
+  affectedAssets: number;
+  isAffectedAssetsLoading: boolean;
+  isAffectedAssetsMissing: boolean;
+  hasAssociatedVulnerabilities: boolean;
+  associatedVulnerabilitiesTooltip: string;
+  scheduledCompletionDate: string;
+  adjSeverity: string;
+  status: string;
+  owner: string;
+  assignedTeams: AssignedTeam[];
+  labels: string[];
+}
+
+interface ColumnConfig {
+  field: string;
+  header: string;
+  sortable?: boolean;
+  tooltip?: string;
+  width?: string;
+}
 
 @Component({
   selector: 'cpat-poam-assigned-grid',
   templateUrl: './poam-assigned-grid.component.html',
   styleUrls: ['./poam-assigned-grid.component.scss'],
   standalone: true,
-  imports: [ButtonModule, FormsModule, TableModule, ProgressSpinnerModule, IconFieldModule, InputIconModule, InputTextModule, TagModule, TooltipModule],
+  imports: [
+    ButtonModule,
+    FormsModule,
+    TableModule,
+    ProgressSpinnerModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    TagModule,
+    TooltipModule
+  ],
   providers: [MessageService]
 })
 export class PoamAssignedGridComponent {
   private router = inject(Router);
 
+  @ViewChild('dt') table!: Table;
   @Input() userId!: number;
 
-  private _assignedData = signal<any[]>([]);
+  protected readonly columns: ColumnConfig[] = [
+    { field: 'poamId', header: 'POAM ID', sortable: true },
+    { field: 'vulnerabilityId', header: 'Vulnerability ID', sortable: true },
+    { field: 'affectedAssets', header: 'Affected Assets', sortable: true },
+    {
+      field: 'scheduledCompletionDate',
+      header: 'Scheduled Completion',
+      sortable: true,
+      tooltip: 'Date shown includes extension time if applicable'
+    },
+    { field: 'adjSeverity', header: 'Adjusted Severity', sortable: true },
+    { field: 'status', header: 'Status', sortable: true },
+    { field: 'owner', header: 'Owner', sortable: true },
+    { field: 'assignedTeams', header: 'Assigned Team' },
+    { field: 'labels', header: 'Labels' }
+  ];
+
+  globalFilterSignal = signal<string>('');
+
+  private assignedDataSignal = signal<any[]>([]);
   @Input() set assignedData(value: any[]) {
-    this._assignedData.set(value || []);
+    this.assignedDataSignal.set(value || []);
   }
 
-  private _affectedAssetCounts = signal<{ vulnerabilityId: string; assetCount: number }[]>([]);
-  private _assetCountsLoaded = signal<boolean>(false);
-  private _hasReceivedData = false;
+  private affectedAssetCountsSignal = signal<{ vulnerabilityId: string; assetCount: number }[]>([]);
+  private assetCountsLoaded = signal<boolean>(false);
+  private hasReceivedData = false;
 
   @Input() set affectedAssetCounts(value: { vulnerabilityId: string; assetCount: number }[]) {
-    this._affectedAssetCounts.set(value || []);
+    this.affectedAssetCountsSignal.set(value || []);
 
-    if ((value && value.length > 0) || this._hasReceivedData) {
-      this._assetCountsLoaded.set(true);
+    if ((value && value.length > 0) || this.hasReceivedData) {
+      this.assetCountsLoaded.set(true);
 
       if (value && value.length > 0) {
-        this._hasReceivedData = true;
+        this.hasReceivedData = true;
       }
     }
   }
 
-  globalFilter = signal<string>('');
+  displayedData = computed<PoamAssignedData[]>(() => {
+    const data = this.assignedDataSignal();
+    const assetCounts = this.affectedAssetCountsSignal();
+    const assetCountsLoaded = this.assetCountsLoaded();
 
-  protected readonly assignedColumns = signal<string[]>(['POAM ID', 'Vulnerability ID', 'Affected Assets', 'Scheduled Completion', 'Adjusted Severity', 'Status', 'Submitter', 'Assigned Team', 'Labels']);
-
-  private transformedData = computed(() => {
-    const data = this._assignedData();
-    const assetCounts = this._affectedAssetCounts();
-    const assetCountsLoaded = this._assetCountsLoaded();
     const assetCountMap = new Map<string, number>();
 
-    if (assetCounts && assetCounts.length > 0) {
-      assetCounts.forEach((item) => {
-        assetCountMap.set(item.vulnerabilityId, item.assetCount);
-      });
-    }
+    assetCounts.forEach((item) => {
+      assetCountMap.set(item.vulnerabilityId, item.assetCount);
+    });
 
     return data.map((item) => {
       let adjustedDate = new Date(item.scheduledCompletionDate);
@@ -79,16 +133,14 @@ export class PoamAssignedGridComponent {
         adjustedDate = addDays(adjustedDate, item.extensionTimeAllowed);
       }
 
-      const formattedDate = format(adjustedDate, 'yyyy-MM-dd');
       const primaryCount = assetCountMap.get(item.vulnerabilityId);
-
       const isAssetsLoading = !assetCountsLoaded;
       const isAssetsMissing = assetCountsLoaded && primaryCount === undefined;
 
       let hasAssociatedVulnerabilities = false;
       let associatedVulnerabilitiesTooltip = 'Associated Vulnerabilities:';
 
-      if (item.associatedVulnerabilities && item.associatedVulnerabilities.length > 0) {
+      if (item.associatedVulnerabilities?.length > 0) {
         hasAssociatedVulnerabilities = true;
         item.associatedVulnerabilities.forEach((vulnId: string) => {
           const associatedCount = assetCountMap.get(vulnId);
@@ -109,66 +161,51 @@ export class PoamAssignedGridComponent {
         isAffectedAssetsMissing: isAssetsMissing,
         hasAssociatedVulnerabilities,
         associatedVulnerabilitiesTooltip,
-        scheduledCompletionDate: formattedDate,
+        scheduledCompletionDate: format(adjustedDate, 'yyyy-MM-dd'),
         adjSeverity: item.adjSeverity,
         status: item.status,
-        submitter: item.submitterName,
-        assignedTeams: item.assignedTeams
-          ? item.assignedTeams.map((team: any) => ({
-              name: team.assignedTeamName,
-              complete: team.complete
-            }))
-          : [],
-        labels: item.labels ? item.labels.map((label: any) => label.labelName) : []
+        owner: item.ownerName ?? item.submitterName,
+        assignedTeams: item.assignedTeams?.map((team: any) => ({
+          name: team.assignedTeamName,
+          complete: team.complete
+        })) || [],
+        labels: item.labels?.map((label: any) => label.labelName) || []
       };
     });
   });
 
-  filteredData = computed(() => {
-    const sourceData = this.transformedData();
-    const filterValue = this.globalFilter() ? this.globalFilter().toLowerCase() : '';
+  get globalFilter(): string {
+    return this.globalFilterSignal();
+  }
 
-    if (!filterValue) {
-      return sourceData;
+  set globalFilter(value: string) {
+    this.globalFilterSignal.set(value);
+  }
+
+  managePoam(row: PoamAssignedData) {
+    this.router.navigateByUrl(`/poam-processing/poam-details/${row.poamId}`);
+  }
+
+  clear() {
+    this.table.clear();
+    this.globalFilterSignal.set('');
+  }
+
+  getTeamSeverity(complete: string): string {
+    switch (complete) {
+      case 'true': return 'success';
+      case 'partial': return 'warn';
+      case 'global': return '';
+      default: return 'danger';
     }
-
-    return sourceData.filter((poam) => Object.values(poam).some((value) => value && value.toString().toLowerCase().includes(filterValue)));
-  });
-
-  managePoam(row: any) {
-    const poamId = row.poamId;
-
-    this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
   }
 
-  onFilterChange(event: Event) {
-    const target = event.target as HTMLInputElement;
-
-    this.globalFilter.set(target.value);
-  }
-
-  getColumnKey(col: string): string {
-    switch (col) {
-      case 'POAM ID':
-        return 'poamId';
-      case 'Vulnerability ID':
-        return 'vulnerabilityId';
-      case 'Affected Assets':
-        return 'affectedAssets';
-      case 'Scheduled Completion':
-        return 'scheduledCompletionDate';
-      case 'Adjusted Severity':
-        return 'adjSeverity';
-      case 'Status':
-        return 'status';
-      case 'Submitter':
-        return 'submitter';
-      case 'Assigned Team':
-        return 'assignedTeams';
-      case 'Labels':
-        return 'labels';
-      default:
-        return col.toLowerCase().replace(/\s+/g, '').replace('#', '');
+  getTeamTooltip(complete: string): string {
+    switch (complete) {
+      case 'true': return 'Team has fulfilled all POAM requirements';
+      case 'partial': return 'Team has partially fulfilled POAM requirements';
+      case 'global': return 'Global Finding - No Team Requirements';
+      default: return 'Team has not fulfilled any POAM requirements';
     }
   }
 }
