@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: C-PAT Documentation
+    url: http://c-pat.readthedocs.io/
+    about: Please review our documentation for help with C-PAT.
+  - name: Contact Us
+    url: mailto:christian.a.rodriguez@mantech.com?subject=CPAT%20Question
+    about: If you have a question or need assistance that can not be answered via GitHub, please contact us via email.
