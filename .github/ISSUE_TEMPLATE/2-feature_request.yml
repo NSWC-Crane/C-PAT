@@ -1,4 +1,4 @@
-name: Feature request
+name: Feature Request
 description: Suggest an idea or enhancement for C-PAT.
 title: Feature Request
 labels:
@@ -13,7 +13,7 @@ body:
         To help us understand and evaluate your feature request, please follow these guidelines:
 
         ### Discussions and Questions
-        For general discussions about potential features or to gauge community interest, please use the [C-PAT Teams channel](https://dod.teams.microsoft.us/l/team/19%3Adod%3AODkXfTLAxungD6xHi3ae-XHC1AW9hU_h_x77eJQoaOA1%40thread.tacv2/conversations?groupId=a6a733ca-a5bf-45ee-9830-6f5c99c5b580&tenantId=e3333e00-c877-4b87-b6ad-45e942de1750) or [email](mailto:christian.a.rodriguez@mantech.com?subject=CPAT%20Feature%20Discussion) before creating a formal feature request.
+        For general discussions about potential features or to gauge community interest, please use the [C-PAT Teams channel](https://dod.teams.microsoft.us/l/team/19%3Adod%3AODkXfTLAxungD6xHi3ae-XHC1AW9hU_h_x77eJQoaOA1%40thread.tacv2/conversations?groupId=a6a733ca-a5bf-45ee-9830-6f5c99c5b580&tenantId=e3333e00-c877-4b87-b6ad-45e942de1750) or send us an [email](mailto:christian.a.rodriguez@mantech.com?subject=CPAT%20Feature%20Discussion) before creating a formal feature request.
 
         ### Provide a Pull Request
         We highly encourage contributions from the community! If you have the time and ability, consider implementing this feature yourself. Here's how you can get started:
