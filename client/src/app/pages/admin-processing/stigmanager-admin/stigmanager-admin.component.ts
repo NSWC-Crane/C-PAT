@@ -137,6 +137,10 @@ export class STIGManagerAdminComponent implements OnInit, OnDestroy {
       message: `Are you sure you want to import all ${this.filteredCollections.length} remaining collections?`,
       header: 'Confirm Bulk Import',
       icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Confirm',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+      rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
       accept: () => {
         forkJoin(this.filteredCollections.map((collection) => this.importCollection(collection)))
           .pipe(takeUntil(this.destroy$))

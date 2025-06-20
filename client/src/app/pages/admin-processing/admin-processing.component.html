@@ -10,7 +10,7 @@
 
 <div class="card overflow-hidden">
   <div class="mt-[-1.5rem] mr-[-1.5rem] flex justify-end">
-    <button pButton icon="pi pi-cog" class="p-button-rounded p-button-text" (click)="navigateToAppInfo()"></button>
+    <p-button icon="pi pi-cog" [rounded]="true" variant="text" (onClick)="navigateToAppInfo()"></p-button>
   </div>
   <p-tabs [(value)]="value" scrollable>
     <p-tablist>
@@ -21,7 +21,9 @@
         <p-tab [value]="3">Tenable Import</p-tab>
       }
       <p-tab [value]="4">Asset Deltas</p-tab>
-      <p-tab [value]="5">VRAM IAV Import</p-tab>
+      @if (tenableEnabled) {
+        <p-tab [value]="5">VRAM IAV Import</p-tab>
+      }
       @if (tenableEnabled) {
         <p-tab [value]="6">Nessus Plugin Mapping</p-tab>
       }
@@ -52,9 +54,11 @@
         <cpat-asset-delta [activated]="value === 4"></cpat-asset-delta>
       </p-tabpanel>
 
-      <p-tabpanel [value]="5">
-        <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()"></cpat-vram-import>
-      </p-tabpanel>
+      @if (tenableEnabled) {
+        <p-tabpanel [value]="5">
+          <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()"></cpat-vram-import>
+        </p-tabpanel>
+      }
 
       @if (tenableEnabled) {
         <p-tabpanel [value]="6">

@@ -76,7 +76,7 @@
                         <th scope="col" pSortableColumn="assignedTeamId">Milestone Team</th>
                         <th scope="col"></th>
                         <th scope="col">
-                          <button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewMilestone()" [disabled]="accessLevel < 2"></button>
+                          <p-button icon="pi pi-plus" variant="text" (onClick)="onAddNewMilestone()" [disabled]="accessLevel < 2" />
                         </th>
                       </tr>
                     </ng-template>
@@ -154,10 +154,12 @@
                         <td></td>
                         <td style="text-align: center">
                           @if (editing) {
-                            <button pButton type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(milestone)" class="p-button-rounded p-button-text p-button-success mr-2" [disabled]="accessLevel < 2"></button>
-                            <button pButton type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(milestone, ri)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+                            <div class="flex justify-center items-center gap-2">
+                              <p-button pSaveEditableRow icon="pi pi-check" (click)="$event.stopPropagation(); (milestone)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel < 2" />
+                              <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
+                            </div>
                           } @else {
-                            <button pButton type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(milestone)" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
+                            <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(milestone)" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
                           }
                         </td>
                       </tr>

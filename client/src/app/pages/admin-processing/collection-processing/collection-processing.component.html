@@ -29,7 +29,7 @@
           </p-inputIcon>
           <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections" class="search-input" />
         </p-iconField>
-        <button pButton type="button" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Manually Add Collection" (click)="showAddCollectionDialog()"></button>
+        <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Manually Add Collection" (onClick)="showAddCollectionDialog()" />
       </div>
     </ng-template>
     <ng-template pTemplate="header" let-columns>
@@ -53,9 +53,9 @@
           </td>
         }
         <td>
-          <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text mr-2" (click)="$event.stopPropagation(); showModifyCollectionDialog(rowData)"></button>
-          <button pButton type="button" icon="pi pi-download" class="p-button-rounded p-button-text mr-2" (click)="$event.stopPropagation(); exportCollection(rowData)"></button>
-          <button pButton type="button" icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="$event.stopPropagation(); confirmDeleteCollection(rowData)"></button>
+          <p-button icon="pi pi-pencil" [rounded]="true" variant="text" class="mr-2" (onClick)="$event.stopPropagation(); showModifyCollectionDialog(rowData)" />
+          <p-button icon="pi pi-download" [rounded]="true" variant="text" class="mr-2" (onClick)="$event.stopPropagation(); exportCollection(rowData)" />
+          <p-button icon="pi pi-trash" [rounded]="true" variant="text" severity="danger" (onClick)="$event.stopPropagation(); confirmDeleteCollection(rowData)" />
         </td>
       </tr>
     </ng-template>
@@ -128,8 +128,8 @@
   </ng-template>
 
   <ng-template pTemplate="footer">
-    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideCollectionDialog()"></button>
-    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveCollection()"></button>
+    <p-button label="Cancel" variant="outlined" (onClick)="hideCollectionDialog()" />
+    <p-button label="Save" variant="outlined" (onClick)="saveCollection()" />
   </ng-template>
 </p-dialog>
 
@@ -144,8 +144,8 @@
   </div>
   <ng-template pTemplate="footer">
     <div class="m-2 flex w-full items-center justify-between">
-      <button pButton label="Yes" icon="pi pi-check" (click)="deleteCollection()" class="p-button-primary"></button>
-      <button pButton label="No" icon="pi pi-times" (click)="hideDeleteDialog()" class="p-button-secondary"></button>
+      <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="hideDeleteDialog()" />
+      <p-button label="Confirm" variant="outlined" (onClick)="deleteCollection()" />
     </div>
   </ng-template>
 </p-dialog>

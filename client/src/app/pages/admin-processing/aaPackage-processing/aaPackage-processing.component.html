@@ -20,7 +20,7 @@
               </p-inputIcon>
               <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search A&A Packages" class="search-input" />
             </p-iconField>
-            <button pButton type="button" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Add A&A Package" (click)="onAddNewClick()"></button>
+            <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add A&A Package" (onClick)="onAddNewClick()" />
           </div>
         </ng-template>
         <ng-template pTemplate="header">
@@ -44,16 +44,16 @@
             <td>
               <div class="flex items-center justify-center gap-2">
                 @if (!editing) {
-                  <button pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(aaPackage)" class="p-button-rounded p-button-text"></button>
+                  <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(aaPackage)" [rounded]="true" variant="text" />
                 }
                 @if (editing) {
-                  <button pButton pRipple type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(aaPackage)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+                  <p-button pSaveEditableRow icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(aaPackage)" [rounded]="true" variant="text" severity="success" class="mr-2" />
                 }
                 @if (editing) {
-                  <button pButton pRipple type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(aaPackage, ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+                  <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(aaPackage, ri)" [rounded]="true" variant="text" severity="danger" />
                 }
                 @if (!editing) {
-                  <button pButton pRipple type="button" icon="pi pi-trash" (click)="onRowDelete(aaPackage)" class="p-button-rounded p-button-text p-button-danger"></button>
+                  <p-button icon="pi pi-trash" (click)="$event.stopPropagation(); onRowDelete(aaPackage)" [rounded]="true" variant="text" severity="danger" />
                 }
               </div>
             </td>

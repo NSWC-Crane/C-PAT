@@ -29,7 +29,7 @@
               <p>{{ theme.themeDescription }}</p>
               <p-chip [label]="theme.cost + ' Points'" styleClass="p-mr-2"></p-chip>
               <ng-template pTemplate="footer">
-                <button pButton pRipple type="button" label="Purchase" class="p-button-outlined" (click)="purchaseTheme(theme)"></button>
+                <p-button label="Purchase" variant="outlined" (onClick)="purchaseTheme(theme)" />
               </ng-template>
             </p-card>
           </div>
@@ -52,7 +52,7 @@
                 </ng-template>
                 <p>{{ theme.themeDescription }}</p>
                 <ng-template pTemplate="footer">
-                  <button pButton pRipple type="button" label="Enable Theme" class="p-button-outlined" (click)="setTheme(theme.themeIdentifier)"></button>
+                  <p-button label="Enable Theme" variant="outlined" (onClick)="setTheme(theme.themeIdentifier)" />
                 </ng-template>
               </p-card>
             </div>

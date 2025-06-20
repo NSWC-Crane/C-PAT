@@ -43,6 +43,7 @@
                       <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()" pTooltip="Clear all filters"></p-button>
                     </div>
                     <div class="right-buttons">
+                      <p-button pTooltip="Add Asset" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" (onClick)="addAsset()" [disabled]="accessLevel < 2" />
                       <p-button class="ml-2" icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="assetTable.exportCSV()"> </p-button>
                     </div>
                   </div>
@@ -112,7 +113,7 @@
               </p-tabpanel>
               <p-tabpanel value="1">
                 <div class="canvas" id="canvas" style="margin-top: 20px">
-                  <button pButton type="button" icon="pi pi-download" class="p-button-rounded p-button-text export-button" (click)="exportChart()"></button>
+                  <p-button icon="pi pi-download" [rounded]="true" variant="text" class="export-button" (onClick)="exportChart()" />
                   <p-chart type="bar" [data]="chartData" [options]="chartOptions" styleClass="h-50 w-full"></p-chart>
                 </div>
               </p-tabpanel>
@@ -131,9 +132,6 @@
               [disabled]="accessLevel < 2"
             >
             </p-select>
-          </div>
-          <div class="field">
-            <button pButton type="button" label="Add Asset" class="p-button-outlined p-button-primary w-full" (click)="addAsset()" [disabled]="accessLevel < 2"></button>
           </div>
         </div>
       </div>

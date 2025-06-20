@@ -97,7 +97,7 @@
   <p-header>Delete Row</p-header>
   <div class="p-card-body">Are you sure you want to delete this item?</div>
   <p-footer>
-    <button pButton type="button" label="Cancel" class="p-button-secondary" (click)="ref.close()"></button>
-    <button pButton type="button" label="Delete" class="p-button-danger"></button>
+    <p-button label="Cancel" severity="secondary" (onClick)="ref.close()" />
+    <p-button label="Delete" severity="danger" />
   </p-footer>
 </ng-template>

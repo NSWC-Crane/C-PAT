@@ -28,9 +28,9 @@
             </div>
             <div class="relative">
               <p-chart #statusChart type="bar" [data]="statusChartData()" [options]="chartOptions" [height]="canvasHeight"> </p-chart>
-              <button pButton type="button" class="p-button-text export-button" (click)="exportChart('status')">
+              <p-button variant="text" class="export-button" (onClick)="exportChart('status')">
                 <i class="pi pi-download"></i>
-              </button>
+              </p-button>
             </div>
           </p-tabpanel>
 
@@ -42,9 +42,9 @@
             </div>
             <div class="relative">
               <p-chart #severityChart type="bar" [data]="severityChartData()" [options]="chartOptions" [height]="canvasHeight"> </p-chart>
-              <button pButton type="button" class="p-button-text export-button" (click)="exportChart('severity')">
+              <p-button variant="text" class="export-button" (onClick)="exportChart('severity')">
                 <i class="pi pi-download"></i>
-              </button>
+              </p-button>
             </div>
           </p-tabpanel>
 
@@ -56,9 +56,9 @@
             </div>
             <div class="relative">
               <p-chart #scheduledCompletionChart type="bar" [data]="scheduledCompletionChartData()" [options]="chartOptions" [height]="canvasHeight"> </p-chart>
-              <button pButton type="button" class="p-button-text export-button" (click)="exportChart('scheduledCompletion')">
+              <p-button variant="text" class="export-button" (onClick)="exportChart('scheduledCompletion')">
                 <i class="pi pi-download"></i>
-              </button>
+              </p-button>
             </div>
           </p-tabpanel>
 
@@ -70,9 +70,9 @@
             </div>
             <div class="relative">
               <p-chart #taskOrderChart type="bar" [data]="taskOrderChartData()" [options]="chartOptions" [height]="canvasHeight"> </p-chart>
-              <button pButton type="button" class="p-button-text export-button" (click)="exportChart('taskOrder')">
+              <p-button variant="text" class="export-button" (onClick)="exportChart('taskOrder')">
                 <i class="pi pi-download"></i>
-              </button>
+              </p-button>
             </div>
           </p-tabpanel>
 
@@ -84,9 +84,9 @@
             </div>
             <div class="relative">
               <p-chart #labelChart type="bar" [data]="labelChartData()" [options]="chartOptions" [height]="canvasHeight"> </p-chart>
-              <button pButton type="button" class="p-button-text export-button" (click)="exportChart('label')">
+              <p-button variant="text" class="export-button" (onClick)="exportChart('label')">
                 <i class="pi pi-download"></i>
-              </button>
+              </p-button>
             </div>
           </p-tabpanel>
         </p-tabpanels>
@@ -117,7 +117,7 @@
       </p-multiSelect>
     </div>
     <div class="flex-none">
-      <button pButton type="button" icon="pi pi-refresh" class="p-button-text" pTooltip="Reset Chart Filters" tooltipPosition="top" (click)="resetChartFilters()"></button>
+      <p-button icon="pi pi-refresh" variant="text" pTooltip="Reset Chart Filters" tooltipPosition="top" (onClick)="resetChartFilters()" />
     </div>
   </div>
 </p-card>

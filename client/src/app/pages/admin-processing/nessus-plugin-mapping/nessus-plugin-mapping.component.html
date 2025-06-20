@@ -53,8 +53,8 @@
           </p-inputIcon>
           <input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Global Search" />
         </p-iconField>
-        <button #mapButton pButton class="ml-4" severity="primary" type="button" label="Map Plugins to IAV" (click)="updatePluginIds()" [disabled]="isUpdating"></button>
-        <button pButton type="button" class="ml-auto" icon="pi pi-filter-slash" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Clear" (click)="clear(dt)"></button>
+        <p-button #mapButton class="ml-4" severity="primary" label="Map Plugins to IAV" (onClick)="updatePluginIds()" [disabled]="isUpdating" />
+        <p-button class="ml-auto" icon="pi pi-filter-slash" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Clear" (onClick)="clear(dt)" />
         <p-button icon="pi pi-download" (onClick)="dt.exportCSV()" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Export Data" tooltipPosition="bottom"> </p-button>
       </div>
     </ng-template>

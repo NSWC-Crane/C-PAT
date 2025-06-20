@@ -24,7 +24,7 @@
         <th pSortableColumn="milestoneStatus" scope="col">Status</th>
         <th pSortableColumn="assignedTeamId" scope="col">Team</th>
         <th scope="col" style="width: 8rem; text-align: center">
-          <button pButton icon="pi pi-plus" class="p-button-rounded p-button-text" (click)="onAddNewMilestone()" [disabled]="accessLevel < 2"></button>
+          <p-button icon="pi pi-plus" [rounded]="true" variant="text" (onClick)="onAddNewMilestone()" [disabled]="accessLevel < 2" />
         </th>
       </tr>
     </ng-template>
@@ -96,31 +96,31 @@
         <td style="text-align: center">
           <div class="p-d-flex p-jc-center">
             @if (!milestone.editing && editingMilestoneId() === null) {
-              <button pButton type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(milestone)" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
+              <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(milestone)" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
             }
 
             @if (milestone.editing || editingMilestoneId() === milestone.milestoneId) {
-              <button pButton type="button" icon="pi pi-check" (click)="onRowEditSave(milestone)" class="p-button-rounded p-button-text p-button-success mr-2" [disabled]="accessLevel < 2"></button>
+              <p-button icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(milestone)" [rounded]="true" variant="text" severity="success" class="mr-2" [disabled]="accessLevel < 2" />
             }
 
             @if (milestone.editing || editingMilestoneId() === milestone.milestoneId) {
-              <button pButton type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(milestone, ri)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+              <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
             }
 
             @if (!milestone.editing && editingMilestoneId() === null && (poam?.status === 'Draft' || !poam.status || accessLevel >= 3)) {
-              <button pButton type="button" icon="pi pi-trash" (click)="deleteMilestone(milestone, ri)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+              <p-button icon="pi pi-trash" (click)="$event.stopPropagation(); deleteMilestone(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
             }
 
             @if (poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && !milestone.editing && editingMilestoneId() === null && accessLevel <= 2) {
-              <button
-                pButton
-                type="button"
+              <p-button
                 icon="pi pi-trash"
-                class="p-button-rounded p-button-text p-button-secondary"
+                [rounded]="true"
+                variant="text"
+                severity="secondary"
                 pTooltip="Milestones can only be deleted when the POAM status is Draft, Extension Requested, Rejected, or Submitted."
                 tooltipPosition="left"
                 [disabled]="true"
-              ></button>
+              />
             }
           </div>
         </td>

@@ -16,7 +16,7 @@
           <tr>
             <th pSortableColumn="assetName" scope="col">Asset</th>
             <th scope="col" style="width: 8rem">
-              <button pButton icon="pi pi-plus" (click)="addAsset()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
+              <p-button icon="pi pi-plus" (onClick)="addAsset()" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
             </th>
           </tr>
         </ng-template>
@@ -31,7 +31,7 @@
               }
             </td>
             <td>
-              <button pButton icon="pi pi-trash" (click)="deleteAsset(asset, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+              <p-button icon="pi pi-trash" (onClick)="deleteAsset(asset, rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
             </td>
           </tr>
         </ng-template>

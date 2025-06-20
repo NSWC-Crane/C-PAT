@@ -199,6 +199,10 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
       message: dialogOptions.body,
       header: dialogOptions.header,
       icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Confirm',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+      rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
       accept: () => {},
       reject: () => {}
     });

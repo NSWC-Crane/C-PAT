@@ -171,13 +171,18 @@ export class PoamMilestonesComponent implements OnInit {
     if (milestone.isNew) {
       this.poamMilestones.splice(index, 1);
     } else if (this.clonedMilestones[milestone.milestoneId]) {
-      this.poamMilestones[index] = this.clonedMilestones[milestone.milestoneId];
+      const restoredMilestone = { ...this.clonedMilestones[milestone.milestoneId] };
+
+      restoredMilestone.editing = false;
+      this.poamMilestones[index] = restoredMilestone;
       delete this.clonedMilestones[milestone.milestoneId];
+    } else {
+      milestone.editing = false;
     }
 
-    milestone.editing = false;
     this.editingMilestoneId.set(null);
     this.milestonesChanged.emit(this.poamMilestones);
+    this.cdr.detectChanges();
   }
 
   deleteMilestone(_milestone: Milestone, index: number) {

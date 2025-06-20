@@ -305,7 +305,7 @@
                   placeholder="IAVM #..."
                   [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
                 />
-                <button type="button" pButton icon="pi pi-external-link" (click)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber"></button>
+                <p-button icon="pi pi-external-link" (onClick)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber" />
               </p-inputgroup>
             </div>
           }
@@ -762,9 +762,11 @@
 
       <!-- Buttons -->
       <p-footer>
-        <button pButton type="button" label="Cancel" class="p-button-outlined p-button-secondary" (click)="cancelPoam()" style="margin-left: 20px"></button>
-        <button pButton type="button" label="Save" class="p-button-outlined p-button-primary" [disabled]="accessLevel() < 2" (click)="savePoam()" style="margin-left: 20px; margin-top: 20px"></button>
-        <button pButton type="button" label="Submit" class="p-button-outlined p-button-success" (click)="verifySubmitPoam()" style="margin-left: 20px"></button>
+        <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="cancelPoam()" styleClass="ml-4" />
+
+        <p-button label="Save" variant="outlined" [disabled]="accessLevel() < 2" (onClick)="savePoam()" styleClass="ml-4 mt-4" />
+
+        <p-button label="Submit" variant="outlined" severity="success" (onClick)="verifySubmitPoam()" styleClass="ml-4" />
       </p-footer>
     </p-card>
   </div>
@@ -785,11 +787,11 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog class="poam-chat" [(visible)]="showPoamNotes" [modal]="true" [style]="{ width: '80vw', height: '80vh' }" [maximizable]="true" [baseZIndex]="10000">
+<p-dialog class="poam-chat" [(visible)]="showPoamNotes" [modal]="true" [closable]="true" [style]="{ width: '80vw', height: '80vh' }" [baseZIndex]="10000">
   @if (poam?.poamId && poam.poamId !== 'ADDPOAM') {
     <cpat-poam-chat [poamId]="poam.poamId" [userId]="user?.userId"> </cpat-poam-chat>
   }
 </p-dialog>
 
 <p-toast />
-<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" [closable]="false"></p-confirmDialog>

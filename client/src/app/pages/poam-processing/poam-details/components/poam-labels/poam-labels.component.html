@@ -15,7 +15,7 @@
       <tr>
         <th pSortableColumn="labelName" scope="col">Label</th>
         <th scope="col" style="width: 8rem">
-          <button pButton icon="pi pi-plus" class="p-button-rounded p-button-text" (click)="addLabel()" [disabled]="accessLevel < 2"></button>
+          <p-button icon="pi pi-plus" [rounded]="true" variant="text" (onClick)="addLabel()" [disabled]="accessLevel < 2" />
         </th>
       </tr>
     </ng-template>
@@ -30,7 +30,7 @@
           }
         </td>
         <td>
-          <button pButton icon="pi pi-trash" (click)="deleteLabel(rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+          <p-button icon="pi pi-trash" (onClick)="deleteLabel(rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
         </td>
       </tr>
     </ng-template>

@@ -59,7 +59,7 @@
                     {{ col.header }}
                   </span>
                   @if (col.filterable) {
-                    <button pButton severity="secondary" [rounded]="true" [text]="true" icon="pi pi-filter" type="button" class="p-button-sm" (click)="showFilterPanel($event, col); $event.stopPropagation()"></button>
+                    <p-button severity="secondary" [rounded]="true" variant="text" icon="pi pi-filter" size="small" (onClick)="showFilterPanel($event, col); $event.stopPropagation()" />
                   }
                 </th>
               }
@@ -161,8 +161,8 @@
         }
       </div>
       <div class="mt-4 w-full" style="display: flex; justify-content: space-between">
-        <button pButton class="p-button-outlined" type="button" label="Clear" size="small" (click)="clearColumnFilter(currentFilterColumn.field); filterPopover.hide()"></button>
-        <button pButton type="button" label="Apply" size="small" (click)="applyCurrentFilter(); filterPopover.hide()"></button>
+        <p-button variant="outlined" label="Clear" size="small" (onClick)="clearColumnFilter(currentFilterColumn.field); filterPopover.hide()" />
+        <p-button label="Apply" size="small" (onClick)="applyCurrentFilter(); filterPopover.hide()" />
       </div>
     </div>
   }

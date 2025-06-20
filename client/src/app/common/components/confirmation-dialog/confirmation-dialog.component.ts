@@ -10,7 +10,7 @@
 
 import { Component, Input, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
+import { ButtonModule, ButtonSeverity } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 
@@ -38,11 +38,11 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
       <p-footer>
         <div style="text-align:center; margin: 0 0.75rem;">
           @if (options.cancelbutton === 'true') {
-            <button pButton type="button" label="Cancel" icon="pi pi-times" style="margin-left: 10%;" class="p-button-outlined p-button-warn" (click)="cancel()"></button>
+            <p-button label="Cancel" icon="pi pi-times" variant="outlined" severity="warn" class="ml-[10%]" (onClick)="cancel()"></p-button>
           }
-          <button pButton type="button" label="{{ options.button.text }}" [icon]="'pi pi-check'" style="margin-left: 5%;" [class]="'p-button-outlined p-button-' + options.button.status" (click)="confirm()"></button>
+          <p-button [label]="options.button.text" icon="pi pi-check" variant="outlined" [severity]="options.button.status" class="ml-[5%]" (onClick)="confirm()"></p-button>
           @if (options.convertButton) {
-            <button pButton type="button" label="{{ options.convertButton.text }}" icon="pi pi-refresh" style="margin-left: 5%;" class="p-button-outlined p-button-warn" (click)="convert()"></button>
+            <p-button [label]="options.convertButton.text" icon="pi pi-refresh" variant="outlined" severity="warn" class="ml-[5%]" (onClick)="convert()"></p-button>
           }
         </div>
       </p-footer>
@@ -73,11 +73,11 @@ export class ConfirmationDialogComponent {
 export class ConfirmationDialogOptions {
   header: string;
   body: string;
-  button: { text: string; status: string };
+  button: { text: string; status: ButtonSeverity };
   cancelbutton: string;
   convertButton?: { text: string };
 
-  constructor({ header, body, button, cancelbutton, convertButton }: { header?: string; body?: string; button?: { text: string; status: string }; cancelbutton?: string; convertButton?: { text: string } }) {
+  constructor({ header, body, button, cancelbutton, convertButton }: { header?: string; body?: string; button?: { text: string; status: ButtonSeverity }; cancelbutton?: string; convertButton?: { text: string } }) {
     this.header = header ?? 'Confirmation';
     this.body = body ?? 'Are you sure you wish to continue?';
     this.button = button || { text: 'confirm', status: 'primary' };

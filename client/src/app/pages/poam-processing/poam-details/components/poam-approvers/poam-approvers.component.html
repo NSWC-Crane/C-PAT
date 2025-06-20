@@ -18,7 +18,7 @@
         <th pSortableColumn="approvedDate" scope="col">Approved Date</th>
         <th pSortableColumn="comments" scope="col">Comments For Approver</th>
         <th style="width: 8rem" scope="col">
-          <button pButton icon="pi pi-plus" (click)="addApprover()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 2"></button>
+          <p-button icon="pi pi-plus" (onClick)="addApprover()" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
         </th>
       </tr>
     </ng-template>
@@ -54,7 +54,7 @@
           }
         </td>
         <td>
-          <button pButton icon="pi pi-trash" (click)="deleteApprover(rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 2"></button>
+          <p-button icon="pi pi-trash" (onClick)="deleteApprover(rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
         </td>
       </tr>
     </ng-template>
