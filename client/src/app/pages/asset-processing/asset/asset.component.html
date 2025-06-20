@@ -102,10 +102,3 @@
   </div>
 </form>
 <p-toast></p-toast>
-<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
-<p-dialog header="Invalid Data" [(visible)]="displayInvalidDataDialog" [modal]="true" [style]="{ width: '300px' }" [baseZIndex]="10000">
-  <p>{{ invalidDataMessage }}</p>
-  <ng-template pTemplate="footer">
-    <p-button icon="pi pi-check" (click)="displayInvalidDataDialog = false" (onKeyUp)="displayInvalidDataDialog = false" label="OK" styleClass="p-button-full p-button-primary w-full"></p-button>
-  </ng-template>
-</p-dialog>

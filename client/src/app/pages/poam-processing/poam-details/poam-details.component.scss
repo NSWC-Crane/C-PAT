@@ -221,15 +221,16 @@ hr {
   background-color: rgba(0, 0, 0, 0.4);
 }
 
-::ng-deep .p-confirm-dialog {
-  background-color: var(--ground-background);
+::ng-deep .p-dialog {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  width: 450px !important;
+  padding: 1rem;
+
+  .p-dialog-header-actions {
+    display: none;
+  }
 
   .p-dialog-header {
     padding: 2rem 2rem 0 2rem;
-    background-color: var(--ground-background);
-    color: var(--p-text-color);
     border: none;
     display: flex;
     justify-content: center;
@@ -237,7 +238,6 @@ hr {
     .p-dialog-title {
       font-size: 1.5rem;
       font-weight: 600;
-      width: 100%;
       text-align: center;
     }
   }
@@ -245,35 +245,31 @@ hr {
   .p-dialog-content {
     padding: 2rem;
     text-align: center;
-    background-color: var(--ground-background);
-    color: var(--p-text-color);
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow: hidden;
 
-    .p-confirm-dialog-icon {
+    > i {
       font-size: 2rem;
       color: var(--p-yellow-500);
       margin-bottom: 1rem;
       display: block;
     }
+  }
 
-    .p-confirm-dialog-message {
+    > span {
       font-size: 1.1rem;
       line-height: 1.5;
       display: block;
       width: 100%;
     }
-  }
 
   .p-dialog-footer {
-    padding: 0 2rem 2rem 2rem;
     display: flex;
-    justify-content: center;
-    gap: 2rem;
     border: none;
-    background-color: var(--ground-background);
+    justify-content: space-between;
+    padding: 1rem 1rem 0.5rem 1rem;
   }
 }
 

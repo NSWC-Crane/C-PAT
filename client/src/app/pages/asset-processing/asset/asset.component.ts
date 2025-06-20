@@ -10,10 +10,9 @@
 
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
@@ -31,13 +30,12 @@ import { AssetService } from '../assets.service';
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CardModule, ConfirmDialogModule, DialogModule, Select, FormsModule, InputTextModule, TableModule, ToastModule],
-  providers: [ConfirmationService, MessageService]
+  imports: [ButtonModule, CardModule, DialogModule, Select, FormsModule, InputTextModule, TableModule, ToastModule],
+  providers: [MessageService]
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   private assetService = inject(AssetService);
   private sharedService = inject(SharedService);
-  private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private setPayloadService = inject(PayloadService);
 
@@ -53,7 +51,6 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   selectedCollection: any;
   private subscriptions = new Subscription();
   labelOptions: any[] = [];
-  displayInvalidDataDialog: boolean = false;
   invalidDataMessage: string = '';
   private subs = new SubSink();
   protected accessLevel: any;
@@ -154,41 +151,34 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   deleteAssetLabel(label: any, index: number) {
-    this.confirmationService.confirm({
-      message: 'Are you sure you want to delete this label?',
-      header: 'Delete Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        if (this.asset.assetId === 'ADDASSET') {
+    if (this.asset.assetId === 'ADDASSET') {
+      this.assetLabels.splice(index, 1);
+      this.assetLabels = [...this.assetLabels];
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Label removed'
+      });
+    } else if (label.labelId) {
+      this.assetService.deleteAssetLabel(this.asset.assetId, label.labelId).subscribe(
+        () => {
           this.assetLabels.splice(index, 1);
           this.assetLabels = [...this.assetLabels];
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: 'Label removed'
+            detail: 'Label deleted successfully'
           });
-        } else if (label.labelId) {
-          this.assetService.deleteAssetLabel(this.asset.assetId, label.labelId).subscribe(
-            () => {
-              this.assetLabels.splice(index, 1);
-              this.assetLabels = [...this.assetLabels];
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'Label deleted successfully'
-              });
-            },
-            (error: Error) => {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Failed to delete label: ${getErrorMessage(error)}`
-              });
-            }
-          );
+        },
+        (error: Error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to delete label: ${getErrorMessage(error)}`
+          });
         }
-      }
-    });
+      );
+    }
   }
 
   confirmLabelCreate(newLabel: any) {
@@ -336,15 +326,10 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   invalidData(errMsg: string) {
-    this.invalidDataMessage = errMsg;
-    this.displayInvalidDataDialog = true;
-  }
-
-  confirm(options: { header: string; message: string; accept: () => void }) {
-    this.confirmationService.confirm({
-      header: options.header,
-      message: options.message,
-      accept: options.accept
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: `Invalid Data: ${getErrorMessage(errMsg)}`
     });
   }
 

@@ -31,8 +31,8 @@
   </ng-template>
   <ng-template pTemplate="footer">
     <div class="m-2 flex w-full items-center justify-between">
-      <p-button [outlined]="true" label="Save" icon="pi pi-check" (click)="submitApprovalData()" [disabled]="accessLevel < 3"></p-button>
       <p-button [outlined]="true" severity="secondary" label="Cancel" icon="pi pi-times" (click)="cancelApproval()"></p-button>
+      <p-button [outlined]="true" label="Save" icon="pi pi-check" (click)="submitApprovalData()" [disabled]="accessLevel < 3"></p-button>
     </div>
   </ng-template>
 </p-dialog>

@@ -70,3 +70,7 @@
     position: relative;
   }
 }
+
+::ng-deep .p-dialog .p-dialog-header {
+    padding: var(--p-dialog-header-padding);
+}
