@@ -56,25 +56,6 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: pull_request
-    attributes:
-      label: Pull Request Link
-      description: Link to your pull request implementing this feature, if applicable.
-    validations:
-      required: false
-
-  - type: checkboxes
-    id: reason_for_no_pr
-    attributes:
-      label: Reason for not contributing a PR
-      options:
-        - label: Lack of time
-        - label: Unsure how to implement the feature
-        - label: Difficulty understanding the codebase
-        - label: Requires architectural decisions
-        - label: Other
-
   - type: textarea
     id: pr_other
     attributes:
@@ -95,6 +76,25 @@ body:
         - Low - Minor enhancement
     validations:
       required: true
+
+  - type: input
+    id: pull_request
+    attributes:
+      label: Pull Request Link
+      description: Link to your pull request implementing this feature, if applicable.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: reason_for_no_pr
+    attributes:
+      label: Reason for not contributing a PR
+      options:
+        - label: Lack of time
+        - label: Unsure how to implement the feature
+        - label: Difficulty understanding the codebase
+        - label: Requires architectural decisions
+        - label: Other
 
   - type: textarea
     id: additional_context
