@@ -388,6 +388,10 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         message: 'Are you sure you want to delete this permission?',
         header: 'Delete Confirmation',
         icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Confirm',
+        rejectLabel: 'Cancel',
+        acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+        rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
         accept: async () => {
           (await this.userService.deletePermission(this.user.userId, permission.collectionId)).subscribe(
             () => {
@@ -679,6 +683,10 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         message: 'Are you sure you want to delete this team assignment?',
         header: 'Delete Confirmation',
         icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Confirm',
+        rejectLabel: 'Cancel',
+        acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+        rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
         accept: async () => {
           (await this.userService.deleteTeamAssignment(this.user.userId, assignedTeam.assignedTeamId!)).subscribe(
             () => {

@@ -118,7 +118,7 @@
                 <ng-template pTemplate="header" let-columns>
                   <tr>
                     <th scope="col" class="w-24">
-                      <button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewAssignedTeam()"></button>
+                      <p-button icon="pi pi-plus" variant="text" (onClick)="onAddNewAssignedTeam()" />
                     </th>
                     @for (col of columns; track col.header) {
                       <th scope="col">{{ col.header }}</th>
@@ -130,12 +130,12 @@
                     <td class="w-24">
                       <div class="flex space-x-2">
                         @if (rowData.editing) {
-                          <button pButton type="button" icon="pi pi-check" (click)="onSaveAssignedTeam(rowData)" class="p-button-rounded p-button-text p-button-success"></button>
-                          <button pButton type="button" icon="pi pi-times" (click)="onCancelEditAssignedTeam(rowData)" class="p-button-rounded p-button-text p-button-danger"></button>
+                          <p-button icon="pi pi-check" (onClick)="onSaveAssignedTeam(rowData)" [rounded]="true" variant="text" severity="success" />
+                          <p-button icon="pi pi-times" (onClick)="onCancelEditAssignedTeam(rowData)" [rounded]="true" variant="text" severity="danger" />
                         } @else {
-                          <button pButton type="button" icon="pi pi-pencil" (click)="onEditAssignedTeam(rowData)" class="p-button-rounded p-button-text"></button>
+                          <p-button icon="pi pi-pencil" (onClick)="onEditAssignedTeam(rowData)" [rounded]="true" variant="text" />
                         }
-                        <button pButton type="button" icon="pi pi-trash" class="p-button-text" (click)="onDeleteAssignedTeam(rowData)"></button>
+                        <p-button icon="pi pi-trash" variant="text" (onClick)="onDeleteAssignedTeam(rowData)" />
                       </div>
                     </td>
                     @for (col of columns; track col.field) {
@@ -166,7 +166,7 @@
                 <ng-template pTemplate="header" let-columns>
                   <tr>
                     <th scope="col" class="w-24">
-                      <button pButton icon="pi pi-plus" class="p-button-text" (click)="onAddNewPermission()"></button>
+                      <p-button icon="pi pi-plus" variant="text" (onClick)="onAddNewPermission()" />
                     </th>
                     @for (col of columns; track col.header) {
                       <th scope="col">{{ col.header }}</th>
@@ -178,12 +178,12 @@
                     <td class="w-24">
                       <div class="flex space-x-2">
                         @if (rowData.editing) {
-                          <button pButton type="button" icon="pi pi-check" (click)="onSavePermission(rowData)" class="p-button-rounded p-button-text p-button-success"></button>
-                          <button pButton type="button" icon="pi pi-times" (click)="onCancelEditPermission(rowData)" class="p-button-rounded p-button-text p-button-danger"></button>
+                          <p-button icon="pi pi-check" (onClick)="onSavePermission(rowData)" [rounded]="true" variant="text" severity="success" />
+                          <p-button icon="pi pi-times" (onClick)="onCancelEditPermission(rowData)" [rounded]="true" variant="text" severity="danger" />
                         } @else {
-                          <button pButton type="button" icon="pi pi-pencil" (click)="onEditPermission(rowData)" class="p-button-rounded p-button-text"></button>
+                          <p-button icon="pi pi-pencil" (onClick)="onEditPermission(rowData)" [rounded]="true" variant="text" />
                         }
-                        <button pButton type="button" icon="pi pi-trash" class="p-button-text" (click)="onDeletePermission(rowData)"></button>
+                        <p-button icon="pi pi-trash" variant="text" (onClick)="onDeletePermission(rowData)" />
                       </div>
                     </td>
                     @for (col of columns; track col.field) {

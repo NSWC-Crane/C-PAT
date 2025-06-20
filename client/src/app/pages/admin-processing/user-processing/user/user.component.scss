@@ -105,58 +105,58 @@
     padding: 1.5rem;
     margin-bottom: 1rem;
   }
+}
 
-  .p-dialog {
-    background-color: var(--ground-background);
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 90vw;
-    width: auto;
-    min-width: 400px;
+::ng-deep .p-dialog {
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.16),
+    0 3px 6px rgba(0, 0, 0, 0.23);
+  padding: 1rem;
 
-    .p-dialog-header {
-      padding: 0;
-      border-bottom: none;
+  .p-dialog-header-actions {
+    display: none;
+  }
+
+  .p-dialog-header {
+    padding: 2rem 2rem 0 2rem;
+    border: none;
+    display: flex;
+    justify-content: center;
+
+    .p-dialog-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
     }
+  }
 
-    .p-dialog-content {
-      background-color: var(--ground-background);
-      color: var(--p-text-color);
-      padding: 0 1.5rem 1.5rem;
+  .p-dialog-content {
+    padding: 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
 
-      .permission-changes {
-        ul {
-          margin: 0.5rem 0 1.5rem;
-          padding-left: 1.5rem;
-
-          li {
-            margin: 0.5rem 0;
-          }
-        }
-      }
+    > i {
+      font-size: 2rem;
+      color: var(--p-yellow-500);
+      margin-bottom: 1rem;
+      display: block;
     }
+  }
 
-    .icon-container {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1.5rem;
+  > span {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    display: block;
+    width: 100%;
+  }
 
-      .pi-exclamation-triangle {
-        font-size: 2.5rem;
-        color: var(--p-yellow-500);
-      }
-    }
-
-    .p-dialog-footer {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      padding: 1.5rem;
-      border-top: 1px solid var(--p-surface-200);
-
-      .p-button {
-        min-width: 120px;
-      }
-    }
+  .p-dialog-footer {
+    display: flex;
+    border: none;
+    justify-content: space-between;
+    padding: 1rem 1rem 0.5rem 1rem;
   }
 }

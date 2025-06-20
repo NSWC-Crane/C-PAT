@@ -20,7 +20,7 @@
               </p-inputIcon>
               <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Teams" class="search-input" />
             </p-iconField>
-            <button pButton type="button" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Add a Team" (click)="openNew()"></button>
+            <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add a Team" (onClick)="openNew()" />
           </div>
         </ng-template>
         <ng-template pTemplate="header">
@@ -44,8 +44,8 @@
             </td>
             <td>
               <div class="flex items-center justify-center gap-2">
-                <button pButton pRipple type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text" (click)="$event.stopPropagation(); editTeam(assignedTeam)"></button>
-                <button pButton pRipple type="button" icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="$event.stopPropagation(); onRowDelete(assignedTeam)"></button>
+                <p-button icon="pi pi-pencil" [rounded]="true" variant="text" (onClick)="$event.stopPropagation(); editTeam(assignedTeam)" />
+                <p-button icon="pi pi-trash" [rounded]="true" variant="text" severity="danger" (onClick)="$event.stopPropagation(); onRowDelete(assignedTeam)" />
               </div>
             </td>
           </tr>
@@ -110,8 +110,8 @@
   </ng-template>
 
   <ng-template pTemplate="footer">
-    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveTeam()" [disabled]="!editingAssignedTeam?.assignedTeamName"></button>
+    <p-button label="Cancel" icon="pi pi-times" variant="text" (onClick)="hideDialog()" />
+    <p-button label="Save" icon="pi pi-check" variant="text" (onClick)="saveTeam()" [disabled]="!editingAssignedTeam?.assignedTeamName" />
   </ng-template>
 </p-dialog>
 

@@ -11,12 +11,12 @@
 @if (aiEnabled) {
   <div>
     @if (!generatedMitigation && !isGenerating() && !showPromptEditor()) {
-      <button pButton type="button" class="p-button-outlined p-button-primary p-button-rounded p-button-text ml-2" icon="pi pi-microchip-ai" pTooltip="Generate a mitigation statement using AI" (click)="initiateGeneration()"></button>
+      <p-button variant="outlined" [rounded]="true" styleClass="ml-2" icon="pi pi-microchip-ai" pTooltip="Generate a mitigation statement using AI" (onClick)="initiateGeneration()" />
     }
     <div class="mitigation-generator">
       @if (showPromptEditor()) {
         <div class="prompt-editor mb-3 w-full">
-          <div class="position-relative mb-2 mt-2" style="display: flex; justify-content: space-between; align-items: center">
+          <div class="position-relative ml-2 mb-2 mt-2" style="display: flex; justify-content: space-between; align-items: center">
             <div>
               <h3 class="ml-2">Edit Mitigation Generation Prompt</h3>
               <p class="mb-2 text-sm">Customize the prompt to generate the most relevant mitigation for your specific vulnerability context.</p>
@@ -69,10 +69,10 @@
       <ng-template pTemplate="footer">
         <div style="display: flex; justify-content: space-between; width: 100%">
           <div>
-            <button pButton type="button" label="Cancel" class="p-button-outlined p-button-secondary" (click)="cancelApplyMitigation()"></button>
+            <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="cancelApplyMitigation()" />
           </div>
           <div>
-            <button pButton type="button" label="Apply" class="p-button-outlined p-button-primary" (click)="confirmApplyMitigation()"></button>
+            <p-button label="Apply" variant="outlined" (onClick)="confirmApplyMitigation()" />
           </div>
         </div>
       </ng-template>

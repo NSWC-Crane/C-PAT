@@ -1,3 +1,13 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
 import { Component, ElementRef, Input, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -12,82 +22,11 @@ import { PoamChatService } from '../../services/poam-chat.service';
 
 @Component({
   selector: 'cpat-poam-chat',
+  templateUrl: './poam-chat.component.html',
+  styleUrls: ['./poam-chat.component.scss'],
   standalone: true,
   imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule, ToastModule],
-  providers: [MessageService],
-  template: `<div class="flex flex-col h-full">
-      <div class="flex items-center border-b border-surface-200 dark:border-surface-700"></div>
-      <div class="user-message-container p-4 md:px-6 lg:px-6 mt-2 overflow-y-auto" #chatWindow>
-        @for (messageGroup of groupedMessages; track messageGroup) {
-          <div class="date-divider flex items-center my-4">
-            <div class="flex-1 border-t border-surface-300 dark:border-surface-600"></div>
-            <div class="mx-4 px-3 py-1 text-xs font-medium bg-surface-200 dark:bg-surface-700 rounded-full">
-              {{ messageGroup.date }}
-            </div>
-            <div class="flex-1 border-t border-surface-300 dark:border-surface-600"></div>
-          </div>
-          @for (message of messageGroup.messages; track message) {
-            <div>
-              @if (message.ownerId !== userId) {
-                <div class="grid gap-4 grid-nogutter mb-2">
-                  <div class="col mt-2">
-                    @if (shouldShowSender(message, messageGroup.messages)) {
-                      <p class="font-semibold mb-1">
-                        {{ getUserDisplayName(message) }}
-                      </p>
-                    }
-                    <span class="inline-block font-medium bg-zinc-600 pl-3 pb-4 pt-2 whitespace-normal rounded-2xl ml-0 relative" style="word-break: break-word; max-width:80%;">
-                      <span class="inline-block pr-4 pb-3">{{ message.text }}</span>
-                      <span class="text-xs opacity-70 absolute left-4 bottom-2">
-                        {{ getMessageTime(message.createdAt) }}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              }
-              @if (message.ownerId === userId) {
-                <div class="grid gap-4 grid-nogutter mb-2">
-                  <div class="col text-right">
-                    <span class="inline-block text-left font-medium bg-blue-500 pl-3 pb-4 pt-2 whitespace-normal rounded-2xl relative" style="word-break: break-word; max-width:80%;">
-                      <span class="inline-block pr-4 pb-3">{{ message.text }}</span>
-                      <span class="text-xs opacity-70 absolute left-4 bottom-2">
-                        {{ getMessageTime(message.createdAt) }}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        }
-
-        @if (messages.length === 0) {
-          <div class="text-center p-4">No messages yet. Start the conversation!</div>
-        }
-      </div>
-      <div class="p-4 md:p-6 flex flex-col sm:flex-row items-center mt-auto border-t border-surface-200 dark:border-surface-700 gap-4">
-        <p-inputgroup>
-          <input id="message" type="text" pInputText placeholder="Type a message" class="w-full" [(ngModel)]="textContent" (keydown.enter)="sendMessage()" />
-          <p-inputgroup-addon>
-            <p-button icon="pi pi-face-smile" severity="secondary" variant="text" (click)="op.toggle($event)" />
-          </p-inputgroup-addon>
-        </p-inputgroup>
-        <div class="flex w-full sm:w-auto gap-4">
-          <button pButton pRipple [text]="true" size="large" icon="pi pi-send" class="!text-blue-500" (click)="sendMessage()"></button>
-        </div>
-      </div>
-    </div>
-
-    <p-popover #op [styleClass]="'emoji-popover'" [autoZIndex]="true">
-      <ng-template pTemplate="content">
-        <div class="emoji-container" style="max-height: 200px; max-width: 250px; overflow-y: auto; display: flex; flex-wrap: wrap; justify-content: center;">
-          @for (emoji of emojis; track emoji) {
-            <button pButton pRipple (click)="op.hide(); onEmojiSelect(emoji)" type="button" [label]="emoji" class="p-1 text-2xl" style="min-width: 40px; margin: 2px;" text></button>
-          }
-        </div>
-      </ng-template>
-    </p-popover>
-    <p-toast />`
+  providers: [MessageService]
 })
 export class PoamChatComponent implements OnInit {
   private poamChatService = inject(PoamChatService);

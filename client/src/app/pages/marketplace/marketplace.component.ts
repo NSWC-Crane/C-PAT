@@ -292,6 +292,10 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         message: `Are you sure you want to purchase ${theme.themeName} for ${theme.cost} points?`,
         header: 'Confirm Purchase',
         icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Confirm',
+        rejectLabel: 'Cancel',
+        acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+        rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
         accept: () => {
           this.subs.sink = this.marketplaceService.purchaseTheme(this.user.userId, theme.themeId).subscribe({
             next: () => {

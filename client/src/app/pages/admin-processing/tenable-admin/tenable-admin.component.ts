@@ -133,6 +133,10 @@ export class TenableAdminComponent implements OnInit, OnDestroy {
       message: `Are you sure you want to import all ${this.filteredRepositories.length} remaining repositories?`,
       header: 'Confirm Bulk Import',
       icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Confirm',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-outlined p-button-primary',
+      rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
       accept: () => {
         forkJoin(this.filteredRepositories.map((repo) => this.importRepository(repo)))
           .pipe(takeUntil(this.destroy$))

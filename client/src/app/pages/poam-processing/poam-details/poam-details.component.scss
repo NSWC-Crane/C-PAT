@@ -222,12 +222,10 @@ hr {
 }
 
 ::ng-deep .p-dialog {
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.16),
+    0 3px 6px rgba(0, 0, 0, 0.23);
   padding: 1rem;
-
-  .p-dialog-header-actions {
-    display: none;
-  }
 
   .p-dialog-header {
     padding: 2rem 2rem 0 2rem;
@@ -245,7 +243,6 @@ hr {
   .p-dialog-content {
     padding: 2rem;
     text-align: center;
-    display: flex;
     flex-direction: column;
     align-items: center;
     overflow: hidden;
@@ -258,12 +255,12 @@ hr {
     }
   }
 
-    > span {
-      font-size: 1.1rem;
-      line-height: 1.5;
-      display: block;
-      width: 100%;
-    }
+  > span {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    display: block;
+    width: 100%;
+  }
 
   .p-dialog-footer {
     display: flex;
@@ -301,8 +298,8 @@ hr {
 
 :host ::ng-deep {
   .p-dialog .p-dialog-content {
-      padding: 0 !important;
-      overflow: hidden !important;
+    padding: 0 !important;
+    overflow: hidden !important;
   }
 }
 

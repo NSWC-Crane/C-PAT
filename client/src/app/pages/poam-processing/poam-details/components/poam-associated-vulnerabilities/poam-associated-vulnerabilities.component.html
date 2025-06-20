@@ -14,12 +14,12 @@
       <th pSortableColumn="associatedVulnerability" scope="col">Associated Vulnerability</th>
       @if (accessLevel < 4) {
         <th scope="col" style="width: 8rem" pTooltip="Associating additional vulnerabilities is restricted to CAT-I Approvers." tooltipPosition="top">
-          <button pButton icon="pi pi-plus" class="p-button-rounded p-button-text" [disabled]="accessLevel < 4"></button>
+          <p-button icon="pi pi-plus" [rounded]="true" variant="text" [disabled]="accessLevel < 4" />
         </th>
       }
       @if (accessLevel >= 4) {
         <th scope="col" style="width: 8rem">
-          <button pButton icon="pi pi-plus" (click)="addAssociatedVulnerability()" class="p-button-rounded p-button-text" [disabled]="accessLevel < 4"></button>
+          <p-button icon="pi pi-plus" (onClick)="addAssociatedVulnerability()" [rounded]="true" variant="text" [disabled]="accessLevel < 4" />
         </th>
       }
     </tr>
@@ -72,9 +72,9 @@
       </td>
       <td>
         @if (associatedVulnerability.isNew) {
-          <button pButton icon="pi pi-check" (click)="onAssociatedVulnerabilityChange(associatedVulnerability, rowIndex)" class="p-button-rounded p-button-text p-button-success" [disabled]="accessLevel < 4"></button>
+          <p-button icon="pi pi-check" (onClick)="onAssociatedVulnerabilityChange(associatedVulnerability, rowIndex)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel < 4" />
         }
-        <button pButton icon="pi pi-trash" (click)="deleteAssociatedVulnerability(associatedVulnerability, rowIndex)" class="p-button-rounded p-button-text p-button-danger" [disabled]="accessLevel < 4"></button>
+        <p-button icon="pi pi-trash" (onClick)="deleteAssociatedVulnerability(associatedVulnerability, rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 4" />
       </td>
     </tr>
   </ng-template>

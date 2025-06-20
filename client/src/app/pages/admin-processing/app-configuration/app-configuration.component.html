@@ -43,13 +43,13 @@
             <td>
               <div class="flex gap-2">
                 @if (!editing) {
-                  <button pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(appConfig)" class="p-button-rounded p-button-text"></button>
+                  <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(appConfig)" [rounded]="true" variant="text" />
                 }
                 @if (editing) {
-                  <button pButton pRipple type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(appConfig)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+                  <p-button pSaveEditableRow icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(appConfig)" [rounded]="true" variant="text" severity="success" class="mr-2" />
                 }
                 @if (editing) {
-                  <button pButton pRipple type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+                  <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(ri)" [rounded]="true" variant="text" severity="danger" />
                 }
               </div>
             </td>

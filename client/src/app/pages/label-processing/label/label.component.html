@@ -20,10 +20,10 @@
   <div class="formgroup-inline">
     <div class="mt-8 flex w-full items-center justify-between">
       <div class="flex gap-6">
-        <button pButton type="button" [outlined]="true" label="Cancel" class="p-button-secondary" (click)="resetData()"></button>
-        <button pButton type="submit" [outlined]="true" label="Submit" [disabled]="!form.valid"></button>
+        <p-button variant="outlined" label="Cancel" severity="secondary" (onClick)="resetData()" />
+        <p-button type="submit" variant="outlined" label="Submit" [disabled]="!form.valid" />
       </div>
-      <button pButton type="button" [outlined]="true" label="Delete Label" class="p-button-danger" (click)="deleteLabel(label)" [disabled]="accessLevel < 2"></button>
+      <p-button variant="outlined" label="Delete Label" severity="danger" (onClick)="deleteLabel(label)" [disabled]="accessLevel < 2" />
     </div>
   </div>
 </form>
