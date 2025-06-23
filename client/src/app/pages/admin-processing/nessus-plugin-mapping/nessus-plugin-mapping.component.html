@@ -61,7 +61,7 @@
     <ng-template pTemplate="header">
       <tr>
         @for (col of cols; track col) {
-          <th [style.min-width]="col.minWidth" [scope]="'col'" [pSortableColumn]="col.field">
+          <th scope="col" [style.min-width]="col.minWidth" [pSortableColumn]="col.field">
             <div class="flex items-center">
               {{ col.header }}
               <p-columnFilter [type]="getFilterType(col)" [field]="col.field" [showOperator]="false" display="menu">

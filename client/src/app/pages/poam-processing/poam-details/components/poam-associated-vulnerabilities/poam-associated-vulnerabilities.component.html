@@ -11,7 +11,7 @@
 <p-table [value]="displayVulnerabilities">
   <ng-template pTemplate="header">
     <tr>
-      <th pSortableColumn="associatedVulnerability" scope="col">Associated Vulnerability</th>
+      <th scope="col" pSortableColumn="associatedVulnerability">Associated Vulnerability</th>
       @if (accessLevel < 4) {
         <th scope="col" style="width: 8rem" pTooltip="Associating additional vulnerabilities is restricted to CAT-I Approvers." tooltipPosition="top">
           <p-button icon="pi pi-plus" [rounded]="true" variant="text" [disabled]="accessLevel < 4" />

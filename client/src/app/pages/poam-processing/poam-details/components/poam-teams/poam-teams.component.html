@@ -20,7 +20,7 @@
     <p-table [value]="poamAssignedTeams" styleClass="p-datatable-striped full-width-table" [scrollable]="true" scrollHeight="flex">
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="assignedTeamName" scope="col" style="width: 90%">Teams Assigned</th>
+          <th scope="col" pSortableColumn="assignedTeamName" style="width: 90%">Teams Assigned</th>
           <th scope="col" style="width: 10%; text-align: center">
             <p-button icon="pi pi-plus" (onClick)="addAssignedTeam()" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
           </th>

@@ -14,7 +14,7 @@
       <p-table [value]="poamAssets">
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="assetName" scope="col">Asset</th>
+            <th scope="col" pSortableColumn="assetName">Asset</th>
             <th scope="col" style="width: 8rem">
               <p-button icon="pi pi-plus" (onClick)="addAsset()" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
             </th>

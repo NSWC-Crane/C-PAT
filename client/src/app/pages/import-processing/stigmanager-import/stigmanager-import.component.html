@@ -51,13 +51,13 @@
             >
               <ng-template pTemplate="header">
                 <tr>
-                  <th pSortableColumn="benchmarkId" scope="col">Benchmark</th>
-                  <th pSortableColumn="revisionStr" scope="col">Revision</th>
-                  <th pSortableColumn="assets" scope="col">Assets</th>
-                  <th pSortableColumn="metrics.assessments" scope="col">Checks</th>
-                  <th pSortableColumn="metrics.minTs" scope="col">Oldest</th>
-                  <th pSortableColumn="metrics.maxTs" scope="col">Newest</th>
-                  <th pSortableColumn="metrics.maxTouchTs" scope="col">Updated</th>
+                  <th scope="col" pSortableColumn="benchmarkId">Benchmark</th>
+                  <th scope="col" pSortableColumn="revisionStr">Revision</th>
+                  <th scope="col" pSortableColumn="assets">Assets</th>
+                  <th scope="col" pSortableColumn="metrics.assessments">Checks</th>
+                  <th scope="col" pSortableColumn="metrics.minTs">Oldest</th>
+                  <th scope="col" pSortableColumn="metrics.maxTs">Newest</th>
+                  <th scope="col" pSortableColumn="metrics.maxTouchTs">Updated</th>
                   <th scope="col">Assessed</th>
                   <th scope="col">Submitted</th>
                   <th scope="col">Accepted</th>
@@ -188,7 +188,7 @@
                 <ng-template pTemplate="header">
                   <tr>
                     @for (col of allColumns; track col) {
-                      <th id="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
+                      <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
                         {{ col.header }}
                         @if (col.field === 'poam') {
                           <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">

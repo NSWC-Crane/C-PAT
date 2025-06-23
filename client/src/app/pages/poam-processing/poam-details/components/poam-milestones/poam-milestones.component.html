@@ -20,9 +20,9 @@
     <ng-template pTemplate="header">
       <tr>
         <th scope="col">Milestone Comments</th>
-        <th pSortableColumn="milestoneDate" scope="col">Milestone Due Date</th>
-        <th pSortableColumn="milestoneStatus" scope="col">Status</th>
-        <th pSortableColumn="assignedTeamId" scope="col">Team</th>
+        <th scope="col" pSortableColumn="milestoneDate">Milestone Due Date</th>
+        <th scope="col" pSortableColumn="milestoneStatus">Status</th>
+        <th scope="col" pSortableColumn="assignedTeamId">Team</th>
         <th scope="col" style="width: 8rem; text-align: center">
           <p-button icon="pi pi-plus" [rounded]="true" variant="text" (onClick)="onAddNewMilestone()" [disabled]="accessLevel < 2" />
         </th>

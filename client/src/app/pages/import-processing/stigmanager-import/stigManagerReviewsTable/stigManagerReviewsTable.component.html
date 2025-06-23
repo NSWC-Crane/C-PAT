@@ -54,7 +54,7 @@
           <ng-template pTemplate="header">
             <tr>
               @for (col of selectedColumns; track col) {
-                <th [ttSortableColumn]="col.field" ttResizableColumn scope="col">
+                <th scope="col" [ttSortableColumn]="col.field" ttResizableColumn>
                   <span [pTooltip]="col.header === 'Evaluated' ? 'Last Ran' : null" tooltipPosition="top">
                     {{ col.header }}
                   </span>

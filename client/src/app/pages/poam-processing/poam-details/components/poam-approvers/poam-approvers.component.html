@@ -13,11 +13,11 @@
   <p-table [value]="poamApprovers" dataKey="userId">
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="userId" scope="col">Approver</th>
-        <th pSortableColumn="approvalStatus" scope="col">Approval Status</th>
-        <th pSortableColumn="approvedDate" scope="col">Approved Date</th>
-        <th pSortableColumn="comments" scope="col">Comments For Approver</th>
-        <th style="width: 8rem" scope="col">
+        <th scope="col" pSortableColumn="userId">Approver</th>
+        <th scope="col" pSortableColumn="approvalStatus">Approval Status</th>
+        <th scope="col" pSortableColumn="approvedDate">Approved Date</th>
+        <th scope="col" pSortableColumn="comments">Comments For Approver</th>
+        <th scope="col" style="width: 8rem">
           <p-button icon="pi pi-plus" (onClick)="addApprover()" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
         </th>
       </tr>
