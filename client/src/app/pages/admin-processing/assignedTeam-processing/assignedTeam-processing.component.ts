@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -53,7 +53,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private sharedService = inject(SharedService);
 
-  @ViewChild('dt') table!: Table;
+  readonly table = viewChild.required<Table>('dt');
   private allCollections: CollectionsBasicList[] = [];
   assignedTeams: AssignedTeam[] = [];
   assetDeltaList: any;
@@ -405,7 +405,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
 
-    this.table.filterGlobal(inputValue, 'contains');
+    this.table().filterGlobal(inputValue, 'contains');
   }
 
   ngOnDestroy(): void {

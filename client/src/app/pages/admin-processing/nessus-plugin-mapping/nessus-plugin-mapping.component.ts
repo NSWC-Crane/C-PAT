@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, Input, OnChanges, OnInit, Renderer2, SimpleChanges, ViewChild, OnDestroy, inject } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnInit, Renderer2, SimpleChanges, OnDestroy, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -42,8 +42,8 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges, OnDestro
   private importService = inject(ImportService);
   private renderer = inject(Renderer2);
 
-  @ViewChild('dt') dt!: Table;
-  @ViewChild('mapButton') mapButton!: ElementRef;
+  readonly dt = viewChild.required<Table>('dt');
+  readonly mapButton = viewChild.required<ElementRef>('mapButton');
   @Input() activated: boolean = false;
   tableData: any[] = [];
   user: any;
@@ -90,16 +90,18 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges, OnDestro
 
   private triggerButtonAnimation() {
     setTimeout(() => {
-      if (this.mapButton?.nativeElement) {
-        this.renderer.removeClass(this.mapButton.nativeElement, 'focus-attention');
+      const mapButton = this.mapButton();
 
-        void this.mapButton.nativeElement.offsetWidth;
+      if (mapButton?.nativeElement) {
+        this.renderer.removeClass(mapButton.nativeElement, 'focus-attention');
 
-        this.renderer.addClass(this.mapButton.nativeElement, 'focus-attention');
-        this.mapButton.nativeElement.focus();
+        void mapButton.nativeElement.offsetWidth;
+
+        this.renderer.addClass(mapButton.nativeElement, 'focus-attention');
+        mapButton.nativeElement.focus();
 
         setTimeout(() => {
-          this.renderer.removeClass(this.mapButton.nativeElement, 'focus-attention');
+          this.renderer.removeClass(this.mapButton().nativeElement, 'focus-attention');
         }, 2000);
       }
     }, 100);

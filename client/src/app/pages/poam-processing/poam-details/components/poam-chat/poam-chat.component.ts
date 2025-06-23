@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, ElementRef, Input, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -35,7 +35,7 @@ export class PoamChatComponent implements OnInit {
   @Input() poamId!: number;
   @Input() userId!: number;
 
-  @ViewChild('chatWindow') chatWindow!: ElementRef;
+  readonly chatWindow = viewChild.required<ElementRef>('chatWindow');
 
   messages: any[] = [];
   groupedMessages: { date: string; messages: any[] }[] = [];
@@ -126,8 +126,10 @@ export class PoamChatComponent implements OnInit {
         this.messages = this.formatMessages(data);
         this.groupMessages();
         setTimeout(() => {
-          if (this.chatWindow) {
-            this.chatWindow.nativeElement.scrollTop = this.chatWindow.nativeElement.scrollHeight;
+          const chatWindow = this.chatWindow();
+
+          if (chatWindow) {
+            chatWindow.nativeElement.scrollTop = chatWindow.nativeElement.scrollHeight;
           }
         });
       },
@@ -257,8 +259,10 @@ export class PoamChatComponent implements OnInit {
         this.textContent = '';
 
         setTimeout(() => {
-          if (this.chatWindow) {
-            this.chatWindow.nativeElement.scrollTop = this.chatWindow.nativeElement.scrollHeight;
+          const chatWindow = this.chatWindow();
+
+          if (chatWindow) {
+            chatWindow.nativeElement.scrollTop = chatWindow.nativeElement.scrollHeight;
           }
         });
       },

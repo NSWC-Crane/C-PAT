@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, inject, viewChildren, viewChild, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MessageService } from 'primeng/api';
@@ -58,8 +58,8 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   @Input() assetProcessing: boolean = false;
   @Input() tenableRepoId: number;
   @Input() associatedVulnerabilities: any[] = [];
-  @ViewChildren(Table) tables: QueryList<Table>;
-  @ViewChild('ms') multiSelect!: MultiSelect;
+  readonly tables = viewChildren(Table);
+  readonly multiSelect = viewChild.required<MultiSelect>('ms');
 
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -85,6 +85,16 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   private tableMap = new Map<string, Table>();
   private subscriptions = new Subscription();
 
+  constructor() {
+    effect(() => {
+      const tablesArray = this.tables();
+
+      if (tablesArray.length > 0) {
+        this.updateTableReferences();
+      }
+    });
+  }
+
   ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
@@ -106,10 +116,6 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   ngAfterViewInit() {
     this.updateTableReferences();
-
-    this.tables.changes.subscribe(() => {
-      this.updateTableReferences();
-    });
   }
 
   initColumnsAndFilters() {
@@ -621,7 +627,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
   updateTableReferences() {
     this.tableMap.clear();
-    const tablesArray = this.tables.toArray();
+    const tablesArray = this.tables();
 
     this.teamTabs.forEach((tab, index) => {
       if (index < tablesArray.length) {
@@ -673,8 +679,10 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     if (!table) {
       console.warn(`No table found for tab ${this.activeTab}`);
 
-      if (this.tables && this.tables.length > 0) {
-        return this.tables.first;
+      const tables = this.tables();
+
+      if (tables && tables.length > 0) {
+        return tables.at(0)!;
       }
     }
 
@@ -686,10 +694,12 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   toggleAddColumnOverlay() {
-    if (this.multiSelect.overlayVisible) {
-      this.multiSelect.hide();
+    const multiSelect = this.multiSelect();
+
+    if (multiSelect.overlayVisible) {
+      multiSelect.hide();
     } else {
-      this.multiSelect.show();
+      multiSelect.show();
     }
   }
 

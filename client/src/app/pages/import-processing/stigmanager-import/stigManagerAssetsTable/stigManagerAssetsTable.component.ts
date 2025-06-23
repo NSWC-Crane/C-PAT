@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -49,8 +49,8 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   private sharedService = inject(SharedService);
 
   @Input() stigmanCollectionId!: number;
-  @ViewChild('dt') table!: Table;
-  @ViewChild('ms') multiSelect!: MultiSelect;
+  readonly table = viewChild.required<Table>('dt');
+  readonly multiSelect = viewChild.required<MultiSelect>('ms');
 
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -140,12 +140,12 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   }
 
   clear() {
-    this.table.clear();
+    this.table().clear();
     this.filterValue = '';
   }
 
   onGlobalFilter(event: Event) {
-    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    this.table().filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
   resetColumnSelections() {
@@ -153,14 +153,16 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   }
 
   toggleAddColumnOverlay() {
-    if (this.multiSelect.overlayVisible) {
-      this.multiSelect.hide();
+    const multiSelect = this.multiSelect();
+
+    if (multiSelect.overlayVisible) {
+      multiSelect.hide();
     } else {
-      this.multiSelect.show();
+      multiSelect.show();
     }
   }
 
   exportCSV() {
-    this.table.exportCSV();
+    this.table().exportCSV();
   }
 }

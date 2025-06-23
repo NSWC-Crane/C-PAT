@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild, signal, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { addDays, isAfter } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -47,7 +47,7 @@ export class PoamMilestonesComponent implements OnInit {
   private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
 
-  @ViewChild('dt') table: Table;
+  readonly table = viewChild<Table>('dt');
   @Input() poam: any = { status: '' };
   @Input() accessLevel: number = 0;
   @Input() poamMilestones: Milestone[] = [];
@@ -97,8 +97,10 @@ export class PoamMilestonesComponent implements OnInit {
     this.clonedMilestones[tempId] = { ...newMilestone };
 
     setTimeout(() => {
-      if (this.table) {
-        this.table.initRowEdit(newMilestone);
+      const table = this.table();
+
+      if (table) {
+        table.initRowEdit(newMilestone);
       }
     });
 
@@ -154,8 +156,10 @@ export class PoamMilestonesComponent implements OnInit {
       delete milestone.dateModified;
     }
 
-    if (this.table) {
-      this.table.cancelRowEdit(milestone);
+    const table = this.table();
+
+    if (table) {
+      table.cancelRowEdit(milestone);
     }
 
     this.messageService.add({

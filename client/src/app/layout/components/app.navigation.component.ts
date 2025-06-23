@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, DOCUMENT, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild, afterNextRender, booleanAttribute, computed, inject } from '@angular/core';
+import { Component, DOCUMENT, ElementRef, Input, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { MenuItem } from 'primeng/api';
@@ -78,8 +78,8 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   timeout: any = null;
   private destroy$ = new Subject<void>();
   private payloadSubscription: Subscription[] = [];
-  @ViewChild('menubutton') menuButton!: ElementRef;
-  @ViewChild('menuContainer') menuContainer!: ElementRef;
+  readonly menuButton = viewChild.required<ElementRef>('menubutton');
+  readonly menuContainer = viewChild.required<ElementRef>('menuContainer');
   readonly user$ = inject(AuthService).user$;
   constructor() {
     this.window = this.document.defaultView as Window;

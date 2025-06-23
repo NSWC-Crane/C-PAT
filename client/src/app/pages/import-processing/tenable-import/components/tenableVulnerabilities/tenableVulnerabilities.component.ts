@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, signal, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -143,9 +143,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   @Output() sidebarToggle = new EventEmitter<boolean>();
   @Output() totalRecordsChange = new EventEmitter<number>();
 
-  @ViewChild('ms') multiSelect!: MultiSelect;
-  @ViewChild('op') overlayPanel!: Popover;
-  @ViewChild('dt') table!: Table;
+  readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  readonly overlayPanel = viewChild.required<Popover>('op');
+  readonly table = viewChild.required<Table>('dt');
 
   acceptRiskStatusOptions = [
     { label: 'All', value: 'all' },
@@ -1349,7 +1349,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   showFilterMenu(event: Event) {
-    this.overlayPanel.toggle(event);
+    this.overlayPanel().toggle(event);
   }
 
   applyFamilyFilter(value: any, filterCallback: Function) {
@@ -1929,7 +1929,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(loadVuln: boolean = true) {
-    this.table.clear();
+    this.table().clear();
     this.tenableTool = 'sumid';
     this.tempFilters = this.initializeTempFilters();
 
@@ -2003,7 +2003,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       const savedFilter = typeof selectedFilter.filter === 'string' ? JSON.parse(selectedFilter.filter) : selectedFilter.filter;
 
       if (savedFilter) {
-        this.table.clear();
+        this.table().clear();
         this.tenableTool = savedFilter.tenableTool || 'sumid';
         this.tempFilters = this.initializeTempFilters();
         this.activeFilters = [];
@@ -2221,14 +2221,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   loadVulnList() {
     this.tenableTool = 'listvuln';
-    this.table.clear();
+    this.table().clear();
     this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     this.expandColumnSelections();
   }
 
   loadVulnSummary() {
     this.tenableTool = 'sumid';
-    this.table.clear();
+    this.table().clear();
     this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     this.resetColumnSelections();
   }
@@ -2471,10 +2471,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   toggleAddColumnOverlay() {
-    if (this.multiSelect.overlayVisible) {
-      this.multiSelect.hide();
+    const multiSelect = this.multiSelect();
+
+    if (multiSelect.overlayVisible) {
+      multiSelect.hide();
     } else {
-      this.multiSelect.show();
+      multiSelect.show();
     }
   }
 

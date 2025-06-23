@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe, Location } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, computed, signal, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, computed, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addDays, format, parse } from 'date-fns';
@@ -121,7 +121,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   private location = inject(Location);
   private cdr = inject(ChangeDetectorRef);
 
-  @ViewChild('menu') menu!: Menu;
+  readonly menu = viewChild.required<Menu>('menu');
   appConfigSettings: AppConfiguration[] = [];
   accessLevel = signal<number>(0);
   loadingTeams = signal<boolean>(false);
@@ -207,7 +207,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-secondary',
         command: () => {
           this.poamLog();
-          this.menu?.hide();
+          this.menu()?.hide();
         }
       },
       {
@@ -216,7 +216,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-info',
         command: () => {
           this.showPoamNotes = true;
-          this.menu?.hide();
+          this.menu()?.hide();
         },
         visible: this.poam?.poamId !== 'ADDPOAM'
       },
@@ -226,7 +226,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-warning',
         command: () => {
           this.extendPoam();
-          this.menu?.hide();
+          this.menu()?.hide();
         }
       }
     ];
@@ -238,7 +238,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-success',
         command: () => {
           this.verifySubmitPoam();
-          this.menu?.hide();
+          this.menu()?.hide();
         }
       });
     }
@@ -250,7 +250,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-primary',
         command: () => {
           this.poamApproval();
-          this.menu?.hide();
+          this.menu()?.hide();
         }
       });
     }
@@ -262,7 +262,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-danger',
         command: () => {
           this.deletePoam();
-          this.menu?.hide();
+          this.menu()?.hide();
         }
       });
     }

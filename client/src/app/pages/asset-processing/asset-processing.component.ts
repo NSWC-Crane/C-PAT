@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -80,7 +80,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   private collectionsService = inject(CollectionsService);
   private messageService = inject(MessageService);
 
-  @ViewChild('assetTable') assetTable!: Table;
+  readonly assetTable = viewChild.required<Table>('assetTable');
   public assetLabel: any[] = [];
   chartData: any;
   chartOptions: any;
@@ -246,14 +246,18 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
 
-    if (this.assetTable) {
-      this.assetTable.filterGlobal(filterValue, 'contains');
+    const assetTable = this.assetTable();
+
+    if (assetTable) {
+      assetTable.filterGlobal(filterValue, 'contains');
     }
   }
 
   clear() {
-    if (this.assetTable) {
-      this.assetTable.clear();
+    const assetTable = this.assetTable();
+
+    if (assetTable) {
+      assetTable.clear();
     }
 
     this.filterValue = '';

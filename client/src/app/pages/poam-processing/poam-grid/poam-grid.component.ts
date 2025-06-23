@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnDestroy, OnInit, ViewChild, computed, effect, signal, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, computed, effect, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -53,8 +53,8 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   private poamService = inject(PoamService);
   private messageService = inject(MessageService);
 
-  @ViewChild('fileUpload') fileUpload!: FileUpload;
-  @ViewChild('dt') table!: Table;
+  readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
+  readonly table = viewChild.required<Table>('dt');
   @Input() allColumns!: string[];
 
   globalFilterSignal = signal<string>('');
@@ -220,8 +220,10 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     await this.setPayload();
 
     setTimeout(() => {
-      if (this.table) {
-        this.table.filters['status'] = [{ value: 'closed', matchMode: 'notEquals' }];
+      const table = this.table();
+
+      if (table) {
+        table.filters['status'] = [{ value: 'closed', matchMode: 'notEquals' }];
       }
     });
   }
@@ -573,8 +575,10 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
     this.dialogRef.onClose.subscribe(async (selectedColumns: string[]) => {
       if (!selectedColumns || selectedColumns.length === 0) {
-        if (this.fileUpload) {
-          this.fileUpload.clear();
+        const fileUpload = this.fileUpload();
+
+        if (fileUpload) {
+          fileUpload.clear();
         }
 
         return;
@@ -614,8 +618,10 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         });
       }
 
-      if (this.fileUpload) {
-        this.fileUpload.clear();
+      const fileUpload = this.fileUpload();
+
+      if (fileUpload) {
+        fileUpload.clear();
       }
     });
   }
@@ -631,8 +637,8 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   }
 
   clear() {
-    this.table.clear();
-    this.table.filters['status'] = [{ value: 'closed', matchMode: 'notEquals' }];
+    this.table().clear();
+    this.table().filters['status'] = [{ value: 'closed', matchMode: 'notEquals' }];
     this.globalFilterSignal.set('');
   }
 

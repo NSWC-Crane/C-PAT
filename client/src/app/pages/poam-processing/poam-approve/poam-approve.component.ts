@@ -9,7 +9,7 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parseISO } from 'date-fns';
@@ -81,7 +81,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   displayConfirmDialog: boolean = false;
   confirmDialogMessage: string = '';
 
-  @ViewChild('approveTemplate') approveTemplate!: TemplateRef<any>;
+  readonly approveTemplate = viewChild.required<TemplateRef<any>>('approveTemplate');
 
   public ngOnInit() {
     this.route.params.subscribe(async (params) => {
