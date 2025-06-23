@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, inject, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -91,7 +91,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   @Input() user: any;
   @Input() users: any;
   @Input() payload: any;
-  @Output() userChange = new EventEmitter<void>();
+  readonly userChange = output<void>();
   readonly teamTable = viewChild<Table>('teamTable');
   readonly permissionsTable = viewChild<Table>('permissionsTable');
   accessLevelOptions = [
@@ -746,6 +746,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     if (this.user.accountStatus === 'DISABLED') {
       this.userService.disableUser(this.user.userId).subscribe(() => {
         if (final) {
+          // TODO: The 'emit' function requires a mandatory void argument
           this.userChange.emit();
         }
       });
@@ -757,6 +758,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
       this.userService.updateUser(this.user).subscribe(() => {
         if (final) {
+          // TODO: The 'emit' function requires a mandatory void argument
           this.userChange.emit();
         }
       });
@@ -764,6 +766,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   resetData() {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.userChange.emit();
   }
 

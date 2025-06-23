@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -69,7 +69,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
-  @Output() totalRecordsChange = new EventEmitter<number>();
+  readonly totalRecordsChange = output<number>();
   @Input() currentPreset: string = 'iav';
   readonly table = viewChild.required<Table>('dt');
   readonly select = viewChild.required<Select>('dd');

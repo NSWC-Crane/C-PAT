@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output, inject, viewChild } from '@angular/core';
+import { Component, Input, OnInit, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { parseISO } from 'date-fns';
 import { MessageService, TreeNode } from 'primeng/api';
@@ -88,7 +88,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   private messageService = inject(MessageService);
   private sharedService = inject(SharedService);
 
-  @Output() reviewsCountChange = new EventEmitter<number>();
+  readonly reviewsCountChange = output<number>();
   @Input() stigmanCollectionId!: number;
   readonly table = viewChild.required<Table>('dt');
   readonly multiSelect = viewChild.required<MultiSelect>('ms');

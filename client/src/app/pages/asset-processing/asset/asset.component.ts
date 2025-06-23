@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -42,7 +42,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   @Input() asset: any;
   @Input() assets: any;
   @Input() payload: any;
-  @Output() assetchange = new EventEmitter();
+  readonly assetchange = output();
 
   labelList: any;
   clonedLabels: { [s: string]: any } = {};

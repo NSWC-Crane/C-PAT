@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -42,7 +42,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   @Input() label: any;
   @Input() labels: any;
   @Input() payload: any;
-  @Output() labelchange = new EventEmitter();
+  readonly labelchange = output();
 
   errorMessage: string = '';
   data: any = [];

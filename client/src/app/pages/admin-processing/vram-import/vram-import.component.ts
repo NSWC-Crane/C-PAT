@@ -10,7 +10,7 @@
 
 import { CommonModule } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
-import { Component, EventEmitter, OnInit, Output, OnDestroy, inject, viewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -39,7 +39,7 @@ export class VRAMImportComponent implements OnInit, OnDestroy {
   private userService = inject(UsersService);
 
   readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
-  @Output() navigateToPluginMapping = new EventEmitter<void>();
+  readonly navigateToPluginMapping = output<void>();
   uploadUrl: string = '/api/import/vram';
   user: any;
   totalSize: string = '0';

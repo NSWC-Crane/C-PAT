@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, signal, inject, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, signal, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { addDays, isAfter } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -52,7 +52,7 @@ export class PoamMilestonesComponent implements OnInit {
   @Input() accessLevel: number = 0;
   @Input() poamMilestones: Milestone[] = [];
   @Input() assignedTeamOptions: any[] = [];
-  @Output() milestonesChanged = new EventEmitter<any[]>();
+  readonly milestonesChanged = output<any[]>();
 
   editingMilestoneId = signal<string | null>(null);
   clonedMilestones: { [s: string]: any } = {};

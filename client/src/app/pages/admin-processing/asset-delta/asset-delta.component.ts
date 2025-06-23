@@ -10,7 +10,7 @@
 
 import { CommonModule } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, effect, signal, OnDestroy, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, effect, signal, OnDestroy, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -90,7 +90,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly assetDeltaTable = viewChild<any>('assetDeltaTable');
   readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
-  @Output() navigateToPluginMapping = new EventEmitter<void>();
+  readonly navigateToPluginMapping = output<void>();
   cols!: Column[];
   exportColumns!: Column[];
   availableCollections: CollectionsBasicList[] = [];

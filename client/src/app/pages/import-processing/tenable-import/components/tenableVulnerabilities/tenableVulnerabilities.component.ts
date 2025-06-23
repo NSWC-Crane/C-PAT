@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, signal, inject, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, signal, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -140,8 +140,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   @Input() parentSidebarVisible: boolean = false;
   @Input() currentPreset: string = 'main';
-  @Output() sidebarToggle = new EventEmitter<boolean>();
-  @Output() totalRecordsChange = new EventEmitter<number>();
+  readonly sidebarToggle = output<boolean>();
+  readonly totalRecordsChange = output<number>();
 
   readonly multiSelect = viewChild.required<MultiSelect>('ms');
   readonly overlayPanel = viewChild.required<Popover>('op');

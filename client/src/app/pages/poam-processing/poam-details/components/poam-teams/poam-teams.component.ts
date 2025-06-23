@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, Input, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -35,7 +35,11 @@ export class PoamTeamsComponent {
   @Input() assignedTeamOptions: any[] = [];
   @Input() loading: boolean = false;
   @Input() poamService!: PoamService;
-  @Output() teamsChanged = new EventEmitter<{ teams: any[]; action: string; team?: any }>();
+  readonly teamsChanged = output<{
+    teams: any[];
+    action: string;
+    team?: any;
+}>();
 
   async addAssignedTeam() {
     const newAssignedTeam = {

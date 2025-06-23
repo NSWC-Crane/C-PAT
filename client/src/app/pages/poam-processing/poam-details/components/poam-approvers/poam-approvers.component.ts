@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -32,7 +32,7 @@ export class PoamApproversComponent implements OnInit {
   @Input() poamApprovers: any[] = [];
   @Input() collectionApprovers: any[] = [];
   @Input() poamService: any;
-  @Output() approversChanged = new EventEmitter<any[]>();
+  readonly approversChanged = output<any[]>();
 
   private messageService = inject(MessageService);
 
