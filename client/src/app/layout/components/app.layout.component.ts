@@ -236,7 +236,7 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
         </div>
       </ng-template>
     </p-dialog>
-    <p-toast></p-toast>
+    <p-toast />
   `,
   styles: [
     `

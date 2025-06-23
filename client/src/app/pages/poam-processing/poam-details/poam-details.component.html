@@ -789,9 +789,9 @@
 
 <p-dialog class="poam-chat" [(visible)]="showPoamNotes" [modal]="true" [closable]="true" [style]="{ width: '80vw', height: '80vh' }" [baseZIndex]="10000">
   @if (poam?.poamId && poam.poamId !== 'ADDPOAM') {
-    <cpat-poam-chat [poamId]="poam.poamId" [userId]="user?.userId"> </cpat-poam-chat>
+    <cpat-poam-chat [poamId]="poam.poamId" [userId]="user?.userId" />
   }
 </p-dialog>
 
 <p-toast />
-<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" [closable]="false"></p-confirmDialog>
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" [closable]="false" />

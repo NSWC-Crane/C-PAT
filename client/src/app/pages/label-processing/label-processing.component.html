@@ -86,7 +86,7 @@
 @if (accessLevel >= 2) {
   <p-dialog [(visible)]="labelDialogVisible" [modal]="true" [style]="{ width: '50vw' }">
     <ng-template pTemplate="content">
-      <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData(); closeLabelPopup()"></cpat-label>
+      <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData(); closeLabelPopup()" />
     </ng-template>
   </p-dialog>
 }

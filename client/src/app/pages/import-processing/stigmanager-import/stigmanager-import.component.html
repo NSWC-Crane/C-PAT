@@ -249,10 +249,10 @@
       </p-tabpanel>
       @if (this.stigmanCollection?.collectionId) {
         <p-tabpanel value="1">
-          <cpat-stigmanager-reviews-table [stigmanCollectionId]="this.stigmanCollection?.collectionId" (reviewsCountChange)="onReviewsCountChange($event)"> </cpat-stigmanager-reviews-table>
+          <cpat-stigmanager-reviews-table [stigmanCollectionId]="this.stigmanCollection?.collectionId" (reviewsCountChange)="onReviewsCountChange($event)" />
         </p-tabpanel>
       }
     </p-tabpanels>
   </p-tabs>
 </p-card>
-<p-toast></p-toast>
+<p-toast />

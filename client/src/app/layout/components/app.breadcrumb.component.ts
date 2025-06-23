@@ -20,7 +20,7 @@ import { filter, takeUntil } from 'rxjs/operators';
   selector: 'cpat-breadcrumb',
   standalone: true,
   imports: [RouterModule, BreadcrumbModule],
-  template: ` <p-breadcrumb [model]="items" [home]="home" styleClass="border-none surface-ground"> </p-breadcrumb> `,
+  template: ` <p-breadcrumb [model]="items" [home]="home" styleClass="border-none surface-ground" /> `,
   styles: [
     `
       :host ::ng-deep .p-breadcrumb {
