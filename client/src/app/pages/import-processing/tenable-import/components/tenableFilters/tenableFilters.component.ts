@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, Input, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -36,7 +36,7 @@ export class TenableFiltersComponent {
   @Input() activeFilters: any[] = [];
   @Input() tenableTool: string = '';
 
-  @Output() filterSaved = new EventEmitter<void>();
+  readonly filterSaved = output<void>();
 
   saveFilterDialog: boolean = false;
   newFilterName: string = '';
@@ -81,6 +81,7 @@ export class TenableFiltersComponent {
           detail: 'Filter saved successfully'
         });
         this.saveFilterDialog = false;
+        // TODO: The 'emit' function requires a mandatory void argument
         this.filterSaved.emit();
       },
       error: (error) => {

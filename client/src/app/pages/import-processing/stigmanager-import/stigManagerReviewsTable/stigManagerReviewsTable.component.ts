@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { parseISO } from 'date-fns';
 import { MessageService, TreeNode } from 'primeng/api';
@@ -88,12 +88,12 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   private messageService = inject(MessageService);
   private sharedService = inject(SharedService);
 
-  @Output() reviewsCountChange = new EventEmitter<number>();
+  readonly reviewsCountChange = output<number>();
   @Input() stigmanCollectionId!: number;
-  @ViewChild('dt') table!: Table;
-  @ViewChild('ms') multiSelect!: MultiSelect;
-  @ViewChild('tt') treeTable!: TreeTable;
-  @ViewChild('filterPopover') filterPopover!: Popover;
+  readonly table = viewChild.required<Table>('dt');
+  readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  readonly treeTable = viewChild.required<TreeTable>('tt');
+  readonly filterPopover = viewChild.required<Popover>('filterPopover');
   currentFilterColumn: any = null;
 
   treeNodes: TreeNode[] = [];
@@ -202,7 +202,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     this.result = value;
 
     if (this.selectedBenchmarkId) {
-      this.filterPopover.hide();
+      this.filterPopover().hide();
       this.loadReviews();
     }
   }
@@ -602,7 +602,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     };
 
     this.applyFilters();
-    this.filterPopover.hide();
+    this.filterPopover().hide();
   }
 
   exportCSV() {
@@ -695,7 +695,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     };
 
     this.applyFilters();
-    this.filterPopover.hide();
+    this.filterPopover().hide();
   }
 
   resetColumnSelections() {
@@ -705,19 +705,21 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   showFilterPanel(event: Event, col: any) {
     if (this.currentFilterColumn) {
       this.currentFilterColumn = col;
-      this.filterPopover.show(event);
-      this.filterPopover.align();
+      this.filterPopover().show(event);
+      this.filterPopover().align();
     } else {
       this.currentFilterColumn = col;
-      this.filterPopover.show(event);
+      this.filterPopover().show(event);
     }
   }
 
   toggleAddColumnOverlay() {
-    if (this.multiSelect.overlayVisible) {
-      this.multiSelect.hide();
+    const multiSelect = this.multiSelect();
+
+    if (multiSelect.overlayVisible) {
+      multiSelect.hide();
     } else {
-      this.multiSelect.show();
+      multiSelect.show();
     }
   }
 }

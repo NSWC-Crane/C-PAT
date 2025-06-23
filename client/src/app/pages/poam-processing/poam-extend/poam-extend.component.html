@@ -278,7 +278,7 @@
   }
   <ng-template pTemplate="footer">
     <div class="m-2 flex w-full items-center justify-between">
-      <p-button class="ml-2" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()" (onKeyUp)="cancelExtension()"></p-button>
+      <p-button class="ml-2" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()"></p-button>
       <div>
         <p-button
           [outlined]="true"
@@ -286,7 +286,6 @@
           pTooltip="Saving an extension where 'Extension Time Requested' is provided will automatically update the POAM status to 'Extension Requested' and notify an Approver for review."
           tooltipZIndex="9999"
           (click)="submitPoamExtension()"
-          (onKeyUp)="submitPoamExtension()"
           [disabled]="accessLevel < 2"
         ></p-button>
         @if (accessLevel >= 3) {
@@ -298,7 +297,6 @@
             pTooltip="Approving a POAM extension will automatically update the POAM status to 'Approved'"
             tooltipZIndex="9999"
             (click)="approveExtension()"
-            (onKeyUp)="approveExtension()"
             [disabled]="accessLevel < 3"
           ></p-button>
         }
@@ -306,5 +304,5 @@
     </div>
   </ng-template>
 </p-dialog>
-<p-toast [baseZIndex]="10000"></p-toast>
-<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
+<p-toast [baseZIndex]="10000" />
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" />

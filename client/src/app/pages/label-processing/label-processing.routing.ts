@@ -9,11 +9,11 @@
 */
 
 import { Routes } from '@angular/router';
-import { LabelProcessingComponent } from './label-processing.component';
+
 
 export const labelProcessingRoutes: Routes = [
   {
     path: '',
-    component: LabelProcessingComponent
+    loadComponent: () => import('./label-processing.component').then(m => m.LabelProcessingComponent)
   }
 ];

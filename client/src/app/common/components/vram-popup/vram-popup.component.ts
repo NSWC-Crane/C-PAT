@@ -18,7 +18,7 @@ import { StepperModule } from 'primeng/stepper';
 @Component({
   selector: 'cpat-vram-popup',
   template: `
-    <p-button styleClass="w-full" severity="secondary" [outlined]="true" label="VRAM IAV TABLE" (click)="openVRAM()"> </p-button>
+    <p-button styleClass="w-full" severity="secondary" [outlined]="true" label="VRAM IAV TABLE" (click)="openVRAM()" />
 
     @if (isPopupOpen) {
       <div class="card mt-6">

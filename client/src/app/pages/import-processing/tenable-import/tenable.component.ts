@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild } from '@angular/core';
+import { Component, viewChild } from '@angular/core';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { TenableSolutionsComponent } from './components/solutions/tenableSolutions.component';
@@ -24,8 +24,8 @@ import { TenableVulnerabilitiesComponent } from './components/tenableVulnerabili
   styleUrls: ['./tenable.component.scss']
 })
 export class TenableComponent {
-  @ViewChild('tabComponent') tabComponent: any;
-  @ViewChild(TenableVulnerabilitiesComponent) vulnerabilitiesComponent!: TenableVulnerabilitiesComponent;
+  readonly tabComponent = viewChild<any>('tabComponent');
+  readonly vulnerabilitiesComponent = viewChild.required(TenableVulnerabilitiesComponent);
 
   mainTotal: number = 0;
   exploitableTotal: number = 0;

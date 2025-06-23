@@ -9,11 +9,11 @@
 */
 
 import { Routes } from '@angular/router';
-import { DoDConsentComponent } from './dod-consent.component';
+
 
 export const consentRoute: Routes = [
   {
     path: '',
-    component: DoDConsentComponent
+    loadComponent: () => import('./dod-consent.component').then(m => m.DoDConsentComponent)
   }
 ];

@@ -166,11 +166,9 @@
     </p-card>
   </div>
 </div>
-<cpat-poam-grid
-  [poamsData]="poams()"
+<cpat-poam-grid [poamsData]="poams()"
   [affectedAssetCounts]="affectedAssetCounts()"
   [allColumns]="['Last Updated', 'POAM ID', 'POAM Status', 'Adjusted Severity', 'Submitter', 'Submitted Date', 'Scheduled Completion Date', 'POAM']"
   (managePoam)="managePoam($event)"
->
-</cpat-poam-grid>
+ />
 <p-toast />

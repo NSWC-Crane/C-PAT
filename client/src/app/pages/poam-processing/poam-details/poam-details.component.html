@@ -781,17 +781,17 @@
   </div>
   <ng-template pTemplate="footer" let-dialog>
     <div style="display: flex; justify-content: space-between; width: 100%">
-      <p-button [text]="true" [raised]="true" (click)="cancelSubmit()" (onKeyUp)="cancelSubmit()" label="Cancel" severity="danger"></p-button>
-      <p-button [text]="true" [raised]="true" (click)="confirmSubmit()" (onKeyUp)="confirmSubmit()" label="Submit"></p-button>
+      <p-button [text]="true" [raised]="true" (click)="cancelSubmit()" label="Cancel" severity="danger"></p-button>
+      <p-button [text]="true" [raised]="true" (click)="confirmSubmit()" label="Submit"></p-button>
     </div>
   </ng-template>
 </p-dialog>
 
 <p-dialog class="poam-chat" [(visible)]="showPoamNotes" [modal]="true" [closable]="true" [style]="{ width: '80vw', height: '80vh' }" [baseZIndex]="10000">
   @if (poam?.poamId && poam.poamId !== 'ADDPOAM') {
-    <cpat-poam-chat [poamId]="poam.poamId" [userId]="user?.userId"> </cpat-poam-chat>
+    <cpat-poam-chat [poamId]="poam.poamId" [userId]="user?.userId" />
   }
 </p-dialog>
 
 <p-toast />
-<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" [closable]="false"></p-confirmDialog>
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" [closable]="false" />

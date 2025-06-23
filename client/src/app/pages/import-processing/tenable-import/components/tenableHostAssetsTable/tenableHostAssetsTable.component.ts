@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
@@ -51,9 +51,9 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   @Input() tenableRepoId: number;
-  @ViewChild('hostAssetTable') hostAssetTable!: Table;
-  @ViewChild('hostFindingsTable') hostFindingsTable!: Table;
-  @ViewChild('ms') multiSelect!: MultiSelect;
+  readonly hostAssetTable = viewChild.required<Table>('hostAssetTable');
+  readonly hostFindingsTable = viewChild.required<Table>('hostFindingsTable');
+  readonly multiSelect = viewChild.required<MultiSelect>('ms');
 
   cols: any[];
   hostDialogCols: any[];
@@ -737,13 +737,15 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   }
 
   clear() {
-    this.hostAssetTable.clear();
+    this.hostAssetTable().clear();
     this.filterValue = '';
   }
 
   clearHostFindingsTable() {
-    if (this.hostFindingsTable) {
-      this.hostFindingsTable.clear();
+    const hostFindingsTable = this.hostFindingsTable();
+
+    if (hostFindingsTable) {
+      hostFindingsTable.clear();
     }
 
     this.dialogFilterValue = '';
@@ -754,21 +756,21 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   onGlobalFilter(event: Event) {
     const value = (event.target as HTMLInputElement).value;
 
-    this.hostAssetTable.filterGlobal(value, 'contains');
+    this.hostAssetTable().filterGlobal(value, 'contains');
   }
 
   onHostFindingsTableFilter(event: Event) {
     const value = (event.target as HTMLInputElement).value;
 
-    this.hostFindingsTable.filterGlobal(value, 'contains');
+    this.hostFindingsTable().filterGlobal(value, 'contains');
   }
 
   exportCSV() {
-    this.hostAssetTable.exportCSV();
+    this.hostAssetTable().exportCSV();
   }
 
   exportHostFindingsTableCSV() {
-    this.hostFindingsTable.exportCSV();
+    this.hostFindingsTable().exportCSV();
   }
 
   goBackToHostDialog() {
@@ -781,10 +783,12 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   }
 
   toggleAddColumnOverlay() {
-    if (this.multiSelect.overlayVisible) {
-      this.multiSelect.hide();
+    const multiSelect = this.multiSelect();
+
+    if (multiSelect.overlayVisible) {
+      multiSelect.hide();
     } else {
-      this.multiSelect.show();
+      multiSelect.show();
     }
   }
 

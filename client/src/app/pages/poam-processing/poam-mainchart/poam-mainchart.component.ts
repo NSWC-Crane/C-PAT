@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { signal, computed, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, ViewChild, effect, model, inject } from '@angular/core';
+import { signal, computed, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, effect, model, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { addDays, differenceInCalendarDays } from 'date-fns';
 import { Select } from 'primeng/select';
@@ -56,11 +56,11 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
 
   @Input() poams!: any[];
   @Input() canvasHeight = '35rem';
-  @ViewChild('statusChart') statusChartRef: any;
-  @ViewChild('labelChart') labelChartRef: any;
-  @ViewChild('severityChart') severityChartRef: any;
-  @ViewChild('scheduledCompletionChart') scheduledCompletionChartRef: any;
-  @ViewChild('taskOrderChart') taskOrderChartRef: any;
+  readonly statusChartRef = viewChild<any>('statusChart');
+  readonly labelChartRef = viewChild<any>('labelChart');
+  readonly severityChartRef = viewChild<any>('severityChart');
+  readonly scheduledCompletionChartRef = viewChild<any>('scheduledCompletionChart');
+  readonly taskOrderChartRef = viewChild<any>('taskOrderChart');
 
   selectedStatus = signal<string | null>(null);
   selectedLabel = signal<string | null>(null);
@@ -757,23 +757,23 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
 
     switch (chartType) {
       case 'status':
-        chartRef = this.statusChartRef;
+        chartRef = this.statusChartRef();
         chartName = 'C-PAT POAM Status Chart';
         break;
       case 'label':
-        chartRef = this.labelChartRef;
+        chartRef = this.labelChartRef();
         chartName = 'C-PAT POAM Label Chart';
         break;
       case 'severity':
-        chartRef = this.severityChartRef;
+        chartRef = this.severityChartRef();
         chartName = 'C-PAT POAM Severity Chart';
         break;
       case 'scheduledCompletion':
-        chartRef = this.scheduledCompletionChartRef;
+        chartRef = this.scheduledCompletionChartRef();
         chartName = 'C-PAT POAM Scheduled Completion Chart';
         break;
       case 'taskOrder':
-        chartRef = this.taskOrderChartRef;
+        chartRef = this.taskOrderChartRef();
         chartName = 'C-PAT POAM Task Order Chart';
         break;
       default:

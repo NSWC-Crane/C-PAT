@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -33,7 +33,7 @@ export class AAPackageProcessingComponent implements OnInit {
   private aaPackageService = inject(AAPackageService);
   private messageService = inject(MessageService);
 
-  @ViewChild('dt') table!: Table;
+  readonly table = viewChild.required<Table>('dt');
 
   aaPackages: AAPackage[] = [];
   newAAPackage: AAPackage = { aaPackageId: 0, aaPackage: '' };
@@ -62,12 +62,14 @@ export class AAPackageProcessingComponent implements OnInit {
     this.newAAPackage = { aaPackageId: 0, aaPackage: '' };
     this.aaPackages = [this.newAAPackage, ...this.aaPackages];
 
-    if (this.table) {
-      this.table.first = 0;
+    const table = this.table();
+
+    if (table) {
+      table.first = 0;
     }
 
     setTimeout(() => {
-      this.table.initRowEdit(this.aaPackages[0]);
+      this.table().initRowEdit(this.aaPackages[0]);
     });
   }
 
@@ -136,6 +138,6 @@ export class AAPackageProcessingComponent implements OnInit {
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
 
-    this.table.filterGlobal(inputValue, 'contains');
+    this.table().filterGlobal(inputValue, 'contains');
   }
 }

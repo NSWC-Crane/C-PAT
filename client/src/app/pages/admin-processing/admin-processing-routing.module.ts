@@ -10,20 +10,20 @@
 
 import { Routes } from '@angular/router';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
-import { AdminProcessingComponent } from './admin-processing.component';
-import { AppInfoComponent } from './app-info/app-info.component';
+
+
 
 export const adminProcessingRoutes: Routes = [
   {
     path: '',
     canActivate: [AuthGuard],
-    component: AdminProcessingComponent,
+    loadComponent: () => import('./admin-processing.component').then(m => m.AdminProcessingComponent),
     data: { guardType: 'admin' }
   },
   {
     path: 'app-info',
     canActivate: [AuthGuard],
-    component: AppInfoComponent,
+    loadComponent: () => import('./app-info/app-info.component').then(m => m.AppInfoComponent),
     data: { guardType: 'admin' }
   }
 ];

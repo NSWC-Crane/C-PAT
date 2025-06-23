@@ -23,17 +23,7 @@
   </p-select>
 </div>
 <div class="field mb-2">
-  <p-button
-    label="Import Selected"
-    class="import-button"
-    styleClass="p-button-primary"
-    (click)="importTenableRepository()"
-    (onKeyUp)="importTenableRepository()"
-    [disabled]="!selectedTenableRepository"
-    [style]="{ width: '100%', 'margin-bottom': '10px' }"
-    [outlined]="true"
-  >
-  </p-button>
+  <p-button label="Import Selected" class="import-button" styleClass="p-button-primary" (click)="importTenableRepository()" [disabled]="!selectedTenableRepository" [style]="{ width: '100%', 'margin-bottom': '10px' }" [outlined]="true"> </p-button>
 </div>
 <div class="field">
   <p-button
@@ -41,12 +31,11 @@
     class="import-all-button"
     styleClass="p-button-warn"
     (click)="importAllRemainingRepositories()"
-    (onKeyUp)="importAllRemainingRepositories()"
     [disabled]="!filteredRepositories || filteredRepositories.length === 0"
     [style]="{ width: '100%' }"
     [outlined]="true"
   >
   </p-button>
 </div>
-<p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>
+<p-toast />
+<p-confirmDialog />

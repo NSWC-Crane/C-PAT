@@ -24,30 +24,11 @@
   </p-select>
 </div>
 <div class="field mb-2">
-  <p-button
-    label="Import Selected"
-    class="import-button"
-    styleClass="p-button-primary"
-    (click)="importSTIGManagerCollection()"
-    (onKeyUp)="importSTIGManagerCollection()"
-    [disabled]="!selectedSTIGManagerCollection"
-    [style]="{ width: '100%', 'margin-bottom': '10px' }"
-    [outlined]="true"
-  >
+  <p-button label="Import Selected" class="import-button" styleClass="p-button-primary" (click)="importSTIGManagerCollection()" [disabled]="!selectedSTIGManagerCollection" [style]="{ width: '100%', 'margin-bottom': '10px' }" [outlined]="true">
   </p-button>
 </div>
 <div class="field">
-  <p-button
-    label="Import All Remaining"
-    class="import-all-button"
-    styleClass="p-button-warn"
-    (click)="importAllRemainingCollections()"
-    (onKeyUp)="importAllRemainingCollections()"
-    [disabled]="filteredCollections.length === 0"
-    [style]="{ width: '100%' }"
-    [outlined]="true"
-  >
-  </p-button>
+  <p-button label="Import All Remaining" class="import-all-button" styleClass="p-button-warn" (click)="importAllRemainingCollections()" [disabled]="filteredCollections.length === 0" [style]="{ width: '100%' }" [outlined]="true"> </p-button>
 </div>
-<p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>
+<p-toast />
+<p-confirmDialog />

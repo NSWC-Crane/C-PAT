@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, inject } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
@@ -38,7 +38,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   @Input() accessLevel: number;
   @Input() currentCollection: any;
   @Input() poamAssociatedVulnerabilities: any[] = [];
-  @Output() vulnerabilitiesChanged = new EventEmitter<string[]>();
+  readonly vulnerabilitiesChanged = output<string[]>();
 
   displayVulnerabilities: any[] = [];
   newVulnerability: string = '';

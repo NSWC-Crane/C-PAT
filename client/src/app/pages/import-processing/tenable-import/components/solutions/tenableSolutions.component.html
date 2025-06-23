@@ -19,7 +19,7 @@
             </p-inputIcon>
             <input pInputText id="search" class="w-48" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search Solutions" />
           </p-iconField>
-          <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()" pTooltip="Clear all filters"></p-button>
+          <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters"></p-button>
         </div>
         <div class="right-buttons">
           <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="dt.exportCSV()"> </p-button>
@@ -83,7 +83,7 @@
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-solutions>
-            <tr (click)="getAffectedHosts(solutions)" (onKeyUp)="getAffectedHosts(solutions)" style="cursor: pointer">
+            <tr (click)="getAffectedHosts(solutions)" style="cursor: pointer">
               <td [innerHTML]="solutions.solution"></td>
               <td>{{ solutions.scorePctg }}</td>
               <td>{{ solutions.hostTotal }}</td>
@@ -228,7 +228,7 @@
               </p-inputIcon>
               <input pInputText id="search" [(ngModel)]="dialogFilterValue" (input)="onDialogFilter($event)" placeholder="Search Assets" style="width: 300px" />
             </p-iconField>
-            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-auto" icon="pi pi-filter-slash" (click)="clearDialog()" (onKeyUp)="clearDialog()" pTooltip="Clear all filters"> </p-button>
+            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-auto" icon="pi pi-filter-slash" (click)="clearDialog()" pTooltip="Clear all filters"> </p-button>
           </div>
           <div class="scrollable-affectedHosts">
             <p-table
@@ -304,4 +304,4 @@
   </ng-template>
 </p-dialog>
 
-<p-toast position="center" key="error"></p-toast>
+<p-toast position="center" key="error" />

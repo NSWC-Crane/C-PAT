@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, inject, viewChildren, viewChild, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -57,8 +57,8 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   @Input() groupId!: string;
   @Input() associatedVulnerabilities: any[] = [];
 
-  @ViewChildren(Table) tables: QueryList<Table>;
-  @ViewChild('ms') multiSelect!: MultiSelect;
+  readonly tables = viewChildren(Table);
+  readonly multiSelect = viewChild<MultiSelect>('ms');
 
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -76,6 +76,17 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   private tableMap = new Map<string, Table>();
   selectedCollection: any;
   private subscriptions = new Subscription();
+
+  constructor() {
+    effect(() => {
+      const tablesArray = this.tables();
+
+      if (tablesArray.length > 0) {
+        this.updateTableReferences();
+      }
+    });
+  }
+
 
   ngOnInit() {
     this.subscriptions.add(
@@ -103,15 +114,11 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
 
   ngAfterViewInit() {
     this.updateTableReferences();
-
-    this.tables.changes.subscribe(() => {
-      this.updateTableReferences();
-    });
   }
 
   updateTableReferences() {
     this.tableMap.clear();
-    const tablesArray = this.tables.toArray();
+    const tablesArray = this.tables();
 
     this.teamTabs.forEach((tab, index) => {
       if (index < tablesArray.length) {
@@ -372,8 +379,10 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
     if (!table) {
       console.warn(`No table found for tab ${this.activeTab}`);
 
-      if (this.tables && this.tables.length > 0) {
-        return this.tables.first;
+      const tablesArray = this.tables();
+
+      if (tablesArray && tablesArray.length > 0) {
+        return tablesArray[0];
       }
     }
 
@@ -393,10 +402,14 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   }
 
   toggleAddColumnOverlay() {
-    if (this.multiSelect.overlayVisible) {
-      this.multiSelect.hide();
-    } else {
-      this.multiSelect.show();
+    const multiSelect = this.multiSelect();
+
+    if (multiSelect) {
+      if (multiSelect.overlayVisible) {
+        multiSelect.hide();
+      } else {
+        multiSelect.show();
+      }
     }
   }
 

@@ -10,7 +10,7 @@
 
 import { CommonModule } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ViewChild, effect, signal, OnDestroy, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, effect, signal, OnDestroy, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -88,9 +88,9 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private elementRef = inject(ElementRef);
 
-  @ViewChild('assetDeltaTable', { static: false }) assetDeltaTable: any;
-  @ViewChild('fileUpload') fileUpload!: FileUpload;
-  @Output() navigateToPluginMapping = new EventEmitter<void>();
+  readonly assetDeltaTable = viewChild<any>('assetDeltaTable');
+  readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
+  readonly navigateToPluginMapping = output<void>();
   cols!: Column[];
   exportColumns!: Column[];
   availableCollections: CollectionsBasicList[] = [];
@@ -267,8 +267,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    if (this.assetDeltaTable) {
-      this.assetDeltaTable.onFilter.subscribe(() => {
+    const assetDeltaTable = this.assetDeltaTable();
+
+    if (assetDeltaTable) {
+      assetDeltaTable.onFilter.subscribe(() => {
         setTimeout(() => {
           this.updateFilteredTotal();
         });
@@ -435,7 +437,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
               detail: 'File uploaded successfully'
             });
             this.loadAssetDeltaList(collectionId);
-            this.fileUpload.clear();
+            this.fileUpload().clear();
             this.showUploadDialog.set(false);
             this.checkAllStatuses();
           }
@@ -706,8 +708,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   updateTotalSize() {
     let totalSize = 0;
 
-    if (this.fileUpload.files) {
-      for (const file of this.fileUpload.files) {
+    const fileUpload = this.fileUpload();
+
+    if (fileUpload.files) {
+      for (const file of fileUpload.files) {
         totalSize += file.size;
       }
     }
@@ -896,7 +900,9 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   exportCSV(_event: Event) {
-    if (!this.assetDeltaTable) {
+    const assetDeltaTable = this.assetDeltaTable();
+
+    if (!assetDeltaTable) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -916,7 +922,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    this.assetDeltaTable.exportCSV();
+    assetDeltaTable.exportCSV();
   }
 
   private setChartOptions(chartType: 'stacked' | 'bar' | 'doughnut' = 'bar') {
@@ -1094,7 +1100,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateFilteredTotal() {
-    const filteredValue = this.assetDeltaTable?.filteredValue;
+    const filteredValue = this.assetDeltaTable()?.filteredValue;
 
     this.filteredTotal.set(filteredValue?.length ?? this.assets().length);
   }
@@ -1102,7 +1108,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   filterGlobal(event: any) {
     const filterValue = (event.target as HTMLInputElement).value;
 
-    this.assetDeltaTable.filterGlobal(filterValue, 'contains');
+    this.assetDeltaTable().filterGlobal(filterValue, 'contains');
     setTimeout(() => {
       this.updateFilteredTotal();
     });
@@ -1116,8 +1122,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
       this.filterGlobal({ target: searchInput });
     }
 
-    if (this.assetDeltaTable) {
-      this.assetDeltaTable.clear();
+    const assetDeltaTable = this.assetDeltaTable();
+
+    if (assetDeltaTable) {
+      assetDeltaTable.clear();
     }
 
     this.filteredAssets.set(this.assets());

@@ -10,7 +10,7 @@
 
 import { CommonModule, DatePipe } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
-import { Component, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -37,7 +37,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   private poamAttachmentService = inject(PoamAttachmentService);
   private setPayloadService = inject(PayloadService);
 
-  @ViewChild('fileUpload') fileUpload!: FileUpload;
+  readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
   @Input() poamId: number | string;
   private accessLevelSubscription: Subscription;
   protected accessLevel: any;
@@ -227,7 +227,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
               summary: 'Success',
               detail: 'File uploaded successfully'
             });
-            this.fileUpload.clear();
+            this.fileUpload().clear();
             this.loadAttachedFiles();
           }
         },
@@ -243,7 +243,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      this.fileUpload.clear();
+      this.fileUpload().clear();
     }
   }
 
@@ -265,8 +265,10 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   updateTotalSize() {
     let totalSize = 0;
 
-    if (this.fileUpload.files) {
-      for (const file of this.fileUpload.files) {
+    const fileUpload = this.fileUpload();
+
+    if (fileUpload.files) {
+      for (const file of fileUpload.files) {
         totalSize += file.size;
       }
     }

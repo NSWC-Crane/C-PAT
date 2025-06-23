@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -39,7 +39,7 @@ export class PoamAssetsComponent implements OnChanges {
   @Input() poamService: PoamService;
   @Input() poamAssignedTeams: any[] = [];
   @Input() poamAssociatedVulnerabilities: any[] = [];
-  @Output() assetsChanged = new EventEmitter<any[]>();
+  readonly assetsChanged = output<any[]>();
 
   private messageService = inject(MessageService);
   private previousTeamCount = 0;

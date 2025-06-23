@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -29,7 +29,7 @@ export class PoamLabelsComponent implements OnInit {
   @Input() poamLabels: any[] = [];
   @Input() labelList: any[] = [];
   @Input() poamService: any;
-  @Output() labelsChanged = new EventEmitter<any[]>();
+  readonly labelsChanged = output<any[]>();
 
   private messageService = inject(MessageService);
 

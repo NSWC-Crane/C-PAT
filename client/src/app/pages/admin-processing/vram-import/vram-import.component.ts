@@ -10,7 +10,7 @@
 
 import { CommonModule } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
-import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -38,8 +38,8 @@ export class VRAMImportComponent implements OnInit, OnDestroy {
   private vramImportService = inject(VRAMImportService);
   private userService = inject(UsersService);
 
-  @ViewChild('fileUpload') fileUpload!: FileUpload;
-  @Output() navigateToPluginMapping = new EventEmitter<void>();
+  readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
+  readonly navigateToPluginMapping = output<void>();
   uploadUrl: string = '/api/import/vram';
   user: any;
   totalSize: string = '0';
@@ -134,7 +134,7 @@ export class VRAMImportComponent implements OnInit, OnDestroy {
               setTimeout(() => this.navigateToPluginMapping.emit(), 1000);
             }
 
-            this.fileUpload.clear();
+            this.fileUpload().clear();
           }
         },
         error: (error) => {
@@ -168,8 +168,10 @@ export class VRAMImportComponent implements OnInit, OnDestroy {
   updateTotalSize() {
     let totalSize = 0;
 
-    if (this.fileUpload.files) {
-      for (const file of this.fileUpload.files) {
+    const fileUpload = this.fileUpload();
+
+    if (fileUpload.files) {
+      for (const file of fileUpload.files) {
         totalSize += file.size;
       }
     }

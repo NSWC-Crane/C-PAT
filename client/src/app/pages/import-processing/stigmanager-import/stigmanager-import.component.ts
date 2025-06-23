@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -78,8 +78,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private poamService = inject(PoamService);
 
-  @ViewChild('stigFindingsTable') findingsTable!: Table;
-  @ViewChild('stigBenchmarksTable') benchmarksTable!: Table;
+  readonly findingsTable = viewChild.required<Table>('stigFindingsTable');
+  readonly benchmarksTable = viewChild.required<Table>('stigBenchmarksTable');
   allColumns = [
     {
       field: 'poam',
@@ -184,7 +184,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
 
-    this.findingsTable.filterGlobal(inputValue, 'contains');
+    this.findingsTable().filterGlobal(inputValue, 'contains');
   }
 
   validateStigManagerCollection() {
@@ -477,9 +477,11 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   onFilter(_event: any) {
-    if (this.findingsTable) {
-      if (this.findingsTable.filteredValue) {
-        this.findingsCount = this.findingsTable.filteredValue.length;
+    const findingsTable = this.findingsTable();
+
+    if (findingsTable) {
+      if (findingsTable.filteredValue) {
+        this.findingsCount = findingsTable.filteredValue.length;
       } else {
         this.findingsCount = this.displayDataSource.length;
       }
@@ -487,13 +489,13 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   exportCSV() {
-    this.findingsTable.exportCSV();
+    this.findingsTable().exportCSV();
   }
 
   filterBenchmarkGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
 
-    this.benchmarksTable.filterGlobal(inputValue, 'contains');
+    this.benchmarksTable().filterGlobal(inputValue, 'contains');
   }
 
   onReviewsCountChange(count: number) {
@@ -501,13 +503,15 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   clearBenchmarkFilter() {
-    if (this.benchmarksTable) {
-      this.benchmarksTable.clear();
+    const benchmarksTable = this.benchmarksTable();
+
+    if (benchmarksTable) {
+      benchmarksTable.clear();
     }
   }
 
   clear() {
-    this.findingsTable.clear();
+    this.findingsTable().clear();
   }
 
   showWarn(message: string) {

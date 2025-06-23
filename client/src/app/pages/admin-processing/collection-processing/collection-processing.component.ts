@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -57,7 +57,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   private importService = inject(ImportService);
   private poamService = inject(PoamService);
 
-  @ViewChild('dt') table!: TreeTable;
+  readonly table = viewChild.required<TreeTable>('dt');
   cols: any = [];
   aaPackages: AAPackage[] = [];
   filteredAAPackages: string[] = [];
@@ -522,7 +522,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement).value;
 
-    this.table.filterGlobal(inputValue, 'contains');
+    this.table().filterGlobal(inputValue, 'contains');
   }
 
   ngOnDestroy(): void {

@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -69,11 +69,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
-  @Output() totalRecordsChange = new EventEmitter<number>();
+  readonly totalRecordsChange = output<number>();
   @Input() currentPreset: string = 'iav';
-  @ViewChild('dt') table!: Table;
-  @ViewChild('dd') select!: Select;
-  @ViewChild('ms') multiSelect!: MultiSelect;
+  readonly table = viewChild.required<Table>('dt');
+  readonly select = viewChild.required<Select>('dd');
+  readonly multiSelect = viewChild.required<MultiSelect>('ms');
   readonly filters: { [key: string]: FilterMetadata[] } = {
     supersededBy: [{ value: 'N/A', matchMode: 'contains', operator: 'and' }],
     severity: [{ value: ['Low', 'Medium', 'High', 'Critical'], matchMode: 'in', operator: 'and' }]
@@ -127,10 +127,12 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
           }
 
           setTimeout(() => {
-            if (this.table) {
-              this.table.filters = { ...this.filters };
+            const table = this.table();
+
+            if (table) {
+              table.filters = { ...this.filters };
               this.selectedSeverities = ['Low', 'Medium', 'High', 'Critical'];
-              this.table._filter();
+              table._filter();
             }
           });
         } else {
@@ -444,11 +446,13 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
           this.totalRecords = this.applicableVulnerabilities.length;
           this.totalRecordsChange.emit(this.totalRecords);
 
-          if (this.table) {
-            const currentFilters = this.table.filters || {};
+          const table = this.table();
 
-            this.table.filters = { ...currentFilters, ...this.filters };
-            this.table._filter();
+          if (table) {
+            const currentFilters = table.filters || {};
+
+            table.filters = { ...currentFilters, ...this.filters };
+            table._filter();
           }
 
           this.cdr.detectChanges();
@@ -561,11 +565,13 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
       }
     ];
 
-    if (this.table) {
-      const currentFilters = this.table.filters || {};
+    const table = this.table();
 
-      this.table.filters = { ...currentFilters, ...this.filters };
-      this.table._filter();
+    if (table) {
+      const currentFilters = table.filters || {};
+
+      table.filters = { ...currentFilters, ...this.filters };
+      table._filter();
     }
 
     this.loadVulnList();
@@ -734,9 +740,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
     if (!event || !event.value) {
       delete this.filters['navyComplyDate'];
 
-      if (this.table) {
-        this.table.filters['navyComplyDate'] = [];
-        this.table._filter();
+      const table = this.table();
+
+      if (table) {
+        table.filters['navyComplyDate'] = [];
+        table._filter();
       }
     } else {
       const today = new Date();
@@ -844,27 +852,31 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         });
       }
 
-      if (this.table && filterConstraints.length > 0) {
+      const table = this.table();
+
+      if (table && filterConstraints.length > 0) {
         const col = this.cols.find((c) => c.field === 'navyComplyDate');
 
         if (col) {
           col.filterValue = startDate && endDate ? `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}` : startDate ? `After ${format(startDate, 'MM/dd/yyyy')}` : `Before ${format(endDate!, 'MM/dd/yyyy')}`;
         }
 
-        this.table.filters['navyComplyDate'] = filterConstraints;
-        this.table._filter();
+        table.filters['navyComplyDate'] = filterConstraints;
+        table._filter();
       }
     }
   }
 
   clear() {
-    this.table.clear();
+    this.table().clear();
     this.selectedSeverities = ['Low', 'Medium', 'High', 'Critical'];
     this.filters['supersededBy'] = [{ value: 'N/A', matchMode: 'contains', operator: 'and' }];
     this.filters['severity'] = [{ value: ['Low', 'Medium', 'High', 'Critical'], matchMode: 'in', operator: 'and' }];
 
-    if (this.table) {
-      this.table.filters = { ...this.filters };
+    const table = this.table();
+
+    if (table) {
+      table.filters = { ...this.filters };
       this.totalRecords = this.applicableVulnerabilities.length;
       this.totalRecordsChange.emit(this.totalRecords);
     }
@@ -878,8 +890,10 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   onGlobalFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
 
-    if (this.table) {
-      this.table.filterGlobal(filterValue, 'contains');
+    const table = this.table();
+
+    if (table) {
+      table.filterGlobal(filterValue, 'contains');
     }
   }
 
@@ -896,13 +910,15 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   onFilter(_event: any) {
-    if (this.table) {
-      const filteredValue = this.table.filteredValue ?? this.applicableVulnerabilities;
+    const table = this.table();
+
+    if (table) {
+      const filteredValue = table.filteredValue ?? this.applicableVulnerabilities;
 
       this.totalRecords = filteredValue.length;
       this.totalRecordsChange.emit(this.totalRecords);
 
-      const severityFilter: any = this.table.filters['severity'][0];
+      const severityFilter: any = table.filters['severity'][0];
 
       if (severityFilter) {
         if (!severityFilter.value || (Array.isArray(severityFilter.value) && severityFilter.value.length < 1)) {
@@ -915,18 +931,22 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   toggleNavyComplyFilter() {
-    if (this.select.overlayVisible) {
-      this.select.hide();
+    const select = this.select();
+
+    if (select.overlayVisible) {
+      select.hide();
     } else {
-      this.select.show();
+      select.show();
     }
   }
 
   toggleAddColumnOverlay() {
-    if (this.multiSelect.overlayVisible) {
-      this.multiSelect.hide();
+    const multiSelect = this.multiSelect();
+
+    if (multiSelect.overlayVisible) {
+      multiSelect.hide();
     } else {
-      this.multiSelect.show();
+      multiSelect.show();
     }
   }
 

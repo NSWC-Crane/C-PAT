@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -57,9 +57,9 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
   dialogFilterValue: string = '';
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
-  @ViewChild('dt') table!: Table;
-  @ViewChild('dialogTable') dialogTable!: Table;
-  @ViewChild('vulnDetailsTable') vulnDetailsTable!: Table;
+  readonly table = viewChild.required<Table>('dt');
+  readonly dialogTable = viewChild.required<Table>('dialogTable');
+  readonly vulnDetailsTable = viewChild.required<Table>('vulnDetailsTable');
   private subscriptions = new Subscription();
 
   ngOnInit() {
@@ -281,21 +281,21 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
   }
 
   clear() {
-    this.table.clear();
+    this.table().clear();
     this.filterValue = '';
   }
 
   clearDialog() {
-    this.dialogTable.clear();
+    this.dialogTable().clear();
     this.dialogFilterValue = '';
   }
 
   onGlobalFilter(event: Event) {
-    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    this.table().filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
   onDialogFilter(event: Event) {
-    this.dialogTable.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    this.dialogTable().filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
   ngOnDestroy() {

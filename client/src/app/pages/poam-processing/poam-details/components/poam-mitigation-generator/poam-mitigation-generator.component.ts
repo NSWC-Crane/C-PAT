@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal, inject } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, signal, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -35,7 +35,10 @@ export class PoamMitigationGeneratorComponent implements OnChanges {
   @Input() poam: any;
   @Input() team: any = null;
   @Input() teams: any[] = [];
-  @Output() mitigationGenerated = new EventEmitter<{ mitigation: string; teamId?: number }>();
+  readonly mitigationGenerated = output<{
+    mitigation: string;
+    teamId?: number;
+}>();
   aiEnabled: boolean = CPAT.Env.features.aiEnabled;
   isGenerating = signal<boolean>(false);
   showPromptEditor = signal<boolean>(false);

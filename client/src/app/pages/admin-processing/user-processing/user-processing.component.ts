@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ConfirmationService, TreeNode } from 'primeng/api';
@@ -43,7 +43,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private setPayloadService = inject(PayloadService);
 
-  @ViewChild('usersTable') usersTable!: TreeTable;
+  readonly usersTable = viewChild.required<TreeTable>('usersTable');
   public isLoggedIn = false;
   cols: any = [];
   collectionList: any[] = [];
@@ -164,7 +164,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   filterGlobal(event: any) {
     const filterValue = (event.target as HTMLInputElement).value;
 
-    this.usersTable.filterGlobal(filterValue, 'contains');
+    this.usersTable().filterGlobal(filterValue, 'contains');
   }
 
   setUser(selectedUser: any) {

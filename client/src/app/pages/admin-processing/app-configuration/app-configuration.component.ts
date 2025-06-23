@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -33,7 +33,7 @@ export class AppConfigurationComponent implements OnInit {
   private appConfigurationService = inject(AppConfigurationService);
   private messageService = inject(MessageService);
 
-  @ViewChild('dt') table!: Table;
+  readonly table = viewChild.required<Table>('dt');
 
   appConfiguration: AppConfiguration[] = [];
   editingAppConfiguration: AppConfiguration | null = null;
@@ -89,6 +89,6 @@ export class AppConfigurationComponent implements OnInit {
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
 
-    this.table.filterGlobal(inputValue, 'contains');
+    this.table().filterGlobal(inputValue, 'contains');
   }
 }

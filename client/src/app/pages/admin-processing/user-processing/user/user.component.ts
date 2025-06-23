@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -91,9 +91,9 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   @Input() user: any;
   @Input() users: any;
   @Input() payload: any;
-  @Output() userChange = new EventEmitter<void>();
-  @ViewChild('teamTable') teamTable: Table;
-  @ViewChild('permissionsTable') permissionsTable: Table;
+  readonly userChange = output<void>();
+  readonly teamTable = viewChild<Table>('teamTable');
+  readonly permissionsTable = viewChild<Table>('permissionsTable');
   accessLevelOptions = [
     { label: 'Viewer', value: 1 },
     { label: 'Submitter', value: 2 },
@@ -286,8 +286,10 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
     this.collectionPermissions.unshift(newPermission);
 
-    if (this.permissionsTable) {
-      this.permissionsTable.first = 0;
+    const permissionsTable = this.permissionsTable();
+
+    if (permissionsTable) {
+      permissionsTable.first = 0;
     }
   }
 
@@ -424,8 +426,10 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
     this.userAssignedTeams.unshift(newAssignedTeam);
 
-    if (this.teamTable) {
-      this.teamTable.first = 0;
+    const teamTable = this.teamTable();
+
+    if (teamTable) {
+      teamTable.first = 0;
     }
   }
 
@@ -742,6 +746,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     if (this.user.accountStatus === 'DISABLED') {
       this.userService.disableUser(this.user.userId).subscribe(() => {
         if (final) {
+          // TODO: The 'emit' function requires a mandatory void argument
           this.userChange.emit();
         }
       });
@@ -753,6 +758,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
       this.userService.updateUser(this.user).subscribe(() => {
         if (final) {
+          // TODO: The 'emit' function requires a mandatory void argument
           this.userChange.emit();
         }
       });
@@ -760,6 +766,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   resetData() {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.userChange.emit();
   }
 

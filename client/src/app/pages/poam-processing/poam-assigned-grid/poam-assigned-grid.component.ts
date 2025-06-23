@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, ViewChild, computed, signal, inject } from '@angular/core';
+import { Component, Input, computed, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { addDays, format } from 'date-fns';
@@ -72,7 +72,7 @@ interface ColumnConfig {
 export class PoamAssignedGridComponent {
   private router = inject(Router);
 
-  @ViewChild('dt') table!: Table;
+  readonly table = viewChild.required<Table>('dt');
   @Input() userId!: number;
 
   protected readonly columns: ColumnConfig[] = [
@@ -187,7 +187,7 @@ export class PoamAssignedGridComponent {
   }
 
   clear() {
-    this.table.clear();
+    this.table().clear();
     this.globalFilterSignal.set('');
   }
 
