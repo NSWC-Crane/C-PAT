@@ -11,10 +11,10 @@
 import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { consentRoute } from './common/components/dod-consent/dod-consent.routing';
-import { NotificationsComponent } from './common/components/notifications/notifications.component';
-import { StatusMessageComponent } from './common/components/status-message/status-message.component';
+
+
 import { AuthGuard } from './core/auth/guards/auth.guard';
-import { AppNavigationComponent } from './layout/components/app.navigation.component';
+
 import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
 import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
 import { importProcessingRoutes } from './pages/import-processing/import-processing-routing.module';
@@ -29,7 +29,7 @@ const routerOptions: ExtraOptions = {
 export const routes: Routes = [
   {
     path: '',
-    component: AppNavigationComponent,
+    loadComponent: () => import('./layout/components/app.navigation.component').then(m => m.AppNavigationComponent),
     children: [
       {
         path: '',
@@ -71,7 +71,7 @@ export const routes: Routes = [
       {
         path: 'notifications',
         canActivate: [AuthGuard],
-        component: NotificationsComponent
+        loadComponent: () => import('./common/components/notifications/notifications.component').then(m => m.NotificationsComponent)
       },
       {
         path: 'poam-processing',
@@ -87,27 +87,27 @@ export const routes: Routes = [
   },
   {
     path: '401',
-    component: StatusMessageComponent,
+    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
     data: { statusCode: 401 }
   },
   {
     path: '403',
-    component: StatusMessageComponent,
+    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
     data: { statusCode: 403 }
   },
   {
     path: '404',
-    component: StatusMessageComponent,
+    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
     data: { statusCode: 404 }
   },
   {
     path: '418',
-    component: StatusMessageComponent,
+    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
     data: { statusCode: 418 }
   },
   {
     path: 'not-activated',
-    component: StatusMessageComponent,
+    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
     data: { statusCode: 999 }
   },
   { path: '**', redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing' }

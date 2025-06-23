@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
+
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -26,7 +26,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
     </p-dialog>
   `,
   standalone: true,
-  imports: [ButtonModule, CommonModule, DialogModule, FormsModule, ProgressBarModule]
+  imports: [ButtonModule, DialogModule, FormsModule, ProgressBarModule]
 })
 export class StatusDialogComponent implements OnInit, OnDestroy {
   @Input() progress: number = 0;
