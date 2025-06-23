@@ -135,15 +135,15 @@
       </ng-template>
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="key">
+          <th scope="col" pSortableColumn="key">
             Asset
             <p-columnFilter type="text" field="key" display="menu" showOperator="false" showAddButton="false"></p-columnFilter>
           </th>
-          <th pSortableColumn="value">
+          <th scope="col" pSortableColumn="value">
             Team
             <p-columnFilter type="text" field="value" display="menu" showOperator="false" showAddButton="false"></p-columnFilter>
           </th>
-          <th pSortableColumn="eMASS" style="width: 10%">
+          <th scope="col" pSortableColumn="eMASS" style="width: 10%">
             eMASS
             <p-columnFilter field="eMASS" matchMode="equals" display="menu" showOperator="false" showAddButton="false" showMatchModes="false">
               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
@@ -163,7 +163,7 @@
               </ng-template>
             </p-columnFilter>
           </th>
-          <th pSortableColumn="existsInTenable" style="width: 10%">
+          <th scope="col" pSortableColumn="existsInTenable" style="width: 10%">
             Tenable
             <p-columnFilter field="existsInTenable" matchMode="equals" display="menu" showOperator="false" showAddButton="false" showMatchModes="false">
               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
@@ -183,7 +183,7 @@
               </ng-template>
             </p-columnFilter>
           </th>
-          <th pSortableColumn="existsInStigManager" style="width: 10%">
+          <th scope="col" pSortableColumn="existsInStigManager" style="width: 10%">
             STIG Manager
             <p-columnFilter field="existsInStigManager" matchMode="equals" display="menu" showOperator="false" showAddButton="false" showMatchModes="false">
               <ng-template pTemplate="filter" let-value let-filter="filterCallback">

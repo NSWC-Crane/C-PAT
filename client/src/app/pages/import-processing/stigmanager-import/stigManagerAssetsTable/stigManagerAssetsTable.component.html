@@ -49,7 +49,7 @@
           <ng-template pTemplate="header" let-columns>
             <tr>
               @for (col of columns; track col) {
-                <th [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }" pResizableColumn scope="col">
+                <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }" pResizableColumn>
                   {{ col.header }}
                 </th>
               }

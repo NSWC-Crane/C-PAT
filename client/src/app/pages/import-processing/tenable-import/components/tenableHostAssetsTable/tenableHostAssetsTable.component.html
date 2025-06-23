@@ -49,7 +49,7 @@
           <ng-template pTemplate="header" let-columns>
             <tr>
               @for (col of columns; track col) {
-                <th [pSortableColumn]="col.field" pResizableColumn scope="col">
+                <th scope="col" [pSortableColumn]="col.field" pResizableColumn>
                   {{ col.header }}
                   <ng-container>
                     <p-columnFilter [type]="col.filterType" [field]="col.field" [showMatchModes]="true" [showOperator]="false" [showAddButton]="false" [showApplyButton]="true" [showClearButton]="true" [display]="'menu'" [showMenu]="true">
@@ -176,7 +176,7 @@
         <ng-template pTemplate="header">
           <tr>
             @for (col of hostDialogCols; track col) {
-              <th [pSortableColumn]="col.field" pResizableColumn>
+              <th scope="col" [pSortableColumn]="col.field" pResizableColumn>
                 {{ col.header }}
                 @if (col.field === 'poam') {
                   <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">

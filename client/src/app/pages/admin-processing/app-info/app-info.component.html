@@ -111,19 +111,19 @@
                 >
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Operation</th>
-                      <th>Total Requests</th>
-                      <th>Errors</th>
-                      <th>Total Duration</th>
-                      <th>Min Duration</th>
-                      <th>Max Duration</th>
-                      <th>Avg Retries</th>
-                      <th>Elevated Reqs</th>
-                      <th>Max Duration Updates</th>
-                      <th>Max Res Length</th>
-                      <th>Min Res Length</th>
-                      <th>Retried</th>
-                      <th>Total Res Length</th>
+                      <th scope="col">Operation</th>
+                      <th scope="col">Total Requests</th>
+                      <th scope="col">Errors</th>
+                      <th scope="col">Total Duration</th>
+                      <th scope="col">Min Duration</th>
+                      <th scope="col">Max Duration</th>
+                      <th scope="col">Avg Retries</th>
+                      <th scope="col">Elevated Reqs</th>
+                      <th scope="col">Max Duration Updates</th>
+                      <th scope="col">Max Res Length</th>
+                      <th scope="col">Min Res Length</th>
+                      <th scope="col">Retried</th>
+                      <th scope="col">Total Res Length</th>
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-operation>
@@ -151,8 +151,8 @@
                     <p-table [value]="selectedOperationClients()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
-                          <th>Client</th>
-                          <th>Count</th>
+                          <th scope="col">Client</th>
+                          <th scope="col">Count</th>
                         </tr>
                       </ng-template>
                       <ng-template pTemplate="body" let-client>
@@ -174,8 +174,8 @@
                     <p-table [value]="selectedOperationUsers()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
-                          <th>User</th>
-                          <th>Count</th>
+                          <th scope="col">User</th>
+                          <th scope="col">Count</th>
                         </tr>
                       </ng-template>
                       <ng-template pTemplate="body" let-user>
@@ -197,8 +197,8 @@
                     <p-table [value]="selectedOperationErrors()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
-                          <th>Error</th>
-                          <th>Count</th>
+                          <th scope="col">Error</th>
+                          <th scope="col">Count</th>
                         </tr>
                       </ng-template>
                       <ng-template pTemplate="body" let-error>
@@ -222,12 +222,12 @@
                 <p-table [value]="mysqlTableRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Table Name</th>
-                      <th>Row Count</th>
-                      <th>Data Length</th>
-                      <th>Index Length</th>
-                      <th>Created</th>
-                      <th>Last Updated</th>
+                      <th scope="col">Table Name</th>
+                      <th scope="col">Row Count</th>
+                      <th scope="col">Data Length</th>
+                      <th scope="col">Index Length</th>
+                      <th scope="col">Created</th>
+                      <th scope="col">Last Updated</th>
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-table>
@@ -248,9 +248,9 @@
                 <p-table [value]="cpuRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>CPU #</th>
-                      <th>Model</th>
-                      <th>Speed (MHz)</th>
+                      <th scope="col">CPU #</th>
+                      <th scope="col">Model</th>
+                      <th scope="col">Speed (MHz)</th>
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-cpu let-rowIndex="rowIndex">
@@ -268,8 +268,8 @@
                 <p-table [value]="environmentRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Variable</th>
-                      <th>Value</th>
+                      <th scope="col">Variable</th>
+                      <th scope="col">Value</th>
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-env>
@@ -286,14 +286,14 @@
                 <p-table [value]="userRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single" [selection]="selectedUser()" (selectionChange)="selectedUser.set($event)">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Username</th>
-                      <th>Created</th>
-                      <th>Last Access</th>
-                      <th>Privileges</th>
-                      <th>Viewer Role</th>
-                      <th>Approver Role</th>
-                      <th>Submitter Role</th>
-                      <th>CAT-I Approver Role</th>
+                      <th scope="col">Username</th>
+                      <th scope="col">Created</th>
+                      <th scope="col">Last Access</th>
+                      <th scope="col">Privileges</th>
+                      <th scope="col">Viewer Role</th>
+                      <th scope="col">Approver Role</th>
+                      <th scope="col">Submitter Role</th>
+                      <th scope="col">CAT-I Approver Role</th>
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-user>
@@ -316,8 +316,8 @@
                     <p-table [value]="userPrivilegeOverall()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
-                          <th>Privilege</th>
-                          <th>Count</th>
+                          <th scope="col">Privilege</th>
+                          <th scope="col">Count</th>
                         </tr>
                       </ng-template>
                       <ng-template pTemplate="body" let-priv>
@@ -334,8 +334,8 @@
                     <p-table [value]="userPrivilege30Days()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
-                          <th>Privilege</th>
-                          <th>Count</th>
+                          <th scope="col">Privilege</th>
+                          <th scope="col">Count</th>
                         </tr>
                       </ng-template>
                       <ng-template pTemplate="body" let-priv>
@@ -352,8 +352,8 @@
                     <p-table [value]="userPrivilege90Days()" [scrollable]="true" [scrollHeight]="'150px'" styleClass="w-full" [style]="{ 'min-height': '200px' }" size="small" selectionMode="single">
                       <ng-template pTemplate="header">
                         <tr>
-                          <th>Privilege</th>
-                          <th>Count</th>
+                          <th scope="col">Privilege</th>
+                          <th scope="col">Count</th>
                         </tr>
                       </ng-template>
                       <ng-template pTemplate="body" let-priv>
@@ -382,8 +382,8 @@
               <p-table [value]="variableRows()" [scrollable]="true" scrollHeight="400px" styleClass="w-full" size="small" selectionMode="single">
                 <ng-template pTemplate="header">
                   <tr>
-                    <th class="font-semibold">Variable</th>
-                    <th class="font-semibold">Value</th>
+                    <th scope="col" class="font-semibold">Variable</th>
+                    <th scope="col" class="font-semibold">Value</th>
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-variable>
@@ -405,8 +405,8 @@
               <p-table [value]="statusRows()" [scrollable]="true" scrollHeight="400px" styleClass="w-full" size="small" selectionMode="single">
                 <ng-template pTemplate="header">
                   <tr>
-                    <th class="font-semibold">Status</th>
-                    <th class="font-semibold">Value</th>
+                    <th scope="col" class="font-semibold">Status</th>
+                    <th scope="col" class="font-semibold">Value</th>
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-status>

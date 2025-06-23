@@ -271,7 +271,7 @@
               <ng-template pTemplate="header" let-columns>
                 <tr>
                   @for (col of columns; track col) {
-                    <th pResizableColumn scope="col">
+                    <th scope="col" pResizableColumn>
                       {{ col.header }}
                       @if (col.field === 'poam' && tenableTool === 'sumid') {
                         <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
