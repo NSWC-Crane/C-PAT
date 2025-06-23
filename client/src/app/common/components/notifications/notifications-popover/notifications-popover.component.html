@@ -20,7 +20,7 @@
               </div>
               <h5>{{ notification.title }}</h5>
               @if (notification.notificationId) {
-                <i class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)" (onKeyUp)="dismissNotification(notification)"></i>
+                <i class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)"></i>
               }
             </div>
             <p [innerHTML]="notification.formattedMessage"></p>

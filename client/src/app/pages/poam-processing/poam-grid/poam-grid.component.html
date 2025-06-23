@@ -18,7 +18,7 @@
           </p-inputIcon>
           <input id="poamGridSearch" name="poamGridSearch" pInputText type="text" [ngModel]="globalFilter" (ngModelChange)="globalFilterSignal.set($event)" placeholder="Search..." />
         </p-iconField>
-        <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()" pTooltip="Reset default filters"></p-button>
+        <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Reset default filters"></p-button>
       </div>
       <div class="right-buttons">
         <p-fileUpload
@@ -36,7 +36,7 @@
           (onSelect)="importEMASSter($event)"
         >
         </p-fileUpload>
-        <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export POAMs to eMASS excel template" tooltipPosition="top" (onClick)="exportCollection()" (onKeyUp)="exportCollection()"> </p-button>
+        <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export POAMs to eMASS excel template" tooltipPosition="top" (onClick)="exportCollection()"> </p-button>
       </div>
     </div>
     <div class="table-container">

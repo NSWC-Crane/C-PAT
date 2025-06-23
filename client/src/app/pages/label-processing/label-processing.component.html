@@ -21,8 +21,8 @@
               <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Labels" style="width: 300px" />
             </p-iconField>
             <div class="right-buttons">
-              <p-button pTooltip="Add Label" tooltipPosition="top" [rounded]="true" [text]="true" [raised]="true" icon="pi pi-plus" (onKeyUp)="addLabel()" (onClick)="addLabel()" [disabled]="accessLevel < 2" />
-              <p-button class="ml-2" pTooltip="Clear all filters" tooltipPosition="top" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" (onKeyUp)="clear()"></p-button>
+              <p-button pTooltip="Add Label" tooltipPosition="top" [rounded]="true" [text]="true" [raised]="true" icon="pi pi-plus" (onClick)="addLabel()" [disabled]="accessLevel < 2" />
+              <p-button class="ml-2" pTooltip="Clear all filters" tooltipPosition="top" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()"></p-button>
             </div>
           </div>
         </div>
