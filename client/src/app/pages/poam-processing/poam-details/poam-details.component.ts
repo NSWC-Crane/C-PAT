@@ -959,7 +959,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   async confirmSubmit() {
-    if (!this.verifySubmitPoam(false)) {
+    if (!await this.verifySubmitPoam(false)) {
       return;
     }
 
