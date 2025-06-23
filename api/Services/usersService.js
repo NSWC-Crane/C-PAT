@@ -268,6 +268,7 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
 
 exports.updateUser = async function updateUser(userId, elevate, req) {
     try {
+        req.body.defaultTheme = req.body.defaultTheme || null;
         return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql = `UPDATE ${config.database.schema}.user SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, lastAccess = ?, lastCollectionAccessedId = ?, accountStatus = ?, fullName = ?, officeOrg = ?, defaultTheme = ?, points = ? WHERE userId = ?`;

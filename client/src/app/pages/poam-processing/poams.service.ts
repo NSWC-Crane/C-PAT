@@ -167,7 +167,7 @@ export class PoamService {
   }
 
   updatePoamStatus(poamId: number, poamStatusUpdate: any): Observable<any> {
-    return this.http.put<any>(`${this.cpatApiBase}/poam/status/${poamId}`, poamStatusUpdate).pipe(catchError(this.handleError));
+    return this.http.put<any>(`${this.cpatApiBase}/poam/${poamId}/status`, poamStatusUpdate).pipe(catchError(this.handleError));
   }
 
   postPoamAssignedTeam(poamAssignedTeam: any): Observable<any> {
