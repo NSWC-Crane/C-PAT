@@ -73,7 +73,7 @@ export class UsersService {
   }
 
   deleteTeamAssignment(userId: number, assignedTeamId: number): Observable<any> {
-    return this.http.delete<any>(`${this.cpatApiBase}/user/teams/${userId}/${assignedTeamId}?elevate=true`).pipe(catchError(this.handleError));
+    return this.http.delete<any>(`${this.cpatApiBase}/user/${userId}/teams/${assignedTeamId}?elevate=true`).pipe(catchError(this.handleError));
   }
 
   postTeamAssignment(assignedTeam: any): Observable<any> {

@@ -41,8 +41,8 @@ export class PoamChatService {
     return this.http.post<any>(`${this.cpatApiBase}/poam/${poamId}/chat`, payload).pipe(catchError(this.handleError));
   }
 
-  deleteMessage(messageId: number): Observable<any> {
-    return this.http.delete<any>(`${this.cpatApiBase}/poam/chat/${messageId}`).pipe(catchError(this.handleError));
+  deleteMessage(poamId: number, messageId: number): Observable<any> {
+    return this.http.delete<any>(`${this.cpatApiBase}/poam/${poamId}/chat/${messageId}`).pipe(catchError(this.handleError));
   }
 
   formatMessagesForUI(userId: number, messages: any[]): any {

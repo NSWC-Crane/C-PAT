@@ -15,6 +15,9 @@ info:
   contact:
     name: Christian Rodriguez
     email: christian.a.rodriguez8.ctr@us.navy.mil
+  license:
+    name: C-PAT™ SOFTWARE OPEN SOURCE LICENSE AGREEMENT
+    url: https://github.com/NSWC-Crane/C-PAT/blob/main/LICENSE.MD
   version: '1.2.4'
 servers:
   - url: ''
@@ -335,11 +338,9 @@ paths:
                         value:
                           type: string
                         eMASS:
-                          type: boolean
-                          nullable: true
+                          type: [boolean, 'null']
                         assignedTeam:
-                          type: object
-                          nullable: true
+                          type: [object, 'null']
                           properties:
                             assignedTeamId:
                               type: integer
@@ -399,14 +400,11 @@ paths:
                         value:
                           type: string
                         eMASS:
-                          type: boolean
-                          nullable: true
+                          type: [boolean, 'null']
                         collectionId:
-                          type: integer
-                          nullable: true
+                          type: [integer, 'null']
                         assignedTeam:
-                          type: object
-                          nullable: true
+                          type: [object, 'null']
                           properties:
                             assignedTeamId:
                               type: integer
@@ -419,11 +417,9 @@ paths:
                         - key
                         - value
                   assetDeltaUpdated:
-                    type: string
-                    nullable: true
+                    type: [string, 'null']
                   emassHardwareListUpdated:
-                    type: string
-                    nullable: true
+                    type: [string, 'null']
                 required:
                   - assets
         '400':
@@ -1155,6 +1151,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/collectionBasicList'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -1182,6 +1184,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/collection'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -1361,8 +1369,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/IAVTableData'
                   nessusPluginsMapped:
-                    type: string
-                    nullable: true
+                    type: [string, 'null']
                     description: Last update timestamp for Nessus plugins mapping
         '400':
           description: Bad Request
@@ -1380,7 +1387,7 @@ paths:
         - IAV
       security:
         - oauth:
-          - 'c-pat:read'
+            - 'c-pat:read'
 
   /iav/pluginInfo:
     post:
@@ -1469,7 +1476,7 @@ paths:
         - IAV
       security:
         - oauth:
-          - 'c-pat:read'
+            - 'c-pat:read'
 
   /mapPluginIds:
     post:
@@ -1576,12 +1583,12 @@ paths:
 
   '/import/assetlist/{collectionId}':
     parameters:
-    - name: collectionId
-      in: path
-      required: true
-      schema:
-        type: integer
-      description: The ID of the collection to associate with the asset list
+      - name: collectionId
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: The ID of the collection to associate with the asset list
     post:
       summary: Parse and import an asset list
       operationId: importAssetListFile
@@ -1858,6 +1865,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ThemeResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -1917,6 +1930,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserThemesResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -1940,6 +1959,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserPointsResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -1967,6 +1992,12 @@ paths:
                 $ref: '#/components/schemas/assetLabel'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -1994,6 +2025,12 @@ paths:
                 $ref: '#/components/schemas/poamLabel'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2021,6 +2058,12 @@ paths:
                 $ref: '#/components/schemas/poamStatus'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2048,6 +2091,12 @@ paths:
                 $ref: '#/components/schemas/poamSeverity'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2075,6 +2124,12 @@ paths:
                 $ref: '#/components/schemas/poamScheduledCompletion'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2102,6 +2157,12 @@ paths:
                 $ref: '#/components/schemas/poamStatus'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2127,6 +2188,12 @@ paths:
                 $ref: '#/components/schemas/assetLabel'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2152,6 +2219,12 @@ paths:
                 $ref: '#/components/schemas/poamLabel'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2177,6 +2250,12 @@ paths:
                 $ref: '#/components/schemas/poamStatus'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2202,6 +2281,12 @@ paths:
                 $ref: '#/components/schemas/poamSeverity'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2227,6 +2312,12 @@ paths:
                 $ref: '#/components/schemas/poamSeverity'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2252,6 +2343,12 @@ paths:
                 $ref: '#/components/schemas/poamStatus'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2277,6 +2374,12 @@ paths:
                 $ref: '#/components/schemas/poamScheduledCompletion'
         '204':
           description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2302,6 +2405,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/notification'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2327,6 +2436,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/notification'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2350,6 +2465,12 @@ paths:
             application/json:
               schema:
                 type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2495,6 +2616,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppInfo'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
       security:
         - oauth:
             - 'c-pat:op'
@@ -2510,6 +2637,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiConfiguration'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
       tags:
         - Operation
       security: []
@@ -2584,6 +2717,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiDefinition'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
 
   '/permissions/{collectionId}':
     parameters:
@@ -2618,6 +2757,9 @@ paths:
                 $ref: '#/components/schemas/error'
       tags:
         - Permissions
+      security:
+        - oauth:
+            - 'c-pat:write'
 
   '/permission/{userId}/{collectionId}':
     parameters:
@@ -3152,6 +3294,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/poamAssignedTeam_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -3183,6 +3331,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamAssignedTeam_Object'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -3637,8 +3791,13 @@ paths:
         - oauth:
             - 'c-pat:write'
 
-  '/poam/chat/{messageId}':
+  '/poam/{poamId}/chat/{messageId}':
     parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
       - in: path
         name: messageId
         required: true
@@ -3688,7 +3847,7 @@ paths:
         - PoamExtension
       security:
         - oauth:
-          - 'c-pat:read'
+            - 'c-pat:read'
       parameters:
         - in: path
           name: poamId
@@ -3720,7 +3879,7 @@ paths:
         - PoamExtension
       security:
         - oauth:
-          - 'c-pat:write'
+            - 'c-pat:write'
       parameters:
         - in: path
           name: poamId
@@ -3738,7 +3897,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "POAM extension deleted successfully"
+                    example: 'POAM extension deleted successfully'
         '403':
           $ref: '#/components/responses/forbidden'
         default:
@@ -3756,7 +3915,7 @@ paths:
         - PoamExtension
       security:
         - oauth:
-          - 'c-pat:write'
+            - 'c-pat:write'
       requestBody:
         content:
           application/json:
@@ -4691,7 +4850,7 @@ paths:
         - oauth:
             - 'c-pat:write'
 
-  '/poam/status/{poamId}':
+  '/poam/{poamId}/status':
     parameters:
       - in: path
         name: poamId
@@ -5343,6 +5502,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/user'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5373,6 +5538,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/user'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5380,7 +5551,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
-  '/user/teams/{assignedTeamId}':
+  '/teams/{assignedTeamId}':
     parameters:
       - in: path
         name: assignedTeamId
@@ -5413,8 +5584,11 @@ paths:
                 $ref: '#/components/schemas/error'
       tags:
         - UserTeamAssignments
+      security:
+        - oauth:
+            - 'c-pat:read'
 
-  '/user/teams/{userId}/{assignedTeamId}':
+  '/user/{userId}/teams/{assignedTeamId}':
     parameters:
       - $ref: '#/components/parameters/ElevateQuery'
       - in: path
@@ -5582,6 +5756,12 @@ paths:
                       type: string
                     vulnerabilityId:
                       type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5733,8 +5913,7 @@ components:
           type: string
           format: date-time
         lastAccess:
-          type: number
-          nullable: true
+          type: [number, 'null']
         privileges:
           type: array
           items:
@@ -5807,89 +5986,11 @@ components:
       properties:
         message:
           type: string
-    String20:
-      maxLength: 20
-      type: string
-    String20Nullable:
-      maxLength: 20
-      nullable: true
-      type: string
     String255:
       maxLength: 255
       type: string
-    String255Nullable:
-      maxLength: 255
-      nullable: true
-      type: string
-    String32767:
-      maxLength: 32767
-      type: string
-    String32767Nullable:
-      maxLength: 32767
-      nullable: true
-      type: string
     String45:
       maxLength: 45
-      type: string
-    String45Nullable:
-      maxLength: 45
-      nullable: true
-      type: string
-    String511:
-      maxLength: 511
-      type: string
-    String511Nullable:
-      maxLength: 511
-      nullable: true
-      type: string
-    StringDate:
-      format: date
-      type: string
-    StringDateNullable:
-      format: date
-      nullable: true
-      type: string
-    StringDateTime:
-      format: date-time
-      type: string
-    StringDateTimeNullable:
-      format: date-time
-      nullable: true
-      type: string
-    StringHexColor:
-      example: aa33cc
-      pattern: ^[a-fA-F0-9]{6}$
-      type: string
-    StringIntId:
-      maxLength: 10
-      minLength: 1
-      pattern: ^[0-9]{1,10}$
-      type: string
-    StringIntIdNullable:
-      nullable: true
-      pattern: ^[0-9]{1,10}$
-      type: string
-    StringIntIdReadOnly:
-      pattern: ^[0-9]{1,10}$
-      readOnly: true
-      type: string
-    StringMax:
-      maxLength: 16777215
-      type: string
-    StringMaxNullable:
-      maxLength: 16777215
-      nullable: true
-      type: string
-    StringUuid:
-      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
-      type: string
-    StringUuidNullable:
-      nullable: true
-      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
-      type: string
-    StringUuidReadOnly:
-      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
-      readOnly: true
       type: string
     Version:
       description: |
@@ -5898,25 +5999,6 @@ components:
       type: string
     VersionString:
       $ref: '#/components/schemas/String255'
-    STIGMANCollection:
-      type: object
-      properties:
-        collectionId:
-          type: integer
-        name:
-          type: string
-        description:
-          type: string
-          nullable: true
-      required:
-        - name
-    STIGMANAsset:
-      type: object
-      properties:
-        assetId:
-          type: string
-        name:
-          type: string
     AssetResponse:
       type: object
       properties:
@@ -5935,25 +6017,19 @@ components:
         assetName:
           type: string
         fullyQualifiedDomainName:
-          type: string
-          nullable: true
+          type: [string, 'null']
         collectionId:
           type: integer
         description:
-          type: string
-          nullable: true
+          type: [string, 'null']
         ipAddress:
-          type: string
-          nullable: true
+          type: [string, 'null']
         macAddress:
-          type: string
-          nullable: true
+          type: [string, 'null']
         nonComputing:
-          type: integer
-          nullable: true
+          type: [integer, 'null']
         assetOrigin:
-          type: string
-          nullable: true
+          type: [string, 'null']
 
     assetLabel_Object:
       type: object
@@ -5970,25 +6046,6 @@ components:
         labelId:
           type: integer
 
-    change_Workspace:
-      required:
-        - token
-        - user
-      type: object
-      additionalProperties: false
-      properties:
-        token:
-          type: string
-        user:
-          $ref: '#/components/schemas/user_Token'
-
-    change_Workspace_Response:
-      type: object
-      additionalProperties: false
-      properties:
-        token:
-          type: string
-
     collection:
       type: object
       required:
@@ -6000,36 +6057,26 @@ components:
         collectionName:
           type: string
         description:
-          type: string
-          nullable: true
+          type: [string, 'null']
         systemType:
-          type: string
-          nullable: true
+          type: [string, 'null']
         systemName:
-          type: string
-          nullable: true
+          type: [string, 'null']
         ccsafa:
-          type: string
-          nullable: true
+          type: [string, 'null']
         aaPackage:
-          type: string
-          nullable: true
+          type: [string, 'null']
         predisposingConditions:
-          type: string
-          nullable: true
+          type: [string, 'null']
         created:
           type: string
           format: date
         collectionOrigin:
-          type: string
-          nullable: true
+          type: [string, 'null']
         originCollectionId:
-          type: integer
-          nullable: true
+          type: [integer, 'null']
         manualCreationAllowed:
-          type: boolean
-          default: true
-
+          type: [boolean, 'null']
     collectionBasicList:
       type: object
       additionalProperties: false
@@ -6039,49 +6086,22 @@ components:
         collectionName:
           type: string
         collectionOrigin:
-          type: string
-          nullable: true
+          type: [string, 'null']
         originCollectionId:
-          type: integer
-          nullable: true
+          type: [integer, 'null']
         systemType:
-          type: string
-          nullable: true
+          type: [string, 'null']
         systemName:
-          type: string
-          nullable: true
+          type: [string, 'null']
         ccsafa:
-          type: string
-          nullable: true
+          type: [string, 'null']
         aaPackage:
-          type: string
-          nullable: true
+          type: [string, 'null']
         predisposingConditions:
-          type: string
-          nullable: true
+          type: [string, 'null']
         manualCreationAllowed:
           type: boolean
           default: true
-
-    collectionField:
-      type: object
-      required:
-        - approvalNotes
-        - rejectionNotes
-        - renewalNotes
-      additionalProperties: false
-      properties:
-        approvalNotes:
-          type: string
-        rejectionNotes:
-          type: string
-        renewalNotes:
-          type: string
-
-    collectionLabelList:
-      type: array
-      items:
-        $ref: '#/components/schemas/label'
 
     error:
       type: object
@@ -6129,8 +6149,7 @@ components:
         filter:
           type: string
         createdBy:
-          type: string
-          nullable: true
+          type: [string, 'null']
 
     aaPackage_Object:
       type: object
@@ -6163,8 +6182,7 @@ components:
         assignedTeamName:
           type: string
         adTeam:
-          type: string
-          nullable: true
+          type: [string, 'null']
         automated:
           type: boolean
         permissions:
@@ -6218,38 +6236,30 @@ components:
         iav:
           type: string
         pluginID:
-          type: string
-          nullable: true
+          type: [string, 'null']
           description: Comma-separated list of plugin IDs associated with this IAV
         status:
-          type: string
-          nullable: true
+          type: [string, 'null']
         title:
           type: string
         iavCat:
-          type: integer
+          type: [integer, 'null']
           format: int32
-          nullable: true
         type:
           type: string
           maxLength: 1
         releaseDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         navyComplyDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         supersededBy:
-          type: string
-          nullable: true
+          type: [string, 'null']
         knownExploits:
-          type: string
-          nullable: true
+          type: [string, 'null']
         knownDodIncidents:
-          type: string
-          nullable: true
+          type: [string, 'null']
         nessusPlugins:
           type: integer
           format: int32
@@ -6257,47 +6267,6 @@ components:
         - iav
         - title
         - type
-
-    label:
-      type: object
-      required:
-        - name
-        - description
-        - color
-        - labelID
-      additionalProperties: false
-      properties:
-        name:
-          type: string
-          maxLength: 30
-        description:
-          type: string
-          maxLength: 255
-        color:
-          type: string
-        labelID:
-          type: string
-
-    labelCreate:
-      type: object
-      required:
-        - name
-        - description
-        - color
-      additionalProperties: false
-      properties:
-        name:
-          type: string
-          maxLength: 30
-        description:
-          type: string
-          maxLength: 255
-        color:
-          type: string
-
-    labelID:
-      type: string
-      maxLength: 36
 
     notification:
       type: object
@@ -6338,15 +6307,12 @@ components:
         approvalStatus:
           type: string
         approvedDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         comments:
-          type: string
-          nullable: true
+          type: [string, 'null']
         hqs:
-          type: boolean
-          nullable: true
+          type: [boolean, 'null']
 
     poamApprover_Response:
       type: object
@@ -6363,12 +6329,10 @@ components:
         approvalStatus:
           type: string
         approvedDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         comments:
-          type: string
-          nullable: true
+          type: [string, 'null']
 
     poamAssignedTeam_Object:
       type: object
@@ -6384,15 +6348,13 @@ components:
         assignedTeamName:
           type: string
         adTeam:
-          type: string
-          nullable: true
+          type: [string, 'null']
         automated:
           type: boolean
         poamStatus:
           type: string
         complete:
-          type: string
-          nullable: true
+          type: [string, 'null']
 
     poamAssets_Object:
       type: object
@@ -6467,23 +6429,17 @@ components:
         extensionJustification:
           type: string
         mitigations:
-          type: string
-          nullable: true
+          type: [string, 'null']
         requiredResources:
-          type: string
-          nullable: true
+          type: [string, 'null']
         residualRisk:
-          type: string
-          nullable: true
+          type: [string, 'null']
         likelihood:
-          type: string
-          nullable: true
+          type: [string, 'null']
         localImpact:
-          type: string
-          nullable: true
+          type: [string, 'null']
         impactDescription:
-          type: string
-          nullable: true
+          type: [string, 'null']
         status:
           type: string
 
@@ -6517,81 +6473,61 @@ components:
         vulnerabilitySource:
           type: string
         vulnerabilityTitle:
-          type: string
-          nullable: true
+          type: [string, 'null']
         stigBenchmarkId:
-          type: string
-          nullable: true
+          type: [string, 'null']
         stigCheckData:
-          type: string
-          nullable: true
+          type: [string, 'null']
         tenablePluginData:
-          type: string
-          nullable: true
+          type: [string, 'null']
         iavmNumber:
-          type: string
-          nullable: true
+          type: [string, 'null']
         taskOrderNumber:
-          type: string
-          nullable: true
+          type: [string, 'null']
         iavComplyByDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         aaPackage:
           type: string
         vulnerabilityId:
-          type: string
-          nullable: true
+          type: [string, 'null']
         description:
           type: string
         rawSeverity:
           type: string
         adjSeverity:
-          type: string
-          nullable: true
+          type: [string, 'null']
         scheduledCompletionDate:
           type: string
           format: date
         closedDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         submitterId:
           type: integer
         mitigations:
-          type: string
-          nullable: true
+          type: [string, 'null']
         predisposingConditions:
-          type: string
-          nullable: true
+          type: [string, 'null']
         requiredResources:
-          type: string
-          nullable: true
+          type: [string, 'null']
         residualRisk:
-          type: string
-          nullable: true
+          type: [string, 'null']
         likelihood:
-          type: string
-          nullable: true
+          type: [string, 'null']
         localImpact:
-          type: string
-          nullable: true
+          type: [string, 'null']
         impactDescription:
-          type: string
-          nullable: true
+          type: [string, 'null']
         status:
           type: string
         submittedDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         hqs:
-          type: boolean
-          nullable: true
+          type: [boolean, 'null']
         isGlobalFinding:
-          type: boolean
-          nullable: true
+          type: [boolean, 'null']
         approvers:
           type: array
           items:
@@ -6601,17 +6537,14 @@ components:
                 type: integer
               approvalStatus:
                 type: string
-                default: "Not Reviewed"
+                default: 'Not Reviewed'
               approvedDate:
-                type: string
+                type: [string, 'null']
                 format: date
-                nullable: true
               comments:
-                type: string
-                nullable: true
+                type: [string, 'null']
               hqs:
-                type: boolean
-                nullable: true
+                type: [boolean, 'null']
             required:
               - userId
         assignedTeams:
@@ -6661,28 +6594,21 @@ components:
             type: object
             properties:
               milestoneId:
-                type: integer
-                nullable: true
+                type: [integer, 'null']
               milestoneDate:
-                type: string
+                type: [string, 'null']
                 format: date
-                nullable: true
               milestoneComments:
-                type: string
-                nullable: true
+                type: [string, 'null']
               milestoneChangeDate:
-                type: string
+                type: [string, 'null']
                 format: date
-                nullable: true
               milestoneChangeComments:
-                type: string
-                nullable: true
+                type: [string, 'null']
               milestoneStatus:
-                type: string
-                nullable: true
+                type: [string, 'null']
               assignedTeamId:
-                type: number
-                nullable: true
+                type: [integer, 'null']
         teamMitigations:
           type: array
           items:
@@ -6692,7 +6618,7 @@ components:
                 type: integer
               mitigationText:
                 type: string
-                default: ""
+                default: ''
               isActive:
                 type: boolean
                 default: true
@@ -6790,25 +6716,19 @@ components:
         poamId:
           type: integer
         milestoneDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         milestoneComments:
-          type: string
-          nullable: true
+          type: [string, 'null']
         milestoneChangeDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         milestoneChangeComments:
-          type: string
-          nullable: true
+          type: [string, 'null']
         milestoneStatus:
-          type: string
-          nullable: true
+          type: [string, 'null']
         assignedTeamId:
-          type: number
-          nullable: true
+          type: [integer, 'null']
 
     PoamMilestoneRequest:
       type: object
@@ -6819,25 +6739,19 @@ components:
         poamId:
           type: integer
         milestoneDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         milestoneComments:
-          type: string
-          nullable: true
+          type: [string, 'null']
         milestoneChangeDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         milestoneChangeComments:
-          type: string
-          nullable: true
+          type: [string, 'null']
         milestoneStatus:
-          type: string
-          nullable: true
+          type: [string, 'null']
         assignedTeamId:
-          type: number
-          nullable: true
+          type: [integer, 'null']
 
     PoamMilestoneUpdateRequest:
       type: object
@@ -6848,25 +6762,19 @@ components:
         poamId:
           type: integer
         milestoneDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         milestoneComments:
-          type: string
-          nullable: true
+          type: [string, 'null']
         milestoneChangeDate:
-          type: string
+          type: [string, 'null']
           format: date
-          nullable: true
         milestoneChangeComments:
-          type: string
-          nullable: true
+          type: [string, 'null']
         milestoneStatus:
-          type: string
-          nullable: true
+          type: [string, 'null']
         assignedTeamId:
-          type: number
-          nullable: true
+          type: [integer, 'null']
 
     assetLabel:
       type: object
@@ -6925,16 +6833,6 @@ components:
         userId:
           type: integer
         points:
-          type: integer
-
-    stigmanPoamAssetUpdate:
-      type: object
-      properties:
-        assetId:
-          type: integer
-        assetName:
-          type: string
-        poamId:
           type: integer
 
     poamStatus:
@@ -7045,18 +6943,15 @@ components:
           type: string
           maxLength: 225
         officeOrg:
-          type: string
+          type: [string, 'null']
           maxLength: 100
-          nullable: true
         defaultTheme:
-          type: string
+          type: [string, 'null']
           maxLength: 255
         lastClaims:
-          type: object
-          nullable: true
+          type: [object, 'null']
         points:
-          type: integer
-          nullable: true
+          type: [integer, 'null']
         isAdmin:
           type: boolean
         permissions:
@@ -7096,7 +6991,6 @@ components:
         - lastName
         - accountStatus
         - lastCollectionAccessedId
-        - defaultTheme
       additionalProperties: true
       properties:
         userId:
@@ -7106,8 +7000,7 @@ components:
         phoneNumber:
           type: string
         lastAccess:
-          type: string
-          nullable: true
+          type: [string, 'null']
         firstName:
           type: string
           maxLength: 50
@@ -7118,64 +7011,17 @@ components:
           type: string
           maxLength: 45
         officeOrg:
-          type: string
+          type: [string, 'null']
           maxLength: 100
-          nullable: true
         lastCollectionAccessedId:
           type: integer
         defaultTheme:
-          type: string
+          type: [string, 'null']
           maxLength: 255
         lastClaims:
-          type: object
-          nullable: true
+          type: [object, 'null']
         points:
-          type: integer
-          nullable: true
-
-    user_Token:
-      required:
-        - userId
-        - userName
-        - email
-        - firstName
-        - lastName
-        - lastCollectionAccessedId
-        - accountStatus
-        - fullName
-        - defaultTheme
-      additionalProperties: false
-      properties:
-        userId:
-          type: integer
-        userName:
-          type: string
-          maxLength: 20
-        email:
-          type: string
-        phoneNumber:
-          type: string
-        firstName:
-          type: string
-          maxLength: 50
-        lastName:
-          type: string
-          maxLength: 50
-        lastCollectionAccessedId:
-          type: integer
-        accountStatus:
-          type: string
-          maxLength: 45
-        fullName:
-          type: string
-          maxLength: 225
-        officeOrg:
-          type: string
-          maxLength: 100
-          nullable: true
-        defaultTheme:
-          type: string
-          maxLength: 255
+          type: [integer, 'null']
 
     user_Permissions:
       type: object
@@ -7285,21 +7131,6 @@ components:
         type: boolean
         default: false
 
-    collectionQuery:
-      name: projection
-      in: query
-      description: Additional properties to include in the response.
-      style: form
-      explode: true
-      schema:
-        type: array
-        items:
-          type: string
-          enum:
-            - submitters
-            - statistics
-            - labels
-
     collectionIdPath:
       name: collectionId
       in: path
@@ -7315,28 +7146,7 @@ components:
       schema:
         $ref: '#/components/schemas/String255'
 
-    labelIdPath:
-      name: labelId
-      in: path
-      required: true
-      description: A path parameter that specifies a Label
-      schema:
-        $ref: '#/components/schemas/labelID'
-
-    benchmarkIdQuery:
-      name: benchmarkId
-      in: query
-      description: A query parameter that identifies a POAM
-      schema:
-        type: string
-    assetIdQuery:
-      name: assetId
-      in: query
-      description: A query parameter that identifies an Asset
-      schema:
-        type: string
-
   securitySchemes:
-      oauth:
-        type: openIdConnect
-        openIdConnectUrl: ''
+    oauth:
+      type: openIdConnect
+      openIdConnectUrl: ''
