@@ -30,6 +30,7 @@ import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { AssetDeltaService } from '../../../../admin-processing/asset-delta/asset-delta.service';
 import { ImportService } from '../../../import.service';
+
 interface Reference {
   type: string;
   value: string;
@@ -71,6 +72,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   displayDialog: boolean = false;
   parsedVprContext: any[] = [];
   isLoading: boolean = true;
+  is30DayFilterActive: boolean = false;
   formattedDescription: SafeHtml = '';
   pluginData: any;
   totalRecords: number = 0;
@@ -211,6 +213,36 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
     const allPluginIds = [this.pluginID, ...associatedPluginIds];
 
+    const filters = [
+      {
+        id: 'pluginID',
+        filterName: 'pluginID',
+        operator: '=',
+        type: 'vuln',
+        isPredefined: true,
+        value: allPluginIds.join(',')
+      },
+      {
+        id: 'repository',
+        filterName: 'repository',
+        operator: '=',
+        type: 'vuln',
+        isPredefined: true,
+        value: [{ id: this.tenableRepoId.toString() }]
+      }
+    ];
+
+    if (this.is30DayFilterActive) {
+      filters.push({
+        id: 'lastSeen',
+        filterName: 'lastSeen',
+        operator: '=',
+        type: 'vuln',
+        isPredefined: true,
+        value: '0:30'
+      });
+    }
+
     const analysisParams = {
       query: {
         description: '',
@@ -224,24 +256,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         sourceType: 'cumulative',
         startOffset: 0,
         endOffset: 5000,
-        filters: [
-          {
-            id: 'pluginID',
-            filterName: 'pluginID',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: allPluginIds.join(',')
-          },
-          {
-            id: 'repository',
-            filterName: 'repository',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: [{ id: this.tenableRepoId.toString() }]
-          }
-        ],
+        filters: filters,
         vulnTool: 'listvuln'
       },
       sourceType: 'cumulative',
@@ -613,6 +628,16 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         this.tableMap.set(tab.teamId, tablesArray[index]);
       }
     });
+  }
+
+  filter30Days() {
+    this.is30DayFilterActive = !this.is30DayFilterActive;
+
+    if (this.pluginID && this.tenableRepoId) {
+      this.getAffectedAssetsForAllPlugins();
+    } else if (this.assetProcessing && this.tenableRepoId) {
+      this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
+    }
   }
 
   clear() {

@@ -361,7 +361,8 @@ describe('PoamMilestonesComponent', () => {
         milestoneComments: 'Original',
         milestoneDate: new Date('2024-01-01'),
         milestoneStatus: 'Pending',
-        assignedTeamId: 1
+        assignedTeamId: 1,
+        editing: false
       };
 
       const editedMilestone = {
