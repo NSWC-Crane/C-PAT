@@ -189,7 +189,7 @@ It is likely you will have to set at least some of these Environment Variables, 
 
     - CPAT_EXTRA_SCOPES
     - CPAT_SCOPE_PREFIX
-    - CPAT_JWT_AUDIENCE
+    - CPAT_JWT_AUD_VALUE
     - CPAT_JWT_USERNAME_CLAIM
     - CPAT_JWT_SERVICENAME_CLAIM
     - CPAT_JWT_FIRST_NAME_CLAIM

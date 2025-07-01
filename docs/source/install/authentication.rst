@@ -24,7 +24,7 @@ The JWT produced by the Identity Provider should provide the claims specified be
     * User Email - ``CPAT_JWT_EMAIL_CLAIM`` - (optional) **default:** ``email``
     * User Privileges - ``CPAT_JWT_PRIVILEGES_CLAIM`` - **default:** ``realm_access.roles``
     * Assertion ID - ``CPAT_JWT_ASSERTION_CLAIM`` - **default:** ``jti``
-    * Audience - ``CPAT_JWT_AUDIENCE`` - (optional) **No default** - When configured, validates the JWT audience claim
+    * Audience - ``CPAT_JWT_AUD_VALUE`` - (optional) **No default** - When configured, validates the JWT audience claim
     * scope - OIDC standard. Use ``CPAT_EXTRA_SCOPES`` to specify additional scopes the client should request.
 
 .. note::
@@ -216,7 +216,7 @@ Most commonly, C-PAT will require the below Environment Variable to be specified
  * - ``CPAT_CLIENT_EXTRA_SCOPES``
    - **No default**
    - Scopes to request in addition to: ``c-pat:read`` ``c-pat:write`` ``c-pat:op`` ``openid``
- * - ``CPAT_JWT_AUDIENCE``
+ * - ``CPAT_JWT_AUD_VALUE``
    - **No default**
    - Expected audience value for JWT validation. When set, the JWT's ``aud`` claim must match this value or validation will fail. Leave unset to skip audience validation.
 

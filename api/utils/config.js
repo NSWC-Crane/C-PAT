@@ -94,7 +94,7 @@ let config = {
         allowInsecureTokens: process.env.CPAT_DEV_ALLOW_INSECURE_TOKENS === 'true',
         insecureKids,
         cacheMaxAge: Math.min(Math.max(process.env.CPAT_JWKS_CACHE_MAX_AGE, 1) || 10, 35791),
-        audience: process.env.CPAT_JWT_AUDIENCE,
+        audienceValue: process.env.CPAT_JWT_AUD_VALUE,
         claims: {
             scope: process.env.CPAT_JWT_SCOPE_CLAIM || 'scope',
             username: process.env.CPAT_JWT_USERNAME_CLAIM || 'preferred_username',
