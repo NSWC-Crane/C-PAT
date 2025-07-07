@@ -46,11 +46,11 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
             },
             knownExploits: {
-                type: DataTypes.STRING(3),
+                type: DataTypes.STRING(5),
                 allowNull: true,
             },
             knownDodIncidents: {
-                type: DataTypes.STRING(3),
+                type: DataTypes.STRING(5),
                 allowNull: true,
             },
             nessusPlugins: {
