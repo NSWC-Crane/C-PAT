@@ -9,10 +9,12 @@
 */
 
 import { Component, Input } from '@angular/core';
+import { CardModule } from 'primeng/card';
 
 @Component({
   selector: 'cpat-status-card',
   styleUrls: ['./status-card.component.scss'],
+  imports: [CardModule],
   template: `
     <p-card class="status-card">
       <div class="grid grid-cols-12 gap-4">

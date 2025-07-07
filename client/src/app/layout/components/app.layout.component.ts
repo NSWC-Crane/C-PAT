@@ -18,7 +18,6 @@ import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
-import { DropdownModule } from 'primeng/dropdown';
 import { MenuModule } from 'primeng/menu';
 import { RippleModule } from 'primeng/ripple';
 import { Tag } from 'primeng/tag';
@@ -42,7 +41,6 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
     DialogModule,
     RouterModule,
     RouterOutlet,
-    DropdownModule,
     BadgeModule,
     FormsModule,
     DividerModule,
@@ -174,7 +172,7 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
                     [tooltipDisabled]="!isSlimMenu"
                     (click)="menu.toggle($event)"
                   >
-                    <p-avatar image="assets/images/user.png" size="large" shape="circle" [style]="{ width: '3rem', height: '3rem' }" class="shrink-0" />
+                    <p-avatar image="assets/images/user.png" size="large" shape="circle" class="w-[3rem] h-[3rem]" class="shrink-0" />
                   </button>
                   <p-menu
                     #menu
@@ -221,7 +219,7 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
       </div>
     </section>
     <!-- Dialogs -->
-    <p-dialog [(visible)]="confirmPopupVisible" [modal]="true" [style]="{ width: '450px' }" [baseZIndex]="10000000" [autoZIndex]="true" appendTo="body" [closeOnEscape]="false" [closable]="false">
+    <p-dialog [(visible)]="confirmPopupVisible" [modal]="true" styleClass="w-[30vw] overflow-hidden" [baseZIndex]="10000000" [autoZIndex]="true" appendTo="body" [closeOnEscape]="false" [closable]="false">
       <div class="custom-confirm-popup">
         <div class="icon-container">
           <i class="pi pi-exclamation-triangle"></i>
@@ -231,8 +229,8 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
       </div>
       <ng-template pTemplate="footer">
         <div class="flex justify-between items-center w-full m-2">
-          <button pButton label="Yes" icon="pi pi-check" (click)="onConfirm()" class="p-button-primary"></button>
-          <button pButton label="No" icon="pi pi-times" (click)="onReject()" class="p-button-secondary"></button>
+          <button pButton label="Yes" icon="pi pi-check" (click)="onConfirm()"></button>
+          <button pButton label="No" icon="pi pi-times" (click)="onReject()" severity="secondary"></button>
         </div>
       </ng-template>
     </p-dialog>

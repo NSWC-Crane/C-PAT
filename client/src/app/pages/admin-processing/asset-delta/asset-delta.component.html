@@ -22,10 +22,9 @@
         optionLabel="collectionName"
         optionValue="collectionId"
         placeholder="Select a Collection"
-        styleClass="w-full"
+        class="w-full"
         [disabled]="loading()"
-      >
-      </p-select>
+      />
       <label for="collection-select">Collection</label>
     </p-floatlabel>
   </div>
@@ -34,7 +33,7 @@
       <p-card>
         <div class="chart-wrapper">
           @if (chartInitialized() && assets().length > 0) {
-            <p-chart type="bar" [data]="stackedBarData()" [options]="stackedBarOptions()" height="220px"> </p-chart>
+            <p-chart type="bar" [data]="stackedBarData()" [options]="stackedBarOptions()" height="220px" />
           } @else {
             <div class="flex h-full w-full items-center justify-center">
               <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
@@ -48,7 +47,7 @@
       <p-card>
         <div class="chart-wrapper">
           @if (chartInitialized() && assets().length > 0) {
-            <p-chart type="doughnut" [data]="doughnutData()" [options]="doughnutOptions()" height="215px"> </p-chart>
+            <p-chart type="doughnut" [data]="doughnutData()" [options]="doughnutOptions()" height="215px" />
           } @else {
             <div class="flex h-full w-full items-center justify-center">
               <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
@@ -62,7 +61,7 @@
       <p-card>
         <div class="chart-wrapper">
           @if (chartInitialized() && assets().length > 0) {
-            <p-chart type="bar" [data]="barData()" [options]="chartOptions()" height="220px"> </p-chart>
+            <p-chart type="bar" [data]="barData()" [options]="chartOptions()" height="220px" />
           } @else {
             <div class="flex h-full w-full items-center justify-center">
               <i class="pi pi-spin pi-spinner text-xl text-gray-500"></i>
@@ -83,7 +82,7 @@
       [scrollable]="true"
       [scrollHeight]="tableScrollHeight"
       [tableStyle]="{ 'min-width': '50rem' }"
-      styleClass="p-datatable-sm"
+      class="p-datatable-sm"
       (onFilter)="updateFilteredTotal()"
     >
       <ng-template pTemplate="caption">
@@ -95,7 +94,7 @@
               </p-inputicon>
               <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search..." />
             </p-iconfield>
-            <p-button icon="pi pi-filter-slash" (onClick)="clearAllFilters()" [rounded]="true" [text]="true" severity="secondary" pTooltip="Clear All Filters" tooltipPosition="bottom"> </p-button>
+            <p-button icon="pi pi-filter-slash" (onClick)="clearAllFilters()" [rounded]="true" [text]="true" severity="secondary" pTooltip="Clear All Filters" tooltipPosition="bottom" />
             <div class="text-color-secondary ml-2 flex items-center gap-4 text-sm">
               <div class="flex items-center gap-2">
                 <i class="pi pi-list"></i>
@@ -116,7 +115,7 @@
             </div>
           </div>
           <div class="flex gap-2">
-            <p-button icon="pi pi-upload" (onClick)="showUploadDialog.set(true)" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Upload Assets" tooltipPosition="bottom"> </p-button>
+            <p-button icon="pi pi-upload" (onClick)="showUploadDialog.set(true)" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Upload Assets" tooltipPosition="bottom" />
             <p-button
               [icon]="loading() ? 'pi pi-spin pi-sync' : 'pi pi-sync'"
               [disabled]="isTenableCheckDisabled() || loading()"
@@ -127,9 +126,8 @@
               severity="primary"
               pTooltip="Query Tenable and STIG Manager to establish asset deltas"
               tooltipPosition="bottom"
-            >
-            </p-button>
-            <p-button icon="pi pi-download" (onClick)="assetDeltaTable.exportCSV({ selectionOnly: false })" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Export Data" tooltipPosition="bottom"> </p-button>
+            />
+            <p-button icon="pi pi-download" (onClick)="assetDeltaTable.exportCSV({ selectionOnly: false })" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Export Data" tooltipPosition="bottom" />
           </div>
         </div>
       </ng-template>
@@ -137,11 +135,11 @@
         <tr>
           <th scope="col" pSortableColumn="key">
             Asset
-            <p-columnFilter type="text" field="key" display="menu" showOperator="false" showAddButton="false"></p-columnFilter>
+            <p-columnFilter type="text" field="key" display="menu" showOperator="false" showAddButton="false" />
           </th>
           <th scope="col" pSortableColumn="value">
             Team
-            <p-columnFilter type="text" field="value" display="menu" showOperator="false" showAddButton="false"></p-columnFilter>
+            <p-columnFilter type="text" field="value" display="menu" showOperator="false" showAddButton="false" />
           </th>
           <th scope="col" pSortableColumn="eMASS" style="width: 10%">
             eMASS
@@ -156,10 +154,9 @@
                   ]"
                   (onChange)="filter($event.value)"
                   placeholder="Select"
-                  [style]="{ width: '100%' }"
+                  class="w-full"
                   appendTo="body"
-                >
-                </p-select>
+                />
               </ng-template>
             </p-columnFilter>
           </th>
@@ -176,10 +173,9 @@
                   ]"
                   (onChange)="filter($event.value)"
                   placeholder="Select"
-                  [style]="{ width: '100%' }"
+                  class="w-full"
                   appendTo="body"
-                >
-                </p-select>
+                />
               </ng-template>
             </p-columnFilter>
           </th>
@@ -196,10 +192,9 @@
                   ]"
                   (onChange)="filter($event.value)"
                   placeholder="Select"
-                  [style]="{ width: '100%' }"
+                  class="w-full"
                   appendTo="body"
-                >
-                </p-select>
+                />
               </ng-template>
             </p-columnFilter>
           </th>
@@ -245,7 +240,7 @@
   </div>
 </div>
 
-<p-dialog [visible]="showUploadDialog()" (visibleChange)="showUploadDialog.set($event)" [style]="{ width: '80vw' }" [modal]="true" header="Upload Assets">
+<p-dialog [visible]="showUploadDialog()" (visibleChange)="showUploadDialog.set($event)" styleClass="w-[80vw] overflow-hidden" [modal]="true" header="Upload Assets">
   <div class="mb-4">
     <div class="bg-primary-50 border-1 border-primary-100 rounded p-2 dark:bg-primary-900 dark:border-primary-800">
       <div class="flex gap-2">

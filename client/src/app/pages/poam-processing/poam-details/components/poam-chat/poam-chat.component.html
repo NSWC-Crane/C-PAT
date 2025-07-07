@@ -66,7 +66,7 @@
       </p-inputgroup-addon>
     </p-inputgroup>
     <div class="flex w-full sm:w-auto gap-4">
-      <p-button variant="text" size="large" icon="pi pi-send" class="!text-blue-500" (onClick)="sendMessage()" />
+      <p-button variant="text" size="large" icon="pi pi-send" styleClass="!text-blue-500" (onClick)="sendMessage()" />
     </div>
   </div>
 </div>
@@ -75,7 +75,7 @@
   <ng-template pTemplate="content">
     <div class="emoji-container">
       @for (emoji of emojis; track emoji) {
-        <p-button (onClick)="op.hide(); onEmojiSelect(emoji)" [label]="emoji" class="p-1 text-2xl min-w-10 m-0.5" variant="text" />
+        <p-button (onClick)="op.hide(); onEmojiSelect(emoji)" [label]="emoji" styleClass="p-1 text-2xl min-w-10 m-0.5" variant="text" />
       }
     </div>
   </ng-template>

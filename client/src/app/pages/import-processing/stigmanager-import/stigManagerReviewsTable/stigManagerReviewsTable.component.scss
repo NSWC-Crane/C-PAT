@@ -104,11 +104,13 @@
       z-index: 1;
     }
 
-        .p-treetable-thead > tr:nth-child(2) > th {
+    .p-treetable-thead > tr:nth-child(2) > th {
       padding-top: 0.5rem;
       padding-bottom: 0.5rem;
 
-      .p-inputtext, .p-dropdown, .p-multiselect {
+      .p-inputtext,
+      .p-select,
+      .p-multiselect {
         height: 2rem;
         font-size: 0.875rem;
       }
@@ -118,13 +120,13 @@
         color: var(--text-color-secondary);
       }
 
-      .p-calendar .p-inputtext {
+      .p-datepicker .p-inputtext {
         width: 100%;
       }
     }
   }
 
-      .filter-active {
+  .filter-active {
     color: var(--primary-color) !important;
   }
 }

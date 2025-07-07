@@ -33,8 +33,8 @@
                   </p-inputIcon>
                   <input pInputText type="text" class="w-48" (input)="filterBenchmarkGlobal($event)" placeholder="Search..." />
                 </p-iconField>
-                <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clearBenchmarkFilter()" pTooltip="Clear all filters"> </p-button>
-                <p-button [rounded]="true" [text]="true" [raised]="true" class="ml-4" icon="pi pi-search-plus" pTooltip="Load all findings" (click)="getAllFindings()"> </p-button>
+                <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clearBenchmarkFilter()" pTooltip="Clear all filters" />
+                <p-button [rounded]="true" [text]="true" [raised]="true" class="ml-4" icon="pi pi-search-plus" pTooltip="Load all findings" (click)="getAllFindings()" />
               </div>
             </div>
             <p-table
@@ -80,8 +80,7 @@
                   <td>
                     <p-progressBar
                       [value]="(benchmark.metrics?.assessed / benchmark.metrics?.assessments) * 100 || 0"
-                      [style]="{ height: '20px' }"
-                      styleClass="assessed-progress"
+                      class="assessed-progress h-[20px]"
                       [pTooltip]="benchmark.metrics?.assessed + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.assessed / benchmark.metrics?.assessments) * 100 || 0 | number: '1.0-0') + '%)'"
                     >
                       <ng-template pTemplate="content" let-value> {{ value || 0 | number: '1.0-0' }}% </ng-template>
@@ -90,8 +89,7 @@
                   <td>
                     <p-progressBar
                       [value]="((benchmark.metrics?.statuses?.submitted + benchmark.metrics?.statuses?.accepted + benchmark.metrics?.statuses?.rejected) / benchmark.metrics?.assessments) * 100 || 0"
-                      [style]="{ height: '20px' }"
-                      styleClass="submitted-progress"
+                      class="submitted-progress h-[20px]"
                       [pTooltip]="
                         benchmark.metrics?.statuses?.submitted +
                         benchmark.metrics?.statuses?.accepted +
@@ -109,8 +107,7 @@
                   <td>
                     <p-progressBar
                       [value]="(benchmark.metrics?.statuses?.accepted / benchmark.metrics?.assessments) * 100 || 0"
-                      [style]="{ height: '20px' }"
-                      styleClass="accepted-progress"
+                      class="accepted-progress h-[20px]"
                       [pTooltip]="benchmark.metrics?.statuses?.accepted + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.statuses?.accepted / benchmark.metrics?.assessments) * 100 || 0 | number: '1.0-0') + '%)'"
                     >
                       <ng-template pTemplate="content" let-value> {{ value || 0 | number: '1.0-0' }}% </ng-template>
@@ -119,8 +116,7 @@
                   <td>
                     <p-progressBar
                       [value]="(benchmark.metrics?.statuses?.rejected / benchmark.metrics?.assessments) * 100 || 0"
-                      [style]="{ height: '20px' }"
-                      styleClass="rejected-progress"
+                      class="rejected-progress h-[20px]"
                       [pTooltip]="benchmark.metrics?.statuses?.rejected + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.statuses?.rejected / benchmark.metrics?.assessments) * 100 || 0 | number: '1.0-0') + '%)'"
                     >
                       <ng-template pTemplate="content" let-value> {{ value || 0 | number: '1.0-0' }}% </ng-template>
@@ -129,8 +125,7 @@
                   <td>
                     <p-progressBar
                       [value]="((benchmark.metrics?.assessments - benchmark.metrics?.assessed) / benchmark.metrics?.assessments) * 100 || 0"
-                      [style]="{ height: '20px' }"
-                      styleClass="unassessed-progress"
+                      class="unassessed-progress h-[20px]"
                       [pTooltip]="
                         benchmark.metrics?.assessments -
                         benchmark.metrics?.assessed +
@@ -162,11 +157,11 @@
                   </p-inputIcon>
                   <input pInputText type="text" class="w-48" (input)="filterGlobal($event)" placeholder="Search..." />
                 </p-iconField>
-                <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters"> </p-button>
-                <p-button [rounded]="true" [text]="true" [raised]="true" class="ml-4" icon="pi pi-arrow-left" pTooltip="Back to Benchmarks" (click)="backToBenchmarkSummary()"> </p-button>
+                <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
+                <p-button [rounded]="true" [text]="true" [raised]="true" class="ml-4" icon="pi pi-arrow-left" pTooltip="Back to Benchmarks" (click)="backToBenchmarkSummary()" />
               </div>
               <div class="right-buttons">
-                <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()"> </p-button>
+                <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()" />
               </div>
             </div>
             <div class="table-container">
@@ -193,19 +188,19 @@
                         @if (col.field === 'poam') {
                           <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
                             <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                              <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" styleClass="w-full"> </p-multiSelect>
+                              <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
                             </ng-template>
                           </p-columnFilter>
                         }
                         @if (col.field === 'severity') {
                           <p-columnFilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
                             <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                              <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Severity" [showClear]="true" styleClass="w-full"> </p-multiSelect>
+                              <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Severity" [showClear]="true" class="w-full" />
                             </ng-template>
                           </p-columnFilter>
                         }
                         @if (col.field !== 'poam' && col.field !== 'severity' && col.field !== 'benchmarkId') {
-                          <p-columnFilter [type]="col.filterType" [field]="col.field" [showOperator]="false" display="menu"> </p-columnFilter>
+                          <p-columnFilter [type]="col.filterType" [field]="col.field" [showOperator]="false" display="menu" />
                         }
                       </th>
                     }
@@ -216,7 +211,7 @@
                     @for (col of allColumns; track col) {
                       <td>
                         @if (loadingTableInfo) {
-                          <p-skeleton [style]="{ height: '2rem' }"></p-skeleton>
+                          <p-skeleton height="2rem" />
                         } @else {
                           @switch (col.field) {
                             @case ('poam') {
@@ -231,7 +226,7 @@
                               </i>
                             }
                             @case ('severity') {
-                              <p-tag [value]="rowData.severity" [severity]="getSeverityStyling(rowData.severity)" [rounded]="false"> </p-tag>
+                              <p-tag [value]="rowData.severity" [severity]="getSeverityStyling(rowData.severity)" [rounded]="false" />
                             }
                             @default {
                               {{ rowData[col.field] || '-' }}

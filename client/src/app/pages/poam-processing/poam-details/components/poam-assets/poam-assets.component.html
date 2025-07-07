@@ -27,7 +27,7 @@
                 <span>{{ getAssetName(asset.assetId) }}</span>
               }
               @if (asset.isNew) {
-                <p-select [options]="assetList" [(ngModel)]="asset.assetId" optionLabel="assetName" optionValue="assetId" [style]="{ width: '100%' }" (onChange)="onAssetChange(asset, rowIndex)" appendTo="body" [disabled]="accessLevel < 2"></p-select>
+                <p-select [options]="assetList" [(ngModel)]="asset.assetId" optionLabel="assetName" optionValue="assetId" class="w-full" (onChange)="onAssetChange(asset, rowIndex)" appendTo="body" [disabled]="accessLevel < 2" />
               }
             </td>
             <td>

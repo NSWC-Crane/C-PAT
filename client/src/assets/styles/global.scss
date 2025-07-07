@@ -14,42 +14,47 @@
 @use './components/_scrollbar.scss' as *;
 @use './layout/_mixins.scss' as *;
 @use 'sass:color';
-@use "tailwindcss";
+@use 'tailwindcss';
 @plugin "tailwindcss-primeui";
 @custom-variant dark (&:where(.p-dark, .p-dark *));
 
 @include ngx-pace-theme();
 
 * {
-    @include custom-scrollbar(color-mix(in srgb, var(--p-surface-900) 90%, black), var(--p-surface-700), var(--p-surface-900));
+  @include custom-scrollbar(color-mix(in srgb, var(--p-surface-900) 90%, black), var(--p-surface-700), var(--p-surface-900));
 }
 
-html, body {
-    @include custom-scrollbar(color-mix(in srgb, var(--p-surface-900) 90%, black), var(--p-surface-700), var(--p-surface-900));
+html,
+body {
+  @include custom-scrollbar(color-mix(in srgb, var(--p-surface-900) 90%, black), var(--p-surface-700), var(--p-surface-900));
 }
 
 .tenable-icon {
-   width: 1rem;
-   height: 1rem;
-   transform: scale(1.4);
-   mask: url('/assets/icons/tenable.svg') no-repeat center;
-   -webkit-mask: url('/assets/icons/tenable.svg') no-repeat center;
-   mask-size: contain;
-   -webkit-mask-size: contain;
-   background-color: currentColor;
-   display: inline-block;
-   font-weight: 900;
+  width: 1rem;
+  height: 1rem;
+  transform: scale(1.4);
+  mask: url('/assets/icons/tenable.svg') no-repeat center;
+  -webkit-mask: url('/assets/icons/tenable.svg') no-repeat center;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  background-color: currentColor;
+  display: inline-block;
+  font-weight: 900;
 }
 
 .api-icon {
-   width: 1rem;
-   height: 1rem;
-   transform: scale(1.4);
-   mask: url('/assets/icons/api.svg') no-repeat center;
-   -webkit-mask: url('/assets/icons/api.svg') no-repeat center;
-   mask-size: contain;
-   -webkit-mask-size: contain;
-   background-color: currentColor;
-   display: inline-block;
-   font-weight: 900;
+  width: 1rem;
+  height: 1rem;
+  transform: scale(1.4);
+  mask: url('/assets/icons/api.svg') no-repeat center;
+  -webkit-mask: url('/assets/icons/api.svg') no-repeat center;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  background-color: currentColor;
+  display: inline-block;
+  font-weight: 900;
+}
+
+.p-multiselect {
+  background: var(--p-multiselect-background) !important;
 }

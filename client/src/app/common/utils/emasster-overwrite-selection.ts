@@ -39,8 +39,8 @@ export interface EMassField {
       </p-pickList>
 
       <div class="flex justify-between mt-4">
-        <p-button label="Cancel" severity="secondary" [outlined]="true" [rounded]="true" (onClick)="ref.close()"> </p-button>
-        <p-button label="Confirm" severity="primary" [rounded]="true" (onClick)="confirm()"> </p-button>
+        <p-button label="Cancel" severity="secondary" [outlined]="true" [rounded]="true" (onClick)="ref.close()" />
+        <p-button label="Confirm" severity="primary" [rounded]="true" (onClick)="confirm()" />
       </div>
     </div>
   `

@@ -45,7 +45,7 @@
             @for (col of columns; track col; let i = $index) {
               <td>
                 @if (i === 0) {
-                  <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                  <p-treeTableToggler [rowNode]="rowNode" />
                 }
                 {{ rowData[col.field] }}
               </td>
@@ -56,7 +56,7 @@
           <tr>
             <td colspan="6">
               <div class="p-ml-4">
-                <p-table [value]="rowNode.children" [columns]="['Collection', 'Access Level']" [responsive]="true">
+                <p-table [value]="rowNode.children" [columns]="['Collection', 'Access Level']">
                   <ng-template pTemplate="header" let-columns>
                     <tr>
                       @for (col of columns; track col) {
