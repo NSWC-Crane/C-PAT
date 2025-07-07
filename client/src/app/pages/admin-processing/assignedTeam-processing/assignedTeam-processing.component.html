@@ -38,7 +38,7 @@
             <td>
               <div class="flex flex-wrap gap-2">
                 @for (team of getAdTeamsArray(assignedTeam.adTeam); track team) {
-                  <p-tag [value]="team" [rounded]="true" [class.hidden]="!team"> </p-tag>
+                  <p-tag [value]="team" [rounded]="true" [class.hidden]="!team" />
                 }
               </div>
             </td>
@@ -55,7 +55,7 @@
   </div>
 </div>
 
-<p-dialog [(visible)]="teamDialog" [style]="{ width: '850px' }" [modal]="true" styleClass="p-fluid">
+<p-dialog [(visible)]="teamDialog" styleClass="w-[50vw] overflow-hidden p-fluid" [modal]="true">
   <ng-template pTemplate="content">
     <div class="mb-6">
       <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
@@ -82,8 +82,7 @@
         [showHeader]="true"
         [panelStyle]="{ width: '100%' }"
         class="w-full"
-      >
-      </p-multiSelect>
+      />
     </div>
     <div class="space-y-2">
       <label class="mb-2 block text-base font-medium">Team Permissions:</label>
@@ -110,8 +109,10 @@
   </ng-template>
 
   <ng-template pTemplate="footer">
-    <p-button label="Cancel" icon="pi pi-times" variant="text" (onClick)="hideDialog()" />
-    <p-button label="Save" icon="pi pi-check" variant="text" (onClick)="saveTeam()" [disabled]="!editingAssignedTeam?.assignedTeamName" />
+    <div class="flex w-full justify-between">
+      <p-button variant="outlined" label="Cancel" (onClick)="hideDialog()" />
+      <p-button variant="outlined" label="Save" (onClick)="saveTeam()" [disabled]="!editingAssignedTeam?.assignedTeamName" />
+    </div>
   </ng-template>
 </p-dialog>
 

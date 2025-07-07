@@ -9,7 +9,7 @@
 -->
 
 <div class="tenable-container" [ngClass]="{ 'sidebar-visible': sidebarVisible, 'sidebar-hidden': !sidebarVisible }">
-  <p-card styleClass="h-full">
+  <p-card class="h-full">
     <p-tabs #tabComponent value="0" (valueChange)="onTabChange($event)" scrollable>
       <p-tablist>
         <p-tab value="0">Vulnerabilities ({{ mainTotal }})</p-tab>

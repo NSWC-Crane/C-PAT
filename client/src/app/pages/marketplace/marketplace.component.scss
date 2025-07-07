@@ -8,13 +8,13 @@
 !##########################################################################
 */
 
-:host ::ng-deep .pointsBalance .p-card.p-component {
+:host ::ng-deep .pointsBalance {
   padding: 1rem 1.25rem;
   margin-bottom: 0;
   padding-bottom: 0;
 }
 
-:host ::ng-deep .pointsBalance .p-card.p-component .p-card-body {
+:host ::ng-deep .pointsBalance .p-card-body {
   height: 0;
   margin-bottom: 0;
   padding: 8px;

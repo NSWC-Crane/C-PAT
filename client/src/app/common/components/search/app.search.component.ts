@@ -29,10 +29,10 @@ interface SearchItem {
       (completeMethod)="search($event)"
       (onSelect)="navigateTo($event)"
       [placeholder]="placeholder"
-      [field]="'title'"
+      [optionLabel]="'title'"
       [minLength]="1"
       [scrollHeight]="'500px'"
-      [style]="{ width: '100%' }"
+      class="w-full"
     >
       <ng-template let-item pTemplate="item">
         <div>{{ item.title }}</div>

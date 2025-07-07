@@ -44,8 +44,7 @@
             name="officeOrg"
             id="officeOrg"
             placeholder="Office/Org..."
-          >
-          </p-autoComplete>
+          />
         </div>
       </div>
       <div class="mb-4">
@@ -63,8 +62,7 @@
             placeholder="Select Status"
             optionLabel="label"
             optionValue="value"
-          >
-          </p-select>
+          />
         </div>
       </div>
       @if (marketplaceDisabled === false) {
@@ -78,8 +76,8 @@
               [min]="0"
               [step]="10"
               buttonLayout="horizontal"
-              decrementButtonClass="p-button-secondary"
-              incrementButtonClass="p-button-secondary"
+              decrementButtonseverity="secondary"
+              incrementButtonseverity="secondary"
               incrementButtonIcon="pi pi-plus"
               decrementButtonIcon="pi pi-minus"
               name="userPoints"
@@ -90,14 +88,14 @@
         </div>
       }
       <div class="flex items-center pt-4">
-        <p-toggleswitch [(ngModel)]="checked" name="isAdmin" disabled></p-toggleswitch>
+        <p-toggleswitch [(ngModel)]="checked" name="isAdmin" disabled />
         <label for="isAdmin" class="ml-4 text-base font-medium">C-PAT Admin</label>
         <i class="pi pi-info-circle text-primary ml-2 cursor-pointer" pTooltip="The C-PAT administrative privilege is assigned by granting a user the admin role within the OIDC provider." tooltipPosition="top"> </i>
       </div>
       @if (user.lastClaims) {
         <div class="mb-6">
           <div class="flex items-center pt-4">
-            <p-toggleswitch id="showLastClaims" [(ngModel)]="showLastClaims" binary="true" name="showLastClaims"> </p-toggleswitch>
+            <p-toggleswitch id="showLastClaims" [(ngModel)]="showLastClaims" binary="true" name="showLastClaims" />
             <label for="showLastClaims" class="ml-4 text-base font-medium">View Last Claims</label>
           </div>
           @if (showLastClaims) {
@@ -144,18 +142,18 @@
                           <span>{{ rowData[col.field] }}</span>
                         }
                         @if (rowData.editing && col.field === 'assignedTeamName') {
-                          <p-select [options]="availableTeams" [(ngModel)]="rowData.assignedTeamId" name="teamDropdown" optionLabel="title" optionValue="value" class="w-full" appendTo="body"> </p-select>
+                          <p-select [options]="availableTeams" [(ngModel)]="rowData.assignedTeamId" name="teamDropdown" optionLabel="title" optionValue="value" class="w-full" appendTo="body" />
                         }
                         @if (rowData.editing && col.field === 'accessLevelLabel') {
-                          <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body"> </p-select>
+                          <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
                         }
                       </td>
                     }
                   </tr>
                 </ng-template>
               </p-table>
-              <div class="flex justify-end pt-6">
-                <p-button label="Next" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(2)" />
+              <div class="flex justify-end p-4">
+                <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" (onClick)="activateCallback(2)" />
               </div>
             </ng-template>
           </p-step-panel>
@@ -192,10 +190,10 @@
                           <span>{{ rowData[col.field] }}</span>
                         }
                         @if (rowData.editing && col.field === 'collectionName') {
-                          <p-select [options]="availableCollections" [(ngModel)]="rowData.collectionId" name="collectionDropdown" optionLabel="title" optionValue="value" class="w-full" appendTo="body"> </p-select>
+                          <p-select [options]="availableCollections" [(ngModel)]="rowData.collectionId" name="collectionDropdown" optionLabel="title" optionValue="value" class="w-full" appendTo="body" />
                         }
                         @if (rowData.editing && col.field === 'accessLevelLabel') {
-                          <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body"> </p-select>
+                          <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
                         }
                       </td>
                     }
@@ -207,8 +205,8 @@
                   </tr>
                 </ng-template>
               </p-table>
-              <div class="flex justify-between pt-6">
-                <p-button label="Back" icon="pi pi-arrow-left" (onClick)="activateCallback(1)" />
+              <div class="flex justify-between p-4">
+                <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(1)" />
               </div>
             </ng-template>
           </p-step-panel>
@@ -218,9 +216,9 @@
   </div>
 
   <div class="form-footer">
-    <div class="inline-flex space-x-4">
-      <p-button label="Cancel" [outlined]="true" (onClick)="resetData()" styleClass="p-button-secondary"> </p-button>
-      <p-button label="Save" [outlined]="true" (onClick)="onSubmit()" [disabled]="!form.valid"> </p-button>
+    <div class="flex w-full justify-between">
+      <p-button label="Cancel" [outlined]="true" (onClick)="resetData()" severity="secondary" />
+      <p-button label="Save" [outlined]="true" (onClick)="onSubmit()" [disabled]="!form.valid" />
     </div>
   </div>
 </div>

@@ -15,7 +15,6 @@ import { Select } from 'primeng/select';
 import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect';
 import { Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { ButtonModule } from 'primeng/button';
@@ -47,7 +46,7 @@ interface SelectedOptions {
   styleUrls: ['./poam-mainchart.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, ChartModule, FormsModule, CardModule, Select, TabsModule, MultiSelectModule, NgxChartsModule]
+  imports: [ButtonModule, ChartModule, FormsModule, CardModule, Select, TabsModule, MultiSelectModule]
 })
 export class PoamMainchartComponent implements OnChanges, OnDestroy {
   private router = inject(Router);

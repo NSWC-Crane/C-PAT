@@ -21,7 +21,7 @@
               <input pInputText type="text" class="w-48" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Global Search" />
             </p-iconField>
           }
-          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters"> </p-button>
+          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
           <p-button
             [rounded]="true"
             [text]="true"
@@ -35,10 +35,10 @@
           />
         </div>
         <div class="right-buttons">
-          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections"></p-button>
-          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()"> </p-button>
-          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()"> </p-button>
-          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" styleClass="custom-multiselect" appendTo="body" filterPlaceHolder="Add columns..." [showToggleAll]="true"> </p-multiSelect>
+          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
+          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()" />
+          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()" />
+          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
         </div>
       </div>
       <div class="scrollable-vulnerabilities">
@@ -71,7 +71,7 @@
                   [filterDelay]="300"
                   [rowHover]="true"
                   dataKey="pluginID"
-                  styleClass="p-datatable-sm p-datatable-gridlines-hidden"
+                  class="p-datatable-sm p-datatable-gridlines-hidden"
                 >
                   <ng-template pTemplate="header" let-columns>
                     <tr>
@@ -79,7 +79,7 @@
                         <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
                           {{ col.header }}
                           @if (!this.assetProcessing) {
-                            <p-columnFilter [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" [showOperator]="false" display="menu"></p-columnFilter>
+                            <p-columnFilter [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" [showOperator]="false" display="menu" />
                           }
                         </th>
                       }
@@ -92,11 +92,11 @@
                           @switch (col.field) {
                             @case ('sourcePluginIDs') {
                               @for (pluginId of vulnerability.sourcePluginIDs; track pluginId) {
-                                <p-tag [value]="pluginId" [rounded]="true" class="mb-1 mr-1"> </p-tag>
+                                <p-tag [value]="pluginId" [rounded]="true" class="mb-1 mr-1" />
                               }
                             }
                             @case ('severity') {
-                              <p-tag [value]="vulnerability[col.field]" [severity]="getSeverityStyling(vulnerability[col.field])" [rounded]="false"> </p-tag>
+                              <p-tag [value]="vulnerability[col.field]" [severity]="getSeverityStyling(vulnerability[col.field])" [rounded]="false" />
                             }
                             @case ('teamAssigned') {
                               @if (tab.teamId === 'all') {
@@ -132,7 +132,7 @@
   </div>
 </div>
 
-<p-dialog header="Plugin Details" class="pluginDialog" [(visible)]="displayDialog" [modal]="true" [style]="{ width: '50vw' }">
+<p-dialog header="Plugin Details" class="pluginDialog" [(visible)]="displayDialog" [modal]="true" styleClass="w-[50vw] overflow-hidden">
   <ng-template pTemplate="content">
     <div class="p-grid">
       <div class="p-col-12"><b>Plugin ID:</b> {{ selectedVulnerability.pluginID }}</div>
@@ -143,7 +143,7 @@
       <div class="p-col-12"><b>Family:</b> {{ selectedVulnerability.family }}</div>
       <br />
       <div class="p-col-12">
-        <p-table [value]="parsedVprContext" styleClass="p-datatable-sm">
+        <p-table [value]="parsedVprContext" class="p-datatable-sm">
           <ng-template pTemplate="header">
             <tr>
               <th scope="col">Vulnerability Priority Rating (VPR) Key Drivers</th>

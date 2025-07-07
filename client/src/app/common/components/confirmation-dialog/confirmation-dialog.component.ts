@@ -22,12 +22,7 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
       [(visible)]="visible"
       [modal]="true"
       [closable]="false"
-      [style]="{
-        width: 'auto',
-        'max-width': '40vw',
-        height: 'auto',
-        'max-height': '20vh'
-      }"
+      styleClass="w-auto h-auto max-h-[20vh] overflow-hidden"
     >
       <p-header>
         <h3>{{ options.header }}</h3>
@@ -38,11 +33,11 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
       <p-footer>
         <div style="text-align:center; margin: 0 0.75rem;">
           @if (options.cancelbutton === 'true') {
-            <p-button label="Cancel" icon="pi pi-times" variant="outlined" severity="warn" class="ml-[10%]" (onClick)="cancel()"></p-button>
+            <p-button label="Cancel" icon="pi pi-times" variant="outlined" severity="warn" styleClass="ml-[10%]" (onClick)="cancel()" />
           }
-          <p-button [label]="options.button.text" icon="pi pi-check" variant="outlined" [severity]="options.button.status" class="ml-[5%]" (onClick)="confirm()"></p-button>
+          <p-button [label]="options.button.text" icon="pi pi-check" variant="outlined" [severity]="options.button.status" styleClass="ml-[5%]" (onClick)="confirm()" />
           @if (options.convertButton) {
-            <p-button [label]="options.convertButton.text" icon="pi pi-refresh" variant="outlined" severity="warn" class="ml-[5%]" (onClick)="convert()"></p-button>
+            <p-button [label]="options.convertButton.text" icon="pi pi-refresh" variant="outlined" severity="warn" styleClass="ml-[5%]" (onClick)="convert()" />
           }
         </div>
       </p-footer>

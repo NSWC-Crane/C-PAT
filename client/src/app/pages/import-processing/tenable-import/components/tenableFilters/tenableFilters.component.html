@@ -10,7 +10,7 @@
 
 <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" class="ml-2" (onClick)="showSaveFilterDialog()" pTooltip="Save the currently applied filters as a custom filter" />
 
-<p-dialog [(visible)]="saveFilterDialog" [modal]="true" [style]="{ width: '600px' }" header="Save Custom Filter">
+<p-dialog [(visible)]="saveFilterDialog" [modal]="true" styleClass="w-[600px] overflow-hidden" header="Save Custom Filter">
   <div class="flex flex-col space-y-4">
     <div class="flex flex-col space-y-2">
       <label for="filterName">Filter Name</label>
@@ -23,8 +23,8 @@
   </div>
   <ng-template pTemplate="footer">
     <div class="flex w-full justify-between">
-      <p-button label="Cancel" icon="pi pi-times" (onClick)="cancelSaveFilter()" styleClass="p-button-secondary"> </p-button>
-      <p-button label="Save" icon="pi pi-save" (onClick)="saveCustomFilter()" [disabled]="!newFilterName?.trim()"> </p-button>
+      <p-button label="Cancel" icon="pi pi-times" (onClick)="cancelSaveFilter()" severity="secondary" />
+      <p-button label="Save" icon="pi pi-save" (onClick)="saveCustomFilter()" [disabled]="!newFilterName?.trim()" />
     </div>
   </ng-template>
 </p-dialog>

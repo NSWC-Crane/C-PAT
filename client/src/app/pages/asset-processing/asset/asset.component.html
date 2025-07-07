@@ -46,7 +46,7 @@
     </div>
     <br />
     <div class="col">
-      <p-table [value]="assetLabels" dataKey="labelId" [style]="{ overflow: 'visible' }">
+      <p-table [value]="assetLabels" dataKey="labelId" class="overflow-visible">
         <ng-template pTemplate="header">
           <tr>
             <th scope="col" style="width: 8rem">
@@ -72,13 +72,12 @@
                   [(ngModel)]="label.labelId"
                   optionLabel="labelName"
                   optionValue="labelId"
-                  [style]="{ width: '100%' }"
-                  [baseZIndex]="99999"
+                  class="w-full"
+                  [overlayOptions]="{ baseZIndex: 99999 }"
                   [panelStyle]="{ 'z-index': '999999' }"
                   (onChange)="onLabelChange(label, ri)"
                   placeholder="Select a label"
-                >
-                </p-select>
+                />
               }
             </td>
           </tr>
@@ -94,8 +93,8 @@
   <div class="formgroup-inline" style="margin-top: 6rem">
     <div class="mt-8 flex w-full items-center justify-between">
       <div class="flex gap-6">
-        <p-button variant="outlined" label="Cancel" severity="secondary" class="p-mr-2" (onClick)="resetData()" />
-        <p-button type="submit" variant="outlined" label="Submit" class="p-mr-2" [disabled]="!form.valid" />
+        <p-button variant="outlined" label="Cancel" severity="secondary" (onClick)="resetData()" />
+        <p-button type="submit" variant="outlined" label="Submit" [disabled]="!form.valid" />
       </div>
       <p-button variant="outlined" label="Delete Asset" severity="danger" (onClick)="deleteAsset(asset)" [disabled]="accessLevel < 2" />
     </div>

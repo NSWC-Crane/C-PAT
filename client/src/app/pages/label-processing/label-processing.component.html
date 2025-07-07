@@ -22,7 +22,7 @@
             </p-iconField>
             <div class="right-buttons">
               <p-button pTooltip="Add Label" tooltipPosition="top" [rounded]="true" [text]="true" [raised]="true" icon="pi pi-plus" (onClick)="addLabel()" [disabled]="accessLevel < 2" />
-              <p-button class="ml-2" pTooltip="Clear all filters" tooltipPosition="top" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()"></p-button>
+              <p-button class="ml-2" pTooltip="Clear all filters" tooltipPosition="top" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" />
             </div>
           </div>
         </div>
@@ -72,19 +72,18 @@
             [(ngModel)]="label.labelId"
             placeholder="Select Label to Modify..."
             (onChange)="setLabel($event.value.labelId)"
-            styleClass="mt-6 w-full"
+            class="mt-6 w-full"
             required
             appendTo="body"
             [disabled]="accessLevel < 2"
-          >
-          </p-select>
+          />
         </div>
       </div>
     </p-card>
   </div>
 </div>
 @if (accessLevel >= 2) {
-  <p-dialog [(visible)]="labelDialogVisible" [modal]="true" [style]="{ width: '50vw' }">
+  <p-dialog [(visible)]="labelDialogVisible" [modal]="true" styleClass="w-[50vw] overflow-hidden">
     <ng-template pTemplate="content">
       <cpat-label [label]="label" [labels]="labels" [payload]="payload" (labelchange)="resetData(); closeLabelPopup()" />
     </ng-template>

@@ -18,8 +18,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
 @Component({
   selector: 'cpat-status-dialog',
   template: `
-    <p-dialog header="File Upload Status" [(visible)]="display" [modal]="true" [closable]="false" [style]="{ width: '50vw' }">
-      <p-progressBar [value]="progress" [showValue]="true" [style]="{ height: '20px' }"></p-progressBar>
+    <p-dialog header="File Upload Status" [(visible)]="display" [modal]="true" [closable]="false" styleClass="w-[50vw] overflow-hidden">
+      <p-progressBar [value]="progress" [showValue]="true" [style]="{ height: '20px' }" />
       @if (message) {
         <p>{{ message + ' ' + countdownMessage }}</p>
       }

@@ -45,7 +45,7 @@
         @for (col of columns; track col; let i = $index) {
           <td [style]="col.field === 'Name' ? { 'max-width': '200px' } : {}">
             @if (i === 0) {
-              <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+              <p-treeTableToggler [rowNode]="rowNode" />
             }
             <span [style]="col.field === 'Name' ? { 'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', display: 'inline-block', width: '100%' } : {}">
               {{ rowData[col.field] }}
@@ -67,11 +67,11 @@
   </p-treeTable>
 </div>
 
-<p-dialog [(visible)]="displayCollectionDialog" [style]="{ width: '450px' }" [modal]="true">
+<p-dialog [(visible)]="displayCollectionDialog" styleClass="w-[50vw] overflow-hidden" [modal]="true">
   <ng-template pTemplate="content">
     <div class="field">
       <label for="collectionName">Collection Name:</label>
-      <input type="text" pInputText id="collectionName" [(ngModel)]="editingCollection.collectionName" required />
+      <input type="text" pInputText id="collectionName" class="w-full" [(ngModel)]="editingCollection.collectionName" required />
     </div>
     <div class="field">
       <label for="description">Description:</label>
@@ -90,9 +90,8 @@
         optionValue="value"
         id="manualCreationAllowed"
         name="manualCreationAllowed"
-        styleClass="w-full"
-      >
-      </p-select>
+        class="w-full"
+      />
     </div>
     <div class="field">
       <label for="aaPackage">A&A Package:</label>
@@ -104,10 +103,9 @@
         placeholder="Select an A&A Package..."
         name="aaPackage"
         id="aaPackage"
-        styleClass="w-full"
+        class="w-full"
         readonly
-      >
-      </p-autoComplete>
+      />
     </div>
     <div class="field">
       <label for="predisposingConditions">Predisposing Conditions:</label>
@@ -128,12 +126,14 @@
   </ng-template>
 
   <ng-template pTemplate="footer">
-    <p-button label="Cancel" variant="outlined" (onClick)="hideCollectionDialog()" />
-    <p-button label="Save" variant="outlined" (onClick)="saveCollection()" />
+    <div class="flex w-full justify-between">
+      <p-button label="Cancel" variant="outlined" (onClick)="hideCollectionDialog()" />
+      <p-button label="Save" variant="outlined" (onClick)="saveCollection()" />
+    </div>
   </ng-template>
 </p-dialog>
 
-<p-dialog [(visible)]="displayDeleteDialog" [style]="{ width: 'auto' }" [modal]="true" header="Confirm Delete">
+<p-dialog [(visible)]="displayDeleteDialog" styleClass="w-auto overflow-hidden" [modal]="true" header="Confirm Delete">
   <div class="custom-confirm-popup">
     <div class="icon-container">
       <i class="pi pi-exclamation-triangle"></i>

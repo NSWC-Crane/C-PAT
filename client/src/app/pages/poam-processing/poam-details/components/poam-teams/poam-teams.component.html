@@ -10,14 +10,14 @@
 
 @if (loading) {
   <div class="justify-content-center align-items-center p-4">
-    <p-progressBar mode="indeterminate" [style]="{ height: '6px', 'margin-bottom': '1rem' }" />
+    <p-progressBar mode="indeterminate" class="mb-4" [style]="{ height: '6px' }" />
     <span>Analyzing assets and assigning teams...</span>
   </div>
 }
 
 @if (!loading) {
   <div class="table-container">
-    <p-table [value]="poamAssignedTeams" styleClass="p-datatable-striped full-width-table" [scrollable]="true" scrollHeight="flex">
+    <p-table [value]="poamAssignedTeams" class="full-width-table" [scrollable]="true" scrollHeight="flex">
       <ng-template pTemplate="header">
         <tr>
           <th scope="col" pSortableColumn="assignedTeamName" style="width: 90%">Teams Assigned</th>
@@ -38,12 +38,11 @@
                 [(ngModel)]="assignedTeam.assignedTeamId"
                 optionLabel="assignedTeamName"
                 optionValue="assignedTeamId"
-                [style]="{ width: '100%' }"
+                class="w-full"
                 (onChange)="onAssignedTeamChange(assignedTeam, rowIndex)"
                 appendTo="body"
                 [disabled]="accessLevel < 2"
-              >
-              </p-select>
+              />
             }
           </td>
           <td style="width: 10%; text-align: center">

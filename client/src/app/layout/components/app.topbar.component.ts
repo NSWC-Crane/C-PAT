@@ -77,14 +77,14 @@ import { AppConfigService } from '../services/appconfigservice';
           <cpat-search></cpat-search>
         </li>
         <li>
-          <button type="button" class="topbar-item" (click)="toggleDarkMode()">
-            <i class="pi" [ngClass]="{ 'pi-moon': isDarkMode(), 'pi-sun': !isDarkMode() }"></i>
+          <button pButton class="topbar-item" (click)="toggleDarkMode()">
+            <i pButtonIcon class="pi" [ngClass]="{ 'pi-moon': isDarkMode(), 'pi-sun': !isDarkMode() }"></i>
           </button>
         </li>
         @if (showConfigurator) {
           <li class="relative">
             <button
-              type="button"
+              pButton
               class="topbar-item relative overflow-hidden !border-transparent"
               enterActiveClass="animate-scalein"
               enterFromClass="hidden"
@@ -98,14 +98,14 @@ import { AppConfigService } from '../services/appconfigservice';
                 class="absolute -top-5 -left-5 w-20 h-20 animate-spin"
               ></span>
               <span style="inset: 1px; border-radius: 4px" class="absolute z-2 bg-surface-0 dark:bg-surface-900 transition-all"></span>
-              <i class="pi pi-palette z-10"></i>
+              <i pButtonIcon class="pi pi-palette z-10"></i>
             </button>
             <cpat-configurator></cpat-configurator>
           </li>
         }
         <li>
-          <button type="button" class="topbar-item" (click)="op.toggle($event)" (keyup.enter)="op.toggle($event)">
-            <i class="pi pi-bell"></i>
+          <button pButton class="topbar-item" (click)="op.toggle($event)" (keyup.enter)="op.toggle($event)">
+            <i pButtonIcon class="pi pi-bell"></i>
             @if (notificationCount > 0) {
               <span class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 rounded-full bg-primary-500 text-black dark:text-white text-xs flex items-center justify-center px-1 animate-pulse">
                 {{ notificationCount }}

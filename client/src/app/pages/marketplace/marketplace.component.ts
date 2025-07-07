@@ -9,7 +9,7 @@
 */
 
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { updateSurfacePalette } from '@primeng/themes';
+import { updateSurfacePalette } from '@primeuix/themes';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -290,7 +290,6 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     if (this.userPoints >= theme.cost) {
       this.confirmationService.confirm({
         message: `Are you sure you want to purchase ${theme.themeName} for ${theme.cost} points?`,
-        header: 'Confirm Purchase',
         icon: 'pi pi-exclamation-triangle',
         acceptLabel: 'Confirm',
         rejectLabel: 'Cancel',

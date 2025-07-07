@@ -13,14 +13,14 @@
     <div class="p-fluid">
       <div class="toolbar mb-4 mt-4">
         <div class="flex items-center justify-between">
-          <p-select class="ml-4" [options]="benchmarkOptions" [(ngModel)]="selectedBenchmarkId" (onChange)="onBenchmarkChange()" placeholder="Select Benchmark..." [disabled]="isLoading && !showBenchmarkSelector" appendTo="body"> </p-select>
-          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters"> </p-button>
+          <p-select class="ml-4" [options]="benchmarkOptions" [(ngModel)]="selectedBenchmarkId" (onChange)="onBenchmarkChange()" placeholder="Select Benchmark..." [disabled]="isLoading && !showBenchmarkSelector" appendTo="body" />
+          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
         </div>
         <div class="right-buttons">
-          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections"></p-button>
-          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()"> </p-button>
-          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()"> </p-button>
-          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" styleClass="custom-multiselect" appendTo="body" filterPlaceHolder="Add columns..." [showToggleAll]="true"> </p-multiSelect>
+          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
+          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()" />
+          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()" />
+          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
         </div>
       </div>
 
@@ -72,11 +72,11 @@
                 <td>
                   <span class="align-items-center flex">
                     @if (i === 0) {
-                      <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                      <p-treeTableToggler [rowNode]="rowNode" />
                     }
                     @switch (col.field) {
                       @case ('displayResult') {
-                        <p-tag class="ml-2" [value]="rowNode.node.data.displayResult" [severity]="rowNode.node.data.result === 'pass' ? 'success' : rowNode.node.data.result === 'fail' ? 'danger' : 'warn'"> </p-tag>
+                        <p-tag class="ml-2" [value]="rowNode.node.data.displayResult" [severity]="rowNode.node.data.result === 'pass' ? 'success' : rowNode.node.data.result === 'fail' ? 'danger' : 'warn'" />
                       }
                       @case ('status.label') {
                         @if (rowNode.node.data['status.label']) {
@@ -90,7 +90,7 @@
                       }
                       @case ('rule.severity') {
                         @if (rowNode.node.data['rule.severity']) {
-                          <p-tag [value]="rowNode.node.data['rule.severity']" [severity]="getSeverityStyling(rowNode.node.data['rule.severity'])" [rounded]="false"> </p-tag>
+                          <p-tag [value]="rowNode.node.data['rule.severity']" [severity]="getSeverityStyling(rowNode.node.data['rule.severity'])" [rounded]="false" />
                         }
                       }
                       @case ('evaluatedDate') {
@@ -104,7 +104,7 @@
                       }
                       @case ('labels') {
                         @for (label of getReviewLabels(rowNode.node.data); track label) {
-                          <p-tag [rounded]="false" [value]="label.name" [style]="{ background: 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.5rem', color: '#' + label.color }"> </p-tag>
+                          <p-tag [rounded]="false" [value]="label.name" [style]="{ background: 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.5rem', color: '#' + label.color }" />
                         }
                       }
                       @default {
@@ -128,26 +128,26 @@
   </div>
 </div>
 
-<p-popover #filterPopover [style]="{ 'min-width': '200px' }">
+<p-popover #filterPopover class="min-w-[200px]">
   @if (currentFilterColumn) {
     <div class="p-fluid filter-panel">
       <div class="p-field mb-3">
         @switch (currentFilterColumn.field) {
           @case ('displayResult') {
-            <p-select class="w-full" [options]="resultOptions" [(ngModel)]="result" (onChange)="onResultFilterChange($event.value); filterPopover.hide()" placeholder="Filter result" appendTo="body"> </p-select>
+            <p-select class="w-full" [options]="resultOptions" [(ngModel)]="result" (onChange)="onResultFilterChange($event.value); filterPopover.hide()" placeholder="Filter result" appendTo="body" />
           }
           @case ('rule.severity') {
-            <p-multiSelect class="w-full" [options]="severityFilterOptions" [(ngModel)]="filters[currentFilterColumn.field]" placeholder="Filter severity" (onClick)="$event.stopPropagation()" [showClear]="true" appendTo="body"> </p-multiSelect>
+            <p-multiSelect class="w-full" [options]="severityFilterOptions" [(ngModel)]="filters[currentFilterColumn.field]" placeholder="Filter severity" (onClick)="$event.stopPropagation()" [showClear]="true" appendTo="body" />
           }
           @case ('evaluatedDate') {
             <div class="mb-2">
-              <p-select class="w-full" [options]="dateFilterOptions" [(ngModel)]="dateFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()" placeholder="Select comparison" appendTo="body"> </p-select>
+              <p-select class="w-full" [options]="dateFilterOptions" [(ngModel)]="dateFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()" placeholder="Select comparison" appendTo="body" />
             </div>
-            <p-datepicker class="w-full" [showIcon]="true" [(ngModel)]="dateFilterValues[currentFilterColumn.field]" placeholder="Filter date" (onClick)="$event.stopPropagation()" dateFormat="mm/dd/yy"> </p-datepicker>
+            <p-datepicker class="w-full" [showIcon]="true" [(ngModel)]="dateFilterValues[currentFilterColumn.field]" placeholder="Filter date" (onClick)="$event.stopPropagation()" dateFormat="mm/dd/yy" />
           }
           @case ('resultEngine.version') {
             <div class="mb-2">
-              <p-select class="w-full" [options]="versionFilterOptions" [(ngModel)]="versionFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()" placeholder="Select comparison" appendTo="body"> </p-select>
+              <p-select class="w-full" [options]="versionFilterOptions" [(ngModel)]="versionFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()" placeholder="Select comparison" appendTo="body" />
             </div>
             <div class="p-input-icon-right w-full">
               <input pInputText type="text" [(ngModel)]="versionFilterValues[currentFilterColumn.field]" placeholder="Enter version (e.g., 24.2.1)" class="w-full" (change)="applyVersionFilter(currentFilterColumn.field, $event)" />

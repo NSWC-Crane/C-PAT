@@ -40,11 +40,11 @@
                         </p-inputIcon>
                         <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Assets" style="width: 300px" />
                       </p-iconField>
-                      <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters"></p-button>
+                      <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
                     </div>
                     <div class="right-buttons">
                       <p-button pTooltip="Add Asset" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" (onClick)="addAsset()" [disabled]="accessLevel < 2" />
-                      <p-button class="ml-2" icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="assetTable.exportCSV()"> </p-button>
+                      <p-button class="ml-2" icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="assetTable.exportCSV()" />
                     </div>
                   </div>
                   <div class="scrollable-assets">
@@ -114,30 +114,19 @@
               <p-tabpanel value="1">
                 <div class="canvas" id="canvas" style="margin-top: 20px">
                   <p-button icon="pi pi-download" [rounded]="true" variant="text" class="export-button" (onClick)="exportChart()" />
-                  <p-chart type="bar" [data]="chartData" [options]="chartOptions" styleClass="h-50 w-full"></p-chart>
+                  <p-chart type="bar" [data]="chartData" [options]="chartOptions" class="h-50 w-full" />
                 </div>
               </p-tabpanel>
             </p-tabpanels>
           </p-tabs>
           <div class="field mb-4 mt-4">
-            <p-select
-              id="assetid"
-              [options]="data"
-              optionLabel="assetName"
-              [(ngModel)]="asset.assetId"
-              placeholder="Select Asset to Modify..."
-              (onChange)="setAsset($event.value.assetId)"
-              styleClass="mt-2 w-full"
-              required
-              [disabled]="accessLevel < 2"
-            >
-            </p-select>
+            <p-select id="assetid" [options]="data" optionLabel="assetName" [(ngModel)]="asset.assetId" placeholder="Select Asset to Modify..." (onChange)="setAsset($event.value.assetId)" class="mt-2 w-full" required [disabled]="accessLevel < 2" />
           </div>
         </div>
       </div>
     </div>
     @if (accessLevel >= 2) {
-      <p-dialog [(visible)]="assetDialogVisible" [modal]="true" [style]="{ width: '50vw' }" [baseZIndex]="1000">
+      <p-dialog [(visible)]="assetDialogVisible" [modal]="true" styleClass="w-[50vw] overflow-hidden" [baseZIndex]="1000">
         <ng-template pTemplate="content">
           <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData(); closeAssetDialog()"></cpat-asset>
         </ng-template>

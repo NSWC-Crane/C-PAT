@@ -9,7 +9,7 @@
 -->
 
 <div class="table-container">
-  <p-toast></p-toast>
+  <p-toast />
   <p-table [value]="poamApprovers" dataKey="userId">
     <ng-template pTemplate="header">
       <tr>
@@ -29,16 +29,7 @@
             <span>{{ getApproverName(approver.userId) }}</span>
           }
           @if (approver.isNew) {
-            <p-select
-              [options]="collectionApprovers"
-              [(ngModel)]="approver.userId"
-              optionLabel="fullName"
-              optionValue="userId"
-              [style]="{ width: '100%' }"
-              (onChange)="onApproverChange(approver)"
-              appendTo="body"
-              [disabled]="accessLevel < 2"
-            ></p-select>
+            <p-select [options]="collectionApprovers" [(ngModel)]="approver.userId" optionLabel="fullName" optionValue="userId" class="w-full" (onChange)="onApproverChange(approver)" appendTo="body" [disabled]="accessLevel < 2" />
           }
         </td>
         <td>{{ approver.approvalStatus }}</td>

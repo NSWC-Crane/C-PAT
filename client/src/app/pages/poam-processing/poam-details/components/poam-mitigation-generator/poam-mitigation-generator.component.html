@@ -22,7 +22,7 @@
               <p class="mb-2 text-sm">Customize the prompt to generate the most relevant mitigation for your specific vulnerability context.</p>
             </div>
             <div>
-              <p-splitButton raised severity="secondary" label="Generate Mitigation" (onClick)="generateMitigation()" [model]="items"> </p-splitButton>
+              <p-splitButton raised severity="secondary" label="Generate Mitigation" (onClick)="generateMitigation()" [model]="items" />
             </div>
           </div>
           <textarea pTextarea class="mb-3 w-full" [(ngModel)]="mitigationPrompt" [rows]="15" placeholder="Edit the AI prompt here"></textarea>
@@ -30,7 +30,7 @@
       }
       @if (isGenerating()) {
         <div class="generation-progress m-4">
-          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }"></p-progressBar>
+          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }" />
           <small class="mt-1 block text-center">Generating mitigation...</small>
         </div>
       }
@@ -42,15 +42,15 @@
               <p class="mb-2 text-sm">Review and edit the generated mitigation before applying it to your POAM.</p>
             </div>
             <div>
-              <p-splitButton outlined severity="success" label="Apply Mitigation" (onClick)="applyMitigation()" [model]="mitigationActionItems"> </p-splitButton>
+              <p-splitButton outlined severity="success" label="Apply Mitigation" (onClick)="applyMitigation()" [model]="mitigationActionItems" />
             </div>
           </div>
           <textarea pTextarea class="w-full" [(ngModel)]="generatedMitigation" [rows]="10" placeholder="Generated mitigation will appear here" [autoResize]="true"></textarea>
         </div>
       }
     </div>
-    <p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
-    <p-dialog [(visible)]="consentDialogVisible" [modal]="true" [style]="{ width: '500px' }" [draggable]="false" [resizable]="false" [closeOnEscape]="false" [closable]="false">
+    <p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" />
+    <p-dialog [(visible)]="consentDialogVisible" [modal]="true" styleClass="w-[50vw] overflow-hidden" [draggable]="false" [resizable]="false" [closeOnEscape]="false" [closable]="false">
       <div class="confirm-popup">
         <div class="icon-container">
           <i class="pi pi-exclamation-triangle"></i>
@@ -63,7 +63,7 @@
             <li>The mitigation controls described are verifiable and will be subject to validation</li>
             <li>You take responsibility for the implementation of these security controls</li>
           </ul>
-          <p class="mt-4" style="text-align: left">AI-generated content requires human review and verification. Incorrect or unimplemented mitigations may result in continued risk.</p>
+          <p class="!mt-4" style="text-align: left">AI-generated content requires human review and verification. Incorrect or unimplemented mitigations may result in continued risk.</p>
         </div>
       </div>
       <ng-template pTemplate="footer">

@@ -104,7 +104,7 @@
 
     <div class="col-span-12 mb-4 p-0">
       @if (poams()) {
-        <cpat-poam-mainchart [poams]="poams()" canvasHeight="34rem"></cpat-poam-mainchart>
+        <cpat-poam-mainchart [poams]="poams()" canvasHeight="34.75rem"></cpat-poam-mainchart>
       }
     </div>
   </div>
@@ -166,9 +166,10 @@
     </p-card>
   </div>
 </div>
-<cpat-poam-grid [poamsData]="poams()"
+<cpat-poam-grid
+  [poamsData]="poams()"
   [affectedAssetCounts]="affectedAssetCounts()"
   [allColumns]="['Last Updated', 'POAM ID', 'POAM Status', 'Adjusted Severity', 'Submitter', 'Submitted Date', 'Scheduled Completion Date', 'POAM']"
   (managePoam)="managePoam($event)"
- />
+/>
 <p-toast />

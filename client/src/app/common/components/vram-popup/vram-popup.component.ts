@@ -30,7 +30,7 @@ import { StepperModule } from 'primeng/stepper';
                 <p>The VRAM IAV Table is currently open in a separate window.</p>
                 <p class="text-sm">You can close the window at any point to hide this message.</p>
                 <div class="flex py-6">
-                  <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(2)"></p-button>
+                  <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(2)" />
                 </div>
               </ng-template>
             </p-step-panel>
@@ -41,12 +41,12 @@ import { StepperModule } from 'primeng/stepper';
             <p-step-panel>
               <ng-template #content let-activateCallback="activateCallback">
                 <p>Ensure column options are set to default values</p>
-                <p-image src="../../../assets/vram/step1.png" alt="Image" width="600" [preview]="true"></p-image>
+                <p-image src="../../../assets/vram/step1.png" alt="Image" width="600" [preview]="true" />
                 <br />
-                <p-image class="mt-6" src="../../../assets/vram/columnOptions.png" alt="Image" width="600" [preview]="true"></p-image>
+                <p-image class="mt-6" src="../../../assets/vram/columnOptions.png" alt="Image" width="600" [preview]="true" />
                 <div class="flex py-6 gap-2">
-                  <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(1)"></p-button>
-                  <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(3)"></p-button>
+                  <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(1)" />
+                  <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(3)" />
                 </div>
               </ng-template>
             </p-step-panel>
@@ -57,9 +57,9 @@ import { StepperModule } from 'primeng/stepper';
             <p-step-panel>
               <ng-template #content let-activateCallback="activateCallback">
                 <p>Click to export. The exported file can be imported to C-PAT directly below.</p>
-                <p-image src="../../../assets/vram/step2.png" alt="Image" width="600" [preview]="true"></p-image>
+                <p-image src="../../../assets/vram/step2.png" alt="Image" width="600" [preview]="true" />
                 <div class="flex py-6 gap-2">
-                  <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(2)"></p-button>
+                  <p-button [outlined]="true" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(2)" />
                 </div>
               </ng-template>
             </p-step-panel>

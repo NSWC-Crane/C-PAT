@@ -9,7 +9,7 @@
 -->
 
 <div class="labels-table-container">
-  <p-toast></p-toast>
+  <p-toast />
   <p-table [value]="poamLabels" dataKey="labelId">
     <ng-template pTemplate="header">
       <tr>
@@ -26,7 +26,7 @@
             <span>{{ label.labelName }}</span>
           }
           @if (label.isNew) {
-            <p-select [options]="labelList" [(ngModel)]="label.labelId" optionLabel="labelName" optionValue="labelId" [style]="{ width: '100%' }" (onChange)="onLabelChange(label)" appendTo="body" [disabled]="accessLevel < 2"></p-select>
+            <p-select [options]="labelList" [(ngModel)]="label.labelId" optionLabel="labelName" optionValue="labelId" class="w-full" (onChange)="onLabelChange(label)" appendTo="body" [disabled]="accessLevel < 2" />
           }
         </td>
         <td>

@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<p-dialog [(visible)]="displayExtensionDialog" [modal]="true" [style]="{ width: '80vw', height: '80vh' }" [draggable]="false" [resizable]="false" [closable]="true" (onHide)="cancelExtension()" autoZIndex="false">
+<p-dialog [(visible)]="displayExtensionDialog" [modal]="true" styleClass="w-[80vw] h-auto max-h-[80vh] overflow-hidden" [draggable]="false" [resizable]="false" [closable]="true" (onHide)="cancelExtension()" autoZIndex="false">
   @if (poam) {
     <div class="container">
       <div class="p-grid">
@@ -16,22 +16,14 @@
         <div class="p-col-12">
           <div class="p-field">
             <label for="extensionTimeAllowed">Extension Time Requested:</label>
-            <p-select
-              [options]="extensionTimeOptions"
-              [(ngModel)]="poam.extensionTimeAllowed"
-              (onChange)="computeDeadlineWithExtension()"
-              placeholder="Extension Time Requested..."
-              [showClear]="true"
-              [style]="{ width: '100%' }"
-              [disabled]="accessLevel < 2"
-            ></p-select>
+            <p-select [options]="extensionTimeOptions" [(ngModel)]="poam.extensionTimeAllowed" (onChange)="computeDeadlineWithExtension()" placeholder="Extension Time Requested..." [showClear]="true" class="w-full" [disabled]="accessLevel < 2" />
           </div>
         </div>
         <!-- Deadline With Extension -->
         <div class="p-col-12">
           <div class="p-field">
             <label for="extensionDeadline">Deadline With Extension:</label>
-            <input type="text" pInputText [value]="completionDateWithExtension" name="extensionDeadline" disabled [style]="{ width: '100%' }" />
+            <input type="text" pInputText [value]="completionDateWithExtension" name="extensionDeadline" disabled class="w-full" />
           </div>
         </div>
         <!-- Justification for Extension -->
@@ -44,10 +36,9 @@
               [suggestions]="filteredJustifications"
               (completeMethod)="filterJustifications($event)"
               [placeholder]="extensionJustificationPlaceholder"
-              [style]="{ width: '100%' }"
+              class="w-full"
               [disabled]="accessLevel < 2"
-            >
-            </p-autoComplete>
+            />
           </div>
         </div>
       </div>
@@ -95,7 +86,7 @@
                         <td>
                           <p-cellEditor>
                             <ng-template pTemplate="input">
-                              <p-datepicker [(ngModel)]="milestone.milestoneDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" disabled></p-datepicker>
+                              <p-datepicker [(ngModel)]="milestone.milestoneDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" disabled />
                             </ng-template>
                             <ng-template pTemplate="output">
                               {{ milestone.milestoneDate | date: 'yyyy-MM-dd' }}
@@ -115,7 +106,7 @@
                         <td>
                           <p-cellEditor>
                             <ng-template pTemplate="input">
-                              <p-datepicker [(ngModel)]="milestone.milestoneChangeDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" [baseZIndex]="9999" [disabled]="accessLevel < 2"></p-datepicker>
+                              <p-datepicker [(ngModel)]="milestone.milestoneChangeDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" [baseZIndex]="9999" [disabled]="accessLevel < 2" />
                             </ng-template>
                             <ng-template pTemplate="output">
                               {{ milestone.milestoneChangeDate | date: 'yyyy-MM-dd' }}
@@ -125,7 +116,7 @@
                         <td>
                           <p-cellEditor>
                             <ng-template pTemplate="input">
-                              <p-select [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" [style]="{ width: '100%' }" appendTo="body" [baseZIndex]="9999" [disabled]="accessLevel < 2"></p-select>
+                              <p-select [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" class="w-full" appendTo="body" [overlayOptions]="{ baseZIndex: 9999 }" [disabled]="accessLevel < 2" />
                             </ng-template>
                             <ng-template pTemplate="output">
                               {{ milestone.milestoneStatus }}
@@ -140,11 +131,11 @@
                                 [(ngModel)]="milestone.assignedTeamId"
                                 optionLabel="assignedTeamName"
                                 optionValue="assignedTeamId"
-                                [style]="{ width: '100%' }"
+                                class="w-full"
                                 appendTo="body"
-                                [baseZIndex]="9999"
+                                [overlayOptions]="{ baseZIndex: 9999 }"
                                 [disabled]="accessLevel < 2"
-                              ></p-select>
+                              />
                             </ng-template>
                             <ng-template pTemplate="output">
                               {{ getTeamName(milestone.assignedTeamId) }}
@@ -172,7 +163,7 @@
                   </p-table>
                 </div>
                 <div class="stepper-buttons first-panel">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(2)"></p-button>
+                  <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(2)" />
                 </div>
               </div>
             </ng-template>
@@ -186,8 +177,8 @@
                   <textarea pTextarea class="w-full" [(ngModel)]="poam.mitigations" name="mitigations" [rows]="16" [maxlength]="2000" placeholder="Mitigations..." [disabled]="accessLevel < 2"></textarea>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(1)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(3)"></p-button>
+                  <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(1)" />
+                  <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(3)" />
                 </div>
               </div>
             </ng-template>
@@ -201,8 +192,8 @@
                   <textarea pTextarea class="w-full" [(ngModel)]="poam.requiredResources" name="requiredResources" [rows]="16" [maxlength]="2000" placeholder="Required Resources..." [disabled]="accessLevel < 2"></textarea>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(2)"></p-button>
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-primary" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(4)"></p-button>
+                  <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(2)" />
+                  <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(4)" />
                 </div>
               </div>
             </ng-template>
@@ -224,10 +215,10 @@
                       optionLabel="label"
                       optionValue="value"
                       appendTo="body"
-                      [baseZIndex]="9999"
-                      [style]="{ width: '100%' }"
+                      [overlayOptions]="{ baseZIndex: 9999 }"
+                      class="w-full"
                       [disabled]="accessLevel < 2"
-                    ></p-select>
+                    />
                   </div>
 
                   <div class="form-group">
@@ -237,37 +228,16 @@
 
                   <div class="form-group">
                     <label for="residualRisk">Residual Risk:</label>
-                    <p-select
-                      [options]="residualRiskOptions"
-                      [(ngModel)]="poam.residualRisk"
-                      name="residualRisk"
-                      placeholder="Residual Risk..."
-                      optionLabel="label"
-                      optionValue="value"
-                      appendTo="body"
-                      [style]="{ width: '100%' }"
-                      [disabled]="true"
-                    ></p-select>
+                    <p-select [options]="residualRiskOptions" [(ngModel)]="poam.residualRisk" name="residualRisk" placeholder="Residual Risk..." optionLabel="label" optionValue="value" appendTo="body" class="w-full" [disabled]="true" />
                   </div>
 
                   <div class="form-group">
                     <label for="likelihood">Likelihood:</label>
-                    <p-select
-                      [options]="likelihoodOptions"
-                      [(ngModel)]="poam.likelihood"
-                      id="likelihood"
-                      name="likelihood"
-                      placeholder="Likelihood..."
-                      optionLabel="label"
-                      optionValue="value"
-                      appendTo="body"
-                      [style]="{ width: '100%' }"
-                      [disabled]="true"
-                    ></p-select>
+                    <p-select [options]="likelihoodOptions" [(ngModel)]="poam.likelihood" id="likelihood" name="likelihood" placeholder="Likelihood..." optionLabel="label" optionValue="value" appendTo="body" class="w-full" [disabled]="true" />
                   </div>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button styleClass="p-button-outlined p-button-rounded p-button-text p-button-raised p-button-secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(3)"></p-button>
+                  <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(3)" />
                 </div>
               </div>
             </ng-template>
@@ -278,7 +248,7 @@
   }
   <ng-template pTemplate="footer">
     <div class="m-2 flex w-full items-center justify-between">
-      <p-button class="ml-2" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()"></p-button>
+      <p-button styleClass="ml-2" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()" />
       <div>
         <p-button
           [outlined]="true"
@@ -287,7 +257,7 @@
           tooltipZIndex="9999"
           (click)="submitPoamExtension()"
           [disabled]="accessLevel < 2"
-        ></p-button>
+        />
         @if (accessLevel >= 3) {
           <p-button
             [outlined]="true"
@@ -298,7 +268,7 @@
             tooltipZIndex="9999"
             (click)="approveExtension()"
             [disabled]="accessLevel < 3"
-          ></p-button>
+          />
         }
       </div>
     </div>

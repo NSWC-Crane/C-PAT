@@ -19,10 +19,10 @@
             </p-inputIcon>
             <input pInputText id="search" class="w-48" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search Solutions" />
           </p-iconField>
-          <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters"></p-button>
+          <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
         </div>
         <div class="right-buttons">
-          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="dt.exportCSV()"> </p-button>
+          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="dt.exportCSV()" />
         </div>
       </div>
       <div class="scrollable-solutions">
@@ -40,7 +40,7 @@
           dataKey="solution"
           [scrollable]="true"
           scrollHeight="calc(100vh - 25rem)"
-          styleClass="p-datatable-sm p-datatable-gridlines-hidden"
+          class="p-datatable-sm p-datatable-gridlines-hidden"
         >
           <ng-template pTemplate="header">
             <tr>
@@ -103,7 +103,7 @@
   </div>
 </div>
 
-<p-dialog header="Apply the security patch in accordance with the vendor advisory." class="solutionDialog" [(visible)]="displayDialog" [modal]="true" (onHide)="resetData()" [style]="{ width: '80vw' }">
+<p-dialog header="Apply the security patch in accordance with the vendor advisory." class="solutionDialog" [(visible)]="displayDialog" [modal]="true" (onHide)="resetData()" styleClass="w-[80vw] overflow-hidden">
   <ng-template pTemplate="content">
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-4" style="background-color: rgba(255, 255, 255, 0.03); border-radius: 15px; padding: 1.5rem 1rem 1rem">
@@ -228,7 +228,7 @@
               </p-inputIcon>
               <input pInputText id="search" [(ngModel)]="dialogFilterValue" (input)="onDialogFilter($event)" placeholder="Search Assets" style="width: 300px" />
             </p-iconField>
-            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-auto" icon="pi pi-filter-slash" (click)="clearDialog()" pTooltip="Clear all filters"> </p-button>
+            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-auto" icon="pi pi-filter-slash" (click)="clearDialog()" pTooltip="Clear all filters" />
           </div>
           <div class="scrollable-affectedHosts">
             <p-table
@@ -242,7 +242,6 @@
               [filterDelay]="0"
               [rowHover]="true"
               dataKey="ip"
-              styleClass="p-datatable-striped"
             >
               <ng-template pTemplate="header">
                 <tr>
