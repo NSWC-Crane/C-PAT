@@ -291,7 +291,6 @@
               <label for="iavmNumber">IAVM #: </label>
               <p-inputgroup>
                 <input
-                  type="text"
                   pInputText
                   class="w-full"
                   [(ngModel)]="poam.iavmNumber"
@@ -301,7 +300,9 @@
                   placeholder="IAVM #..."
                   [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
                 />
-                <p-button icon="pi pi-external-link" (onClick)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber" />
+                <p-inputgroup-addon>
+                  <p-button icon="pi pi-external-link" variant="text" (onClick)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber" />
+                </p-inputgroup-addon>
               </p-inputgroup>
             </div>
           }
@@ -443,8 +444,7 @@
                             [loading]="loadingTeams()"
                             [poamService]="poamService"
                             (teamsChanged)="handleTeamsChanged($event)"
-                          >
-                          </cpat-poam-teams>
+                          />
                         </p-accordion-content>
                       </p-accordion-panel>
                       <p-accordion-panel value="1">
@@ -457,8 +457,7 @@
                             [collectionApprovers]="collectionApprovers"
                             [poamService]="poamService"
                             (approversChanged)="handleApproversChanged($event)"
-                          >
-                          </cpat-poam-approvers>
+                          />
                         </p-accordion-content>
                       </p-accordion-panel>
                     </p-accordion>
@@ -485,8 +484,7 @@
                     [poamAssignedTeams]="poamAssignedTeams"
                     [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities"
                     (assetsChanged)="handleAssetsChanged($event)"
-                  >
-                  </cpat-poam-assets>
+                  />
 
                   <div class="stepper-buttons">
                     <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(1)" />
@@ -541,8 +539,7 @@
                           ></i>
                         </div>
                         @if ((aiEnabled && poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) || (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData)) {
-                          <cpat-poam-mitigation-generator class="w-full" [poam]="poam" [team]="!poam.isGlobalFinding && activeTabIndex > 0 ? teamMitigations[activeTabIndex - 1] : null" (mitigationGenerated)="onMitigationGenerated($event)">
-                          </cpat-poam-mitigation-generator>
+                          <cpat-poam-mitigation-generator class="w-full" [poam]="poam" [team]="!poam.isGlobalFinding && activeTabIndex > 0 ? teamMitigations[activeTabIndex - 1] : null" (mitigationGenerated)="onMitigationGenerated($event)" />
                         }
                       </div>
                     </div>
@@ -687,7 +684,7 @@
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
                   <div class="stepper-content">
-                    <cpat-poam-milestones [poam]="poam" [accessLevel]="accessLevel()" [poamMilestones]="poamMilestones" [assignedTeamOptions]="milestoneTeamOptions" (milestonesChanged)="handleMilestonesChanged($event)"> </cpat-poam-milestones>
+                    <cpat-poam-milestones [poam]="poam" [accessLevel]="accessLevel()" [poamMilestones]="poamMilestones" [assignedTeamOptions]="milestoneTeamOptions" (milestonesChanged)="handleMilestonesChanged($event)" />
                   </div>
                   <div class="stepper-buttons">
                     <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(6)" />
@@ -702,7 +699,7 @@
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
                   <div class="stepper-content">
-                    <cpat-poam-labels [poamId]="poam.poamId" [accessLevel]="accessLevel()" [poamLabels]="poamLabels" [labelList]="labelList" [poamService]="poamService" (labelsChanged)="handleLabelsChanged($event)"> </cpat-poam-labels>
+                    <cpat-poam-labels [poamId]="poam.poamId" [accessLevel]="accessLevel()" [poamLabels]="poamLabels" [labelList]="labelList" [poamService]="poamService" (labelsChanged)="handleLabelsChanged($event)" />
                   </div>
                   <div class="stepper-buttons">
                     <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(7)" />
@@ -723,8 +720,7 @@
                       [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities"
                       [currentCollection]="collectionData"
                       (vulnerabilitiesChanged)="handleAssociatedVulnerabilitiesChanged($event)"
-                    >
-                    </cpat-poam-associated-vulnerabilities>
+                    />
                   </div>
                   <div class="stepper-buttons">
                     <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(8)" />
@@ -740,7 +736,7 @@
                 <ng-template #content let-activateCallback="activateCallback">
                   <div class="stepper-content-wrapper">
                     <div class="stepper-content">
-                      <cpat-poam-attachments [poamId]="poam.poamId"> </cpat-poam-attachments>
+                      <cpat-poam-attachments [poamId]="poam.poamId" />
                     </div>
                     <div class="stepper-buttons">
                       <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(9)" />

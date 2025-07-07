@@ -90,7 +90,7 @@
 
 @if (!showUserSelect) {
   <div class="col-span-12">
-    <cpat-user [user]="user" [users]="users" [payload]="payload" (userChange)="resetData()"> </cpat-user>
+    <cpat-user [user]="user" [users]="users" [payload]="payload" (userChange)="resetData()" />
   </div>
 }
 <ng-template #dialog let-data let-ref="dialogRef">

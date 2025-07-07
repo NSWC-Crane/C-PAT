@@ -22,6 +22,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Menu, MenuModule } from 'primeng/menu';
 import { ProgressBarModule } from 'primeng/progressbar';
@@ -81,6 +82,7 @@ import { PoamVariableMappingService } from './services/poam-variable-mapping.ser
     ToggleSwitch,
     InputTextModule,
     InputGroupModule,
+    InputGroupAddonModule,
     TextareaModule,
     MenuModule,
     StepperModule,

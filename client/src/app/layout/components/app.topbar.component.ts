@@ -74,7 +74,7 @@ import { AppConfigService } from '../services/appconfigservice';
       </div>
       <ul class="topbar-items">
         <li>
-          <cpat-search></cpat-search>
+          <cpat-search />
         </li>
         <li>
           <button pButton class="topbar-item" (click)="toggleDarkMode()">
@@ -100,7 +100,7 @@ import { AppConfigService } from '../services/appconfigservice';
               <span style="inset: 1px; border-radius: 4px" class="absolute z-2 bg-surface-0 dark:bg-surface-900 transition-all"></span>
               <i pButtonIcon class="pi pi-palette z-10"></i>
             </button>
-            <cpat-configurator></cpat-configurator>
+            <cpat-configurator />
           </li>
         }
         <li>
@@ -113,7 +113,7 @@ import { AppConfigService } from '../services/appconfigservice';
             }
           </button>
           <p-popover #op class="overlay" [dismissable]="true">
-            <cpat-notifications-popover [overlayPanel]="op"></cpat-notifications-popover>
+            <cpat-notifications-popover [overlayPanel]="op" />
           </p-popover>
         </li>
         <li>

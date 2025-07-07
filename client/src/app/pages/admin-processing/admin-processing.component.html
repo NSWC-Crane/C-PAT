@@ -33,49 +33,49 @@
     </p-tablist>
     <p-tabpanels>
       <p-tabpanel [value]="0">
-        <cpat-user-processing></cpat-user-processing>
+        <cpat-user-processing />
       </p-tabpanel>
 
       <p-tabpanel [value]="1">
-        <cpat-collection-processing></cpat-collection-processing>
+        <cpat-collection-processing />
       </p-tabpanel>
 
       <p-tabpanel [value]="2">
-        <cpat-stigmanager-admin></cpat-stigmanager-admin>
+        <cpat-stigmanager-admin />
       </p-tabpanel>
 
       @if (tenableEnabled) {
         <p-tabpanel [value]="3">
-          <cpat-tenable-admin></cpat-tenable-admin>
+          <cpat-tenable-admin />
         </p-tabpanel>
       }
 
       <p-tabpanel [value]="4">
-        <cpat-asset-delta [activated]="value === 4"></cpat-asset-delta>
+        <cpat-asset-delta [activated]="value === 4" />
       </p-tabpanel>
 
       @if (tenableEnabled) {
         <p-tabpanel [value]="5">
-          <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()"></cpat-vram-import>
+          <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()" />
         </p-tabpanel>
       }
 
       @if (tenableEnabled) {
         <p-tabpanel [value]="6">
-          <cpat-nessus-plugin-mapping [activated]="value === 6"></cpat-nessus-plugin-mapping>
+          <cpat-nessus-plugin-mapping [activated]="value === 6" />
         </p-tabpanel>
       }
 
       <p-tabpanel [value]="7">
-        <cpat-aa-package-processing></cpat-aa-package-processing>
+        <cpat-aa-package-processing />
       </p-tabpanel>
 
       <p-tabpanel [value]="8">
-        <cpat-assigned-team-processing></cpat-assigned-team-processing>
+        <cpat-assigned-team-processing />
       </p-tabpanel>
 
       <p-tabpanel [value]="9">
-        <cpat-app-configuration></cpat-app-configuration>
+        <cpat-app-configuration />
       </p-tabpanel>
     </p-tabpanels>
   </p-tabs>
