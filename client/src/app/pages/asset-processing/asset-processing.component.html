@@ -10,12 +10,12 @@
 
 @if (collectionOrigin === 'STIG Manager' && originCollectionId) {
   <div class="card !mb-[6rem]">
-    <cpat-stigmanager-assets-table [stigmanCollectionId]="originCollectionId"></cpat-stigmanager-assets-table>
+    <cpat-stigmanager-assets-table [stigmanCollectionId]="originCollectionId" />
   </div>
 }
 @if (collectionOrigin === 'Tenable' && originCollectionId) {
   <div class="card !mb-[6rem]">
-    <cpat-tenable-host-assets-table [tenableRepoId]="originCollectionId"></cpat-tenable-host-assets-table>
+    <cpat-tenable-host-assets-table [tenableRepoId]="originCollectionId" />
   </div>
 }
 
@@ -128,7 +128,7 @@
     @if (accessLevel >= 2) {
       <p-dialog [(visible)]="assetDialogVisible" [modal]="true" styleClass="w-[50vw] overflow-hidden" [baseZIndex]="1000">
         <ng-template pTemplate="content">
-          <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData(); closeAssetDialog()"></cpat-asset>
+          <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData(); closeAssetDialog()" />
         </ng-template>
       </p-dialog>
     }

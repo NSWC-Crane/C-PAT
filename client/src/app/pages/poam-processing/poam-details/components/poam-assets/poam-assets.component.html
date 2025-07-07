@@ -46,13 +46,13 @@
 
   @if (collectionType === 'STIG Manager') {
     <div class="stepper-content">
-      <cpat-stigmanager-poam-assets-table [stigmanCollectionId]="originCollectionId" [groupId]="poam.vulnerabilityId" [associatedVulnerabilities]="poamAssociatedVulnerabilities"> </cpat-stigmanager-poam-assets-table>
+      <cpat-stigmanager-poam-assets-table [stigmanCollectionId]="originCollectionId" [groupId]="poam.vulnerabilityId" [associatedVulnerabilities]="poamAssociatedVulnerabilities" />
     </div>
   }
 
   @if (collectionType === 'Tenable') {
     <div class="stepper-content">
-      <cpat-tenable-assets-table [pluginID]="poam.vulnerabilityId" [tenableRepoId]="originCollectionId" [associatedVulnerabilities]="poamAssociatedVulnerabilities"> </cpat-tenable-assets-table>
+      <cpat-tenable-assets-table [pluginID]="poam.vulnerabilityId" [tenableRepoId]="originCollectionId" [associatedVulnerabilities]="poamAssociatedVulnerabilities" />
     </div>
   }
 </div>

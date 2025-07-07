@@ -36,10 +36,10 @@ import { AppTopBarComponent } from './app.topbar.component';
   imports: [AppClassificationComponent, AppTopBarComponent, AppLayoutComponent, BadgeModule, ButtonModule, AppFooterComponent, MenuModule, TagModule, FormsModule],
   template: `
     <div class="landing">
-      <cpat-classification></cpat-classification>
-      <cpat-topbar></cpat-topbar>
-      <cpat-layout></cpat-layout>
-      <cpat-footer></cpat-footer>
+      <cpat-classification />
+      <cpat-topbar />
+      <cpat-layout />
+      <cpat-footer />
     </div>
   `
 })

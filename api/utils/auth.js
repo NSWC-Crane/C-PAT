@@ -183,7 +183,9 @@ const validateOauthSecurity = function (req, requiredScopes) {
     const grantedScopes =
         typeof tokenPayload[config.oauth.claims.scope] === 'string'
             ? tokenPayload[config.oauth.claims.scope].split(' ')
-            : tokenPayload[config.oauth.claims.scope];
+            : Array.isArray(tokenPayload[config.oauth.claims.scope])
+              ? tokenPayload[config.oauth.claims.scope]
+              : [];
     const commonScopes = _.intersectionWith(grantedScopes, requiredScopes, function (gs, rs) {
         if (gs === rs) return gs;
         let gsTokens = gs.split(':').filter(i => i.length);

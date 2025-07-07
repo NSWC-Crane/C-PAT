@@ -22,36 +22,36 @@
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel value="0">
-          <cpat-tenable-vulnerabilities (totalRecordsChange)="mainTotal = $event" (sidebarToggle)="onSidebarToggle($event)" [parentSidebarVisible]="sidebarVisible" currentPreset="main"> </cpat-tenable-vulnerabilities>
+          <cpat-tenable-vulnerabilities (totalRecordsChange)="mainTotal = $event" (sidebarToggle)="onSidebarToggle($event)" [parentSidebarVisible]="sidebarVisible" currentPreset="main" />
         </p-tabpanel>
         <p-tabpanel value="1">
           @defer (when tabComponent.value() === '1') {
-            <cpat-tenable-selected-vulnerabilities (totalRecordsChange)="iavVulnerabilitiesCount = $event" currentPreset="iav"> </cpat-tenable-selected-vulnerabilities>
+            <cpat-tenable-selected-vulnerabilities (totalRecordsChange)="iavVulnerabilitiesCount = $event" currentPreset="iav" />
           }
         </p-tabpanel>
         <p-tabpanel value="2">
           @defer (when tabComponent.value() === '2') {
-            <cpat-tenable-selected-vulnerabilities (totalRecordsChange)="taskOrderCount = $event" currentPreset="taskOrder"> </cpat-tenable-selected-vulnerabilities>
+            <cpat-tenable-selected-vulnerabilities (totalRecordsChange)="taskOrderCount = $event" currentPreset="taskOrder" />
           }
         </p-tabpanel>
         <p-tabpanel value="3">
           @defer (when tabComponent.value() === '3') {
-            <cpat-tenable-vulnerabilities (totalRecordsChange)="exploitableTotal = $event" (sidebarToggle)="onSidebarToggle($event)" [parentSidebarVisible]="sidebarVisible" currentPreset="exploitAvailable"> </cpat-tenable-vulnerabilities>
+            <cpat-tenable-vulnerabilities (totalRecordsChange)="exploitableTotal = $event" (sidebarToggle)="onSidebarToggle($event)" [parentSidebarVisible]="sidebarVisible" currentPreset="exploitAvailable" />
           }
         </p-tabpanel>
         <p-tabpanel value="4">
           @defer (when tabComponent.value() === '4') {
-            <cpat-tenable-vulnerabilities (totalRecordsChange)="failedCredentialCount = $event" (sidebarToggle)="onSidebarToggle($event)" [parentSidebarVisible]="sidebarVisible" currentPreset="failedCredential"> </cpat-tenable-vulnerabilities>
+            <cpat-tenable-vulnerabilities (totalRecordsChange)="failedCredentialCount = $event" (sidebarToggle)="onSidebarToggle($event)" [parentSidebarVisible]="sidebarVisible" currentPreset="failedCredential" />
           }
         </p-tabpanel>
         <p-tabpanel value="5">
           @defer (when tabComponent.value() === '5') {
-            <cpat-tenable-vulnerabilities (totalRecordsChange)="seolCount = $event" (sidebarToggle)="onSidebarToggle($event)" [parentSidebarVisible]="sidebarVisible" currentPreset="seol"> </cpat-tenable-vulnerabilities>
+            <cpat-tenable-vulnerabilities (totalRecordsChange)="seolCount = $event" (sidebarToggle)="onSidebarToggle($event)" [parentSidebarVisible]="sidebarVisible" currentPreset="seol" />
           }
         </p-tabpanel>
         <p-tabpanel value="6">
           @defer (when tabComponent.value() === '6') {
-            <cpat-tenable-solutions></cpat-tenable-solutions>
+            <cpat-tenable-solutions />
           }
         </p-tabpanel>
       </p-tabpanels>

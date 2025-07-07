@@ -75,7 +75,7 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
             ></path>
           </svg>
         </div>
-        <cpat-breadcrumb></cpat-breadcrumb>
+        <cpat-breadcrumb />
       </div>
     }
     <section class="landing-layout mt-6 min-h-screen">
@@ -205,10 +205,10 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
           <div class="flex-1 rounded-2xl overflow-auto ml-[7rem]" [ngClass]="{ 'ml-20': isSlimMenu }">
             @if (user$ | async; as user) {
               @if ((user.accountStatus === 'PENDING' && user.isAdmin !== true) || user.accountStatus === 'DISABLED') {
-                <cpat-status-message [statusCode]="999"></cpat-status-message>
+                <cpat-status-message [statusCode]="999" />
               }
               @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin !== true) {
-                <cpat-status-message [statusCode]="998"></cpat-status-message>
+                <cpat-status-message [statusCode]="998" />
               }
               @if ((user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId !== 0) || user.isAdmin === true) {
                 <router-outlet></router-outlet>

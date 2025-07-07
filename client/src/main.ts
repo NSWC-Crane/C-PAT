@@ -30,6 +30,16 @@ if (environment.production) {
   enableProdMode();
 }
 
+function parseScopes(scopeValue: string | string[] | undefined): string[] {
+  if (typeof scopeValue === 'string') {
+    return scopeValue.split(' ');
+  } else if (Array.isArray(scopeValue)) {
+    return scopeValue;
+  } else {
+    return [];
+  }
+}
+
 function getScopeStr(configId: string) {
   const cpatScopePrefix = CPAT.Env.oauth.scopePrefix;
   const stigmanScopePrefix = CPAT.Env.stigman.scopePrefix;
@@ -50,9 +60,9 @@ function getScopeStr(configId: string) {
   }
 
   if (CPAT.Env.oauth.extraScopes && configId === 'cpat') {
-    scopes.push(...CPAT.Env.oauth.extraScopes.split(' '));
+    scopes.push(...parseScopes(CPAT.Env.oauth.extraScopes));
   } else if (CPAT.Env.stigman.extraScopes && configId === 'stigman') {
-    scopes.push(...CPAT.Env.stigman.extraScopes.split(' '));
+    scopes.push(...parseScopes(CPAT.Env.stigman.extraScopes));
   }
 
   return scopes.join(' ');

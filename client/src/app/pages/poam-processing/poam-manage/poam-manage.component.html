@@ -22,11 +22,11 @@
               <p-tabpanels class="!p-0">
                 <p-tabpanel value="0">
                   <div class="chart-title">CAT I - Critical / High ({{ catITotal() }})</div>
-                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIPieChartData()" [collectionName]="'CAT I'"></cpat-poam-advanced-pie>
+                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIPieChartData()" [collectionName]="'CAT I'" />
                 </p-tabpanel>
                 <p-tabpanel value="1">
                   <div class="chart-title">CAT I - Critical / High - 30+ Days ({{ catITotal30Days() }})</div>
-                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIPieChartData30Days()" [collectionName]="'CAT I'"></cpat-poam-advanced-pie>
+                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIPieChartData30Days()" [collectionName]="'CAT I'" />
                 </p-tabpanel>
               </p-tabpanels>
             </p-tabs>
@@ -43,11 +43,11 @@
               <p-tabpanels class="!p-0">
                 <p-tabpanel value="0">
                   <div class="chart-title">CAT II - Medium ({{ catIITotal() }})</div>
-                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIPieChartData()" [collectionName]="'CAT II'"></cpat-poam-advanced-pie>
+                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIPieChartData()" [collectionName]="'CAT II'" />
                 </p-tabpanel>
                 <p-tabpanel value="1">
                   <div class="chart-title">CAT II - Medium - 30+ Days ({{ catIITotal30Days() }})</div>
-                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIPieChartData30Days()" [collectionName]="'CAT II'"></cpat-poam-advanced-pie>
+                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIPieChartData30Days()" [collectionName]="'CAT II'" />
                 </p-tabpanel>
               </p-tabpanels>
             </p-tabs>
@@ -64,11 +64,11 @@
               <p-tabpanels class="!p-0">
                 <p-tabpanel value="0">
                   <div class="chart-title">CAT III - Low / Informational ({{ catIIITotal() }})</div>
-                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData()" [collectionName]="'CAT III'"></cpat-poam-advanced-pie>
+                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData()" [collectionName]="'CAT III'" />
                 </p-tabpanel>
                 <p-tabpanel value="1">
                   <div class="chart-title">CAT III - Low / Informational - 30+ Days ({{ catIIITotal30Days() }})</div>
-                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData30Days()" [collectionName]="'CAT III'"></cpat-poam-advanced-pie>
+                  <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData30Days()" [collectionName]="'CAT III'" />
                 </p-tabpanel>
               </p-tabpanels>
             </p-tabs>
@@ -80,7 +80,7 @@
             <ng-template pTemplate="header">
               <div class="chart-title">CAT I - Critical / High ({{ catITotal() }})</div>
             </ng-template>
-            <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIPieChartData()" [collectionName]="'CAT I'"></cpat-poam-advanced-pie>
+            <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIPieChartData()" [collectionName]="'CAT I'" />
           </p-card>
         </div>
         <div class="col-span-12 md:col-span-4">
@@ -88,7 +88,7 @@
             <ng-template pTemplate="header">
               <div class="chart-title">CAT II - Medium ({{ catIITotal() }})</div>
             </ng-template>
-            <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIPieChartData()" [collectionName]="'CAT II'"></cpat-poam-advanced-pie>
+            <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIPieChartData()" [collectionName]="'CAT II'" />
           </p-card>
         </div>
         <div class="col-span-12 md:col-span-4">
@@ -96,7 +96,7 @@
             <ng-template pTemplate="header">
               <div class="chart-title">CAT III - Low / Informational ({{ catIIITotal() }})</div>
             </ng-template>
-            <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData()" [collectionName]="'CAT III'"></cpat-poam-advanced-pie>
+            <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData()" [collectionName]="'CAT III'" />
           </p-card>
         </div>
       }
@@ -104,7 +104,7 @@
 
     <div class="col-span-12 mb-4 p-0">
       @if (poams()) {
-        <cpat-poam-mainchart [poams]="poams()" canvasHeight="34.75rem"></cpat-poam-mainchart>
+        <cpat-poam-mainchart [poams]="poams()" canvasHeight="34.75rem" />
       }
     </div>
   </div>
@@ -128,20 +128,20 @@
         <p-tabpanels>
           <p-tabpanel value="0" styleClass="flex flex-1 flex-col">
             <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-              <cpat-poam-assigned-grid [assignedData]="allPoams()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)"> </cpat-poam-assigned-grid>
+              <cpat-poam-assigned-grid [assignedData]="allPoams()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
             </div>
           </p-tabpanel>
 
           <p-tabpanel value="1" styleClass="flex flex-1 flex-col">
             <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-              <cpat-poam-assigned-grid [assignedData]="poamsNeedingAttention()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)"> </cpat-poam-assigned-grid>
+              <cpat-poam-assigned-grid [assignedData]="poamsNeedingAttention()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
             </div>
           </p-tabpanel>
 
           @if (accessLevel() >= 2) {
             <p-tabpanel value="2" styleClass="flex flex-1 flex-col">
               <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-                <cpat-poam-assigned-grid [assignedData]="submittedPoams()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)"> </cpat-poam-assigned-grid>
+                <cpat-poam-assigned-grid [assignedData]="submittedPoams()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
               </div>
             </p-tabpanel>
           }
@@ -149,7 +149,7 @@
           @if (accessLevel() >= 1) {
             <p-tabpanel value="3" styleClass="flex flex-1 flex-col">
               <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-                <cpat-poam-assigned-grid [assignedData]="teamPoams()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)"> </cpat-poam-assigned-grid>
+                <cpat-poam-assigned-grid [assignedData]="teamPoams()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
               </div>
             </p-tabpanel>
           }
@@ -157,7 +157,7 @@
           @if (accessLevel() >= 3) {
             <p-tabpanel value="4" styleClass="flex flex-1 flex-col">
               <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-                <cpat-poam-assigned-grid [assignedData]="poamsPendingApproval()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)"> </cpat-poam-assigned-grid>
+                <cpat-poam-assigned-grid [assignedData]="poamsPendingApproval()" [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
               </div>
             </p-tabpanel>
           }

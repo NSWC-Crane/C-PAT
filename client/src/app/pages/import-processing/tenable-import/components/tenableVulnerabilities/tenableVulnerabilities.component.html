@@ -53,7 +53,7 @@
               </div>
             </ng-template>
           </p-select>
-          <cpat-tenable-filters [collectionId]="selectedCollection" [activeFilters]="activeFilters" [tenableTool]="tenableTool" (filterSaved)="onFilterSaved()"> </cpat-tenable-filters>
+          <cpat-tenable-filters [collectionId]="selectedCollection" [activeFilters]="activeFilters" [tenableTool]="tenableTool" (filterSaved)="onFilterSaved()" />
         </div>
         <div class="mt-3">
           <input type="text" pInputText [(ngModel)]="filterSearch" (input)="filterAccordionItems()" placeholder="Search filters..." class="w-full" />
