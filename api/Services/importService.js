@@ -571,7 +571,7 @@ function processVRAMCell(vramEntry, header, value) {
                 break;
             case 'knownExploits':
             case 'knownDodIncidents':
-                vramEntry[dbColumn] = value ? value.toString().slice(0, 3) : null;
+                vramEntry[dbColumn] = value ? value.toString().slice(0, 5) : null;
                 break;
             case 'nessusPlugins':
                 vramEntry[dbColumn] = value ? parseInt(value) : 0;
