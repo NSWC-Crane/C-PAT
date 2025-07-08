@@ -122,7 +122,7 @@ Keycloak is readily available, actively maintained by a major OSS vendor, suppor
 Keycloak supports many External Identity Providers, but has only been tested using its own authentication.
 `More information about RedHat Keycloak. <https://www.keycloak.org/documentation>`_
 
-A sample Keycloak image configured for C-PAT, STIG Manager, and containing Demo users, can be found `on our Github page. <https://github.com/NSWC-Crane/C-PAT/tree/C-PAT-AUTH>`_
+A sample Keycloak image configured for C-PAT, STIG Manager, and containing Demo users, can be found `on our Github page. <https://github.com/NSWC-Crane/C-PAT-AUTH>`_
 
 Keycloak Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -221,5 +221,5 @@ Most commonly, C-PAT will require the below Environment Variable to be specified
    - Expected audience value for JWT validation. When set, the JWT's ``aud`` claim must match this value or validation will fail. Leave unset to skip audience validation.
 
 
-A sample Keycloak image, recommended only for testing purposes, is available on `Github. <https://github.com/NSWC-Crane/C-PAT/tree/C-PAT-AUTH>`_ Most of the default values for the above Environment variables will work with this image.
+A sample Keycloak image, recommended only for testing purposes, is available on `Github. <https://github.com/NSWC-Crane/C-PAT-AUTH>`_ Most of the default values for the above Environment variables will work with this image.
 

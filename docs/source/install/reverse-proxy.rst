@@ -24,14 +24,14 @@ C-PAT provides two branches on GitHub with sample RMF Tools nginx deployments wi
 With CAC Authentication
 ------------------------
 
-https://github.com/NSWC-Crane/C-PAT/tree/rmftools-orchestration-cac
+https://github.com/NSWC-Crane/C-PAT-RMF-ORCHESTRATION/tree/rmftools-orchestration-cac
 
 
 
 Without CAC Authentication
 ---------------------------
 
-https://github.com/NSWC-Crane/C-PAT/tree/demo-auth-no-CAC
+https://github.com/NSWC-Crane/C-PAT-RMF-ORCHESTRATION/tree/demo-auth-no-cac
 
 
 
