@@ -9,6 +9,7 @@
 */
 
 import { DatePipe } from '@angular/common';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -59,7 +60,7 @@ describe('PoamMilestonesComponent', () => {
     component.poamMilestones = [];
 
     fixture.detectChanges();
-    component.table = mockTable;
+    component.table = signal(mockTable);
   });
 
   beforeEach(() => {
