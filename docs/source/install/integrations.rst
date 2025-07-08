@@ -13,7 +13,7 @@ STIG Manager
 ---------------
 .. note::
   C-PAT has been tested and configured to work when C-PAT and STIG Manager are housed within the same OIDC realm, therefor, the value set for ``CPAT_OIDC_PROVIDER`` will also be used for obtaining a token for STIG Manager.
-  If you are using the provided `RMFTools Keycloak container <https://github.com/NSWC-Crane/C-PAT/tree/C-PAT-AUTH>`_, the default value for ``STIGMAN_OIDC_CLIENT_ID`` can be used.
+  If you are using the provided `RMFTools Keycloak container <https://github.com/NSWC-Crane/C-PAT-AUTH>`_, the default value for ``STIGMAN_OIDC_CLIENT_ID`` can be used.
 
 .. list-table:: STIG Manager Environmenment Variables:
  :widths: 20 25 55
