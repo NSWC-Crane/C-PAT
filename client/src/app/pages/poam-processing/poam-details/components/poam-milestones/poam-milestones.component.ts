@@ -47,7 +47,7 @@ export class PoamMilestonesComponent implements OnInit {
   private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
 
-  readonly table = viewChild<Table>('dt');
+  table = viewChild<Table>('dt');
   @Input() poam: any = { status: '' };
   @Input() accessLevel: number = 0;
   @Input() poamMilestones: Milestone[] = [];

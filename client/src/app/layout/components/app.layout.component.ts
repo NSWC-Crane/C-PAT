@@ -88,14 +88,12 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
             }"
             class="rounded-2xl p-5 bg-surface-100 dark:bg-surface-900 fixed h-[calc(100vh-11rem)] flex flex-col justify-between"
           >
-            <!-- Navigation Section -->
             <div
               [ngClass]="{
                 'w-12 flex flex-col items-center': isSlimMenu,
                 'w-auto': !isSlimMenu
               }"
             >
-              <!-- Menu Items -->
               <div class="flex flex-col gap-2">
                 @for (item of items; track item) {
                   <div
@@ -160,7 +158,6 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
                 </ng-template>
               </p-menu>
               <p-divider />
-              <!-- User Profile -->
               <div [class]="isSlimMenu ? 'justify-center' : 'gap-3'" class="flex items-center">
                 <div class="relative">
                   <button
@@ -201,7 +198,6 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
               </div>
             </div>
           </div>
-          <!-- Content Area -->
           <div class="flex-1 rounded-2xl overflow-auto ml-[7rem]" [ngClass]="{ 'ml-20': isSlimMenu }">
             @if (user$ | async; as user) {
               @if ((user.accountStatus === 'PENDING' && user.isAdmin !== true) || user.accountStatus === 'DISABLED') {
@@ -218,7 +214,6 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
         </div>
       </div>
     </section>
-    <!-- Dialogs -->
     <p-dialog [(visible)]="confirmPopupVisible" [modal]="true" styleClass="w-[30vw] overflow-hidden" [baseZIndex]="10000000" [autoZIndex]="true" appendTo="body" [closeOnEscape]="false" [closable]="false">
       <div class="custom-confirm-popup">
         <div class="icon-container">
