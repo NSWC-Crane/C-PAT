@@ -54,7 +54,7 @@ export class AuthService {
           const isAuthenticatedCpat = authResults?.find((auth) => auth.configId === 'cpat')?.isAuthenticated ?? false;
 
           if (isAuthenticatedCpat) {
-            return this.getUserData('cpat').pipe(
+            return this.getUserData().pipe(
               tap((userData) => {
                 this.currentUser.next(userData);
                 this.accessLevel.next(this.calculateAccessLevel(userData));
@@ -118,8 +118,8 @@ export class AuthService {
     return this.oidcSecurityService.isAuthenticated(configId);
   }
 
-  getUserData(configId: string): Observable<any> {
-    return this.oidcSecurityService.getUserData(configId).pipe(switchMap((oidcUserData) => this.usersService.getCurrentUser().pipe(map((currentUser) => ({ ...oidcUserData, ...currentUser })))));
+  getUserData(): Observable<any> {
+    return this.usersService.getCurrentUser();
   }
 
   login(configId: string): void {

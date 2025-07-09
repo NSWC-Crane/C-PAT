@@ -92,7 +92,7 @@ bootstrapApplication(AppComponent, {
             useRefreshToken: true,
             silentRenew: true,
             silentRenewUrl: `${window.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
-            autoUserInfo: true,
+            autoUserInfo: false,
             renewUserInfoAfterTokenRenew: false,
             triggerAuthorizationResultEvent: true,
             startCheckSession: true,
@@ -103,7 +103,7 @@ bootstrapApplication(AppComponent, {
             refreshTokenRetryInSeconds: 5,
             ignoreNonceAfterRefresh: true,
             triggerRefreshWhenIdTokenExpired: false,
-            maxIdTokenIatOffsetAllowedInSeconds: 600,
+            maxIdTokenIatOffsetAllowedInSeconds: 300,
             disableRefreshIdTokenAuthTimeValidation: true
           },
           {
@@ -117,7 +117,7 @@ bootstrapApplication(AppComponent, {
             useRefreshToken: true,
             silentRenew: true,
             silentRenewUrl: `${window.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
-            autoUserInfo: true,
+            autoUserInfo: false,
             renewUserInfoAfterTokenRenew: false,
             triggerAuthorizationResultEvent: true,
             startCheckSession: true,
@@ -127,7 +127,7 @@ bootstrapApplication(AppComponent, {
             refreshTokenRetryInSeconds: 5,
             ignoreNonceAfterRefresh: true,
             triggerRefreshWhenIdTokenExpired: false,
-            maxIdTokenIatOffsetAllowedInSeconds: 600,
+            maxIdTokenIatOffsetAllowedInSeconds: 300,
             disableRefreshIdTokenAuthTimeValidation: true
           }
         ]
