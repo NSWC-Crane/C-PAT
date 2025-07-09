@@ -147,6 +147,17 @@
               }
             </tr>
           </ng-template>
+          <ng-template pTemplate="loadingbody" let-columns="columns">
+            @for (_ of [].constructor(10); track $index) {
+              <tr>
+                @for (_ of [].constructor(selectedColumns?.length); track $index) {
+                  <td>
+                    <p-skeleton height="2rem" width="100%" />
+                  </td>
+                }
+              </tr>
+            }
+          </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
               <td colspan="17" style="text-align: center">No vulnerabilities to display</td>
