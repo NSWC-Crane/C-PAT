@@ -110,7 +110,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     if (this.pluginID && this.tenableRepoId) {
       this.getAffectedAssetsForAllPlugins();
     } else if (this.assetProcessing && this.tenableRepoId) {
-      this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
+      this.getAffectedAssets({ first: 0, rows: 25 } as TableLazyLoadEvent);
     }
   }
 
@@ -470,7 +470,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     this.isLoading = true;
 
     const startOffset = event.first ?? 0;
-    const endOffset = startOffset + (event.rows ?? 20);
+    const endOffset = startOffset + (event.rows ?? 25);
     const repoFilter = {
       id: 'repository',
       filterName: 'repository',
@@ -642,7 +642,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     if (this.pluginID && this.tenableRepoId) {
       this.getAffectedAssetsForAllPlugins();
     } else if (this.assetProcessing && this.tenableRepoId) {
-      this.getAffectedAssets({ first: 0, rows: 20 } as TableLazyLoadEvent);
+      this.getAffectedAssets({ first: 0, rows: 25 } as TableLazyLoadEvent);
     }
   }
 
