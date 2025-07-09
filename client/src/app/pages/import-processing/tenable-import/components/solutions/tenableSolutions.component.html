@@ -92,6 +92,17 @@
               <td>{{ solutions.cvssV3BaseScore }}</td>
             </tr>
           </ng-template>
+          <ng-template pTemplate="loadingbody">
+            @for (_ of [].constructor(10); track $index) {
+              <tr>
+                @for (_ of [].constructor(6); track $index) {
+                  <td>
+                    <p-skeleton height="2rem" width="100%" />
+                  </td>
+                }
+              </tr>
+            }
+          </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
               <td colspan="6" style="text-align: center">No solutions to display</td>

@@ -22,6 +22,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
@@ -56,7 +57,7 @@ interface NavyComplyDateFilter {
   templateUrl: './tenableSelectedVulnerabilities.component.html',
   styleUrls: ['./tenableSelectedVulnerabilities.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, DialogModule, Select, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, TableModule, ToastModule, TooltipModule, TagModule],
+  imports: [ButtonModule, CommonModule, DialogModule, Select, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, SkeletonModule, TableModule, ToastModule, TooltipModule, TagModule],
   providers: [MessageService]
 })
 export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestroy {
@@ -90,7 +91,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   selectedVulnerability: any;
   displayDialog: boolean = false;
   parsedVprContext: any[] = [];
-  isLoading: boolean = true;
+  isLoading: boolean = false;
   formattedDescription: SafeHtml = '';
   pluginData: any;
   totalRecords: number = 0;

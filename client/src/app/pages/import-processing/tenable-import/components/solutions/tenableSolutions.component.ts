@@ -16,6 +16,7 @@ import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
@@ -35,7 +36,7 @@ interface ExportColumn {
   templateUrl: './tenableSolutions.component.html',
   styleUrls: ['./tenableSolutions.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, DialogModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule, ToastModule],
+  imports: [FormsModule, ButtonModule, DialogModule, SkeletonModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule, ToastModule],
   providers: [MessageService]
 })
 export class TenableSolutionsComponent implements OnInit, OnDestroy {
@@ -50,7 +51,7 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
   affectedHosts: any[] = [];
   solutionVulnDetails: any[] = [];
   displayDialog: boolean = false;
-  loadingSolutions: boolean = true;
+  loadingSolutions: boolean = false;
   loadingAffectedHosts: boolean = true;
   loadingVulnDetails: boolean = true;
   filterValue: string = '';
@@ -63,6 +64,7 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
 
   ngOnInit() {
+    this.loadingSolutions = true;
     this.cols = [
       { field: 'solution', header: 'Solution' },
       { field: 'scorePctg', header: 'Risk Reduction' },
