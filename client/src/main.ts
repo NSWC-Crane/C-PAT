@@ -99,9 +99,10 @@ bootstrapApplication(AppComponent, {
             postLoginRoute: '/',
             unauthorizedRoute: '/401',
             forbiddenRoute: '/403',
-            tokenRefreshInSeconds: 6,
-            refreshTokenRetryInSeconds: 6,
+            tokenRefreshInSeconds: 15,
+            refreshTokenRetryInSeconds: 5,
             ignoreNonceAfterRefresh: true,
+            triggerRefreshWhenIdTokenExpired: false,
             maxIdTokenIatOffsetAllowedInSeconds: 600,
             disableRefreshIdTokenAuthTimeValidation: true
           },
@@ -122,9 +123,10 @@ bootstrapApplication(AppComponent, {
             startCheckSession: true,
             unauthorizedRoute: '/401',
             forbiddenRoute: '/403',
-            tokenRefreshInSeconds: 6,
-            refreshTokenRetryInSeconds: 6,
+            tokenRefreshInSeconds: 15,
+            refreshTokenRetryInSeconds: 5,
             ignoreNonceAfterRefresh: true,
+            triggerRefreshWhenIdTokenExpired: false,
             maxIdTokenIatOffsetAllowedInSeconds: 600,
             disableRefreshIdTokenAuthTimeValidation: true
           }
