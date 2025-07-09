@@ -58,18 +58,7 @@
     flex-direction: column;
   }
 
-  .p-tabview {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .p-tabview-panels {
-    flex: 1;
-    overflow: hidden;
-  }
-
-  .p-tabview-panel {
+  .p-tabpanel {
     height: 100%;
     padding: 0;
   }
