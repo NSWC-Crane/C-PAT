@@ -31,12 +31,14 @@ import { CollectionsService } from '../../pages/admin-processing/collection-proc
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { AppConfigService } from '../services/appconfigservice';
 import { AppBreadcrumbComponent } from './app.breadcrumb.component';
+import { CardModule } from 'primeng/card';
 
 @Component({
   selector: 'cpat-layout',
   standalone: true,
   imports: [
     AppBreadcrumbComponent,
+    CardModule,
     CommonModule,
     DialogModule,
     RouterModule,
@@ -144,7 +146,7 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
                     'w-full': !isSlimMenu
                   }"
                 >
-                  <i class="pi pi-cog"></i>
+                  <i class="pi pi-cog" [ngClass]="{'pulse-animation': user?.lastCollectionAccessedId === 0}"></i>
                   <span [class]="isSlimMenu ? 'hidden' : 'font-medium leading-8'">・</span>
                   <span [class]="isSlimMenu ? 'hidden' : 'font-medium leading-none'">Collections</span>
                 </div>
@@ -205,6 +207,9 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
               }
               @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin !== true) {
                 <cpat-status-message [statusCode]="998" />
+              }
+             @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin  === true && router.url === '/poam-processing') {
+                  <cpat-status-message [statusCode]="998" />
               }
               @if ((user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId !== 0) || user.isAdmin === true) {
                 <router-outlet></router-outlet>
@@ -273,6 +278,23 @@ import { AppBreadcrumbComponent } from './app.breadcrumb.component';
         display: flex;
         justify-content: center;
         gap: 8rem;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.3);
+          opacity: 0.8;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .pulse-animation {
+        animation: pulse 2s ease-in-out infinite;
       }
     `
   ]
