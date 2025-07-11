@@ -24,6 +24,8 @@ interface SearchItem {
   imports: [FormsModule, AutoComplete],
   template: `
     <p-autoComplete
+      id="appSearch"
+      name="appSearch"
       [(ngModel)]="query"
       [suggestions]="filteredItems"
       (completeMethod)="search($event)"

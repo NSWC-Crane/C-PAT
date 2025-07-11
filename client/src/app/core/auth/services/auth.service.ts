@@ -13,6 +13,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
+import { Router } from '@angular/router';
 
 interface AuthState {
   isAuthenticatedStigman: boolean;
@@ -25,6 +26,7 @@ interface AuthState {
 export class AuthService {
   private oidcSecurityService = inject(OidcSecurityService);
   private usersService = inject(UsersService);
+  private router = inject(Router);
 
   private currentUser = new BehaviorSubject<any>(null);
   private accessLevel = new BehaviorSubject<number>(0);
@@ -64,6 +66,15 @@ export class AuthService {
 
           return of(null);
         }),
+        tap(() => {
+          const { isAuthenticatedStigman, isAuthenticatedCpat } = this.authState.getValue();
+          const redirectUrl = sessionStorage.getItem('auth-redirect-url');
+
+          if (redirectUrl && isAuthenticatedStigman && isAuthenticatedCpat) {
+            sessionStorage.removeItem('auth-redirect-url');
+            this.router.navigateByUrl(redirectUrl);
+          }
+        }),
         catchError((error) => {
           console.error('Auth initialization error:', error);
           this.authState.next({
@@ -74,7 +85,9 @@ export class AuthService {
           return of(null);
         })
       )
-      .subscribe();
+      .subscribe(() => {
+        this.handleAuthFlow();
+      });
   }
 
   private updateAuthState(authResults: any): void {
