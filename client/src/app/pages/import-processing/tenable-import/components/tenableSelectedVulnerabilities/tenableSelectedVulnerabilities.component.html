@@ -27,7 +27,7 @@
           <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
           <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()" />
           <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="dt.exportCSV()" />
-          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
+          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
         </div>
       </div>
       <div class="scrollable-vulnerabilities">

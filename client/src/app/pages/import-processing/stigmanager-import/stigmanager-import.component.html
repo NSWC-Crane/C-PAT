@@ -31,7 +31,7 @@
                   <p-inputIcon>
                     <i class="pi pi-search"></i>
                   </p-inputIcon>
-                  <input pInputText type="text" class="w-48" (input)="filterBenchmarkGlobal($event)" placeholder="Search..." />
+                  <input pInputText type="text" class="w-48" (input)="filterBenchmarkGlobal($event)" id="search" placeholder="Search..." />
                 </p-iconField>
                 <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clearBenchmarkFilter()" pTooltip="Clear all filters" />
                 <p-button [rounded]="true" [text]="true" [raised]="true" class="ml-4" icon="pi pi-search-plus" pTooltip="Load all findings" (click)="getAllFindings()" />
@@ -155,7 +155,7 @@
                   <p-inputIcon>
                     <i class="pi pi-search"></i>
                   </p-inputIcon>
-                  <input pInputText type="text" class="w-48" (input)="filterGlobal($event)" placeholder="Search..." />
+                  <input pInputText type="text" class="w-48" (input)="filterGlobal($event)" id="findingsSearch" placeholder="Search..." />
                 </p-iconField>
                 <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
                 <p-button [rounded]="true" [text]="true" [raised]="true" class="ml-4" icon="pi pi-arrow-left" pTooltip="Back to Benchmarks" (click)="backToBenchmarkSummary()" />

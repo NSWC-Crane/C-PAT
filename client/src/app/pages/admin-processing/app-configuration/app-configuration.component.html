@@ -18,7 +18,7 @@
               <p-inputIcon>
                 <i class="pi pi-search"></i>
               </p-inputIcon>
-              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search..." class="search-input" />
+              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search..." id="search" class="search-input" />
             </p-iconField>
           </div>
         </ng-template>
@@ -35,7 +35,7 @@
             <td>
               <p-cellEditor>
                 <ng-template pTemplate="input">
-                  <input pInputText type="text" class="w-full" [(ngModel)]="appConfig.settingValue" maxlength="50" />
+                  <input pInputText type="text" class="w-full" id="value" [(ngModel)]="appConfig.settingValue" maxlength="50" />
                 </ng-template>
                 <ng-template pTemplate="output"> {{ appConfig.settingValue }} </ng-template>
               </p-cellEditor>

@@ -92,7 +92,7 @@
               <p-inputicon>
                 <i class="pi pi-search"></i>
               </p-inputicon>
-              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search..." />
+              <input pInputText type="text" (input)="filterGlobal($event)" id="assetDeltaSearch" id="search" placeholder="Search..." />
             </p-iconfield>
             <p-button icon="pi pi-filter-slash" (onClick)="clearAllFilters()" [rounded]="true" [text]="true" severity="secondary" pTooltip="Clear All Filters" tooltipPosition="bottom" />
             <div class="text-color-secondary ml-2 flex items-center gap-4 text-sm">
