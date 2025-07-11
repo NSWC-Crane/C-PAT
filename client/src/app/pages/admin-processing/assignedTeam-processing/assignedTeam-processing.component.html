@@ -18,7 +18,7 @@
               <p-inputIcon>
                 <i class="pi pi-search"></i>
               </p-inputIcon>
-              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Teams" class="search-input" />
+              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Teams" id="assignedTeamSearch" class="search-input" />
             </p-iconField>
             <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add a Team" (onClick)="openNew()" />
           </div>

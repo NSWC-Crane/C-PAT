@@ -18,7 +18,7 @@
               <p-inputIcon>
                 <i class="pi pi-search"></i>
               </p-inputIcon>
-              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search A&A Packages" class="search-input" />
+              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search A&A Packages" id="aaPackageSearch" class="search-input" />
             </p-iconField>
             <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add A&A Package" (onClick)="onAddNewClick()" />
           </div>
@@ -36,7 +36,7 @@
             <td>
               <p-cellEditor>
                 <ng-template pTemplate="input">
-                  <input pInputText type="text" class="w-full" [(ngModel)]="aaPackage.aaPackage" maxlength="50" />
+                  <input pInputText type="text" class="w-full" id="aaPackage" [(ngModel)]="aaPackage.aaPackage" maxlength="50" />
                 </ng-template>
                 <ng-template pTemplate="output"> {{ aaPackage.aaPackage }} </ng-template>
               </p-cellEditor>

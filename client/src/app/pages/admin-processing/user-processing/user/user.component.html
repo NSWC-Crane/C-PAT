@@ -13,23 +13,23 @@
     <form #form="ngForm" class="form">
       <div class="mb-4">
         <label for="userName" class="mb-2 block text-base font-medium">First Name:</label>
-        <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" name="userName" [(ngModel)]="user.firstName" placeholder="First Name" required />
+        <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" id="userName" name="userName" [(ngModel)]="user.firstName" placeholder="First Name" required />
       </div>
       <div class="mb-4">
         <label for="lastName" class="mb-2 block text-base font-medium">Last Name:</label>
-        <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" name="lastName" [(ngModel)]="user.lastName" placeholder="Last Name" />
+        <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" id="lastName" name="lastName" [(ngModel)]="user.lastName" placeholder="Last Name" />
       </div>
       <div class="mb-4">
         <label for="fullName" class="mb-2 block text-base font-medium">Full Name:</label>
-        <input pInputText class="mt-2 w-full rounded-md border bg-gray-100 p-2" type="text" name="fullName" value="{{ user.firstName }} {{ user.lastName }}" placeholder="Full Name" disabled />
+        <input pInputText class="mt-2 w-full rounded-md border bg-gray-100 p-2" type="text" id="fullName" name="fullName" value="{{ user.firstName }} {{ user.lastName }}" placeholder="Full Name" disabled />
       </div>
       <div class="mb-4">
         <label for="email" class="mb-2 block text-base font-medium">Email:</label>
-        <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" name="email" [(ngModel)]="user.email" placeholder="Email" />
+        <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" id="email" name="email" [(ngModel)]="user.email" placeholder="Email" />
       </div>
       <div class="mb-4">
         <label for="phoneNumber" class="mb-2 block text-base font-medium">Phone Number:</label>
-        <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" name="phoneNumber" [(ngModel)]="user.phoneNumber" placeholder="Phone Number..." />
+        <input pInputText class="mt-2 w-full rounded-md border p-2 focus:ring-primary-500 focus:ring-2" type="text" id="phoneNumber" name="phoneNumber" [(ngModel)]="user.phoneNumber" placeholder="Phone Number..." />
       </div>
       <div class="mb-4">
         <label for="officeOrg" class="mb-2 block text-base font-medium">Office/Organization:</label>
@@ -58,6 +58,7 @@
               { label: 'Disabled', value: 'DISABLED' }
             ]"
             [(ngModel)]="user.accountStatus"
+            id="accountStatus"
             name="accountStatus"
             placeholder="Select Status"
             optionLabel="label"
@@ -88,7 +89,7 @@
         </div>
       }
       <div class="flex items-center pt-4">
-        <p-toggleswitch [(ngModel)]="checked" name="isAdmin" disabled />
+        <p-toggleswitch [(ngModel)]="checked" name="isAdmin" id="isAdmin" disabled />
         <label for="isAdmin" class="ml-4 text-base font-medium">C-PAT Admin</label>
         <i class="pi pi-info-circle text-primary ml-2 cursor-pointer" pTooltip="The C-PAT administrative privilege is assigned by granting a user the admin role within the OIDC provider." tooltipPosition="top"> </i>
       </div>
