@@ -8,12 +8,10 @@
 !##########################################################################
 -->
 
-<div class="card overflow-hidden">
-  <div class="mt-[-1.5rem] mr-[-1.5rem] flex justify-end">
-    <p-button icon="pi pi-cog" [rounded]="true" variant="text" (onClick)="navigateToAppInfo()" />
-  </div>
+<div class="card overflow-hidden relative">
+  <p-button icon="pi pi-cog" [rounded]="true" variant="text" (onClick)="navigateToAppInfo()" styleClass="!absolute top-1 right-1 z-10" />
   <p-tabs [(value)]="value" scrollable>
-    <p-tablist>
+    <p-tablist class="mt-[-1.5rem]">
       <p-tab [value]="0">User Management</p-tab>
       <p-tab [value]="1">Collection Management</p-tab>
       <p-tab [value]="2">STIG Manager</p-tab>
