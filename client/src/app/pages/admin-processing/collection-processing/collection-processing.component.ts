@@ -122,11 +122,8 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     });
     this.subs.sink = this.setPayloadService.accessLevel$.subscribe((level) => {
       this.accessLevel = level;
-
-      if (this.accessLevel > 0) {
-        this.getCollectionData();
-      }
     });
+    this.getCollectionData();
   }
 
   getCollectionData() {
