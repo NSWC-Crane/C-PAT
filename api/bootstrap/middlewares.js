@@ -114,26 +114,44 @@ function configureTenableProxy(app) {
                     const baseUrl = config.tenable.url.endsWith('/') ? config.tenable.url.slice(0, -1) : config.tenable.url;
                     const path = '/rest' + req.url.replace('/api/tenable', '');
                     const fullUrl = url.resolve(baseUrl, path);
+
                     return fullUrl;
                 },
                 proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
-                    const headersToRemove = ['host', 'referer', 'origin', 'cookie', 'user-agent', 'authorization'];
-                    headersToRemove.forEach(header => {
-                        delete proxyReqOpts.headers[header.toLowerCase()];
+                    const cleanHeaders = {};
+
+                    Object.keys(srcReq.headers).forEach(key => {
+                        const value = srcReq.headers[key];
+                        if (typeof value === 'string') {
+                            cleanHeaders[key.toLowerCase()] = value;
+                        }
                     });
-                    proxyReqOpts.headers['x-apikey'] = `accesskey=${config.tenable.accessKey}; secretkey=${config.tenable.secretKey};`;
-                    if (!proxyReqOpts.headers['Content-Type']) {
-                        proxyReqOpts.headers['Content-Type'] = 'application/json';
+
+                    const headersToRemove = ['host', 'referer', 'origin', 'cookie', 'user-agent', 'authorization', 'accesstoken', 'accept'];
+
+                    headersToRemove.forEach(header => {
+                        delete cleanHeaders[header.toLowerCase()];
+                    });
+
+                    cleanHeaders['x-apikey'] = `accesskey=${config.tenable.accessKey}; secretkey=${config.tenable.secretKey};`;
+                    if (!cleanHeaders['content-type']) {
+                        cleanHeaders['content-type'] = 'application/json';
                     }
-                    proxyReqOpts.headers['User-Agent'] = 'Integration/1.0 (NAVSEA; CPAT; Build/1.0)';
+                    cleanHeaders['user-agent'] = 'Integration/1.0 (NAVSEA; CPAT; Build/1.0)';
+
+                    proxyReqOpts.headers = cleanHeaders;
                     proxyReqOpts.rejectUnauthorized = false;
+
                     return proxyReqOpts;
                 },
                 userResDecorator: function (proxyRes, proxyResData, userReq, userRes) {
                     return proxyResData;
                 },
                 proxyErrorHandler: function (err, res, next) {
-                    res.status(500).send('Proxy error: ' + err.message);
+                    res.status(500).json({
+                        error: 'Proxy error',
+                        message: err.message,
+                    });
                 },
             })
         );
