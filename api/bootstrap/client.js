@@ -40,6 +40,7 @@ const CPAT = {
     dod: ${config.settings.dodDeployment},
     version: "${config.version}",
     apiBase: "${config.client.apiBase}",
+    inactivityTimeout: ${config.settings.inactivityTimeout},
     oauth: {
         authority:  "${config.oauth.authority}",
         clientId: "${config.oauth.clientId}",
@@ -64,6 +65,9 @@ const CPAT = {
         apiUrl: "${config.stigman.apiUrl}",
         scopePrefix: "${config.stigman.scopePrefix ?? ''}",
         extraScopes: "${config.stigman.extraScopes ?? ''}",
+    },
+    tenable: {
+        url: "${config.tenable.url}"
     },
     features: {
         marketplaceDisabled: ${config.client.features.marketplaceDisabled},
