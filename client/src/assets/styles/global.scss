@@ -29,12 +29,12 @@ body {
   @include custom-scrollbar(color-mix(in srgb, var(--p-surface-900) 90%, black), var(--p-surface-700), var(--p-surface-900));
 }
 
-.tenable-icon {
+@mixin icon-mask($icon-name) {
   width: 1rem;
   height: 1rem;
   transform: scale(1.4);
-  mask: url('/assets/icons/tenable.svg') no-repeat center;
-  -webkit-mask: url('/assets/icons/tenable.svg') no-repeat center;
+  mask: url('../icons/#{$icon-name}.svg') no-repeat center;
+  -webkit-mask: url('../icons/#{$icon-name}.svg') no-repeat center;
   mask-size: contain;
   -webkit-mask-size: contain;
   background-color: currentColor;
@@ -42,17 +42,8 @@ body {
   font-weight: 900;
 }
 
-.api-icon {
-  width: 1rem;
-  height: 1rem;
-  transform: scale(1.4);
-  mask: url('/assets/icons/api.svg') no-repeat center;
-  -webkit-mask: url('/assets/icons/api.svg') no-repeat center;
-  mask-size: contain;
-  -webkit-mask-size: contain;
-  background-color: currentColor;
-  display: inline-block;
-  font-weight: 900;
+.tenable-icon {
+  @include icon-mask('tenable');
 }
 
 .p-multiselect {
