@@ -128,8 +128,15 @@ module.exports.getAssetDeltaListByCollection = async function getAssetDeltaListB
         }
 
         const response = await assetService.getAssetDeltaListByCollection(req, res, next, collectionId);
+        if (response.error) {
+            return res.status(500).json({
+                error: 'Internal Server Error',
+                detail: response.error,
+            });
+        }
+
         res.status(200).json({
-            assets: response.assets,
+            assets: response.assets || [],
             assetDeltaUpdated: response.assetDeltaUpdated || null,
             emassHardwareListUpdated: response.emassHardwareListUpdated || null,
         });
