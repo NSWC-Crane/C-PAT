@@ -624,7 +624,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
           let tenableResults: string[] = [];
 
           if (tenableResponse) {
-            tenableResults = tenableResponse.response.results.map((r: any) => r.dnsName.toLowerCase());
+            tenableResults = tenableResponse.response.results.map((r: any) => r.dnsName?.toLowerCase());
           }
 
           this.assets.update((assets) =>
@@ -632,7 +632,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
               const updatedAsset = { ...asset, loading: false };
 
               if (tenableResponse) {
-                updatedAsset.existsInTenable = tenableResults.some((dnsName: string) => dnsName.includes(asset.key.toLowerCase()));
+                updatedAsset.existsInTenable = tenableResults.some((dnsName: string) => dnsName?.includes(asset.key.toLowerCase()));
               }
 
               if (stigManagerAssets) {
