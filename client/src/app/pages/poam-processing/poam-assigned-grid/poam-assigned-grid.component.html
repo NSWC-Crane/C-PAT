@@ -8,23 +8,17 @@
 !##########################################################################
 -->
 
-<p-table
-  #dt
-  [value]="displayedData()"
-  [scrollable]="true"
-  scrollHeight="64rem"
-  sortMode="multiple"
-  class="h-full"
+<p-table #dt [value]="displayedData()" [scrollable]="true" scrollHeight="64rem" sortMode="multiple" class="h-full"
   selectionMode="single"
-  [globalFilterFields]="['poamId', 'vulnerabilityId', 'status', 'adjSeverity', 'owner', 'assignedTeams', 'labels']"
->
+  [globalFilterFields]="['poamId', 'vulnerabilityId', 'status', 'adjSeverity', 'owner', 'assignedTeams', 'labels']">
   <ng-template pTemplate="caption">
     <div class="flex items-center justify-between">
       <p-iconField iconPosition="left">
         <p-inputIcon>
           <i class="pi pi-search"></i>
         </p-inputIcon>
-        <input id="poamAssignedGridSearch" name="poamAssignedGridSearch" pInputText type="text" [(ngModel)]="globalFilter" placeholder="Search..." />
+        <input id="poamAssignedGridSearch" name="poamAssignedGridSearch" pInputText type="text" [ngModel]="globalFilter"
+          (ngModelChange)="globalFilterSignal.set($event)" placeholder="Search..." />
       </p-iconField>
     </div>
   </ng-template>
@@ -32,9 +26,10 @@
   <ng-template pTemplate="header">
     <tr>
       @for (col of columns; track col.field) {
-        <th [pSortableColumn]="col.sortable ? col.field : null" [pTooltip]="col.tooltip" tooltipPosition="top" scope="col">
-          {{ col.header }}
-        </th>
+      <th [pSortableColumn]="col.sortable ? col.field : null" [pTooltip]="col.tooltip" tooltipPosition="top"
+        scope="col">
+        {{ col.header }}
+      </th>
       }
     </tr>
   </ng-template>
@@ -42,56 +37,63 @@
   <ng-template pTemplate="body" let-row>
     <tr>
       @for (col of columns; track col.field) {
-        <td>
-          @switch (col.field) {
-            @case ('poamId') {
-              <a href="javascript:void(0)" (click)="managePoam(row)" class="text-primary cursor-pointer font-semibold hover:font-bold" pTooltip="Navigate to this POAM" tooltipPosition="top">
-                {{ row.poamId }}
-              </a>
-            }
+      <td>
+        @switch (col.field) {
+        @case ('poamId') {
+        <a href="javascript:void(0)" (click)="managePoam(row)"
+          class="text-primary cursor-pointer font-semibold hover:font-bold" pTooltip="Navigate to this POAM"
+          tooltipPosition="top">
+          {{ row.poamId }}
+        </a>
+        }
 
-            @case ('affectedAssets') {
-              @if (row.isAffectedAssetsLoading) {
-                <p-progressSpinner [style]="{ width: '20px', height: '20px' }" strokeWidth="4" [pTooltip]="'Loading affected assets for Vulnerability ID: ' + row.vulnerabilityId" tooltipPosition="top" />
-              } @else if (row.isAffectedAssetsMissing) {
-                <div class="flex items-center">
-                  <i class="pi pi-exclamation-triangle text-yellow-500 mr-2" [pTooltip]="'Review for closure. No affected assets found for Vulnerability ID: ' + row.vulnerabilityId" tooltipPosition="top"></i>
-                </div>
-              } @else {
-                <div class="flex items-center">
-                  <span>{{ row.affectedAssets }}</span>
-                  @if (row.hasAssociatedVulnerabilities) {
-                    <i class="pi pi-info-circle ml-2 cursor-pointer" style="color: var(--primary-color)" [pTooltip]="row.associatedVulnerabilitiesTooltip" tooltipPosition="top"></i>
-                  }
-                </div>
-              }
-            }
-
-            @case ('assignedTeams') {
-              <div class="flex flex-wrap gap-2">
-                @for (team of row.assignedTeams; track team.name) {
-                  @if (team.name) {
-                    <p-tag [value]="team.name" [rounded]="true" [severity]="getTeamSeverity(team.complete)" [pTooltip]="getTeamTooltip(team.complete)" tooltipPosition="top" />
-                  }
-                }
-              </div>
-            }
-
-            @case ('labels') {
-              <div class="flex flex-wrap gap-2">
-                @for (label of row.labels; track label) {
-                  @if (label) {
-                    <p-tag [value]="label" [rounded]="true" />
-                  }
-                }
-              </div>
-            }
-
-            @default {
-              {{ row[col.field] }}
-            }
+        @case ('affectedAssets') {
+        @if (row.isAffectedAssetsLoading) {
+        <p-progressSpinner [style]="{ width: '20px', height: '20px' }" strokeWidth="4"
+          [pTooltip]="'Loading affected assets for Vulnerability ID: ' + row.vulnerabilityId" tooltipPosition="top" />
+        } @else if (row.isAffectedAssetsMissing) {
+        <div class="flex items-center">
+          <i class="pi pi-exclamation-triangle text-yellow-500 mr-2"
+            [pTooltip]="'Review for closure. No affected assets found for Vulnerability ID: ' + row.vulnerabilityId"
+            tooltipPosition="top"></i>
+        </div>
+        } @else {
+        <div class="flex items-center">
+          <span>{{ row.affectedAssets }}</span>
+          @if (row.hasAssociatedVulnerabilities) {
+          <i class="pi pi-info-circle ml-2 cursor-pointer" style="color: var(--primary-color)"
+            [pTooltip]="row.associatedVulnerabilitiesTooltip" tooltipPosition="top"></i>
           }
-        </td>
+        </div>
+        }
+        }
+
+        @case ('assignedTeams') {
+        <div class="flex flex-wrap gap-2">
+          @for (team of row.assignedTeams; track team.name) {
+          @if (team.name) {
+          <p-tag [value]="team.name" [rounded]="true" [severity]="getTeamSeverity(team.complete)"
+            [pTooltip]="getTeamTooltip(team.complete)" tooltipPosition="top" />
+          }
+          }
+        </div>
+        }
+
+        @case ('labels') {
+        <div class="flex flex-wrap gap-2">
+          @for (label of row.labels; track label) {
+          @if (label) {
+          <p-tag [value]="label" [rounded]="true" />
+          }
+          }
+        </div>
+        }
+
+        @default {
+        {{ row[col.field] }}
+        }
+        }
+      </td>
       }
     </tr>
   </ng-template>

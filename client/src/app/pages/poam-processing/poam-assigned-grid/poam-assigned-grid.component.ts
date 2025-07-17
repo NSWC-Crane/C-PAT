@@ -56,17 +56,7 @@ interface ColumnConfig {
   templateUrl: './poam-assigned-grid.component.html',
   styleUrls: ['./poam-assigned-grid.component.scss'],
   standalone: true,
-  imports: [
-    ButtonModule,
-    FormsModule,
-    TableModule,
-    ProgressSpinnerModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule,
-    TagModule,
-    TooltipModule
-  ],
+  imports: [ButtonModule, FormsModule, TableModule, ProgressSpinnerModule, IconFieldModule, InputIconModule, InputTextModule, TagModule, TooltipModule],
   providers: [MessageService]
 })
 export class PoamAssignedGridComponent {
@@ -119,6 +109,7 @@ export class PoamAssignedGridComponent {
     const data = this.assignedDataSignal();
     const assetCounts = this.affectedAssetCountsSignal();
     const assetCountsLoaded = this.assetCountsLoaded();
+    const filterValue = this.globalFilterSignal().toLowerCase();
 
     const assetCountMap = new Map<string, number>();
 
@@ -126,7 +117,7 @@ export class PoamAssignedGridComponent {
       assetCountMap.set(item.vulnerabilityId, item.assetCount);
     });
 
-    return data.map((item) => {
+    const transformedData = data.map((item) => {
       let adjustedDate = new Date(item.scheduledCompletionDate);
 
       if (item.extensionTimeAllowed && typeof item.extensionTimeAllowed === 'number' && item.extensionTimeAllowed > 0) {
@@ -165,12 +156,23 @@ export class PoamAssignedGridComponent {
         adjSeverity: item.adjSeverity,
         status: item.status,
         owner: item.ownerName ?? item.submitterName,
-        assignedTeams: item.assignedTeams?.map((team: any) => ({
-          name: team.assignedTeamName,
-          complete: team.complete
-        })) || [],
+        assignedTeams:
+          item.assignedTeams?.map((team: any) => ({
+            name: team.assignedTeamName,
+            complete: team.complete
+          })) || [],
         labels: item.labels?.map((label: any) => label.labelName) || []
       };
+    });
+
+    if (!filterValue) {
+      return transformedData;
+    }
+
+    return transformedData.filter((row) => {
+      const searchableValues = [row.poamId, row.vulnerabilityId, row.status, row.adjSeverity, row.owner, ...row.assignedTeams.map((team) => team.name), ...row.labels].filter(Boolean); // Remove null/undefined values
+
+      return searchableValues.some((value) => value.toString().toLowerCase().includes(filterValue));
     });
   });
 
@@ -193,19 +195,27 @@ export class PoamAssignedGridComponent {
 
   getTeamSeverity(complete: string): string {
     switch (complete) {
-      case 'true': return 'success';
-      case 'partial': return 'warn';
-      case 'global': return '';
-      default: return 'danger';
+      case 'true':
+        return 'success';
+      case 'partial':
+        return 'warn';
+      case 'global':
+        return '';
+      default:
+        return 'danger';
     }
   }
 
   getTeamTooltip(complete: string): string {
     switch (complete) {
-      case 'true': return 'Team has fulfilled all POAM requirements';
-      case 'partial': return 'Team has partially fulfilled POAM requirements';
-      case 'global': return 'Global Finding - No Team Requirements';
-      default: return 'Team has not fulfilled any POAM requirements';
+      case 'true':
+        return 'Team has fulfilled all POAM requirements';
+      case 'partial':
+        return 'Team has partially fulfilled POAM requirements';
+      case 'global':
+        return 'Global Finding - No Team Requirements';
+      default:
+        return 'Team has not fulfilled any POAM requirements';
     }
   }
 }
