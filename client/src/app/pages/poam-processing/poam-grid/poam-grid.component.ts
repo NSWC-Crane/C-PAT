@@ -401,8 +401,8 @@ export class PoamGridComponent implements OnInit, OnDestroy {
           targetPoams.forEach((poam) => {
             this.importService.getTenablePlugin(poam.vulnerabilityId).subscribe({
               next: (plugin: any) => {
-                let controlAPs = poam.controlAPs ?? '';
-                let cci = poam.cci ?? '';
+                let controlAPs: string;
+                let cci: string;
 
                 if (plugin.response?.patchPubDate && plugin.response?.patchPubDate != '') {
                   controlAPs = 'SI-2.9';
