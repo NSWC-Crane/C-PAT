@@ -22,7 +22,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { SelectModule } from 'primeng/select';
-import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
@@ -31,11 +30,6 @@ import { TreeTable, TreeTableModule } from 'primeng/treetable';
 import { forkJoin } from 'rxjs';
 import { SharedService } from 'src/app/common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
-
-interface ExportColumn {
-  title: string;
-  dataKey: string;
-}
 
 interface ValueMapping {
   [key: string]: string;
@@ -49,6 +43,15 @@ interface BenchmarkOption {
 interface FilterOption {
   label: string;
   value: string;
+}
+
+interface FilterState {
+  filters: { [key: string]: any };
+  dateFilterMode: { [key: string]: string };
+  dateFilterValues: { [key: string]: Date };
+  versionFilterMode: { [key: string]: string };
+  versionFilterValues: { [key: string]: string };
+  result: string;
 }
 
 interface Label {
@@ -76,7 +79,6 @@ interface Label {
     TextareaModule,
     SelectModule,
     MultiSelectModule,
-    TableModule,
     TreeTableModule,
     ToastModule,
     TagModule,
@@ -90,35 +92,32 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
   readonly reviewsCountChange = output<number>();
   @Input() stigmanCollectionId!: number;
-  readonly table = viewChild.required<Table>('dt');
   readonly multiSelect = viewChild.required<MultiSelect>('ms');
   readonly treeTable = viewChild.required<TreeTable>('tt');
   readonly filterPopover = viewChild.required<Popover>('filterPopover');
   currentFilterColumn: any = null;
-
   treeNodes: TreeNode[] = [];
   assetCount: number = 0;
-
   cols: any[];
-  exportColumns!: ExportColumn[];
   selectedColumns: any[];
-  assets: any[] = [];
   reviews: any;
   isLoading: boolean = true;
   totalRecords: number = 0;
-  filterValue: string = '';
   benchmarkOptions: BenchmarkOption[] = [];
   selectedBenchmarkId: string | null = null;
   showBenchmarkSelector: boolean = true;
   labels: Label[] = [];
-  result: string = 'fail';
   resultOptions: { label: string; value: string }[] = [];
-  filters: { [key: string]: any } = {};
   originalTreeNodes: TreeNode[] = [];
-  dateFilterMode: { [key: string]: string } = { evaluatedDate: 'equals' };
-  dateFilterValues: { [key: string]: Date } = {};
-  versionFilterMode: { [key: string]: string } = { 'resultEngine.version': 'equals' };
-  versionFilterValues: { [key: string]: string } = {};
+
+  filterState: FilterState = {
+    filters: {},
+    dateFilterMode: { evaluatedDate: 'equals' },
+    dateFilterValues: {},
+    versionFilterMode: { 'resultEngine.version': 'equals' },
+    versionFilterValues: {},
+    result: 'fail'
+  };
 
   resultMapping: ValueMapping = {
     all: 'All',
@@ -160,7 +159,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     { label: 'Date after', value: 'after' }
   ];
 
-  severityFilterOptions: { label: string; value: string }[] = [
+  severityFilterOptions: FilterOption[] = [
     { label: 'CAT I - High', value: 'high' },
     { label: 'CAT II - Medium', value: 'medium' },
     { label: 'CAT III - Low', value: 'low' }
@@ -177,7 +176,10 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
   ngOnInit() {
     this.initColumnsAndFilters();
-    this.initResultOptions();
+    this.resultOptions = Object.entries(this.resultMapping).map(([value, label]) => ({
+      label,
+      value
+    }));
     this.treeNodes = [];
 
     if (this.stigmanCollectionId) {
@@ -191,20 +193,76 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     }
   }
 
-  initResultOptions() {
-    this.resultOptions = Object.entries(this.resultMapping).map(([value, label]) => ({
-      label,
-      value
-    }));
-  }
-
   onResultFilterChange(value: string) {
-    this.result = value;
+    this.filterState.result = value;
 
     if (this.selectedBenchmarkId) {
       this.filterPopover().hide();
       this.loadReviews();
     }
+  }
+
+  loadReviews() {
+    this.isLoading = true;
+    this.showBenchmarkSelector = false;
+
+    const savedFilterState = this.cloneFilterState();
+
+    forkJoin({
+      reviews: this.sharedService.getReviewsFromSTIGMAN(this.stigmanCollectionId, this.filterState.result, this.selectedBenchmarkId),
+      labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
+    }).subscribe({
+      next: ({ reviews, labels }) => {
+        const processedReviews = (reviews ?? []).map((review) => ({
+          ...review,
+          displayResult: this.resultMapping[review.result] || review.result,
+          evaluatedDate: review.ts ? parseISO(review.ts) : '',
+          'status.label': this.statusMapping[review.status?.label] || '',
+          'resultEngine.product': review.resultEngine?.product || '',
+          'resultEngine.version': review.resultEngine?.version || '',
+          'rule.severity': this.severityMapping[review.rule?.severity] || '',
+          'rule.ruleId': review.rule?.ruleId || ''
+        }));
+
+        this.reviews = processedReviews;
+        this.totalRecords = this.reviews.length;
+        this.reviewsCountChange.emit(this.totalRecords);
+        this.labels = labels || [];
+        this.treeNodes = this.transformReviewsToTreeNodes(processedReviews);
+        this.originalTreeNodes = [...this.treeNodes];
+        this.assetCount = this.treeNodes.length;
+        this.filterState = savedFilterState;
+
+        if (this.hasActiveFilters()) {
+          this.applyFilters();
+        }
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to fetch reviews: ${getErrorMessage(error)}`
+        });
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private cloneFilterState(): FilterState {
+    return {
+      filters: { ...this.filterState.filters },
+      dateFilterMode: { ...this.filterState.dateFilterMode },
+      dateFilterValues: { ...this.filterState.dateFilterValues },
+      versionFilterMode: { ...this.filterState.versionFilterMode },
+      versionFilterValues: { ...this.filterState.versionFilterValues },
+      result: this.filterState.result
+    };
+  }
+
+  private hasActiveFilters(): boolean {
+    return Object.keys(this.filterState.filters).length > 0;
   }
 
   loadBenchmarkIds() {
@@ -233,49 +291,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
   getStatusIcon(status: string): string {
     return this.statusIcons[status] || 'pi-question';
-  }
-
-  loadReviews() {
-    this.isLoading = true;
-    this.showBenchmarkSelector = false;
-
-    forkJoin({
-      reviews: this.sharedService.getReviewsFromSTIGMAN(this.stigmanCollectionId, this.result, this.selectedBenchmarkId),
-      labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
-    }).subscribe({
-      next: ({ reviews, labels }) => {
-        const processedReviews = (reviews ?? []).map((review) => ({
-          ...review,
-          displayResult: this.resultMapping[review.result] || review.result,
-          evaluatedDate: review.ts ? parseISO(review.ts) : '',
-          'status.label': this.statusMapping[review.status?.label] || '',
-          'resultEngine.product': review.resultEngine?.product || '',
-          'resultEngine.version': review.resultEngine?.version || '',
-          'rule.severity': this.severityMapping[review.rule?.severity] || '',
-          'rule.ruleId': review.rule?.ruleId || ''
-        }));
-
-        this.reviews = processedReviews;
-        this.totalRecords = this.reviews.length;
-        this.reviewsCountChange.emit(this.totalRecords);
-        this.labels = labels || [];
-        this.treeNodes = this.transformReviewsToTreeNodes(processedReviews);
-        this.originalTreeNodes = [...this.treeNodes];
-        this.assetCount = this.treeNodes.length;
-
-        this.filters = {};
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to fetch reviews: ${getErrorMessage(error)}`
-        });
-      },
-      complete: () => {
-        this.isLoading = false;
-      }
-    });
   }
 
   transformReviewsToTreeNodes(reviews: any[]): TreeNode[] {
@@ -355,10 +370,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       { field: 'resultEngine.version', header: 'Version', filterable: true },
       { field: 'username', header: 'Reviewer', filterable: true }
     ];
-    this.exportColumns = this.cols.map((col) => ({
-      title: col.header,
-      dataKey: col.field
-    }));
     this.resetColumnSelections();
   }
 
@@ -367,71 +378,116 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
     const field = this.currentFilterColumn.field;
 
-    if (field.includes('Date') && this.dateFilterValues[field]) {
-      this.filters[field] = {
-        value: this.dateFilterValues[field],
-        mode: this.dateFilterMode[field] || 'equals'
+    if (field.includes('Date') && this.filterState.dateFilterValues[field]) {
+      this.filterState.filters[field] = {
+        value: this.filterState.dateFilterValues[field],
+        mode: this.filterState.dateFilterMode[field] || 'equals'
       };
-    } else if (field.includes('version') && this.versionFilterValues[field]) {
-      this.filters[field] = {
-        value: this.versionFilterValues[field],
-        mode: this.versionFilterMode[field] || 'equals'
+    } else if (field.includes('version') && this.filterState.versionFilterValues[field]) {
+      this.filterState.filters[field] = {
+        value: this.filterState.versionFilterValues[field],
+        mode: this.filterState.versionFilterMode[field] || 'equals'
       };
     }
 
     this.applyFilters();
   }
 
-  clearColumnFilter(field: string) {
-    delete this.filters[field];
-
-    if (field.includes('Date')) {
-      delete this.dateFilterMode[field];
-      delete this.dateFilterValues[field];
+  applyDateFilter(field: string, event: any) {
+    if (!this.filterState.dateFilterMode[field]) {
+      this.filterState.dateFilterMode[field] = 'equals';
     }
 
-    if (field.includes('version')) {
-      delete this.versionFilterMode[field];
-      delete this.versionFilterValues[field];
-    }
+    this.filterState.dateFilterValues[field] = event;
+    this.filterState.filters[field] = {
+      value: event,
+      mode: this.filterState.dateFilterMode[field]
+    };
 
     this.applyFilters();
+    this.filterPopover().hide();
+  }
 
-    if (Object.keys(this.filters).length === 0) {
-      this.totalRecords = this.reviews.length;
-      this.reviewsCountChange.emit(this.totalRecords);
+  applyVersionFilter(field: string, event: Event) {
+    if (!this.filterState.versionFilterMode[field]) {
+      this.filterState.versionFilterMode[field] = 'equals';
     }
-  }
 
-  clearFilters() {
-    this.filters = {};
-    this.dateFilterMode = {};
-    this.dateFilterValues = {};
-    this.versionFilterMode = {};
-    this.versionFilterValues = {};
-    this.treeNodes = [...this.originalTreeNodes];
-    this.assetCount = this.originalTreeNodes.length;
-    this.totalRecords = this.reviews.length;
-    this.reviewsCountChange.emit(this.totalRecords);
-  }
+    const inputElement = event.target as HTMLInputElement;
+    const value = inputElement.value;
 
-  clear() {
-    this.clearFilters();
-    this.filterValue = '';
+    this.filterState.versionFilterValues[field] = value;
+    this.filterState.filters[field] = {
+      value: value,
+      mode: this.filterState.versionFilterMode[field]
+    };
+
+    this.applyFilters();
+    this.filterPopover().hide();
   }
 
   applyFilters() {
-    if (Object.keys(this.filters).length === 0) {
-      this.treeNodes = [...this.originalTreeNodes];
-      this.assetCount = this.originalTreeNodes.length;
+    if (!this.hasActiveFilters()) {
+      this.resetTreeNodes();
+    } else {
+      this.treeNodes = this.filterTreeNodes(this.originalTreeNodes);
+      this.assetCount = this.treeNodes.length;
+      this.totalRecords = this.countAllNodes(this.treeNodes);
       this.reviewsCountChange.emit(this.totalRecords);
+    }
+  }
+
+  clearColumnFilter(field: string) {
+    if (field === 'displayResult') {
+      const previousResult = this.filterState.result;
+
+      this.filterState.result = 'fail';
+
+      if (previousResult !== 'fail' && this.selectedBenchmarkId) {
+        this.loadReviews();
+      }
 
       return;
     }
 
-    this.treeNodes = this.filterTreeNodes(this.originalTreeNodes);
-    this.assetCount = this.treeNodes.length;
-    this.totalRecords = this.countAllNodes(this.treeNodes);
+    delete this.filterState.filters[field];
+
+    if (field.includes('Date')) {
+      delete this.filterState.dateFilterMode[field];
+      delete this.filterState.dateFilterValues[field];
+    }
+
+    if (field.includes('version')) {
+      delete this.filterState.versionFilterMode[field];
+      delete this.filterState.versionFilterValues[field];
+    }
+
+    this.applyFilters();
+  }
+
+  clearFilters() {
+    const needsReload = this.filterState.result !== 'fail';
+
+    this.filterState = {
+      filters: {},
+      dateFilterMode: { evaluatedDate: 'equals' },
+      dateFilterValues: {},
+      versionFilterMode: { 'resultEngine.version': 'equals' },
+      versionFilterValues: {},
+      result: 'fail'
+    };
+
+    if (needsReload && this.selectedBenchmarkId) {
+      this.loadReviews();
+    } else {
+      this.resetTreeNodes();
+    }
+  }
+
+  private resetTreeNodes() {
+    this.treeNodes = [...this.originalTreeNodes];
+    this.assetCount = this.originalTreeNodes.length;
+    this.totalRecords = this.reviews?.length ?? 0;
     this.reviewsCountChange.emit(this.totalRecords);
   }
 
@@ -477,7 +533,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   matchesFilters(data: any): boolean {
     if (!data) return false;
 
-    return Object.entries(this.filters).every(([field, filterValue]) => {
+    return Object.entries(this.filterState.filters).every(([field, filterValue]) => {
       if (!filterValue) return true;
 
       const fieldValue = this.getFieldValue(data, field);
@@ -586,25 +642,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     return value || '';
   }
 
-  applyVersionFilter(field: string, event: Event) {
-    if (!this.versionFilterMode[field]) {
-      this.versionFilterMode[field] = 'equals';
-    }
-
-    const inputElement = event.target as HTMLInputElement;
-    const value = inputElement.value;
-
-    this.versionFilterValues[field] = value;
-
-    this.filters[field] = {
-      value: value,
-      mode: this.versionFilterMode[field]
-    };
-
-    this.applyFilters();
-    this.filterPopover().hide();
-  }
-
   exportCSV() {
     if (!this.treeNodes || this.treeNodes.length === 0) {
       this.messageService.add({
@@ -682,22 +719,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     return result;
   }
 
-  applyDateFilter(field: string, event: any) {
-    if (!this.dateFilterMode[field]) {
-      this.dateFilterMode[field] = 'equals';
-    }
-
-    this.dateFilterValues[field] = event;
-
-    this.filters[field] = {
-      value: event,
-      mode: this.dateFilterMode[field]
-    };
-
-    this.applyFilters();
-    this.filterPopover().hide();
-  }
-
   resetColumnSelections() {
     this.selectedColumns = this.cols;
   }
@@ -706,7 +727,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     if (this.currentFilterColumn) {
       this.currentFilterColumn = col;
       this.filterPopover().show(event);
-      this.filterPopover().align();
     } else {
       this.currentFilterColumn = col;
       this.filterPopover().show(event);
