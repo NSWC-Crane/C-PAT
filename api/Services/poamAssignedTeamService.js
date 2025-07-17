@@ -150,7 +150,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
                     let fetchSql = `SELECT poamId, assignedTeamId, automated FROM ${config.database.schema}.poamassignedteams WHERE assignedTeamId = ? AND poamId = ?`;
                     const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
 
-                    const result = { ...existingAssignedTeamexistingAssignedTeam[0] };
+                    const result = { ...existingAssignedTeam[0] };
                     result.automated = result.automated != null ? Boolean(result.automated) : null;
                     return result;
                 });

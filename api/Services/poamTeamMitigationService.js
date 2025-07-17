@@ -229,6 +229,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
                     if (teamMitigation.length > 0) {
                         const result = { ...teamMitigation[0] };
                         result.isActive = result.isActive != null ? Boolean(result.isActive) : null;
+                        result.assignedTeamName = teamName;
                         return result;
                     } else {
                         throw new Error('Team Mitigation not found after status update');

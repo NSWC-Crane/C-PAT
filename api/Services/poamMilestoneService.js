@@ -212,7 +212,8 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
                     poamId: 'is required',
                 },
             });
-        } else if (!milestoneId) {
+        }
+        if (!milestoneId) {
             return next({
                 status: 400,
                 errors: {
@@ -222,16 +223,12 @@ exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milesto
         }
 
         return await withConnection(async connection => {
-            let sql = `DELETE FROM ${config.database.schema}.poammilestones WHERE poamId= ? AND milestoneId = ?`;
-            await connection.query(sql, [poamId, milestoneId]);
+            const deleteSql = `DELETE FROM ${config.database.schema}.poammilestones WHERE poamId = ? AND milestoneId = ?`;
+            await connection.query(deleteSql, [poamId, milestoneId]);
 
-            let action = `Milestone Deleted.`;
-            if (req.body.extension === true) {
-                action = `Extension milestone deleted.`;
-            } else {
-                action = `POAM milestone deleted.`;
-            }
-            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            const action = req.body.extension === true ? 'Extension milestone deleted.' : 'POAM milestone deleted.';
+
+            const logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
             await connection.query(logSql, [poamId, action, req.userObject.userId]);
             return {};
         });
