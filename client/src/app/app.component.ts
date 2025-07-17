@@ -15,17 +15,20 @@ import { Classification } from './common/models/classification.model';
 import { PayloadService } from './common/services/setPayload.service';
 import { SharedService } from './common/services/shared.service';
 import { AuthService } from './core/auth/services/auth.service';
+import { InactivityService } from './core/auth/services/inactivity.service';
+import { InactivityWarningComponent } from './common/components/inactivity-warning/inactivity-warning.component';
 
 @Component({
   selector: 'cpat-app',
   templateUrl: './app.component.html',
   standalone: true,
-  imports: [RouterOutlet]
+  imports: [RouterOutlet, InactivityWarningComponent]
 })
 export class AppComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private sharedService = inject(SharedService);
   private payloadService = inject(PayloadService);
+  private inactivityService = inject(InactivityService);
 
   classification: Classification | undefined;
   private authSubscription: Subscription | undefined;
@@ -46,9 +49,14 @@ export class AppComponent implements OnInit, OnDestroy {
   private async handleAuthState(isAuthenticatedStigman: boolean, isAuthenticatedCpat: boolean) {
     try {
       if (!isAuthenticatedStigman || !isAuthenticatedCpat) {
+        this.inactivityService.stopMonitoring();
         await this.authService.handleAuthFlow();
 
         return;
+      }
+
+      if (this.inactivityService.shouldMonitor()) {
+        this.inactivityService.startMonitoring();
       }
 
       await this.payloadService.setPayload();
@@ -76,5 +84,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
     }
+
+    this.inactivityService.stopMonitoring();
   }
 }

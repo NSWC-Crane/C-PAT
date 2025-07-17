@@ -146,7 +146,7 @@ import { CardModule } from 'primeng/card';
                     'w-full': !isSlimMenu
                   }"
                 >
-                  <i class="pi pi-cog" [ngClass]="{'pulse-animation': user?.lastCollectionAccessedId === 0}"></i>
+                  <i class="pi pi-cog" [ngClass]="{ 'pulse-animation': user?.lastCollectionAccessedId === 0 }"></i>
                   <span [class]="isSlimMenu ? 'hidden' : 'font-medium leading-8'">・</span>
                   <span [class]="isSlimMenu ? 'hidden' : 'font-medium leading-none'">Collections</span>
                 </div>
@@ -208,8 +208,8 @@ import { CardModule } from 'primeng/card';
               @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin !== true) {
                 <cpat-status-message [statusCode]="998" />
               }
-             @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin  === true && router.url === '/poam-processing') {
-                  <cpat-status-message [statusCode]="998" />
+              @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin === true && router.url === '/poam-processing') {
+                <cpat-status-message [statusCode]="998" />
               }
               @if ((user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId !== 0) || user.isAdmin === true) {
                 <router-outlet></router-outlet>
@@ -242,7 +242,6 @@ import { CardModule } from 'primeng/card';
         z-index: 9999 !important;
       }
       ::ng-deep .p-dialog {
-        background-color: var(--surface-card);
         box-shadow:
           0 3px 6px rgba(0, 0, 0, 0.16),
           0 3px 6px rgba(0, 0, 0, 0.23);
@@ -251,7 +250,6 @@ import { CardModule } from 'primeng/card';
         padding: 0rem;
       }
       ::ng-deep .p-dialog .p-dialog-content {
-        background-color: var(--surface-card);
         color: var(--text-color);
         padding: 2rem;
       }
@@ -269,7 +267,7 @@ import { CardModule } from 'primeng/card';
         color: var(--yellow-500, #ffc107);
       }
       ::ng-deep .custom-confirm-popup h3 {
-        margin-bottom: 0.5rem;
+        margin-bottom: 1rem;
       }
       ::ng-deep .custom-confirm-popup p {
         margin-bottom: 1rem;

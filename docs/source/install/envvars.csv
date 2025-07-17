@@ -13,6 +13,8 @@
 | Sets the classification banner, if any. Available values: ``NONE`` ``U`` ``FOUO`` ``CUI`` ``C`` ``S`` ``TS`` ``SCI`` ","API, Client"
 "CPAT_DOD_DEPLOYMENT","| **Default** ``true``
 | Configure whether application deployment is subject to DoD and Application Security and Development STIG rules. i.e. DoD consent banner.","API, Client"
+"CPAT_INACTIVITY_TIMEOUT","| **Default** ``15``
+| Time in minutes that a user can be inactive before being automatically logged out.","Client"
 "CPAT_API_BASE","| **Default** ``api``
 | The base URL for Client requests to the API relative to the sever root at / ","Client"
 "CPAT_CLIENT_DIRECTORY","| **Default** ``../client/dist/browser``

@@ -21,6 +21,7 @@ let config = {
         lastAccessResolution: 60,
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || 'none',
         dodDeployment: process.env.CPAT_DOD_DEPLOYMENT !== 'false',
+        inactivityTimeout: process.env.CPAT_INACTIVITY_TIMEOUT ? parseInt(process.env.CPAT_INACTIVITY_TIMEOUT) * 60 * 1000 : 15 * 60 * 1000,
     },
     client: {
         authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || 'http://localhost:8080/auth/realms/RMFTools',
@@ -98,7 +99,7 @@ let config = {
         claims: {
             scope: process.env.CPAT_JWT_SCOPE_CLAIM || 'scope',
             username: process.env.CPAT_JWT_USERNAME_CLAIM || 'preferred_username',
-            servicename: process.env.CPAT_JWT_SERVICENAME_CLAIM || 'clientId',
+            servicename: process.env.CPAT_JWT_SERVICENAME_CLAIM,
             fullname: process.env.CPAT_JWT_NAME_CLAIM || process.env.CPAT_JWT_USERNAME_CLAIM || 'name',
             firstname: process.env.CPAT_JWT_FIRST_NAME_CLAIM || 'given_name',
             lastname: process.env.CPAT_JWT_LAST_NAME_CLAIM || 'family_name',
