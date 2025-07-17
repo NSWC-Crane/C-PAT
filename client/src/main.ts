@@ -9,7 +9,7 @@
 */
 
 import { APP_BASE_HREF } from '@angular/common';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { enableProdMode, importProvidersFrom } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
@@ -29,6 +29,10 @@ import { environment } from './environments/environment';
 if (environment.production) {
   enableProdMode();
 }
+
+const basePath = CPAT.Env.basePath || '';
+
+document.documentElement.style.setProperty('--app-base-path', basePath + '/');
 
 function parseScopes(scopeValue: string | string[] | undefined): string[] {
   if (typeof scopeValue === 'string') {
@@ -132,7 +136,7 @@ bootstrapApplication(AppComponent, {
       },
       withAppInitializerAuthCheck()
     ),
-    provideHttpClient(withInterceptors([authInterceptor, authErrorInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor, authErrorInterceptor])),
     MessageService,
     ConfirmationService
   ]
