@@ -43,7 +43,7 @@
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
-    "multer": "^2.0.1",
+    "multer": "^2.0.2",
     "mysql2": "^3.14.2",
     "net-keepalive": "^4.0.22",
     "ollama-ai-provider": "^1.2.0",
