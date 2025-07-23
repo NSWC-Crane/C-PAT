@@ -961,7 +961,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   async confirmSubmit() {
-    if (!await this.verifySubmitPoam(false)) {
+    if (!(await this.verifySubmitPoam(false))) {
       return;
     }
 
@@ -1015,7 +1015,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
     maxAllowedDate.setDate(currentDate.getDate() + daysToAdd);
 
-    if (this.dates.scheduledCompletionDate && this.dates.scheduledCompletionDate > maxAllowedDate) {
+    if (!(this.accessLevel() === 4) && this.dates.scheduledCompletionDate > maxAllowedDate) {
       this.dates.scheduledCompletionDate = maxAllowedDate;
       const formattedDate = maxAllowedDate.toLocaleDateString();
 
