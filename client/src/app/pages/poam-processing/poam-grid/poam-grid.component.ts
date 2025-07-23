@@ -140,6 +140,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
               complete: team.complete
             }))
           : [],
+        assignedTeamNames: poam.assignedTeams ? poam.assignedTeams.map((team: any) => team.assignedTeamName).join(', ') : '',
         labels: poam.labels ? poam.labels.map((label: any) => label.labelName) : [],
         associatedVulnerabilities: poam.associatedVulnerabilities
       };

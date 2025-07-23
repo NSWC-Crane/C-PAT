@@ -170,7 +170,7 @@ export class PoamAssignedGridComponent {
     }
 
     return transformedData.filter((row) => {
-      const searchableValues = [row.poamId, row.vulnerabilityId, row.status, row.adjSeverity, row.owner, ...row.assignedTeams.map((team) => team.name), ...row.labels].filter(Boolean); // Remove null/undefined values
+      const searchableValues = [row.poamId, row.vulnerabilityId, row.status, row.adjSeverity, row.owner, ...row.assignedTeams.map((team) => team.name), ...row.labels].filter(Boolean);
 
       return searchableValues.some((value) => value.toString().toLowerCase().includes(filterValue));
     });
