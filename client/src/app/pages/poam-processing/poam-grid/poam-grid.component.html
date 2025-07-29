@@ -208,19 +208,19 @@
               </div>
             </td>
             <td>
-              <div class="flex flex-wrap gap-2">
+              <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
                 @for (team of row.assignedTeams; track team) {
                 <p-tag [rounded]="true" [value]="team.name"
                   [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
                   [pTooltip]="
-                      team.complete === 'true'
-                        ? 'Team has fulfilled all POAM requirements'
-                        : team.complete === 'partial'
-                          ? 'Team has partially fulfilled POAM requirements'
-                          : team.complete === 'global'
-                            ? 'Global Finding - No Team Requirements'
-                            : 'Team has not fulfilled any POAM requirements'
-                    " tooltipPosition="top" [class.hidden]="!team.name" />
+          team.complete === 'true'
+            ? 'Team has fulfilled all POAM requirements'
+            : team.complete === 'partial'
+              ? 'Team has partially fulfilled POAM requirements'
+              : team.complete === 'global'
+                ? 'Global Finding - No Team Requirements'
+                : 'Team has not fulfilled any POAM requirements'
+        " tooltipPosition="top" [class.hidden]="!team.name" />
                 }
               </div>
             </td>
